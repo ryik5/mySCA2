@@ -74,7 +74,7 @@ namespace mySCA
         private void Form1Load()
         {
             myFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
-            strVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            strVersion = myFileVersionInfo.Comments + " ver." + myFileVersionInfo.FileVersion + " " + myFileVersionInfo.LegalCopyright;
             StatusLabel1.Text = myFileVersionInfo.ProductName + " ver." + myFileVersionInfo.FileVersion + " " + myFileVersionInfo.LegalCopyright;
             StatusLabel1.Alignment = ToolStripItemAlignment.Right;
 
@@ -155,6 +155,7 @@ namespace mySCA
                 else if (ShortFIO(sFIO).Length < 3 && iFIO > 0)
                 { StatusLabel2.Text = @"Всего ФИО: " + iFIO; }
             } catch { StatusLabel2.Text = " Начните работу с кнопки - \"Получить ФИО\""; }
+            
         }
 
 

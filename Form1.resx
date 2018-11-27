@@ -3503,7 +3503,7 @@
     <value>PersonViewerSCA</value>
   </data>
   <data name="$this.ToolTip" xml:space="preserve">
-    <value>Анализ данных регистрации персонала в СКД. Developed by Yuri Ryabchenko @2017</value>
+    <value>Анализ данных регистрации персонала в СКД. Developed by Yuri Ryabchenko @2017-2018</value>
   </data>
   <data name="&gt;&gt;toolTip1.Name" xml:space="preserve">
     <value>toolTip1</value>
