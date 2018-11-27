@@ -157,7 +157,7 @@ namespace mySCA2
                 else if (ShortFIO(sFIO).Length < 3 && iFIO > 0)
                 { StatusLabel2.Text = @"Всего ФИО: " + iFIO; }
             } catch { StatusLabel2.Text = " Начните работу с кнопки - \"Получить ФИО\""; }
-            
+
         }
 
 
@@ -317,7 +317,7 @@ namespace mySCA2
                                             sServer1UserName = DecryptBase64ToString(record["Reserv1"].ToString(), btsMess1, btsMess2);
                                             sServer1UserPassword = DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2);
                                         }
-                                     }
+                                    }
                                 } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
@@ -582,7 +582,7 @@ namespace mySCA2
             _MenuItemEnabled(QuickFilterItem, false);
             _MenuItemEnabled(ViewMenuItem, false);
 
-            if (sServer1.Length > 0 && sServer1UserName.Length > 0 && sServer1UserPassword.Length > 0 )
+            if (sServer1.Length > 0 && sServer1UserName.Length > 0 && sServer1UserPassword.Length > 0)
             {
                 Task.Run(() => _timer1Enabled(true));
                 _ProgressBar1Value0();
@@ -640,7 +640,7 @@ namespace mySCA2
                         }
                     }
                 }
-                                
+
                 _toolStripStatusLabel2AddText("Все списки с ФИО с серверов СКД успешно получены");
                 stimerPrev = "Все списки с ФИО с сервера СКД успешно получены";
             } catch (Exception Expt)
@@ -1531,7 +1531,7 @@ namespace mySCA2
                         }
                     }
                 }
-                
+
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
                     sqlConnection.Open();
@@ -1578,7 +1578,7 @@ namespace mySCA2
             _MenuItemEnabled(ViewMenuItem, false);
             _dataGridView1Enabled(false);
 
-            if (sServer1.Length > 0 && sServer1UserName.Length > 0 && sServer1UserPassword.Length > 0 )
+            if (sServer1.Length > 0 && sServer1UserName.Length > 0 && sServer1UserPassword.Length > 0)
             {
                 Task.Run(() => _timer1Enabled(true));
 
@@ -1699,7 +1699,7 @@ namespace mySCA2
                     foreach (var strRowWithNav in listFIO.ToArray())
                     {
                         if (strRowWithNav.Contains(personNAV) && personNAV.Length > 0 && strRowWithNav.Contains(sServer1))
-                            try { stringIdCardIntellect = Regex.Split(strRowWithNav, "[|]")[3].Trim(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }                        
+                            try { stringIdCardIntellect = Regex.Split(strRowWithNav, "[|]")[3].Trim(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                         _ProgressWork1();
                     }
 
@@ -1719,10 +1719,10 @@ namespace mySCA2
                             }
                         }
                     }
-                                        
+
                 }
 
-                if (stringIdCardIntellect.Length == 0  && personNAV.Length == 6)
+                if (stringIdCardIntellect.Length == 0 && personNAV.Length == 6)
                 {
                     string stringConnection = @"Data Source=" + sServer1 + @"\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + @";Password=" + sServer1UserPassword + @";Connect Timeout=240";
                     using (var sqlConnection = new SqlConnection(stringConnection))
@@ -1742,7 +1742,7 @@ namespace mySCA2
                                 }
                             }
                         }
-                    }                    
+                    }
                 }
 
                 if (personNAV.Length < 1 && personNAV.Length != 6)
@@ -1852,7 +1852,7 @@ namespace mySCA2
                                     {
                                     }
                             }
-                            
+
                             iCounterLine++;
                             sqlCommand.Parameters.Add("@FIO", DbType.String).Value = cellData[0];
                             sqlCommand.Parameters.Add("@NAV", DbType.String).Value = cellData[1];
@@ -2978,7 +2978,7 @@ namespace mySCA2
                                     try { d2 = record["DateRegistered"].ToString().Trim(); } catch { }
                                     try { d8 = record["Reserv1"].ToString().Trim(); } catch { }
                                     try { d9 = record["ServerOfRegistration"].ToString().Trim(); } catch { }
-                                    if (d0.Length > 3 )    //учитываем проходы только через СтопНЕТ
+                                    if (d0.Length > 3)    //учитываем проходы только через СтопНЕТ
                                         iLenghtRect += workSelectedDays.Count(t => t.Length == 10 && d2.Contains(t));
                                 }
                             }
@@ -3008,7 +3008,7 @@ namespace mySCA2
                                     if (d9.Length > 1) sServer = d9;
                                     if (d8.Length > 0) sPoint = d8;
 
-                                    if (d0.Length > 3 )   //учитываем проходы только через СтопНЕТ
+                                    if (d0.Length > 3)   //учитываем проходы только через СтопНЕТ
                                     {
                                         for (int k = 0; k < workSelectedDays.Length; k++)
                                         {
@@ -3650,13 +3650,13 @@ namespace mySCA2
                 Parent = groupBoxProperties
             };
             toolTip1.SetToolTip(textBoxServer1UserPassword, "Пароль администратора SQL-сервера \"Server1\"");
-                        
+
             textBoxServer1.BringToFront();
             textBoxServer1UserName.BringToFront();
             textBoxServer1UserPassword.BringToFront();
             labelServer1UserName.BringToFront();
             labelServer1UserPassword.BringToFront();
-            
+
             groupBoxProperties.Visible = true;
         }
 
@@ -3666,7 +3666,7 @@ namespace mySCA2
             sServer1UserName = textBoxServer1UserName.Text.Trim();
             sServer1UserPassword = textBoxServer1UserPassword.Text.Trim();
 
-            if (sServer1.Length > 0 && sServer1UserName.Length > 0 && sServer1UserPassword.Length > 0 )
+            if (sServer1.Length > 0 && sServer1UserName.Length > 0 && sServer1UserPassword.Length > 0)
             {
                 groupBoxProperties.Visible = false;
 
@@ -4044,8 +4044,9 @@ namespace mySCA2
 
                     //strSavedPathToInvoice = (string)EvUserKey.GetValue("PathToLastInvoice");
                 }
-            } catch (Exception exct) {
-               // textBoxLog.AppendText("\n" + exct.ToString() + "\n");
+            } catch (Exception exct)
+            {
+                // textBoxLog.AppendText("\n" + exct.ToString() + "\n");
             }
         }
 
@@ -4053,18 +4054,15 @@ namespace mySCA2
         {
             List<string> listServices = new List<string>(); bool foundSavedData;
 
-            if (listServices != null && listServices.Count > 0)
+            try
             {
-                try
+                using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(myRegKey))
                 {
-                    using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(myRegKey))
-                    {
-                        EvUserKey.SetValue("ListServices", listServices.ToArray(),
-                            Microsoft.Win32.RegistryValueKind.MultiString);
-                    }
-                    foundSavedData = true;
-                } catch { MessageBox.Show("Ошибки с доступом для записи списка сервисов в реестр. Данные сохранены не корректно."); }
-            }
+                    EvUserKey.SetValue("ListServices", listServices.ToArray(),
+                        Microsoft.Win32.RegistryValueKind.MultiString);
+                }
+                foundSavedData = true;
+            } catch { MessageBox.Show("Ошибки с доступом для записи списка сервисов в реестр. Данные сохранены не корректно."); }
         }
 
         public void ListNumbersRegistrySave() //Save inputed Credintials and Parameters into Registry and variables
@@ -4085,19 +4083,18 @@ namespace mySCA2
 
         public void PathToLastInvoiceRegistrySave() //Save Parameters into Registry and variables
         {
-            string filepathLoadedData=""; bool foundSavedData;
-            if (filepathLoadedData != null && filepathLoadedData.Length > 0)
+            string filepathLoadedData = ""; bool foundSavedData;
+
+            try
             {
-                try
+                using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(myRegKey))
                 {
-                    using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(myRegKey))
-                    {
-                        EvUserKey.SetValue("PathToLastInvoice", filepathLoadedData,
-                            Microsoft.Win32.RegistryValueKind.String);
-                    }
-                    foundSavedData = true;
-                } catch { MessageBox.Show("Ошибки с доступом для записи пути к счету. Данные сохранены не корректно."); }
-            }
+                    EvUserKey.SetValue("PathToLastInvoice", filepathLoadedData,
+                        Microsoft.Win32.RegistryValueKind.String);
+                }
+                foundSavedData = true;
+            } catch { MessageBox.Show("Ошибки с доступом для записи пути к счету. Данные сохранены не корректно."); }
+
         }
 
 
