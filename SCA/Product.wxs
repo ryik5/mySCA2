@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+<?define ProductName="PersonRegistration Viewer at SCA" ?>
+<?define ProductVersion="2.15.1.7" ?>
+<?define Description="Viewer of person's checkpoints registration on SCA" ?>
+  <!--?define SolutionName="PersonViewerSCA" ?-->
+<?define Keywords="Installer SCA checkpoint Registration RYIK" ?>
+<?define Manufacturer="RYIK"?>
+<?define ProductCode="6C84406F-DC6A-4BB4-9716-1B56D6313C43"?>
+<?define UpgradeCode="68708D7E-5403-4128-B584-549EAD60622C"?>
+  
+<Product Id="*" Name="$(var.ProductName)" Version="$(var.ProductVersion)" Manufacturer="$(var.Manufacturer)" Language="1049" Codepage="1251" UpgradeCode="$(var.UpgradeCode)"> 
+      <!-- or InstallScope="perMachine" -->
+		<Package InstallerVersion="200" Compressed="yes" InstallScope="perUser" InstallPrivileges="limited" Platforms="Intel" 
+             Manufacturer="$(var.Manufacturer)" SummaryCodepage="1251" Description="$(var.ProductName)" AdminImage="no" 
+             Comments="$(var.Description)" Keywords="$(var.Keywords)" ShortNames="yes" />
+      
+      <Media Id="1" Cabinet="product.cab" EmbedCab="yes" CompressionLevel="high" />
+      <Icon Id="ApplicationIcon" SourceFile="..\bin\Release\ryik.ico" />
+      <Property Id="ARPPRODUCTICON" Value="ApplicationIcon" />
+      <Property Id='ARPNOREPAIR' Value='1'/>
+
+		 <Feature Id="ProductFeature" Title="$(var.ProductName)" Level="1"
+              Description="$(var.Description)" ConfigurableDirectory="$(var.Manufacturer)">
+			  <ComponentGroupRef Id="ProductComponents" />
+        <ComponentRef Id="ApplicationShortcutDesktop" />
+        <ComponentRef Id="ApplicationUserAppFolder" />
+        <ComponentRef Id="ShortcutProgramsFolderApp" />
+        <ComponentRef Id="ShortcutProgramsFolderAppMenuFolder" />
+        <ComponentRef Id="ProductComponentx86" />
+        <ComponentRef Id="ProductComponentx64" />
+     <!--
+        <ComponentRef Id="AppDataFolder" />
+        <ComponentRef Id="INSTALLDIR" />
+        <ComponentRef Id="RYIK" />
+      -->
+     </Feature>
+      
+	    <InstallExecuteSequence>
+         <RemoveExistingProducts After="InstallValidate" />
+      </InstallExecuteSequence>
+
+		<Directory Id="TARGETDIR" Name="SourceDir">
+
+			 <Directory Id="LocalAppDataFolder" Name="AppData">  <!--or Id='ApplicationDataFolder' -->
+				 <Directory Id="RYIK" Name="RYIK">                    <!-- Create Folder 'RYIK'-->
+           
+           <Component Id="ApplicationUserAppFolder" Guid="*">
+                <RegistryValue Root="HKCU" Key="Software\$(var.Manufacturer)\$(var.SolutionName)" 
+                               Name="Appinstalled" Type="integer" Value="1" KeyPath="yes" />
+                <RemoveFile Id="CleanRYIK" Name="*" On="both" />   
+                <RemoveFolder Id="RemoveRYIK" On="both" />
+                <RemoveFolder Id="CleanupRYIK" On="both" />        
+           </Component>
+           
+           <Directory Id="ProductComponents" Name="$(var.SolutionName)" > <!-- Create Folder '$(var.SolutionName)'-->
+             <Directory Id="ProductComponentx86" Name="x86"> <!-- Create Folder 'x86'-->
+                   <Component Id="ProductComponentx86" Guid="F958E5C0-8774-48A1-98A6-D6E41058832E">
+                   <CreateFolder />
+                   <File Id="SQLite.Interop.x86.dll" Name="SQLite.Interop.dll" 
+                         Source="..\bin\Release\x86\SQLite.Interop.dll" />
+                   <RemoveFile Id="SQLite.Interop.x86.dll" Name="SQLite.Interop.dll" On="uninstall" />
+                   <RemoveFolder Id="ProductComponentx86" On="uninstall" />
+                   <RegistryValue Root="HKCU" Key="Software\$(var.Manufacturer)\$(var.SolutionName)" 
+                                  Name="ProductComponentx86installed" Type="integer" Value="1" KeyPath="yes" />
+                   </Component>
+             </Directory>       
+             
+             <Directory Id="ProductComponentx64" Name="x64">
+                   <Component Id="ProductComponentx64" Guid="AC903989-6721-4879-A3EF-361D7A3C829A">
+                   <CreateFolder />
+                   <File Id="SQLite.Interop.x64.dll" Name="SQLite.Interop.dll" 
+                         Source="..\bin\Release\x64\SQLite.Interop.dll" />
+                   <RemoveFile Id="SQLite.Interop.x64.dll" Name="SQLite.Interop.dll" On="uninstall" />
+                   <RemoveFolder Id="ProductComponentx64" On="uninstall" />
+                   <RegistryValue Root="HKCU" Key="Software\$(var.Manufacturer)\$(var.SolutionName)" 
+                                  Name="ProductComponentx64installed" Type="integer" Value="1" KeyPath="yes" />
+                   </Component>
+             </Directory>
+           
+ 			     </Directory>
+         
+			   </Directory>
+      </Directory> 
+      
+         <Directory Id="DesktopFolder">
+              <Component Id="ApplicationShortcutDesktop" Guid="*">
+              <Shortcut Id="ApplicationDesktopShortcut" Name="$(var.ProductName)" 
+                        Description="$(var.Description)" Target="[ProductComponents]PersonSCA.exe" 
+                WorkingDirectory="ProductComponents" />
+              <RemoveFolder Id="DesktopFolder" On="uninstall" />
+              <RegistryValue Root="HKCU" Key="Software\$(var.Manufacturer)\$(var.SolutionName)" 
+                             Name="Desktopinstalled" Type="integer" Value="1" KeyPath="yes" />
+              </Component>
+         </Directory>  
+
+         <Directory Id="ProgramMenuFolder">
+           <Directory Id="ApplicationProgramsFolder">
+             <Component Id="ShortcutProgramsFolderApp" Guid="*">
+                <Shortcut Id="ShortcutProgramsFolderApp" Name="$(var.ProductName)" 
+                          Description="$(var.Description)" Target="[ProductComponents]PersonSCA.exe" 
+               WorkingDirectory="ProductComponents" />
+                <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
+                <RegistryValue Root="HKCU" Key="Software\$(var.Manufacturer)\$(var.SolutionName)" 
+                               Name="Menuinstalled" Type="integer" Value="1" KeyPath="yes" />
+             </Component>
+
+             <Directory Id="RYIKProgrammMenuFolder" Name="RYIK">
+               <Component Id="ShortcutProgramsFolderAppMenuFolder" Guid="*">
+                  <Shortcut Id="ShortcutProgramsFolderAppMenuFolder" Name="$(var.ProductName)" 
+                            Description="$(var.Description)" Target="[ProductComponents]PersonSCA.exe" 
+                 WorkingDirectory="ProductComponents" />
+                  <RemoveFolder Id="RYIKProgrammMenuFolder" On="uninstall" />
+                  <RegistryValue Root="HKCU" Key="Software\$(var.Manufacturer)\$(var.SolutionName)" 
+                                 Name="FolderMenuinstalled" Type="integer" Value="1" KeyPath="yes" />
+               </Component>
+             </Directory>
+           </Directory>
+         </Directory>     
+  
+            <!--Id='ApplicationDataFolder' 
+      <Directory Id="AppDataFolder">  
+        <Directory Id="MyAppFolder" Name="My">
+          <Component Id="MyComponent">
+              <File Source="Files\test1.txt" />
+          </Component>
+        </Directory>
+      </Directory>
+      
+      <Directory Id="ProgramFilesFolder">
+          <Directory Id="INSTALLDIR" Name="RYIK" LongName="RYIK">
+              <Directory Id="ProxyAls" Name="ProxyAls" LongName="Proxy Analyser 2">
+              </Directory>
+          </Directory>
+      </Directory>
+      
+      <Directory Id="WindowsFolder">
+               <Directory Id="MyFolder" Name="MyFolder"/>
+      </Directory>
+-->
+  
+    </Directory>
+        
+      <ComponentGroup Id="ProductComponents" Directory="ProductComponents">
+        <Component Id="ProductComponent" Guid="839D195C-81DD-4159-B1CC-4064EE2187F9" DiskId="1" Location="source">     
+          <CreateFolder />
+          <File Id="PersonSCA" Name="PersonSCA.exe" Source="..\bin\Release\PersonSCA.exe" /> 
+          <RegistryValue Root="HKCU" Key="Software\$(var.Manufacturer)\$(var.SolutionName)" 
+                         Name="PersonSCAinstalled" Type="integer" Value="1" KeyPath="yes" />
+          <RemoveFile Id="PersonSCA" Name="PersonSCA.exe" On="uninstall" />   
+          <RemoveFile Id="RemoveProductComponent" Name="*" On="both" />   
+          <RemoveFolder Id="ProductComponents" Directory="ProductComponents" On="both" />        
+          <RemoveFolder Id="ProductComponent" On="both" />        
+          <RemoveFile Id="CleanProductComponents" Name="*" On="both" />   
+          <RemoveFolder Id="CleanupProductComponents" On="both" />            
+        </Component>
+     	</ComponentGroup>      
+
+   <Property Id="WIXUI_INSTALLDIR" Value="RYIKProgrammMenuFolder" ></Property>
+    <UIRef Id="WixUI_InstallDir"/>
+    <WixVariable Id="WixUILicenseRtf" Overridable="yes" Value="License.rtf"/>
+    <!-- <UIRef Id="WixUI_Wizard"/> -->
+  </Product>
+
+</Wix>
