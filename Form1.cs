@@ -21,6 +21,8 @@ namespace mySCA
     public partial class FormPersonViewerSCA :Form
     {
         private System.Diagnostics.FileVersionInfo myFileVersionInfo;
+        private string myRegKey = @"SOFTWARE\RYIK\SCA2";
+
         private string strVersion;
         private ContextMenu contextMenu1;
         private bool buttonAboutForm;
@@ -3999,6 +4001,106 @@ namespace mySCA
         {
 
         }
+
+        /// <summary>
+        /// /////////////////////Registry  -   TODO
+        /// </summary>
+
+        public void ListsRegistryDataCheck() //Read previously Saved Parameters from Registry
+        {
+            List<string> lstSavedServices = new List<string>();
+            List<string> lstSavedNumbers = new List<string>();
+            bool foundSavedData;
+            string[] getValue;
+
+            try
+            {
+                using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
+                      myRegKey,
+                      Microsoft.Win32.RegistryKeyPermissionCheck.ReadSubTree,
+                      System.Security.AccessControl.RegistryRights.ReadKey))
+                {
+                    getValue = (string[])EvUserKey.GetValue("ListServices");
+
+                    try
+                    {
+                        foreach (string line in getValue)
+                        {
+                            lstSavedServices.Add(line);
+                        }
+                        foundSavedData = true;
+                    } catch { }
+
+                    getValue = (string[])EvUserKey.GetValue("ListNumbers");
+
+                    try
+                    {
+                        foreach (string line in getValue)
+                        {
+                            lstSavedNumbers.Add(line);
+                        }
+                        foundSavedData = true;
+                    } catch { }
+
+                    //strSavedPathToInvoice = (string)EvUserKey.GetValue("PathToLastInvoice");
+                }
+            } catch (Exception exct) {
+               // textBoxLog.AppendText("\n" + exct.ToString() + "\n");
+            }
+        }
+
+        public void ListServicesRegistrySave() //Save Parameters into Registry and variables
+        {
+            List<string> listServices = new List<string>(); bool foundSavedData;
+
+            if (listServices != null && listServices.Count > 0)
+            {
+                try
+                {
+                    using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(myRegKey))
+                    {
+                        EvUserKey.SetValue("ListServices", listServices.ToArray(),
+                            Microsoft.Win32.RegistryValueKind.MultiString);
+                    }
+                    foundSavedData = true;
+                } catch { MessageBox.Show("Ошибки с доступом для записи списка сервисов в реестр. Данные сохранены не корректно."); }
+            }
+        }
+
+        public void ListNumbersRegistrySave() //Save inputed Credintials and Parameters into Registry and variables
+        {
+            List<string> listNumbers = new List<string>(); bool foundSavedData;
+
+            try
+            {
+                using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(myRegKey))
+                {
+                    EvUserKey.SetValue("ListNumbers", listNumbers.ToArray(),
+                        Microsoft.Win32.RegistryValueKind.MultiString);
+                }
+                foundSavedData = true;
+            } catch { MessageBox.Show("Ошибки с доступом для записи списка номеров в реестр. Данные сохранены не корректно."); }
+        }
+
+
+        public void PathToLastInvoiceRegistrySave() //Save Parameters into Registry and variables
+        {
+            string filepathLoadedData=""; bool foundSavedData;
+            if (filepathLoadedData != null && filepathLoadedData.Length > 0)
+            {
+                try
+                {
+                    using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(myRegKey))
+                    {
+                        EvUserKey.SetValue("PathToLastInvoice", filepathLoadedData,
+                            Microsoft.Win32.RegistryValueKind.String);
+                    }
+                    foundSavedData = true;
+                } catch { MessageBox.Show("Ошибки с доступом для записи пути к счету. Данные сохранены не корректно."); }
+            }
+        }
+
+
     }
 
     public class EncryptDecrypt
