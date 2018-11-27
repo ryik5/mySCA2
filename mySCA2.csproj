@@ -59,7 +59,7 @@
     <FileAlignment>1024</FileAlignment>
   </PropertyGroup>
   <PropertyGroup>
-    <RootNamespace>mySCA</RootNamespace>
+    <RootNamespace>mySCA2</RootNamespace>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Resources\RYIK.ico</ApplicationIcon>

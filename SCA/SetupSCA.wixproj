@@ -38,8 +38,8 @@
     </WixExtension>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\mySCA\mySCA.csproj">
-      <Name>mySCA</Name>
+    <ProjectReference Include="..\..\mySCA2\mySCA2.csproj">
+      <Name>mySCA2</Name>
       <Project>{6c84406f-dc6a-4bb4-9716-1b56d6313c43}</Project>
       <Private>True</Private>
       <DoNotHarvest>True</DoNotHarvest>

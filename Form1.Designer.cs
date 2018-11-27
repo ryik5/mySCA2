@@ -1,4 +1,4 @@
-﻿namespace mySCA
+﻿namespace mySCA2
 {
     partial class FormPersonViewerSCA
     {

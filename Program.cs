@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace mySCA
+namespace mySCA2
 {
     static class Program
     {
