@@ -59,16 +59,7 @@
             this.menuStrip = new System.Windows.Forms.MenuStrip();
             this.FunctionMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.GetFioItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.ExitItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.GroupsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.PersonOrGroupItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.CreateGroupItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.AddPersonToGroupItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.ListGroupItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.MembersGroupItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.DeleteGroupItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.DeletePersonFromGroupItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.ViewMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.QuickLoadDataItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ExportIntoExcelItem = new System.Windows.Forms.ToolStripMenuItem();
             this.VisualItem = new System.Windows.Forms.ToolStripMenuItem();
             this.VisualWorkedTimeItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -79,6 +70,16 @@
             this.YellowItem = new System.Windows.Forms.ToolStripMenuItem();
             this.GreenItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ReportsItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ExitItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.GroupsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.PersonOrGroupItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.CreateGroupItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.AddPersonToGroupItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ListGroupItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.MembersGroupItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.DeleteGroupItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.DeletePersonFromGroupItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.importPeopleInLocalDBToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.AnualDatesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.EnterEditAnualItem = new System.Windows.Forms.ToolStripMenuItem();
             this.AddAnualDateItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -91,8 +92,6 @@
             this.ClearDataItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ClearAllItem = new System.Windows.Forms.ToolStripMenuItem();
             this.TestCryptionItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.QuickLoadDataItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.QuickFilterItem = new System.Windows.Forms.ToolStripMenuItem();
             this.UpdateControllingItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpAboutItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -195,7 +194,7 @@
             this.checkBoxReEnter.Name = "checkBoxReEnter";
             this.toolTip1.SetToolTip(this.checkBoxReEnter, resources.GetString("checkBoxReEnter.ToolTip"));
             this.checkBoxReEnter.UseVisualStyleBackColor = true;
-            this.checkBoxReEnter.CheckStateChanged += new System.EventHandler(this.checkBoxReEnter_CheckStateChanged);
+            this.checkBoxReEnter.CheckStateChanged += new System.EventHandler(this.checkBox_CheckStateChanged);
             // 
             // checkBoxStartWorkInTime
             // 
@@ -203,7 +202,7 @@
             this.checkBoxStartWorkInTime.Name = "checkBoxStartWorkInTime";
             this.toolTip1.SetToolTip(this.checkBoxStartWorkInTime, resources.GetString("checkBoxStartWorkInTime.ToolTip"));
             this.checkBoxStartWorkInTime.UseVisualStyleBackColor = true;
-            this.checkBoxStartWorkInTime.CheckStateChanged += new System.EventHandler(this.checkBoxStartWorkInTime_CheckStateChanged);
+            this.checkBoxStartWorkInTime.CheckStateChanged += new System.EventHandler(this.checkBox_CheckStateChanged);
             // 
             // checkBoxCelebrate
             // 
@@ -211,7 +210,7 @@
             this.checkBoxCelebrate.Name = "checkBoxCelebrate";
             this.toolTip1.SetToolTip(this.checkBoxCelebrate, resources.GetString("checkBoxCelebrate.ToolTip"));
             this.checkBoxCelebrate.UseVisualStyleBackColor = true;
-            this.checkBoxCelebrate.CheckStateChanged += new System.EventHandler(this.checkBoxCelebrate_CheckStateChanged);
+            this.checkBoxCelebrate.CheckStateChanged += new System.EventHandler(this.checkBox_CheckStateChanged);
             // 
             // checkBoxWeekend
             // 
@@ -219,7 +218,7 @@
             this.checkBoxWeekend.Name = "checkBoxWeekend";
             this.toolTip1.SetToolTip(this.checkBoxWeekend, resources.GetString("checkBoxWeekend.ToolTip"));
             this.checkBoxWeekend.UseVisualStyleBackColor = true;
-            this.checkBoxWeekend.CheckStateChanged += new System.EventHandler(this.checkBoxWeekend_CheckStateChanged);
+            this.checkBoxWeekend.CheckStateChanged += new System.EventHandler(this.checkBox_CheckStateChanged);
             // 
             // statusStrip
             // 
@@ -280,6 +279,7 @@
             resources.ApplyResources(this.textBoxGroupDescription, "textBoxGroupDescription");
             this.textBoxGroupDescription.Name = "textBoxGroupDescription";
             this.toolTip1.SetToolTip(this.textBoxGroupDescription, resources.GetString("textBoxGroupDescription.ToolTip"));
+            this.textBoxGroupDescription.TextChanged += new System.EventHandler(this.textBoxGroupDescription_TextChanged);
             // 
             // textBoxFIO
             // 
@@ -321,11 +321,8 @@
             this.menuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.FunctionMenuItem,
             this.GroupsMenuItem,
-            this.ViewMenuItem,
             this.AnualDatesMenuItem,
             this.QuickSettingsItem,
-            this.QuickLoadDataItem,
-            this.QuickFilterItem,
             this.UpdateControllingItem,
             this.HelpMenuItem});
             resources.ApplyResources(this.menuStrip, "menuStrip");
@@ -335,6 +332,12 @@
             // 
             this.FunctionMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.GetFioItem,
+            this.QuickLoadDataItem,
+            this.ExportIntoExcelItem,
+            this.VisualItem,
+            this.VisualWorkedTimeItem,
+            this.SelectColorMenuItem,
+            this.ReportsItem,
             this.ExitItem});
             this.FunctionMenuItem.Name = "FunctionMenuItem";
             resources.ApplyResources(this.FunctionMenuItem, "FunctionMenuItem");
@@ -343,86 +346,19 @@
             // 
             this.GetFioItem.Name = "GetFioItem";
             resources.ApplyResources(this.GetFioItem, "GetFioItem");
-            this.GetFioItem.Click += new System.EventHandler(this.buttonGetFio_Click);
+            this.GetFioItem.Click += new System.EventHandler(this.GetFio_Click);
             // 
-            // ExitItem
+            // QuickLoadDataItem
             // 
-            this.ExitItem.Name = "ExitItem";
-            resources.ApplyResources(this.ExitItem, "ExitItem");
-            this.ExitItem.Click += new System.EventHandler(this.ApplicationExit);
-            // 
-            // GroupsMenuItem
-            // 
-            this.GroupsMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.PersonOrGroupItem,
-            this.CreateGroupItem,
-            this.AddPersonToGroupItem,
-            this.ListGroupItem,
-            this.MembersGroupItem,
-            this.DeleteGroupItem,
-            this.DeletePersonFromGroupItem});
-            this.GroupsMenuItem.Name = "GroupsMenuItem";
-            resources.ApplyResources(this.GroupsMenuItem, "GroupsMenuItem");
-            // 
-            // PersonOrGroupItem
-            // 
-            this.PersonOrGroupItem.Name = "PersonOrGroupItem";
-            resources.ApplyResources(this.PersonOrGroupItem, "PersonOrGroupItem");
-            this.PersonOrGroupItem.Click += new System.EventHandler(this.PersonOrGroupItem_Click);
-            // 
-            // CreateGroupItem
-            // 
-            this.CreateGroupItem.Name = "CreateGroupItem";
-            resources.ApplyResources(this.CreateGroupItem, "CreateGroupItem");
-            this.CreateGroupItem.Click += new System.EventHandler(this.CreateGroupItem_Click);
-            // 
-            // AddPersonToGroupItem
-            // 
-            this.AddPersonToGroupItem.Name = "AddPersonToGroupItem";
-            resources.ApplyResources(this.AddPersonToGroupItem, "AddPersonToGroupItem");
-            this.AddPersonToGroupItem.Click += new System.EventHandler(this.AddPersonToGroupItem_Click);
-            // 
-            // ListGroupItem
-            // 
-            this.ListGroupItem.Name = "ListGroupItem";
-            resources.ApplyResources(this.ListGroupItem, "ListGroupItem");
-            this.ListGroupItem.Click += new System.EventHandler(this.ListGroupItem_Click);
-            // 
-            // MembersGroupItem
-            // 
-            this.MembersGroupItem.Name = "MembersGroupItem";
-            resources.ApplyResources(this.MembersGroupItem, "MembersGroupItem");
-            this.MembersGroupItem.Click += new System.EventHandler(this.MembersGroupItem_Click);
-            // 
-            // DeleteGroupItem
-            // 
-            this.DeleteGroupItem.Name = "DeleteGroupItem";
-            resources.ApplyResources(this.DeleteGroupItem, "DeleteGroupItem");
-            this.DeleteGroupItem.Click += new System.EventHandler(this.DeleteGroupItem_Click);
-            // 
-            // DeletePersonFromGroupItem
-            // 
-            this.DeletePersonFromGroupItem.Name = "DeletePersonFromGroupItem";
-            resources.ApplyResources(this.DeletePersonFromGroupItem, "DeletePersonFromGroupItem");
-            this.DeletePersonFromGroupItem.Click += new System.EventHandler(this.DeletePersonFromGroupItem_Click);
-            // 
-            // ViewMenuItem
-            // 
-            this.ViewMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.ExportIntoExcelItem,
-            this.VisualItem,
-            this.VisualWorkedTimeItem,
-            this.SelectColorMenuItem,
-            this.ReportsItem});
-            this.ViewMenuItem.Name = "ViewMenuItem";
-            resources.ApplyResources(this.ViewMenuItem, "ViewMenuItem");
-            this.ViewMenuItem.Click += new System.EventHandler(this.ViewMenuItem_Click);
+            this.QuickLoadDataItem.Name = "QuickLoadDataItem";
+            resources.ApplyResources(this.QuickLoadDataItem, "QuickLoadDataItem");
+            this.QuickLoadDataItem.Click += new System.EventHandler(this.GetDataItem_Click);
             // 
             // ExportIntoExcelItem
             // 
             this.ExportIntoExcelItem.Name = "ExportIntoExcelItem";
             resources.ApplyResources(this.ExportIntoExcelItem, "ExportIntoExcelItem");
-            this.ExportIntoExcelItem.Click += new System.EventHandler(this.buttonExport_Click);
+            this.ExportIntoExcelItem.Click += new System.EventHandler(this.Export_Click);
             // 
             // VisualItem
             // 
@@ -482,6 +418,76 @@
             this.ReportsItem.Name = "ReportsItem";
             resources.ApplyResources(this.ReportsItem, "ReportsItem");
             this.ReportsItem.Click += new System.EventHandler(this.ReportsItem_Click);
+            // 
+            // ExitItem
+            // 
+            this.ExitItem.Name = "ExitItem";
+            resources.ApplyResources(this.ExitItem, "ExitItem");
+            this.ExitItem.Click += new System.EventHandler(this.ApplicationExit);
+            // 
+            // GroupsMenuItem
+            // 
+            this.GroupsMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.PersonOrGroupItem,
+            this.CreateGroupItem,
+            this.AddPersonToGroupItem,
+            this.ListGroupItem,
+            this.MembersGroupItem,
+            this.DeleteGroupItem,
+            this.DeletePersonFromGroupItem,
+            this.importPeopleInLocalDBToolStripMenuItem});
+            this.GroupsMenuItem.Name = "GroupsMenuItem";
+            resources.ApplyResources(this.GroupsMenuItem, "GroupsMenuItem");
+            // 
+            // PersonOrGroupItem
+            // 
+            this.PersonOrGroupItem.Name = "PersonOrGroupItem";
+            resources.ApplyResources(this.PersonOrGroupItem, "PersonOrGroupItem");
+            this.PersonOrGroupItem.Click += new System.EventHandler(this.PersonOrGroupItem_Click);
+            // 
+            // CreateGroupItem
+            // 
+            this.CreateGroupItem.Name = "CreateGroupItem";
+            resources.ApplyResources(this.CreateGroupItem, "CreateGroupItem");
+            this.CreateGroupItem.Click += new System.EventHandler(this.CreateGroupItem_Click);
+            this.CreateGroupItem.MouseLeave += new System.EventHandler(this.CreateGroupItem_MouseLeave);
+            this.CreateGroupItem.MouseHover += new System.EventHandler(this.CreateGroupItem_MouseHover);
+            // 
+            // AddPersonToGroupItem
+            // 
+            this.AddPersonToGroupItem.Name = "AddPersonToGroupItem";
+            resources.ApplyResources(this.AddPersonToGroupItem, "AddPersonToGroupItem");
+            this.AddPersonToGroupItem.Click += new System.EventHandler(this.AddPersonToGroupItem_Click);
+            // 
+            // ListGroupItem
+            // 
+            this.ListGroupItem.Name = "ListGroupItem";
+            resources.ApplyResources(this.ListGroupItem, "ListGroupItem");
+            this.ListGroupItem.Click += new System.EventHandler(this.ListGroupItem_Click);
+            // 
+            // MembersGroupItem
+            // 
+            this.MembersGroupItem.Name = "MembersGroupItem";
+            resources.ApplyResources(this.MembersGroupItem, "MembersGroupItem");
+            this.MembersGroupItem.Click += new System.EventHandler(this.MembersGroupItem_Click);
+            // 
+            // DeleteGroupItem
+            // 
+            this.DeleteGroupItem.Name = "DeleteGroupItem";
+            resources.ApplyResources(this.DeleteGroupItem, "DeleteGroupItem");
+            this.DeleteGroupItem.Click += new System.EventHandler(this.DeleteGroupItem_Click);
+            // 
+            // DeletePersonFromGroupItem
+            // 
+            this.DeletePersonFromGroupItem.Name = "DeletePersonFromGroupItem";
+            resources.ApplyResources(this.DeletePersonFromGroupItem, "DeletePersonFromGroupItem");
+            this.DeletePersonFromGroupItem.Click += new System.EventHandler(this.DeletePersonFromGroupItem_Click);
+            // 
+            // importPeopleInLocalDBToolStripMenuItem
+            // 
+            this.importPeopleInLocalDBToolStripMenuItem.Name = "importPeopleInLocalDBToolStripMenuItem";
+            resources.ApplyResources(this.importPeopleInLocalDBToolStripMenuItem, "importPeopleInLocalDBToolStripMenuItem");
+            this.importPeopleInLocalDBToolStripMenuItem.Click += new System.EventHandler(this.importPeopleInLocalDBToolStripMenuItem_Click);
             // 
             // AnualDatesMenuItem
             // 
@@ -563,18 +569,6 @@
             this.TestCryptionItem.Name = "TestCryptionItem";
             resources.ApplyResources(this.TestCryptionItem, "TestCryptionItem");
             this.TestCryptionItem.Click += new System.EventHandler(this.TestCryptionItem_Click);
-            // 
-            // QuickLoadDataItem
-            // 
-            this.QuickLoadDataItem.Name = "QuickLoadDataItem";
-            resources.ApplyResources(this.QuickLoadDataItem, "QuickLoadDataItem");
-            this.QuickLoadDataItem.Click += new System.EventHandler(this.GetDataItem_Click);
-            // 
-            // QuickFilterItem
-            // 
-            this.QuickFilterItem.Name = "QuickFilterItem";
-            resources.ApplyResources(this.QuickFilterItem, "QuickFilterItem");
-            this.QuickFilterItem.Click += new System.EventHandler(this.FilterItem_Click);
             // 
             // UpdateControllingItem
             // 
@@ -755,8 +749,6 @@
         private System.Windows.Forms.ToolStripMenuItem GetFioItem;
         private System.Windows.Forms.ToolStripMenuItem GroupsMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ListGroupItem;
-        private System.Windows.Forms.ToolStripMenuItem ViewMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem ExportIntoExcelItem;
         private System.Windows.Forms.ToolStripMenuItem CreateGroupItem;
         private System.Windows.Forms.ToolStripMenuItem DeleteGroupItem;
         private System.Windows.Forms.TextBox textBoxGroup;
@@ -774,8 +766,6 @@
         private System.Windows.Forms.ToolStripMenuItem EnterEditAnualItem;
         private System.Windows.Forms.ToolStripMenuItem AddAnualDateItem;
         private System.Windows.Forms.ToolStripMenuItem DeleteAnualDateItem;
-        private System.Windows.Forms.ToolStripMenuItem QuickLoadDataItem;
-        private System.Windows.Forms.ToolStripMenuItem QuickFilterItem;
         private System.Windows.Forms.ToolStripMenuItem QuickSettingsItem;
         private System.Windows.Forms.ToolStripMenuItem SettingsEquipmentItem;
         private System.Windows.Forms.ToolStripMenuItem SettingsProgrammItem;
@@ -785,16 +775,7 @@
         private System.Windows.Forms.ToolStripMenuItem ClearReportItem;
         private System.Windows.Forms.ToolStripMenuItem ClearDataItem;
         private System.Windows.Forms.ToolStripMenuItem ClearAllItem;
-        private System.Windows.Forms.ToolStripMenuItem VisualItem;
-        private System.Windows.Forms.ToolStripMenuItem ReportsItem;
         private System.Windows.Forms.Panel panelView;
-        private System.Windows.Forms.ToolStripMenuItem VisualWorkedTimeItem;
-        private System.Windows.Forms.ToolStripMenuItem SelectColorMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem ColorRegistrationMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem BlueItem;
-        private System.Windows.Forms.ToolStripMenuItem RedItem;
-        private System.Windows.Forms.ToolStripMenuItem GreenItem;
-        private System.Windows.Forms.ToolStripMenuItem YellowItem;
         private System.Windows.Forms.GroupBox groupBoxProperties;
         private System.Windows.Forms.Button buttonPropertiesSave;
         private System.Windows.Forms.ToolStripMenuItem TestCryptionItem;
@@ -802,6 +783,18 @@
         private System.Windows.Forms.ToolStripMenuItem PersonOrGroupItem;
         private System.Windows.Forms.ToolStripMenuItem SetupItem;
         private System.Windows.Forms.ToolStripMenuItem UpdateControllingItem;
+        private System.Windows.Forms.ToolStripMenuItem QuickLoadDataItem;
+        private System.Windows.Forms.ToolStripMenuItem ExportIntoExcelItem;
+        private System.Windows.Forms.ToolStripMenuItem VisualItem;
+        private System.Windows.Forms.ToolStripMenuItem VisualWorkedTimeItem;
+        private System.Windows.Forms.ToolStripMenuItem SelectColorMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ColorRegistrationMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ReportsItem;
+        private System.Windows.Forms.ToolStripMenuItem BlueItem;
+        private System.Windows.Forms.ToolStripMenuItem RedItem;
+        private System.Windows.Forms.ToolStripMenuItem YellowItem;
+        private System.Windows.Forms.ToolStripMenuItem GreenItem;
+        private System.Windows.Forms.ToolStripMenuItem importPeopleInLocalDBToolStripMenuItem;
     }
 }
 

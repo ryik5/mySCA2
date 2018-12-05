@@ -66,6 +66,21 @@ namespace mySCA2
         private string sServer1UserPassword = "";
         private readonly byte[] btsMess1 = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
         private readonly byte[] btsMess2 = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
+        
+        private OpenFileDialog openFileDialog1;
+
+        private DataTable dtPeople = new DataTable("People");
+        private DataColumn[] dcPeople ={
+                                  new DataColumn("ФИО сотрудника",typeof(string)),
+                                  new DataColumn("NAV-код",typeof(string)),
+                                  new DataColumn("Группа",typeof(string)),
+                                  new DataColumn("Время прихода,часы",typeof(string)),
+                                  new DataColumn("Время прихода,минут",typeof(string)),
+                                  new DataColumn("Время прихода",typeof(decimal)),
+                                  new DataColumn("Время ухода,часы",typeof(string)),
+                                  new DataColumn("Время ухода,минут",typeof(string)),
+                                  new DataColumn("Время ухода",typeof(decimal)),
+        };
 
         public FormPersonViewerSCA()
         { InitializeComponent(); }
@@ -102,12 +117,15 @@ namespace mySCA2
             dateTimePickerStart.MinDate = DateTime.Parse("2016-01-01");
             dateTimePickerEnd.MinDate = DateTime.Parse("2016-01-01");
             dateTimePickerStart.MaxDate = DateTime.Now;
-            dateTimePickerEnd.MaxDate = DateTime.Parse("2018-12-01");
+            dateTimePickerEnd.MaxDate = DateTime.Parse("2022-12-01");
             dateTimePickerStart.Value = DateTime.Parse(DateTime.Now.Year + "-" + DateTime.Now.Month + "-01");
             dateTimePickerEnd.Value = DateTime.Now;
             numUpDownHour.Value = 9;
             numUpDownMinute.Value = 0;
             PersonOrGroupItem.Text = "Работа с одной персоной";
+            toolTip1.SetToolTip(textBoxGroup, "Создать группу");
+            toolTip1.SetToolTip(textBoxGroupDescription, "Описание группы");
+
             StatusLabel2.Text = "";
 
             MakeDB();
@@ -121,10 +139,10 @@ namespace mySCA2
 
             MembersGroupItem.Enabled = false;
             AddPersonToGroupItem.Enabled = false;
-            CreateGroupItem.Visible = false;
+            CreateGroupItem.Enabled = false;
             DeleteGroupItem.Visible = false;
             DeletePersonFromGroupItem.Visible = false;
-            QuickFilterItem.Enabled = false;
+            CheckBoxesFiltersAll_Enable(false);
             UpdateControllingItem.Visible = false;
             ReportsItem.Visible = false;
             VisualItem.Visible = true;
@@ -157,7 +175,7 @@ namespace mySCA2
                 else if (ShortFIO(sFIO).Length < 3 && iFIO > 0)
                 { StatusLabel2.Text = @"Всего ФИО: " + iFIO; }
             } catch { StatusLabel2.Text = " Начните работу с кнопки - \"Получить ФИО\""; }
-
+            dtPeople.Columns.AddRange(dcPeople);
         }
 
 
@@ -183,13 +201,18 @@ namespace mySCA2
         private void MakeDB()
         {
             MakeDBAndExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonRegisteredFull' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, iDCard TEXT, DateRegistered TEXT, " +
-                    "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, ServerOfRegistration TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
+                    "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL,"+
+                    " HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL,  WorkedOut REAL, ServerOfRegistration TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
             MakeDBAndExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonRegistered' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, iDCard TEXT, DateRegistered TEXT, " +
-                    "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, ServerOfRegistration TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
+                    "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, "+
+                    "HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL,  WorkedOut REAL, ServerOfRegistration TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
             MakeDBAndExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonTemp' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, iDCard TEXT, DateRegistered TEXT, " +
-                    "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, ServerOfRegistration TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
+                    "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL,  WorkedOut REAL, ServerOfRegistration TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
+            //MakeDBAndExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonGroup' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, GroupPerson TEXT, " +
+            //        "HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('FIO', 'NAV', 'GroupPerson') ON CONFLICT REPLACE);", databasePerson);
             MakeDBAndExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonGroup' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, GroupPerson TEXT, " +
-                    "HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('FIO', 'NAV', 'GroupPerson') ON CONFLICT REPLACE);", databasePerson);
+            "HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL, " +
+            "Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('FIO', 'NAV', 'GroupPerson') ON CONFLICT REPLACE);", databasePerson);
             MakeDBAndExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonGroupDesciption' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, GroupPerson TEXT, GroupPersonDescription TEXT, Reserv1 TEXT, Reserv2 TEXT, " +
                     "UNIQUE ('GroupPerson') ON CONFLICT REPLACE);", databasePerson);
             MakeDBAndExecuteSql("CREATE TABLE IF NOT EXISTS 'TechnicalInfo' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, PCName TEXT, POName TEXT, POVersion TEXT, LastDateStarted TEXT, Reserv1 TEXT, " +
@@ -571,7 +594,7 @@ namespace mySCA2
             mySqlParameter2 = null;
         }
 
-        private async void buttonGetFio_Click(object sender, EventArgs e)
+        private async void GetFio_Click(object sender, EventArgs e)
         {
             _MenuItemEnabled(QuickLoadDataItem, false);
             _MenuItemEnabled(FunctionMenuItem, false);
@@ -579,8 +602,8 @@ namespace mySCA2
             _MenuItemEnabled(AnualDatesMenuItem, false);
             _MenuItemEnabled(GroupsMenuItem, false);
             _MenuItemEnabled(GetFioItem, false);
-            _MenuItemEnabled(QuickFilterItem, false);
-            _MenuItemEnabled(ViewMenuItem, false);
+            VisualItemsAll_Enable(false);
+            CheckBoxesFiltersAll_Enable(false);
 
             if (sServer1.Length > 0 && sServer1UserName.Length > 0 && sServer1UserPassword.Length > 0)
             {
@@ -596,7 +619,7 @@ namespace mySCA2
                 ShowDataTableQuery(databasePerson, "PersonTemp");
                 panelViewResize();
                 _MenuItemEnabled(QuickSettingsItem, true);
-                _MenuItemEnabled(ViewMenuItem, true);
+                VisualItemsAll_Enable(false);
             }
             else { GetInfoSetup(); _MenuItemEnabled(QuickSettingsItem, true); }
         }
@@ -611,9 +634,9 @@ namespace mySCA2
             try
             {
                 _comboBoxFioClr();
-                _toolStripStatusLabel2AddText("Запрашиваю списки персонала со всех серверов СКД. Ждите окончания процесса...");
-                stimerPrev = "Запрашиваю списки персонала со всех серверов СКД. Ждите окончания процесса...";
-                stringConnection = "Data Source=" + sServer1 + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=240";
+                _toolStripStatusLabel2AddText("Запрашиваю списки персонала с " + sServer1+". Ждите окончания процесса...");
+                stimerPrev = "Запрашиваю списки персонала с " + sServer1 + ". Ждите окончания процесса...";
+                stringConnection = "Data Source=" + sServer1 + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=60";
                 using (var sqlConnection = new SqlConnection(stringConnection))
                 {
                     sqlConnection.Open();
@@ -634,7 +657,7 @@ namespace mySCA2
                                                     record["tabnum"].ToString().Trim() + "|" + sServer1);
                                         ListFIOTemp.Add(record["name"].ToString().Trim() + " " + record["surname"].ToString().Trim() + " " + record["patronymic"].ToString().Trim() + "|" + record["tabnum"].ToString().Trim());
                                     }
-                                } catch { }
+                                } catch(Exception expt) { MessageBox.Show(expt.ToString()); }
                                 _ProgressWork1();
                             }
                         }
@@ -647,7 +670,7 @@ namespace mySCA2
             {
                 bServer1Exist = false;
                 stimerPrev = "Сервер не доступен или неправильная авторизация";
-                MessageBox.Show(Expt.Message, @"Сервер не доступен или неправильная авторизация", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(Expt.ToString(), @"Сервер не доступен или неправильная авторизация", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
             //Remove dublicat and output Result into combobox1
@@ -767,7 +790,7 @@ namespace mySCA2
             }
             ShowDataTableQuery(databasePerson, "PersonTemp");
 
-            QuickFilterItem.BackColor = SystemColors.Control;
+            //FilterItem.BackColor = SystemColors.Control;
             panelViewResize();
         }
 
@@ -1234,7 +1257,8 @@ namespace mySCA2
             _MenuItemEnabled(AnualDatesMenuItem, false);
             _MenuItemEnabled(GroupsMenuItem, false);
             _MenuItemEnabled(QuickSettingsItem, false);
-            _MenuItemEnabled(ViewMenuItem, false);
+            //_MenuItemEnabled(ViewMenuItem, false);
+            VisualItemsAll_Enable(false);
             _dataGridView1Enabled(false);
 
             int iDGCollumns = _dataGridView1ColumnCount();
@@ -1274,7 +1298,8 @@ namespace mySCA2
             _MenuItemEnabled(AnualDatesMenuItem, true);
             _MenuItemEnabled(GroupsMenuItem, true);
             _MenuItemEnabled(QuickSettingsItem, true);
-            _MenuItemEnabled(ViewMenuItem, true);
+            //_MenuItemEnabled(ViewMenuItem, true);
+            VisualItemsAll_Enable(true);
             _dataGridView1Enabled(true);
         }
 
@@ -1292,7 +1317,7 @@ namespace mySCA2
             { GC.Collect(); }
         }
 
-        private async void buttonExport_Click(object sender, EventArgs e)
+        private async void Export_Click(object sender, EventArgs e)
         {
             Task.Run(() => _timer1Enabled(true));
             Task.Run(() => _toolStripStatusLabel2AddText("Генерирую Excel-файл"));
@@ -1309,10 +1334,8 @@ namespace mySCA2
             string sComboboxFIO;
             textBoxFIO.Text = "";
             textBoxNav.Text = "";
-            checkBoxReEnter.Checked = false;
-            checkBoxStartWorkInTime.Checked = false;
-            checkBoxCelebrate.Checked = false;
-            checkBoxWeekend.Checked = false;
+            CheckBoxesFiltersAll_Enable(false);
+
             if (nameOfLastTableFromDB == "PersonGroup")
             {
                 labelGroup.BackColor = Color.PaleGreen;
@@ -1327,8 +1350,8 @@ namespace mySCA2
             if (comboBoxFio.SelectedIndex > -1)
             {
                 QuickLoadDataItem.BackColor = Color.PaleGreen;
-                groupBoxPeriod.BackColor = System.Drawing.Color.PaleGreen;
-                groupBoxTime.BackColor = System.Drawing.Color.PaleGreen;
+                groupBoxPeriod.BackColor = Color.PaleGreen;
+                groupBoxTime.BackColor = Color.PaleGreen;
                 groupBoxRemoveDays.BackColor = SystemColors.Control;
             }
             sComboboxFIO = null;
@@ -1389,7 +1412,6 @@ namespace mySCA2
             PersonOrGroupItem.Text = "Работа с одной персоной";
         }
 
-
         private void MembersGroupItem_Click(object sender, EventArgs e)
         {
             bErrorData = false;
@@ -1435,6 +1457,170 @@ namespace mySCA2
 
         private void AddPersonToGroupItem_Click(object sender, EventArgs e) //Add the selected person into the named group
         {
+            AddPersonToGroup();
+        }
+
+
+        private void importPeopleInLocalDBToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            //HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL, 
+            //            decimal haveCome = hoursHaveCome + (minutesHaveCome + 1) / 60 - (1 / 60);
+            // decimal haveOut = hoursCanOut + (minutesCanOut + 1) / 60 - (1 / 60);
+
+            //TODO import separatedly groups and people into DB
+
+            
+
+            ImportDataInLocalDB(databasePerson);
+        }
+        
+
+        private void ImportTextToTable() //Fill dtPeople
+        {
+            List<string> listRows = LoadDataIntoList();
+
+            string checkThreeRows = "";
+            checkThreeRows = "ФИО;NAV-код;Группа;Время прихода,часы;Время прихода,минуты;Время ухода,часы;Время ухода,минуты+\n";
+            if (listRows.Count > 0)
+            {
+                checkThreeRows += listRows.ElementAt(0) + "\n";
+                if (listRows.Count > 1) checkThreeRows += listRows.ElementAt(1) + "\n";
+                if (listRows.Count > 2) checkThreeRows += listRows.ElementAt(2) + "\n";
+
+                DialogResult result = MessageBox.Show(
+                      "Проверьте первые строки файла.\n"+
+                      "Первая строка - маска для импорта. Строка заканчивается ячейкой \"Время ухода,минуты\" Разделители - ;\n" +
+                      "Если порядок ячеек соответствует маске, то\nдля продолжения импорта нажмите \"Да\":\n\n" + checkThreeRows,
+                      "Внимание!",
+                      MessageBoxButtons.YesNo,
+                      MessageBoxIcon.Exclamation,
+                      MessageBoxDefaultButton.Button1);
+                if (result == DialogResult.Yes)
+                {
+
+                    dtPeople.Rows.Clear();
+                    DataRow row = dtPeople.NewRow();
+
+                    foreach (string strRow in listRows)                    {
+                   
+                        string[] cell = strRow.Split(';');
+                        if (cell.Length == 7)
+                        {
+                            row[0] = cell[0];
+                            row[1] = cell[1];
+                            row[2] = cell[2];
+                            row[3] = cell[3];
+                            row[4] = cell[4];
+                            row[5] = TryParseDecimal(cell[3]) + (TryParseDecimal(cell[4]) + 1) / 60 - (1 / 60)      ;
+                            row[6] = cell[5];
+                            row[7] = cell[6];
+                            row[8] = TryParseDecimal(cell[5]) + (TryParseDecimal(cell[6]) + 1) / 60 - (1 / 60);
+
+                            dtPeople.Rows.Add(row);
+                            row = dtPeople.NewRow();
+                        }
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("выбранный файл пустой, или \nне подходит для импорта.");
+            }
+        }
+
+        private decimal TryParseDecimal(string str)
+        {
+            decimal result = 0;
+            try { result = decimal.Parse(str); } catch { result = 0; }
+            return result;
+        }
+
+        private List<string> LoadDataIntoList() //max List length = 10 000 rows
+        {
+            int listMaxLength = 10000;
+            List<string> listValue = new List<string>(listMaxLength);
+            string s = "";
+            string filepathLoadedData = "";
+            int i = 0; // it is not empty's rows in the selected file
+
+            openFileDialog1.FileName = @"";
+            openFileDialog1.Filter = "Текстовые файлы (*.txt)|*.txt|All files (*.*)|*.*";
+            openFileDialog1.ShowDialog();
+            filepathLoadedData = openFileDialog1.FileName;
+            if (filepathLoadedData == null || filepathLoadedData.Length < 1)
+            {
+                MessageBox.Show("Did not select File!");
+            }
+            else
+            {
+                try
+                {
+                    var Coder = Encoding.GetEncoding(1251);
+                    using (System.IO.StreamReader Reader = new System.IO.StreamReader(filepathLoadedData, Coder))
+                    {
+                        StatusLabel1.Text = "Обрабатываю файл:  " + filepathLoadedData;
+                        while ((s = Reader.ReadLine()) != null && i < listMaxLength)
+                        {
+                            if (s.Trim().Length > 0)
+                            {
+                                listValue.Add(s.Trim());
+                                i++;
+                            }
+                        }
+                    }
+                }
+                catch (Exception expt) { MessageBox.Show("Error was happened on " + i + " row\n" + expt.ToString()); }
+                if (i > listMaxLength - 10 || i == 0)
+                {
+                    MessageBox.Show("Error was happened on " + i + " row\n You've been chosen the long file!");
+                }
+            }
+            return listValue;
+        }
+
+        private void ImportDataInLocalDB(string pathToPersonDB)
+        {
+            using (var connection = new SQLiteConnection($"Data Source={pathToPersonDB};Version=3;"))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PersonGroup' (FIO, NAV, GroupPerson, HourControlling, MinuteControlling, Controlling, HourControllingOut, MinuteControllingOut, ControllingOut) " +
+                                         "VALUES (@FIO, @NAV, @GroupPerson, @HourControlling, @MinuteControlling, @Controlling, @HourControllingOut, @MinuteControllingOut, @ControllingOut)", connection))
+                {
+
+                    foreach (DataRow row in dtPeople.Rows)
+                    {
+                        command.Parameters.Add("@FIO", DbType.String).Value = sFIO; //row[0]
+                        command.Parameters.Add("@NAV", DbType.String).Value = sNAV;
+                        command.Parameters.Add("@GroupPerson", DbType.String).Value = sGroup;
+                        command.Parameters.Add("@HourControlling", DbType.String).Value = hoursHaveCome;
+                        command.Parameters.Add("@MinuteControlling", DbType.String).Value = minutesHaveCome;
+                        command.Parameters.Add("@Controlling", DbType.Decimal).Value = haveCome;
+                        command.Parameters.Add("@HourControllingOut", DbType.String).Value = hoursCanOut;
+                        command.Parameters.Add("@MinuteControllingOut", DbType.String).Value = minutesCanOut;
+                        command.Parameters.Add("@ControllingOut", DbType.Decimal).Value = haveOut;
+                        try { command.ExecuteNonQuery(); } catch { }
+                    }
+                }
+            }
+        }
+
+        public void ImportGroupDataInLocalDB(string pathToDB, string sGroup, string sGroupDesciption) //Use to inport group into locaDB
+        {
+            using (var connection = new SQLiteConnection($"Data Source={pathToDB};Version=3;"))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PersonGroupDesciption' (GroupPerson, GroupPersonDescription) " +
+                                        "VALUES (@GroupPerson, @GroupPersonDescription )", connection))
+                {
+                    command.Parameters.Add("@GroupPerson", DbType.String).Value = sGroup;
+                    command.Parameters.Add("@GroupPersonDescription", DbType.String).Value = sGroupDesciption;
+                    try { command.ExecuteNonQuery(); } catch { }
+                }
+            }
+        }
+
+        private void AddPersonToGroup() //Add the selected person into the named group
+        {
             string sTextGroup = textBoxGroup.Text.Trim();
             string sTextFIOSelected = comboBoxFio.SelectedItem.ToString().Trim();
             decimal controlStartHours = numUpDownHour.Value + (numUpDownMinute.Value + 1) / 60 - (1 / 60);
@@ -1473,29 +1659,33 @@ namespace mySCA2
                         StatusLabel2.Text = "\"" + ShortFIO(Regex.Split(sTextFIOSelected, "[|]")[0].Trim()) + "\"" + " добавлен в группу \"" + sTextGroup + "\"";
                         _toolStripStatusLabel2BackColor(SystemColors.Control);
                         bErrorData = true;
-                    } catch { }
+                    }
+                    catch { }
                 }
                 else if (sTextGroup.Length > 0 && textBoxNav.Text.Trim().Length == 0 && sTextFIOSelected.Length > 10)
                     try
                     {
-                        StatusLabel2.Text = "У сотрудника отсутствует NAV-код:" + ShortFIO(Regex.Split(sTextFIOSelected, "[|]")[0].Trim());
+                        StatusLabel2.Text = "Отсутствует NAV-код у:" + ShortFIO(Regex.Split(sTextFIOSelected, "[|]")[0].Trim());
                         _toolStripStatusLabel2BackColor(Color.DarkOrange);
                         bErrorData = true;
-                    } catch { }
+                    }
+                    catch { }
                 else if (sTextGroup.Length == 0 && textBoxNav.Text.Trim().Length > 0 && sTextFIOSelected.Length > 10)
                     try
                     {
                         StatusLabel2.Text = "Не указана группа, в которую нужно добавить!";
                         _toolStripStatusLabel2BackColor(Color.DarkOrange);
                         bErrorData = true;
-                    } catch { }
+                    }
+                    catch { }
                 else
                     try
                     {
                         StatusLabel2.Text = "Проверьте вводимые данные!";
                         _toolStripStatusLabel2BackColor(Color.DarkOrange);
                         bErrorData = true;
-                    } catch { }
+                    }
+                    catch { }
             }
 
             MembersGroup();
@@ -1565,17 +1755,15 @@ namespace mySCA2
             groupBoxTime.BackColor = SystemColors.Control;
 
             _ChangeMenuItemBackColor(QuickLoadDataItem, SystemColors.Control);
-            checkBoxReEnter.Checked = false;
-            checkBoxStartWorkInTime.Checked = false;
-            checkBoxWeekend.Checked = false;
-            checkBoxCelebrate.Checked = false;
             _MenuItemEnabled(QuickLoadDataItem, false);
             _MenuItemEnabled(FunctionMenuItem, false);
             _MenuItemEnabled(QuickSettingsItem, false);
             _MenuItemEnabled(AnualDatesMenuItem, false);
             _MenuItemEnabled(GroupsMenuItem, false);
             _MenuItemEnabled(QuickSettingsItem, false);
-            _MenuItemEnabled(ViewMenuItem, false);
+            //_MenuItemEnabled(ViewMenuItem, false);
+            VisualItemsAll_Enable(false);
+            CheckBoxesFiltersAll_Enable(false);
             _dataGridView1Enabled(false);
 
             if (sServer1.Length > 0 && sServer1UserName.Length > 0 && sServer1UserPassword.Length > 0)
@@ -1603,7 +1791,8 @@ namespace mySCA2
                 ExportIntoExcelItem.Enabled = true;
                 panelViewResize();
                 _MenuItemEnabled(QuickSettingsItem, true);
-                _MenuItemEnabled(ViewMenuItem, true);
+                VisualItemsAll_Enable(true);
+                CheckBoxesFiltersAll_Enable(true);
             }
             else { GetInfoSetup(); _MenuItemEnabled(QuickSettingsItem, true); }
             groupBoxRemoveDays.BackColor = Color.PaleGreen;
@@ -1661,7 +1850,7 @@ namespace mySCA2
             ShowDataTableQuery(databasePerson, "PersonTemp");
 
             _SetMenuItemDefaultColor(QuickLoadDataItem);
-            _ChangeMenuItemBackColor(QuickFilterItem, Color.PaleGreen);
+            //_ChangeMenuItemBackColor(FilterItem, Color.PaleGreen);
             _ChangeMenuItemBackColor(ExportIntoExcelItem, Color.PaleGreen);
 
             _ProgressBar1Value100();
@@ -1673,8 +1862,7 @@ namespace mySCA2
             _toolStripStatusLabel2ForeColor(Color.Black);
             stimerPrev = "";
         }
-
-
+        
         private void GetRegistrationFromServer()
         {
             string personNAV = _textBoxNavText(); ; string personFIO = _textBoxFIOText();
@@ -1973,6 +2161,7 @@ namespace mySCA2
                     case "PersonGroup" when textBoxGroup.Text.Trim().Length > 0:
                         DeleteDataTableOneQuery(databasePerson, "PersonGroup", "GroupPerson", textBoxGroup.Text.Trim());
                         DeleteDataTableOneQuery(databasePerson, "PersonGroupDesciption", "GroupPerson", textBoxGroup.Text.Trim());
+                        textBoxGroup.BackColor = Color.White;
                         break;
                     default:
                         break;
@@ -2104,15 +2293,14 @@ namespace mySCA2
             panelView.Visible = false;
             FunctionMenuItem.Enabled = false;
             GroupsMenuItem.Enabled = false;
-            ViewMenuItem.Enabled = false;
+            VisualItemsAll_Enable(false);
+            //ViewMenuItem.Enabled = false;
             QuickSettingsItem.Enabled = false;
             QuickLoadDataItem.Enabled = false;
-            QuickFilterItem.Enabled = false;
+            //FilterItem.Enabled = false;
+            CheckBoxesFiltersAll_Enable(false);
             comboBoxFio.Enabled = false;
-            checkBoxReEnter.Enabled = false;
-            checkBoxStartWorkInTime.Enabled = false;
-            checkBoxCelebrate.Enabled = false;
-            checkBoxWeekend.Enabled = false;
+
             StatusLabel2.Text = @"Режим работы с праздниками и выходными";
 
             AddAnualDateItem.Enabled = true;
@@ -2128,10 +2316,12 @@ namespace mySCA2
 
             FunctionMenuItem.Enabled = true;
             GroupsMenuItem.Enabled = true;
-            ViewMenuItem.Enabled = true;
+            VisualItemsAll_Enable(true);
+            //ViewMenuItem.Enabled = true;
             QuickSettingsItem.Enabled = true;
             QuickLoadDataItem.Enabled = true;
-            QuickFilterItem.Enabled = true;
+            CheckBoxesFiltersAll_Enable(true);
+            //FilterItem.Enabled = true;
             comboBoxFio.Enabled = true;
             checkBoxReEnter.Enabled = true;
             checkBoxStartWorkInTime.Enabled = true;
@@ -2480,6 +2670,14 @@ namespace mySCA2
                 tMenuItem.Enabled = bEnabled;
         }
 
+        private void _CheckboxEnabled(CheckBox checkBox, bool bEnabled) //add string into  from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { checkBox.Enabled = bEnabled; }));
+            else
+                checkBox.Enabled = bEnabled;
+        }
+
         private void _SetMenuItemDefaultColor(ToolStripMenuItem tMenuItem) //add string into  from other threads
         {
             if (InvokeRequired)
@@ -2528,43 +2726,80 @@ namespace mySCA2
             }
         }
 
-        private void checkBoxReEnter_CheckStateChanged(object sender, EventArgs e)
+        public void CheckBoxesFiltersAll_Enable(bool state)
         {
-            QuickFilterItem.BackColor = System.Drawing.Color.PaleGreen;
-            if (checkBoxReEnter.Checked)
+            _CheckboxEnabled(checkBoxStartWorkInTime,state);
+            _CheckboxEnabled(checkBoxReEnter, state);
+            _CheckboxEnabled(checkBoxCelebrate, state);
+            _CheckboxEnabled(checkBoxWeekend, state);
+        }
+
+        public void VisualItemsAll_Enable(bool state)
+        {
+            _MenuItemEnabled(VisualItem, state);
+            _MenuItemEnabled(VisualWorkedTimeItem, state);
+            _MenuItemEnabled(ReportsItem, state);
+        }
+
+        private void checkBox_CheckStateChanged(object sender, EventArgs e)
+        {
+            CheckBoxesFiltersAll_Enable(false);
+
+            dataGridView1.Visible = true;
+            pictureBox1.Visible = false;
+
+            DeleteAllDataInTableQuery(databasePerson, "PersonTemp");
+            if (nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup")
             {
-                QuickFilterItem.Enabled = true;
-                QuickFilterItem.BackColor = System.Drawing.Color.PaleGreen;
-                QuickLoadDataItem.BackColor = SystemColors.Control;
+                GetGroupInfoFromDB();
+
+                if (textBoxGroup.Text.Trim().Length > 0)
+                {
+                    string[] sCell;
+                    foreach (string sRow in lListFIOTemp.ToArray())
+                    {
+                        sCell = Regex.Split(sRow, "[|]"); //FIO|NAV|H|M
+                        if (sCell[0].Length > 1)
+                        {
+                            _textBoxFIOAddText(sCell[0]);   //иммитируем выбор данных
+                            _textBoxNavAddText(sCell[1]);   //Select person   
+
+                            dControlHourSelected = Convert.ToDecimal(sCell[2]);
+                            dControlMinuteSelected = Convert.ToDecimal(sCell[3]);
+                            FilterDataByNav();
+                        }
+                    }
+                }
+                nameOfLastTableFromDB = "PersonGroup";
             }
             else
             {
-                QuickFilterItem.Enabled = true;
-                QuickFilterItem.BackColor = SystemColors.Control;
+                if (!checkBoxReEnter.Checked)
+                { CopyWholeDataFromOneTableIntoAnother(databasePerson, "PersonTemp", "PersonRegistered"); }
+                else
+                { FilterDataByNav(); }
+                nameOfLastTableFromDB = "PersonRegistered";
             }
-        }
+            ShowDataTableQuery(databasePerson, "PersonTemp");
 
-        private void checkBoxStartWorkInTime_CheckStateChanged(object sender, EventArgs e)
-        {
+            //FilterItem.BackColor = SystemColors.Control;
+            panelViewResize();
+
+            CheckBoxesFiltersAll_Enable(true);
             if (checkBoxStartWorkInTime.Checked)
             {
                 checkBoxReEnter.Checked = true;
                 checkBoxReEnter.Enabled = false;
-                QuickFilterItem.BackColor = System.Drawing.Color.PaleGreen;
+                //FilterItem.BackColor = System.Drawing.Color.PaleGreen;
                 QuickLoadDataItem.BackColor = SystemColors.Control;
             }
-            else
+            else if (!checkBoxStartWorkInTime.Checked)
             {
                 checkBoxReEnter.Enabled = true;
-                QuickFilterItem.BackColor = SystemColors.Control;
+                //FilterItem.BackColor = SystemColors.Control;
             }
         }
 
-        private void checkBoxWeekend_CheckStateChanged(object sender, EventArgs e)
-        { QuickFilterItem.BackColor = System.Drawing.Color.PaleGreen; }
-
-        private void checkBoxCelebrate_CheckStateChanged(object sender, EventArgs e)
-        { QuickFilterItem.BackColor = System.Drawing.Color.PaleGreen; }
 
         private void ClearReportItem_Click(object sender, EventArgs e) //Clear
         {
@@ -3506,7 +3741,7 @@ namespace mySCA2
         private void dateTimePickerStart_CloseUp(object sender, EventArgs e)
         {
             QuickLoadDataItem.Enabled = true;
-            QuickLoadDataItem.BackColor = System.Drawing.Color.PaleGreen;
+            QuickLoadDataItem.BackColor = Color.PaleGreen;
             dateTimePickerEnd.MinDate = DateTime.Parse(dateTimePickerStart.Value.Year + "-" + dateTimePickerStart.Value.Month + "-" + dateTimePickerStart.Value.Day);
         }
 
@@ -3586,12 +3821,14 @@ namespace mySCA2
             _MenuItemEnabled(QuickSettingsItem, false);
             _MenuItemEnabled(AnualDatesMenuItem, false);
             _MenuItemEnabled(GroupsMenuItem, false);
-            _MenuItemEnabled(ViewMenuItem, false);
-            _MenuItemEnabled(QuickFilterItem, false);
+            VisualItemsAll_Enable(false);
+            CheckBoxesFiltersAll_Enable(false);
+            //_MenuItemEnabled(ViewMenuItem, false);
+            //_MenuItemEnabled(FilterItem, false);
 
             labelServer1 = new Label
             {
-                Text = "Server1",
+                Text = "Server",
                 BackColor = Color.PaleGreen,
                 Location = new Point(20, 60),
                 Size = new Size(590, 22),
@@ -3607,11 +3844,11 @@ namespace mySCA2
                 BorderStyle = BorderStyle.FixedSingle,
                 Parent = groupBoxProperties
             };
-            toolTip1.SetToolTip(textBoxServer1, "Имя сервера \"Server1\" с базой Intellect в виде - NameOfServer.Domain.Subdomain");
+            toolTip1.SetToolTip(textBoxServer1, "Имя сервера \"Server\" с базой Intellect в виде - NameOfServer.Domain.Subdomain");
 
             labelServer1UserName = new Label
             {
-                Text = "UserName",
+                Text = "sa User's Name",
                 BackColor = Color.PaleGreen,
                 Location = new Point(220, 61),
                 Size = new Size(70, 20),
@@ -3628,7 +3865,7 @@ namespace mySCA2
                 BorderStyle = BorderStyle.FixedSingle,
                 Parent = groupBoxProperties
             };
-            toolTip1.SetToolTip(textBoxServer1UserName, "Имя администратора SQL-сервера \"Server1\"");
+            toolTip1.SetToolTip(textBoxServer1UserName, "Имя sa администратора SQL-сервера \"Server\"");
 
             labelServer1UserPassword = new Label
             {
@@ -3649,7 +3886,7 @@ namespace mySCA2
                 BorderStyle = BorderStyle.FixedSingle,
                 Parent = groupBoxProperties
             };
-            toolTip1.SetToolTip(textBoxServer1UserPassword, "Пароль администратора SQL-сервера \"Server1\"");
+            toolTip1.SetToolTip(textBoxServer1UserPassword, "Пароль sa администратора SQL-сервера \"Server\"");
 
             textBoxServer1.BringToFront();
             textBoxServer1UserName.BringToFront();
@@ -3708,7 +3945,8 @@ namespace mySCA2
                 _MenuItemEnabled(QuickSettingsItem, true);
                 _MenuItemEnabled(AnualDatesMenuItem, true);
                 _MenuItemEnabled(GroupsMenuItem, true);
-                _MenuItemEnabled(ViewMenuItem, true);
+                //_MenuItemEnabled(ViewMenuItem, true);
+                VisualItemsAll_Enable(true);
 
                 panelView.Visible = true;
             }
@@ -3850,10 +4088,12 @@ namespace mySCA2
             _MenuItemEnabled(QuickLoadDataItem, true);
             _MenuItemEnabled(FunctionMenuItem, true);
             _MenuItemEnabled(QuickSettingsItem, true);
-            _MenuItemEnabled(QuickFilterItem, true);
             _MenuItemEnabled(AnualDatesMenuItem, true);
             _MenuItemEnabled(GroupsMenuItem, true);
-            _MenuItemEnabled(ViewMenuItem, true);
+            //_MenuItemEnabled(FilterItem, true);
+            //_MenuItemEnabled(ViewMenuItem, true);
+            VisualItemsAll_Enable(true);
+            CheckBoxesFiltersAll_Enable(true);
 
             panelView.Visible = true;
         }
@@ -3900,10 +4140,22 @@ namespace mySCA2
             if (textBoxGroup.Text.Trim().Length > 0)
             {
                 AddPersonToGroupItem.Enabled = true;
-                CreateGroupItem.Visible = true;
+                CreateGroupItem.Enabled = true;
+                if (textBoxGroupDescription.Text.Trim().Length > 0)
+                {
+                    StatusLabel2.Text = @"Создать группу: " + textBoxGroup.Text.Trim().ToString()+"("+ textBoxGroupDescription.Text.Trim() + ")";
+                }
+                else
+                {
+                    StatusLabel2.Text = @"Создать группу: " + textBoxGroup.Text.Trim().ToString() ;
+                }
             }
             else
-            { StatusLabel2.Text = @"Всего ФИО: " + iFIO; }
+            {
+                AddPersonToGroupItem.Enabled = false;
+                CreateGroupItem.Enabled = false;
+                StatusLabel2.Text = @"Всего ФИО: " + iFIO;
+            }
         }
 
         private void dataGridView1_DoubleClick(object sender, EventArgs e)
@@ -3997,10 +4249,7 @@ namespace mySCA2
             }
         }
 
-        private void ViewMenuItem_Click(object sender, EventArgs e)
-        {
 
-        }
 
         /// <summary>
         /// /////////////////////Registry  -   TODO
@@ -4079,8 +4328,7 @@ namespace mySCA2
                 foundSavedData = true;
             } catch { MessageBox.Show("Ошибки с доступом для записи списка номеров в реестр. Данные сохранены не корректно."); }
         }
-
-
+        
         public void PathToLastInvoiceRegistrySave() //Save Parameters into Registry and variables
         {
             string filepathLoadedData = ""; bool foundSavedData;
@@ -4097,7 +4345,46 @@ namespace mySCA2
 
         }
 
+        private void CreateGroupItem_MouseHover(object sender, EventArgs e)
+        {
+            //BackColor = Color.PaleGreen,
+                        //GetFioItem.BackColor = Color.LightSkyBlue;
+            //FilterItem.BackColor = SystemColors.Control;
+            labelGroup.BackColor= Color.LightSkyBlue;
+            textBoxGroup.BackColor = Color.LightSkyBlue;
+        }
 
+        private void CreateGroupItem_MouseLeave(object sender, EventArgs e)
+        {
+            labelGroup.BackColor = SystemColors.Control;
+            textBoxGroup.BackColor = Color.White;
+        }
+
+        private void textBoxGroupDescription_TextChanged(object sender, EventArgs e)
+        {
+            if (textBoxGroupDescription.Text.Trim().Length > 0)
+            {
+                StatusLabel2.Text = @"Создать группу: " + textBoxGroup.Text.Trim().ToString() + "(" + textBoxGroupDescription.Text.Trim() + ")";
+            }
+            else
+            {
+                StatusLabel2.Text = @"Создать группу: " + textBoxGroup.Text.Trim().ToString();
+            }
+        }
+        
+    }
+
+    public class Person
+    {
+        public string FIO;
+        public string NAV = "E";
+        public string GroupPerson = "Office";
+        public string HourControlling = "9";
+        public string MinuteControlling = "0";
+        public decimal Controlling = 9;
+        public string HourControllingOut = "18";
+        public string MinuteControllingOut = "0";
+        public decimal ControllingOut = 18;
     }
 
     public class EncryptDecrypt
