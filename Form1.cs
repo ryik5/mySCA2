@@ -18,7 +18,7 @@ using System.Text;
 
 namespace mySCA2
 {
-    public partial class FormPersonViewerSCA :Form
+    public partial class FormPersonViewerSCA : Form
     {
         private System.Diagnostics.FileVersionInfo myFileVersionInfo;
         private string myRegKey = @"SOFTWARE\RYIK\SCA2";
@@ -61,17 +61,23 @@ namespace mySCA2
         private string sLastSelectedElement = "MainForm";
 
         //Settings of Programm
+        private bool bServer1Exist = false;
         private string sServer1 = "";
+        private string sServer1Registry = "";
         private string sServer1UserName = "";
+        private string sServer1UserNameRegistry = "";
         private string sServer1UserPassword = "";
+        private string sServer1UserPasswordRegistry = "";
         private readonly byte[] btsMess1 = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
         private readonly byte[] btsMess2 = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
-        
-        private OpenFileDialog openFileDialog1;
+
+        private OpenFileDialog openFileDialog1 = new OpenFileDialog();
+        private List<string> listGroups = new List<string>();
 
         private DataTable dtPeople = new DataTable("People");
         private DataColumn[] dcPeople ={
-                                  new DataColumn("ФИО сотрудника",typeof(string)),
+                                  new DataColumn("№ п/п",typeof(int)),
+                                  new DataColumn("Фамилия Имя Отчество",typeof(string)),
                                   new DataColumn("NAV-код",typeof(string)),
                                   new DataColumn("Группа",typeof(string)),
                                   new DataColumn("Время прихода,часы",typeof(string)),
@@ -82,6 +88,31 @@ namespace mySCA2
                                   new DataColumn("Время ухода",typeof(decimal)),
         };
 
+        private DataTable dtPeopleTemp = new DataTable("People");
+        private DataColumn[] dcPeopleTemp ={
+                                  new DataColumn("№ п/п",typeof(int)),
+                                  new DataColumn("Фамилия Имя Отчество",typeof(string)),
+                                  new DataColumn("NAV-код",typeof(string)),
+                                  new DataColumn("Группа",typeof(string)),
+                                  new DataColumn("Время прихода,часы",typeof(string)),
+                                  new DataColumn("Время прихода,минут",typeof(string)),
+                                  new DataColumn("Время прихода",typeof(decimal)),
+                                  new DataColumn("Время ухода,часы",typeof(string)),
+                                  new DataColumn("Время ухода,минут",typeof(string)),
+                                  new DataColumn("Время ухода",typeof(decimal)),
+        };
+
+        //Color Control elements of Person depending of the selected MenuItem  
+        private Color labelGroupCurrentBackColor;
+        private Color textBoxGroupCurrentBackColor;
+        private Color labelGroupDescriptionCurrentBackColor;
+        private Color textBoxGroupDescriptionCurrentBackColor;
+        private Color comboBoxFioCurrentBackColor;
+        private Color textBoxFIOCurrentBackColor;
+        private Color textBoxNavCurrentBackColor;
+
+
+
         public FormPersonViewerSCA()
         { InitializeComponent(); }
 
@@ -90,6 +121,8 @@ namespace mySCA2
 
         private void Form1Load()
         {
+            CheckSavedDataInRegistry();
+
             myFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
             strVersion = myFileVersionInfo.Comments + " ver." + myFileVersionInfo.FileVersion + " " + myFileVersionInfo.LegalCopyright;
             StatusLabel1.Text = myFileVersionInfo.ProductName + " ver." + myFileVersionInfo.FileVersion + " " + myFileVersionInfo.LegalCopyright;
@@ -124,11 +157,12 @@ namespace mySCA2
             numUpDownMinute.Value = 0;
             PersonOrGroupItem.Text = "Работа с одной персоной";
             toolTip1.SetToolTip(textBoxGroup, "Создать группу");
-            toolTip1.SetToolTip(textBoxGroupDescription, "Описание группы");
-
+            toolTip1.SetToolTip(textBoxGroupDescription, "Изменить описание группы");
             StatusLabel2.Text = "";
 
-            MakeDB();
+            TryMakeDB();
+            UpdateTableOfDB();
+
             SetTechInfoIntoDB();
             BoldAnualDates();
             WriteLastParametersIntoVariable();
@@ -143,7 +177,7 @@ namespace mySCA2
             DeleteGroupItem.Visible = false;
             DeletePersonFromGroupItem.Visible = false;
             CheckBoxesFiltersAll_Enable(false);
-            UpdateControllingItem.Visible = false;
+            //UpdateControllingItem.Visible = false;
             ReportsItem.Visible = false;
             VisualItem.Visible = true;
             VisualItem.Enabled = false;
@@ -159,7 +193,8 @@ namespace mySCA2
             {
                 textBoxFIO.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
                 sFIO = textBoxFIO.Text;
-            } catch { }
+            }
+            catch { }
             try { textBoxNav.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString(); } catch { }
 
             numUpDownHour.Value = 9;
@@ -167,15 +202,63 @@ namespace mySCA2
 
             try
             {
-                comboBoxFio.SelectedIndex = comboBoxFio.FindString(sFIO); //ищем в комбобокс выбранный ФИО и устанавливаем на него фокус
+                comboBoxFio.SelectedIndex = comboBoxFio.FindString(sFIO); //ищем в комбобокс-e выбранный ФИО и устанавливаем на него фокус
                 if (comboBoxFio.FindString(sFIO) != -1 && ShortFIO(sFIO).Length > 3)
                 {
                     StatusLabel2.Text = @"Выбран: " + ShortFIO(sFIO) + @" |  Всего ФИО: " + iFIO;
                 }
                 else if (ShortFIO(sFIO).Length < 3 && iFIO > 0)
                 { StatusLabel2.Text = @"Всего ФИО: " + iFIO; }
-            } catch { StatusLabel2.Text = " Начните работу с кнопки - \"Получить ФИО\""; }
+            }
+            catch { StatusLabel2.Text = " Начните работу с кнопки - \"Получить ФИО\""; }
+
             dtPeople.Columns.AddRange(dcPeople);
+            dtPeopleTemp.Columns.AddRange(dcPeopleTemp);
+            /*
+             DataTable copyDataTable;
+             copyDataTable = table.Copy();
+             copyDataTable.Columns.Remove("ColB");
+             or
+             int columnIndex = 1;//this will remove the second column
+             DataTable copyDataTable;
+             copyDataTable = table.Copy();
+             copyDataTable.Columns.RemoveAt(columnIndex);
+             */
+
+            /*
+             System.Data.DataView view = new System.Data.DataView(yourOriginalTable);
+             System.Data.DataTable selected = 
+             view.ToTable("Selected", false, "col1", "col2", "col6", "col7", "col3");             
+             */
+
+            /*
+            dtPeopleTemp = dtPeople.Clone();
+            string ss = "search_text";
+            for (int j = 0; j < dtPeople.Rows.Count; j++)
+            {
+                if (ss == dtPeople.Rows[j]["Name_Collumn"].ToString())
+                {
+                    dtPeopleTemp.ImportRow(dtPeople.Rows[j]);
+                }
+            }*/
+
+
+            dataGridView1.ShowCellToolTips = true;
+        }
+
+
+        //todo converting string to decimal
+        private decimal TimeStringToDecimal(string s)
+        {
+            decimal timeConverted = 0;
+            if (s.Contains(':'))
+            {
+                string[] time = s.Split(':');
+                timeConverted=
+            }
+
+
+            return timeConverted;
         }
 
 
@@ -198,35 +281,62 @@ namespace mySCA2
         private void ApplicationExit()
         { Application.Exit(); }
 
-        private void MakeDB()
+        private void TryMakeDB()
         {
-            MakeDBAndExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonRegisteredFull' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, iDCard TEXT, DateRegistered TEXT, " +
-                    "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL,"+
+            ExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonRegisteredFull' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, iDCard TEXT, DateRegistered TEXT, " +
+                    "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL," +
                     " HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL,  WorkedOut REAL, ServerOfRegistration TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
-            MakeDBAndExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonRegistered' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, iDCard TEXT, DateRegistered TEXT, " +
-                    "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, "+
+            ExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonRegistered' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, iDCard TEXT, DateRegistered TEXT, " +
+                    "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, " +
                     "HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL,  WorkedOut REAL, ServerOfRegistration TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
-            MakeDBAndExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonTemp' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, iDCard TEXT, DateRegistered TEXT, " +
-                    "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL,  WorkedOut REAL, ServerOfRegistration TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
-            //MakeDBAndExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonGroup' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, GroupPerson TEXT, " +
-            //        "HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('FIO', 'NAV', 'GroupPerson') ON CONFLICT REPLACE);", databasePerson);
-            MakeDBAndExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonGroup' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, GroupPerson TEXT, " +
-            "HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL, " +
-            "Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('FIO', 'NAV', 'GroupPerson') ON CONFLICT REPLACE);", databasePerson);
-            MakeDBAndExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonGroupDesciption' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, GroupPerson TEXT, GroupPersonDescription TEXT, Reserv1 TEXT, Reserv2 TEXT, " +
+            ExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonTemp' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, iDCard TEXT, DateRegistered TEXT, " +
+                    "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, HourControllingOut TEXT, " +
+                    "MinuteControllingOut TEXT, ControllingOut REAL,  WorkedOut REAL, ServerOfRegistration TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
+            ExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonGroup' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, GroupPerson TEXT, " +
+                    "HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL, " +
+                    "Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('FIO', 'NAV', 'GroupPerson') ON CONFLICT REPLACE);", databasePerson);
+            ExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonGroupDesciption' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, GroupPerson TEXT, GroupPersonDescription TEXT, Reserv1 TEXT, Reserv2 TEXT, " +
                     "UNIQUE ('GroupPerson') ON CONFLICT REPLACE);", databasePerson);
-            MakeDBAndExecuteSql("CREATE TABLE IF NOT EXISTS 'TechnicalInfo' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, PCName TEXT, POName TEXT, POVersion TEXT, LastDateStarted TEXT, Reserv1 TEXT, " +
+            ExecuteSql("CREATE TABLE IF NOT EXISTS 'TechnicalInfo' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, PCName TEXT, POName TEXT, POVersion TEXT, LastDateStarted TEXT, Reserv1 TEXT, " +
                     "Reserv2 TEXT, Reserverd3 TEXT);", databasePerson);
-            MakeDBAndExecuteSql("CREATE TABLE IF NOT EXISTS 'BoldedDates' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, BoldedDate TEXT, NAV TEXT, Groups TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
-            MakeDBAndExecuteSql("CREATE TABLE IF NOT EXISTS 'MySettings' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, MyParameterName TEXT, MyParameterValue TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
-            MakeDBAndExecuteSql("CREATE TABLE IF NOT EXISTS 'ProgramSettings' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, PoParameterName TEXT, PoParameterValue TEXT, Reserv1 TEXT, Reserv2 TEXT, " +
+            ExecuteSql("CREATE TABLE IF NOT EXISTS 'BoldedDates' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, BoldedDate TEXT, NAV TEXT, Groups TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
+            ExecuteSql("CREATE TABLE IF NOT EXISTS 'MySettings' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, MyParameterName TEXT, MyParameterValue TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
+            ExecuteSql("CREATE TABLE IF NOT EXISTS 'ProgramSettings' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, PoParameterName TEXT, PoParameterValue TEXT, Reserv1 TEXT, Reserv2 TEXT, " +
                    "UNIQUE (PoParameterName) ON CONFLICT REPLACE);", databasePerson);
-            MakeDBAndExecuteSql("CREATE TABLE IF NOT EXISTS 'EquipmentSettings' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, EquipmentParameterName TEXT, EquipmentParameterValue TEXT, EquipmentParameterServer TEXT," +
+            ExecuteSql("CREATE TABLE IF NOT EXISTS 'EquipmentSettings' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, EquipmentParameterName TEXT, EquipmentParameterValue TEXT, EquipmentParameterServer TEXT," +
                     "Reserv1, Reserv2, UNIQUE ('EquipmentParameterName', 'EquipmentParameterServer') ON CONFLICT REPLACE);", databasePerson);
-            MakeDBAndExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonsLastList' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, PersonsList TEXT, " +
+            ExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonsLastList' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, PersonsList TEXT, " +
                     "Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('PersonsList', Reserv1) ON CONFLICT REPLACE);", databasePerson);
-            MakeDBAndExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonsLastComboList' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, ComboList TEXT, " +
+            ExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonsLastComboList' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, ComboList TEXT, " +
                     "Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('ComboList', Reserv1) ON CONFLICT REPLACE);", databasePerson);
+        }
+
+        private void UpdateTableOfDB()
+        {
+            TryUpdateStructureSqlDB("PersonRegisteredFull", "FIO TEXT, NAV TEXT, iDCard TEXT, DateRegistered TEXT, " +
+                    "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL," +
+                    " HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL,  WorkedOut REAL, ServerOfRegistration TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
+
+            TryUpdateStructureSqlDB("PersonRegistered", "FIO TEXT, NAV TEXT, iDCard TEXT, DateRegistered TEXT, " +
+                    "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, " +
+                    "HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL,  WorkedOut REAL, ServerOfRegistration TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
+
+
+            TryUpdateStructureSqlDB("PersonTemp", "FIO TEXT, NAV TEXT, iDCard TEXT, DateRegistered TEXT, " +
+                    "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, HourControllingOut TEXT, " +
+                    "MinuteControllingOut TEXT, ControllingOut REAL,  WorkedOut REAL, ServerOfRegistration TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
+
+            TryUpdateStructureSqlDB("PersonGroup", "FIO TEXT, NAV TEXT, GroupPerson TEXT, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, " +
+                    "HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
+
+            TryUpdateStructureSqlDB("PersonGroupDesciption", "GroupPerson TEXT, GroupPersonDescription TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
+            TryUpdateStructureSqlDB("TechnicalInfo", "PCName TEXT, POName TEXT, POVersion TEXT, LastDateStarted TEXT, Reserv1 TEXT, Reserv2 TEXT, Reserverd3 TEXT", databasePerson);
+            TryUpdateStructureSqlDB("BoldedDates", "BoldedDate TEXT, NAV TEXT, Groups TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
+            TryUpdateStructureSqlDB("MySettings", "MyParameterName TEXT, MyParameterValue TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
+            TryUpdateStructureSqlDB("ProgramSettings", " PoParameterName TEXT, PoParameterValue TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
+            TryUpdateStructureSqlDB("EquipmentSettings", "EquipmentParameterName TEXT, EquipmentParameterValue TEXT, EquipmentParameterServer TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
+            TryUpdateStructureSqlDB("PersonsLastList", "PersonsList TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
+            TryUpdateStructureSqlDB("PersonsLastComboList", "ComboList TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
         }
 
         private void SetTechInfoIntoDB() //Write into DB Technical Info
@@ -283,7 +393,8 @@ namespace mySCA2
                                     {
                                         listFIO.Add(record["PersonsList"].ToString().Trim());
                                     }
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
@@ -301,7 +412,8 @@ namespace mySCA2
                                         _comboBoxFioAdd(record["ComboList"].ToString().Trim());
                                         iCombo++;
                                     }
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
@@ -319,7 +431,8 @@ namespace mySCA2
                                         if (record["PoParameterName"].ToString().Trim() == "clrRealRegistration")
                                             clrRealRegistration = Color.FromName(record["PoParameterValue"].ToString());
                                     }
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
@@ -336,12 +449,13 @@ namespace mySCA2
                                     {
                                         if (record["EquipmentParameterValue"].ToString().Trim() == "Server1" && record["EquipmentParameterName"].ToString().Trim() == "Server1UserName")
                                         {
-                                            sServer1 = record["EquipmentParameterServer"].ToString();
-                                            sServer1UserName = DecryptBase64ToString(record["Reserv1"].ToString(), btsMess1, btsMess2);
-                                            sServer1UserPassword = DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2);
+                                            sServer1 = sServer1Registry.Length == 0 ? record["EquipmentParameterServer"].ToString() : sServer1Registry;
+                                            sServer1UserName = sServer1UserNameRegistry.Length == 0 ? record["Reserv1"].ToString() : sServer1UserNameRegistry;
+                                            sServer1UserPassword = sServer1UserPasswordRegistry.Length == 0 ? record["Reserv2"].ToString() : sServer1UserPasswordRegistry;
                                         }
                                     }
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
@@ -352,7 +466,24 @@ namespace mySCA2
             try { comboBoxFio.SelectedIndex = 0; } catch { }
         }
 
-        private void MakeDBAndExecuteSql(string SqlQuery, System.IO.FileInfo FileDB) //Prepare DB and execute of SQL Query
+        /*
+         string dataSource = "Database.s3db";
+        using (SQLiteConnection connection = new SQLiteConnection())
+{
+        connection.ConnectionString = "Data Source=" + dataSource;
+            connection.Open();
+        using (SQLiteCommand command = new SQLiteCommand(connection))
+        {
+          command.CommandText = "update Example set Info = :info, Text = :text where ID=:id";
+          
+            command.Parameters.Add("info", DbType.String).Value = textBox2.Text; 
+          command.Parameters.Add("text", DbType.String).Value = textBox3.Text; 
+          command.Parameters.Add("id", DbType.String).Value = textBox1.Text; 
+          command.ExecuteNonQuery();
+        }
+}
+*/
+        private void ExecuteSql(string SqlQuery, System.IO.FileInfo FileDB) //Prepare DB and execute of SQL Query
         {
             if (!System.IO.File.Exists(databasePerson.FullName))
             { SQLiteConnection.CreateFile(databasePerson.FullName); }
@@ -363,11 +494,47 @@ namespace mySCA2
                 {
                     using (var command = new SQLiteCommand(SqlQuery, connection))
                     { command.ExecuteNonQuery(); }
-                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                }
+                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
             }
             SqlQuery = null;
         }
 
+        private void TryUpdateStructureSqlDB(string tableName, string listCollumnsWithType, System.IO.FileInfo FileDB) //Update Table in DB and execute of SQL Query
+        {
+            using (var connection = new SQLiteConnection($"Data Source={databasePerson.FullName};Version=3;"))
+            {
+                connection.Open();
+                foreach (string collumn in listCollumnsWithType.Split(','))
+                {
+                    using (var command = new SQLiteCommand("ALTER TABLE " + tableName + " ADD COLUMN " + collumn, connection))
+                        try { command.ExecuteNonQuery(); } catch { }
+                }
+            }
+        }
+
+        /*
+         foreach(DataTable table in dataSet.Tables)
+{
+    SQLiteCommand cmd = new SQLiteCommand(mDBcon);
+    cmd.CommandText = "CREATE TABLE IF NOT EXISTS " + table.Name + "(";
+    bool first = true;
+    foreach (DataColumn column in table.Columns)
+    {           
+        cmd.CommandText += "@"+column.Name;
+        if (!first) cmd.CommandText += ",";
+        else first = false;
+        cmd.Parameters.Add(new SQLiteParameter("@"+column.Name, column.Name));
+    }
+    cmd.CommandText += ");";
+    cmd.ExecuteNonQuery();
+
+    // Fill the new table:
+    SQLiteDataAdapter da = new SQLiteDataAdapter("select * from " + table.Name, mDBcon);
+    da.Fill(table);
+}*/
+
+        //void ShowDataTableQuery(
         private void ShowDataTableQuery(System.IO.FileInfo databasePerson, string myTable, string mySqlQuery = "SELECT DISTINCT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', " +
             " DateRegistered AS 'Дата регистрации', HourComming AS 'Время прихода, часы',  MinuteComming AS 'Время прихода, минуты', ServerOfRegistration AS 'Сервер', " +
             " HourControlling AS 'Контрольное время, часы', MinuteControlling AS 'Контрольное время, минуты', Reserv1 AS 'Точка прохода', Reserv2 AS 'Направление'",
@@ -375,6 +542,7 @@ namespace mySCA2
         {
             if (databasePerson.Exists)
             {
+                // dtPeople.Clear();
                 iCounterLine = 0;
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
@@ -382,6 +550,7 @@ namespace mySCA2
                     using (var sqlDA = new SQLiteDataAdapter(mySqlQuery + " FROM '" + myTable + "' " + mySqlWhere + "; ", sqlConnection))
                     {
                         var dt = new DataTable();
+                        //dtPeople 
                         sqlDA.Fill(dt);
                         _dataGridViewSource(dt);
                     }
@@ -396,7 +565,8 @@ namespace mySCA2
                                 {
                                     if (record?["id"] != null)
                                     { iCounterLine++; }
-                                } catch { }
+                                }
+                                catch { }
                             }
                         }
                     }
@@ -404,6 +574,31 @@ namespace mySCA2
             }
             sLastSelectedElement = "dataGridView";
         }
+
+        /// <summary>
+        /// ///////////////////////////////////////////////////////////////////////////
+        /// </summary>
+
+        private void ShowDatatableOnDatagridview(DataTable dt, DataGridView dgv) //Query data from the Table of the DB
+        {
+            /*
+             
+            mySqlQuery = "SELECT DISTINCT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', " +
+            " DateRegistered AS 'Дата регистрации', HourComming AS 'Время прихода, часы',  MinuteComming AS 'Время прихода, минуты', ServerOfRegistration AS 'Сервер', " +
+            " HourControlling AS 'Контрольное время, часы', MinuteControlling AS 'Контрольное время, минуты', Reserv1 AS 'Точка прохода', Reserv2 AS 'Направление'",
+            string mySqlWhere = "ORDER BY FIO, DateRegistered, Comming") //Query data from the Table of the DB
+
+             */
+            _dataGridViewSource(dt);
+            sLastSelectedElement = "dataGridView";
+        }
+
+        
+
+        /// <summary>
+        /// ///////////////////////////////////////////////////////////////////////////
+        /// </summary>
+
 
         private void CopyWholeDataFromOneTableIntoAnother(System.IO.FileInfo databasePerson, string myTableInto, string myTableFrom) //Copy into Table from other Table
         {
@@ -436,6 +631,7 @@ namespace mySCA2
             }
             myTableFrom = null; myTableInto = null; myNAV = null;
         }
+
 
         private void DeleteTable(System.IO.FileInfo databasePerson, string myTable) //Delete All data from the selected Table of the DB (both parameters are string)
         {
@@ -488,7 +684,7 @@ namespace mySCA2
                     sqlConnection.Open();
                     if (mySqlParameter1.Trim().Length > 0 && mySqlParameter2.Trim().Length == 0)
                     {
-                        using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where NAV like '" + _textBoxNavText() + "' AND " + mySqlParameter1 + "= @" + mySqlParameter1 + ";", sqlConnection))
+                        using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where NAV like '" + _textBoxReturnText(textBoxNav) + "' AND " + mySqlParameter1 + "= @" + mySqlParameter1 + ";", sqlConnection))
                         {
                             sqlCommand.Parameters.Add("@" + mySqlParameter1, DbType.String).Value = mySqlData1;
                             try { sqlCommand.ExecuteNonQuery(); } catch { }
@@ -496,7 +692,7 @@ namespace mySCA2
                     }
                     if (mySqlParameter1.Trim().Length > 0 && mySqlParameter2.Trim().Length > 0)
                     {
-                        using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where NAV like '" + _textBoxNavText() + "' AND " + mySqlParameter1 + "= @" + mySqlParameter1 +
+                        using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where NAV like '" + _textBoxReturnText(textBoxNav) + "' AND " + mySqlParameter1 + "= @" + mySqlParameter1 +
                             " AND " + mySqlParameter2 + "= @" + mySqlParameter2 + ";", sqlConnection))
                         {
                             sqlCommand.Parameters.Add("@" + mySqlParameter1, DbType.String).Value = mySqlData1;
@@ -580,7 +776,7 @@ namespace mySCA2
                     sqlConnection.Open();
                     if (mySqlParameter2.Trim().Length > 0)
                     {
-                        using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where NAV like '" + _textBoxNavText() + "' AND " + mySqlParameter2 + " < @" + mySqlParameter2 + ";", sqlConnection))
+                        using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where NAV like '" + _textBoxReturnText(textBoxNav) + "' AND " + mySqlParameter2 + " < @" + mySqlParameter2 + ";", sqlConnection))
                         {
                             sqlCommand.Parameters.Add("@" + mySqlParameter2, DbType.Decimal).Value = mySqlData2;
                             try { sqlCommand.ExecuteNonQuery(); } catch { }
@@ -594,6 +790,10 @@ namespace mySCA2
             mySqlParameter2 = null;
         }
 
+
+
+
+
         private async void GetFio_Click(object sender, EventArgs e)
         {
             _MenuItemEnabled(QuickLoadDataItem, false);
@@ -605,41 +805,115 @@ namespace mySCA2
             VisualItemsAll_Enable(false);
             CheckBoxesFiltersAll_Enable(false);
 
-            if (sServer1.Length > 0 && sServer1UserName.Length > 0 && sServer1UserPassword.Length > 0)
+            await Task.Run(() => CheckAliveServer(sServer1));
+
+            if (sServer1.Length > 0 && sServer1UserName.Length > 0 && sServer1UserPassword.Length > 0 && bServer1Exist)
             {
                 Task.Run(() => _timer1Enabled(true));
                 _ProgressBar1Value0();
                 dataGridView1.Visible = true;
                 pictureBox1.Visible = false;
-
-                await Task.Run(() => GetFioFromServers());
+                
                 DeleteAllDataInTableQuery(databasePerson, "PersonTemp");
                 DeleteAllDataInTableQuery(databasePerson, "PersonRegistered");
                 DeleteAllDataInTableQuery(databasePerson, "PersonRegisteredFull");
-                ShowDataTableQuery(databasePerson, "PersonTemp");
-                panelViewResize();
-                _MenuItemEnabled(QuickSettingsItem, true);
-                VisualItemsAll_Enable(false);
+
+                await Task.Run(() => GetFioFromServers());
+
+                ShowDatatableOnDatagridview(dtPeople, dataGridView1);
+                //ShowDataTableQuery(databasePerson, "PersonTemp");
+                
+                await Task.Run(() => panelViewResize());
             }
-            else { GetInfoSetup(); _MenuItemEnabled(QuickSettingsItem, true); }
+            else { GetInfoSetup(); }
+
+            _MenuItemEnabled(QuickSettingsItem, true);
         }
 
-        private bool bServer1Exist = true;
+        private void CheckAliveServer(string serverName) //Get the list of registered users
+        {
+            bServer1Exist = false;
+            string stringConnection;
+            try
+            {
+                _toolStripStatusLabelSetText(StatusLabel2, "Проверка сервера " + serverName + ". Ждите окончания процесса...");
+                stimerPrev = "Проверка сервера " + serverName + ". Ждите окончания процесса...";
+                stringConnection = "Data Source=" + sServer1 + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=5";
+                using (var sqlConnection = new SqlConnection(stringConnection))
+                {
+                    sqlConnection.Open();
+                    string query = "SELECT id FROM OBJ_PERSON ";
+                    using (var sqlCommand = new SqlCommand(query, sqlConnection))
+                    {
+                        using (var sqlReader = sqlCommand.ExecuteReader())
+                        {
+                            bServer1Exist = true;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                bServer1Exist = false;
+                stimerPrev = serverName + " не доступен или неправильная авторизация";
+                _toolStripStatusLabelSetText(StatusLabel2, "Ошибка доступа к " + serverName + " SQL БД СКД-сервера!");
+                _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
+                _MenuItemEnabled(QuickLoadDataItem, false);
+                MessageBox.Show(serverName + " не доступен или не правильные имя/пароль", "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+            stringConnection = null;
+        }
 
         private void GetFioFromServers() //Get the list of registered users
         {
+            dtPeople.Clear();
+
+            /*
+             DataRow row = dtPeople.NewRow();
+                                row["Контракт"] = kontrakt;
+                                row["Номер телефона"] = numberMobile;
+                                row["ФИО"] = "";
+                                row["NAV"] = "";
+                                row["Подразделение"] = "";
+                                row["Имя сервиса"] = serviceName;
+                                row["Номер В"] = numberB;
+                                row["Дата"] = date;
+                                row["Время"] = time;
+                                row["Длительность А"] = durationA;
+                                row["Длительность В"] = durationB;
+                                row["Стоимость"] = cost;
+
+                                dtPeople.Rows.Add(row);
+
+                                  dcPeople ={
+                                  new DataColumn("№ п/п",typeof(int)),
+                                  new DataColumn("ФИО сотрудника",typeof(string)),
+                                  new DataColumn("NAV-код",typeof(string)),
+                                  new DataColumn("Группа",typeof(string)),
+                                  new DataColumn("Время прихода,часы",typeof(string)),
+                                  new DataColumn("Время прихода,минут",typeof(string)),
+                                  new DataColumn("Время прихода",typeof(decimal)),
+                                  new DataColumn("Время ухода,часы",typeof(string)),
+                                  new DataColumn("Время ухода,минут",typeof(string)),
+                                  new DataColumn("Время ухода",typeof(decimal)),
+        };
+             */
+
             string stringConnection;
             List<string> ListFIOTemp = new List<string>();
             listFIO = new List<string>();
             try
             {
                 _comboBoxFioClr();
-                _toolStripStatusLabel2AddText("Запрашиваю списки персонала с " + sServer1+". Ждите окончания процесса...");
+                _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю списки персонала с " + sServer1 + ". Ждите окончания процесса...");
                 stimerPrev = "Запрашиваю списки персонала с " + sServer1 + ". Ждите окончания процесса...";
                 stringConnection = "Data Source=" + sServer1 + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=60";
                 using (var sqlConnection = new SqlConnection(stringConnection))
                 {
                     sqlConnection.Open();
+
+                    //Check string!!!   "SELECT id, name, surname, patronymic, id, tabnum FROM OBJ_PERSON "
                     string query = "SELECT id, name, surname, patronymic, id, tabnum FROM OBJ_PERSON ";
                     using (var sqlCommand = new SqlCommand(query, sqlConnection))
                     {
@@ -653,20 +927,27 @@ namespace mySCA2
                                     string id = record?["id"].ToString();
                                     if (record?["name"].ToString().Trim().Length > 0)
                                     {
+                                        DataRow row = dtPeople.NewRow();
+                                        row[1] = record["name"].ToString().Trim() + " " + record["surname"].ToString().Trim() + " " + record["patronymic"].ToString().Trim();
+                                        row[2] = record["tabnum"].ToString().Trim();
+                                        dtPeople.Rows.Add(row);
+
                                         listFIO.Add(record["name"].ToString().Trim() + "|" + record["surname"].ToString().Trim() + "|" + record["patronymic"].ToString().Trim() + "|" + record["id"].ToString().Trim() + "|" +
                                                     record["tabnum"].ToString().Trim() + "|" + sServer1);
                                         ListFIOTemp.Add(record["name"].ToString().Trim() + " " + record["surname"].ToString().Trim() + " " + record["patronymic"].ToString().Trim() + "|" + record["tabnum"].ToString().Trim());
                                     }
-                                } catch(Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 _ProgressWork1();
                             }
                         }
                     }
                 }
 
-                _toolStripStatusLabel2AddText("Все списки с ФИО с серверов СКД успешно получены");
+                _toolStripStatusLabelSetText(StatusLabel2, "Все списки с ФИО с серверов СКД успешно получены");
                 stimerPrev = "Все списки с ФИО с сервера СКД успешно получены";
-            } catch (Exception Expt)
+            }
+            catch (Exception Expt)
             {
                 bServer1Exist = false;
                 stimerPrev = "Сервер не доступен или неправильная авторизация";
@@ -722,25 +1003,25 @@ namespace mySCA2
                     sqlCommand1.Dispose();
                 }
 
-
                 foreach (string str in ListFIOCombo.ToArray())
                 { _comboBoxFioAdd(str); iFIO++; }
                 try
-                { _comboBoxFioIndex(0); } catch { };
+                { _comboBoxFioIndex(0); }
+                catch { };
                 _timer1Enabled(false);
-                _toolStripStatusLabel2AddText("Получено ФИО - " + iFIO + " ");
-                _toolStripStatusLabel2ForeColor(Color.Black);
-                QuickLoadDataItem.Enabled = true;
+                _toolStripStatusLabelSetText(StatusLabel2, "Получено ФИО - " + iFIO + " ");
+                _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
+                _MenuItemEnabled(QuickLoadDataItem, true);
             }
-            _toolStripStatusLabel1Color(Color.Black);
+            _toolStripStatusLabelForeColor(StatusLabel1, Color.Black);
             stringConnection = null;
             ListFIOCombo = null;
             ListFIOTemp = null;
             if (!bServer1Exist)
             {
-                _toolStripStatusLabel2AddText("Ошибка доступа к SQL БД СКД-серверов!");
-                _toolStripStatusLabel2BackColor(Color.DarkOrange);
-                QuickLoadDataItem.Enabled = false;
+                _toolStripStatusLabelSetText(StatusLabel2, "Ошибка доступа к SQL БД СКД-серверов!");
+                _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
+                _MenuItemEnabled(QuickLoadDataItem, false);
                 MessageBox.Show("Проверьте правильность написания серверов,\nимя и пароль sa-администратора,\nа а также доступность серверов и их баз!");
             }
             _ProgressBar1Value100();
@@ -751,6 +1032,7 @@ namespace mySCA2
             _MenuItemEnabled(GroupsMenuItem, true);
         }
 
+        /*
         private void FilterItem_Click(object sender, EventArgs e)
         {
             dataGridView1.Visible = true;
@@ -769,9 +1051,9 @@ namespace mySCA2
                         sCell = Regex.Split(sRow, "[|]"); //FIO|NAV|H|M
                         if (sCell[0].Length > 1)
                         {
-                            _textBoxFIOAddText(sCell[0]);   //иммитируем выбор данных
-                            _textBoxNavAddText(sCell[1]);   //Select person   
-
+                            _textBoxSetText(textBoxFIO, sCell[0]);   //иммитируем выбор данных
+                            _textBoxSetText(textBoxNav, sCell[1]);   //Select person                  
+                            
                             dControlHourSelected = Convert.ToDecimal(sCell[2]);
                             dControlMinuteSelected = Convert.ToDecimal(sCell[3]);
                             FilterDataByNav();
@@ -792,18 +1074,20 @@ namespace mySCA2
 
             //FilterItem.BackColor = SystemColors.Control;
             panelViewResize();
-        }
+        }*/
+
+
 
         private void FilterDataByNav()    //Copy Data from PersonRegistered into PersonTemp by Filter(NAV and anual dates or minimalTime or dayoff)
         {
-            if (checkBoxReEnter.Checked)
+            if (_CheckboxChecked(checkBoxReEnter)) //checkBoxReEnter.Checked
             {
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
                     sqlConnection.Open();
                     HashSet<string> AllDateRegistration = new HashSet<string>();
                     using (var sqlCommand = new SQLiteCommand("SELECT  *, MIN(Comming) AS FirstRegistered FROM PersonRegistered  " +
-                        " WHERE NAV like '" + textBoxNav.Text.Trim() + "' GROUP BY FIO, NAV, DateRegistered ORDER BY DateRegistered ASC;", sqlConnection))
+                        " WHERE NAV like '" + _textBoxReturnText(textBoxNav) + "' GROUP BY FIO, NAV, DateRegistered ORDER BY DateRegistered ASC;", sqlConnection))
                     {                                                                                         //, min (PersonRegistered.comming) AS FirstRegistered
                         using (var reader = sqlCommand.ExecuteReader())
                         {
@@ -832,10 +1116,11 @@ namespace mySCA2
                                             ;
                                         AllDateRegistration.Add(stringDateRegistered);
 
-                                        dControlHourSelected = Convert.ToDecimal(record["HourControlling"].ToString().Trim());
-                                        dControlMinuteSelected = Convert.ToDecimal(record["MinuteControlling"].ToString().Trim());
+                                        dControlHourSelected = TryParseStringToDecimal(record["HourControlling"].ToString().Trim());
+                                        dControlMinuteSelected = TryParseStringToDecimal(record["MinuteControlling"].ToString().Trim());
                                     }
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
@@ -882,7 +1167,7 @@ namespace mySCA2
                     sqlConnection.Open();
                     HashSet<string> AllDateRegistration = new HashSet<string>();
                     using (var sqlCommand = new SQLiteCommand("Select * FROM PersonRegistered  " +
-                        " where NAV like '" + textBoxNav.Text.Trim() + "' order by FIO, DateRegistered, Comming ASC;", sqlConnection))
+                        " where NAV like '" + _textBoxReturnText(textBoxNav) + "' order by FIO, DateRegistered, Comming ASC;", sqlConnection))
                     {
                         using (var reader = sqlCommand.ExecuteReader())
                         {
@@ -914,7 +1199,8 @@ namespace mySCA2
                                         dControlHourSelected = Convert.ToDecimal(record["HourControlling"].ToString().Trim());
                                         dControlMinuteSelected = Convert.ToDecimal(record["MinuteControlling"].ToString().Trim());
                                     }
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
@@ -955,10 +1241,10 @@ namespace mySCA2
                 }
             }
 
-            if (checkBoxWeekend.Checked)
+            if (_CheckboxChecked(checkBoxWeekend))//checkBoxWeekend.Checked
             { DeleteAnualDates(databasePerson, "PersonTemp"); }
 
-            if (checkBoxStartWorkInTime.Checked)
+            if (_CheckboxChecked(checkBoxStartWorkInTime)) //checkBoxStartWorkInTime.Checked
             { DeleteDataTableQueryLess(databasePerson, "PersonTemp", "Comming", dControlHourSelected + (dControlMinuteSelected + 1) / 60 - (1 / 60)); }
         }
 
@@ -1201,54 +1487,6 @@ namespace mySCA2
             monthCalendar.Update();
         }
 
-        private void _dataGridView1Enabled(bool bEnabled) //add string into  from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { dataGridView1.Enabled = bEnabled; }));
-            else
-                dataGridView1.Enabled = bEnabled;
-        }
-
-        private int _dataGridView1ColumnCount() //add string into  from other threads
-        {
-            int iDgv = 0;
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { try { iDgv = dataGridView1.ColumnCount; } catch { iDgv = 0; } }));
-            else
-                try { iDgv = dataGridView1.ColumnCount; } catch { iDgv = 0; }
-            return iDgv;
-        }
-
-        private int _dataGridView1RowsCount() //add string into  from other threads
-        {
-            int iDgv = 0;
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { try { iDgv = dataGridView1.Rows.Count; } catch { iDgv = 0; } }));
-            else
-                try { iDgv = dataGridView1.Rows.Count; } catch { iDgv = 0; }
-            return iDgv;
-        }
-
-        private string _dataGridView1ColumnHeaderText(int i) //add string into  from other threads
-        {
-            string sDgv = "";
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { try { sDgv = dataGridView1.Columns[i].HeaderText; } catch { sDgv = ""; } }));
-            else
-                try { sDgv = dataGridView1.Columns[i].HeaderText; } catch { sDgv = ""; }
-            return sDgv;
-        }
-
-        private string _dataGridView1CellValue(int iRow, int iCells) //from other threads
-        {
-            string sDgv = "";
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { try { sDgv = dataGridView1.Rows[iRow].Cells[iCells].Value.ToString(); } catch { sDgv = ""; } }));
-            else
-                try { sDgv = dataGridView1.Rows[iRow].Cells[iCells].Value.ToString(); } catch { sDgv = ""; }
-            return sDgv;
-        }
-
         private void ExportDatagridToExcel()  //Export to Excel from DataGridView
         {
             _MenuItemEnabled(QuickLoadDataItem, false);
@@ -1259,7 +1497,7 @@ namespace mySCA2
             _MenuItemEnabled(QuickSettingsItem, false);
             //_MenuItemEnabled(ViewMenuItem, false);
             VisualItemsAll_Enable(false);
-            _dataGridView1Enabled(false);
+            _controlEnable(dataGridView1, false);
 
             int iDGCollumns = _dataGridView1ColumnCount();
             int iDGRows = _dataGridView1RowsCount();
@@ -1288,10 +1526,10 @@ namespace mySCA2
             _ChangeMenuItemBackColor(ExportIntoExcelItem, SystemColors.Control);
             stimerPrev = "";
             _timer1Enabled(false);
-            _toolStripStatusLabel2ForeColor(Color.Black);
+            _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
             sLastSelectedElement = "ExportExcel";
             iDGCollumns = 0; iDGRows = 0;
-            _toolStripStatusLabel2AddText("Готово!");
+            _toolStripStatusLabelSetText(StatusLabel2, "Готово!");
             _MenuItemEnabled(QuickLoadDataItem, true);
             _MenuItemEnabled(FunctionMenuItem, true);
             _MenuItemEnabled(QuickSettingsItem, true);
@@ -1300,7 +1538,7 @@ namespace mySCA2
             _MenuItemEnabled(QuickSettingsItem, true);
             //_MenuItemEnabled(ViewMenuItem, true);
             VisualItemsAll_Enable(true);
-            _dataGridView1Enabled(true);
+            _controlEnable(dataGridView1, true);
         }
 
         private void releaseObject(object obj) //for function - ExportDatagridToExcel()
@@ -1309,18 +1547,20 @@ namespace mySCA2
             {
                 System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
                 obj = null;
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 obj = null;
                 MessageBox.Show("Exception Occured while releasing object of Excel \n" + ex);
-            } finally
+            }
+            finally
             { GC.Collect(); }
         }
 
         private async void Export_Click(object sender, EventArgs e)
         {
             Task.Run(() => _timer1Enabled(true));
-            Task.Run(() => _toolStripStatusLabel2AddText("Генерирую Excel-файл"));
+            Task.Run(() => _toolStripStatusLabelSetText(StatusLabel2, "Генерирую Excel-файл"));
             stimerPrev = "Наполняю файл данными из текущей таблицы";
 
             await Task.Run(() => ExportDatagridToExcel());
@@ -1346,7 +1586,8 @@ namespace mySCA2
                 textBoxNav.Text = Regex.Split(sComboboxFIO, "[|]")[1].Trim();
                 textBoxFIO.Text = Regex.Split(sComboboxFIO, "[|]")[0].Trim();
                 StatusLabel2.Text = @"Выбран: " + ShortFIO(textBoxFIO.Text) + @" |  Всего ФИО: " + iFIO;
-            } catch { }
+            }
+            catch { }
             if (comboBoxFio.SelectedIndex > -1)
             {
                 QuickLoadDataItem.BackColor = Color.PaleGreen;
@@ -1390,6 +1631,7 @@ namespace mySCA2
         {
             groupBoxProperties.Visible = false;
             dataGridView1.Visible = true;
+
             ShowDataTableQuery(databasePerson, "PersonGroupDesciption", "SELECT GroupPerson, GroupPersonDescription ", " group by GroupPerson ORDER BY GroupPerson asc; ");
 
             try
@@ -1398,12 +1640,12 @@ namespace mySCA2
                 textBoxGroupDescription.Text = dataGridView1.Rows[0].Cells[1].Value.ToString();
                 StatusLabel2.Text = @"Выбрана группа: " + textBoxGroup.Text + @" |  Всего ФИО: " + iFIO;
 
-                QuickLoadDataItem.BackColor = System.Drawing.Color.PaleGreen;
-                // QuickFilterItem.BackColor = SystemColors.Control;
-                groupBoxPeriod.BackColor = System.Drawing.Color.PaleGreen;
-                groupBoxTime.BackColor = System.Drawing.Color.PaleGreen;
+                QuickLoadDataItem.BackColor = Color.PaleGreen;
+                groupBoxPeriod.BackColor = Color.PaleGreen;
+                groupBoxTime.BackColor = Color.PaleGreen;
                 groupBoxRemoveDays.BackColor = SystemColors.Control;
-            } catch { }
+            }
+            catch { }
             DeleteGroupItem.Visible = true;
             ExportIntoExcelItem.Enabled = true;
 
@@ -1442,7 +1684,8 @@ namespace mySCA2
                     groupBoxPeriod.BackColor = Color.PaleGreen;
                     groupBoxTime.BackColor = Color.PaleGreen;
                     groupBoxRemoveDays.BackColor = SystemColors.Control;
-                } catch { }
+                }
+                catch { }
 
             if (iCounterLine > 0)
             {
@@ -1456,65 +1699,57 @@ namespace mySCA2
         }
 
         private void AddPersonToGroupItem_Click(object sender, EventArgs e) //Add the selected person into the named group
-        {
-            AddPersonToGroup();
-        }
+        { AddPersonToGroup(); }
 
 
         private void importPeopleInLocalDBToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL, 
-            //            decimal haveCome = hoursHaveCome + (minutesHaveCome + 1) / 60 - (1 / 60);
-            // decimal haveOut = hoursCanOut + (minutesCanOut + 1) / 60 - (1 / 60);
-
-            //TODO import separatedly groups and people into DB
-
-            
-
-            ImportDataInLocalDB(databasePerson);
+            ImportTextToTable();
+            ImporTableToLocalDB(databasePerson.ToString());
         }
-        
 
         private void ImportTextToTable() //Fill dtPeople
         {
             List<string> listRows = LoadDataIntoList();
+            listGroups = new List<string>();
 
-            string checkThreeRows = "";
-            checkThreeRows = "ФИО;NAV-код;Группа;Время прихода,часы;Время прихода,минуты;Время ухода,часы;Время ухода,минуты+\n";
+            string getThreeRows = "";
+            getThreeRows = "Маска:\nФИО\tNAV-код\tГруппа\tВремя прихода,часы\tВремя прихода,минуты\tВремя ухода,часы\tВремя ухода,минуты\n\nДанные:\n";
             if (listRows.Count > 0)
             {
-                checkThreeRows += listRows.ElementAt(0) + "\n";
-                if (listRows.Count > 1) checkThreeRows += listRows.ElementAt(1) + "\n";
-                if (listRows.Count > 2) checkThreeRows += listRows.ElementAt(2) + "\n";
+                getThreeRows += listRows.ElementAt(0) + "\n";
+                if (listRows.Count > 1) getThreeRows += listRows.ElementAt(1) + "\n";
+                if (listRows.Count > 2) getThreeRows += listRows.ElementAt(2) + "\n";
 
                 DialogResult result = MessageBox.Show(
-                      "Проверьте первые строки файла.\n"+
-                      "Первая строка - маска для импорта. Строка заканчивается ячейкой \"Время ухода,минуты\" Разделители - ;\n" +
-                      "Если порядок ячеек соответствует маске, то\nдля продолжения импорта нажмите \"Да\":\n\n" + checkThreeRows,
+                      "Проверьте первые строки файла.\n" +
+                      "Первая строка - маска для импорта. Строка заканчивается ячейкой \"Время ухода,минуты\" Разделитель - табуляция\n" +
+                      "Если порядок ячеек соответствует маске, то\nдля продолжения импорта нажмите \"Да\":\n\n" + getThreeRows,
                       "Внимание!",
                       MessageBoxButtons.YesNo,
                       MessageBoxIcon.Exclamation,
                       MessageBoxDefaultButton.Button1);
                 if (result == DialogResult.Yes)
                 {
-
                     dtPeople.Rows.Clear();
                     DataRow row = dtPeople.NewRow();
 
-                    foreach (string strRow in listRows)                    {
-                   
-                        string[] cell = strRow.Split(';');
+                    foreach (string strRow in listRows)
+                    {
+
+                        string[] cell = strRow.Split('\t');
                         if (cell.Length == 7)
                         {
                             row[0] = cell[0];
                             row[1] = cell[1];
                             row[2] = cell[2];
+                            listGroups.Add(cell[2]);
                             row[3] = cell[3];
                             row[4] = cell[4];
-                            row[5] = TryParseDecimal(cell[3]) + (TryParseDecimal(cell[4]) + 1) / 60 - (1 / 60)      ;
+                            row[5] = TryParseStringToDecimal(cell[3]) + (TryParseStringToDecimal(cell[4]) + 1) / 60 - (1 / 60);
                             row[6] = cell[5];
                             row[7] = cell[6];
-                            row[8] = TryParseDecimal(cell[5]) + (TryParseDecimal(cell[6]) + 1) / 60 - (1 / 60);
+                            row[8] = TryParseStringToDecimal(cell[5]) + (TryParseStringToDecimal(cell[6]) + 1) / 60 - (1 / 60);
 
                             dtPeople.Rows.Add(row);
                             row = dtPeople.NewRow();
@@ -1528,7 +1763,7 @@ namespace mySCA2
             }
         }
 
-        private decimal TryParseDecimal(string str)
+        private decimal TryParseStringToDecimal(string str)
         {
             decimal result = 0;
             try { result = decimal.Parse(str); } catch { result = 0; }
@@ -1543,7 +1778,7 @@ namespace mySCA2
             string filepathLoadedData = "";
             int i = 0; // it is not empty's rows in the selected file
 
-            openFileDialog1.FileName = @"";
+            openFileDialog1.FileName = "";
             openFileDialog1.Filter = "Текстовые файлы (*.txt)|*.txt|All files (*.*)|*.*";
             openFileDialog1.ShowDialog();
             filepathLoadedData = openFileDialog1.FileName;
@@ -1578,44 +1813,50 @@ namespace mySCA2
             return listValue;
         }
 
-        private void ImportDataInLocalDB(string pathToPersonDB)
+        private void ImporTableToLocalDB(string pathToPersonDB) //use listGroups
         {
             using (var connection = new SQLiteConnection($"Data Source={pathToPersonDB};Version=3;"))
             {
                 connection.Open();
-                using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PersonGroup' (FIO, NAV, GroupPerson, HourControlling, MinuteControlling, Controlling, HourControllingOut, MinuteControllingOut, ControllingOut) " +
-                                         "VALUES (@FIO, @NAV, @GroupPerson, @HourControlling, @MinuteControlling, @Controlling, @HourControllingOut, @MinuteControllingOut, @ControllingOut)", connection))
-                {
 
-                    foreach (DataRow row in dtPeople.Rows)
-                    {
-                        command.Parameters.Add("@FIO", DbType.String).Value = sFIO; //row[0]
-                        command.Parameters.Add("@NAV", DbType.String).Value = sNAV;
-                        command.Parameters.Add("@GroupPerson", DbType.String).Value = sGroup;
-                        command.Parameters.Add("@HourControlling", DbType.String).Value = hoursHaveCome;
-                        command.Parameters.Add("@MinuteControlling", DbType.String).Value = minutesHaveCome;
-                        command.Parameters.Add("@Controlling", DbType.Decimal).Value = haveCome;
-                        command.Parameters.Add("@HourControllingOut", DbType.String).Value = hoursCanOut;
-                        command.Parameters.Add("@MinuteControllingOut", DbType.String).Value = minutesCanOut;
-                        command.Parameters.Add("@ControllingOut", DbType.Decimal).Value = haveOut;
-                        try { command.ExecuteNonQuery(); } catch { }
-                    }
-                }
-            }
-        }
-
-        public void ImportGroupDataInLocalDB(string pathToDB, string sGroup, string sGroupDesciption) //Use to inport group into locaDB
-        {
-            using (var connection = new SQLiteConnection($"Data Source={pathToDB};Version=3;"))
-            {
-                connection.Open();
+                //import groups
+                SQLiteCommand commandTransaction = new SQLiteCommand("begin", connection);
+                commandTransaction.ExecuteNonQuery();
                 using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PersonGroupDesciption' (GroupPerson, GroupPersonDescription) " +
                                         "VALUES (@GroupPerson, @GroupPersonDescription )", connection))
                 {
-                    command.Parameters.Add("@GroupPerson", DbType.String).Value = sGroup;
-                    command.Parameters.Add("@GroupPersonDescription", DbType.String).Value = sGroupDesciption;
-                    try { command.ExecuteNonQuery(); } catch { }
+                    foreach (string group in listGroups.Distinct())
+                    {
+                        command.Parameters.Add("@GroupPerson", DbType.String).Value = group;
+                        command.Parameters.Add("@GroupPersonDescription", DbType.String).Value = group;
+                        try { command.ExecuteNonQuery(); } catch { }
+                    }
                 }
+                commandTransaction = new SQLiteCommand("end", connection);
+                commandTransaction.ExecuteNonQuery();
+
+                //import people
+                commandTransaction = new SQLiteCommand("begin", connection);
+                commandTransaction.ExecuteNonQuery();
+                using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PersonGroup' (FIO, NAV, GroupPerson, HourControlling, MinuteControlling, Controlling, HourControllingOut, MinuteControllingOut, ControllingOut) " +
+                                         "VALUES (@FIO, @NAV, @GroupPerson, @HourControlling, @MinuteControlling, @Controlling, @HourControllingOut, @MinuteControllingOut, @ControllingOut)", connection))
+                {
+                    foreach (DataRow row in dtPeople.Rows)
+                    {
+                        command.Parameters.Add("@FIO", DbType.String).Value = row[0]; //row[0]
+                        command.Parameters.Add("@NAV", DbType.String).Value = row[1];
+                        command.Parameters.Add("@GroupPerson", DbType.String).Value = row[2];
+                        command.Parameters.Add("@HourControlling", DbType.String).Value = row[3];
+                        command.Parameters.Add("@MinuteControlling", DbType.String).Value = row[4];
+                        command.Parameters.Add("@Controlling", DbType.Decimal).Value = row[5];
+                        command.Parameters.Add("@HourControllingOut", DbType.String).Value = row[6];
+                        command.Parameters.Add("@MinuteControllingOut", DbType.String).Value = row[7];
+                        command.Parameters.Add("@ControllingOut", DbType.Decimal).Value = row[8];
+                        try { command.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                    }
+                }
+                commandTransaction = new SQLiteCommand("end", connection);
+                commandTransaction.ExecuteNonQuery();
             }
         }
 
@@ -1657,7 +1898,7 @@ namespace mySCA2
                     try
                     {
                         StatusLabel2.Text = "\"" + ShortFIO(Regex.Split(sTextFIOSelected, "[|]")[0].Trim()) + "\"" + " добавлен в группу \"" + sTextGroup + "\"";
-                        _toolStripStatusLabel2BackColor(SystemColors.Control);
+                        _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
                         bErrorData = true;
                     }
                     catch { }
@@ -1666,7 +1907,7 @@ namespace mySCA2
                     try
                     {
                         StatusLabel2.Text = "Отсутствует NAV-код у:" + ShortFIO(Regex.Split(sTextFIOSelected, "[|]")[0].Trim());
-                        _toolStripStatusLabel2BackColor(Color.DarkOrange);
+                        _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
                         bErrorData = true;
                     }
                     catch { }
@@ -1674,7 +1915,7 @@ namespace mySCA2
                     try
                     {
                         StatusLabel2.Text = "Не указана группа, в которую нужно добавить!";
-                        _toolStripStatusLabel2BackColor(Color.DarkOrange);
+                        _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
                         bErrorData = true;
                     }
                     catch { }
@@ -1682,7 +1923,7 @@ namespace mySCA2
                     try
                     {
                         StatusLabel2.Text = "Проверьте вводимые данные!";
-                        _toolStripStatusLabel2BackColor(Color.DarkOrange);
+                        _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
                         bErrorData = true;
                     }
                     catch { }
@@ -1716,7 +1957,8 @@ namespace mySCA2
                                 {
                                     if (record != null && record["id"].ToString().Trim().Length > 0)
                                     { listPoints.Add(sServer1 + "|" + record["id"].ToString().Trim() + "|" + record["name"].ToString().Trim()); }
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
@@ -1745,9 +1987,7 @@ namespace mySCA2
         }
 
         private void GetDataItem_Click(object sender, EventArgs e)
-        {
-            GetDataItem();
-        }
+        { GetDataItem(); }
 
         private async void GetDataItem()
         {
@@ -1764,28 +2004,30 @@ namespace mySCA2
             //_MenuItemEnabled(ViewMenuItem, false);
             VisualItemsAll_Enable(false);
             CheckBoxesFiltersAll_Enable(false);
-            _dataGridView1Enabled(false);
+            _controlEnable(dataGridView1, true);
+            await Task.Run(() => CheckAliveServer(sServer1));
 
-            if (sServer1.Length > 0 && sServer1UserName.Length > 0 && sServer1UserPassword.Length > 0)
+            if (sServer1.Length > 0 && sServer1UserName.Length > 0 && sServer1UserPassword.Length > 0 && bServer1Exist)
             {
                 Task.Run(() => _timer1Enabled(true));
 
-                if ((nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup") && _textBoxGroupText().Length > 0)
+                if ((nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup") && _textBoxReturnText(textBoxGroup).Length > 0)
                 {
-                    Task.Run(() => _toolStripStatusLabel2AddText("Получаю данные по группе " + _textBoxGroupText()));
-                    stimerPrev = "Получаю данные по группе " + _textBoxGroupText();
+                    Task.Run(() => _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по группе " + _textBoxReturnText(textBoxGroup)));
+                    stimerPrev = "Получаю данные по группе " + _textBoxReturnText(textBoxGroup);
                 }
                 else
                 {
-                    Task.Run(() => _toolStripStatusLabel2AddText("Получаю данные по \"" + ShortFIO(_textBoxFIOText()) + "\" "));
-                    stimerPrev = "Получаю данные по \"" + ShortFIO(_textBoxFIOText()) + "\" ";
+                    Task.Run(() => _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по \"" + ShortFIO(_textBoxReturnText(textBoxFIO)) + "\" "));
+                    stimerPrev = "Получаю данные по \"" + ShortFIO(_textBoxReturnText(textBoxFIO)) + "\" ";
                     nameOfLastTableFromDB = "PersonRegistered";
                 }
                 _ProgressBar1Value0();
                 pictureBox1.Visible = false;
                 await Task.Run(() => GetDataGroupItem());
-                dataGridView1.Visible = true;
-                _dataGridView1Enabled(true);
+                _controlVisible(dataGridView1, true);
+                _controlEnable(dataGridView1, true);
+
                 VisualItem.Enabled = true;
                 VisualWorkedTimeItem.Visible = true;
                 ExportIntoExcelItem.Enabled = true;
@@ -1806,10 +2048,10 @@ namespace mySCA2
             DeleteAllDataInTableQuery(databasePerson, "PersonRegisteredFull");
             GetNamePoints();  //Get names of the points
 
-            if ((nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup") && _textBoxGroupText().Length > 1)
+            if ((nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup") && _textBoxReturnText(textBoxGroup).Length > 1)
             {
-                _toolStripStatusLabel2AddText("Получаю данные по группе " + _textBoxGroupText());
-                stimerPrev = "Получаю данные по группе " + _textBoxGroupText();
+                _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по группе " + _textBoxReturnText(textBoxGroup));
+                stimerPrev = "Получаю данные по группе " + _textBoxReturnText(textBoxGroup);
                 GetGroupInfoFromDB();
 
                 string[] sCell;
@@ -1819,8 +2061,8 @@ namespace mySCA2
                     if (sCell[0].Length > 1)
                     {
                         listFIO.Clear();
-                        _textBoxFIOAddText(sCell[0]);   //иммитируем выбор данных
-                        _textBoxNavAddText(sCell[1]);   //Select person                  
+                        _textBoxSetText(textBoxFIO, sCell[0]);   //иммитируем выбор данных
+                        _textBoxSetText(textBoxNav, sCell[1]);   //Select person                  
                         listFIO.Add(sCell[0]);      // add the person into the list  
 
                         dControlHourSelected = Convert.ToDecimal(sCell[2]);
@@ -1832,25 +2074,28 @@ namespace mySCA2
 
                 nameOfLastTableFromDB = "PersonGroup";
                 _timer1Enabled(false);
-                _toolStripStatusLabel2AddText("Данные по группе \"" + _textBoxGroupText() + "\" получены");
+                _toolStripStatusLabelSetText(StatusLabel2, "Данные по группе \"" + _textBoxReturnText(textBoxGroup) + "\" получены");
             }
             else
             {
                 dControlHourSelected = Convert.ToDecimal(numUpDownHour.Value);
                 dControlMinuteSelected = Convert.ToDecimal(numUpDownMinute.Value);
 
-                stimerPrev = "Получаю данные по \"" + ShortFIO(_textBoxFIOText()) + "\"";
+                stimerPrev = "Получаю данные по \"" + ShortFIO(_textBoxReturnText(textBoxFIO)) + "\"";
                 GetRegistrationFromServer();
                 nameOfLastTableFromDB = "PersonRegistered";
                 _timer1Enabled(false);
-                _toolStripStatusLabel2AddText("Данные с СКД по \"" + ShortFIO(_textBoxFIOText()) + "\" получены!");
+                _toolStripStatusLabelSetText(StatusLabel2, "Данные с СКД по \"" + ShortFIO(_textBoxReturnText(textBoxFIO)) + "\" получены!");
             }
 
+
             CopyWholeDataFromOneTableIntoAnother(databasePerson, "PersonTemp", "PersonRegistered");
+
+            //заполнить данными из Персонрегистреред
+            ShowDatatableOnDatagridview(dtPeople, dataGridView1);
             ShowDataTableQuery(databasePerson, "PersonTemp");
 
             _SetMenuItemDefaultColor(QuickLoadDataItem);
-            //_ChangeMenuItemBackColor(FilterItem, Color.PaleGreen);
             _ChangeMenuItemBackColor(ExportIntoExcelItem, Color.PaleGreen);
 
             _ProgressBar1Value100();
@@ -1859,15 +2104,15 @@ namespace mySCA2
             _MenuItemEnabled(QuickSettingsItem, true);
             _MenuItemEnabled(AnualDatesMenuItem, true);
             _MenuItemEnabled(GroupsMenuItem, true);
-            _toolStripStatusLabel2ForeColor(Color.Black);
+            _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
             stimerPrev = "";
         }
-        
+
         private void GetRegistrationFromServer()
         {
-            string personNAV = _textBoxNavText(); ; string personFIO = _textBoxFIOText();
+            string personNAV = _textBoxReturnText(textBoxNav); ; string personFIO = _textBoxReturnText(textBoxFIO);
             stimerPrev = "Получаю данные по \"" + ShortFIO(personFIO) + "\"";
-            _toolStripStatusLabel2AddText("Получаю данные по \"" + ShortFIO(personFIO) + "\"");
+            _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по \"" + ShortFIO(personFIO) + "\"");
 
             decimal hourControlStart = dControlHourSelected;
             decimal minuteControlStart = dControlMinuteSelected;
@@ -1926,7 +2171,8 @@ namespace mySCA2
                                     {
                                         if (record?["tabnum"].ToString().Trim().Length > 0)
                                         { stringIdCardIntellect = record["id"].ToString().Trim(); _ProgressWork1(); break; }
-                                    } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                    }
+                                    catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 }
                             }
                         }
@@ -1935,7 +2181,8 @@ namespace mySCA2
 
                 if (personNAV.Length < 1 && personNAV.Length != 6)
                 { stringIdCardSKD = "0"; }
-            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            }
+            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
 
             try
             {
@@ -1985,7 +2232,8 @@ namespace mySCA2
                                                 );
                                             _ProgressWork1();
                                         }
-                                    } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                    }
+                                    catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 }
                             }
                         }
@@ -1996,7 +2244,8 @@ namespace mySCA2
                 stringConnection = null;
                 stringSqlWhere = null;
                 _ProgressWork1();
-            } catch (Exception Expt)
+            }
+            catch (Exception Expt)
             { MessageBox.Show(Expt.ToString(), @"Сервер не доступен, или неправильная авторизация", MessageBoxButtons.OK, MessageBoxIcon.Error); }
 
             iCounterLine = 0;
@@ -2036,7 +2285,8 @@ namespace mySCA2
                                         else if (namePoint.ToLower().Contains("вход"))
                                             nameDirection = "Вход";
                                         break;
-                                    } catch
+                                    }
+                                    catch
                                     {
                                     }
                             }
@@ -2083,7 +2333,7 @@ namespace mySCA2
             {
                 sqlConnection.Open();
                 using (var sqlCommand = new SQLiteCommand(
-                    "Select * FROM PersonGroup where GroupPerson like '" + _textBoxGroupText() + "';", sqlConnection))
+                    "Select * FROM PersonGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';", sqlConnection))
                 {
                     using (var sqlReader = sqlCommand.ExecuteReader())
                     {
@@ -2126,7 +2376,7 @@ namespace mySCA2
                         if (dataGridView1.Columns[i].HeaderText == "Группа")
                             IndexColumn2 = i;
                     }
-                    DeleteDataTableQuery(databasePerson, "PersonGroup", " where NAV like '%" + _textBoxNavText() + "%'", "NAV", dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString().Trim(),
+                    DeleteDataTableQuery(databasePerson, "PersonGroup", " where NAV like '%" + _textBoxReturnText(textBoxNav) + "%'", "NAV", dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString().Trim(),
                         "GroupPerson", dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString().Trim());
                 }
                 nameOfLastTableFromDB = "PersonGroup";
@@ -2174,108 +2424,7 @@ namespace mySCA2
             ListGroup();
         }
 
-        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (dataGridView1.Rows.Count > 0 && dataGridView1.CurrentRow.Index < dataGridView1.Rows.Count)
-                try
-                {
-                    int IndexCurrentRow = _dataGridView1CurrentRowIndex();
-                    if (IndexCurrentRow > -1)
-                    {
-                        if (nameOfLastTableFromDB == "PersonGroupDesciption")
-                        {
-                            int IndexColumn1 = 0;           // индекс 1-й колонки в датагрид
-                            int IndexColumn2 = 0;           // индекс 2-й колонки в датагрид
-
-                            for (int i = 0; i < dataGridView1.ColumnCount; i++)
-                            {
-                                switch (dataGridView1.Columns[i].HeaderText)
-                                {
-                                    case "GroupPerson":
-                                        IndexColumn1 = i;
-                                        break;
-                                    case "GroupPersonDescription":
-                                        IndexColumn2 = i;
-                                        break;
-                                    default:
-                                        break;
-                                }
-                            }
-                            textBoxGroup.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString(); //Take the name of selected group
-                            textBoxGroupDescription.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString(); //Take the name of selected group
-                            groupBoxPeriod.BackColor = System.Drawing.Color.PaleGreen;
-                            groupBoxRemoveDays.BackColor = SystemColors.Control;
-                            StatusLabel2.Text = @"Выбрана группа: " + textBoxGroup.Text + @" |  Всего ФИО: " + iFIO;
-                            if (textBoxFIO.TextLength > 3)
-                            {
-                                comboBoxFio.SelectedIndex = comboBoxFio.FindString(textBoxFIO.Text);
-                            }
-                            nameOfLastTableFromDB = "PersonGroupDesciption";
-                        }
-
-                        else if (nameOfLastTableFromDB == "PersonGroup")
-                        {
-                            // comboBoxFio.Items.Clear();
-                            int IndexColumn1 = -1;           // индекс 1-й колонки в датагрид
-                            int IndexColumn2 = -1;           // индекс 2-й колонки в датагрид
-                            int IndexColumn3 = -1;           // индекс 3-й колонки в датагрид
-                            int IndexColumn4 = -1;           // индекс 4-й колонки в датагрид
-
-                            for (int i = 0; i < dataGridView1.ColumnCount; i++)
-                            {
-                                if (dataGridView1.Columns[i].HeaderText.ToString() == "Фамилия Имя Отчество" ||
-                                        dataGridView1.Columns[i].HeaderText.ToString() == "FIO")
-                                    IndexColumn1 = i;
-                                if (dataGridView1.Columns[i].HeaderText.ToString() == "NAV-код" ||
-                                        dataGridView1.Columns[i].HeaderText.ToString() == "NAV")
-                                    IndexColumn2 = i;
-                                if (dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время, часы" ||
-                                        dataGridView1.Columns[i].HeaderText.ToString() == "HourControlling")
-                                    IndexColumn3 = i;
-                                if (dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время, минуты" ||
-                                        dataGridView1.Columns[i].HeaderText.ToString() == "MinuteControlling")
-                                    IndexColumn4 = i;
-                            }
-
-                            textBoxFIO.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
-                            textBoxNav.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString(); //Take the name of selected group
-                            StatusLabel2.Text = @"Выбрана группа: " + textBoxGroup.Text + @" | Курсор на: " + textBoxFIO.Text;
-                            groupBoxPeriod.BackColor = System.Drawing.Color.PaleGreen;
-                            numUpDownHour.Value = Convert.ToInt32(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn3].Value.ToString());
-                            numUpDownMinute.Value = Convert.ToInt32(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn4].Value.ToString());
-                            if (textBoxFIO.TextLength > 3)
-                            {
-                                comboBoxFio.SelectedIndex = comboBoxFio.FindString(textBoxFIO.Text);
-                            }
-                            nameOfLastTableFromDB = "PersonGroup";
-                        }
-
-                        if (nameOfLastTableFromDB == "PersonRegistered")
-                        {
-                            int IndexColumn1 = 0;           // индекс 1-й колонки в датагрид
-                            int IndexColumn2 = 1;           // индекс 2-й колонки в датагрид
-
-                            textBoxNav.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString(); //Take the name of selected group
-                            textBoxFIO.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
-                            StatusLabel2.Text = @"Выбран: " + textBoxFIO.Text + @" |  Всего ФИО: " + iFIO;
-                            groupBoxPeriod.BackColor = System.Drawing.Color.PaleGreen;
-                            groupBoxTime.BackColor = System.Drawing.Color.PaleGreen;
-                            groupBoxRemoveDays.BackColor = SystemColors.Control;
-                            numUpDownHour.Value = 9;
-                            numUpDownMinute.Value = 0;
-                            if (textBoxFIO.TextLength > 3)
-                            {
-                                comboBoxFio.SelectedIndex = comboBoxFio.FindString(textBoxFIO.Text);
-                            }
-                            //                    nameOfLastTableFromDB = "PersonRegistered";
-                        }
-                    }
-                } catch (Exception expt)
-                {
-                    MessageBox.Show(expt.ToString());
-                }
-        }
-
+        
         private void infoItem_Click(object sender, EventArgs e)
         { ShowDataTableQuery(databasePerson, "TechnicalInfo", "SELECT PCName,POName,POVersion,LastDateStarted ", "ORDER BY LastDateStarted DESC"); }
 
@@ -2321,12 +2470,7 @@ namespace mySCA2
             QuickSettingsItem.Enabled = true;
             QuickLoadDataItem.Enabled = true;
             CheckBoxesFiltersAll_Enable(true);
-            //FilterItem.Enabled = true;
             comboBoxFio.Enabled = true;
-            checkBoxReEnter.Enabled = true;
-            checkBoxStartWorkInTime.Enabled = true;
-            checkBoxCelebrate.Enabled = true;
-            checkBoxWeekend.Enabled = true;
 
             AddAnualDateItem.Enabled = false;
             DeleteAnualDateItem.Enabled = false;
@@ -2385,51 +2529,66 @@ namespace mySCA2
             }
         }
 
+
+
         //Start of Block. Access to Controls from other threads
-        private string _textBoxGroupText() //add string into  from other threads
+
+        private int _dataGridView1ColumnCount() //add string into  from other threads
+        {
+            int iDgv = 0;
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { try { iDgv = dataGridView1.ColumnCount; } catch { iDgv = 0; } }));
+            else
+                try { iDgv = dataGridView1.ColumnCount; } catch { iDgv = 0; }
+            return iDgv;
+        }
+
+        private int _dataGridView1RowsCount() //add string into  from other threads
+        {
+            int iDgv = 0;
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { try { iDgv = dataGridView1.Rows.Count; } catch { iDgv = 0; } }));
+            else
+                try { iDgv = dataGridView1.Rows.Count; } catch { iDgv = 0; }
+            return iDgv;
+        }
+
+        private string _dataGridView1ColumnHeaderText(int i) //add string into  from other threads
+        {
+            string sDgv = "";
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { try { sDgv = dataGridView1.Columns[i].HeaderText; } catch { sDgv = ""; } }));
+            else
+                try { sDgv = dataGridView1.Columns[i].HeaderText; } catch { sDgv = ""; }
+            return sDgv;
+        }
+
+        private string _dataGridView1CellValue(int iRow, int iCells) //from other threads
+        {
+            string sDgv = "";
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { try { sDgv = dataGridView1.Rows[iRow].Cells[iCells].Value.ToString(); } catch { sDgv = ""; } }));
+            else
+                try { sDgv = dataGridView1.Rows[iRow].Cells[iCells].Value.ToString(); } catch { sDgv = ""; }
+            return sDgv;
+        }
+
+        private string _textBoxReturnText(TextBox txtBox) //add string into  from other threads
         {
             string tBox = "";
             if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { tBox = textBoxGroup.Text.Trim(); }));
+                Invoke(new MethodInvoker(delegate { tBox = txtBox.Text.Trim(); }));
             else
-                tBox = textBoxGroup.Text.Trim();
+                tBox = txtBox.Text.Trim();
             return tBox;
         }
 
-        private void _textBoxNavAddText(string s) //add string into  from other threads
+        private void _textBoxSetText(TextBox txtBox, string s) //add string into  from other threads
         {
             if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { textBoxNav.Text = s; }));
+                Invoke(new MethodInvoker(delegate { txtBox.Text = s; }));
             else
-                textBoxNav.Text = s;
-        }
-
-        private string _textBoxNavText() //add string into  from other threads
-        {
-            string tBox = "";
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { tBox = textBoxNav.Text.Trim(); }));
-            else
-                tBox = textBoxNav.Text;
-            return tBox;
-        }
-
-        private void _textBoxFIOAddText(string s) //add string into  from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { textBoxFIO.Text = s; }));
-            else
-                textBoxFIO.Text = s;
-        }
-
-        private string _textBoxFIOText() //add string into  from other threads
-        {
-            string tBox = "";
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { tBox = textBoxFIO.Text.Trim(); }));
-            else
-                tBox = textBoxFIO.Text.Trim();
-            return tBox;
+                txtBox.Text = s;
         }
 
         private void _comboBoxFioAdd(string s) //add string into  from other threads
@@ -2573,18 +2732,18 @@ namespace mySCA2
             { timer1.Stop(); ProgressBar1.Value = 100; StatusLabel1.ForeColor = Color.Black; }
         }
 
-        private void _timer1Enabled(bool s) //add string into  from other threads
+        private void _timer1Enabled(bool state)
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
-                    timer1.Enabled = s; if (s) timer1.Start(); else timer1.Stop();
+                    timer1.Enabled = state; if (state) timer1.Start(); else timer1.Stop();
                 }));
             else
-            { timer1.Enabled = s; if (s) timer1.Start(); else timer1.Stop(); }
+            { timer1.Enabled = state; if (state) timer1.Start(); else timer1.Stop(); }
         }
 
-        private void _toolStripStatusLabel2AddText(string s) //add string into  from other threads
+        private void _toolStripStatusLabelSetText(ToolStripStatusLabel statusLabel, string s) //add string into  from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate { StatusLabel2.Text = s; }));
@@ -2592,23 +2751,15 @@ namespace mySCA2
                 StatusLabel2.Text = s;
         }
 
-        private void _toolStripStatusLabel1Color(Color s)
+        private void _toolStripStatusLabelForeColor(ToolStripStatusLabel statusLabel, Color s)
         {
             if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { StatusLabel1.ForeColor = s; }));
+                Invoke(new MethodInvoker(delegate { statusLabel.ForeColor = s; }));
             else
-                StatusLabel1.ForeColor = s;
+                statusLabel.ForeColor = s;
         }
 
-        private void _toolStripStatusLabel2ForeColor(Color s)
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { StatusLabel2.ForeColor = s; }));
-            else
-                StatusLabel2.ForeColor = s;
-        }
-
-        private void _toolStripStatusLabel2BackColor(Color s) //add string into  from other threads
+        private void _toolStripStatusLabelBackColor(ToolStripStatusLabel statusLabel, Color s) //add string into  from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate { StatusLabel2.BackColor = s; }));
@@ -2670,12 +2821,12 @@ namespace mySCA2
                 tMenuItem.Enabled = bEnabled;
         }
 
-        private void _CheckboxEnabled(CheckBox checkBox, bool bEnabled) //add string into  from other threads
+        private void _SetCheckboxChecked(CheckBox checkBox, bool checkboxChecked) //add string into  from other threads
         {
             if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { checkBox.Enabled = bEnabled; }));
+                Invoke(new MethodInvoker(delegate { checkBox.Checked = checkboxChecked; }));
             else
-                checkBox.Enabled = bEnabled;
+                checkBox.Checked = checkboxChecked;
         }
 
         private void _SetMenuItemDefaultColor(ToolStripMenuItem tMenuItem) //add string into  from other threads
@@ -2705,10 +2856,190 @@ namespace mySCA2
                 timer1.Stop(); StatusLabel1.ForeColor = Color.Black; StatusLabel2.ForeColor = Color.Black;
             }
         }
-        //End of Block. Access to Controls from other threads
 
-        string stimerPrev = "";
-        string stimerCurr = "Ждите!";
+        private bool _CheckboxChecked(CheckBox checkBox) //add string into  from other threads
+        {
+            bool checkBoxChecked = false;
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    checkBoxChecked = checkBox.Checked ? true : false;
+                }));
+            else
+            {
+                checkBoxChecked = checkBox.Checked ? true : false;
+            }
+            return checkBoxChecked;
+        }
+
+        private void _panelResume(Panel panel) //access from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    panelView.ResumeLayout();
+                }));
+            else
+            {
+                panelView.ResumeLayout();
+            }
+        }
+
+        private void _panelSetAutoSizeMode(Panel panel, AutoSizeMode state) //access from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    panel.AutoSizeMode = state;
+                }));
+            else
+            {
+                panel.AutoSizeMode = state;
+            }
+        }
+
+        private void _panelSetAutoScroll(Panel panel, bool state) //access from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    panel.AutoScroll = state;
+                }));
+            else
+            {
+                panel.AutoScroll = state;
+            }
+        }
+
+        private void _panelSetAnchor(Panel panel, AnchorStyles anchorStyles) //access from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    panel.Anchor = anchorStyles;
+                }));
+            else
+            {
+                panel.Anchor = anchorStyles;
+            }
+        }
+
+        private void _panelSetHeight(Panel panel, int height) //access from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    panel.Height = height;
+                }));
+            else
+            {
+                panel.Height = height;
+            }
+        }
+
+        private int _panelParentHeightReturn(Panel panel) //access from other threads
+        {
+            int height = 0;
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    height = panelView.Parent.Height;
+                }));
+            else
+            {
+                height = panelView.Parent.Height;
+            }
+            return height;
+        }
+
+        private int _panelHeightReturn(Panel panel) //access from other threads
+        {
+            int height = 0;
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    height = panelView.Height;
+                }));
+            else
+            {
+                height = panelView.Height;
+            }
+            return height;
+        }
+
+        private int _panelWidthReturn(Panel panel) //access from other threads
+        {
+            int width = 0;
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    width = panelView.Width;
+                }));
+            else
+            {
+                width = panelView.Width;
+            }
+            return width;
+        }
+
+        private int _panelControlsCountReturn(Panel panel) //access from other threads
+        {
+            int count = 0;
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    count = panelView.Controls.Count;
+                }));
+            else
+            {
+                count = panelView.Controls.Count;
+            }
+            return count;
+        }
+
+        private void _RefreshPictureBox(PictureBox picBox, Bitmap picImage) // не работает
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    picBox.Image = RefreshBitmap(picImage, _panelWidthReturn(panelView) - 2, _panelHeightReturn(panelView) - 2); //сжатая картина
+                    picBox.Refresh();
+                }));
+            else
+            {
+                picBox.Image = RefreshBitmap(picImage, _panelWidthReturn(panelView) - 2, _panelHeightReturn(panelView) - 2); //сжатая картина
+                picBox.Refresh();
+            }
+        }
+
+        private void _controlVisible(Control control, bool state) //access from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    control.Visible = state;
+                }));
+            else
+            {
+                control.Visible = state;
+            }
+        }
+
+        private void _controlEnable(Control control, bool state) //access from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    control.Enabled = state;
+                }));
+            else
+            {
+                control.Enabled = state;
+            }
+        }
+
+        private string stimerPrev = "";
+        private string stimerCurr = "Ждите!";
         private void timer1_Tick(object sender, EventArgs e) //Change a Color of the Font on Status by the Timer
         {
             if (InvokeRequired)
@@ -2725,13 +3056,16 @@ namespace mySCA2
                 else { StatusLabel2.ForeColor = Color.DarkBlue; StatusLabel2.Text = stimerPrev; }
             }
         }
+        //End of Block. Access to Controls from other threads
+
+
 
         public void CheckBoxesFiltersAll_Enable(bool state)
         {
-            _CheckboxEnabled(checkBoxStartWorkInTime,state);
-            _CheckboxEnabled(checkBoxReEnter, state);
-            _CheckboxEnabled(checkBoxCelebrate, state);
-            _CheckboxEnabled(checkBoxWeekend, state);
+            _controlEnable(checkBoxStartWorkInTime, state);
+            _controlEnable(checkBoxReEnter, state);
+            _controlEnable(checkBoxCelebrate, state);
+            _controlEnable(checkBoxWeekend, state);
         }
 
         public void VisualItemsAll_Enable(bool state)
@@ -2741,19 +3075,24 @@ namespace mySCA2
             _MenuItemEnabled(ReportsItem, state);
         }
 
-        private void checkBox_CheckStateChanged(object sender, EventArgs e)
+        private async void checkBox_CheckStateChanged(object sender, EventArgs e)
+        {
+            await Task.Run(() => checkBoxCheckStateChanged());
+        }
+
+        private void checkBoxCheckStateChanged()
         {
             CheckBoxesFiltersAll_Enable(false);
 
-            dataGridView1.Visible = true;
-            pictureBox1.Visible = false;
+            _controlVisible(dataGridView1, true);
+            _controlVisible(pictureBox1, false);
 
             DeleteAllDataInTableQuery(databasePerson, "PersonTemp");
             if (nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup")
             {
                 GetGroupInfoFromDB();
 
-                if (textBoxGroup.Text.Trim().Length > 0)
+                if (_textBoxReturnText(textBoxGroup).Length > 0)
                 {
                     string[] sCell;
                     foreach (string sRow in lListFIOTemp.ToArray())
@@ -2761,47 +3100,51 @@ namespace mySCA2
                         sCell = Regex.Split(sRow, "[|]"); //FIO|NAV|H|M
                         if (sCell[0].Length > 1)
                         {
-                            _textBoxFIOAddText(sCell[0]);   //иммитируем выбор данных
-                            _textBoxNavAddText(sCell[1]);   //Select person   
+                            _textBoxSetText(textBoxFIO, sCell[0]);   //иммитируем выбор данных
+                            _textBoxSetText(textBoxNav, sCell[1]);   //Select person   
 
-                            dControlHourSelected = Convert.ToDecimal(sCell[2]);
-                            dControlMinuteSelected = Convert.ToDecimal(sCell[3]);
+                            dControlHourSelected = TryParseStringToDecimal(sCell[2]);
+                            dControlMinuteSelected = TryParseStringToDecimal(sCell[3]);
                             FilterDataByNav();
                         }
                     }
+                    sCell = null;
                 }
                 nameOfLastTableFromDB = "PersonGroup";
             }
             else
             {
-                if (!checkBoxReEnter.Checked)
+                if (!_CheckboxChecked(checkBoxReEnter))
                 { CopyWholeDataFromOneTableIntoAnother(databasePerson, "PersonTemp", "PersonRegistered"); }
                 else
                 { FilterDataByNav(); }
                 nameOfLastTableFromDB = "PersonRegistered";
             }
+
+            //заполнить таблицу данными Персонрегистеред
+            ShowDatatableOnDatagridview(dtPeople, dataGridView1);
             ShowDataTableQuery(databasePerson, "PersonTemp");
 
-            //FilterItem.BackColor = SystemColors.Control;
             panelViewResize();
 
             CheckBoxesFiltersAll_Enable(true);
-            if (checkBoxStartWorkInTime.Checked)
+            if (_CheckboxChecked(checkBoxStartWorkInTime))  // if (checkBoxStartWorkInTime.Checked)
             {
-                checkBoxReEnter.Checked = true;
-                checkBoxReEnter.Enabled = false;
-                //FilterItem.BackColor = System.Drawing.Color.PaleGreen;
-                QuickLoadDataItem.BackColor = SystemColors.Control;
+                _controlEnable(checkBoxReEnter, true);
+                _controlEnable(checkBoxReEnter, false);
+                _ChangeMenuItemBackColor(QuickLoadDataItem, SystemColors.Control);
             }
-            else if (!checkBoxStartWorkInTime.Checked)
+            else if (!_CheckboxChecked(checkBoxStartWorkInTime))  //else if (!checkBoxStartWorkInTime.Checked)
             {
-                checkBoxReEnter.Enabled = true;
-                //FilterItem.BackColor = SystemColors.Control;
+                _controlEnable(checkBoxReEnter, true);
             }
         }
 
 
-        private void ClearReportItem_Click(object sender, EventArgs e) //Clear
+        private void ClearReportItem_Click(object sender, EventArgs e) //ReCreatePersonTables()
+        { ReCreatePersonTables(); }
+
+        private void ReCreatePersonTables() //Clear
         {
             DeleteTable(databasePerson, "PersonTemp");
             DeleteTable(databasePerson, "PersonRegistered");
@@ -2811,12 +3154,18 @@ namespace mySCA2
             textBoxGroupDescription.Text = "";
             textBoxNav.Text = "";
             GC.Collect();
-            MakeDB();
+
+            TryMakeDB();
+            UpdateTableOfDB();
+            
             ShowDataTableQuery(databasePerson, "PersonRegisteredFull");
             StatusLabel2.Text = @"Отчеты удалены";
         }
 
-        private void ClearDataItem_Click(object sender, EventArgs e)
+        private void ClearDataItem_Click(object sender, EventArgs e) //ReCreateAllPeopleTables()
+        { ReCreateAllPeopleTables(); }
+
+        private void ReCreateAllPeopleTables()
         {
             DeleteTable(databasePerson, "PersonRegisteredFull");
             DeleteTable(databasePerson, "PersonRegistered");
@@ -2834,15 +3183,14 @@ namespace mySCA2
             iFIO = 0;
             StatusLabel2.Text = @"База очищена. Остались только созданные группы";
             GC.Collect();
-            MakeDB();
+            TryMakeDB();
+            UpdateTableOfDB();
         }
 
-        private void ClearAllItem_Click(object sender, EventArgs e)
-        {
-            DeleteDB();
-        }
+        private void ClearAllItem_Click(object sender, EventArgs e) //ReCreate DB
+        { ReCreateDB(); }
 
-        private void DeleteDB()
+        private void ReCreateDB()
         {
             if (databasePerson.Exists)
             {
@@ -2869,18 +3217,15 @@ namespace mySCA2
                 textBoxNav.Text = "";
                 listFIO.Clear();
                 iFIO = 0;
-                MakeDB();
+                TryMakeDB();
             }
             else
-            { MakeDB(); }
+            { TryMakeDB(); }
             StatusLabel2.Text = "Все данные удалены. База пересоздана";
         }
 
         private void VisualItem_Click(object sender, EventArgs e)
         {
-            //   CountDataInTheTableQuery("PersonRegistered");
-            //    if (iCounterLine > 0) bLoaded = true; else bLoaded = false;
-
             if (bLoaded) { SelectPersonFromDataGrid(); }
 
             if (bLoaded && (nameOfLastTableFromDB == "PersonRegistered" || nameOfLastTableFromDB == "PersonGroup"))
@@ -2903,7 +3248,6 @@ namespace mySCA2
             {
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
-
                     sqlConnection.Open();
 
                     using (var sqlCommand = new SQLiteCommand("Select * FROM '" + myTable + "'; ", sqlConnection))
@@ -2916,7 +3260,8 @@ namespace mySCA2
                                 {
                                     if (record?["id"] != null)
                                     { iCounterLine++; }
-                                } catch { }
+                                }
+                                catch { }
                             }
                         }
                     }
@@ -2951,7 +3296,7 @@ namespace mySCA2
                     textBoxFIO.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
                     textBoxNav.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString(); //Take the name of selected group
                     StatusLabel2.Text = @"Выбрана группа: " + textBoxGroup.Text + @" | Курсор на: " + textBoxFIO.Text;
-                    groupBoxPeriod.BackColor = System.Drawing.Color.PaleGreen;
+                    groupBoxPeriod.BackColor = Color.PaleGreen;
                     numUpDownHour.Value = Convert.ToInt32(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn3].Value.ToString());
                     numUpDownMinute.Value = Convert.ToInt32(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn4].Value.ToString());
                 }
@@ -2964,8 +3309,6 @@ namespace mySCA2
                     textBoxNav.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString(); //Take the name of selected group
                     textBoxFIO.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
                     StatusLabel2.Text = @"Выбран: " + textBoxFIO.Text + @" |  Всего ФИО: " + iFIO;
-                    // numUpDownHour.Value = 9;
-                    //  numUpDownMinute.Value = 0;
                     nameOfLastTableFromDB = "PersonRegistered";
                 }
             }
@@ -3122,7 +3465,7 @@ namespace mySCA2
             workSelectedDays = selectedDates.ToArray();
         }
 
-        private void DrawRegistration()  // Draw registration
+        private void DrawRegistration()  // Visualisation of registration
         {
             //  int iPanelBorder = 2;
             int iMinutesInHour = 60;
@@ -3373,11 +3716,11 @@ namespace mySCA2
             }
             sLastSelectedElement = "DrawRegistration";
 
-            RefreshPictureBox(pictureBox1, bmp);
+            _RefreshPictureBox(pictureBox1, bmp);
             panelViewResize();
         }
 
-        private string ShortFIO(string s) //Transform FULL FIO into Short form
+        private string ShortFIO(string s) //Transform from full FIO into Short form FIO
         {
             var stmp = new string[1];
             try { stmp = Regex.Split(s, "[ ]"); } catch { }
@@ -3440,7 +3783,8 @@ namespace mySCA2
                 ),
                 BorderStyle = BorderStyle.FixedSingle
             };
-            //Disable it for PictureBox set at the Center
+
+            //set to comment it if wante to set the PictureBox  at the Center place
             bmp = new Bitmap(pictureBox1.Width, pictureBox1.Height);
 
             string d0 = "", d1 = "", d2 = "";
@@ -3676,15 +4020,10 @@ namespace mySCA2
                 }
             }
             sLastSelectedElement = "DrawFullWorkedPeriodRegistration";
-            RefreshPictureBox(pictureBox1, bmp);
+            _RefreshPictureBox(pictureBox1, bmp);
             panelViewResize();
         }
 
-        private void RefreshPictureBox(PictureBox picBox, Bitmap picImage) // не работает
-        {
-            picBox.Image = RefreshBitmap(picImage, panelView.Width - 2, panelView.Height - 2); //сжатая картина
-            picBox.Refresh();
-        }
 
         private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
         {
@@ -3707,9 +4046,7 @@ namespace mySCA2
         }
 
         private void panelView_SizeChanged(object sender, EventArgs e)
-        {
-            panelViewResize();
-        }
+        { panelViewResize(); }
 
         private void panelViewResize() //Change PanelView
         {
@@ -3718,23 +4055,23 @@ namespace mySCA2
             switch (sLastSelectedElement)
             {
                 case "DrawFullWorkedPeriodRegistration":
-                    panelView.Height = iShiftHeightAll + iStringHeight * workSelectedDays.Length; //Fixed size of Picture. If need autosize - disable this row
+                    _panelSetHeight(panelView, iShiftHeightAll + iStringHeight * workSelectedDays.Length); //Fixed size of Picture. If need autosize - disable this row
                     break;
                 case "DrawRegistration":
-                    panelView.Height = iShiftHeightAll + iStringHeight * workSelectedDays.Length; //Fixed size of Picture. If need autosize - disable this row
+                    _panelSetHeight(panelView, iShiftHeightAll + iStringHeight * workSelectedDays.Length); //Fixed size of Picture. If need autosize - disable this row
                     break;
                 default:
-                    panelView.Anchor = (AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top);
-                    panelView.Height = panelView.Parent.Height - 120;
-                    panelView.AutoScroll = true;
-                    panelView.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-                    panelView.ResumeLayout();
+                    _panelSetAnchor(panelView, (AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top));
+                    _panelSetHeight(panelView, _panelParentHeightReturn(panelView) - 120);
+                    _panelSetAutoScroll(panelView, true);
+                    _panelSetAutoSizeMode(panelView, AutoSizeMode.GrowAndShrink);
+                    _panelResume(panelView);
                     break;
             }
 
-            if (panelView.Controls.Count > 1)
+            if (_panelControlsCountReturn(panelView) > 1)
             {
-                RefreshPictureBox(pictureBox1, bmp);
+                _RefreshPictureBox(pictureBox1, bmp);
             }
         }
 
@@ -3812,7 +4149,12 @@ namespace mySCA2
             }
         }
 
+
+
         private void SettingsProgrammItem_Click(object sender, EventArgs e)
+        { SettingsProgramm(); }
+
+        private void SettingsProgramm()
         {
             panelViewResize();
             panelView.Visible = false;
@@ -3823,8 +4165,6 @@ namespace mySCA2
             _MenuItemEnabled(GroupsMenuItem, false);
             VisualItemsAll_Enable(false);
             CheckBoxesFiltersAll_Enable(false);
-            //_MenuItemEnabled(ViewMenuItem, false);
-            //_MenuItemEnabled(FilterItem, false);
 
             labelServer1 = new Label
             {
@@ -3848,7 +4188,7 @@ namespace mySCA2
 
             labelServer1UserName = new Label
             {
-                Text = "sa User's Name",
+                Text = "Имя администратора",
                 BackColor = Color.PaleGreen,
                 Location = new Point(220, 61),
                 Size = new Size(70, 20),
@@ -3865,7 +4205,7 @@ namespace mySCA2
                 BorderStyle = BorderStyle.FixedSingle,
                 Parent = groupBoxProperties
             };
-            toolTip1.SetToolTip(textBoxServer1UserName, "Имя sa администратора SQL-сервера \"Server\"");
+            toolTip1.SetToolTip(textBoxServer1UserName, "Имя администратора \"sa\" SQL-сервера");
 
             labelServer1UserPassword = new Label
             {
@@ -3886,7 +4226,7 @@ namespace mySCA2
                 BorderStyle = BorderStyle.FixedSingle,
                 Parent = groupBoxProperties
             };
-            toolTip1.SetToolTip(textBoxServer1UserPassword, "Пароль sa администратора SQL-сервера \"Server\"");
+            toolTip1.SetToolTip(textBoxServer1UserPassword, "Пароль администратора \"sa\" SQL-сервера \"Server\"");
 
             textBoxServer1.BringToFront();
             textBoxServer1UserName.BringToFront();
@@ -3898,6 +4238,9 @@ namespace mySCA2
         }
 
         private void buttonPropertiesSave_Click(object sender, EventArgs e)
+        { PropertiesSave(); }
+
+        private void PropertiesSave()
         {
             sServer1 = textBoxServer1.Text.Trim();
             sServer1UserName = textBoxServer1UserName.Text.Trim();
@@ -3956,6 +4299,542 @@ namespace mySCA2
             }
         }
 
+        private void buttonPropertiesCancel_Click(object sender, EventArgs e)
+        {
+            groupBoxProperties.Visible = false;
+
+            labelServer1.Dispose();
+            labelServer1UserName.Dispose();
+            labelServer1UserPassword.Dispose();
+            textBoxServer1.Dispose();
+            textBoxServer1UserName.Dispose();
+            textBoxServer1UserPassword.Dispose();
+
+            _MenuItemEnabled(QuickLoadDataItem, true);
+            _MenuItemEnabled(FunctionMenuItem, true);
+            _MenuItemEnabled(QuickSettingsItem, true);
+            _MenuItemEnabled(AnualDatesMenuItem, true);
+            _MenuItemEnabled(GroupsMenuItem, true);
+            //_MenuItemEnabled(FilterItem, true);
+            //_MenuItemEnabled(ViewMenuItem, true);
+            VisualItemsAll_Enable(true);
+            CheckBoxesFiltersAll_Enable(true);
+
+            panelView.Visible = true;
+        }
+
+        private void ClearRegistryItem_Click(object sender, EventArgs e)
+        { ClearRegistryData(); }
+
+        private void btnPropertiesSaveInRegistry_Click(object sender, EventArgs e)
+        { SaveDataInRegistry(); }
+
+        private void ClearRegistryData()
+        {
+            try
+            {
+                using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(myRegKey))
+                {
+                    EvUserKey.DeleteSubKey("SKDServer");
+                    EvUserKey.DeleteSubKey("SKDUser");
+                    EvUserKey.DeleteSubKey("SKDUserPassword");
+                }
+            }
+            catch { MessageBox.Show("Ошибки с доступом у реестру на запись. Данные не удалены."); }
+        }
+
+        private void SaveDataInRegistry() //Save Parameters into Registry and variables
+        {
+            if (sServer1.Length > 0 && sServer1UserName.Length > 0 && sServer1UserPassword.Length > 0)
+            {
+                groupBoxProperties.Visible = false;
+
+                sServer1 = textBoxServer1.Text.Trim();
+                sServer1UserName = textBoxServer1UserName.Text.Trim();
+                sServer1UserPassword = textBoxServer1UserPassword.Text.Trim();
+
+                try
+                {
+                    using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(myRegKey))
+                    {
+                        EvUserKey.SetValue("SKDServer", sServer1, Microsoft.Win32.RegistryValueKind.String);
+                        EvUserKey.SetValue("SKDUser", EncryptStringToBase64Text(sServer1UserName, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String);
+                        EvUserKey.SetValue("SKDUserPassword", EncryptStringToBase64Text(sServer1UserPassword, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String);
+                    }
+                }
+                catch { MessageBox.Show("Ошибки с доступом на запись в реестр. Данные сохранены не корректно."); }
+                labelServer1.Dispose();
+                labelServer1UserName.Dispose();
+                labelServer1UserPassword.Dispose();
+                textBoxServer1.Dispose();
+                textBoxServer1UserName.Dispose();
+                textBoxServer1UserPassword.Dispose();
+
+                _MenuItemEnabled(QuickLoadDataItem, true);
+                _MenuItemEnabled(FunctionMenuItem, true);
+                _MenuItemEnabled(QuickSettingsItem, true);
+                _MenuItemEnabled(AnualDatesMenuItem, true);
+                _MenuItemEnabled(GroupsMenuItem, true);
+                VisualItemsAll_Enable(true);
+
+                panelView.Visible = true;
+            }
+            else
+            {
+                GetInfoSetup();
+                _MenuItemEnabled(QuickSettingsItem, true);
+            }
+        }
+
+        private void CheckSavedDataInRegistry() //Read Parameters into Registry and variables
+        {
+            try
+            {
+                using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(myRegKey, Microsoft.Win32.RegistryKeyPermissionCheck.ReadSubTree, System.Security.AccessControl.RegistryRights.ReadKey))
+                {
+                    sServer1Registry = EvUserKey.GetValue("SKDServer").ToString().Trim();
+                    sServer1UserNameRegistry = DecryptBase64ToString(EvUserKey.GetValue("SKDUser").ToString(), btsMess1, btsMess2).Trim();
+                    sServer1UserPasswordRegistry = DecryptBase64ToString(EvUserKey.GetValue("SKDUserPassword").ToString(), btsMess1, btsMess2).Trim();
+                }
+            }
+            catch { }
+        }
+
+        private void PersonOrGroupItem_Click(object sender, EventArgs e)
+        {
+            if (PersonOrGroupItem.Text == "Работа с одной персоной")
+            {
+                PersonOrGroupItem.Text = "Работа с группой";
+                nameOfLastTableFromDB = "PersonGroup";
+                textBoxGroup.Text = "";
+                textBoxGroupDescription.Text = "";
+            }
+            else
+            {
+                PersonOrGroupItem.Text = "Работа с одной персоной";
+                nameOfLastTableFromDB = "PersonRegistered";
+            }
+        }
+
+        private void SetupItem_Click(object sender, EventArgs e)
+        { GetInfoSetup(); }
+
+        private void GetInfoSetup()
+        {
+            DialogResult result = MessageBox.Show(
+                @"Перед получением информации необходимо в Настройках:" + "\n\n" +
+                 "1. Добавить имя сервера Интеллект (СКД - SERVER.DOMAIN), а также имя и пароль разрешенного пользователя для данного SQL-сервера СКД\n" +
+                 "2. Сохранить данные параметры\n" +
+                 "3. После этого можно получать списки пользователей проходивших пукты регистрации, " +
+                 "просматривать данные по регистрациям и проводить анализ.\n\nДата и время локального ПК: " +
+                dateTimePickerEnd.Value,
+                @"Информация о программе",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information,
+                MessageBoxDefaultButton.Button1);
+        }
+
+        private void textBoxGroup_TextChanged(object sender, EventArgs e)
+        {
+            if (textBoxGroup.Text.Trim().Length > 0)
+            {
+                AddPersonToGroupItem.Enabled = true;
+                CreateGroupItem.Enabled = true;
+                if (textBoxGroupDescription.Text.Trim().Length > 0)
+                {
+                    StatusLabel2.Text = @"Создать группу: " + textBoxGroup.Text.Trim().ToString() + "(" + textBoxGroupDescription.Text.Trim() + ")";
+                }
+                else
+                {
+                    StatusLabel2.Text = @"Создать группу: " + textBoxGroup.Text.Trim().ToString();
+                }
+            }
+            else
+            {
+                AddPersonToGroupItem.Enabled = false;
+                CreateGroupItem.Enabled = false;
+                StatusLabel2.Text = @"Всего ФИО: " + iFIO;
+            }
+        }
+
+
+        /// //////////////// Start  DatagridView functions
+
+        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (dataGridView1.Rows.Count > 0 && dataGridView1.CurrentRow.Index < dataGridView1.Rows.Count)
+                try
+                {
+                    int IndexCurrentRow = _dataGridView1CurrentRowIndex();
+                    if (IndexCurrentRow > -1)
+                    {
+                        if (nameOfLastTableFromDB == "PersonGroupDesciption")
+                        {
+                            int IndexColumn1 = 0;           // индекс 1-й колонки в датагрид
+                            int IndexColumn2 = 0;           // индекс 2-й колонки в датагрид
+
+                            for (int i = 0; i < dataGridView1.ColumnCount; i++)
+                            {
+                                switch (dataGridView1.Columns[i].HeaderText)
+                                {
+                                    case "GroupPerson":
+                                        IndexColumn1 = i;
+                                        break;
+                                    case "GroupPersonDescription":
+                                        IndexColumn2 = i;
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+                            textBoxGroup.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString(); //Take the name of selected group
+                            textBoxGroupDescription.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString(); //Take the name of selected group
+                            groupBoxPeriod.BackColor = Color.PaleGreen;
+                            groupBoxRemoveDays.BackColor = SystemColors.Control;
+                            StatusLabel2.Text = @"Выбрана группа: " + textBoxGroup.Text + @" |  Всего ФИО: " + iFIO;
+                            if (textBoxFIO.TextLength > 3)
+                            {
+                                comboBoxFio.SelectedIndex = comboBoxFio.FindString(textBoxFIO.Text);
+                            }
+                            nameOfLastTableFromDB = "PersonGroupDesciption";
+                        }
+
+                        else if (nameOfLastTableFromDB == "PersonGroup")
+                        {
+                            // comboBoxFio.Items.Clear();
+                            int IndexColumn1 = -1;           // индекс 1-й колонки в датагрид
+                            int IndexColumn2 = -1;           // индекс 2-й колонки в датагрид
+                            int IndexColumn3 = -1;           // индекс 3-й колонки в датагрид
+                            int IndexColumn4 = -1;           // индекс 4-й колонки в датагрид
+
+                            for (int i = 0; i < dataGridView1.ColumnCount; i++)
+                            {
+                                if (dataGridView1.Columns[i].HeaderText.Trim() == "Фамилия Имя Отчество" ||
+                                        dataGridView1.Columns[i].HeaderText.Trim() == "FIO")
+                                    IndexColumn1 = i;
+                                if (dataGridView1.Columns[i].HeaderText.Trim() == "NAV-код" ||
+                                        dataGridView1.Columns[i].HeaderText.Trim() == "NAV")
+                                    IndexColumn2 = i;
+                                if (dataGridView1.Columns[i].HeaderText.Trim() == "Контрольное время, часы" ||
+                                        dataGridView1.Columns[i].HeaderText.Trim() == "HourControlling")
+                                    IndexColumn3 = i;
+                                if (dataGridView1.Columns[i].HeaderText.Trim() == "Контрольное время, минуты" ||
+                                        dataGridView1.Columns[i].HeaderText.Trim() == "MinuteControlling")
+                                    IndexColumn4 = i;
+                            }
+
+                            textBoxFIO.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
+                            textBoxNav.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString(); //Take the name of selected group
+                            StatusLabel2.Text = @"Выбрана группа: " + textBoxGroup.Text + @" | Курсор на: " + textBoxFIO.Text;
+                            groupBoxPeriod.BackColor = Color.PaleGreen;
+                            numUpDownHour.Value = Convert.ToInt32(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn3].Value.ToString());
+                            numUpDownMinute.Value = Convert.ToInt32(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn4].Value.ToString());
+                            if (textBoxFIO.TextLength > 3)
+                            {
+                                comboBoxFio.SelectedIndex = comboBoxFio.FindString(textBoxFIO.Text);
+                            }
+                            nameOfLastTableFromDB = "PersonGroup";
+                        }
+
+                        if (nameOfLastTableFromDB == "PersonRegistered")
+                        {
+                            int IndexColumn1 = 0;           // индекс 1-й колонки в датагрид
+                            int IndexColumn2 = 1;           // индекс 2-й колонки в датагрид
+
+                            for (int i = 0; i < dataGridView1.ColumnCount; i++)
+                            {
+                                switch (dataGridView1.Columns[i].HeaderText)
+                                {
+                                    case "FIO":
+                                        IndexColumn1 = i;
+                                        break;
+                                    case "Фамилия Имя Отчество":
+                                        IndexColumn1 = i;
+                                        break;
+                                    case "NAV-код":
+                                        IndexColumn2 = i;
+                                        break;
+                                    case "NAV":
+                                        IndexColumn2 = i;
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+
+                            textBoxNav.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString(); //Take the name of selected group
+                            textBoxFIO.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
+                            StatusLabel2.Text = @"Выбран: " + textBoxFIO.Text + @" |  Всего ФИО: " + iFIO;
+                            groupBoxPeriod.BackColor = Color.PaleGreen;
+                            groupBoxTime.BackColor = Color.PaleGreen;
+                            groupBoxRemoveDays.BackColor = SystemColors.Control;
+                            numUpDownHour.Value = 9;
+                            numUpDownMinute.Value = 0;
+                            if (textBoxFIO.TextLength > 3)
+                            {
+                                comboBoxFio.SelectedIndex = comboBoxFio.FindString(textBoxFIO.Text);
+                            }
+                            //                    nameOfLastTableFromDB = "PersonRegistered";
+                        }
+                    }
+                }
+                catch (Exception expt)
+                {
+                    MessageBox.Show(expt.ToString());
+                }
+        }
+
+        private void dataGridView1_DoubleClick(object sender, EventArgs e)
+        {
+            if (dataGridView1.Rows.Count > 0 && dataGridView1.CurrentRow.Index < dataGridView1.Rows.Count)
+            {
+                if (nameOfLastTableFromDB == "PersonGroupDesciption")
+                {
+                    bErrorData = false;
+                    MembersGroup();
+                }
+                else if (nameOfLastTableFromDB == "PersonGroup")
+                {
+                    int IndexColumn1 = -1;
+                    int IndexColumn2 = -1;
+                    for (int i = 0; i < dataGridView1.ColumnCount; i++)
+                    {
+                        if (dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время, часы")
+                            IndexColumn1 = i;
+                        else if (dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время, минуты")
+                            IndexColumn2 = i;
+                    }
+                    if (IndexColumn1 > -1 || IndexColumn2 > -1)
+                        UpdateControllingItem.Visible = true;
+                    else
+                        UpdateControllingItem.Visible = false;
+                }
+            }
+        }
+
+        private void UpdateControllingItem_Click(object sender, EventArgs e)
+        {
+            if (nameOfLastTableFromDB == "PersonGroup")
+            {
+                int IndexCurrentRow = _dataGridView1CurrentRowIndex();
+
+                int IndexColumn1 = -1;
+                int IndexColumn2 = -1;
+                int IndexColumn3 = -1;
+                int IndexColumn4 = -1;
+                int IndexColumn5 = -1;
+
+                for (int i = 0; i < dataGridView1.ColumnCount; i++)
+                {
+                    if (dataGridView1.Columns[i].HeaderText.ToString() == "Фамилия Имя Отчество")
+                        IndexColumn1 = i;
+                    else if (dataGridView1.Columns[i].HeaderText.ToString() == "NAV-код")
+                        IndexColumn2 = i;
+                    else if (dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время, часы")
+                        IndexColumn3 = i;
+                    else if (dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время, минуты")
+                        IndexColumn4 = i;
+                    else if (dataGridView1.Columns[i].HeaderText.ToString() == "Группа")
+                        IndexColumn5 = i;
+                }
+
+                textBoxFIO.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
+                textBoxNav.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString(); //Take the name of selected group
+                textBoxGroup.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn5].Value.ToString(); //Take the name of selected group
+
+                decimal hourControlStart = Convert.ToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn3].Value.ToString());
+                decimal minuteControlStart = Convert.ToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn4].Value.ToString());
+                decimal controlStartHours = hourControlStart + (minuteControlStart + 1) / 60 - (1 / 60);
+                MessageBox.Show(hourControlStart + "\n" + minuteControlStart + "\n" + textBoxFIO + "\n" + numUpDownHour.Value + "\n" + numUpDownMinute.Value);
+
+                using (var connection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+                {
+                    connection.Open();
+                    using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PersonGroup' (FIO, NAV, GroupPerson, HourControlling, MinuteControlling, Controlling) " +
+                                            "VALUES (@FIO, @NAV, @GroupPerson, @HourControlling, @MinuteControlling, @Controlling)", connection))
+                    {
+                        command.Parameters.Add("@FIO", DbType.String).Value = textBoxFIO.Text;
+                        command.Parameters.Add("@NAV", DbType.String).Value = textBoxNav.Text;
+                        command.Parameters.Add("@GroupPerson", DbType.String).Value = textBoxGroup.Text;
+                        command.Parameters.Add("@HourControlling", DbType.String).Value = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn3].Value.ToString();
+                        command.Parameters.Add("@MinuteControlling", DbType.String).Value = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn4].Value.ToString();
+                        command.Parameters.Add("@Controlling", DbType.Decimal).Value = controlStartHours;
+                        try { command.ExecuteNonQuery(); } catch { }
+                    }
+                }
+
+                ShowDataTableQuery(databasePerson, "PersonGroup",
+                  "SELECT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', GroupPerson AS 'Группа'," +
+                  " HourControlling AS 'Контрольное время, часы', MinuteControlling AS 'Контрольное время, минуты' ",
+                  " Where GroupPerson like '" + textBoxGroup.Text + "' ORDER BY FIO");
+                StatusLabel2.Text = @"Обновлены данные " + textBoxFIO.Text + " в группе: " + textBoxGroup.Text;
+            }
+            //UpdateControllingItem.Visible = false;
+        }
+
+        private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            if (nameOfLastTableFromDB == "PersonGroup")
+            {
+                int IndexCurrentRow = _dataGridView1CurrentRowIndex();
+
+                int IndexColumn1 = -1;
+                int IndexColumn2 = -1;
+                int IndexColumn3 = -1;
+                int IndexColumn4 = -1;
+                int IndexColumn5 = -1;
+
+                for (int i = 0; i < dataGridView1.ColumnCount; i++)
+                {
+                    if (dataGridView1.Columns[i].HeaderText.ToString() == "Фамилия Имя Отчество")
+                        IndexColumn1 = i;
+                    else if (dataGridView1.Columns[i].HeaderText.ToString() == "NAV-код")
+                        IndexColumn2 = i;
+                    else if (dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время, часы")
+                        IndexColumn3 = i;
+                    else if (dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время, минуты")
+                        IndexColumn4 = i;
+                    else if (dataGridView1.Columns[i].HeaderText.ToString() == "Группа")
+                        IndexColumn5 = i;
+                }
+
+                textBoxFIO.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
+                textBoxNav.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString(); //Take the name of selected group
+                textBoxGroup.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn5].Value.ToString(); //Take the name of selected group
+
+                decimal hourControlStart = Convert.ToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn3].Value.ToString());
+                decimal minuteControlStart = Convert.ToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn4].Value.ToString());
+                decimal controlStartHours = hourControlStart + (minuteControlStart + 1) / 60 - (1 / 60);
+
+                using (var connection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+                {
+                    connection.Open();
+                    using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PersonGroup' (FIO, NAV, GroupPerson, HourControlling, MinuteControlling, Controlling) " +
+                                            "VALUES (@FIO, @NAV, @GroupPerson, @HourControlling, @MinuteControlling, @Controlling)", connection))
+                    {
+                        command.Parameters.Add("@FIO", DbType.String).Value = textBoxFIO.Text;
+                        command.Parameters.Add("@NAV", DbType.String).Value = textBoxNav.Text;
+                        command.Parameters.Add("@GroupPerson", DbType.String).Value = textBoxGroup.Text;
+                        command.Parameters.Add("@HourControlling", DbType.String).Value = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn3].Value.ToString();
+                        command.Parameters.Add("@MinuteControlling", DbType.String).Value = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn4].Value.ToString();
+                        command.Parameters.Add("@Controlling", DbType.Decimal).Value = controlStartHours;
+                        try { command.ExecuteNonQuery(); } catch { }
+                    }
+                }
+
+                ShowDataTableQuery(databasePerson, "PersonGroup",
+                  "SELECT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', GroupPerson AS 'Группа'," +
+                  " HourControlling AS 'Контрольное время, часы', MinuteControlling AS 'Контрольное время, минуты' ",
+                  " Where GroupPerson like '" + textBoxGroup.Text + "' ORDER BY FIO");
+                StatusLabel2.Text = @"Обновлено время прихода " + ShortFIO(textBoxFIO.Text) + " в группе: " + textBoxGroup.Text;
+            }
+        }
+
+        //Show help to Edit on some collumns DataGridView
+        private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (nameOfLastTableFromDB == "PersonGroup")
+            {
+                DataGridViewCell cell;
+                if ((e.ColumnIndex == this.dataGridView1.Columns["Контрольное время, часы"].Index) && e.Value != null)
+                {
+                    cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                    cell.ToolTipText = "Для установки нового значения нажмите F2,\nвнесите новое значение,\nа затем нажмите Enter";
+                }
+                else if ((e.ColumnIndex == this.dataGridView1.Columns["Контрольное время, минуты"].Index) && e.Value != null)
+                {
+                    cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                    cell.ToolTipText = "Для установки нового значения нажмите F2,\nвнесите новое значение,\nа затем нажмите Enter";
+                }
+                else
+                {
+                    cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                    cell.ToolTipText = cell.Value.ToString();
+                }
+            }
+        }
+
+        /// //////////////// End  DatagridView functions
+
+
+
+        //Color Control elements of Person depending of the selected MenuItem  
+        private void CreateGroupItem_MouseHover(object sender, EventArgs e)
+        {  //Save previous color          
+            labelGroupCurrentBackColor = labelGroup.BackColor;
+            textBoxGroupCurrentBackColor = textBoxGroup.BackColor;
+            labelGroupDescriptionCurrentBackColor = labelGroupDescription.BackColor;
+            textBoxGroupDescriptionCurrentBackColor = textBoxGroupDescription.BackColor;
+
+            //set Over Color
+            labelGroup.BackColor = Color.PaleGreen;
+            textBoxGroup.BackColor = Color.PaleGreen;
+            labelGroupDescription.BackColor = Color.PaleGreen;
+            textBoxGroupDescription.BackColor = Color.PaleGreen;
+        }
+
+        private void CreateGroupItem_MouseLeave(object sender, EventArgs e)
+        {   //Restore saved color
+            labelGroup.BackColor = labelGroupCurrentBackColor;
+            textBoxGroup.BackColor = textBoxGroupCurrentBackColor;
+            labelGroupDescription.BackColor = labelGroupDescriptionCurrentBackColor;
+            textBoxGroupDescription.BackColor = textBoxGroupDescriptionCurrentBackColor;
+        }
+
+        private void PersonOrGroupItem_MouseEnter(object sender, EventArgs e)
+        {
+            if (PersonOrGroupItem.Text == "Работа с одной персоной")
+            {  //Save previous color              
+                comboBoxFioCurrentBackColor = comboBoxFio.BackColor;
+                textBoxFIOCurrentBackColor = textBoxFIO.BackColor;
+                textBoxNavCurrentBackColor = textBoxNav.BackColor;
+
+                //set Over Color
+                comboBoxFio.BackColor = Color.PaleGreen;
+                textBoxFIO.BackColor = Color.PaleGreen;
+                textBoxNav.BackColor = Color.PaleGreen;
+            }
+            else
+            {  //Save previous color              
+                labelGroupCurrentBackColor = labelGroup.BackColor;
+                textBoxGroupCurrentBackColor = textBoxGroup.BackColor;
+
+                //set Over Color
+                labelGroup.BackColor = Color.PaleGreen;
+                textBoxGroup.BackColor = Color.PaleGreen;
+            }
+        }
+
+        private void PersonOrGroupItem_MouseLeave(object sender, EventArgs e)
+        {
+            if (PersonOrGroupItem.Text == "Работа с одной персоной")
+            {   //Restore saved color             
+                comboBoxFio.BackColor = comboBoxFioCurrentBackColor;
+                textBoxFIO.BackColor = textBoxFIOCurrentBackColor;
+                textBoxNav.BackColor = textBoxNavCurrentBackColor;
+            }
+            else
+            {  //Restore saved color              
+                labelGroup.BackColor = labelGroupCurrentBackColor;
+                textBoxGroup.BackColor = textBoxGroupCurrentBackColor;
+            }
+        }
+
+        private void textBoxGroupDescription_TextChanged(object sender, EventArgs e)
+        {
+            if (textBoxGroupDescription.Text.Trim().Length > 0)
+            {
+                StatusLabel2.Text = @"Создать группу: " + textBoxGroup.Text.Trim().ToString() + "(" + textBoxGroupDescription.Text.Trim() + ")";
+            }
+            else
+            {
+                StatusLabel2.Text = @"Создать группу: " + textBoxGroup.Text.Trim().ToString();
+            }
+        }
+
+
+
+        //Start of the Block Encryption-Decryption
         private static string EncryptStringToBase64Text(string plainText, byte[] Key, byte[] IV) //Encrypt variables PlainText Data
         {
             string sBase64Test;
@@ -4073,305 +4952,8 @@ namespace mySCA2
                 MessageBox.Show("Decrypted:    " + decrypted);
             }
         }
-
-        private void buttonPropertiesCancel_Click(object sender, EventArgs e)
-        {
-            groupBoxProperties.Visible = false;
-
-            labelServer1.Dispose();
-            labelServer1UserName.Dispose();
-            labelServer1UserPassword.Dispose();
-            textBoxServer1.Dispose();
-            textBoxServer1UserName.Dispose();
-            textBoxServer1UserPassword.Dispose();
-
-            _MenuItemEnabled(QuickLoadDataItem, true);
-            _MenuItemEnabled(FunctionMenuItem, true);
-            _MenuItemEnabled(QuickSettingsItem, true);
-            _MenuItemEnabled(AnualDatesMenuItem, true);
-            _MenuItemEnabled(GroupsMenuItem, true);
-            //_MenuItemEnabled(FilterItem, true);
-            //_MenuItemEnabled(ViewMenuItem, true);
-            VisualItemsAll_Enable(true);
-            CheckBoxesFiltersAll_Enable(true);
-
-            panelView.Visible = true;
-        }
-
-        private void PersonOrGroupItem_Click(object sender, EventArgs e)
-        {
-            if (PersonOrGroupItem.Text == "Работа с одной персоной")
-            {
-                PersonOrGroupItem.Text = "Работа с группой";
-                nameOfLastTableFromDB = "PersonGroup";
-                textBoxGroup.Text = "";
-                textBoxGroupDescription.Text = "";
-            }
-            else
-            {
-                PersonOrGroupItem.Text = "Работа с одной персоной";
-                nameOfLastTableFromDB = "PersonRegistered";
-            }
-        }
-
-        private void SetupItem_Click(object sender, EventArgs e)
-        {
-            GetInfoSetup();
-        }
-
-        private void GetInfoSetup()
-        {
-            DialogResult result = MessageBox.Show(
-                @"Перед получением информации необходимо внести:" + "\n\n" +
-                 "1. Имя сервера Интеллект (СКД1 - SERVER1.DOMAIN) , а также имя и пароль пользователя SQL-сервера данного СКД\n" +
-                 "2. Сохранить данные параметры\n" +
-                 "3. После внесения этих данных можно получать списки пользователей проходивших пукты регистрации, " +
-                 "просматривать данные по регистрациям и проводить анализ.\n\nДата и время локального ПК: " +
-                dateTimePickerEnd.Value,
-                @"Информация о программе",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information,
-                MessageBoxDefaultButton.Button1,
-                MessageBoxOptions.DefaultDesktopOnly);
-        }
-
-        private void textBoxGroup_TextChanged(object sender, EventArgs e)
-        {
-            if (textBoxGroup.Text.Trim().Length > 0)
-            {
-                AddPersonToGroupItem.Enabled = true;
-                CreateGroupItem.Enabled = true;
-                if (textBoxGroupDescription.Text.Trim().Length > 0)
-                {
-                    StatusLabel2.Text = @"Создать группу: " + textBoxGroup.Text.Trim().ToString()+"("+ textBoxGroupDescription.Text.Trim() + ")";
-                }
-                else
-                {
-                    StatusLabel2.Text = @"Создать группу: " + textBoxGroup.Text.Trim().ToString() ;
-                }
-            }
-            else
-            {
-                AddPersonToGroupItem.Enabled = false;
-                CreateGroupItem.Enabled = false;
-                StatusLabel2.Text = @"Всего ФИО: " + iFIO;
-            }
-        }
-
-        private void dataGridView1_DoubleClick(object sender, EventArgs e)
-        {
-            if (dataGridView1.Rows.Count > 0 && dataGridView1.CurrentRow.Index < dataGridView1.Rows.Count)
-            {
-                if (nameOfLastTableFromDB == "PersonGroupDesciption")
-                {
-                    bErrorData = false;
-                    MembersGroup();
-                }
-                else if (nameOfLastTableFromDB == "PersonGroup")
-                {
-                    int IndexColumn1 = -1;
-                    int IndexColumn2 = -1;
-                    for (int i = 0; i < dataGridView1.ColumnCount; i++)
-                    {
-                        if (dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время, часы")
-                            IndexColumn1 = i;
-                        else if (dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время, минуты")
-                            IndexColumn2 = i;
-                    }
-                    if (IndexColumn1 > -1 || IndexColumn2 > -1)
-                        UpdateControllingItem.Visible = true;
-                    else
-                        UpdateControllingItem.Visible = false;
-                }
-            }
-        }
-
-        private void UpdateControllingItem_Click(object sender, EventArgs e)
-        {
-            UpdateControllingItem.Visible = false;
-
-            if (nameOfLastTableFromDB == "PersonGroup")
-            {
-                int IndexCurrentRow = _dataGridView1CurrentRowIndex();
-
-                int IndexColumn1 = -1;
-                int IndexColumn2 = -1;
-                int IndexColumn3 = -1;
-                int IndexColumn4 = -1;
-                int IndexColumn5 = -1;
-
-                for (int i = 0; i < dataGridView1.ColumnCount; i++)
-                {
-                    if (dataGridView1.Columns[i].HeaderText.ToString() == "Фамилия Имя Отчество")
-                        IndexColumn1 = i;
-                    else if (dataGridView1.Columns[i].HeaderText.ToString() == "NAV-код")
-                        IndexColumn2 = i;
-                    else if (dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время, часы")
-                        IndexColumn3 = i;
-                    else if (dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время, минуты")
-                        IndexColumn4 = i;
-                    else if (dataGridView1.Columns[i].HeaderText.ToString() == "Группа")
-                        IndexColumn5 = i;
-                }
-
-                textBoxFIO.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
-                textBoxNav.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString(); //Take the name of selected group
-                textBoxGroup.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn5].Value.ToString(); //Take the name of selected group
-
-                numUpDownHour.Value = Convert.ToInt32(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn3].Value.ToString());
-                numUpDownMinute.Value = Convert.ToInt32(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn4].Value.ToString());
-                decimal hourControlStart = dControlHourSelected;
-                decimal minuteControlStart = dControlMinuteSelected;
-                decimal controlStartHours = hourControlStart + (minuteControlStart + 1) / 60 - (1 / 60);
-
-
-                using (var connection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
-                {
-                    connection.Open();
-                    using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PersonGroup' (FIO, NAV, GroupPerson, HourControlling, MinuteControlling, Controlling) " +
-                                            "VALUES (@FIO, @NAV, @GroupPerson, @HourControlling, @MinuteControlling, @Controlling)", connection))
-                    {
-                        command.Parameters.Add("@FIO", DbType.String).Value = textBoxFIO.Text;
-                        command.Parameters.Add("@NAV", DbType.String).Value = textBoxNav.Text;
-                        command.Parameters.Add("@GroupPerson", DbType.String).Value = textBoxGroup.Text;
-                        command.Parameters.Add("@HourControlling", DbType.String).Value = numUpDownHour.Value.ToString();
-                        command.Parameters.Add("@MinuteControlling", DbType.String).Value = numUpDownMinute.Value.ToString();
-                        command.Parameters.Add("@Controlling", DbType.Decimal).Value = controlStartHours;
-                        try { command.ExecuteNonQuery(); } catch { }
-                    }
-                }
-
-                ShowDataTableQuery(databasePerson, "PersonGroup",
-                  "SELECT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', GroupPerson AS 'Группа'," +
-                  " HourControlling AS 'Контрольное время, часы', MinuteControlling AS 'Контрольное время, минуты' ",
-                  " Where GroupPerson like '" + textBoxGroup.Text + "' ORDER BY FIO");
-                StatusLabel2.Text = @"Обновлены данные " + textBoxFIO.Text + " в группе: " + textBoxGroup.Text;
-            }
-        }
-
-
-
-        /// <summary>
-        /// /////////////////////Registry  -   TODO
-        /// </summary>
-
-        public void ListsRegistryDataCheck() //Read previously Saved Parameters from Registry
-        {
-            List<string> lstSavedServices = new List<string>();
-            List<string> lstSavedNumbers = new List<string>();
-            bool foundSavedData;
-            string[] getValue;
-
-            try
-            {
-                using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
-                      myRegKey,
-                      Microsoft.Win32.RegistryKeyPermissionCheck.ReadSubTree,
-                      System.Security.AccessControl.RegistryRights.ReadKey))
-                {
-                    getValue = (string[])EvUserKey.GetValue("ListServices");
-
-                    try
-                    {
-                        foreach (string line in getValue)
-                        {
-                            lstSavedServices.Add(line);
-                        }
-                        foundSavedData = true;
-                    } catch { }
-
-                    getValue = (string[])EvUserKey.GetValue("ListNumbers");
-
-                    try
-                    {
-                        foreach (string line in getValue)
-                        {
-                            lstSavedNumbers.Add(line);
-                        }
-                        foundSavedData = true;
-                    } catch { }
-
-                    //strSavedPathToInvoice = (string)EvUserKey.GetValue("PathToLastInvoice");
-                }
-            } catch (Exception exct)
-            {
-                // textBoxLog.AppendText("\n" + exct.ToString() + "\n");
-            }
-        }
-
-        public void ListServicesRegistrySave() //Save Parameters into Registry and variables
-        {
-            List<string> listServices = new List<string>(); bool foundSavedData;
-
-            try
-            {
-                using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(myRegKey))
-                {
-                    EvUserKey.SetValue("ListServices", listServices.ToArray(),
-                        Microsoft.Win32.RegistryValueKind.MultiString);
-                }
-                foundSavedData = true;
-            } catch { MessageBox.Show("Ошибки с доступом для записи списка сервисов в реестр. Данные сохранены не корректно."); }
-        }
-
-        public void ListNumbersRegistrySave() //Save inputed Credintials and Parameters into Registry and variables
-        {
-            List<string> listNumbers = new List<string>(); bool foundSavedData;
-
-            try
-            {
-                using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(myRegKey))
-                {
-                    EvUserKey.SetValue("ListNumbers", listNumbers.ToArray(),
-                        Microsoft.Win32.RegistryValueKind.MultiString);
-                }
-                foundSavedData = true;
-            } catch { MessageBox.Show("Ошибки с доступом для записи списка номеров в реестр. Данные сохранены не корректно."); }
-        }
-        
-        public void PathToLastInvoiceRegistrySave() //Save Parameters into Registry and variables
-        {
-            string filepathLoadedData = ""; bool foundSavedData;
-
-            try
-            {
-                using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(myRegKey))
-                {
-                    EvUserKey.SetValue("PathToLastInvoice", filepathLoadedData,
-                        Microsoft.Win32.RegistryValueKind.String);
-                }
-                foundSavedData = true;
-            } catch { MessageBox.Show("Ошибки с доступом для записи пути к счету. Данные сохранены не корректно."); }
-
-        }
-
-        private void CreateGroupItem_MouseHover(object sender, EventArgs e)
-        {
-            //BackColor = Color.PaleGreen,
-                        //GetFioItem.BackColor = Color.LightSkyBlue;
-            //FilterItem.BackColor = SystemColors.Control;
-            labelGroup.BackColor= Color.LightSkyBlue;
-            textBoxGroup.BackColor = Color.LightSkyBlue;
-        }
-
-        private void CreateGroupItem_MouseLeave(object sender, EventArgs e)
-        {
-            labelGroup.BackColor = SystemColors.Control;
-            textBoxGroup.BackColor = Color.White;
-        }
-
-        private void textBoxGroupDescription_TextChanged(object sender, EventArgs e)
-        {
-            if (textBoxGroupDescription.Text.Trim().Length > 0)
-            {
-                StatusLabel2.Text = @"Создать группу: " + textBoxGroup.Text.Trim().ToString() + "(" + textBoxGroupDescription.Text.Trim() + ")";
-            }
-            else
-            {
-                StatusLabel2.Text = @"Создать группу: " + textBoxGroup.Text.Trim().ToString();
-            }
-        }
-        
+        //End of the Block Encryption-Decryption
+               
     }
 
     public class Person

@@ -1,5 +1,5 @@
-<SmartAssemblyProject ProjectId="{795f2735-334b-4c35-a8ba-b657408e0a83}" Version="2.0">
-    <MainAssemblyFileName>.\bin\Release\PersonViewerSCA.exe</MainAssemblyFileName>
+<SmartAssemblyProject ProjectId="{86835429-1b5b-4123-b4ae-2c4554728de6}" Version="2.0">
+    <MainAssemblyFileName>.\PersonViewerSCA.exe</MainAssemblyFileName>
     <FriendlyName>PersonViewerSCA.1.0.1.2</FriendlyName>
     <CompanyName>RYIK</CompanyName>
     <Configuration Name="Release">
@@ -7,14 +7,14 @@
             <ExceptionReporting AlwaysContinueOnError="1" EnableJitOptimization="1" ReportExceptions="0" Template="res:{SmartExceptions}.1033.dll" />
             <FeatureUsageReporting ReportUsages="0" Template="res:SmartUsageWithUIConsentFirstRun1033.dll" UseCustomTemplate="0" />
             <StringsEncoding Compress="1" Encode="1" UseCache="1" UseImprovedEncoding="1" />
-            <StrongNameSigning KeyFileName=".\PersonSCA2.snk" Sign="1" TamperProtect="1" />
+            <StrongNameSigning KeyFileName=".\PVSCA.snk" Sign="1" TamperProtect="1" />
             <OtherOptimizations ManageMemory="1" SealClasses="1" />
             <Obfuscation FieldsNameMangling="3" NameMangling="1" />
             <OtherProtections SuppressIldasm="1" />
             <Debugging />
         </Options>
         <ApplicationName>PersonViewerSCA.1.0.1.2</ApplicationName>
-        <Destination DestinationFileName=".\bin\Release\PersonSCA.exe" />
+        <Destination DestinationFileName=".\PersonSCA.exe" />
         <Assemblies>
             <Assembly AssemblyName="PersonViewerSCA, Culture=neutral, PublicKeyToken=null">
                 <Merging>
@@ -272,21 +272,6 @@
                         <Exclusion />
                     </Obfuscation>
                 </Merging>
-            </Assembly>
-            <Assembly AssemblyName="PersonViewerSCA, Culture=neutral, PublicKeyToken=f4f2a45b34f55728">
-                <Merging>
-                    <ResourcesCompression Compress="1" />
-                    <MemberRefsProxy Proxy="1" />
-                    <Pruning Prune="1">
-                        <Exclusion />
-                    </Pruning>
-                    <Obfuscation Obfuscate="0">
-                        <Exclusion />
-                    </Obfuscation>
-                    <ControlFlow Obfuscate="1" ObfuscationLevel="3" />
-                    <StringsEncoding />
-                </Merging>
-                <Embedding />
             </Assembly>
         </Assemblies>
     </Configuration>

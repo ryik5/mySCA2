@@ -421,7 +421,7 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;statusStrip.ZOrder" xml:space="preserve">
-    <value>0</value>
+    <value>2</value>
   </data>
   <data name="dateTimePickerStart.Location" type="System.Drawing.Point, System.Drawing">
     <value>18, 31</value>
@@ -472,7 +472,7 @@
     <value>0</value>
   </data>
   <data name="textBoxGroup.Location" type="System.Drawing.Point, System.Drawing">
-    <value>537, 29</value>
+    <value>542, 29</value>
   </data>
   <data name="textBoxGroup.Size" type="System.Drawing.Size, System.Drawing">
     <value>79, 20</value>
@@ -493,7 +493,7 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;textBoxGroup.ZOrder" xml:space="preserve">
-    <value>8</value>
+    <value>1</value>
   </data>
   <data name="textBoxNav.Location" type="System.Drawing.Point, System.Drawing">
     <value>431, 29</value>
@@ -520,10 +520,10 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;textBoxNav.ZOrder" xml:space="preserve">
-    <value>6</value>
+    <value>7</value>
   </data>
   <data name="textBoxGroupDescription.Location" type="System.Drawing.Point, System.Drawing">
-    <value>684, 29</value>
+    <value>690, 29</value>
   </data>
   <data name="textBoxGroupDescription.Size" type="System.Drawing.Size, System.Drawing">
     <value>168, 20</value>
@@ -544,7 +544,7 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;textBoxGroupDescription.ZOrder" xml:space="preserve">
-    <value>5</value>
+    <value>0</value>
   </data>
   <data name="textBoxFIO.Location" type="System.Drawing.Point, System.Drawing">
     <value>238, 29</value>
@@ -571,22 +571,22 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;textBoxFIO.ZOrder" xml:space="preserve">
-    <value>3</value>
-  </data>
-  <data name="labelGroupDescription.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
+    <value>5</value>
   </data>
   <data name="labelGroupDescription.Location" type="System.Drawing.Point, System.Drawing">
-    <value>620, 29</value>
+    <value>629, 29</value>
   </data>
   <data name="labelGroupDescription.Size" type="System.Drawing.Size, System.Drawing">
-    <value>57, 13</value>
+    <value>58, 20</value>
   </data>
   <data name="labelGroupDescription.TabIndex" type="System.Int32, mscorlib">
     <value>45</value>
   </data>
   <data name="labelGroupDescription.Text" xml:space="preserve">
     <value>Описание</value>
+  </data>
+  <data name="labelGroupDescription.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
+    <value>MiddleRight</value>
   </data>
   <data name="labelGroupDescription.ToolTip" xml:space="preserve">
     <value>Описание группы</value>
@@ -601,7 +601,7 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;labelGroupDescription.ZOrder" xml:space="preserve">
-    <value>4</value>
+    <value>6</value>
   </data>
   <data name="groupBoxPeriod.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
@@ -676,7 +676,7 @@
     <value>30</value>
   </data>
   <data name="groupBoxPeriod.Text" xml:space="preserve">
-    <value>Вывод данных за период:</value>
+    <value>Сделать выборку данных за период:</value>
   </data>
   <data name="groupBoxPeriod.ToolTip" xml:space="preserve">
     <value>Загрузка, анализ или визуализация данных за период:</value>
@@ -784,13 +784,13 @@
     <value>Главное</value>
   </data>
   <data name="PersonOrGroupItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>232, 22</value>
+    <value>341, 22</value>
   </data>
   <data name="PersonOrGroupItem.Text" xml:space="preserve">
     <value>PersonOrGroup</value>
   </data>
   <data name="CreateGroupItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>232, 22</value>
+    <value>341, 22</value>
   </data>
   <data name="CreateGroupItem.Text" xml:space="preserve">
     <value>Создать новую группу</value>
@@ -799,7 +799,7 @@
     <value>Создать группу персон или заменить описание для существующей</value>
   </data>
   <data name="AddPersonToGroupItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>232, 22</value>
+    <value>341, 22</value>
   </data>
   <data name="AddPersonToGroupItem.Text" xml:space="preserve">
     <value>Добавить персону в группу</value>
@@ -808,7 +808,7 @@
     <value>Добавить персону в группу или обновить параметры начала рабочего дня</value>
   </data>
   <data name="ListGroupItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>232, 22</value>
+    <value>341, 22</value>
   </data>
   <data name="ListGroupItem.Text" xml:space="preserve">
     <value>Список сохраненных групп</value>
@@ -817,7 +817,7 @@
     <value>Вызвать список ранее созданных групп</value>
   </data>
   <data name="MembersGroupItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>232, 22</value>
+    <value>341, 22</value>
   </data>
   <data name="MembersGroupItem.Text" xml:space="preserve">
     <value>Состав выделенной группы</value>
@@ -826,7 +826,7 @@
     <value>Перечень ФИО сотрудников, входящих в состав группы персон с настройками начала рабочего дня</value>
   </data>
   <data name="DeleteGroupItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>232, 22</value>
+    <value>341, 22</value>
   </data>
   <data name="DeleteGroupItem.Text" xml:space="preserve">
     <value>Удалить выделенную группу</value>
@@ -835,7 +835,7 @@
     <value>Удалить всю группу персон с настройками</value>
   </data>
   <data name="DeletePersonFromGroupItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>232, 22</value>
+    <value>341, 22</value>
   </data>
   <data name="DeletePersonFromGroupItem.Text" xml:space="preserve">
     <value>Удалить персону из группы</value>
@@ -844,10 +844,10 @@
     <value>Удалить из состава группы персону и ее настройки</value>
   </data>
   <data name="importPeopleInLocalDBToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>232, 22</value>
+    <value>341, 22</value>
   </data>
   <data name="importPeopleInLocalDBToolStripMenuItem.Text" xml:space="preserve">
-    <value>ImportPeopleInLocalDB</value>
+    <value>Импорт персонала и групп из текстового файла</value>
   </data>
   <data name="GroupsMenuItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>61, 20</value>
@@ -950,6 +950,12 @@
   </data>
   <data name="TestCryptionItem.Visible" type="System.Boolean, mscorlib">
     <value>False</value>
+  </data>
+  <data name="ClearRegistryItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>254, 22</value>
+  </data>
+  <data name="ClearRegistryItem.Text" xml:space="preserve">
+    <value>ClearRegistry</value>
   </data>
   <data name="QuickSettingsItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>79, 20</value>
@@ -2237,20 +2243,20 @@
   <data name="&gt;&gt;monthCalendar.ZOrder" xml:space="preserve">
     <value>9</value>
   </data>
-  <data name="labelGroup.AutoSize" type="System.Boolean, mscorlib">
-    <value>True</value>
-  </data>
   <data name="labelGroup.Location" type="System.Drawing.Point, System.Drawing">
-    <value>490, 29</value>
+    <value>494, 28</value>
   </data>
   <data name="labelGroup.Size" type="System.Drawing.Size, System.Drawing">
-    <value>42, 13</value>
+    <value>45, 20</value>
   </data>
   <data name="labelGroup.TabIndex" type="System.Int32, mscorlib">
     <value>40</value>
   </data>
   <data name="labelGroup.Text" xml:space="preserve">
     <value>Группа</value>
+  </data>
+  <data name="labelGroup.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
+    <value>MiddleRight</value>
   </data>
   <data name="&gt;&gt;labelGroup.Name" xml:space="preserve">
     <value>labelGroup</value>
@@ -2262,7 +2268,7 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;labelGroup.ZOrder" xml:space="preserve">
-    <value>7</value>
+    <value>8</value>
   </data>
   <data name="panelView.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Bottom, Left, Right</value>
@@ -2289,13 +2295,43 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;panelView.ZOrder" xml:space="preserve">
-    <value>2</value>
+    <value>4</value>
   </data>
   <data name="groupBoxProperties.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Bottom, Left, Right</value>
   </data>
   <data name="groupBoxProperties.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
+  </data>
+  <data name="btnPropertiesSaveInRegistry.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="btnPropertiesSaveInRegistry.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="btnPropertiesSaveInRegistry.Location" type="System.Drawing.Point, System.Drawing">
+    <value>287, 18</value>
+  </data>
+  <data name="btnPropertiesSaveInRegistry.Size" type="System.Drawing.Size, System.Drawing">
+    <value>179, 27</value>
+  </data>
+  <data name="btnPropertiesSaveInRegistry.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="btnPropertiesSaveInRegistry.Text" xml:space="preserve">
+    <value>Сохранить настройки в Registry</value>
+  </data>
+  <data name="&gt;&gt;btnPropertiesSaveInRegistry.Name" xml:space="preserve">
+    <value>btnPropertiesSaveInRegistry</value>
+  </data>
+  <data name="&gt;&gt;btnPropertiesSaveInRegistry.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnPropertiesSaveInRegistry.Parent" xml:space="preserve">
+    <value>groupBoxProperties</value>
+  </data>
+  <data name="&gt;&gt;btnPropertiesSaveInRegistry.ZOrder" xml:space="preserve">
+    <value>0</value>
   </data>
   <data name="buttonPropertiesCancel.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -2304,7 +2340,7 @@
     <value>NoControl</value>
   </data>
   <data name="buttonPropertiesCancel.Location" type="System.Drawing.Point, System.Drawing">
-    <value>330, 18</value>
+    <value>523, 18</value>
   </data>
   <data name="buttonPropertiesCancel.Size" type="System.Drawing.Size, System.Drawing">
     <value>82, 27</value>
@@ -2325,34 +2361,34 @@
     <value>groupBoxProperties</value>
   </data>
   <data name="&gt;&gt;buttonPropertiesCancel.ZOrder" xml:space="preserve">
-    <value>0</value>
+    <value>1</value>
   </data>
-  <data name="buttonPropertiesSave.AutoSize" type="System.Boolean, mscorlib">
+  <data name="btnPropertiesSaveInDB.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="buttonPropertiesSave.Location" type="System.Drawing.Point, System.Drawing">
+  <data name="btnPropertiesSaveInDB.Location" type="System.Drawing.Point, System.Drawing">
     <value>21, 18</value>
   </data>
-  <data name="buttonPropertiesSave.Size" type="System.Drawing.Size, System.Drawing">
-    <value>280, 27</value>
+  <data name="btnPropertiesSaveInDB.Size" type="System.Drawing.Size, System.Drawing">
+    <value>219, 27</value>
   </data>
-  <data name="buttonPropertiesSave.TabIndex" type="System.Int32, mscorlib">
+  <data name="btnPropertiesSaveInDB.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
   </data>
-  <data name="buttonPropertiesSave.Text" xml:space="preserve">
+  <data name="btnPropertiesSaveInDB.Text" xml:space="preserve">
     <value>Сохранить настройки в локальной базе</value>
   </data>
-  <data name="&gt;&gt;buttonPropertiesSave.Name" xml:space="preserve">
-    <value>buttonPropertiesSave</value>
+  <data name="&gt;&gt;btnPropertiesSaveInDB.Name" xml:space="preserve">
+    <value>btnPropertiesSaveInDB</value>
   </data>
-  <data name="&gt;&gt;buttonPropertiesSave.Type" xml:space="preserve">
+  <data name="&gt;&gt;btnPropertiesSaveInDB.Type" xml:space="preserve">
     <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;buttonPropertiesSave.Parent" xml:space="preserve">
+  <data name="&gt;&gt;btnPropertiesSaveInDB.Parent" xml:space="preserve">
     <value>groupBoxProperties</value>
   </data>
-  <data name="&gt;&gt;buttonPropertiesSave.ZOrder" xml:space="preserve">
-    <value>1</value>
+  <data name="&gt;&gt;btnPropertiesSaveInDB.ZOrder" xml:space="preserve">
+    <value>2</value>
   </data>
   <data name="groupBoxProperties.Location" type="System.Drawing.Point, System.Drawing">
     <value>14, 65</value>
@@ -2376,7 +2412,7 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;groupBoxProperties.ZOrder" xml:space="preserve">
-    <value>1</value>
+    <value>3</value>
   </data>
   <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
@@ -3725,6 +3761,12 @@
     <value>TestCryptionItem</value>
   </data>
   <data name="&gt;&gt;TestCryptionItem.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ClearRegistryItem.Name" xml:space="preserve">
+    <value>ClearRegistryItem</value>
+  </data>
+  <data name="&gt;&gt;ClearRegistryItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;UpdateControllingItem.Name" xml:space="preserve">

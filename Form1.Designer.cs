@@ -92,6 +92,7 @@
             this.ClearDataItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ClearAllItem = new System.Windows.Forms.ToolStripMenuItem();
             this.TestCryptionItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ClearRegistryItem = new System.Windows.Forms.ToolStripMenuItem();
             this.UpdateControllingItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpAboutItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -106,8 +107,9 @@
             this.labelGroup = new System.Windows.Forms.Label();
             this.panelView = new System.Windows.Forms.Panel();
             this.groupBoxProperties = new System.Windows.Forms.GroupBox();
+            this.btnPropertiesSaveInRegistry = new System.Windows.Forms.Button();
             this.buttonPropertiesCancel = new System.Windows.Forms.Button();
-            this.buttonPropertiesSave = new System.Windows.Forms.Button();
+            this.btnPropertiesSaveInDB = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownHour)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownMinute)).BeginInit();
@@ -138,10 +140,12 @@
             dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
             this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dataGridView1.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnEnter;
+            this.dataGridView1.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnF2;
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.StandardTab = true;
             this.dataGridView1.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellClick);
+            this.dataGridView1.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellEndEdit);
+            this.dataGridView1.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.dataGridView1_CellFormatting);
             this.dataGridView1.DoubleClick += new System.EventHandler(this.dataGridView1_DoubleClick);
             // 
             // comboBoxFio
@@ -444,20 +448,24 @@
             this.PersonOrGroupItem.Name = "PersonOrGroupItem";
             resources.ApplyResources(this.PersonOrGroupItem, "PersonOrGroupItem");
             this.PersonOrGroupItem.Click += new System.EventHandler(this.PersonOrGroupItem_Click);
+            this.PersonOrGroupItem.MouseEnter += new System.EventHandler(this.PersonOrGroupItem_MouseEnter);
+            this.PersonOrGroupItem.MouseLeave += new System.EventHandler(this.PersonOrGroupItem_MouseLeave);
             // 
             // CreateGroupItem
             // 
             this.CreateGroupItem.Name = "CreateGroupItem";
             resources.ApplyResources(this.CreateGroupItem, "CreateGroupItem");
             this.CreateGroupItem.Click += new System.EventHandler(this.CreateGroupItem_Click);
+            this.CreateGroupItem.MouseEnter += new System.EventHandler(this.CreateGroupItem_MouseHover);
             this.CreateGroupItem.MouseLeave += new System.EventHandler(this.CreateGroupItem_MouseLeave);
-            this.CreateGroupItem.MouseHover += new System.EventHandler(this.CreateGroupItem_MouseHover);
             // 
             // AddPersonToGroupItem
             // 
             this.AddPersonToGroupItem.Name = "AddPersonToGroupItem";
             resources.ApplyResources(this.AddPersonToGroupItem, "AddPersonToGroupItem");
             this.AddPersonToGroupItem.Click += new System.EventHandler(this.AddPersonToGroupItem_Click);
+            this.AddPersonToGroupItem.MouseEnter += new System.EventHandler(this.CreateGroupItem_MouseHover);
+            this.AddPersonToGroupItem.MouseLeave += new System.EventHandler(this.CreateGroupItem_MouseLeave);
             // 
             // ListGroupItem
             // 
@@ -525,7 +533,8 @@
             this.ClearReportItem,
             this.ClearDataItem,
             this.ClearAllItem,
-            this.TestCryptionItem});
+            this.TestCryptionItem,
+            this.ClearRegistryItem});
             this.QuickSettingsItem.Name = "QuickSettingsItem";
             resources.ApplyResources(this.QuickSettingsItem, "QuickSettingsItem");
             // 
@@ -569,6 +578,12 @@
             this.TestCryptionItem.Name = "TestCryptionItem";
             resources.ApplyResources(this.TestCryptionItem, "TestCryptionItem");
             this.TestCryptionItem.Click += new System.EventHandler(this.TestCryptionItem_Click);
+            // 
+            // ClearRegistryItem
+            // 
+            this.ClearRegistryItem.Name = "ClearRegistryItem";
+            resources.ApplyResources(this.ClearRegistryItem, "ClearRegistryItem");
+            this.ClearRegistryItem.Click += new System.EventHandler(this.ClearRegistryItem_Click);
             // 
             // UpdateControllingItem
             // 
@@ -654,10 +669,18 @@
             // groupBoxProperties
             // 
             resources.ApplyResources(this.groupBoxProperties, "groupBoxProperties");
+            this.groupBoxProperties.Controls.Add(this.btnPropertiesSaveInRegistry);
             this.groupBoxProperties.Controls.Add(this.buttonPropertiesCancel);
-            this.groupBoxProperties.Controls.Add(this.buttonPropertiesSave);
+            this.groupBoxProperties.Controls.Add(this.btnPropertiesSaveInDB);
             this.groupBoxProperties.Name = "groupBoxProperties";
             this.groupBoxProperties.TabStop = false;
+            // 
+            // btnPropertiesSaveInRegistry
+            // 
+            resources.ApplyResources(this.btnPropertiesSaveInRegistry, "btnPropertiesSaveInRegistry");
+            this.btnPropertiesSaveInRegistry.Name = "btnPropertiesSaveInRegistry";
+            this.btnPropertiesSaveInRegistry.UseVisualStyleBackColor = true;
+            this.btnPropertiesSaveInRegistry.Click += new System.EventHandler(this.btnPropertiesSaveInRegistry_Click);
             // 
             // buttonPropertiesCancel
             // 
@@ -666,26 +689,26 @@
             this.buttonPropertiesCancel.UseVisualStyleBackColor = true;
             this.buttonPropertiesCancel.Click += new System.EventHandler(this.buttonPropertiesCancel_Click);
             // 
-            // buttonPropertiesSave
+            // btnPropertiesSaveInDB
             // 
-            resources.ApplyResources(this.buttonPropertiesSave, "buttonPropertiesSave");
-            this.buttonPropertiesSave.Name = "buttonPropertiesSave";
-            this.buttonPropertiesSave.UseVisualStyleBackColor = true;
-            this.buttonPropertiesSave.Click += new System.EventHandler(this.buttonPropertiesSave_Click);
+            resources.ApplyResources(this.btnPropertiesSaveInDB, "btnPropertiesSaveInDB");
+            this.btnPropertiesSaveInDB.Name = "btnPropertiesSaveInDB";
+            this.btnPropertiesSaveInDB.UseVisualStyleBackColor = true;
+            this.btnPropertiesSaveInDB.Click += new System.EventHandler(this.buttonPropertiesSave_Click);
             // 
             // FormPersonViewerSCA
             // 
             resources.ApplyResources(this, "$this");
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.textBoxGroupDescription);
+            this.Controls.Add(this.textBoxGroup);
             this.Controls.Add(this.statusStrip);
             this.Controls.Add(this.groupBoxProperties);
             this.Controls.Add(this.panelView);
             this.Controls.Add(this.textBoxFIO);
             this.Controls.Add(this.labelGroupDescription);
-            this.Controls.Add(this.textBoxGroupDescription);
             this.Controls.Add(this.textBoxNav);
             this.Controls.Add(this.labelGroup);
-            this.Controls.Add(this.textBoxGroup);
             this.Controls.Add(this.monthCalendar);
             this.Controls.Add(this.groupBoxRemoveDays);
             this.Controls.Add(this.groupBoxPeriod);
@@ -777,7 +800,7 @@
         private System.Windows.Forms.ToolStripMenuItem ClearAllItem;
         private System.Windows.Forms.Panel panelView;
         private System.Windows.Forms.GroupBox groupBoxProperties;
-        private System.Windows.Forms.Button buttonPropertiesSave;
+        private System.Windows.Forms.Button btnPropertiesSaveInDB;
         private System.Windows.Forms.ToolStripMenuItem TestCryptionItem;
         private System.Windows.Forms.Button buttonPropertiesCancel;
         private System.Windows.Forms.ToolStripMenuItem PersonOrGroupItem;
@@ -795,6 +818,8 @@
         private System.Windows.Forms.ToolStripMenuItem YellowItem;
         private System.Windows.Forms.ToolStripMenuItem GreenItem;
         private System.Windows.Forms.ToolStripMenuItem importPeopleInLocalDBToolStripMenuItem;
+        private System.Windows.Forms.Button btnPropertiesSaveInRegistry;
+        private System.Windows.Forms.ToolStripMenuItem ClearRegistryItem;
     }
 }
 
