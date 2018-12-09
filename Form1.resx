@@ -2310,10 +2310,10 @@
     <value>NoControl</value>
   </data>
   <data name="btnPropertiesSaveInRegistry.Location" type="System.Drawing.Point, System.Drawing">
-    <value>287, 18</value>
+    <value>288, 18</value>
   </data>
   <data name="btnPropertiesSaveInRegistry.Size" type="System.Drawing.Size, System.Drawing">
-    <value>179, 27</value>
+    <value>193, 27</value>
   </data>
   <data name="btnPropertiesSaveInRegistry.TabIndex" type="System.Int32, mscorlib">
     <value>2</value>
@@ -2367,10 +2367,10 @@
     <value>True</value>
   </data>
   <data name="btnPropertiesSaveInDB.Location" type="System.Drawing.Point, System.Drawing">
-    <value>21, 18</value>
+    <value>6, 18</value>
   </data>
   <data name="btnPropertiesSaveInDB.Size" type="System.Drawing.Size, System.Drawing">
-    <value>219, 27</value>
+    <value>234, 27</value>
   </data>
   <data name="btnPropertiesSaveInDB.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
