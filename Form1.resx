@@ -769,7 +769,7 @@
     <value>287, 22</value>
   </data>
   <data name="ReportsItem.Text" xml:space="preserve">
-    <value>Отчеты</value>
+    <value>Показать в табличном виде</value>
   </data>
   <data name="ExitItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>287, 22</value>

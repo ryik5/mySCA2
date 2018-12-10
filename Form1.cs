@@ -76,31 +76,41 @@ namespace mySCA2
 
         private DataTable dtPeople = new DataTable("People");
         private DataColumn[] dcPeople ={
-                                  new DataColumn("№ п/п",typeof(int)),
-                                  new DataColumn("Фамилия Имя Отчество",typeof(string)),
+                                  new DataColumn("№ п/п",typeof(int)),//0
+                                  new DataColumn("Фамилия Имя Отчество",typeof(string)),//1
                                   new DataColumn("NAV-код",typeof(string)),
                                   new DataColumn("Группа",typeof(string)),
                                   new DataColumn("Время прихода,часы",typeof(string)),
-                                  new DataColumn("Время прихода,минут",typeof(string)),
+                                  new DataColumn("Время прихода,минут",typeof(string)), //5
                                   new DataColumn("Время прихода",typeof(decimal)),
                                   new DataColumn("Время ухода,часы",typeof(string)),
                                   new DataColumn("Время ухода,минут",typeof(string)),
                                   new DataColumn("Время ухода",typeof(decimal)),
-        };
+                                  new DataColumn("№ пропуска",typeof(int)), //10
+                                  new DataColumn("Отдел",typeof(string)),
+                                  new DataColumn("Дата регистрации",typeof(string)),
+                                  new DataColumn("Время регистрации,часы",typeof(string)),
+                                  new DataColumn("Время регистрации,минут",typeof(string)),
+                                  new DataColumn("Время регистрации",typeof(decimal)), //15
+                                  new DataColumn("Реальное время ухода,часы",typeof(string)),
+                                  new DataColumn("Реальное время ухода,минут",typeof(string)),
+                                  new DataColumn("Реальное время ухода",typeof(decimal)), //18
+                                  new DataColumn("Сервер СКД",typeof(string)), //19
+                                  new DataColumn("Имя точки прохода",typeof(string)), //20
+                                  new DataColumn("Направление прохода",typeof(string)), //21
+                                  new DataColumn("Время прихода ЧЧ:ММ",typeof(string)),
+                                  new DataColumn("Время ухода ЧЧ:ММ",typeof(string)),
+                                  new DataColumn("Реальное время прихода ЧЧ:ММ",typeof(string)),
+                                  new DataColumn("Реальное время ухода ЧЧ:ММ",typeof(string)), //25
+};
 
-        private DataTable dtPeopleTemp = new DataTable("People");
-        private DataColumn[] dcPeopleTemp ={
-                                  new DataColumn("№ п/п",typeof(int)),
-                                  new DataColumn("Фамилия Имя Отчество",typeof(string)),
-                                  new DataColumn("NAV-код",typeof(string)),
-                                  new DataColumn("Группа",typeof(string)),
-                                  new DataColumn("Время прихода,часы",typeof(string)),
-                                  new DataColumn("Время прихода,минут",typeof(string)),
-                                  new DataColumn("Время прихода",typeof(decimal)),
-                                  new DataColumn("Время ухода,часы",typeof(string)),
-                                  new DataColumn("Время ухода,минут",typeof(string)),
-                                  new DataColumn("Время ухода",typeof(decimal)),
-        };
+        private DataTable dtPersonTemp = new DataTable("PersonTemp");
+        private DataTable dtPersonRegisteredFull = new DataTable("PersonRegisteredFull");
+        private DataTable dtPersonRegistered = new DataTable("PersonRegistered");
+        private DataTable dtPersonGroup = new DataTable("PersonGroup");
+        private DataTable dtPersonsLastList = new DataTable("PersonsLastList");
+        private DataTable PersonsLastComboList = new DataTable("PersonsLastComboList");
+
 
         //Color Control elements of Person depending of the selected MenuItem  
         private Color labelGroupCurrentBackColor;
@@ -213,35 +223,13 @@ namespace mySCA2
             catch { StatusLabel2.Text = " Начните работу с кнопки - \"Получить ФИО\""; }
 
             dtPeople.Columns.AddRange(dcPeople);
-            dtPeopleTemp.Columns.AddRange(dcPeopleTemp);
-            /*
-             DataTable copyDataTable;
-             copyDataTable = table.Copy();
-             copyDataTable.Columns.Remove("ColB");
-             or
-             int columnIndex = 1;//this will remove the second column
-             DataTable copyDataTable;
-             copyDataTable = table.Copy();
-             copyDataTable.Columns.RemoveAt(columnIndex);
-             */
 
-            /*
-             System.Data.DataView view = new System.Data.DataView(yourOriginalTable);
-             System.Data.DataTable selected = 
-             view.ToTable("Selected", false, "col1", "col2", "col6", "col7", "col3");             
-             */
-
-            /*
-            dtPeopleTemp = dtPeople.Clone();
-            string ss = "search_text";
-            for (int j = 0; j < dtPeople.Rows.Count; j++)
-            {
-                if (ss == dtPeople.Rows[j]["Name_Collumn"].ToString())
-                {
-                    dtPeopleTemp.ImportRow(dtPeople.Rows[j]);
-                }
-            }*/
-
+            dtPersonTemp = dtPeople.Clone();  //Copy only structure(Name of collumns)
+            dtPersonRegisteredFull = dtPeople.Clone();  //Copy only structure(Name of collumns)
+            dtPersonRegistered = dtPeople.Clone();  //Copy only structure(Name of collumns)
+            dtPersonGroup = dtPeople.Clone();  //Copy only structure(Name of collumns)
+            dtPersonsLastList = dtPeople.Clone();  //Copy only structure(Name of collumns)
+            PersonsLastComboList = dtPeople.Clone();  //Copy only structure(Name of collumns)
 
             dataGridView1.ShowCellToolTips = true;
         }
@@ -254,11 +242,124 @@ namespace mySCA2
             if (s.Contains(':'))
             {
                 string[] time = s.Split(':');
-                timeConverted= TryParseStringToDecimal(time[0]) + (TryParseStringToDecimal(time[1]) + 1) / 60 - (1 / 60);
+                timeConverted = TryParseStringToDecimal(time[0]) + (TryParseStringToDecimal(time[1]) + 1) / 60 - (1 / 60);
             }
             return timeConverted;
         }
 
+        /*
+         dataView.RowFilter = "id = 10";      // no special character in column name "id"
+         dataView.RowFilter = "$id = 10";     // no special character in column name "$id"
+         dataView.RowFilter = "[#id] = 10";   // special character "#" in column name "#id"
+         dataView.RowFilter = "[[id\]] = 10"; // special characters in column name "[id]"
+         dataView.RowFilter = "Name = 'John'"        // string value
+         dataView.RowFilter = "Name = 'John ''A'''"  // string with single quotes "John 'A'"
+         dataView.RowFilter = String.Format("Name = '{0}'", "John 'A'".Replace("'", "''"));
+         dataView.RowFilter = "Year = 2008"          // integer value
+         dataView.RowFilter = "Price = 1199.9"       // float value
+         dataView.RowFilter = String.Format(CultureInfo.InvariantCulture.NumberFormat, "Price = {0}", 1199.9f);
+         dataView.RowFilter = "Date = #12/31/2008#"          // date value (time is 00:00:00)
+         dataView.RowFilter = "Date = #2008-12-31#"          // also this format is supported
+         dataView.RowFilter = "Date = #12/31/2008 16:44:58#" // date and time value
+         dataView.RowFilter = String.Format(CultureInfo.InvariantCulture.DateTimeFormat, "Date = #{0}#", new DateTime(2008, 12, 31, 16, 44, 58));
+         dataView.RowFilter = "Date = '31.12.2008 16:44:58'" // if current culture is German
+         dataView.RowFilter = "Price = '1199.90'"            // if current culture is English
+         dataView.RowFilter = "Num = 10"             // number is equal to 10
+         dataView.RowFilter = "Date < #1/1/2008#"    // date is less than 1/1/2008
+         dataView.RowFilter = "Name <> 'John'"       // string is not equal to 'John'
+         dataView.RowFilter = "Name >= 'Jo'"         // string comparison
+         dataView.RowFilter = "Id IN (1, 2, 3)"                    // integer values
+         dataView.RowFilter = "Price IN (1.0, 9.9, 11.5)"          // float values
+         dataView.RowFilter = "Name IN ('John', 'Jim', 'Tom')"     // string values
+         dataView.RowFilter = "Date IN (#12/31/2008#, #1/1/2009#)" // date time values
+         dataView.RowFilter = "Id NOT IN (1, 2, 3)"  // values not from the list
+         dataView.RowFilter = "Name LIKE 'j*'"       // values that start with 'j'
+         dataView.RowFilter = "Name LIKE '%jo%'"     // values that contain 'jo'
+         dataView.RowFilter = "Name NOT LIKE 'j*'"   // values that don't start with 'j'     
+         dataView.RowFilter = "City = 'Tokyo' AND (Age < 20 OR Age > 60)";    // operator AND has precedence over OR operator, parenthesis are needed
+         dataView.RowFilter = "City <> 'Tokyo' AND City <> 'Paris'";  // following examples do the same
+         dataView.RowFilter = "NOT City = 'Tokyo' AND NOT City = 'Paris'";
+         dataView.RowFilter = "NOT (City = 'Tokyo' OR City = 'Paris')";
+         dataView.RowFilter = "City NOT IN ('Tokyo', 'Paris')";
+         dataView.RowFilter = "MotherAge - Age < 20";   // people with young mother
+         dataView.RowFilter = "Age % 10 = 0";           // people with decennial birthday
+         dataView.RowFilter = "Salary > AVG(Salary)";  // select people with above-average salary
+         dataView.RowFilter = "COUNT(Child.IdOrder) > 5";    // select orders which have more than 5 items
+         dataView.RowFilter = "SUM(Child.Price) >= 500";  // select orders which total price (sum of items prices) is greater or equal $500
+          */
+
+        /*
+        //datatable
+        var table = new DataTable();
+
+         //get some data
+         using (var conn = new SqlConnection(yourSqlConn))
+           {
+             var comm = new SqlCommand(@"select * from someTable order by someColumn", conn);
+             comm.CommandType = CommandType.Text;
+             conn.Open();
+             var data = comm.ExecuteReader();
+             table.Load(data);
+            }
+
+         //bind to some control (repeater)
+          rptFirstList.DataSource = table;
+          rptFirstList.DataBind();
+
+        //first way
+        foreach (DataRow dr in table.Select("someColumn = 'value'","someColumnToSort"))    //loop through rows and import based on filter
+         {secondTable.ImportRow(dr); }
+
+          //second way
+          var secondTable = new DataTable();
+          secondTable = table.Copy();
+          secondTable.DefaultView.Sort = "someOtherColumn";
+
+       DataTable copyDataTable;
+       copyDataTable = table.Copy();
+       copyDataTable.Columns.Remove("ColB");
+
+        or
+
+       int columnIndex = 1;//this will remove the second column
+       DataTable copyDataTable;
+       copyDataTable = table.Copy();
+       copyDataTable.Columns.RemoveAt(columnIndex);
+
+
+       System.Data.DataView view = new System.Data.DataView(yourOriginalTable);
+       System.Data.DataTable selected = 
+       view.ToTable("Selected", false, "col1", "col2", "col6", "col7", "col3");             
+
+      dtPeopleTemp = dtPeople.Clone();
+      string ss = "search_text";
+      for (int j = 0; j < dtPeople.Rows.Count; j++)
+      {
+          if (ss == dtPeople.Rows[j]["Name_Collumn"].ToString())
+          {
+              dtPeopleTemp.ImportRow(dtPeople.Rows[j]);
+          }
+      }*/
+
+        /*
+        private void GetRowsByFilter()
+        {
+            DataTable table = dtPeople.Copy();
+            // Presuming the DataTable has a column named Date.
+            string expression;
+            expression = "Date > #1/1/00#";
+            DataRow[] foundRows;
+
+            // Use the Select method to find all rows matching the filter.
+            foundRows = table.Select(expression);
+
+            // Print column 0 of each returned row.
+            for (int i = 0; i < foundRows.Length; i++)
+            {
+                Console.WriteLine(foundRows[i][0]);
+            }
+        }
+        */
 
         private void AboutSoft(object sender, EventArgs e) //Кнопка "О программе"
         { AboutSoft(); }
@@ -511,27 +612,6 @@ namespace mySCA2
             }
         }
 
-        /*
-         foreach(DataTable table in dataSet.Tables)
-{
-    SQLiteCommand cmd = new SQLiteCommand(mDBcon);
-    cmd.CommandText = "CREATE TABLE IF NOT EXISTS " + table.Name + "(";
-    bool first = true;
-    foreach (DataColumn column in table.Columns)
-    {           
-        cmd.CommandText += "@"+column.Name;
-        if (!first) cmd.CommandText += ",";
-        else first = false;
-        cmd.Parameters.Add(new SQLiteParameter("@"+column.Name, column.Name));
-    }
-    cmd.CommandText += ");";
-    cmd.ExecuteNonQuery();
-
-    // Fill the new table:
-    SQLiteDataAdapter da = new SQLiteDataAdapter("select * from " + table.Name, mDBcon);
-    da.Fill(table);
-}*/
-
         //void ShowDataTableQuery(
         private void ShowDataTableQuery(System.IO.FileInfo databasePerson, string myTable, string mySqlQuery = "SELECT DISTINCT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', " +
             " DateRegistered AS 'Дата регистрации', HourComming AS 'Время прихода, часы',  MinuteComming AS 'Время прихода, минуты', ServerOfRegistration AS 'Сервер', " +
@@ -591,7 +671,7 @@ namespace mySCA2
             sLastSelectedElement = "dataGridView";
         }
 
-        
+
 
         /// <summary>
         /// ///////////////////////////////////////////////////////////////////////////
@@ -800,18 +880,16 @@ namespace mySCA2
             _MenuItemEnabled(AnualDatesMenuItem, false);
             _MenuItemEnabled(GroupsMenuItem, false);
             _MenuItemEnabled(GetFioItem, false);
-            VisualItemsAll_Enable(false);
-            CheckBoxesFiltersAll_Enable(false);
 
-            await Task.Run(() => CheckAliveServer(sServer1));
+            await Task.Run(() => CheckAliveServer(sServer1, sServer1UserName, sServer1UserPassword));
 
-            if (sServer1.Length > 0 && sServer1UserName.Length > 0 && sServer1UserPassword.Length > 0 && bServer1Exist)
+            if (bServer1Exist)
             {
                 Task.Run(() => _timer1Enabled(true));
                 _ProgressBar1Value0();
                 dataGridView1.Visible = true;
                 pictureBox1.Visible = false;
-                
+
                 DeleteAllDataInTableQuery(databasePerson, "PersonTemp");
                 DeleteAllDataInTableQuery(databasePerson, "PersonRegistered");
                 DeleteAllDataInTableQuery(databasePerson, "PersonRegisteredFull");
@@ -820,7 +898,7 @@ namespace mySCA2
 
                 ShowDatatableOnDatagridview(dtPeople, dataGridView1);
                 //ShowDataTableQuery(databasePerson, "PersonTemp");
-                
+
                 await Task.Run(() => panelViewResize());
             }
             else { GetInfoSetup(); }
@@ -828,15 +906,16 @@ namespace mySCA2
             _MenuItemEnabled(QuickSettingsItem, true);
         }
 
-        private void CheckAliveServer(string serverName) //Get the list of registered users
+        private void CheckAliveServer(string serverName, string userName, string userPasswords) //Get the list of registered users
         {
             bServer1Exist = false;
             string stringConnection;
+            _toolStripStatusLabelSetText(StatusLabel2, "Проверка сервера " + serverName + ". Ждите окончания процесса...");
+            stimerPrev = "Проверка сервера " + serverName + ". Ждите окончания процесса...";
+            stringConnection = "Data Source=" + serverName + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + userName + ";Password=" + userPasswords + "; Connect Timeout=5";
+
             try
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Проверка сервера " + serverName + ". Ждите окончания процесса...");
-                stimerPrev = "Проверка сервера " + serverName + ". Ждите окончания процесса...";
-                stringConnection = "Data Source=" + sServer1 + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=5";
                 using (var sqlConnection = new SqlConnection(stringConnection))
                 {
                     sqlConnection.Open();
@@ -851,12 +930,19 @@ namespace mySCA2
                 }
             }
             catch
+            { bServer1Exist = false; }
+
+            if (bServer1Exist)
+            { _MenuItemEnabled(GetFioItem, true); }
+            else
             {
-                bServer1Exist = false;
-                stimerPrev = serverName + " не доступен или неправильная авторизация";
                 _toolStripStatusLabelSetText(StatusLabel2, "Ошибка доступа к " + serverName + " SQL БД СКД-сервера!");
                 _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
+                stimerPrev = serverName + " не доступен или неправильная авторизация";
+
                 _MenuItemEnabled(QuickLoadDataItem, false);
+                CheckBoxesFiltersAll_Enable(false);
+                VisualItemsAll_Enable(false);
                 MessageBox.Show(serverName + " не доступен или не правильные имя/пароль", "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
@@ -866,37 +952,6 @@ namespace mySCA2
         private void GetFioFromServers() //Get the list of registered users
         {
             dtPeople.Clear();
-
-            /*
-             DataRow row = dtPeople.NewRow();
-                                row["Контракт"] = kontrakt;
-                                row["Номер телефона"] = numberMobile;
-                                row["ФИО"] = "";
-                                row["NAV"] = "";
-                                row["Подразделение"] = "";
-                                row["Имя сервиса"] = serviceName;
-                                row["Номер В"] = numberB;
-                                row["Дата"] = date;
-                                row["Время"] = time;
-                                row["Длительность А"] = durationA;
-                                row["Длительность В"] = durationB;
-                                row["Стоимость"] = cost;
-
-                                dtPeople.Rows.Add(row);
-
-                                  dcPeople ={
-                                  new DataColumn("№ п/п",typeof(int)),
-                                  new DataColumn("ФИО сотрудника",typeof(string)),
-                                  new DataColumn("NAV-код",typeof(string)),
-                                  new DataColumn("Группа",typeof(string)),
-                                  new DataColumn("Время прихода,часы",typeof(string)),
-                                  new DataColumn("Время прихода,минут",typeof(string)),
-                                  new DataColumn("Время прихода",typeof(decimal)),
-                                  new DataColumn("Время ухода,часы",typeof(string)),
-                                  new DataColumn("Время ухода,минут",typeof(string)),
-                                  new DataColumn("Время ухода",typeof(decimal)),
-        };
-             */
 
             string stringConnection;
             List<string> ListFIOTemp = new List<string>();
@@ -1934,7 +1989,7 @@ namespace mySCA2
             labelGroup.BackColor = SystemColors.Control;
         }
 
-        private void GetNamePoints()
+        private void GetNamePoints() //Get names of the pass by points
         {
             if (databasePerson.Exists)
             {
@@ -1984,30 +2039,36 @@ namespace mySCA2
             }
         }
 
-        private void GetDataItem_Click(object sender, EventArgs e)
-        { GetDataItem(); }
+        private async void GetDataItem_Click(object sender, EventArgs e)
+        { await Task.Run(() => GetData()); }
 
-        private async void GetDataItem()
+        private void GetData()
         {
-            groupBoxPeriod.BackColor = SystemColors.Control;
-            groupBoxTime.BackColor = SystemColors.Control;
-
+            _changeControlBackColor(groupBoxPeriod, SystemColors.Control);
+            _changeControlBackColor(groupBoxTime, SystemColors.Control);
             _ChangeMenuItemBackColor(QuickLoadDataItem, SystemColors.Control);
+
             _MenuItemEnabled(QuickLoadDataItem, false);
             _MenuItemEnabled(FunctionMenuItem, false);
             _MenuItemEnabled(QuickSettingsItem, false);
             _MenuItemEnabled(AnualDatesMenuItem, false);
             _MenuItemEnabled(GroupsMenuItem, false);
-            _MenuItemEnabled(QuickSettingsItem, false);
-            //_MenuItemEnabled(ViewMenuItem, false);
             VisualItemsAll_Enable(false);
             CheckBoxesFiltersAll_Enable(false);
             _controlEnable(dataGridView1, true);
-            await Task.Run(() => CheckAliveServer(sServer1));
+            _controlVisible(pictureBox1, false);
 
-            if (sServer1.Length > 0 && sServer1UserName.Length > 0 && sServer1UserPassword.Length > 0 && bServer1Exist)
+            Task.Run(() => _timer1Enabled(true));
+
+            CheckAliveServer(sServer1, sServer1UserName, sServer1UserPassword);
+
+            if (bServer1Exist)
             {
-                Task.Run(() => _timer1Enabled(true));
+                //Clear work tables
+                DeleteAllDataInTableQuery(databasePerson, "PersonTemp");
+                DeleteAllDataInTableQuery(databasePerson, "PersonRegistered");
+                DeleteAllDataInTableQuery(databasePerson, "PersonRegisteredFull");
+                GetNamePoints();  //Get names of the points
 
                 if ((nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup") && _textBoxReturnText(textBoxGroup).Length > 0)
                 {
@@ -2017,44 +2078,39 @@ namespace mySCA2
                 else
                 {
                     Task.Run(() => _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по \"" + ShortFIO(_textBoxReturnText(textBoxFIO)) + "\" "));
-                    stimerPrev = "Получаю данные по \"" + ShortFIO(_textBoxReturnText(textBoxFIO)) + "\" ";
+                    stimerPrev = "Получаю данные по \"" + ShortFIO(_textBoxReturnText(textBoxFIO)) + "\"";
                     nameOfLastTableFromDB = "PersonRegistered";
                 }
 
                 _ProgressBar1Value0();
-                pictureBox1.Visible = false;
-                await Task.Run(() => GetDataGroupItem());
+
+                GetRegistrations();
 
                 _controlVisible(dataGridView1, true);
                 _controlEnable(dataGridView1, true);
-                VisualItem.Enabled = true;
-                ExportIntoExcelItem.Enabled = true;
-
-                VisualWorkedTimeItem.Visible = true;
-                panelViewResize();
+                _MenuItemEnabled(VisualItem, true);
+                _MenuItemEnabled(ExportIntoExcelItem, true);
+                _MenuItemVisible(VisualWorkedTimeItem, true);
                 _MenuItemEnabled(QuickSettingsItem, true);
                 VisualItemsAll_Enable(true);
                 CheckBoxesFiltersAll_Enable(true);
+
+                panelViewResize();
             }
-            else {
+            else
+            {
                 GetInfoSetup();
                 _MenuItemEnabled(QuickSettingsItem, true);
             }
-            groupBoxRemoveDays.BackColor = Color.PaleGreen;
+            _changeControlBackColor(groupBoxRemoveDays, Color.PaleGreen);
         }
 
-        private void GetDataGroupItem()
+        private void GetRegistrations()
         {
-            //Clear work tables
-            DeleteAllDataInTableQuery(databasePerson, "PersonTemp");
-            DeleteAllDataInTableQuery(databasePerson, "PersonRegistered");
-            DeleteAllDataInTableQuery(databasePerson, "PersonRegisteredFull");
-            GetNamePoints();  //Get names of the points
+            dtPersonRegisteredFull.Clear();
 
             if ((nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup") && _textBoxReturnText(textBoxGroup).Length > 1)
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по группе " + _textBoxReturnText(textBoxGroup));
-                stimerPrev = "Получаю данные по группе " + _textBoxReturnText(textBoxGroup);
                 GetGroupInfoFromDB();
 
                 string[] sCell;
@@ -2068,11 +2124,18 @@ namespace mySCA2
                         _textBoxSetText(textBoxNav, sCell[1]);   //Select person                  
                         listFIO.Add(sCell[0]);      // add the person into the list  
 
-                        dControlHourSelected =TryParseStringToDecimal (sCell[2]);
+                        dControlHourSelected = TryParseStringToDecimal(sCell[2]);
                         dControlMinuteSelected = TryParseStringToDecimal(sCell[3]);
 
                         Person person = new Person();
-                        GetPersonRegistrationFromServer(person);     //Search Registration at checkpoints of the selected person
+
+                        person.NAV = _textBoxReturnText(textBoxNav);
+                        person.FIO = _textBoxReturnText(textBoxFIO);
+                        person.HourControlling = dControlHourSelected.ToString();
+                        person.MinuteControlling = dControlMinuteSelected.ToString();
+                        person.Controlling = dControlHourSelected + (dControlMinuteSelected + 1) / 60 - (1 / 60);
+                        
+                        GetPersonRegistrationFromServer(dtPersonRegisteredFull, person);     //Search Registration at checkpoints of the selected person
                     }
                 }
 
@@ -2082,13 +2145,17 @@ namespace mySCA2
             }
             else
             {
-                dControlHourSelected = numUpDownHour.Value;
-                dControlMinuteSelected = numUpDownMinute.Value;
-
-                stimerPrev = "Получаю данные по \"" + ShortFIO(_textBoxReturnText(textBoxFIO)) + "\"";
-
+                dControlHourSelected = _numUpDownHourReturn(numUpDownHour);
+                dControlMinuteSelected =_numUpDownHourReturn( numUpDownMinute);
+                
                 Person person = new Person();
-                GetPersonRegistrationFromServer(person);
+                person.NAV = _textBoxReturnText(textBoxNav);
+                person.FIO = _textBoxReturnText(textBoxFIO);
+                person.HourControlling = dControlHourSelected.ToString();
+                person.MinuteControlling = dControlMinuteSelected.ToString();
+                person.Controlling = dControlHourSelected + (dControlMinuteSelected + 1) / 60 - (1 / 60);
+
+                GetPersonRegistrationFromServer(dtPersonRegisteredFull, person);
 
                 nameOfLastTableFromDB = "PersonRegistered";
                 _timer1Enabled(false);
@@ -2097,10 +2164,51 @@ namespace mySCA2
 
 
             CopyWholeDataFromOneTableIntoAnother(databasePerson, "PersonTemp", "PersonRegistered");
+            _controlVisible(dataGridView1,false);
+            DataTable copyDataTable = new DataTable();
+            copyDataTable = dtPersonRegisteredFull.Copy();
+            copyDataTable.Columns[25].ColumnMapping = MappingType.Hidden;
+            copyDataTable.Columns[24].ColumnMapping = MappingType.Hidden;
+            copyDataTable.Columns[23].ColumnMapping = MappingType.Hidden;
+            copyDataTable.Columns[22].ColumnMapping = MappingType.Hidden;
+            copyDataTable.Columns[20].ColumnMapping = MappingType.Hidden;
+            copyDataTable.Columns[19].ColumnMapping = MappingType.Hidden;
+            copyDataTable.Columns[18].ColumnMapping = MappingType.Hidden;
+            copyDataTable.Columns[15].ColumnMapping = MappingType.Hidden;
+            copyDataTable.Columns[10].ColumnMapping = MappingType.Hidden;
+            copyDataTable.Columns[9].ColumnMapping = MappingType.Hidden;
+            copyDataTable.Columns[6].ColumnMapping = MappingType.Hidden;
+            copyDataTable.Columns[5].ColumnMapping = MappingType.Hidden;
+            copyDataTable.Columns[0].ColumnMapping = MappingType.Hidden;
+            // copyDataTable.Columns.RemoveAt(0); //Remove column with index 0
+
+            /*new DataColumn("№ п/п",typeof(int)),//0
+                                  new DataColumn("Фамилия Имя Отчество",typeof(string)),//1
+                                  new DataColumn("NAV-код",typeof(string)),
+                                  new DataColumn("Группа",typeof(string)),
+                                  new DataColumn("Время прихода,часы",typeof(string)),
+                                  new DataColumn("Время прихода,минут",typeof(string)), //5
+                                  new DataColumn("Время прихода",typeof(decimal)),
+                                  new DataColumn("Время ухода,часы",typeof(string)),
+                                  new DataColumn("Время ухода,минут",typeof(string)),
+                                  new DataColumn("Время ухода",typeof(decimal)),
+                                  new DataColumn("№ пропуска",typeof(int)), //10
+                                  new DataColumn("Отдел",typeof(string)),
+                                  new DataColumn("Дата регистрации",typeof(string)),
+                                  new DataColumn("Время регистрации,часы",typeof(string)),
+                                  new DataColumn("Время регистрации,минут",typeof(string)),
+                                  new DataColumn("Время регистрации",typeof(decimal)), //15
+                                  new DataColumn("Реальное время ухода,часы",typeof(string)),
+                                  new DataColumn("Реальное время ухода,минут",typeof(string)),
+                                  new DataColumn("Реальное время ухода",typeof(decimal)), //18
+                                  new DataColumn("Сервер СКД",typeof(string)), //19
+                                  new DataColumn("Имя точки прохода",typeof(string)), //20
+                                  new DataColumn("Направление прохода",typeof(string)), //21
+*/
 
             //заполнить данными из Персонрегистреред
-            ShowDatatableOnDatagridview(dtPeople, dataGridView1);
-            ShowDataTableQuery(databasePerson, "PersonTemp");
+            ShowDatatableOnDatagridview(copyDataTable, dataGridView1);
+            _controlVisible(dataGridView1, true);
 
             _SetMenuItemDefaultColor(QuickLoadDataItem);
             _ChangeMenuItemBackColor(ExportIntoExcelItem, Color.PaleGreen);
@@ -2115,10 +2223,14 @@ namespace mySCA2
             stimerPrev = "";
         }
 
-        private void GetPersonRegistrationFromServer(Person person)
+        private void GetPersonRegistrationFromServer(DataTable dt, Person person)
         {
-            string personNAV = _textBoxReturnText(textBoxNav); 
-            string personFIO = _textBoxReturnText(textBoxFIO);
+            DataRow rowPerson;
+
+            //string personNAV = _textBoxReturnText(textBoxNav); 
+            //string personFIO = _textBoxReturnText(textBoxFIO);
+            string personNAV = person.NAV;
+            string personFIO = person.FIO;
 
             decimal hourControlStart = dControlHourSelected;
             decimal minuteControlStart = dControlMinuteSelected;
@@ -2192,7 +2304,7 @@ namespace mySCA2
                             }
                         }
                     }
-                }                                
+                }
             }
             catch (Exception expt) { MessageBox.Show(expt.ToString()); }
 
@@ -2226,10 +2338,6 @@ namespace mySCA2
                                     {
                                         if (record != null && record["param0"].ToString().Trim().Length > 0)
                                         {
-                                            hourManaging = 0;
-                                            minuteManaging = 0;
-                                            managingHours = 0;
-
                                             string stringDataNew = Regex.Split(record["date"].ToString().Trim(), "[ ]")[0];
                                             hourManaging = Convert.ToDecimal(Regex.Split(record["time"].ToString().Trim(), "[:]")[0]);
                                             minuteManaging = Convert.ToDecimal(Regex.Split(record["time"].ToString().Trim(), "[:]")[1]);
@@ -2241,6 +2349,7 @@ namespace mySCA2
                                                 hourControlStart + "|" + minuteControlStart + "|" + controlStartHours.ToString("#.###") + "|" +
                                                 sServer1 + "|" + record["objid"].ToString().Trim()
                                                 );
+
                                             _ProgressWork1();
                                         }
                                     }
@@ -2295,13 +2404,53 @@ namespace mySCA2
                                         else if (namePoint.ToLower().Contains("вход"))
                                             nameDirection = "Вход";
                                         break;
-                                    }
-                                    catch
-                                    {
-                                    }
+                                    } catch { }
                             }
 
                             iCounterLine++;
+
+                            rowPerson = dt.NewRow();
+                            /*
+                                  new DataColumn("№ п/п",typeof(int)),//0
+                                  new DataColumn("Фамилия Имя Отчество",typeof(string)),//1
+                                  new DataColumn("NAV-код",typeof(string)),
+                                  new DataColumn("Группа",typeof(string)),
+                                  new DataColumn("Время прихода,часы",typeof(string)),
+                                  new DataColumn("Время прихода,минут",typeof(string)), //5
+                                  new DataColumn("Время прихода",typeof(decimal)),
+                                  new DataColumn("Время ухода,часы",typeof(string)),
+                                  new DataColumn("Время ухода,минут",typeof(string)),
+                                  new DataColumn("Время ухода",typeof(decimal)),
+                                  new DataColumn("№ пропуска",typeof(int)), //10
+                                  new DataColumn("Отдел",typeof(string)),
+                                  new DataColumn("Дата регистрации",typeof(string)),
+                                  new DataColumn("Время регистрации,часы",typeof(string)),
+                                  new DataColumn("Время регистрации,минут",typeof(string)),
+                                  new DataColumn("Время регистрации",typeof(decimal)), //15
+                                  new DataColumn("Реальное время ухода,часы",typeof(string)),
+                                  new DataColumn("Реальное время ухода,минут",typeof(string)),
+                                  new DataColumn("Реальное время ухода",typeof(decimal)), //18
+                                  new DataColumn("Сервер СКД",typeof(string)), //19
+                                  new DataColumn("Имя точки прохода",typeof(string)), //20
+                                  new DataColumn("Направление прохода",typeof(string)), //21
+ */
+                            rowPerson[1] = person.FIO;
+                            rowPerson[2] = person.NAV;
+                            rowPerson[3] = cellData[2];
+                            rowPerson[12] = cellData[3];
+                            rowPerson[13] = cellData[4];
+                            rowPerson[14] = cellData[5];
+                            rowPerson[15] = Convert.ToDecimal(cellData[6]);
+                            rowPerson[4] = cellData[7];
+                            rowPerson[5] = cellData[8];
+                            rowPerson[6] = Convert.ToDecimal(cellData[9]);
+                            rowPerson[7] = person.HourControllingOut;
+                            rowPerson[8] = person.MinuteControllingOut;
+                            rowPerson[9] = person.ControllingOut;
+                            rowPerson[20] = namePoint;
+                            rowPerson[21] = nameDirection;
+                            dt.Rows.Add(rowPerson);
+
                             sqlCommand.Parameters.Add("@FIO", DbType.String).Value = cellData[0];
                             sqlCommand.Parameters.Add("@NAV", DbType.String).Value = cellData[1];
                             sqlCommand.Parameters.Add("@iDCard", DbType.String).Value = cellData[2];
@@ -2332,7 +2481,7 @@ namespace mySCA2
             { bLoaded = true; }
 
             personNAV = null; personFIO = null; hourControlStart = 0; minuteControlStart = 0; controlStartHours = 0;
-            stringIdCardIntellect = null;  personNAVTemp = null; stringSelectedFIO = new string[1];
+            stringIdCardIntellect = null; personNAVTemp = null; stringSelectedFIO = new string[1];
         }
 
         private void GetGroupInfoFromDB() //Get info the selected group from DB and make a few lists with these data
@@ -2434,7 +2583,7 @@ namespace mySCA2
             ListGroup();
         }
 
-        
+
         private void infoItem_Click(object sender, EventArgs e)
         { ShowDataTableQuery(databasePerson, "TechnicalInfo", "SELECT PCName,POName,POVersion,LastDateStarted ", "ORDER BY LastDateStarted DESC"); }
 
@@ -2583,6 +2732,45 @@ namespace mySCA2
             return sDgv;
         }
 
+        private int _dataGridView1CurrentRowIndex() //add string into  from other threads
+        {
+            int iDgv = -1;
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { try { iDgv = dataGridView1.CurrentRow.Index; } catch { iDgv = -1; } }));
+            else
+                try { iDgv = dataGridView1.CurrentRow.Index; } catch { iDgv = -1; }
+            return iDgv;
+        }
+
+        private void _dataGridViewSource(DataTable dt)
+        {
+
+            if (InvokeRequired)
+            {
+                Invoke(new MethodInvoker(delegate
+                {
+                    if (dt != null && dt.Rows.Count > 0)
+                    { dataGridView1.DataSource = dt; }
+                    else
+                    {
+                        System.Collections.ArrayList Empty = new System.Collections.ArrayList();
+                        dataGridView1.DataSource = Empty;
+                    }
+                }));
+            }
+            else
+            {
+                if (dt != null && dt.Rows.Count > 0)
+                { dataGridView1.DataSource = dt; }
+                else
+                {
+                    System.Collections.ArrayList Empty = new System.Collections.ArrayList();
+                    dataGridView1.DataSource = Empty;
+                }
+            }
+        }
+
+
         private string _textBoxReturnText(TextBox txtBox) //add string into  from other threads
         {
             string tBox = "";
@@ -2625,46 +2813,29 @@ namespace mySCA2
                 comboBoxFio.SelectedIndex = i;
         }
 
-        private void _numUpDownHourValue(int i) //add string into comboBoxTargedPC from other threads
+
+        private void _numUpDownHourSet(NumericUpDown numericUpDown, int i) //add string into comboBoxTargedPC from other threads
         {
             if (InvokeRequired)
             {
-                Invoke(new MethodInvoker(delegate { try { numUpDownHour.Value = i; } catch { numUpDownHour.Value = 9; } }));
+                Invoke(new MethodInvoker(delegate { try { numericUpDown.Value = i; } catch { numUpDownHour.Value = 9; } }));
             }
             else
             {
-                try { numUpDownHour.Value = i; } catch { numUpDownHour.Value = 9; }
+                try { numericUpDown.Value = i; } catch { numericUpDown.Value = 9; }
             }
         }
 
-        private decimal _numUpDownHour()
+        private decimal _numUpDownHourReturn(NumericUpDown numericUpDown)
         {
             decimal iCombo = 0;
             if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { iCombo = (decimal)numUpDownHour.Value; }));
+                Invoke(new MethodInvoker(delegate { iCombo = (decimal)numericUpDown.Value; }));
             else
-                iCombo = (decimal)numUpDownHour.Value;
+                iCombo = (decimal)numericUpDown.Value;
             return iCombo;
         }
-
-        private void _numUpDownMinuteValue(int i) //add string into comboBoxTargedPC from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { numUpDownMinute.Value = i; }));
-            else
-                numUpDownMinute.Value = i;
-        }
-
-        private decimal _numUpDownMinute()
-        {
-            decimal iCombo = 0;
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { iCombo = (decimal)numUpDownMinute.Value; }));
-            else
-                iCombo = (decimal)numUpDownMinute.Value;
-            return iCombo;
-        }
-
+               
         private string _dateTimePickerStart() //add string into  from other threads
         {
             string stringDT = "";
@@ -2703,55 +2874,18 @@ namespace mySCA2
             return stringDT;
         }
 
-        private void _ProgressWork1() //add into progressBar Value 2 from other threads
+        private string _dateTimePickerReturn(DateTimePicker dateTimePicker) //add string into  from other threads
         {
+            string result = "";
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
-                 {
-                     if (ProgressBar1.Value > 99)
-                     { ProgressBar1.Value = 0; }
-                     ProgressBar1.Maximum = 100;
-                     ProgressBar1.Value += 1;
-                 }));
+                    { result = dateTimePicker.Value.ToString(); }
+                ));
             else
-            {
-                if (ProgressBar1.Value > 99)
-                { ProgressBar1.Value = 0; }
-                ProgressBar1.Maximum = 100;
-                ProgressBar1.Value += 1;
-            }
+                result = dateTimePicker.Value.ToString();
+            return result;
         }
 
-        private void _ProgressBar1Value0() //Set progressBar Value into 0 from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                { ProgressBar1.Value = 0; }));
-            else
-            { ProgressBar1.Value = 0; }
-        }
-
-        private void _ProgressBar1Value100() //Set progressBar Value into 100 from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    timer1.Stop(); ProgressBar1.Value = 100; StatusLabel1.ForeColor = Color.Black;
-                }));
-            else
-            { timer1.Stop(); ProgressBar1.Value = 100; StatusLabel1.ForeColor = Color.Black; }
-        }
-
-        private void _timer1Enabled(bool state)
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    timer1.Enabled = state; if (state) timer1.Start(); else timer1.Stop();
-                }));
-            else
-            { timer1.Enabled = state; if (state) timer1.Start(); else timer1.Stop(); }
-        }
 
         private void _toolStripStatusLabelSetText(ToolStripStatusLabel statusLabel, string s) //add string into  from other threads
         {
@@ -2777,45 +2911,7 @@ namespace mySCA2
                 StatusLabel2.BackColor = s;
         }
 
-        private int _dataGridView1CurrentRowIndex() //add string into  from other threads
-        {
-            int iDgv = -1;
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { try { iDgv = dataGridView1.CurrentRow.Index; } catch { iDgv = -1; } }));
-            else
-                try { iDgv = dataGridView1.CurrentRow.Index; } catch { iDgv = -1; }
-            return iDgv;
-        }
-
-        private void _dataGridViewSource(DataTable dt)
-        {
-
-            if (InvokeRequired)
-            {
-                Invoke(new MethodInvoker(delegate
-                {
-                    if (dt != null && dt.Rows.Count > 0)
-                    { dataGridView1.DataSource = dt; }
-                    else
-                    {
-                        System.Collections.ArrayList Empty = new System.Collections.ArrayList();
-                        dataGridView1.DataSource = Empty;
-                    }
-                }));
-            }
-            else
-            {
-                if (dt != null && dt.Rows.Count > 0)
-                { dataGridView1.DataSource = dt; }
-                else
-                {
-                    System.Collections.ArrayList Empty = new System.Collections.ArrayList();
-                    dataGridView1.DataSource = Empty;
-                }
-            }
-        }
-
-        private void _ChangeMenuItemBackColor(ToolStripMenuItem tMenuItem, System.Drawing.Color colorMenu) //add string into  from other threads
+        private void _ChangeMenuItemBackColor(ToolStripMenuItem tMenuItem, Color colorMenu) //add string into  from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate { tMenuItem.BackColor = colorMenu; }));
@@ -2831,12 +2927,12 @@ namespace mySCA2
                 tMenuItem.Enabled = bEnabled;
         }
 
-        private void _SetCheckboxChecked(CheckBox checkBox, bool checkboxChecked) //add string into  from other threads
+        private void _MenuItemVisible(ToolStripMenuItem tMenuItem, bool bEnabled) //add string into  from other threads
         {
             if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { checkBox.Checked = checkboxChecked; }));
+                Invoke(new MethodInvoker(delegate { tMenuItem.Visible = bEnabled; }));
             else
-                checkBox.Checked = checkboxChecked;
+                tMenuItem.Visible = bEnabled;
         }
 
         private void _SetMenuItemDefaultColor(ToolStripMenuItem tMenuItem) //add string into  from other threads
@@ -2847,24 +2943,13 @@ namespace mySCA2
                 tMenuItem.BackColor = SystemColors.Control;
         }
 
-        private void timer1Start() //Set progressBar Value into 0 from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                { timer1.Start(); }));
-            else
-            { timer1.Start(); ; }
-        }
 
-        private void timer1Stop() //Set progressBar Value into 0 from other threads
+        private void _SetCheckboxChecked(CheckBox checkBox, bool checkboxChecked) //add string into  from other threads
         {
             if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                { timer1.Stop(); StatusLabel1.ForeColor = Color.Black; StatusLabel2.ForeColor = Color.Black; }));
+                Invoke(new MethodInvoker(delegate { checkBox.Checked = checkboxChecked; }));
             else
-            {
-                timer1.Stop(); StatusLabel1.ForeColor = Color.Black; StatusLabel2.ForeColor = Color.Black;
-            }
+                checkBox.Checked = checkboxChecked;
         }
 
         private bool _CheckboxChecked(CheckBox checkBox) //add string into  from other threads
@@ -2881,6 +2966,7 @@ namespace mySCA2
             }
             return checkBoxChecked;
         }
+
 
         private void _panelResume(Panel panel) //access from other threads
         {
@@ -3022,6 +3108,7 @@ namespace mySCA2
             }
         }
 
+
         private void _controlVisible(Control control, bool state) //access from other threads
         {
             if (InvokeRequired)
@@ -3048,8 +3135,18 @@ namespace mySCA2
             }
         }
 
+        private void _changeControlBackColor(Control control, Color color) //add string into  from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { control.BackColor = color; }));
+            else
+                control.BackColor = color; ;
+        }
+
+
         private string stimerPrev = "";
         private string stimerCurr = "Ждите!";
+
         private void timer1_Tick(object sender, EventArgs e) //Change a Color of the Font on Status by the Timer
         {
             if (InvokeRequired)
@@ -3066,6 +3163,77 @@ namespace mySCA2
                 else { StatusLabel2.ForeColor = Color.DarkBlue; StatusLabel2.Text = stimerPrev; }
             }
         }
+
+        private void _timer1Enabled(bool state)
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    timer1.Enabled = state; if (state) timer1.Start(); else timer1.Stop();
+                }));
+            else
+            { timer1.Enabled = state; if (state) timer1.Start(); else timer1.Stop(); }
+        }
+
+        private void timer1Start() //Set progressBar Value into 0 from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                { timer1.Start(); }));
+            else
+            { timer1.Start(); ; }
+        }
+
+        private void timer1Stop() //Set progressBar Value into 0 from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                { timer1.Stop(); StatusLabel1.ForeColor = Color.Black; StatusLabel2.ForeColor = Color.Black; }));
+            else
+            {
+                timer1.Stop(); StatusLabel1.ForeColor = Color.Black; StatusLabel2.ForeColor = Color.Black;
+            }
+        }
+
+        private void _ProgressWork1() //add into progressBar Value 2 from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    if (ProgressBar1.Value > 99)
+                    { ProgressBar1.Value = 0; }
+                    ProgressBar1.Maximum = 100;
+                    ProgressBar1.Value += 1;
+                }));
+            else
+            {
+                if (ProgressBar1.Value > 99)
+                { ProgressBar1.Value = 0; }
+                ProgressBar1.Maximum = 100;
+                ProgressBar1.Value += 1;
+            }
+        }
+
+        private void _ProgressBar1Value0() //Set progressBar Value into 0 from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                { ProgressBar1.Value = 0; }));
+            else
+            { ProgressBar1.Value = 0; }
+        }
+
+        private void _ProgressBar1Value100() //Set progressBar Value into 100 from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    timer1.Stop(); ProgressBar1.Value = 100; StatusLabel1.ForeColor = Color.Black;
+                }));
+            else
+            { timer1.Stop(); ProgressBar1.Value = 100; StatusLabel1.ForeColor = Color.Black; }
+        }
+
         //End of Block. Access to Controls from other threads
 
 
@@ -3167,7 +3335,7 @@ namespace mySCA2
 
             TryMakeDB();
             UpdateTableOfDB();
-            
+
             ShowDataTableQuery(databasePerson, "PersonRegisteredFull");
             StatusLabel2.Text = @"Отчеты удалены";
         }
@@ -3244,6 +3412,8 @@ namespace mySCA2
                 FindWorkDatesInSelected();
                 DrawRegistration();
                 ReportsItem.Visible = true;
+                VisualWorkedTimeItem.Visible = true;
+                VisualItem.Visible = false;
             }
             else { MessageBox.Show("Таблица с данными пустая.\nНет данных для визуализации!"); }
 
@@ -3752,6 +3922,8 @@ namespace mySCA2
                 FindWorkDatesInSelected();
                 DrawFullWorkedPeriodRegistration();
                 ReportsItem.Visible = true;
+                VisualItem.Visible = true;
+                VisualWorkedTimeItem.Visible = false;
             }
             else { MessageBox.Show("Таблица с данными пустая.\nНет данных для визуализации!"); }
             if (nameOfLastTableFromDB == "PersonGroup")
@@ -4053,6 +4225,8 @@ namespace mySCA2
             sLastSelectedElement = "dataGridView";
             panelViewResize();
             ReportsItem.Visible = false;
+            VisualItem.Visible = true;
+            VisualWorkedTimeItem.Visible = true;
         }
 
         private void panelView_SizeChanged(object sender, EventArgs e)
@@ -4301,11 +4475,12 @@ namespace mySCA2
                 //_MenuItemEnabled(ViewMenuItem, true);
                 VisualItemsAll_Enable(true);
 
-                panelView.Visible = true;
+                _controlVisible(panelView, true);
             }
             else
             {
-                GetInfoSetup(); _MenuItemEnabled(QuickSettingsItem, true);
+                GetInfoSetup();
+                _MenuItemEnabled(QuickSettingsItem, true);
             }
         }
 
@@ -4336,9 +4511,6 @@ namespace mySCA2
         private void ClearRegistryItem_Click(object sender, EventArgs e)
         { ClearRegistryData(); }
 
-        private void btnPropertiesSaveInRegistry_Click(object sender, EventArgs e)
-        { SaveDataInRegistry(); }
-
         private void ClearRegistryData()
         {
             try
@@ -4353,23 +4525,31 @@ namespace mySCA2
             catch { MessageBox.Show("Ошибки с доступом у реестру на запись. Данные не удалены."); }
         }
 
-        private void SaveDataInRegistry() //Save Parameters into Registry and variables
-        {
-            if (sServer1.Length > 0 && sServer1UserName.Length > 0 && sServer1UserPassword.Length > 0)
-            {
-                groupBoxProperties.Visible = false;
+        private void btnPropertiesSaveInRegistry_Click(object sender, EventArgs e)
+        { SaveDataInRegistry(); }
 
-                sServer1 = textBoxServer1.Text.Trim();
-                sServer1UserName = textBoxServer1UserName.Text.Trim();
-                sServer1UserPassword = textBoxServer1UserPassword.Text.Trim();
+        private async void SaveDataInRegistry() //Save Parameters into Registry and variables
+        {
+            string server = textBoxServer1.Text.Trim();
+            string user = textBoxServer1UserName.Text.Trim();
+            string password = textBoxServer1UserPassword.Text.Trim();
+            await Task.Run(() => CheckAliveServer(server, user, password));
+
+            if (bServer1Exist)
+            {
+                _controlVisible(groupBoxProperties, false);
+
+                sServer1 = server;
+                sServer1UserName = user;
+                sServer1UserPassword = password;
 
                 try
                 {
                     using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(myRegKey))
                     {
-                        EvUserKey.SetValue("SKDServer", sServer1, Microsoft.Win32.RegistryValueKind.String);
-                        EvUserKey.SetValue("SKDUser", EncryptStringToBase64Text(sServer1UserName, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String);
-                        EvUserKey.SetValue("SKDUserPassword", EncryptStringToBase64Text(sServer1UserPassword, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String);
+                        EvUserKey.SetValue("SKDServer", server, Microsoft.Win32.RegistryValueKind.String);
+                        EvUserKey.SetValue("SKDUser", EncryptStringToBase64Text(user, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String);
+                        EvUserKey.SetValue("SKDUserPassword", EncryptStringToBase64Text(password, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String);
                     }
                 }
                 catch { MessageBox.Show("Ошибки с доступом на запись в реестр. Данные сохранены не корректно."); }
@@ -4437,7 +4617,8 @@ namespace mySCA2
                  "2. Сохранить данные параметры\n" +
                  "3. После этого можно получать списки пользователей проходивших пукты регистрации, " +
                  "просматривать данные по регистрациям и проводить анализ.\n\nДата и время локального ПК: " +
-                dateTimePickerEnd.Value,
+                _dateTimePickerReturn(dateTimePickerEnd),
+                //dateTimePickerEnd.Value,
                 @"Информация о программе",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information,
@@ -4963,11 +5144,13 @@ namespace mySCA2
             }
         }
         //End of the Block Encryption-Decryption
-               
+
     }
 
     public class Person
     {
+        public int id;
+        public int idCard = 0;
         public string FIO;
         public string NAV = "";
         public string Department = "";
@@ -4978,6 +5161,17 @@ namespace mySCA2
         public string HourControllingOut = "18";
         public string MinuteControllingOut = "0";
         public decimal ControllingOut = 18;
+
+        public string RealInHour = "9";
+        public string RealInMinute = "0";
+        public decimal RealInDecimal = 9;
+        public string RealHourOut = "18";
+        public string RealOutMinute = "0";
+        public decimal RealOutDecimal = 18;
+        public string RealDate = "";
+        public string serverSKD = "";
+        public string namePassPoint = "";
+        public string directionPass = "";
     }
 
     public class EncryptDecrypt
