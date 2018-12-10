@@ -89,7 +89,7 @@ namespace mySCA2
         };
 
         private DataTable dtPeopleTemp = new DataTable("People");
-        private DataColumn[] dcPeopleTemp ={
+        /*private DataColumn[] dcPeopleTemp ={
                                   new DataColumn("№ п/п",typeof(int)),
                                   new DataColumn("Фамилия Имя Отчество",typeof(string)),
                                   new DataColumn("NAV-код",typeof(string)),
@@ -100,7 +100,7 @@ namespace mySCA2
                                   new DataColumn("Время ухода,часы",typeof(string)),
                                   new DataColumn("Время ухода,минут",typeof(string)),
                                   new DataColumn("Время ухода",typeof(decimal)),
-        };
+        };*/
 
         //Color Control elements of Person depending of the selected MenuItem  
         private Color labelGroupCurrentBackColor;
@@ -213,8 +213,20 @@ namespace mySCA2
             catch { StatusLabel2.Text = " Начните работу с кнопки - \"Получить ФИО\""; }
 
             dtPeople.Columns.AddRange(dcPeople);
-            dtPeopleTemp.Columns.AddRange(dcPeopleTemp);
-            /*
+            dtPeopleTemp=dtPeople.Clone(); //Copy only structure
+              /*
+              //loop through rows and import based on filter
+              foreach (DataRow dr in table.Select("someColumn = 'value'","someColumnToSort")) {
+               secondTable.ImportRow(dr);
+                     }
+                   */
+                       /* //second way
+                        //second table
+               var secondTable = new DataTable();
+                  secondTable = table.Copy();
+                 secondTable.DefaultView.Sort = "someOtherColumn";
+
+ 
              DataTable copyDataTable;
              copyDataTable = table.Copy();
              copyDataTable.Columns.Remove("ColB");
