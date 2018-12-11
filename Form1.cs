@@ -3322,7 +3322,8 @@ namespace mySCA2
 
 
             int[] hidecollumns = { 0 };
-            ShowDatatableOnDatagridview(dtPeople, hidecollumns, dataGridView1);
+            //dtPersonRegisteredFull
+            ShowDatatableOnDatagridview(dtPersonRegisteredFull, hidecollumns, dataGridView1);
 
             ShowDataTableQuery(databasePerson, "PersonTemp");
 
