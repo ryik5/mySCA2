@@ -102,7 +102,9 @@ namespace mySCA2
                                   new DataColumn("Время ухода ЧЧ:ММ",typeof(string)),
                                   new DataColumn("Реальное время прихода ЧЧ:ММ",typeof(string)),
                                   new DataColumn("Реальное время ухода ЧЧ:ММ",typeof(string)), //25
-};
+                                  new DataColumn("Реальное отработанное время",typeof(decimal)), //26
+                                  new DataColumn("Реальное отработанное время ЧЧ:ММ",typeof(string)), //27
+    };
 
         private DataTable dtPersonTemp = new DataTable("PersonTemp");
         private DataTable dtPersonRegisteredFull = new DataTable("PersonRegisteredFull");
@@ -657,16 +659,36 @@ namespace mySCA2
         /// ///////////////////////////////////////////////////////////////////////////
         /// </summary>
 
-        private void ShowDatatableOnDatagridview(DataTable dt, DataGridView dgv) //Query data from the Table of the DB
+        private void ShowDatatableOnDatagridview(DataTable dt, int[] collumnsHide, DataGridView dgv) //Query data from the Table of the DB
         {
             /*
-             
-            mySqlQuery = "SELECT DISTINCT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', " +
-            " DateRegistered AS 'Дата регистрации', HourComming AS 'Время прихода, часы',  MinuteComming AS 'Время прихода, минуты', ServerOfRegistration AS 'Сервер', " +
-            " HourControlling AS 'Контрольное время, часы', MinuteControlling AS 'Контрольное время, минуты', Reserv1 AS 'Точка прохода', Reserv2 AS 'Направление'",
-            string mySqlWhere = "ORDER BY FIO, DateRegistered, Comming") //Query data from the Table of the DB
+            dtPersonTemp = new DataTable();
+            dtPersonTemp = dtPersonRegisteredFull.Copy();
+            dtPersonTemp.Columns[27].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[26].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[25].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[24].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[23].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[22].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[20].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[19].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[18].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[15].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[10].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[9].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[6].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[5].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[0].ColumnMapping = MappingType.Hidden;*/
+            // copyDataTable.Columns.RemoveAt(0); //Remove column with index 0
 
-             */
+            DataTable dataTable = new DataTable();
+            dataTable = dt.Copy();
+
+            for (int i = 0; i < collumnsHide.Length; i++)
+            {
+                dtPersonTemp.Columns[i].ColumnMapping = MappingType.Hidden;
+            }
+
             _dataGridViewSource(dt);
             sLastSelectedElement = "dataGridView";
         }
@@ -896,7 +918,8 @@ namespace mySCA2
 
                 await Task.Run(() => GetFioFromServers());
 
-                ShowDatatableOnDatagridview(dtPeople, dataGridView1);
+                int[] emptyArray = { 0};
+                ShowDatatableOnDatagridview(dtPeople, emptyArray, dataGridView1);
                 //ShowDataTableQuery(databasePerson, "PersonTemp");
 
                 await Task.Run(() => panelViewResize());
@@ -2107,6 +2130,8 @@ namespace mySCA2
 
         private void GetRegistrations()
         {
+            _controlVisible(dataGridView1, false);
+
             dtPersonRegisteredFull.Clear();
 
             if ((nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup") && _textBoxReturnText(textBoxGroup).Length > 1)
@@ -2163,51 +2188,31 @@ namespace mySCA2
             }
 
 
-            CopyWholeDataFromOneTableIntoAnother(databasePerson, "PersonTemp", "PersonRegistered");
-            _controlVisible(dataGridView1,false);
-            DataTable copyDataTable = new DataTable();
-            copyDataTable = dtPersonRegisteredFull.Copy();
-            copyDataTable.Columns[25].ColumnMapping = MappingType.Hidden;
-            copyDataTable.Columns[24].ColumnMapping = MappingType.Hidden;
-            copyDataTable.Columns[23].ColumnMapping = MappingType.Hidden;
-            copyDataTable.Columns[22].ColumnMapping = MappingType.Hidden;
-            copyDataTable.Columns[20].ColumnMapping = MappingType.Hidden;
-            copyDataTable.Columns[19].ColumnMapping = MappingType.Hidden;
-            copyDataTable.Columns[18].ColumnMapping = MappingType.Hidden;
-            copyDataTable.Columns[15].ColumnMapping = MappingType.Hidden;
-            copyDataTable.Columns[10].ColumnMapping = MappingType.Hidden;
-            copyDataTable.Columns[9].ColumnMapping = MappingType.Hidden;
-            copyDataTable.Columns[6].ColumnMapping = MappingType.Hidden;
-            copyDataTable.Columns[5].ColumnMapping = MappingType.Hidden;
-            copyDataTable.Columns[0].ColumnMapping = MappingType.Hidden;
+            //CopyWholeDataFromOneTableIntoAnother(databasePerson, "PersonTemp", "PersonRegistered");
+            /*
+            dtPersonTemp = new DataTable();
+            dtPersonTemp = dtPersonRegisteredFull.Copy();
+            dtPersonTemp.Columns[27].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[26].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[25].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[24].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[23].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[22].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[20].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[19].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[18].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[15].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[10].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[9].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[6].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[5].ColumnMapping = MappingType.Hidden;
+            dtPersonTemp.Columns[0].ColumnMapping = MappingType.Hidden;
             // copyDataTable.Columns.RemoveAt(0); //Remove column with index 0
+            */
 
-            /*new DataColumn("№ п/п",typeof(int)),//0
-                                  new DataColumn("Фамилия Имя Отчество",typeof(string)),//1
-                                  new DataColumn("NAV-код",typeof(string)),
-                                  new DataColumn("Группа",typeof(string)),
-                                  new DataColumn("Время прихода,часы",typeof(string)),
-                                  new DataColumn("Время прихода,минут",typeof(string)), //5
-                                  new DataColumn("Время прихода",typeof(decimal)),
-                                  new DataColumn("Время ухода,часы",typeof(string)),
-                                  new DataColumn("Время ухода,минут",typeof(string)),
-                                  new DataColumn("Время ухода",typeof(decimal)),
-                                  new DataColumn("№ пропуска",typeof(int)), //10
-                                  new DataColumn("Отдел",typeof(string)),
-                                  new DataColumn("Дата регистрации",typeof(string)),
-                                  new DataColumn("Время регистрации,часы",typeof(string)),
-                                  new DataColumn("Время регистрации,минут",typeof(string)),
-                                  new DataColumn("Время регистрации",typeof(decimal)), //15
-                                  new DataColumn("Реальное время ухода,часы",typeof(string)),
-                                  new DataColumn("Реальное время ухода,минут",typeof(string)),
-                                  new DataColumn("Реальное время ухода",typeof(decimal)), //18
-                                  new DataColumn("Сервер СКД",typeof(string)), //19
-                                  new DataColumn("Имя точки прохода",typeof(string)), //20
-                                  new DataColumn("Направление прохода",typeof(string)), //21
-*/
-
+            int[] hideCollumns = { 27, 26, 25, 24, 23, 22, 20, 19, 18, 15, 10, 9, 6, 5, 0 };
             //заполнить данными из Персонрегистреред
-            ShowDatatableOnDatagridview(copyDataTable, dataGridView1);
+            ShowDatatableOnDatagridview(dtPersonTemp, hideCollumns, dataGridView1);
             _controlVisible(dataGridView1, true);
 
             _SetMenuItemDefaultColor(QuickLoadDataItem);
@@ -3299,8 +3304,26 @@ namespace mySCA2
                 nameOfLastTableFromDB = "PersonRegistered";
             }
 
-            //заполнить таблицу данными Персонрегистеред
-            ShowDatatableOnDatagridview(dtPeople, dataGridView1);
+
+            //DataView dv = ft.DefaultView;
+            //dv.Sort = "occr desc";
+            //DataTable sortedDT = dv.ToTable();
+            //
+            //dataTable.DefaultView.Sort = "Col1, Col2, Col3"
+            //
+            //DataRow[] foundRows=table.Select("Date = '1/31/1979' or OrderID = 2", "CompanyName ASC");
+            //DataTable dt = foundRows.CopyToDataTable();
+            //
+            //DataRow[] dataRows = table.Select().OrderBy(u => u["EmailId"]).ToArray();
+            //
+            //DataTable dt = new DataTable();         
+            //dt.DefaultView.Sort = "Column_name desc";
+            //dt = dt.DefaultView.ToTable();
+
+
+            int[] hidecollumns = { 0 };
+            ShowDatatableOnDatagridview(dtPeople, hidecollumns, dataGridView1);
+
             ShowDataTableQuery(databasePerson, "PersonTemp");
 
             panelViewResize();
@@ -5168,10 +5191,16 @@ namespace mySCA2
         public string RealHourOut = "18";
         public string RealOutMinute = "0";
         public decimal RealOutDecimal = 18;
+        public decimal RealWorkedDayHoursDecimal = 9;
+        public string RealInHHMM = "09:00";
+        public string RealOutHHMM = "18:00";
+        public string RealWorkedDayHoursHHMM = "09:00";
         public string RealDate = "";
+
         public string serverSKD = "";
         public string namePassPoint = "";
         public string directionPass = "";
+
     }
 
     public class EncryptDecrypt
