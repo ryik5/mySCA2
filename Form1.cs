@@ -78,29 +78,29 @@ namespace mySCA2
         private DataColumn[] dcPeople ={
                                   new DataColumn("№ п/п",typeof(int)),//0
                                   new DataColumn("Фамилия Имя Отчество",typeof(string)),//1
-                                  new DataColumn("NAV-код",typeof(string)),
-                                  new DataColumn("Группа",typeof(string)),
-                                  new DataColumn("Время прихода,часы",typeof(string)),
+                                  new DataColumn("NAV-код",typeof(string)),//2
+                                  new DataColumn("Группа",typeof(string)),//3
+                                  new DataColumn("Время прихода,часы",typeof(string)),//4
                                   new DataColumn("Время прихода,минут",typeof(string)), //5
-                                  new DataColumn("Время прихода",typeof(decimal)),
-                                  new DataColumn("Время ухода,часы",typeof(string)),
-                                  new DataColumn("Время ухода,минут",typeof(string)),
-                                  new DataColumn("Время ухода",typeof(decimal)),
+                                  new DataColumn("Время прихода",typeof(decimal)),//6
+                                  new DataColumn("Время ухода,часы",typeof(string)),//7
+                                  new DataColumn("Время ухода,минут",typeof(string)),//8
+                                  new DataColumn("Время ухода",typeof(decimal)),//9
                                   new DataColumn("№ пропуска",typeof(int)), //10
-                                  new DataColumn("Отдел",typeof(string)),
-                                  new DataColumn("Дата регистрации",typeof(string)),
-                                  new DataColumn("Время регистрации,часы",typeof(string)),
-                                  new DataColumn("Время регистрации,минут",typeof(string)),
+                                  new DataColumn("Отдел",typeof(string)),//11
+                                  new DataColumn("Дата регистрации",typeof(string)),//12
+                                  new DataColumn("Время регистрации,часы",typeof(string)),//13
+                                  new DataColumn("Время регистрации,минут",typeof(string)),//14
                                   new DataColumn("Время регистрации",typeof(decimal)), //15
-                                  new DataColumn("Реальное время ухода,часы",typeof(string)),
-                                  new DataColumn("Реальное время ухода,минут",typeof(string)),
+                                  new DataColumn("Реальное время ухода,часы",typeof(string)),//16
+                                  new DataColumn("Реальное время ухода,минут",typeof(string)),//17
                                   new DataColumn("Реальное время ухода",typeof(decimal)), //18
                                   new DataColumn("Сервер СКД",typeof(string)), //19
                                   new DataColumn("Имя точки прохода",typeof(string)), //20
                                   new DataColumn("Направление прохода",typeof(string)), //21
-                                  new DataColumn("Время прихода ЧЧ:ММ",typeof(string)),
-                                  new DataColumn("Время ухода ЧЧ:ММ",typeof(string)),
-                                  new DataColumn("Реальное время прихода ЧЧ:ММ",typeof(string)),
+                                  new DataColumn("Время прихода ЧЧ:ММ",typeof(string)),//22
+                                  new DataColumn("Время ухода ЧЧ:ММ",typeof(string)),//23
+                                  new DataColumn("Реальное время прихода ЧЧ:ММ",typeof(string)),//24
                                   new DataColumn("Реальное время ухода ЧЧ:ММ",typeof(string)), //25
                                   new DataColumn("Реальное отработанное время",typeof(decimal)), //26
                                   new DataColumn("Реальное отработанное время ЧЧ:ММ",typeof(string)), //27
@@ -1108,221 +1108,7 @@ namespace mySCA2
             _MenuItemEnabled(GroupsMenuItem, true);
         }
 
-        /*
-        private void FilterItem_Click(object sender, EventArgs e)
-        {
-            dataGridView1.Visible = true;
-            pictureBox1.Visible = false;
 
-            DeleteAllDataInTableQuery(databasePerson, "PersonTemp");
-            if (nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup")
-            {
-                GetGroupInfoFromDB();
-
-                if (textBoxGroup.Text.Trim().Length > 0)
-                {
-                    string[] sCell;
-                    foreach (string sRow in lListFIOTemp.ToArray())
-                    {
-                        sCell = Regex.Split(sRow, "[|]"); //FIO|NAV|H|M
-                        if (sCell[0].Length > 1)
-                        {
-                            _textBoxSetText(textBoxFIO, sCell[0]);   //иммитируем выбор данных
-                            _textBoxSetText(textBoxNav, sCell[1]);   //Select person                  
-                            
-                            dControlHourSelected = Convert.ToDecimal(sCell[2]);
-                            dControlMinuteSelected = Convert.ToDecimal(sCell[3]);
-                            FilterDataByNav();
-                        }
-                    }
-                }
-                nameOfLastTableFromDB = "PersonGroup";
-            }
-            else
-            {
-                if (!checkBoxReEnter.Checked)
-                { CopyWholeDataFromOneTableIntoAnother(databasePerson, "PersonTemp", "PersonRegistered"); }
-                else
-                { FilterDataByNav(); }
-                nameOfLastTableFromDB = "PersonRegistered";
-            }
-            ShowDataTableQuery(databasePerson, "PersonTemp");
-
-            //FilterItem.BackColor = SystemColors.Control;
-            panelViewResize();
-        }*/
-
-
-
-        private void FilterDataByNav()    //Copy Data from PersonRegistered into PersonTemp by Filter(NAV and anual dates or minimalTime or dayoff)
-        {
-            if (_CheckboxChecked(checkBoxReEnter)) //checkBoxReEnter.Checked
-            {
-                using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
-                {
-                    sqlConnection.Open();
-                    HashSet<string> AllDateRegistration = new HashSet<string>();
-                    using (var sqlCommand = new SQLiteCommand("SELECT  *, MIN(Comming) AS FirstRegistered FROM PersonRegistered  " +
-                        " WHERE NAV like '" + _textBoxReturnText(textBoxNav) + "' GROUP BY FIO, NAV, DateRegistered ORDER BY DateRegistered ASC;", sqlConnection))
-                    {                                                                                         //, min (PersonRegistered.comming) AS FirstRegistered
-                        using (var reader = sqlCommand.ExecuteReader())
-                        {
-                            string stringDateRegistered = null;
-                            foreach (DbDataRecord record in reader)
-                            {
-                                try
-                                {
-                                    if (record != null)
-                                    {
-                                        stringDateRegistered = null;
-                                        stringDateRegistered =
-                                            record["FIO"].ToString().Trim() + "|" +
-                                            record["NAV"].ToString().Trim() + "|" +
-                                            record["iDCard"].ToString().Trim() + "|" +
-                                            record["DateRegistered"].ToString().Trim() + "|" +
-                                            record["HourComming"].ToString().Trim() + "|" +
-                                            record["MinuteComming"].ToString().Trim() + "|" +
-                                            record["Comming"].ToString().Trim() + "|" +
-                                            record["HourControlling"].ToString().Trim() + "|" +
-                                            record["MinuteControlling"].ToString().Trim() + "|" +
-                                            record["Controlling"].ToString().Trim() + "|" +
-                                            record["ServerOfRegistration"].ToString().Trim() + "|" +
-                                            record["Reserv1"].ToString().Trim() + "|" +
-                                            record["Reserv2"].ToString().Trim()
-                                            ;
-                                        AllDateRegistration.Add(stringDateRegistered);
-
-                                        dControlHourSelected = TryParseStringToDecimal(record["HourControlling"].ToString().Trim());
-                                        dControlMinuteSelected = TryParseStringToDecimal(record["MinuteControlling"].ToString().Trim());
-                                    }
-                                }
-                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
-                            }
-                        }
-                    }
-
-                    var sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    //Write found dates with the first time of registration
-                    using (var sqlCommand = new SQLiteCommand("INSERT INTO 'PersonTemp' (FIO, NAV, DateRegistered, HourComming, MinuteComming, Comming, HourControlling, MinuteControlling, Controlling, ServerOfRegistration, Reserv1, Reserv2) " +
-                        "VALUES (@FIO, @NAV, @DateRegistered, @HourComming, @MinuteComming, @Comming, @HourControlling, @MinuteControlling, @Controlling, @ServerOfRegistration, @Reserv1, @Reserv2)", sqlConnection))
-                    {
-                        sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                        sqlCommand1.ExecuteNonQuery();
-
-                        foreach (var rowData in AllDateRegistration.ToArray())
-                        {
-                            var cellData = Regex.Split(rowData, "[|]");
-
-                            sqlCommand.Parameters.Add("@FIO", DbType.String).Value = cellData[0];
-                            sqlCommand.Parameters.Add("@NAV", DbType.String).Value = cellData[1];
-                            // sqlCommand.Parameters.Add("@iDCard", DbType.String).Value = cellData[2];
-                            sqlCommand.Parameters.Add("@DateRegistered", DbType.String).Value = cellData[3];
-                            sqlCommand.Parameters.Add("@HourComming", DbType.String).Value = cellData[4];
-                            sqlCommand.Parameters.Add("@MinuteComming", DbType.String).Value = cellData[5];
-                            sqlCommand.Parameters.Add("@Comming", DbType.Decimal).Value = Convert.ToDecimal(cellData[6]);
-                            sqlCommand.Parameters.Add("@HourControlling", DbType.String).Value = cellData[7];
-                            sqlCommand.Parameters.Add("@MinuteControlling", DbType.String).Value = cellData[8];
-                            sqlCommand.Parameters.Add("@Controlling", DbType.Decimal).Value = Convert.ToDecimal(cellData[9]);
-                            sqlCommand.Parameters.Add("@ServerOfRegistration", DbType.String).Value = cellData[10];
-                            sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = cellData[11];
-                            sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = cellData[12];
-                            try { sqlCommand.ExecuteNonQuery(); } catch { }
-                        }
-
-                        sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                        sqlCommand1.ExecuteNonQuery();
-                    }
-                    AllDateRegistration.Clear();
-                    sqlCommand1.Dispose();
-                }
-            }
-            else
-            {
-                using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
-                {
-                    sqlConnection.Open();
-                    HashSet<string> AllDateRegistration = new HashSet<string>();
-                    using (var sqlCommand = new SQLiteCommand("Select * FROM PersonRegistered  " +
-                        " where NAV like '" + _textBoxReturnText(textBoxNav) + "' order by FIO, DateRegistered, Comming ASC;", sqlConnection))
-                    {
-                        using (var reader = sqlCommand.ExecuteReader())
-                        {
-                            string stringDateRegistered = null;
-                            foreach (DbDataRecord record in reader)
-                            {
-                                try
-                                {
-                                    if (record != null)
-                                    {
-                                        stringDateRegistered = null;
-                                        stringDateRegistered =
-                                            record["FIO"].ToString().Trim() + "|" +
-                                            record["NAV"].ToString().Trim() + "|" +
-                                            record["iDCard"].ToString().Trim() + "|" +
-                                            record["DateRegistered"].ToString().Trim() + "|" +
-                                            record["HourComming"].ToString().Trim() + "|" +
-                                            record["MinuteComming"].ToString().Trim() + "|" +
-                                            record["Comming"].ToString().Trim() + "|" +
-                                            record["HourControlling"].ToString().Trim() + "|" +
-                                            record["MinuteControlling"].ToString().Trim() + "|" +
-                                            record["Controlling"].ToString().Trim() + "|" +
-                                            record["ServerOfRegistration"].ToString().Trim() + "|" +
-                                            record["Reserv1"].ToString().Trim() + "|" +
-                                            record["Reserv2"].ToString().Trim()
-                                            ;
-                                        AllDateRegistration.Add(stringDateRegistered);
-
-                                        dControlHourSelected = Convert.ToDecimal(record["HourControlling"].ToString().Trim());
-                                        dControlMinuteSelected = Convert.ToDecimal(record["MinuteControlling"].ToString().Trim());
-                                    }
-                                }
-                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
-                            }
-                        }
-                    }
-
-                    var sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    //Write found dates with the first time of registration
-                    using (var sqlCommand = new SQLiteCommand("INSERT INTO 'PersonTemp' (FIO, NAV, DateRegistered, HourComming, MinuteComming, Comming, HourControlling, MinuteControlling, Controlling, ServerOfRegistration, Reserv1, Reserv2) " +
-                        "VALUES (@FIO, @NAV, @DateRegistered, @HourComming, @MinuteComming, @Comming, @HourControlling, @MinuteControlling, @Controlling, @ServerOfRegistration, @Reserv1, @Reserv2)", sqlConnection))
-                    {
-                        sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                        sqlCommand1.ExecuteNonQuery();
-
-                        foreach (var rowData in AllDateRegistration.ToArray())
-                        {
-                            var cellData = Regex.Split(rowData, "[|]");
-
-                            sqlCommand.Parameters.Add("@FIO", DbType.String).Value = cellData[0];
-                            sqlCommand.Parameters.Add("@NAV", DbType.String).Value = cellData[1];
-                            //        sqlCommand.Parameters.Add("@iDCard", DbType.String).Value = cellData[2];
-                            sqlCommand.Parameters.Add("@DateRegistered", DbType.String).Value = cellData[3];
-                            sqlCommand.Parameters.Add("@HourComming", DbType.String).Value = cellData[4];
-                            sqlCommand.Parameters.Add("@MinuteComming", DbType.String).Value = cellData[5];
-                            sqlCommand.Parameters.Add("@Comming", DbType.Decimal).Value = Convert.ToDecimal(cellData[6]);
-                            sqlCommand.Parameters.Add("@HourControlling", DbType.String).Value = cellData[7];
-                            sqlCommand.Parameters.Add("@MinuteControlling", DbType.String).Value = cellData[8];
-                            sqlCommand.Parameters.Add("@Controlling", DbType.Decimal).Value = Convert.ToDecimal(cellData[9]);
-                            sqlCommand.Parameters.Add("@ServerOfRegistration", DbType.String).Value = cellData[10];
-                            sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = cellData[11];
-                            sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = cellData[12];
-                            try { sqlCommand.ExecuteNonQuery(); } catch { }
-                        }
-
-                        sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                        sqlCommand1.ExecuteNonQuery();
-                    }
-                    AllDateRegistration.Clear();
-                    sqlCommand1.Dispose();
-                }
-            }
-
-            if (_CheckboxChecked(checkBoxWeekend))//checkBoxWeekend.Checked
-            { DeleteAnualDates(databasePerson, "PersonTemp"); }
-
-            if (_CheckboxChecked(checkBoxStartWorkInTime)) //checkBoxStartWorkInTime.Checked
-            { DeleteDataTableQueryLess(databasePerson, "PersonTemp", "Comming", dControlHourSelected + (dControlMinuteSelected + 1) / 60 - (1 / 60)); }
-        }
 
         private void DeleteAnualDates(System.IO.FileInfo databasePerson, string myTable) //Exclude Anual Days from the table "PersonTemp" DB
         {
@@ -2136,8 +1922,8 @@ namespace mySCA2
 
             if ((nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup") && _textBoxReturnText(textBoxGroup).Length > 1)
             {
-                GetGroupInfoFromDB();
-
+                GetGroupInfoFromDB(dtPeople); //result will be in dtPersonGroup
+                
                 string[] sCell;
                 foreach (string sRow in lListFIOTemp.ToArray())
                 {
@@ -2415,30 +2201,7 @@ namespace mySCA2
                             iCounterLine++;
 
                             rowPerson = dt.NewRow();
-                            /*
-                                  new DataColumn("№ п/п",typeof(int)),//0
-                                  new DataColumn("Фамилия Имя Отчество",typeof(string)),//1
-                                  new DataColumn("NAV-код",typeof(string)),
-                                  new DataColumn("Группа",typeof(string)),
-                                  new DataColumn("Время прихода,часы",typeof(string)),
-                                  new DataColumn("Время прихода,минут",typeof(string)), //5
-                                  new DataColumn("Время прихода",typeof(decimal)),
-                                  new DataColumn("Время ухода,часы",typeof(string)),
-                                  new DataColumn("Время ухода,минут",typeof(string)),
-                                  new DataColumn("Время ухода",typeof(decimal)),
-                                  new DataColumn("№ пропуска",typeof(int)), //10
-                                  new DataColumn("Отдел",typeof(string)),
-                                  new DataColumn("Дата регистрации",typeof(string)),
-                                  new DataColumn("Время регистрации,часы",typeof(string)),
-                                  new DataColumn("Время регистрации,минут",typeof(string)),
-                                  new DataColumn("Время регистрации",typeof(decimal)), //15
-                                  new DataColumn("Реальное время ухода,часы",typeof(string)),
-                                  new DataColumn("Реальное время ухода,минут",typeof(string)),
-                                  new DataColumn("Реальное время ухода",typeof(decimal)), //18
-                                  new DataColumn("Сервер СКД",typeof(string)), //19
-                                  new DataColumn("Имя точки прохода",typeof(string)), //20
-                                  new DataColumn("Направление прохода",typeof(string)), //21
- */
+
                             rowPerson[1] = person.FIO;
                             rowPerson[2] = person.NAV;
                             rowPerson[3] = cellData[2];
@@ -2488,11 +2251,13 @@ namespace mySCA2
             personNAV = null; personFIO = null; hourControlStart = 0; minuteControlStart = 0; controlStartHours = 0;
             stringIdCardIntellect = null; personNAVTemp = null; stringSelectedFIO = new string[1];
         }
-
-        private void GetGroupInfoFromDB() //Get info the selected group from DB and make a few lists with these data
+//Get info the selected group from DB and make a few lists with these data
+        private void GetGroupInfoFromDB(DataTable dtSource) //"Select * FROM PersonGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
         {
             lListFIOTemp.Clear();
-
+            dtPersonGroup?.Dispose();
+            dtPersonGroup = dtSource.Clone();
+            DataRow dataRow;
             using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
             {
                 sqlConnection.Open();
@@ -2501,23 +2266,39 @@ namespace mySCA2
                 {
                     using (var sqlReader = sqlCommand.ExecuteReader())
                     {
-                        string d1 = "", d2 = "", d3 = "", d4 = "";
+                        string d1 = "", d2 = "", d3 = "9", d13 = "18", d4 = "0", d14 = "0";
 
                         foreach (DbDataRecord record in sqlReader)
                         {
-                            d1 = ""; d2 = ""; d3 = ""; d4 = "";
+                            d1 = ""; d2 = ""; d3 = "9"; d4 = "18"; d13 = "0"; d14 = "0";
                             try { d1 = record["FIO"].ToString().Trim(); } catch { d1 = ""; }
 
                             if (record != null && d1.Length > 1)
                             {
-                                try { d2 = record["NAV"].ToString().Trim(); } catch { d2 = ""; }
-                                try { d3 = record["HourControlling"].ToString().Trim(); } catch { d3 = ""; }
-                                try { d4 = record["MinuteControlling"].ToString().Trim(); } catch { d4 = ""; }
-                                lListFIOTemp.Add(d1 + "|" + d2 + "|" + d3 + "|" + d4);
+                                dataRow = dtPersonGroup.NewRow();
+
+                                try { d2 = record["NAV"].ToString().Trim(); } catch { }
+                                try { d3 = record["HourControlling"].ToString().Trim(); } catch {  }
+                                try { d4 = record["MinuteControlling"].ToString().Trim(); } catch {  }
+                                try { d13 = record["HourControllingOut"].ToString().Trim(); } catch {  }
+                                try { d14 = record["MinuteControllingOut"].ToString().Trim(); } catch {  }
+                                lListFIOTemp.Add(d1 + "|" + d2 + "|" + d3 + "|" + d4 + "|" + d13 + "|" + d14);
+                                //HourControllingOut TEXT, MinuteControllingOut TEXT
                                 //FIO|NAV|H|M
+
+
+                                dataRow[1] = d1;
+                                dataRow[2] = d2;
+                                dataRow[4] = d3;
+                                dataRow[5] = d4;
+                                dataRow[6] = TryParseStringToDecimal(d3) + (TryParseStringToDecimal(d4) + 1) / 60 - (1 / 60); 
+                                dataRow[7] = d13;
+                                dataRow[8] = d14;
+                                dataRow[9] = TryParseStringToDecimal(d13) + (TryParseStringToDecimal(d14) + 1) / 60 - (1 / 60);
+                                dtPersonGroup.Rows.Add(dataRow);
                             }
                         }
-                        d1 = null; d2 = null; d3 = null; d4 = null;
+                        d1 = null; d2 = null; d3 = null; d4 = null; d13 = null; d14 = null;
                     }
                 }
             }
@@ -3273,7 +3054,7 @@ namespace mySCA2
             DeleteAllDataInTableQuery(databasePerson, "PersonTemp");
             if (nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup")
             {
-                GetGroupInfoFromDB();
+                GetGroupInfoFromDB(dtPeople); //result will be in dtPersonGroup  //"Select * FROM PersonGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
 
                 if (_textBoxReturnText(textBoxGroup).Length > 0)
                 {
@@ -3298,12 +3079,18 @@ namespace mySCA2
             else
             {
                 if (!_CheckboxChecked(checkBoxReEnter))
-                { CopyWholeDataFromOneTableIntoAnother(databasePerson, "PersonTemp", "PersonRegistered"); }
+                {
+                    try { dtPersonTemp?.Dispose(); }catch(Exception excpt) { MessageBox.Show(excpt.ToString()); }
+                    dtPersonTemp = dtPersonRegistered.Copy();
+
+                    CopyWholeDataFromOneTableIntoAnother(databasePerson, "PersonTemp", "PersonRegistered");
+                }
                 else
-                { FilterDataByNav(); }
+                {
+                    FilterDataByNav();
+                }
                 nameOfLastTableFromDB = "PersonRegistered";
             }
-
 
             //DataView dv = ft.DefaultView;
             //dv.Sort = "occr desc";
@@ -3321,9 +3108,10 @@ namespace mySCA2
             //dt = dt.DefaultView.ToTable();
 
 
+            
+            //ShowDatatableOnDatagridview(dtPersonRegisteredFull, hidecollumns, dataGridView1);
             int[] hidecollumns = { 0 };
-            //dtPersonRegisteredFull
-            ShowDatatableOnDatagridview(dtPersonRegisteredFull, hidecollumns, dataGridView1);
+            ShowDatatableOnDatagridview(dtPersonTemp, hidecollumns, dataGridView1); //show dtPersonTemp
 
             ShowDataTableQuery(databasePerson, "PersonTemp");
 
@@ -3342,6 +3130,173 @@ namespace mySCA2
             }
         }
 
+        private void FilterDataByNav()    //Copy Data from PersonRegistered into PersonTemp by Filter(NAV and anual dates or minimalTime or dayoff)
+        {
+            if (_CheckboxChecked(checkBoxReEnter)) //checkBoxReEnter.Checked
+            {
+                using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+                {
+                    sqlConnection.Open();
+                    HashSet<string> AllDateRegistration = new HashSet<string>();
+                    using (var sqlCommand = new SQLiteCommand("SELECT  *, MIN(Comming) AS FirstRegistered FROM PersonRegistered  " +
+                        " WHERE NAV like '" + _textBoxReturnText(textBoxNav) + "' GROUP BY FIO, NAV, DateRegistered ORDER BY DateRegistered ASC;", sqlConnection))
+                    {                                                                                         //, min (PersonRegistered.comming) AS FirstRegistered
+                        using (var reader = sqlCommand.ExecuteReader())
+                        {
+                            string stringDateRegistered = null;
+                            foreach (DbDataRecord record in reader)
+                            {
+                                try
+                                {
+                                    if (record != null)
+                                    {
+                                        stringDateRegistered = null;
+                                        stringDateRegistered =
+                                            record["FIO"].ToString().Trim() + "|" +
+                                            record["NAV"].ToString().Trim() + "|" +
+                                            record["iDCard"].ToString().Trim() + "|" +
+                                            record["DateRegistered"].ToString().Trim() + "|" +
+                                            record["HourComming"].ToString().Trim() + "|" +
+                                            record["MinuteComming"].ToString().Trim() + "|" +
+                                            record["Comming"].ToString().Trim() + "|" +
+                                            record["HourControlling"].ToString().Trim() + "|" +
+                                            record["MinuteControlling"].ToString().Trim() + "|" +
+                                            record["Controlling"].ToString().Trim() + "|" +
+                                            record["ServerOfRegistration"].ToString().Trim() + "|" +
+                                            record["Reserv1"].ToString().Trim() + "|" +
+                                            record["Reserv2"].ToString().Trim()
+                                            ;
+                                        AllDateRegistration.Add(stringDateRegistered);
+
+                                        dControlHourSelected = TryParseStringToDecimal(record["HourControlling"].ToString().Trim());
+                                        dControlMinuteSelected = TryParseStringToDecimal(record["MinuteControlling"].ToString().Trim());
+                                    }
+                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                            }
+                        }
+                    }
+
+                    var sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
+                    //Write found dates with the first time of registration
+                    using (var sqlCommand = new SQLiteCommand("INSERT INTO 'PersonTemp' (FIO, NAV, DateRegistered, HourComming, MinuteComming, Comming, HourControlling, MinuteControlling, Controlling, ServerOfRegistration, Reserv1, Reserv2) " +
+                        "VALUES (@FIO, @NAV, @DateRegistered, @HourComming, @MinuteComming, @Comming, @HourControlling, @MinuteControlling, @Controlling, @ServerOfRegistration, @Reserv1, @Reserv2)", sqlConnection))
+                    {
+                        sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
+                        sqlCommand1.ExecuteNonQuery();
+
+                        foreach (var rowData in AllDateRegistration.ToArray())
+                        {
+                            var cellData = Regex.Split(rowData, "[|]");
+
+                            sqlCommand.Parameters.Add("@FIO", DbType.String).Value = cellData[0];
+                            sqlCommand.Parameters.Add("@NAV", DbType.String).Value = cellData[1];
+                            // sqlCommand.Parameters.Add("@iDCard", DbType.String).Value = cellData[2];
+                            sqlCommand.Parameters.Add("@DateRegistered", DbType.String).Value = cellData[3];
+                            sqlCommand.Parameters.Add("@HourComming", DbType.String).Value = cellData[4];
+                            sqlCommand.Parameters.Add("@MinuteComming", DbType.String).Value = cellData[5];
+                            sqlCommand.Parameters.Add("@Comming", DbType.Decimal).Value = Convert.ToDecimal(cellData[6]);
+                            sqlCommand.Parameters.Add("@HourControlling", DbType.String).Value = cellData[7];
+                            sqlCommand.Parameters.Add("@MinuteControlling", DbType.String).Value = cellData[8];
+                            sqlCommand.Parameters.Add("@Controlling", DbType.Decimal).Value = Convert.ToDecimal(cellData[9]);
+                            sqlCommand.Parameters.Add("@ServerOfRegistration", DbType.String).Value = cellData[10];
+                            sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = cellData[11];
+                            sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = cellData[12];
+                            try { sqlCommand.ExecuteNonQuery(); } catch { }
+                        }
+
+                        sqlCommand1 = new SQLiteCommand("end", sqlConnection);
+                        sqlCommand1.ExecuteNonQuery();
+                    }
+                    AllDateRegistration.Clear();
+                    sqlCommand1.Dispose();
+                }
+            }
+            else
+            {
+                using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+                {
+                    sqlConnection.Open();
+                    HashSet<string> AllDateRegistration = new HashSet<string>();
+                    using (var sqlCommand = new SQLiteCommand("Select * FROM PersonRegistered  " +
+                        " where NAV like '" + _textBoxReturnText(textBoxNav) + "' order by FIO, DateRegistered, Comming ASC;", sqlConnection))
+                    {
+                        using (var reader = sqlCommand.ExecuteReader())
+                        {
+                            string stringDateRegistered = null;
+                            foreach (DbDataRecord record in reader)
+                            {
+                                try
+                                {
+                                    if (record != null)
+                                    {
+                                        stringDateRegistered = null;
+                                        stringDateRegistered =
+                                            record["FIO"].ToString().Trim() + "|" +
+                                            record["NAV"].ToString().Trim() + "|" +
+                                            record["iDCard"].ToString().Trim() + "|" +
+                                            record["DateRegistered"].ToString().Trim() + "|" +
+                                            record["HourComming"].ToString().Trim() + "|" +
+                                            record["MinuteComming"].ToString().Trim() + "|" +
+                                            record["Comming"].ToString().Trim() + "|" +
+                                            record["HourControlling"].ToString().Trim() + "|" +
+                                            record["MinuteControlling"].ToString().Trim() + "|" +
+                                            record["Controlling"].ToString().Trim() + "|" +
+                                            record["ServerOfRegistration"].ToString().Trim() + "|" +
+                                            record["Reserv1"].ToString().Trim() + "|" +
+                                            record["Reserv2"].ToString().Trim()
+                                            ;
+                                        AllDateRegistration.Add(stringDateRegistered);
+
+                                        dControlHourSelected = Convert.ToDecimal(record["HourControlling"].ToString().Trim());
+                                        dControlMinuteSelected = Convert.ToDecimal(record["MinuteControlling"].ToString().Trim());
+                                    }
+                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                            }
+                        }
+                    }
+
+                    var sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
+                    //Write found dates with the first time of registration
+                    using (var sqlCommand = new SQLiteCommand("INSERT INTO 'PersonTemp' (FIO, NAV, DateRegistered, HourComming, MinuteComming, Comming, HourControlling, MinuteControlling, Controlling, ServerOfRegistration, Reserv1, Reserv2) " +
+                        "VALUES (@FIO, @NAV, @DateRegistered, @HourComming, @MinuteComming, @Comming, @HourControlling, @MinuteControlling, @Controlling, @ServerOfRegistration, @Reserv1, @Reserv2)", sqlConnection))
+                    {
+                        sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
+                        sqlCommand1.ExecuteNonQuery();
+
+                        foreach (var rowData in AllDateRegistration.ToArray())
+                        {
+                            var cellData = Regex.Split(rowData, "[|]");
+
+                            sqlCommand.Parameters.Add("@FIO", DbType.String).Value = cellData[0];
+                            sqlCommand.Parameters.Add("@NAV", DbType.String).Value = cellData[1];
+                            //        sqlCommand.Parameters.Add("@iDCard", DbType.String).Value = cellData[2];
+                            sqlCommand.Parameters.Add("@DateRegistered", DbType.String).Value = cellData[3];
+                            sqlCommand.Parameters.Add("@HourComming", DbType.String).Value = cellData[4];
+                            sqlCommand.Parameters.Add("@MinuteComming", DbType.String).Value = cellData[5];
+                            sqlCommand.Parameters.Add("@Comming", DbType.Decimal).Value = Convert.ToDecimal(cellData[6]);
+                            sqlCommand.Parameters.Add("@HourControlling", DbType.String).Value = cellData[7];
+                            sqlCommand.Parameters.Add("@MinuteControlling", DbType.String).Value = cellData[8];
+                            sqlCommand.Parameters.Add("@Controlling", DbType.Decimal).Value = Convert.ToDecimal(cellData[9]);
+                            sqlCommand.Parameters.Add("@ServerOfRegistration", DbType.String).Value = cellData[10];
+                            sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = cellData[11];
+                            sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = cellData[12];
+                            try { sqlCommand.ExecuteNonQuery(); } catch { }
+                        }
+
+                        sqlCommand1 = new SQLiteCommand("end", sqlConnection);
+                        sqlCommand1.ExecuteNonQuery();
+                    }
+                    AllDateRegistration.Clear();
+                    sqlCommand1.Dispose();
+                }
+            }
+
+            if (_CheckboxChecked(checkBoxWeekend))//checkBoxWeekend.Checked
+            { DeleteAnualDates(databasePerson, "PersonTemp"); }
+
+            if (_CheckboxChecked(checkBoxStartWorkInTime)) //checkBoxStartWorkInTime.Checked
+            { DeleteDataTableQueryLess(databasePerson, "PersonTemp", "Comming", dControlHourSelected + (dControlMinuteSelected + 1) / 60 - (1 / 60)); }
+        }
 
         private void ClearReportItem_Click(object sender, EventArgs e) //ReCreatePersonTables()
         { ReCreatePersonTables(); }
