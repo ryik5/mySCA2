@@ -3050,6 +3050,8 @@ namespace mySCA2
 
             _controlVisible(dataGridView1, true);
             _controlVisible(pictureBox1, false);
+            Person personCheck = new Person();
+            personCheck.NAV = _textBoxReturnText(textBoxNav);
 
             DeleteAllDataInTableQuery(databasePerson, "PersonTemp");
             if (nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup")
@@ -3064,12 +3066,20 @@ namespace mySCA2
                         sCell = Regex.Split(sRow, "[|]"); //FIO|NAV|H|M
                         if (sCell[0].Length > 1)
                         {
+                            personCheck = new Person();
+                            personCheck.FIO = sCell[0];
+                            personCheck.NAV = sCell[1];
+                            personCheck.HourControllingDecimal= TryParseStringToDecimal(sCell[2]);
+                            personCheck.MinuteControllingDecimal = TryParseStringToDecimal(sCell[3]);
+
                             _textBoxSetText(textBoxFIO, sCell[0]);   //иммитируем выбор данных
                             _textBoxSetText(textBoxNav, sCell[1]);   //Select person   
 
                             dControlHourSelected = TryParseStringToDecimal(sCell[2]);
                             dControlMinuteSelected = TryParseStringToDecimal(sCell[3]);
-                            FilterDataByNav();
+                            
+
+                            FilterDataByNav(personCheck);
                         }
                     }
                     sCell = null;
@@ -3087,7 +3097,7 @@ namespace mySCA2
                 }
                 else
                 {
-                    FilterDataByNav();
+                    FilterDataByNav(personCheck);
                 }
                 nameOfLastTableFromDB = "PersonRegistered";
             }
@@ -3106,9 +3116,7 @@ namespace mySCA2
             //DataTable dt = new DataTable();         
             //dt.DefaultView.Sort = "Column_name desc";
             //dt = dt.DefaultView.ToTable();
-
-
-            
+                                   
             //ShowDatatableOnDatagridview(dtPersonRegisteredFull, hidecollumns, dataGridView1);
             int[] hidecollumns = { 0 };
             ShowDatatableOnDatagridview(dtPersonTemp, hidecollumns, dataGridView1); //show dtPersonTemp
@@ -3130,7 +3138,22 @@ namespace mySCA2
             }
         }
 
-        private void FilterDataByNav()    //Copy Data from PersonRegistered into PersonTemp by Filter(NAV and anual dates or minimalTime or dayoff)
+        //DataView dv = ft.DefaultView;
+        //dv.Sort = "occr desc";
+        //DataTable sortedDT = dv.ToTable();
+        //
+        //dataTable.DefaultView.Sort = "Col1, Col2, Col3"
+        //
+        //DataRow[] foundRows=table.Select("Date = '1/31/1979' or OrderID = 2", "CompanyName ASC");
+        //DataTable dt = foundRows.CopyToDataTable();
+        //
+        //DataRow[] dataRows = table.Select().OrderBy(u => u["EmailId"]).ToArray();
+        //
+        //DataTable dt = new DataTable();         
+        //dt.DefaultView.Sort = "Column_name desc";
+        //dt = dt.DefaultView.ToTable();
+
+        private void FilterDataByNav(Person personNAV)    //Copy Data from PersonRegistered into PersonTemp by Filter(NAV and anual dates or minimalTime or dayoff)
         {
             if (_CheckboxChecked(checkBoxReEnter)) //checkBoxReEnter.Checked
             {
@@ -3139,7 +3162,7 @@ namespace mySCA2
                     sqlConnection.Open();
                     HashSet<string> AllDateRegistration = new HashSet<string>();
                     using (var sqlCommand = new SQLiteCommand("SELECT  *, MIN(Comming) AS FirstRegistered FROM PersonRegistered  " +
-                        " WHERE NAV like '" + _textBoxReturnText(textBoxNav) + "' GROUP BY FIO, NAV, DateRegistered ORDER BY DateRegistered ASC;", sqlConnection))
+                        " WHERE NAV like '" + personNAV.NAV + "' GROUP BY FIO, NAV, DateRegistered ORDER BY DateRegistered ASC;", sqlConnection))
                     {                                                                                         //, min (PersonRegistered.comming) AS FirstRegistered
                         using (var reader = sqlCommand.ExecuteReader())
                         {
@@ -3170,6 +3193,11 @@ namespace mySCA2
 
                                         dControlHourSelected = TryParseStringToDecimal(record["HourControlling"].ToString().Trim());
                                         dControlMinuteSelected = TryParseStringToDecimal(record["MinuteControlling"].ToString().Trim());
+
+
+
+                                        personNAV.HourControllingDecimal = TryParseStringToDecimal(record["HourControlling"].ToString().Trim());
+                                        personNAV.MinuteControllingDecimal = TryParseStringToDecimal(record["MinuteControlling"].ToString().Trim());
                                     }
                                 } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
@@ -5135,7 +5163,9 @@ namespace mySCA2
         public string Department = "";
         public string GroupPerson = "Office";
         public string HourControlling = "9";
+        public decimal HourControllingDecimal = 9;
         public string MinuteControlling = "0";
+        public decimal MinuteControllingDecimal = 0;
         public decimal Controlling = 9;
         public string HourControllingOut = "18";
         public string MinuteControllingOut = "0";
