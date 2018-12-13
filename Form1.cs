@@ -918,7 +918,7 @@ namespace mySCA2
 
                 await Task.Run(() => GetFioFromServers());
 
-                int[] emptyArray = { 0};
+                int[] emptyArray = { 0 };
                 ShowDatatableOnDatagridview(dtPeople, emptyArray, dataGridView1);
                 //ShowDataTableQuery(databasePerson, "PersonTemp");
 
@@ -1923,7 +1923,7 @@ namespace mySCA2
             if ((nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup") && _textBoxReturnText(textBoxGroup).Length > 1)
             {
                 GetGroupInfoFromDB(dtPeople); //result will be in dtPersonGroup
-                
+
                 string[] sCell;
                 foreach (string sRow in lListFIOTemp.ToArray())
                 {
@@ -1945,7 +1945,7 @@ namespace mySCA2
                         person.HourControlling = dControlHourSelected.ToString();
                         person.MinuteControlling = dControlMinuteSelected.ToString();
                         person.Controlling = dControlHourSelected + (dControlMinuteSelected + 1) / 60 - (1 / 60);
-                        
+
                         GetPersonRegistrationFromServer(dtPersonRegisteredFull, person);     //Search Registration at checkpoints of the selected person
                     }
                 }
@@ -1957,8 +1957,8 @@ namespace mySCA2
             else
             {
                 dControlHourSelected = _numUpDownHourReturn(numUpDownHour);
-                dControlMinuteSelected =_numUpDownHourReturn( numUpDownMinute);
-                
+                dControlMinuteSelected = _numUpDownHourReturn(numUpDownMinute);
+
                 Person person = new Person();
                 person.NAV = _textBoxReturnText(textBoxNav);
                 person.FIO = _textBoxReturnText(textBoxFIO);
@@ -2060,7 +2060,8 @@ namespace mySCA2
                                             stringIdCardIntellect = record["id"].ToString().Trim();
                                             break;
                                         }
-                                    } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                    }
+                                    catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 }
                             }
                         }
@@ -2076,7 +2077,8 @@ namespace mySCA2
                             try
                             {
                                 stringIdCardIntellect = Regex.Split(strRowWithNav, "[|]")[3].Trim();
-                            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                            }
+                            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                     }
 
                     if (stringIdCardIntellect.Length == 0)
@@ -2195,7 +2197,8 @@ namespace mySCA2
                                         else if (namePoint.ToLower().Contains("вход"))
                                             nameDirection = "Вход";
                                         break;
-                                    } catch { }
+                                    }
+                                    catch { }
                             }
 
                             iCounterLine++;
@@ -2251,7 +2254,7 @@ namespace mySCA2
             personNAV = null; personFIO = null; hourControlStart = 0; minuteControlStart = 0; controlStartHours = 0;
             stringIdCardIntellect = null; personNAVTemp = null; stringSelectedFIO = new string[1];
         }
-//Get info the selected group from DB and make a few lists with these data
+        //Get info the selected group from DB and make a few lists with these data
         private void GetGroupInfoFromDB(DataTable dtSource) //"Select * FROM PersonGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
         {
             lListFIOTemp.Clear();
@@ -2278,10 +2281,10 @@ namespace mySCA2
                                 dataRow = dtPersonGroup.NewRow();
 
                                 try { d2 = record["NAV"].ToString().Trim(); } catch { }
-                                try { d3 = record["HourControlling"].ToString().Trim(); } catch {  }
-                                try { d4 = record["MinuteControlling"].ToString().Trim(); } catch {  }
-                                try { d13 = record["HourControllingOut"].ToString().Trim(); } catch {  }
-                                try { d14 = record["MinuteControllingOut"].ToString().Trim(); } catch {  }
+                                try { d3 = record["HourControlling"].ToString().Trim(); } catch { }
+                                try { d4 = record["MinuteControlling"].ToString().Trim(); } catch { }
+                                try { d13 = record["HourControllingOut"].ToString().Trim(); } catch { }
+                                try { d14 = record["MinuteControllingOut"].ToString().Trim(); } catch { }
                                 lListFIOTemp.Add(d1 + "|" + d2 + "|" + d3 + "|" + d4 + "|" + d13 + "|" + d14);
                                 //HourControllingOut TEXT, MinuteControllingOut TEXT
                                 //FIO|NAV|H|M
@@ -2291,7 +2294,7 @@ namespace mySCA2
                                 dataRow[2] = d2;
                                 dataRow[4] = d3;
                                 dataRow[5] = d4;
-                                dataRow[6] = TryParseStringToDecimal(d3) + (TryParseStringToDecimal(d4) + 1) / 60 - (1 / 60); 
+                                dataRow[6] = TryParseStringToDecimal(d3) + (TryParseStringToDecimal(d4) + 1) / 60 - (1 / 60);
                                 dataRow[7] = d13;
                                 dataRow[8] = d14;
                                 dataRow[9] = TryParseStringToDecimal(d13) + (TryParseStringToDecimal(d14) + 1) / 60 - (1 / 60);
@@ -2621,7 +2624,7 @@ namespace mySCA2
                 iCombo = (decimal)numericUpDown.Value;
             return iCombo;
         }
-               
+
         private string _dateTimePickerStart() //add string into  from other threads
         {
             string stringDT = "";
@@ -2665,7 +2668,7 @@ namespace mySCA2
             string result = "";
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
-                    { result = dateTimePicker.Value.ToString(); }
+                { result = dateTimePicker.Value.ToString(); }
                 ));
             else
                 result = dateTimePicker.Value.ToString();
@@ -3069,7 +3072,7 @@ namespace mySCA2
                             personCheck = new Person();
                             personCheck.FIO = sCell[0];
                             personCheck.NAV = sCell[1];
-                            personCheck.HourControllingDecimal= TryParseStringToDecimal(sCell[2]);
+                            personCheck.HourControllingDecimal = TryParseStringToDecimal(sCell[2]);
                             personCheck.MinuteControllingDecimal = TryParseStringToDecimal(sCell[3]);
 
                             _textBoxSetText(textBoxFIO, sCell[0]);   //иммитируем выбор данных
@@ -3077,7 +3080,7 @@ namespace mySCA2
 
                             dControlHourSelected = TryParseStringToDecimal(sCell[2]);
                             dControlMinuteSelected = TryParseStringToDecimal(sCell[3]);
-                            
+
 
                             FilterDataByNav(personCheck);
                         }
@@ -3090,7 +3093,7 @@ namespace mySCA2
             {
                 if (!_CheckboxChecked(checkBoxReEnter))
                 {
-                    try { dtPersonTemp?.Dispose(); }catch(Exception excpt) { MessageBox.Show(excpt.ToString()); }
+                    try { dtPersonTemp?.Dispose(); } catch (Exception excpt) { MessageBox.Show(excpt.ToString()); }
                     dtPersonTemp = dtPersonRegistered.Copy();
 
                     CopyWholeDataFromOneTableIntoAnother(databasePerson, "PersonTemp", "PersonRegistered");
@@ -3116,7 +3119,7 @@ namespace mySCA2
             //DataTable dt = new DataTable();         
             //dt.DefaultView.Sort = "Column_name desc";
             //dt = dt.DefaultView.ToTable();
-                                   
+
             //ShowDatatableOnDatagridview(dtPersonRegisteredFull, hidecollumns, dataGridView1);
             int[] hidecollumns = { 0 };
             ShowDatatableOnDatagridview(dtPersonTemp, hidecollumns, dataGridView1); //show dtPersonTemp
@@ -3199,7 +3202,8 @@ namespace mySCA2
                                         personNAV.HourControllingDecimal = TryParseStringToDecimal(record["HourControlling"].ToString().Trim());
                                         personNAV.MinuteControllingDecimal = TryParseStringToDecimal(record["MinuteControlling"].ToString().Trim());
                                     }
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
@@ -3278,7 +3282,8 @@ namespace mySCA2
                                         dControlHourSelected = Convert.ToDecimal(record["HourControlling"].ToString().Trim());
                                         dControlMinuteSelected = Convert.ToDecimal(record["MinuteControlling"].ToString().Trim());
                                     }
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
