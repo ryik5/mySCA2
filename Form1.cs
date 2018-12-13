@@ -3067,20 +3067,22 @@ namespace mySCA2
 
             string prevDate = "";
             decimal prevTime = 0;
-            //var maxRow = dt.Select("ID = MAX(ID)");
+      
             string currentDate = "";
             decimal currentTime = 0;
 
             if (_CheckboxChecked(checkBoxReEnter)) //checkBoxReEnter.Checked
             {
                 var tempRows =dataTableSource.Select("[NAV-код] = '" + personNAV.NAV + "'");
-                tempCollector = tempRows.CopyToDataTable();
+                 tempCollector = tempRows.CopyToDataTable();
 
                 foreach (DataRow dataRowDate in tempRows)
                 {
-                    /
+                    hsDates.Add(dataRowDate[12].ToString()); //make list of dates
                 }
-                
+
+                var maxRow = tempCollector.Select("[Время регистрации] = MIN([Время регистрации])"); //select first come
+                /
                                   //new DataColumn("Время прихода", typeof(decimal)),//6
                                   //new DataColumn("Время ухода", typeof(decimal)),//9
                                   //new DataColumn("Дата регистрации", typeof(string)),//12
