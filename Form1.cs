@@ -1794,31 +1794,39 @@ namespace mySCA2
 
             if ((nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup") && _textBoxReturnText(textBoxGroup).Length > 1)
             {
-                GetGroupInfoFromDB(dtPeople, _textBoxReturnText(textBoxGroup)); //result will be in dtPersonGroup
+                GetGroupInfoFromDBToDtPersonGroup(dtPersonGroup, _textBoxReturnText(textBoxGroup)); //result will be in dtPersonGroup
 
-                string[] sCell;
-                foreach (string sRow in lListFIOTemp.ToArray())
+
+                foreach (DataColumn column in dtPersonGroup.Columns)
                 {
-                    sCell = Regex.Split(sRow, "[|]"); //FIO|NAV|H|M
-                    if (sCell[0].Length > 1)
+                    //todo from dtPersonGroup
+                    //string[] sCell;
+                    foreach (DataRow row in dtPersonGroup.Rows)
+                    //                foreach (string sRow in lListFIOTemp.ToArray())
                     {
-                        listFIO.Clear();
-                        _textBoxSetText(textBoxFIO, sCell[0]);   //иммитируем выбор данных
-                        _textBoxSetText(textBoxNav, sCell[1]);   //Select person                  
-                        listFIO.Add(sCell[0]);      // add the person into the list  
+                        if (row[1] != null && row[1].ToString().Length > 0)
+                        {
+                            listFIO.Clear();
+                            _textBoxSetText(textBoxFIO, row[1].ToString());   //иммитируем выбор данных
+                            _textBoxSetText(textBoxNav, row[2].ToString());   //Select person                  
+                            listFIO.Add(row[1].ToString());      // add the person into the list  
 
-                        dControlHourSelected = TryParseStringToDecimal(sCell[2]);
-                        dControlMinuteSelected = TryParseStringToDecimal(sCell[3]);
+                            dControlHourSelected = TryParseStringToDecimal(row[4].ToString());
+                            dControlMinuteSelected = TryParseStringToDecimal(row[5].ToString());
 
-                        Person person = new Person();
+                            Person person = new Person();
 
-                        person.NAV = _textBoxReturnText(textBoxNav);
-                        person.FIO = _textBoxReturnText(textBoxFIO);
-                        person.HourControlling = dControlHourSelected.ToString();
-                        person.MinuteControlling = dControlMinuteSelected.ToString();
-                        person.Controlling = dControlHourSelected + (dControlMinuteSelected + 1) / 60 - (1 / 60);
+                            person.FIO = row[1].ToString();
+                            person.NAV = row[2].ToString();
+                            person.GroupPerson = _textBoxReturnText(textBoxGroup);
+                            person.HourControlling = row[4].ToString();
+                            person.HourControllingDecimal = dControlHourSelected;
+                            person.MinuteControlling = row[5].ToString();
+                            person.MinuteControllingDecimal = dControlMinuteSelected;
+                            person.ControllingDecimal = dControlHourSelected + (dControlMinuteSelected + 1) / 60 - (1 / 60);
 
-                        GetPersonRegistrationFromServer(dtPersonRegisteredFull, person);     //Search Registration at checkpoints of the selected person
+                            GetPersonRegistrationFromServer(dtPersonRegisteredFull, person);     //Search Registration at checkpoints of the selected person
+                        }
                     }
                 }
 
@@ -1835,8 +1843,10 @@ namespace mySCA2
                 person.NAV = _textBoxReturnText(textBoxNav);
                 person.FIO = _textBoxReturnText(textBoxFIO);
                 person.HourControlling = dControlHourSelected.ToString();
+                person.HourControllingDecimal = dControlHourSelected;
                 person.MinuteControlling = dControlMinuteSelected.ToString();
-                person.Controlling = dControlHourSelected + (dControlMinuteSelected + 1) / 60 - (1 / 60);
+                person.MinuteControllingDecimal = dControlMinuteSelected;
+                person.ControllingDecimal = dControlHourSelected + (dControlMinuteSelected + 1) / 60 - (1 / 60);
 
                 GetPersonRegistrationFromServer(dtPersonRegisteredFull, person);
 
@@ -1856,23 +1866,24 @@ namespace mySCA2
 
             // int[] hideCollumns = { 27, 26, 25, 24, 23, 22, 20, 19, 18, 15, 10, 9, 6, 5, 0 };
             //заполнить данными из Персонрегистреред
+
             dtPersonTemp?.Dispose();
             dtPersonTemp = dtPersonRegisteredFull.Copy();
-            int[] hideCollumns = {26,20,19,18,17,16,15,14, 13, 9,8,7,6,5,4, 0 };
+            int[] hideCollumns = { 26, 20, 19, 18, 17, 16, 15, 14, 13, 9, 8, 7, 6, 5, 4, 0 };
             ShowDatatableOnDatagridview(dtPersonTemp, hideCollumns, dataGridView1);
-            _controlVisible(dataGridView1, true);
-
-            _SetMenuItemDefaultColor(QuickLoadDataItem);
-            _ChangeMenuItemBackColor(ExportIntoExcelItem, Color.PaleGreen);
 
             _ProgressBar1Value100();
+            stimerPrev = "";
+            _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
+
+            _controlVisible(dataGridView1, true);
+            _SetMenuItemDefaultColor(QuickLoadDataItem);
+            _ChangeMenuItemBackColor(ExportIntoExcelItem, Color.PaleGreen);
             _MenuItemEnabled(QuickLoadDataItem, true);
             _MenuItemEnabled(FunctionMenuItem, true);
             _MenuItemEnabled(QuickSettingsItem, true);
             _MenuItemEnabled(AnualDatesMenuItem, true);
             _MenuItemEnabled(GroupsMenuItem, true);
-            _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
-            stimerPrev = "";
         }
 
         private void GetPersonRegistrationFromServer(DataTable dt, Person person)
@@ -1884,8 +1895,8 @@ namespace mySCA2
             string personNAV = person.NAV;
             string personFIO = person.FIO;
 
-            decimal hourControlStart = dControlHourSelected;
-            decimal minuteControlStart = dControlMinuteSelected;
+            decimal hourControlStart = person.HourControllingDecimal;
+            decimal minuteControlStart = person.MinuteControllingDecimal;
             decimal controlStartHours = hourControlStart + (minuteControlStart + 1) / 60 - (1 / 60);
             string stringIdCardIntellect = "";
             string personNAVTemp = "";
@@ -1900,7 +1911,7 @@ namespace mySCA2
 
             try
             {
-                if (stringIdCardIntellect.Length == 0 && personNAV.Length == 6)
+                if (personNAV.Length == 6)
                 {
                     string stringConnection = @"Data Source=" + sServer1 + @"\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + @";Password=" + sServer1UserPassword + @";Connect Timeout=240";
                     using (var sqlConnection = new SqlConnection(stringConnection))
@@ -1919,16 +1930,15 @@ namespace mySCA2
                                         if (record?["tabnum"].ToString().Trim() == personNAV)
                                         {
                                             stringIdCardIntellect = record["id"].ToString().Trim();
+                                            person.idCard = Convert.ToInt32(record["id"].ToString().Trim());
                                             break;
                                         }
-                                    }
-                                    catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                    } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 }
                             }
                         }
                     }
                 }
-
                 else if (personNAV.Length != 6)
                 {
                     foreach (var strRowWithNav in listFIO.ToArray())
@@ -1938,8 +1948,8 @@ namespace mySCA2
                             try
                             {
                                 stringIdCardIntellect = Regex.Split(strRowWithNav, "[|]")[3].Trim();
-                            }
-                            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                person.idCard = Convert.ToInt32(stringIdCardIntellect);
+                            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                     }
 
                     if (stringIdCardIntellect.Length == 0)
@@ -1951,16 +1961,25 @@ namespace mySCA2
                                 strRowWithNav.ToLower().Contains(stringSelectedFIO[2].ToLower().Trim()) &&
                                 strRowWithNav.Contains(sServer1))
                             {
-                                try { stringIdCardIntellect = Regex.Split(strRowWithNav, "[|]")[3].Trim(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
-                                try { personNAVTemp = Regex.Split(strRowWithNav, "[|]")[4].Trim(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                try
+                                {
+                                    stringIdCardIntellect = Regex.Split(strRowWithNav, "[|]")[3].Trim();
+                                    person.idCard = Convert.ToInt32(stringIdCardIntellect);
+                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                try
+                                {
+                                    personNAVTemp = Regex.Split(strRowWithNav, "[|]")[4].Trim();
+                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 if (personNAV.Length < 1 && personNAVTemp.Length > 0)
-                                { personNAV = personNAVTemp; _ProgressWork1(); break; }
+                                {
+                                    personNAV = personNAVTemp;
+                                    _ProgressWork1(); break;
+                                }
                             }
                         }
                     }
                 }
-            }
-            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
 
             try
             {
@@ -2074,7 +2093,7 @@ namespace mySCA2
                             rowPerson[6] = TryParseStringToDecimal(cellData[9]);
                             rowPerson[7] = person.HourControllingOut;
                             rowPerson[8] = person.MinuteControllingOut;
-                            rowPerson[9] = person.ControllingOut;
+                            rowPerson[9] = person.ControllingOutDecimal;
                             rowPerson[12] = cellData[3];
                             rowPerson[13] = cellData[4];
                             rowPerson[14] = cellData[5];
@@ -2117,12 +2136,13 @@ namespace mySCA2
             personNAV = null; personFIO = null; hourControlStart = 0; minuteControlStart = 0; controlStartHours = 0;
             stringIdCardIntellect = null; personNAVTemp = null; stringSelectedFIO = new string[1];
         }
+
         //Get info the selected group from DB and make a few lists with these data
-        private void GetGroupInfoFromDB(DataTable dtSource, string nameCurrentGroup) //"Select * FROM PersonGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
+        private void GetGroupInfoFromDBToDtPersonGroup(DataTable dtTarget, string nameCurrentGroup) //"Select * FROM PersonGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
         {
             lListFIOTemp.Clear();
-            dtPersonGroup?.Dispose();
-            dtPersonGroup = dtSource.Clone();
+            dtTarget?.Dispose();
+            dtTarget = dtPeople.Clone();
             DataRow dataRow;
             using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
             {
@@ -2137,7 +2157,7 @@ namespace mySCA2
                         foreach (DbDataRecord record in sqlReader)
                         {
                             d1 = ""; d2 = ""; d3 = "9"; d4 = "18"; d13 = "0"; d14 = "0";
-                            try { d1 = record["FIO"].ToString().Trim(); } catch { d1 = ""; }
+                            try { d1 = record["FIO"].ToString().Trim(); } catch { }
 
                             if (record != null && d1.Length > 1)
                             {
@@ -2161,7 +2181,18 @@ namespace mySCA2
                                 dataRow[7] = d13;
                                 dataRow[8] = d14;
                                 dataRow[9] = TryParseStringToDecimal(d13) + (TryParseStringToDecimal(d14) + 1) / 60 - (1 / 60);
+                                dataRow[11] = nameCurrentGroup;
+                                dataRow[22] = String.Format("{0:d2}:{1:d2}", Convert.ToInt32(d13), Convert.ToInt32(d14));
+                                dataRow[24] = String.Format("{0:d2}:{1:d2}", Convert.ToInt32(d3), Convert.ToInt32(d4));
                                 dtPersonGroup.Rows.Add(dataRow);
+
+
+
+
+
+
+
+
                             }
                         }
                         d1 = null; d2 = null; d3 = null; d4 = null; d13 = null; d14 = null;
@@ -2913,80 +2944,82 @@ namespace mySCA2
         private void checkBoxCheckStateChanged()
         {
             CheckBoxesFiltersAll_Enable(false);
+            try { dtPersonTemp?.Dispose(); } catch (Exception excpt) { MessageBox.Show(excpt.ToString()); }
 
             _controlVisible(dataGridView1, true);
             _controlVisible(pictureBox1, false);
-            string nameGroup = _textBoxReturnText(textBoxGroup);
+          //  string nameGroup = _textBoxReturnText(textBoxGroup);
 
             Person personCheck = new Person();
+            personCheck.FIO= _textBoxReturnText(textBoxFIO);
             personCheck.NAV = _textBoxReturnText(textBoxNav);
-            personCheck.GroupPerson = nameGroup;
+            personCheck.GroupPerson = _textBoxReturnText(textBoxGroup);
 
             DeleteAllDataInTableQuery(databasePerson, "PersonTemp");
             if (nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup")
             {
-                GetGroupInfoFromDB(dtPeople, nameGroup); //result will be in dtPersonGroup  //"Select * FROM PersonGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
+                GetGroupInfoFromDBToDtPersonGroup(dtPersonGroup, personCheck.GroupPerson); //result will be in dtPersonGroup  //"Select * FROM PersonGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
+                dtPersonTemp = dtPersonRegistered.Clone();
 
-                if (nameGroup.Length > 0)
+                if (_textBoxReturnText(textBoxGroup).Length > 0)
                 {
-                    string[] sCell;
-                    foreach (string sRow in lListFIOTemp.ToArray())
+                    foreach (DataRow row in dtPersonGroup.Rows)
                     {
-                        sCell = Regex.Split(sRow, "[|]"); //FIO|NAV|H|M
-                        if (sCell[0].Length > 1)
+                        if (row[1].ToString().Length > 0)
                         {
                             personCheck = new Person();
-                            personCheck.FIO = sCell[0];
-                            personCheck.NAV = sCell[1];
-                            personCheck.GroupPerson = nameGroup;
 
-                            personCheck.HourControllingDecimal = TryParseStringToDecimal(sCell[2]);
-                            personCheck.MinuteControllingDecimal = TryParseStringToDecimal(sCell[3]);
+                            personCheck.FIO = row[1].ToString();
+                            personCheck.NAV = row[2].ToString();
+                            personCheck.GroupPerson = row[3].ToString();
+                            personCheck.Department = row[3].ToString();
 
-                            _textBoxSetText(textBoxFIO, sCell[0]);   //иммитируем выбор данных
-                            _textBoxSetText(textBoxNav, sCell[1]);   //Select person   
+                            personCheck.HourControlling = row[4].ToString();
+                            personCheck.HourControllingDecimal = TryParseStringToDecimal(row[4].ToString());
+                            personCheck.MinuteControlling = row[5].ToString();
+                            personCheck.MinuteControllingDecimal = TryParseStringToDecimal(row[5].ToString());
+                            personCheck.ControllingDecimal= TryParseStringToDecimal(row[6].ToString());
 
-                            dControlHourSelected = TryParseStringToDecimal(sCell[2]);
-                            dControlMinuteSelected = TryParseStringToDecimal(sCell[3]);
+                            personCheck.HourControllingOut = row[7].ToString();
+                            personCheck.MinuteControllingOut = row[8].ToString();
+                            personCheck.ControllingOutDecimal = TryParseStringToDecimal(row[9].ToString());
 
+                            //НЕ ИСПОЛЬЗОВАТЬ!!!!
+                            //_textBoxSetText(textBoxFIO, sCell[0]);   //иммитируем выбор данных
+                            //_textBoxSetText(textBoxNav, sCell[1]);   //Select person   
+                            //dControlHourSelected = TryParseStringToDecimal(sCell[2]);
+                            //dControlMinuteSelected = TryParseStringToDecimal(sCell[3]);
+                            //Не использовать!!
+                            
+                            //dataRow[22] = String.Format("{0:d2}:{1:d2}", Convert.ToInt32(d13), Convert.ToInt32(d14));
+                            //dataRow[24] = String.Format("{0:d2}:{1:d2}", Convert.ToInt32(d3), Convert.ToInt32(d4));
+                                                                                 
 
-                            FilterDataByNav(personCheck, dtPersonTemp);
+                            FilterDataByNav(personCheck, dtPersonRegistered, dtPersonTemp);
                         }
+
                     }
-                    sCell = null;
                 }
                 nameOfLastTableFromDB = "PersonGroup";
             }
             else
             {
+
                 if (!_CheckboxChecked(checkBoxReEnter))
                 {
-                    try { dtPersonTemp?.Dispose(); } catch (Exception excpt) { MessageBox.Show(excpt.ToString()); }
                     dtPersonTemp = dtPersonRegistered.Copy();
 
-                    CopyWholeDataFromOneTableIntoAnother(databasePerson, "PersonTemp", "PersonRegistered");
+                   // CopyWholeDataFromOneTableIntoAnother(databasePerson, "PersonTemp", "PersonRegistered");
                 }
                 else
                 {
-                    FilterDataByNav(personCheck,dtPersonTemp);
+                    //MessageBox.Show
+                    FilterDataByNav(personCheck, dtPersonRegistered,dtPersonTemp);
                 }
                 nameOfLastTableFromDB = "PersonRegistered";
             }
 
-            //DataView dv = ft.DefaultView;
-            //dv.Sort = "occr desc";
-            //DataTable sortedDT = dv.ToTable();
-            //
-            //dataTable.DefaultView.Sort = "Col1, Col2, Col3"
-            //
-            //DataRow[] foundRows=table.Select("Date = '1/31/1979' or OrderID = 2", "CompanyName ASC");
-            //DataTable dt = foundRows.CopyToDataTable();
-            //
-            //DataRow[] dataRows = table.Select().OrderBy(u => u["EmailId"]).ToArray();
-            //
-            //DataTable dt = new DataTable();         
-            //dt.DefaultView.Sort = "Column_name desc";
-            //dt = dt.DefaultView.ToTable();
+
 
             //ShowDatatableOnDatagridview(dtPersonRegisteredFull, hidecollumns, dataGridView1);
             int[] hidecollumns = { 0 };
@@ -3023,13 +3056,57 @@ namespace mySCA2
         //DataTable dt = new DataTable();         
         //dt.DefaultView.Sort = "Column_name desc";
         //dt = dt.DefaultView.ToTable();
+        
 
-        private void FilterDataByNav(Person personNAV,DataTable dataTableForStoring)    //Copy Data from PersonRegistered into PersonTemp by Filter(NAV and anual dates or minimalTime or dayoff)
+        private void FilterDataByNav(Person personNAV,DataTable dataTableSource ,DataTable dataTableForStoring)    //Copy Data from PersonRegistered into PersonTemp by Filter(NAV and anual dates or minimalTime or dayoff)
         {
             DataRow rowStoring;
+            DataTable tempCollector = new DataTable();
+            tempCollector = dtPeople.Clone();
+            HashSet<string> hsDates = new HashSet<string>();
+
+
+            string prevDate = "";
+            decimal prevTime = 0;
+      
+            string currentDate = "";
+            decimal currentTime = 0;
 
             if (_CheckboxChecked(checkBoxReEnter)) //checkBoxReEnter.Checked
             {
+                var tempRows =dataTableSource.Select("[NAV-код] = '" + personNAV.NAV + "'");
+                 tempCollector = tempRows.CopyToDataTable();
+
+                foreach (DataRow dataRowDate in tempRows)
+                {
+                    hsDates.Add(dataRowDate[12].ToString()); //make list of dates
+                }
+
+                var FirstTimeRow = tempCollector.Select("[Время регистрации] = MIN([Время регистрации])"); //select first by pass
+                var LastTimeRow = tempCollector.Select("[Время регистрации] = MAX([Время регистрации])"); //select last by pass
+
+                /*
+                foreach(DataRow dataRow in tempCollector.Rows)
+                {
+                    if(TryParseStringToDecimal(dataRow[15].ToString())==)
+                }*/
+                foreach (DataRow dr in FirstTimeRow) {
+                    MessageBox.Show("MIN:\n"+dr[12].ToString()+"\n"+ dr[15].ToString());
+                }
+                foreach (DataRow dr in LastTimeRow)
+                {
+                    MessageBox.Show("MAX:\n" + dr[12].ToString() + "\n" + dr[15].ToString());
+                }
+
+
+                //new DataColumn("Время прихода", typeof(decimal)),//6
+                //new DataColumn("Время ухода", typeof(decimal)),//9
+                //new DataColumn("Дата регистрации", typeof(string)),//12
+                //new DataColumn("Время регистрации", typeof(decimal)), //15
+                //new DataColumn("Реальное время ухода", typeof(decimal)), //18
+                //new DataColumn("Направление прохода", typeof(string)), //21
+
+
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
                     sqlConnection.Open();
@@ -3065,6 +3142,12 @@ namespace mySCA2
                                         AllDateRegistration.Add(stringDateRegistered);
                                         dControlHourSelected = TryParseStringToDecimal(record["HourControlling"].ToString().Trim());
                                         dControlMinuteSelected = TryParseStringToDecimal(record["MinuteControlling"].ToString().Trim());
+
+
+
+
+
+
 
                                         rowStoring = dataTableForStoring.NewRow();
                                         rowStoring[1] = record["FIO"].ToString();
@@ -5379,10 +5462,10 @@ namespace mySCA2
         public decimal HourControllingDecimal = 9;
         public string MinuteControlling = "0";
         public decimal MinuteControllingDecimal = 0;
-        public decimal Controlling = 9;
+        public decimal ControllingDecimal = 9;
         public string HourControllingOut = "18";
         public string MinuteControllingOut = "0";
-        public decimal ControllingOut = 18;
+        public decimal ControllingOutDecimal = 18;
 
         public string RealInHour = "9";
         public string RealInMinute = "0";
