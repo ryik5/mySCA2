@@ -35,7 +35,6 @@ namespace mySCA2
         private List<string> listPoints = new List<string>(); // List of all Points of SCA
         private List<string> listRegistrations = new List<string>(); // List whole of registration of the selected person at All servers
         int iFIO = 0;
-        private List<string> lListFIOTemp = new List<string>();
         private decimal dControlHourSelected = 9;
         private decimal dControlMinuteSelected = 0;
         private bool bErrorData = false;
@@ -105,7 +104,10 @@ namespace mySCA2
                                   new DataColumn("Реальное отработанное время",typeof(decimal)), //26
                                   new DataColumn("Реальное отработанное время ЧЧ:ММ",typeof(string)), //27
     };
-        
+
+        private string[] uniqCollumns ={"Фамилия Имя Отчество","NAV-код","Группа","№ пропуска",
+            "Дата регистрации","Время регистрации","Реальное время ухода"};
+
         private DataTable dtPersonTemp = new DataTable("PersonTemp");
         private DataTable dtPersonRegisteredFull = new DataTable("PersonRegisteredFull");
         private DataTable dtPersonRegistered = new DataTable("PersonRegistered");
@@ -229,17 +231,6 @@ namespace mySCA2
             dtPeople.Columns.AddRange(dcPeople);
             dtPeople.DefaultView.Sort = "[Группа] ASC, [Фамилия Имя Отчество] ASC, [Дата регистрации] ASC, [Время регистрации] ASC, [Время прихода] ASC";
 
-            //Make default sort
-           /* try
-            {
-                DataView dv = new DataView(dtPeople);
-                dv.Sort = "[Фамилия Имя Отчество] ASC, [Дата регистрации] ASC, [Время регистрации] ASC";
-                DataTable dtTemp = dv.ToTable();
-                dtPeople.Dispose();
-                dtPeople = dtTemp.Copy();
-            }catch(Exception expt) { MessageBox.Show(expt.ToString()); }
-            */
-            //dt.DefaultView.Sort = "EmpID,EmpName Desc"
 
             //Clone default collumn name and structure from 'dtPeople' to other DataTables
             dtPersonTemp = dtPeople.Clone();  //Copy only structure(Name of collumns)
@@ -252,132 +243,6 @@ namespace mySCA2
             dataGridView1.ShowCellToolTips = true;
         }
 
-
-        //todo converting string to decimal
-        private decimal TimeStringToDecimal(string s)
-        {
-            decimal timeConverted = 0;
-            if (s.Contains(':'))
-            {
-                string[] time = s.Split(':');
-                timeConverted = TryParseStringToDecimal(time[0]) + (TryParseStringToDecimal(time[1]) + 1) / 60 - (1 / 60);
-            }
-            return timeConverted;
-        }
-
-        /*
-         dataView.RowFilter = "id = 10";      // no special character in column name "id"
-         dataView.RowFilter = "$id = 10";     // no special character in column name "$id"
-         dataView.RowFilter = "[#id] = 10";   // special character "#" in column name "#id"
-         dataView.RowFilter = "[[id\]] = 10"; // special characters in column name "[id]"
-         dataView.RowFilter = "Name = 'John'"        // string value
-         dataView.RowFilter = "Name = 'John ''A'''"  // string with single quotes "John 'A'"
-         dataView.RowFilter = String.Format("Name = '{0}'", "John 'A'".Replace("'", "''"));
-         dataView.RowFilter = "Year = 2008"          // integer value
-         dataView.RowFilter = "Price = 1199.9"       // float value
-         dataView.RowFilter = String.Format(CultureInfo.InvariantCulture.NumberFormat, "Price = {0}", 1199.9f);
-         dataView.RowFilter = "Date = #12/31/2008#"          // date value (time is 00:00:00)
-         dataView.RowFilter = "Date = #2008-12-31#"          // also this format is supported
-         dataView.RowFilter = "Date = #12/31/2008 16:44:58#" // date and time value
-         dataView.RowFilter = String.Format(CultureInfo.InvariantCulture.DateTimeFormat, "Date = #{0}#", new DateTime(2008, 12, 31, 16, 44, 58));
-         dataView.RowFilter = "Date = '31.12.2008 16:44:58'" // if current culture is German
-         dataView.RowFilter = "Price = '1199.90'"            // if current culture is English
-         dataView.RowFilter = "Num = 10"             // number is equal to 10
-         dataView.RowFilter = "Date < #1/1/2008#"    // date is less than 1/1/2008
-         dataView.RowFilter = "Name <> 'John'"       // string is not equal to 'John'
-         dataView.RowFilter = "Name >= 'Jo'"         // string comparison
-         dataView.RowFilter = "Id IN (1, 2, 3)"                    // integer values
-         dataView.RowFilter = "Price IN (1.0, 9.9, 11.5)"          // float values
-         dataView.RowFilter = "Name IN ('John', 'Jim', 'Tom')"     // string values
-         dataView.RowFilter = "Date IN (#12/31/2008#, #1/1/2009#)" // date time values
-         dataView.RowFilter = "Id NOT IN (1, 2, 3)"  // values not from the list
-         dataView.RowFilter = "Name LIKE 'j*'"       // values that start with 'j'
-         dataView.RowFilter = "Name LIKE '%jo%'"     // values that contain 'jo'
-         dataView.RowFilter = "Name NOT LIKE 'j*'"   // values that don't start with 'j'     
-         dataView.RowFilter = "City = 'Tokyo' AND (Age < 20 OR Age > 60)";    // operator AND has precedence over OR operator, parenthesis are needed
-         dataView.RowFilter = "City <> 'Tokyo' AND City <> 'Paris'";  // following examples do the same
-         dataView.RowFilter = "NOT City = 'Tokyo' AND NOT City = 'Paris'";
-         dataView.RowFilter = "NOT (City = 'Tokyo' OR City = 'Paris')";
-         dataView.RowFilter = "City NOT IN ('Tokyo', 'Paris')";
-         dataView.RowFilter = "MotherAge - Age < 20";   // people with young mother
-         dataView.RowFilter = "Age % 10 = 0";           // people with decennial birthday
-         dataView.RowFilter = "Salary > AVG(Salary)";  // select people with above-average salary
-         dataView.RowFilter = "COUNT(Child.IdOrder) > 5";    // select orders which have more than 5 items
-         dataView.RowFilter = "SUM(Child.Price) >= 500";  // select orders which total price (sum of items prices) is greater or equal $500
-          */
-
-        /*
-        //datatable
-        var table = new DataTable();
-
-         //get some data
-         using (var conn = new SqlConnection(yourSqlConn))
-           {
-             var comm = new SqlCommand(@"select * from someTable order by someColumn", conn);
-             comm.CommandType = CommandType.Text;
-             conn.Open();
-             var data = comm.ExecuteReader();
-             table.Load(data);
-            }
-
-         //bind to some control (repeater)
-          rptFirstList.DataSource = table;
-          rptFirstList.DataBind();
-
-        //first way
-        foreach (DataRow dr in table.Select("someColumn = 'value'","someColumnToSort"))    //loop through rows and import based on filter
-         {secondTable.ImportRow(dr); }
-
-          //second way
-          var secondTable = new DataTable();
-          secondTable = table.Copy();
-          secondTable.DefaultView.Sort = "someOtherColumn";
-
-       DataTable copyDataTable;
-       copyDataTable = table.Copy();
-       copyDataTable.Columns.Remove("ColB");
-
-        or
-
-       int columnIndex = 1;//this will remove the second column
-       DataTable copyDataTable;
-       copyDataTable = table.Copy();
-       copyDataTable.Columns.RemoveAt(columnIndex);
-
-
-       System.Data.DataView view = new System.Data.DataView(yourOriginalTable);
-       System.Data.DataTable selected = 
-       view.ToTable("Selected", false, "col1", "col2", "col6", "col7", "col3");             
-
-      dtPeopleTemp = dtPeople.Clone();
-      string ss = "search_text";
-      for (int j = 0; j < dtPeople.Rows.Count; j++)
-      {
-          if (ss == dtPeople.Rows[j]["Name_Collumn"].ToString())
-          {
-              dtPeopleTemp.ImportRow(dtPeople.Rows[j]);
-          }
-      }*/
-
-        /*
-        private void GetRowsByFilter()
-        {
-            DataTable table = dtPeople.Copy();
-            // Presuming the DataTable has a column named Date.
-            string expression;
-            expression = "Date > #1/1/00#";
-            DataRow[] foundRows;
-
-            // Use the Select method to find all rows matching the filter.
-            foundRows = table.Select(expression);
-
-            // Print column 0 of each returned row.
-            for (int i = 0; i < foundRows.Length; i++)
-            {
-                Console.WriteLine(foundRows[i][0]);
-            }
-        }
-        */
 
         private void AboutSoft(object sender, EventArgs e) //Кнопка "О программе"
         { AboutSoft(); }
@@ -410,7 +275,7 @@ namespace mySCA2
                     "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, HourControllingOut TEXT, " +
                     "MinuteControllingOut TEXT, ControllingOut REAL,  WorkedOut REAL, ServerOfRegistration TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonGroup' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, GroupPerson TEXT, " +
-                    "HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL, " +
+                    "HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, ControllingHHMM TEXT, HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL, ControllingOUTHHMM TEXT, " +
                     "Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('FIO', 'NAV', 'GroupPerson') ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonGroupDesciption' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, GroupPerson TEXT, GroupPersonDescription TEXT, Reserv1 TEXT, Reserv2 TEXT, " +
                     "UNIQUE ('GroupPerson') ON CONFLICT REPLACE);", databasePerson);
@@ -428,6 +293,8 @@ namespace mySCA2
                     "Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('ComboList', Reserv1) ON CONFLICT REPLACE);", databasePerson);
         }
 
+
+
         private void UpdateTableOfDB()
         {
             TryUpdateStructureSqlDB("PersonRegisteredFull", "FIO TEXT, NAV TEXT, iDCard TEXT, DateRegistered TEXT, " +
@@ -444,7 +311,7 @@ namespace mySCA2
                     "MinuteControllingOut TEXT, ControllingOut REAL,  WorkedOut REAL, ServerOfRegistration TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
 
             TryUpdateStructureSqlDB("PersonGroup", "FIO TEXT, NAV TEXT, GroupPerson TEXT, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, " +
-                    "HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
+                    "HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL, ControllingHHMM TEXT, ControllingOUTHHMM TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
 
             TryUpdateStructureSqlDB("PersonGroupDesciption", "GroupPerson TEXT, GroupPersonDescription TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
             TryUpdateStructureSqlDB("TechnicalInfo", "PCName TEXT, POName TEXT, POVersion TEXT, LastDateStarted TEXT, Reserv1 TEXT, Reserv2 TEXT, Reserverd3 TEXT", databasePerson);
@@ -583,23 +450,7 @@ namespace mySCA2
             try { comboBoxFio.SelectedIndex = 0; } catch { }
         }
 
-        /*
-         string dataSource = "Database.s3db";
-        using (SQLiteConnection connection = new SQLiteConnection())
-{
-        connection.ConnectionString = "Data Source=" + dataSource;
-            connection.Open();
-        using (SQLiteCommand command = new SQLiteCommand(connection))
-        {
-          command.CommandText = "update Example set Info = :info, Text = :text where ID=:id";
-          
-            command.Parameters.Add("info", DbType.String).Value = textBox2.Text; 
-          command.Parameters.Add("text", DbType.String).Value = textBox3.Text; 
-          command.Parameters.Add("id", DbType.String).Value = textBox1.Text; 
-          command.ExecuteNonQuery();
-        }
-}
-*/
+
         private void ExecuteSql(string SqlQuery, System.IO.FileInfo FileDB) //Prepare DB and execute of SQL Query
         {
             if (!System.IO.File.Exists(databasePerson.FullName))
@@ -675,7 +526,7 @@ namespace mySCA2
         /// ///////////////////////////////////////////////////////////////////////////
         /// </summary>
 
-        private void ShowDatatableOnDatagridview(DataTable dt, int[] collumnsHide, DataGridView dgv) //Query data from the Table of the DB
+        private void ShowDatatableOnDatagridview(DataTable dt, string[] nameHidenCollumnsArray) //Query data from the Table of the DB
         {
             /*
             dtPersonTemp = new DataTable();
@@ -683,18 +534,47 @@ namespace mySCA2
             dtPersonTemp.Columns[0].ColumnMapping = MappingType.Hidden;*/
             // copyDataTable.Columns.RemoveAt(0); //Remove column with index 0
 
-            DataTable dataTable = dt.Copy();
+//            DataTable dataTable = dt.Copy();
 
-            for (int i = 0; i < collumnsHide.Length; i++)
+            for (int i = 0; i < nameHidenCollumnsArray.Length; i++)
             {
-                dt.Columns[collumnsHide[i]].ColumnMapping = MappingType.Hidden;
+                try { dt.Columns[nameHidenCollumnsArray[i]].ColumnMapping = MappingType.Hidden; }catch(Exception expt) { MessageBox.Show(expt.ToString()); }
             }
 
             _dataGridViewSource(dt);
             sLastSelectedElement = "dataGridView";
         }
 
-
+        /*
+         "№ п/п",//0
+"Фамилия Имя Отчество",//1
+"NAV-код",//2
+"Группа",//3
+"Время прихода,часы",//4
+"Время прихода,минут", //5
+"Время прихода",//6
+"Время ухода,часы",//7
+"Время ухода,минут",//8
+"Время ухода",//9
+"№ пропуска", //10
+"Отдел",//11
+"Дата регистрации",//12
+"Время регистрации,часы",//13
+"Время регистрации,минут",//14
+"Время регистрации", //15
+"Реальное время ухода,часы",//16
+"Реальное время ухода,минут",//17
+"Реальное время ухода", //18
+"Сервер СКД", //19
+"Имя точки прохода", //20
+"Направление прохода", //21
+"Время прихода ЧЧ:ММ",//22
+"Время ухода ЧЧ:ММ",//23
+"Реальное время прихода ЧЧ:ММ",//24
+"Реальное время ухода ЧЧ:ММ", //25
+"Реальное отработанное время", //26
+"Реальное отработанное время ЧЧ:ММ" //27
+             */
 
         /// <summary>
         /// ///////////////////////////////////////////////////////////////////////////
@@ -895,8 +775,31 @@ namespace mySCA2
 
                 await Task.Run(() => GetFioFromServers());
 
-                int[] emptyArray = { 0 };
-                ShowDatatableOnDatagridview(dtPeople, emptyArray, dataGridView1);
+
+                string[] nameCollumnsArray = {
+"Время прихода,часы",//4
+"Время прихода,минут", //5
+"Время прихода",//6
+"Время ухода,часы",//7
+"Время ухода,минут",//8
+"Время ухода",//9
+"Время регистрации,часы",//13
+"Время регистрации,минут",//14
+"Время регистрации", //15
+"Реальное время ухода,часы",//16
+"Реальное время ухода,минут",//17
+"Реальное время ухода", //18
+"Сервер СКД", //19
+"Имя точки прохода", //20
+"Направление прохода", //21
+"Время прихода ЧЧ:ММ",//22
+"Время ухода ЧЧ:ММ",//23
+"Реальное время прихода ЧЧ:ММ",//24
+"Реальное время ухода ЧЧ:ММ", //25
+"Реальное отработанное время", //26
+"Реальное отработанное время ЧЧ:ММ" //27
+                };
+                ShowDatatableOnDatagridview(dtPeople, nameCollumnsArray);
                 //ShowDataTableQuery(databasePerson, "PersonTemp");
 
                 await Task.Run(() => panelViewResize());
@@ -905,6 +808,34 @@ namespace mySCA2
 
             _MenuItemEnabled(QuickSettingsItem, true);
         }
+        /*         "№ п/п",//0
+"Фамилия Имя Отчество",//1
+"NAV-код",//2
+"Группа",//3
+"Время прихода,часы",//4
+"Время прихода,минут", //5
+"Время прихода",//6
+"Время ухода,часы",//7
+"Время ухода,минут",//8
+"Время ухода",//9
+"№ пропуска", //10
+"Отдел",//11
+"Дата регистрации",//12
+"Время регистрации,часы",//13
+"Время регистрации,минут",//14
+"Время регистрации", //15
+"Реальное время ухода,часы",//16
+"Реальное время ухода,минут",//17
+"Реальное время ухода", //18
+"Сервер СКД", //19
+"Имя точки прохода", //20
+"Направление прохода", //21
+"Время прихода ЧЧ:ММ",//22
+"Время ухода ЧЧ:ММ",//23
+"Реальное время прихода ЧЧ:ММ",//24
+"Реальное время ухода ЧЧ:ММ", //25
+"Реальное отработанное время", //26
+"Реальное отработанное время ЧЧ:ММ" //27*/
 
         private void CheckAliveServer(string serverName, string userName, string userPasswords) //Get the list of registered users
         {
@@ -1391,20 +1322,24 @@ namespace mySCA2
         private void MembersGroupItem_Click(object sender, EventArgs e)
         {
             bErrorData = false;
-            MembersGroup();
+            MembersOfGroup(textBoxGroup.Text.Trim());
         }
 
-        private void MembersGroup()
+
+        //("Время прихода ЧЧ:ММ",typeof(string)),//22
+        //("Время ухода ЧЧ:ММ",typeof(string)),//23
+        private void MembersOfGroup(string group)
         {
             groupBoxProperties.Visible = false;
-            dataGridView1.Visible = true;
+            dataGridView1.Visible = false;
             if (textBoxGroup.Text.Trim().Length > 0)
             {
                 ShowDataTableQuery(databasePerson, "PersonGroup",
-                  "SELECT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', GroupPerson AS 'Группа'," +
-                  " HourControlling AS 'Контрольное время, часы', MinuteControlling AS 'Контрольное время, минуты' ",
-                  " Where GroupPerson like '" + textBoxGroup.Text.Trim() + "' ORDER BY FIO");
+                  "SELECT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', GroupPerson AS 'Группа', " +
+                  "ControllingHHMM AS 'Контрольное время', ControllingOUTHHMM AS 'Уход с работы' ",
+                  "Where GroupPerson like '" + group + "' ORDER BY FIO ");
             }
+
             if (!bErrorData)
                 try
                 {
@@ -1429,7 +1364,8 @@ namespace mySCA2
                 DeletePersonFromGroupItem.Visible = true;
             }
             else
-                ListGroup();
+            { ListGroup(); }
+            dataGridView1.Visible = true;
         }
 
         private void AddPersonToGroupItem_Click(object sender, EventArgs e) //Add the selected person into the named group
@@ -1480,10 +1416,10 @@ namespace mySCA2
                             listGroups.Add(cell[2]);
                             row[3] = cell[3];
                             row[4] = cell[4];
-                            row[5] = TryParseStringToDecimal(cell[3]) + (TryParseStringToDecimal(cell[4]) + 1) / 60 - (1 / 60);
+                            row[5] = ConvertStringToDecimalTime(cell[3],cell[4]);
                             row[6] = cell[5];
                             row[7] = cell[6];
-                            row[8] = TryParseStringToDecimal(cell[5]) + (TryParseStringToDecimal(cell[6]) + 1) / 60 - (1 / 60);
+                            row[8] = ConvertStringToDecimalTime(cell[5],cell[6]);
 
                             dtPeople.Rows.Add(row);
                             row = dtPeople.NewRow();
@@ -1495,6 +1431,13 @@ namespace mySCA2
             {
                 MessageBox.Show("выбранный файл пустой, или \nне подходит для импорта.");
             }
+        }
+
+        private double TryParseStringToDouble(string str)  //string -> decimal. if error it will return 0
+        {
+            double result = 0;
+            try { result = double.Parse(str); } catch { }
+            return result;
         }
 
         private decimal TryParseStringToDecimal(string str)  //string -> decimal. if error it will return 0
@@ -1663,7 +1606,7 @@ namespace mySCA2
                     catch { }
             }
 
-            MembersGroup();
+            MembersOfGroup(textBoxGroup.Text.Trim());
             PersonOrGroupItem.Text = "Работа с одной персоной";
             controlStartHours = 0;
             sTextGroup = null; sTextFIOSelected = null;
@@ -1790,63 +1733,57 @@ namespace mySCA2
         {
             _controlVisible(dataGridView1, false);
 
+            Person person = new Person();
+            string selectedGroup = _textBoxReturnText(textBoxGroup);
             dtPersonRegisteredFull.Clear();
 
-            if ((nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup") && _textBoxReturnText(textBoxGroup).Length > 1)
+            if ((nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup") && selectedGroup.Length > 0)
             {
-                GetGroupInfoFromDBToDtPersonGroup(dtPersonGroup, _textBoxReturnText(textBoxGroup)); //result will be in dtPersonGroup
-
-
-                foreach (DataColumn column in dtPersonGroup.Columns)
+                GetGroupInfoFromDBToDtPersonGroup(dtPersonGroup, selectedGroup); //result will be in dtPersonGroup
+                
+                foreach (DataRow row in dtPersonGroup.Rows)
                 {
-                    //todo from dtPersonGroup
-                    //string[] sCell;
-                    foreach (DataRow row in dtPersonGroup.Rows)
-                    //                foreach (string sRow in lListFIOTemp.ToArray())
+                    if (row[1].ToString().Length > 0 && row[3].ToString()==selectedGroup)
                     {
-                        if (row[1] != null && row[1].ToString().Length > 0)
-                        {
-                            listFIO.Clear();
-                            _textBoxSetText(textBoxFIO, row[1].ToString());   //иммитируем выбор данных
-                            _textBoxSetText(textBoxNav, row[2].ToString());   //Select person                  
-                            listFIO.Add(row[1].ToString());      // add the person into the list  
+                        person = new Person();
 
-                            dControlHourSelected = TryParseStringToDecimal(row[4].ToString());
-                            dControlMinuteSelected = TryParseStringToDecimal(row[5].ToString());
+                        _textBoxSetText(textBoxFIO, row[1].ToString());   //иммитируем выбор данных
+                        _textBoxSetText(textBoxNav, row[2].ToString());   //Select person                  
 
-                            Person person = new Person();
+                        dControlHourSelected = TryParseStringToDecimal(row[4].ToString());
+                        dControlMinuteSelected = TryParseStringToDecimal(row[5].ToString());
 
-                            person.FIO = row[1].ToString();
-                            person.NAV = row[2].ToString();
-                            person.GroupPerson = _textBoxReturnText(textBoxGroup);
-                            person.HourControlling = row[4].ToString();
-                            person.HourControllingDecimal = dControlHourSelected;
-                            person.MinuteControlling = row[5].ToString();
-                            person.MinuteControllingDecimal = dControlMinuteSelected;
-                            person.ControllingDecimal = dControlHourSelected + (dControlMinuteSelected + 1) / 60 - (1 / 60);
+                        person.FIO = row[1].ToString();
+                        person.NAV = row[2].ToString();
+                        person.GroupPerson = selectedGroup;
+                        person.HourControlling = row[4].ToString();
+                        person.HourControllingDecimal = dControlHourSelected;
+                        person.MinuteControlling = row[5].ToString();
+                        person.MinuteControllingDecimal = dControlMinuteSelected;
+                        person.ControllingDecimal = ConvertDecimalSeparatedTimeToDecimal(dControlHourSelected, dControlMinuteSelected);
 
-                            GetPersonRegistrationFromServer(dtPersonRegisteredFull, person);     //Search Registration at checkpoints of the selected person
-                        }
+                        GetPersonRegistrationFromServer(dtPersonRegisteredFull, person);     //Search Registration at checkpoints of the selected person
                     }
                 }
 
                 nameOfLastTableFromDB = "PersonGroup";
                 _timer1Enabled(false);
-                _toolStripStatusLabelSetText(StatusLabel2, "Данные по группе \"" + _textBoxReturnText(textBoxGroup) + "\" получены");
+                _toolStripStatusLabelSetText(StatusLabel2, "Данные по группе \"" + selectedGroup + "\" получены");
             }
             else
             {
                 dControlHourSelected = _numUpDownHourReturn(numUpDownHour);
                 dControlMinuteSelected = _numUpDownHourReturn(numUpDownMinute);
 
-                Person person = new Person();
+                person = new Person();
                 person.NAV = _textBoxReturnText(textBoxNav);
                 person.FIO = _textBoxReturnText(textBoxFIO);
+                person.GroupPerson = selectedGroup;
                 person.HourControlling = dControlHourSelected.ToString();
                 person.HourControllingDecimal = dControlHourSelected;
                 person.MinuteControlling = dControlMinuteSelected.ToString();
                 person.MinuteControllingDecimal = dControlMinuteSelected;
-                person.ControllingDecimal = dControlHourSelected + (dControlMinuteSelected + 1) / 60 - (1 / 60);
+                person.ControllingDecimal = ConvertDecimalSeparatedTimeToDecimal(dControlHourSelected, dControlMinuteSelected);
 
                 GetPersonRegistrationFromServer(dtPersonRegisteredFull, person);
 
@@ -1855,22 +1792,30 @@ namespace mySCA2
                 _toolStripStatusLabelSetText(StatusLabel2, "Данные с СКД по \"" + ShortFIO(_textBoxReturnText(textBoxFIO)) + "\" получены!");
             }
 
-
-            //CopyWholeDataFromOneTableIntoAnother(databasePerson, "PersonTemp", "PersonRegistered");
-            /*
-            dtPersonTemp = new DataTable();
-            dtPersonTemp = dtPersonRegisteredFull.Copy();
-            dtPersonTemp.Columns[27].ColumnMapping = MappingType.Hidden;
-            // copyDataTable.Columns.RemoveAt(0); //Remove column with index 0
-            */
-
-            // int[] hideCollumns = { 27, 26, 25, 24, 23, 22, 20, 19, 18, 15, 10, 9, 6, 5, 0 };
-            //заполнить данными из Персонрегистреред
-
+            person = null;
             dtPersonTemp?.Dispose();
-            dtPersonTemp = dtPersonRegisteredFull.Copy();
-            int[] hideCollumns = { 26, 20, 19, 18, 17, 16, 15, 14, 13, 9, 8, 7, 6, 5, 4, 0 };
-            ShowDatatableOnDatagridview(dtPersonTemp, hideCollumns, dataGridView1);
+
+            
+
+            string[] nameHidenCollumnsArray =
+            {
+                "№ п/п",//0
+                "Время прихода,часы",//4
+                "Время прихода,минут", //5
+                "Время прихода",//6
+                "Время ухода,часы",//7
+                "Время ухода,минут",//8
+                "Время ухода",//9
+                "Время регистрации,часы",//13
+                "Время регистрации,минут",//14
+                "Время регистрации", //15
+                "Реальное время ухода,часы",//16
+                "Реальное время ухода,минут",//17
+                "Реальное время ухода", //18
+                "Реальное отработанное время", //26
+            };
+
+            ShowDatatableOnDatagridview(dtPersonTemp, nameHidenCollumnsArray);
 
             _ProgressBar1Value100();
             stimerPrev = "";
@@ -1890,34 +1835,29 @@ namespace mySCA2
         {
             DataRow rowPerson;
 
-            //string personNAV = _textBoxReturnText(textBoxNav); 
-            //string personFIO = _textBoxReturnText(textBoxFIO);
-            string personNAV = person.NAV;
-            string personFIO = person.FIO;
-
             decimal hourControlStart = person.HourControllingDecimal;
             decimal minuteControlStart = person.MinuteControllingDecimal;
             decimal controlStartHours = hourControlStart + (minuteControlStart + 1) / 60 - (1 / 60);
             string stringIdCardIntellect = "";
             string personNAVTemp = "";
             string[] stringSelectedFIO = new string[3];
-            try { stringSelectedFIO[0] = Regex.Split(personFIO, "[ ]")[0]; } catch { stringSelectedFIO[0] = ""; }
-            try { stringSelectedFIO[1] = Regex.Split(personFIO, "[ ]")[1]; } catch { stringSelectedFIO[1] = ""; }
-            try { stringSelectedFIO[2] = Regex.Split(personFIO, "[ ]")[2]; } catch { stringSelectedFIO[2] = ""; }
+            try { stringSelectedFIO[0] = Regex.Split(person.FIO, "[ ]")[0]; } catch { stringSelectedFIO[0] = ""; }
+            try { stringSelectedFIO[1] = Regex.Split(person.FIO, "[ ]")[1]; } catch { stringSelectedFIO[1] = ""; }
+            try { stringSelectedFIO[2] = Regex.Split(person.FIO, "[ ]")[2]; } catch { stringSelectedFIO[2] = ""; }
 
 
-            stimerPrev = "Получаю данные по \"" + ShortFIO(personFIO) + "\"";
-            _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по \"" + ShortFIO(personFIO) + "\"");
+            stimerPrev = "Получаю данные по \"" + ShortFIO(person.FIO) + "\"";
+            _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по \"" + ShortFIO(person.FIO) + "\"");
 
             try
             {
-                if (personNAV.Length == 6)
+                if (person.NAV.Length == 6)
                 {
                     string stringConnection = @"Data Source=" + sServer1 + @"\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + @";Password=" + sServer1UserPassword + @";Connect Timeout=240";
                     using (var sqlConnection = new SqlConnection(stringConnection))
                     {
                         sqlConnection.Open();
-                        using (var cmd = new SqlCommand("Select id, tabnum FROM OBJ_PERSON where tabnum like '%" + personNAV + "%';", sqlConnection))
+                        using (var cmd = new SqlCommand("Select id, tabnum FROM OBJ_PERSON where tabnum like '%" + person.NAV + "%';", sqlConnection))
                         {
                             using (var reader = cmd.ExecuteReader())
                             {
@@ -1927,29 +1867,31 @@ namespace mySCA2
                                     {
                                         _ProgressWork1();
 
-                                        if (record?["tabnum"].ToString().Trim() == personNAV)
+                                        if (record?["tabnum"].ToString().Trim() == person.NAV)
                                         {
                                             stringIdCardIntellect = record["id"].ToString().Trim();
                                             person.idCard = Convert.ToInt32(record["id"].ToString().Trim());
                                             break;
                                         }
-                                    } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                    }
+                                    catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 }
                             }
                         }
                     }
                 }
-                else if (personNAV.Length != 6)
+                else if (person.NAV.Length != 6)
                 {
                     foreach (var strRowWithNav in listFIO.ToArray())
                     {
                         _ProgressWork1();
-                        if (strRowWithNav.Contains(personNAV) && personNAV.Length > 0 && strRowWithNav.Contains(sServer1))
+                        if (strRowWithNav.Contains(person.NAV) && person.NAV.Length > 0 && strRowWithNav.Contains(sServer1))
                             try
                             {
                                 stringIdCardIntellect = Regex.Split(strRowWithNav, "[|]")[3].Trim();
                                 person.idCard = Convert.ToInt32(stringIdCardIntellect);
-                            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                            }
+                            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                     }
 
                     if (stringIdCardIntellect.Length == 0)
@@ -1965,21 +1907,24 @@ namespace mySCA2
                                 {
                                     stringIdCardIntellect = Regex.Split(strRowWithNav, "[|]")[3].Trim();
                                     person.idCard = Convert.ToInt32(stringIdCardIntellect);
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 try
                                 {
                                     personNAVTemp = Regex.Split(strRowWithNav, "[|]")[4].Trim();
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
-                                if (personNAV.Length < 1 && personNAVTemp.Length > 0)
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                if (person.NAV.Length < 1 && personNAVTemp.Length > 0)
                                 {
-                                    personNAV = personNAVTemp;
+                                    person.NAV = personNAVTemp;
                                     _ProgressWork1(); break;
                                 }
                             }
                         }
                     }
                 }
-            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            }
+            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
 
             try
             {
@@ -2017,7 +1962,7 @@ namespace mySCA2
                                             managingHours = hourManaging + (minuteManaging + 1) / 60;
 
                                             listRegistrations.Add(
-                                                personFIO + "|" + personNAV + "|" + record["param1"].ToString().Trim() + "|" + stringDataNew + "|" +
+                                                person.FIO + "|" + person.NAV + "|" + record["param1"].ToString().Trim() + "|" + stringDataNew + "|" +
                                                 hourManaging + "|" + minuteManaging + "|" + managingHours.ToString("#.###") + "|" +
                                                 hourControlStart + "|" + minuteControlStart + "|" + controlStartHours.ToString("#.###") + "|" +
                                                 sServer1 + "|" + record["objid"].ToString().Trim()
@@ -2041,106 +1986,72 @@ namespace mySCA2
             { MessageBox.Show(Expt.ToString(), @"Сервер не доступен, или неправильная авторизация", MessageBoxButtons.OK, MessageBoxIcon.Error); }
 
             iCounterLine = 0;
-            if (databasePerson.Exists)
+
+            string[] cellData;
+            string namePoint = "";
+            string nameDirection = "";
+            foreach (var rowData in listRegistrations.ToArray())
             {
-                using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+                cellData = Regex.Split(rowData, "[|]");
+                namePoint = "";
+                nameDirection = "";
+                //Only for the server1 of sServer1
+                foreach (var onePointData in listPoints.ToArray())
                 {
-                    sqlConnection.Open();
-                    //Write all registration of person into the Table  "PersonRegistered"
-                    var sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
-                    using (var sqlCommand = new SQLiteCommand("INSERT INTO 'PersonRegistered' (FIO, NAV, iDCard, DateRegistered, HourComming, MinuteComming, Comming, " +
-                        " HourControlling, MinuteControlling, Controlling, ServerOfRegistration, Reserv1, Reserv2)" +
-                        " VALUES (@FIO, @NAV, @iDCard, @DateRegistered, @HourComming, @MinuteComming, @Comming, " +
-                        " @HourControlling, @MinuteControlling, @Controlling, @ServerOfRegistration, @Reserv1, @Reserv2)", sqlConnection))
-                    {
-                        string[] cellData;
-                        string namePoint = "";
-                        string nameDirection = "";
-                        foreach (var rowData in listRegistrations.ToArray())
+                    if (onePointData != null && cellData[10] != null && cellData[11] != null &&
+                        onePointData.Contains(cellData[10]) && onePointData.Contains(cellData[11]) &&
+                        onePointData.Contains("|") && cellData[11].Length ==
+                        Regex.Split(onePointData, "[|]")[1].Length)
+                        try
                         {
-                            cellData = Regex.Split(rowData, "[|]");
-                            namePoint = "";
-                            nameDirection = "";
-                            //Only for the server1 of sServer1
-                            foreach (var onePointData in listPoints.ToArray())
-                            {
-                                if (onePointData != null && cellData[10] != null && cellData[11] != null &&
-                                    onePointData.Contains(cellData[10]) && onePointData.Contains(cellData[11]) &&
-                                    onePointData.Contains("|") && cellData[11].Length ==
-                                    Regex.Split(onePointData, "[|]")[1].Length)
-                                    try
-                                    {
-                                        namePoint = Regex.Split(onePointData, "[|]")[2];
-                                        if (namePoint.ToLower().Contains("выход"))
-                                            nameDirection = "Выход";
-                                        else if (namePoint.ToLower().Contains("вход"))
-                                            nameDirection = "Вход";
-                                        break;
-                                    }
-                                    catch { }
-                            }
-
-                            iCounterLine++;
-
-                            rowPerson = dt.NewRow();
-
-                            rowPerson[1] = person.FIO;
-                            rowPerson[2] = person.NAV;
-                            rowPerson[3] = cellData[2];
-                            rowPerson[4] = cellData[7];
-                            rowPerson[5] = cellData[8];
-                            rowPerson[6] = TryParseStringToDecimal(cellData[9]);
-                            rowPerson[7] = person.HourControllingOut;
-                            rowPerson[8] = person.MinuteControllingOut;
-                            rowPerson[9] = person.ControllingOutDecimal;
-                            rowPerson[12] = cellData[3];
-                            rowPerson[13] = cellData[4];
-                            rowPerson[14] = cellData[5];
-                            rowPerson[15] = TryParseStringToDecimal(cellData[6]);
-                            rowPerson[20] = namePoint;
-                            rowPerson[21] = nameDirection;
-                            rowPerson[22] =String.Format("{0:d2}:{1:d2}", Convert.ToInt32(cellData[7]), Convert.ToInt32(cellData[8]));
-                            rowPerson[24] = String.Format("{0:d2}:{1:d2}", Convert.ToInt32(cellData[4]), Convert.ToInt32(cellData[5]));
-                            dt.Rows.Add(rowPerson);
-
-                            sqlCommand.Parameters.Add("@FIO", DbType.String).Value = cellData[0];
-                            sqlCommand.Parameters.Add("@NAV", DbType.String).Value = cellData[1];
-                            sqlCommand.Parameters.Add("@iDCard", DbType.String).Value = cellData[2];
-                            sqlCommand.Parameters.Add("@DateRegistered", DbType.String).Value = cellData[3];
-                            sqlCommand.Parameters.Add("@HourComming", DbType.String).Value = cellData[4];
-                            sqlCommand.Parameters.Add("@MinuteComming", DbType.String).Value = cellData[5];
-                            sqlCommand.Parameters.Add("@Comming", DbType.Decimal).Value = Convert.ToDecimal(cellData[6]);
-                            sqlCommand.Parameters.Add("@HourControlling", DbType.String).Value = cellData[7];
-                            sqlCommand.Parameters.Add("@MinuteControlling", DbType.String).Value = cellData[8];
-                            sqlCommand.Parameters.Add("@Controlling", DbType.Decimal).Value = Convert.ToDecimal(cellData[9]);
-                            sqlCommand.Parameters.Add("@ServerOfRegistration", DbType.String).Value = cellData[10];
-                            sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = namePoint;
-                            sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = nameDirection;
-                            try { sqlCommand.ExecuteNonQuery(); } catch { }
-                            _ProgressWork1();
+                            namePoint = Regex.Split(onePointData, "[|]")[2];
+                            if (namePoint.ToLower().Contains("выход"))
+                                nameDirection = "Выход";
+                            else if (namePoint.ToLower().Contains("вход"))
+                                nameDirection = "Вход";
+                            break;
                         }
-                        cellData = new string[1];
-                        namePoint = null;
-                        nameDirection = null;
-                    }
-                    listRegistrations.Clear();
-                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
-                    sqlCommand1.Dispose();
+                        catch { }
                 }
+
+                iCounterLine++;
+                rowPerson = dt.NewRow();
+
+                rowPerson[1] = person.FIO;
+                rowPerson[2] = person.NAV;
+                rowPerson[3] = person.GroupPerson;
+                rowPerson[10] = cellData[2];
+                rowPerson[4] = cellData[7];
+                rowPerson[5] = cellData[8];
+                rowPerson[6] = TryParseStringToDecimal(cellData[9]);
+                rowPerson[7] = person.HourControllingOut;
+                rowPerson[8] = person.MinuteControllingOut;
+                rowPerson[9] = person.ControllingOutDecimal;
+                rowPerson[12] = cellData[3];
+                rowPerson[13] = cellData[4];
+                rowPerson[14] = cellData[5];
+                rowPerson[15] = TryParseStringToDecimal(cellData[6]);
+                rowPerson[19] = cellData[10];
+                rowPerson[20] = namePoint;
+                rowPerson[21] = nameDirection;
+                rowPerson[22] = ConvertStringTimeToStringHHMM(cellData[7], cellData[8]);
+                rowPerson[23] = ConvertStringTimeToStringHHMM(person.HourControllingOut, person.MinuteControllingOut);
+                rowPerson[24] = ConvertStringTimeToStringHHMM(cellData[4], cellData[5]);
+
+                dt.Rows.Add(rowPerson);
             }
             if (iCounterLine > 0)
             { bLoaded = true; }
 
-            personNAV = null; personFIO = null; hourControlStart = 0; minuteControlStart = 0; controlStartHours = 0;
-            stringIdCardIntellect = null; personNAVTemp = null; stringSelectedFIO = new string[1];
+            listRegistrations.Clear();
+            namePoint = null; nameDirection = null;
+            hourControlStart = 0; minuteControlStart = 0; controlStartHours = 0;
+            stringIdCardIntellect = null; personNAVTemp = null; stringSelectedFIO = new string[1]; cellData = new string[1];
         }
 
         //Get info the selected group from DB and make a few lists with these data
         private void GetGroupInfoFromDBToDtPersonGroup(DataTable dtTarget, string nameCurrentGroup) //"Select * FROM PersonGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
         {
-            lListFIOTemp.Clear();
             dtTarget?.Dispose();
             dtTarget = dtPeople.Clone();
             DataRow dataRow;
@@ -2168,7 +2079,6 @@ namespace mySCA2
                                 try { d4 = record["MinuteControlling"].ToString().Trim(); } catch { }
                                 try { d13 = record["HourControllingOut"].ToString().Trim(); } catch { }
                                 try { d14 = record["MinuteControllingOut"].ToString().Trim(); } catch { }
-                                lListFIOTemp.Add(d1 + "|" + d2 + "|" + d3 + "|" + d4 + "|" + d13 + "|" + d14);
                                 //HourControllingOut TEXT, MinuteControllingOut TEXT
                                 //FIO|NAV|H|M
 
@@ -2177,21 +2087,14 @@ namespace mySCA2
                                 dataRow[3] = nameCurrentGroup;
                                 dataRow[4] = d3;
                                 dataRow[5] = d4;
-                                dataRow[6] = TryParseStringToDecimal(d3) + (TryParseStringToDecimal(d4) + 1) / 60 - (1 / 60);
+                                dataRow[6] = ConvertStringToDecimalTime(d3, d4);
                                 dataRow[7] = d13;
                                 dataRow[8] = d14;
-                                dataRow[9] = TryParseStringToDecimal(d13) + (TryParseStringToDecimal(d14) + 1) / 60 - (1 / 60);
+                                dataRow[9] = ConvertStringToDecimalTime(d13, d14);
                                 dataRow[11] = nameCurrentGroup;
-                                dataRow[22] = String.Format("{0:d2}:{1:d2}", Convert.ToInt32(d13), Convert.ToInt32(d14));
-                                dataRow[24] = String.Format("{0:d2}:{1:d2}", Convert.ToInt32(d3), Convert.ToInt32(d4));
+                                dataRow[22] = ConvertStringTimeToStringHHMM(d13, d14);
+                                dataRow[24] = ConvertStringTimeToStringHHMM(d3, d4);
                                 dtPersonGroup.Rows.Add(dataRow);
-
-
-
-
-
-
-
 
                             }
                         }
@@ -2223,7 +2126,12 @@ namespace mySCA2
                 }
                 nameOfLastTableFromDB = "PersonGroup";
                 PersonOrGroupItem.Text = "Работа с одной персоной";
-                ShowDataTableQuery(databasePerson, "PersonGroup", "SELECT FIO, NAV,GroupPerson, HourControlling, MinuteControlling ", " Where GroupPerson like '" + textBoxGroup.Text.Trim() + "' ORDER BY FIO");
+
+                ShowDataTableQuery(databasePerson, "PersonGroup",
+                  "SELECT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', GroupPerson AS 'Группа', " +
+                  "ControllingHHMM AS 'Контрольное время', ControllingOUTHHMM AS 'Уход с работы' ",
+                  "Where GroupPerson like '" + textBoxGroup.Text.ToString() + "' ORDER BY FIO ");
+
             }
         }
 
@@ -2422,6 +2330,16 @@ namespace mySCA2
                 Invoke(new MethodInvoker(delegate { try { iDgv = dataGridView1.CurrentRow.Index; } catch { iDgv = -1; } }));
             else
                 try { iDgv = dataGridView1.CurrentRow.Index; } catch { iDgv = -1; }
+            return iDgv;
+        }
+
+        private int _dataGridView1CurrentCollumnIndex() //add string into  from other threads
+        {
+            int iDgv = -1;
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { try { iDgv = dataGridView1.CurrentCell.ColumnIndex; } catch { iDgv = -1; } }));
+            else
+                try { iDgv = dataGridView1.CurrentCell.ColumnIndex; } catch { iDgv = -1; }
             return iDgv;
         }
 
@@ -2944,95 +2862,100 @@ namespace mySCA2
         private void checkBoxCheckStateChanged()
         {
             CheckBoxesFiltersAll_Enable(false);
-            try { dtPersonTemp?.Dispose(); } catch (Exception excpt) { MessageBox.Show(excpt.ToString()); }
-
-            _controlVisible(dataGridView1, true);
+            _controlVisible(dataGridView1, false);
             _controlVisible(pictureBox1, false);
-          //  string nameGroup = _textBoxReturnText(textBoxGroup);
+            string nameGroup = _textBoxReturnText(textBoxGroup);
 
             Person personCheck = new Person();
             personCheck.FIO= _textBoxReturnText(textBoxFIO);
             personCheck.NAV = _textBoxReturnText(textBoxNav);
-            personCheck.GroupPerson = _textBoxReturnText(textBoxGroup);
+            personCheck.GroupPerson = nameGroup;
+            dtPersonTemp.Clear();
+            dtPersonTemp.AcceptChanges();
 
-            DeleteAllDataInTableQuery(databasePerson, "PersonTemp");
             if (nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup")
             {
-                GetGroupInfoFromDBToDtPersonGroup(dtPersonGroup, personCheck.GroupPerson); //result will be in dtPersonGroup  //"Select * FROM PersonGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
-                dtPersonTemp = dtPersonRegistered.Clone();
+                GetGroupInfoFromDBToDtPersonGroup(dtPersonGroup, nameGroup); //result will be in dtPersonGroup  //"Select * FROM PersonGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
 
-                if (_textBoxReturnText(textBoxGroup).Length > 0)
+                if (nameGroup.Length > 0)
                 {
-                    foreach (DataRow row in dtPersonGroup.Rows)
+                    if (!_CheckboxChecked(checkBoxReEnter))
                     {
-                        if (row[1].ToString().Length > 0)
+                        foreach (DataRow row in dtPersonGroup.Rows)
                         {
-                            personCheck = new Person();
+                            if (row[1].ToString().Length > 0 && row[3].ToString() == nameGroup)
+                            {
+                                personCheck = new Person();
 
-                            personCheck.FIO = row[1].ToString();
-                            personCheck.NAV = row[2].ToString();
-                            personCheck.GroupPerson = row[3].ToString();
-                            personCheck.Department = row[3].ToString();
+                                personCheck.FIO = row[1].ToString();
+                                personCheck.NAV = row[2].ToString();
+                                personCheck.GroupPerson = row[3].ToString();
+                                personCheck.Department = row[3].ToString();
 
-                            personCheck.HourControlling = row[4].ToString();
-                            personCheck.HourControllingDecimal = TryParseStringToDecimal(row[4].ToString());
-                            personCheck.MinuteControlling = row[5].ToString();
-                            personCheck.MinuteControllingDecimal = TryParseStringToDecimal(row[5].ToString());
-                            personCheck.ControllingDecimal= TryParseStringToDecimal(row[6].ToString());
+                                personCheck.HourControlling = row[4].ToString();
+                                personCheck.HourControllingDecimal = TryParseStringToDecimal(row[4].ToString());
+                                personCheck.MinuteControlling = row[5].ToString();
+                                personCheck.MinuteControllingDecimal = TryParseStringToDecimal(row[5].ToString());
+                                personCheck.ControllingDecimal = TryParseStringToDecimal(row[6].ToString());
 
-                            personCheck.HourControllingOut = row[7].ToString();
-                            personCheck.MinuteControllingOut = row[8].ToString();
-                            personCheck.ControllingOutDecimal = TryParseStringToDecimal(row[9].ToString());
+                                personCheck.HourControllingOut = row[7].ToString();
+                                personCheck.MinuteControllingOut = row[8].ToString();
+                                personCheck.ControllingOutDecimal = TryParseStringToDecimal(row[9].ToString());
 
-                            //НЕ ИСПОЛЬЗОВАТЬ!!!!
-                            //_textBoxSetText(textBoxFIO, sCell[0]);   //иммитируем выбор данных
-                            //_textBoxSetText(textBoxNav, sCell[1]);   //Select person   
-                            //dControlHourSelected = TryParseStringToDecimal(sCell[2]);
-                            //dControlMinuteSelected = TryParseStringToDecimal(sCell[3]);
-                            //Не использовать!!
-                            
-                            //dataRow[22] = String.Format("{0:d2}:{1:d2}", Convert.ToInt32(d13), Convert.ToInt32(d14));
-                            //dataRow[24] = String.Format("{0:d2}:{1:d2}", Convert.ToInt32(d3), Convert.ToInt32(d4));
-                                                                                 
-
-                            FilterDataByNav(personCheck, dtPersonRegistered, dtPersonTemp);
+                                FilterDataByNav(personCheck, dtPersonRegisteredFull, dtPersonTemp);
+                            }
                         }
-
+                    }
+                    else
+                    {
+                        dtPersonTemp = dtPersonRegisteredFull.Select("[Группа] = '" + nameGroup + "'")
+                            .Distinct().CopyToDataTable().Copy();
                     }
                 }
-                nameOfLastTableFromDB = "PersonGroup";
             }
             else
             {
-
                 if (!_CheckboxChecked(checkBoxReEnter))
                 {
-                    dtPersonTemp = dtPersonRegistered.Copy();
-
-                   // CopyWholeDataFromOneTableIntoAnother(databasePerson, "PersonTemp", "PersonRegistered");
+                    dtPersonTemp = dtPersonRegisteredFull.Copy();
                 }
                 else
                 {
-                    //MessageBox.Show
-                    FilterDataByNav(personCheck, dtPersonRegistered,dtPersonTemp);
+                    FilterDataByNav(personCheck, dtPersonRegisteredFull, dtPersonTemp);
                 }
                 nameOfLastTableFromDB = "PersonRegistered";
             }
 
+            string[] nameHidenCollumnsArray =
+            {
+                "№ п/п",//0
+                "Время прихода,часы",//4
+                "Время прихода,минут", //5
+                "Время прихода",//6
+                "Время ухода,часы",//7
+                "Время ухода,минут",//8
+                "Время ухода",//9
+                "№ пропуска", //10
+                "Время регистрации,часы",//13
+                "Время регистрации,минут",//14
+                "Время регистрации", //15
+                "Реальное время ухода,часы",//16
+                "Реальное время ухода,минут",//17
+                "Реальное время ухода", //18
+                "Сервер СКД", //19
+                "Имя точки прохода", //20
+                "Направление прохода", //21
+                "Реальное отработанное время", //26
+            };
 
-
-            //ShowDatatableOnDatagridview(dtPersonRegisteredFull, hidecollumns, dataGridView1);
-            int[] hidecollumns = { 0 };
-            ShowDatatableOnDatagridview(dtPersonTemp, hidecollumns, dataGridView1); //show dtPersonTemp
-
-           // ShowDataTableQuery(databasePerson, "PersonTemp");
-
+            ShowDatatableOnDatagridview(dtPersonTemp, nameHidenCollumnsArray); //show dtPersonTemp
             panelViewResize();
+            _controlVisible(dataGridView1, true);
 
             CheckBoxesFiltersAll_Enable(true);
+
             if (_CheckboxChecked(checkBoxStartWorkInTime))  // if (checkBoxStartWorkInTime.Checked)
             {
-                _controlEnable(checkBoxReEnter, true);
                 _controlEnable(checkBoxReEnter, false);
                 _ChangeMenuItemBackColor(QuickLoadDataItem, SystemColors.Control);
             }
@@ -3041,364 +2964,166 @@ namespace mySCA2
                 _controlEnable(checkBoxReEnter, true);
             }
         }
-
-        //DataView dv = ft.DefaultView;
-        //dv.Sort = "occr desc";
-        //DataTable sortedDT = dv.ToTable();
-        //
-        //dataTable.DefaultView.Sort = "Col1, Col2, Col3"
-        //
-        //DataRow[] foundRows=table.Select("Date = '1/31/1979' or OrderID = 2", "CompanyName ASC");
-        //DataTable dt = foundRows.CopyToDataTable();
-        //
-        //DataRow[] dataRows = table.Select().OrderBy(u => u["EmailId"]).ToArray();
-        //
-        //DataTable dt = new DataTable();         
-        //dt.DefaultView.Sort = "Column_name desc";
-        //dt = dt.DefaultView.ToTable();
-
-        private string[] DecimalTimeToStringArray(decimal decimalTime)
-        {
-            string[] result = new string[2];
-            int hour=(int)(decimalTime);
-            int minute =Convert.ToInt32( 60*(decimalTime-hour));
-            result[0] = hour.ToString();
-            result[1] = minute.ToString();
-            return result;
-        }
-
-        private decimal stringsToDecimalTime(string stringHour, string stringMinute)
-        {
-            decimal result = TryParseStringToDecimal(stringHour) + (TryParseStringToDecimal(stringMinute) + 1) / 60 - (1 / 60);
-            return result;
-        }
-
-        //dataRow[6] = TryParseStringToDecimal(d3) + (TryParseStringToDecimal(d4) + 1) / 60 - (1 / 60);
-
-
-        private void FilterDataByNav(Person personNAV,DataTable dataTableSource ,DataTable dataTableForStoring)    //Copy Data from PersonRegistered into PersonTemp by Filter(NAV and anual dates or minimalTime or dayoff)
-        {
-            DataRow rowStoring;
-            DataTable tempCollector =  dtPeople.Clone();
-
-            HashSet<string> hsDays = new HashSet<string>();
-            DataTable FirstTimeRow = dtPeople.Clone(); //select first by pass
-            DataTable LastTimeRow = dtPeople.Clone(); //select last by pass
-
-            decimal decimalFirstRegistrationInDay;
-            string[] stringHourMinuteFirstRegistrationInDay = new  string[2];
-            decimal decimalLastRegistrationInDay;
-            string[] stringHourMinuteLastRegistrationInDay = new string[2];
-
-
-            DataRow tempRow;
-
-            if (_CheckboxChecked(checkBoxReEnter)) //checkBoxReEnter.Checked
-            {
-                var allWorkedDaysPerson =dataTableSource.Select("[NAV-код] = '" + personNAV.NAV + "'");
-                 
-                //tempCollector = tempRows.CopyToDataTable();
-
-                foreach (DataRow dataRowDate in allWorkedDaysPerson)
-                {
-                    hsDays.Add(dataRowDate[12].ToString()); //make the list of worked days
-                }
-
-                foreach (var workedDay in hsDays.ToArray()) 
-                {
-                    MessageBox.Show(workedDay);//test caught days
-
-                    FirstTimeRow = dataTableSource.Select("[Дата регистрации] = '" + workedDay + "'").CopyToDataTable();
-                    decimalFirstRegistrationInDay = Convert.ToDecimal(FirstTimeRow.Compute("MIN([Время регистрации])", string.Empty));
-                    decimalLastRegistrationInDay = Convert.ToDecimal(FirstTimeRow.Compute("MAX([Время регистрации])", string.Empty));
-
-                    tempRow = FirstTimeRow.Select("[Дата регистрации] = '" + workedDay + "'").First();
-                    tempRow[12] = decimalFirstRegistrationInDay;
-                    stringHourMinuteFirstRegistrationInDay = DecimalTimeToStringArray(decimalFirstRegistrationInDay);
-                    tempRow[13] = stringHourMinuteFirstRegistrationInDay[0];
-                    tempRow[14] = stringHourMinuteFirstRegistrationInDay[1];
-
-                    tempRow[18] = decimalLastRegistrationInDay;
-                    stringHourMinuteLastRegistrationInDay = DecimalTimeToStringArray(decimalLastRegistrationInDay);
-                    tempRow[16] = stringHourMinuteLastRegistrationInDay[0];
-                    tempRow[17] = stringHourMinuteLastRegistrationInDay[1];
-                    dataTableForStoring.ImportRow(tempRow);
-                }
-
-                //new DataColumn("Время прихода", typeof(decimal)),//6
-                //new DataColumn("Время ухода", typeof(decimal)),//9
-                //new DataColumn("Дата регистрации", typeof(string)),//12
-                //new DataColumn("Время регистрации,часы",typeof(string)),//13
-                //new DataColumn("Время регистрации,минут", typeof(string)),//14
-                //new DataColumn("Время регистрации", typeof(decimal)), //15
-                //new DataColumn("Реальное время ухода,часы", typeof(string)),//16
-                //new DataColumn("Реальное время ухода,минут", typeof(string)),//17
-                //new DataColumn("Реальное время ухода", typeof(decimal)), //18
-                //new DataColumn("Направление прохода", typeof(string)), //21
-
-                //var FirstTimeRow = tempCollector.Select("[Время регистрации] = MIN([Время регистрации])"); //select first by pass
-                //var LastTimeRow = tempCollector.Select("[Время регистрации] = MAX([Время регистрации])"); //select last by pass
-                int minTimeLevel = int.MaxValue;
-                int maxTimeLevel = int.MinValue;
-                foreach (DataRow dr in dataTableSource.Rows)
-                {
-                    int accountLevel = dr.Field<int>("Время регистрации");
-                    minTimeLevel = Math.Min(minTimeLevel, accountLevel);
-                    maxTimeLevel = Math.Max(maxTimeLevel, accountLevel);
-                }
-                //or
-                int minLevel = Convert.ToInt32(dataTableSource.Compute("min([Время регистрации])", string.Empty));
-                //or
-                List<int> levels = dataTableSource.AsEnumerable().Select(al => al.Field<int>("Время регистрации")).Distinct().ToList();
-                int min = levels.Min();
-                int max = levels.Max();
-
-                /*
-                foreach(DataRow dataRow in tempCollector.Rows)
-                {
-                    if(TryParseStringToDecimal(dataRow[15].ToString())==)
-                }*/
-                /*foreach (DataRow dr in FirstTimeRow) {
-                    MessageBox.Show("MIN:\n"+dr[12].ToString()+"\n"+ dr[15].ToString());
-                }
-                foreach (DataRow dr in LastTimeRow)
-                {
-                    MessageBox.Show("MAX:\n" + dr[12].ToString() + "\n" + dr[15].ToString());
-                }*/
                 
 
+        private string[] ConvertDecimalTimeToStringHHMMArray(decimal decimalTime)
+        {
+            string[] result = new string[3];
+            int hour = (int)(decimalTime);
+            int minute = Convert.ToInt32(60 * (decimalTime - hour));
 
-                using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
-                {
-                    sqlConnection.Open();
-                    HashSet<string> AllDateRegistration = new HashSet<string>();
-                    using (var sqlCommand = new SQLiteCommand("SELECT  *, MIN(Comming) AS FirstRegistered FROM PersonRegistered  " +
-                        " WHERE NAV like '" + personNAV.NAV + "' GROUP BY FIO, NAV, DateRegistered ORDER BY DateRegistered ASC;", sqlConnection))
-                    {                                                                                         //, min (PersonRegistered.comming) AS FirstRegistered
-                        using (var reader = sqlCommand.ExecuteReader())
-                        {
-                            string stringDateRegistered = null;
-                            foreach (DbDataRecord record in reader)
-                            {
-                                try
-                                {
-                                    if (record != null)
-                                    {
-                                        stringDateRegistered = null;
-                                        stringDateRegistered =
-                                            record["FIO"].ToString().Trim() + "|" +
-                                            record["NAV"].ToString().Trim() + "|" +
-                                            record["iDCard"].ToString().Trim() + "|" +
-                                            record["DateRegistered"].ToString().Trim() + "|" +
-                                            record["HourComming"].ToString().Trim() + "|" +
-                                            record["MinuteComming"].ToString().Trim() + "|" +
-                                            record["Comming"].ToString().Trim() + "|" +
-                                            record["HourControlling"].ToString().Trim() + "|" +
-                                            record["MinuteControlling"].ToString().Trim() + "|" +
-                                            record["Controlling"].ToString().Trim() + "|" +
-                                            record["ServerOfRegistration"].ToString().Trim() + "|" +
-                                            record["Reserv1"].ToString().Trim() + "|" +
-                                            record["Reserv2"].ToString().Trim()
-                                            ;
-                                        AllDateRegistration.Add(stringDateRegistered);
-                                        dControlHourSelected = TryParseStringToDecimal(record["HourControlling"].ToString().Trim());
-                                        dControlMinuteSelected = TryParseStringToDecimal(record["MinuteControlling"].ToString().Trim());
+            result[0] = String.Format("{0:d2}", hour);
+            result[1] = String.Format("{0:d2}", minute);
+            result[2] = String.Format("{0:d2}:{1:d2}", hour, minute);
+            return result;
+        }
 
+         private string ConvertStringTimeToStringHHMM(string hour, string minute)
+        {
+            int h = 9;
+            int m = 0;
+            try { h = Convert.ToInt32(hour); } catch { }
+            try { m = Convert.ToInt32(minute); } catch { }
+            string result = String.Format("{0:d2}:{1:d2}", h, m);
+            return result;
+        }
 
+        private string ConvertDecimalTimeToStringHHMM(decimal decimalTime)
+        {
+            string result;
+            int hour = (int)(decimalTime);
+            int minute = Convert.ToInt32(60 * (decimalTime - hour));
+            result = String.Format("{0:d2}:{1:d2}", hour, minute);
+            return result;
+        }
 
+       private decimal ConvertDecimalSeparatedTimeToDecimal(decimal decimalHour, decimal decimalMinute)
+        {
+            decimal result = decimalHour + TryParseStringToDecimal(TimeSpan.FromMinutes((double)decimalMinute).TotalHours.ToString())   ;
+            return result;
+        }
 
+        private decimal ConvertStringToDecimalTime(string hour, string minute)
+        {
+            decimal result =TryParseStringToDecimal(hour) +TryParseStringToDecimal(TimeSpan.FromMinutes(TryParseStringToDouble(minute)).TotalHours.ToString());
+            return result;
+        }
 
+        private decimal ConvertStringTimeHHMMToDecimal(string timeInHHMM) //time HH:MM converted to decimal value
+        {
+            decimal timeConverted = 9;
+            if (timeInHHMM.Contains(':'))
+            {
+                string[] time = timeInHHMM.Split(':');
+                timeConverted = TryParseStringToDecimal(time[0]) + TryParseStringToDecimal(TimeSpan.FromMinutes(TryParseStringToDouble(time[1])).TotalHours.ToString());
+            }
+            else { timeConverted = TryParseStringToDecimal(timeInHHMM); }
+            return timeConverted;
+        }
 
-
-                                        rowStoring = dataTableForStoring.NewRow();
-                                        rowStoring[1] = record["FIO"].ToString();
-                                        rowStoring[2] = record["NAV"].ToString();
-                                        rowStoring[3] = personNAV.GroupPerson;
-                                        rowStoring[4] = record["HourComming"].ToString();
-                                        rowStoring[5] = record["MinuteComming"].ToString();
-                                        rowStoring[6] = TryParseStringToDecimal(record["Controlling"].ToString());
-                                        //rowStoring[7] = record[""].ToString();
-                                        //rowStoring[8] = record[""].ToString();
-                                        //rowStoring[9] = record[""].ToString();
-                                        rowStoring[10] = Convert.ToInt32(record["iDCard"].ToString());
-                                        //rowStoring[11] = record[""].ToString();
-                                        rowStoring[12] = record["DateRegistered"].ToString();
-                                        rowStoring[13] = record["HourComming"].ToString();
-                                        rowStoring[14] = record["MinuteComming"].ToString();
-                                        rowStoring[15] = TryParseStringToDecimal(record["Comming"].ToString());
-                                        rowStoring[19] = record["ServerOfRegistration"].ToString();
-                                        rowStoring[20] = record["Reserv1"].ToString();
-                                        rowStoring[21] = record["Reserv2"].ToString();
-                                       // rowStoring[22] = record[""].ToString(); //("Время прихода ЧЧ:ММ",typeof(string)),//22
-                                       // rowStoring[23] = record[""].ToString();//("Время ухода ЧЧ:ММ",typeof(string)),//23
-                                       // rowStoring[24] = record[""].ToString();//("Реальное время прихода ЧЧ:ММ",typeof(string)),//24
-                                       // rowStoring[25] = record[""].ToString();//("Реальное время ухода ЧЧ:ММ",typeof(string)), //25
-                                       // rowStoring[26] = record[""].ToString();//("Реальное отработанное время",typeof(decimal)), //26
-                                       // rowStoring[27] = record[""].ToString();//("Реальное отработанное время ЧЧ:ММ",typeof(string)), //27
-                                        dataTableForStoring.Rows.Add(rowStoring);
-                                    }
-                                }
-                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
-                            }
-                        }
-                    }
-
-                    var sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    //Write found dates with the first time of registration
-                    using (var sqlCommand = new SQLiteCommand("INSERT INTO 'PersonTemp' (FIO, NAV, DateRegistered, HourComming, MinuteComming, Comming, HourControlling, MinuteControlling, Controlling, ServerOfRegistration, Reserv1, Reserv2) " +
-                        "VALUES (@FIO, @NAV, @DateRegistered, @HourComming, @MinuteComming, @Comming, @HourControlling, @MinuteControlling, @Controlling, @ServerOfRegistration, @Reserv1, @Reserv2)", sqlConnection))
-                    {
-                        sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                        sqlCommand1.ExecuteNonQuery();
-
-                        foreach (var rowData in AllDateRegistration.ToArray())
-                        {
-                            var cellData = Regex.Split(rowData, "[|]");
-
-                            sqlCommand.Parameters.Add("@FIO", DbType.String).Value = cellData[0];
-                            sqlCommand.Parameters.Add("@NAV", DbType.String).Value = cellData[1];
-                            // sqlCommand.Parameters.Add("@iDCard", DbType.String).Value = cellData[2];
-                            sqlCommand.Parameters.Add("@DateRegistered", DbType.String).Value = cellData[3];
-                            sqlCommand.Parameters.Add("@HourComming", DbType.String).Value = cellData[4];
-                            sqlCommand.Parameters.Add("@MinuteComming", DbType.String).Value = cellData[5];
-                            sqlCommand.Parameters.Add("@Comming", DbType.Decimal).Value = Convert.ToDecimal(cellData[6]);
-                            sqlCommand.Parameters.Add("@HourControlling", DbType.String).Value = cellData[7];
-                            sqlCommand.Parameters.Add("@MinuteControlling", DbType.String).Value = cellData[8];
-                            sqlCommand.Parameters.Add("@Controlling", DbType.Decimal).Value = Convert.ToDecimal(cellData[9]);
-                            sqlCommand.Parameters.Add("@ServerOfRegistration", DbType.String).Value = cellData[10];
-                            sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = cellData[11];
-                            sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = cellData[12];
-                            try { sqlCommand.ExecuteNonQuery(); } catch { }
-                        }
-
-                        sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                        sqlCommand1.ExecuteNonQuery();
-                    }
-                    AllDateRegistration.Clear();
-                    sqlCommand1.Dispose();
-                }
+        private decimal[] ConvertStringTimeHHMMToDecimalArray(string timeInHHMM) //time HH:MM converted to decimal value
+        {
+            decimal[] result = new decimal[3];
+            string hour = "9";
+            string minute = "0";
+            
+            if (timeInHHMM.Contains(':'))
+            {
+                string[] time = timeInHHMM.Split(':');
+                hour = time[0];
+                minute = time[1];
             }
             else
             {
-                using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+                hour = timeInHHMM;
+            }
+
+            result[0] = TryParseStringToDecimal(hour);
+            result[1] = TryParseStringToDecimal(minute);
+            result[2] = ConvertDecimalSeparatedTimeToDecimal(result[0], result[1]);
+
+            return result;
+        }
+
+
+        private void FilterDataByNav(Person personNAV, DataTable dataTableSource, DataTable dataTableForStoring)    //Copy Data from PersonRegistered into PersonTemp by Filter(NAV and anual dates or minimalTime or dayoff)
+        {
+            try
+            {
+                DataRow rowDtStoring;
+
+                HashSet<string> hsDays = new HashSet<string>();
+                DataTable dtAllRegistrationsInSelectedDay = dtPeople.Clone(); //All registrations in the selected day
+
+                decimal decimalFirstRegistrationInDay;
+                string[] stringHourMinuteFirstRegistrationInDay = new string[2];
+                decimal decimalLastRegistrationInDay;
+                string[] stringHourMinuteLastRegistrationInDay = new string[2];
+
+                if (_CheckboxChecked(checkBoxReEnter)) //checkBoxReEnter.Checked
                 {
-                    sqlConnection.Open();
-                    HashSet<string> AllDateRegistration = new HashSet<string>();
-                    using (var sqlCommand = new SQLiteCommand("Select * FROM PersonRegistered  " +
-                        " where NAV like '" + personNAV.NAV + "' order by FIO, DateRegistered, Comming ASC;", sqlConnection))
+                    var allWorkedDaysPerson = dataTableSource.Select("[NAV-код] = '" + personNAV.NAV + "'");
+
+                    foreach (DataRow dataRowDate in allWorkedDaysPerson) //make the list of worked days
+                    { hsDays.Add(dataRowDate[12].ToString()); }
+
+                    foreach (var workedDay in hsDays.ToArray())
                     {
-                        using (var reader = sqlCommand.ExecuteReader())
-                        {
-                            string stringDateRegistered = null;
-                            foreach (DbDataRecord record in reader)
-                            {
-                                try
-                                {
-                                    if (record != null)
-                                    {
-                                        stringDateRegistered = null;
-                                        stringDateRegistered =
-                                            record["FIO"].ToString().Trim() + "|" +
-                                            record["NAV"].ToString().Trim() + "|" +
-                                            record["iDCard"].ToString().Trim() + "|" +
-                                            record["DateRegistered"].ToString().Trim() + "|" +
-                                            record["HourComming"].ToString().Trim() + "|" +
-                                            record["MinuteComming"].ToString().Trim() + "|" +
-                                            record["Comming"].ToString().Trim() + "|" +
-                                            record["HourControlling"].ToString().Trim() + "|" +
-                                            record["MinuteControlling"].ToString().Trim() + "|" +
-                                            record["Controlling"].ToString().Trim() + "|" +
-                                            record["ServerOfRegistration"].ToString().Trim() + "|" +
-                                            record["Reserv1"].ToString().Trim() + "|" +
-                                            record["Reserv2"].ToString().Trim()
-                                            ;
-                                        AllDateRegistration.Add(stringDateRegistered);
-                                        dControlHourSelected = Convert.ToDecimal(record["HourControlling"].ToString().Trim());
-                                        dControlMinuteSelected = Convert.ToDecimal(record["MinuteControlling"].ToString().Trim());
+                        dtAllRegistrationsInSelectedDay = allWorkedDaysPerson.Distinct().CopyToDataTable().Select("[Дата регистрации] = '" + workedDay + "'").CopyToDataTable();
+                        //dtAllRegistrationsInSelectedDay = dataTableSource.Select("[Дата регистрации] = '" + workedDay + "'").CopyToDataTable();
 
-                                        rowStoring = dataTableForStoring.NewRow();
-                                        rowStoring[1] = record["FIO"].ToString();
-                                        rowStoring[2] = record["NAV"].ToString();
-                                        rowStoring[3] = personNAV.GroupPerson;
-                                        rowStoring[4] = record["HourComming"].ToString();
-                                        rowStoring[5] = record["MinuteComming"].ToString();
-                                        rowStoring[6] = TryParseStringToDecimal(record["Controlling"].ToString());
-                                        //rowStoring[7] = record[""].ToString();
-                                        //rowStoring[8] = record[""].ToString();
-                                        //rowStoring[9] = record[""].ToString();
-                                        rowStoring[10] = Convert.ToInt32(record["iDCard"].ToString());
-                                        //rowStoring[11] = record[""].ToString();
-                                        rowStoring[12] = record["DateRegistered"].ToString();
-                                        rowStoring[13] = record["HourComming"].ToString();
-                                        rowStoring[14] = record["MinuteComming"].ToString();
-                                        rowStoring[15] = TryParseStringToDecimal(record["Comming"].ToString());
-                                        rowStoring[19] = record["ServerOfRegistration"].ToString();
-                                        rowStoring[20] = record["Reserv1"].ToString();
-                                        rowStoring[21] = record["Reserv2"].ToString();
-                                        // rowStoring[22] = record[""].ToString(); //("Время прихода ЧЧ:ММ",typeof(string)),//22
-                                        // rowStoring[23] = record[""].ToString();//("Время ухода ЧЧ:ММ",typeof(string)),//23
-                                        // rowStoring[24] = record[""].ToString();//("Реальное время прихода ЧЧ:ММ",typeof(string)),//24
-                                        // rowStoring[25] = record[""].ToString();//("Реальное время ухода ЧЧ:ММ",typeof(string)), //25
-                                        // rowStoring[26] = record[""].ToString();//("Реальное отработанное время",typeof(decimal)), //26
-                                        // rowStoring[27] = record[""].ToString();//("Реальное отработанное время ЧЧ:ММ",typeof(string)), //27
-                                        dataTableForStoring.Rows.Add(rowStoring);
-                                    }
-                                }
-                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
-                            }
-                        }
+                        //find first registration within the during selected workedDay
+                        //var tempDayStoring = dataTableSource.Select("[Время регистрации] = MIN([Время регистрации])"); //select first by pass
+                        decimalFirstRegistrationInDay = Convert.ToDecimal(dtAllRegistrationsInSelectedDay.Compute("MIN([Время регистрации])", string.Empty));
+
+                        //find last registration within the during selected workedDay
+                        //var tempDayStoring = dataTableSource.Select("[Время регистрации] = MAX([Время регистрации])"); //select last by pass
+                        decimalLastRegistrationInDay = Convert.ToDecimal(dtAllRegistrationsInSelectedDay.Compute("MAX([Время регистрации])", string.Empty));
+
+                        //Select only one row with selected NAV for the selected workedDay
+                        rowDtStoring = dtAllRegistrationsInSelectedDay.Select("[Дата регистрации] = '" + workedDay + "'").First();
+                        //take and convert a real time coming into a string timearray
+                        stringHourMinuteFirstRegistrationInDay = ConvertDecimalTimeToStringHHMMArray(decimalFirstRegistrationInDay);
+                        //take the first registration time from the timearray and set into the temprow
+
+                        rowDtStoring[13] = stringHourMinuteFirstRegistrationInDay[0];  //("Время регистрации,часы",typeof(string)),//13
+                        rowDtStoring[14] = stringHourMinuteFirstRegistrationInDay[1];  //("Время регистрации,минут", typeof(string)),//14
+                        rowDtStoring[15] = decimalFirstRegistrationInDay;              //("Время регистрации", typeof(decimal)), //15
+                        rowDtStoring[24] = stringHourMinuteFirstRegistrationInDay[2];  //("Реальное время прихода ЧЧ:ММ", typeof(string)),//24
+
+                        //convert a controlling time coming into a string timearray
+                        stringHourMinuteFirstRegistrationInDay = ConvertDecimalTimeToStringHHMMArray(TryParseStringToDecimal(rowDtStoring[6].ToString()));
+                        //take a controling time from the timearray and set into the temprow
+                        rowDtStoring[22] = stringHourMinuteFirstRegistrationInDay[2];    //("Время прихода ЧЧ:ММ",typeof(string)),//22
+
+                        rowDtStoring[18] = decimalLastRegistrationInDay;                 //("Реальное время ухода", typeof(decimal)), //18
+                        stringHourMinuteLastRegistrationInDay = ConvertDecimalTimeToStringHHMMArray(decimalLastRegistrationInDay);
+                        rowDtStoring[16] = stringHourMinuteLastRegistrationInDay[0];     //("Реальное время ухода,часы", typeof(string)),//16
+                        rowDtStoring[17] = stringHourMinuteLastRegistrationInDay[1];     //("Реальное время ухода,минут", typeof(string)),//17
+                        rowDtStoring[25] = stringHourMinuteLastRegistrationInDay[2];     //("Реальное время ухода ЧЧ:ММ", typeof(string)), //25
+
+                        //taking and conversation controling time come out
+                        stringHourMinuteLastRegistrationInDay = ConvertDecimalTimeToStringHHMMArray(TryParseStringToDecimal(rowDtStoring[9].ToString()));
+                        rowDtStoring[23] = stringHourMinuteFirstRegistrationInDay[2];    //("Время ухода ЧЧ:ММ", typeof(string)),//23
+
+                        dataTableForStoring.ImportRow(rowDtStoring);
                     }
-
-                    var sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    //Write found dates with the first time of registration
-                    using (var sqlCommand = new SQLiteCommand("INSERT INTO 'PersonTemp' (FIO, NAV, DateRegistered, HourComming, MinuteComming, Comming, HourControlling, MinuteControlling, Controlling, ServerOfRegistration, Reserv1, Reserv2) " +
-                        "VALUES (@FIO, @NAV, @DateRegistered, @HourComming, @MinuteComming, @Comming, @HourControlling, @MinuteControlling, @Controlling, @ServerOfRegistration, @Reserv1, @Reserv2)", sqlConnection))
-                    {
-                        sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                        sqlCommand1.ExecuteNonQuery();
-
-                        foreach (var rowData in AllDateRegistration.ToArray())
-                        {
-                            var cellData = Regex.Split(rowData, "[|]");
-
-                            sqlCommand.Parameters.Add("@FIO", DbType.String).Value = cellData[0];
-                            sqlCommand.Parameters.Add("@NAV", DbType.String).Value = cellData[1];
-                            //        sqlCommand.Parameters.Add("@iDCard", DbType.String).Value = cellData[2];
-                            sqlCommand.Parameters.Add("@DateRegistered", DbType.String).Value = cellData[3];
-                            sqlCommand.Parameters.Add("@HourComming", DbType.String).Value = cellData[4];
-                            sqlCommand.Parameters.Add("@MinuteComming", DbType.String).Value = cellData[5];
-                            sqlCommand.Parameters.Add("@Comming", DbType.Decimal).Value = Convert.ToDecimal(cellData[6]);
-                            sqlCommand.Parameters.Add("@HourControlling", DbType.String).Value = cellData[7];
-                            sqlCommand.Parameters.Add("@MinuteControlling", DbType.String).Value = cellData[8];
-                            sqlCommand.Parameters.Add("@Controlling", DbType.Decimal).Value = Convert.ToDecimal(cellData[9]);
-                            sqlCommand.Parameters.Add("@ServerOfRegistration", DbType.String).Value = cellData[10];
-                            sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = cellData[11];
-                            sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = cellData[12];
-                            try { sqlCommand.ExecuteNonQuery(); } catch { }
-                        }
-
-                        sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                        sqlCommand1.ExecuteNonQuery();
-                    }
-                    AllDateRegistration.Clear();
-                    sqlCommand1.Dispose();
                 }
+                else
+                {
+                    var allWorkedDaysPerson = dataTableSource.Select("[NAV-код] = '" + personNAV.NAV + "'");
+                    foreach (DataRow dr in allWorkedDaysPerson)
+                    { dataTableForStoring.ImportRow(dr); }
+                }
+
+                if (_CheckboxChecked(checkBoxWeekend))//checkBoxWeekend Checking
+                { DeleteAnualDatesFromDataTables(dataTableForStoring, personNAV); }
+
+                if (_CheckboxChecked(checkBoxStartWorkInTime)) //checkBoxStartWorkInTime Checking
+                { QueryDeleteDataFromDataTable(dataTableForStoring, "[Время регистрации]=" + personNAV.RealInDecimal, personNAV.NAV); }
             }
-
-            if (_CheckboxChecked(checkBoxWeekend))//checkBoxWeekend.Checked
-            {
-                DeleteAnualDates(databasePerson, "PersonTemp");
-
-                DeleteAnualDatesFromDataTables(dataTableForStoring);
-            }
-
-            if (_CheckboxChecked(checkBoxStartWorkInTime)) //checkBoxStartWorkInTime.Checked
-            {
-                DeleteDataTableQueryLess(databasePerson, "PersonTemp", "Comming", dControlHourSelected + (dControlMinuteSelected + 1) / 60 - (1 / 60));
-
-                QueryDeleteDataFromDataTable(dataTableForStoring, "[Время регистрации]=" + personNAV.RealInDecimal);
-                
-            }
+            catch (Exception expt)
+            { MessageBox.Show(expt.ToString()); }
         }
 
         private void DeleteDataTableQueryLess(System.IO.FileInfo databasePerson, string myTable,
@@ -3531,7 +3256,7 @@ namespace mySCA2
         }
         
 
-        private void DeleteAnualDatesFromDataTables(DataTable dt) //Exclude Anual Days from the table "PersonTemp" DB
+        private void DeleteAnualDatesFromDataTables(DataTable dt, Person person ) //Exclude Anual Days from the table "PersonTemp" DB
         {
             var oneDay = TimeSpan.FromDays(1);
 
@@ -3620,7 +3345,7 @@ namespace mySCA2
                 if (myDate.DayOfWeek == DayOfWeek.Saturday || myDate.DayOfWeek == DayOfWeek.Sunday)
                 {
                     singleDate = Regex.Split(myDate.ToString("yyyy-MM-dd"), " ")[0].Trim();
-                    QueryDeleteDataFromDataTable(dt, "[Дата регистрации]='" + singleDate + "'"); // ("Дата регистрации",typeof(string)),//12
+                    QueryDeleteDataFromDataTable(dt, "[Дата регистрации]='" + singleDate + "'", person.NAV); // ("Дата регистрации",typeof(string)),//12
                 }
             }
             foreach (var myAnualDate in myMonthCalendar.AnnuallyBoldedDates)
@@ -3630,19 +3355,19 @@ namespace mySCA2
                     if (myDate == myAnualDate)
                     {
                         singleDate = Regex.Split(myDate.ToString("yyyy-MM-dd"), " ")[0].Trim();
-                        QueryDeleteDataFromDataTable(dt, "[Дата регистрации]='" + singleDate+"'"); // ("Дата регистрации",typeof(string)),//12
+                        QueryDeleteDataFromDataTable(dt, "[Дата регистрации]='" + singleDate+"'", person.NAV); // ("Дата регистрации",typeof(string)),//12
                     }
                 }
             }
         }
 
-        private void QueryDeleteDataFromDataTable(DataTable dt, string queryFull, string queryOnlyNAVcode = "") //Delete data from the Table of the DB by NAV (both parameters are string)
+        private void QueryDeleteDataFromDataTable(DataTable dt, string queryFull, string NAVcode) //Delete data from the Table of the DB by NAV (both parameters are string)
         {
             try
             {
-                if (queryFull.Length > 0 && queryOnlyNAVcode.Length > 0)
+                if (queryFull.Length > 0 && NAVcode.Length > 0)
                 {
-                    var rows = dt.Select(queryFull + " AND [NAV-код]='" + queryOnlyNAVcode + "'");
+                    var rows = dt.Select(queryFull + " AND [NAV-код]='" + NAVcode + "'");
                     foreach (var row in rows)
                     { row.Delete(); }
                     dt.AcceptChanges();
@@ -3654,35 +3379,11 @@ namespace mySCA2
                     { row.Delete(); }
                     dt.AcceptChanges();
                 }
-            }catch(Exception expt) { MessageBox.Show(expt.ToString()); }
-
-            // добавить ссылку в проект на System.Data.DataSetExtensions
-            /*var results = from myRow in dt.AsEnumerable()
-             where myRow.Field<int>("RowNo") == 1
-             select myRow;
-            DataTable dataresult = results.CopyToDataTable();*/
-
-
-            //var rows = dt.Select("col1 > 5");
-            //foreach (var row in rows)
-            //    {row.Delete();}
-            //DataView dv = ft.DefaultView;
-            //dv.Sort = "occr desc";
-            //DataTable sortedDT = dv.ToTable();
-            //
-            //dataTable.DefaultView.Sort = "Col1, Col2, Col3"
-            //
-            //DataRow[] foundRows=table.Select("Date = '1/31/1979' or OrderID = 2", "CompanyName ASC");
-            //DataTable dt = foundRows.CopyToDataTable();
-            //
-            //DataRow[] dataRows = table.Select().OrderBy(u => u["EmailId"]).ToArray();
-            //
-            //DataTable dt = new DataTable();         
-            //dt.DefaultView.Sort = "Column_name desc";
-            //dt = dt.DefaultView.ToTable();
+            }
+            catch (Exception expt)
+            { MessageBox.Show(expt.ToString()); }
         }
-
-
+        
         private void ClearReportItem_Click(object sender, EventArgs e) //ReCreatePersonTables()
         { ReCreatePersonTables(); }
 
@@ -5017,7 +4718,7 @@ namespace mySCA2
 
         private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (dataGridView1.Rows.Count > 0 && dataGridView1.CurrentRow.Index < dataGridView1.Rows.Count)
+             if (dataGridView1.Rows.Count > 0 && dataGridView1.CurrentRow.Index < dataGridView1.Rows.Count)
                 try
                 {
                     int IndexCurrentRow = _dataGridView1CurrentRowIndex();
@@ -5070,11 +4771,11 @@ namespace mySCA2
                                 if (dataGridView1.Columns[i].HeaderText.Trim() == "NAV-код" ||
                                         dataGridView1.Columns[i].HeaderText.Trim() == "NAV")
                                     IndexColumn2 = i;
-                                if (dataGridView1.Columns[i].HeaderText.Trim() == "Контрольное время, часы" ||
-                                        dataGridView1.Columns[i].HeaderText.Trim() == "HourControlling")
+                                if (dataGridView1.Columns[i].HeaderText.Trim() == "Контрольное время" ||
+                                        dataGridView1.Columns[i].HeaderText.Trim() == "ControllingHHMM")
                                     IndexColumn3 = i;
-                                if (dataGridView1.Columns[i].HeaderText.Trim() == "Контрольное время, минуты" ||
-                                        dataGridView1.Columns[i].HeaderText.Trim() == "MinuteControlling")
+                                if (dataGridView1.Columns[i].HeaderText.Trim() == "Уход с работы" ||
+                                        dataGridView1.Columns[i].HeaderText.Trim() == "ControllingOUTHHMM")
                                     IndexColumn4 = i;
                             }
 
@@ -5082,8 +4783,10 @@ namespace mySCA2
                             textBoxNav.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString(); //Take the name of selected group
                             StatusLabel2.Text = @"Выбрана группа: " + textBoxGroup.Text + @" | Курсор на: " + textBoxFIO.Text;
                             groupBoxPeriod.BackColor = Color.PaleGreen;
-                            numUpDownHour.Value = Convert.ToInt32(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn3].Value.ToString());
-                            numUpDownMinute.Value = Convert.ToInt32(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn4].Value.ToString());
+                            decimal[] timeIn = ConvertStringTimeHHMMToDecimalArray(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn3].Value.ToString());
+
+                            numUpDownHour.Value = timeIn[0];
+                            numUpDownMinute.Value = timeIn[1];
                             if (textBoxFIO.TextLength > 3)
                             {
                                 comboBoxFio.SelectedIndex = comboBoxFio.FindString(textBoxFIO.Text);
@@ -5117,8 +4820,8 @@ namespace mySCA2
                                 }
                             }
 
-                            textBoxNav.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString(); //Take the name of selected group
                             textBoxFIO.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
+                            textBoxNav.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString(); //Take the name of selected group
                             StatusLabel2.Text = @"Выбран: " + textBoxFIO.Text + @" |  Всего ФИО: " + iFIO;
                             groupBoxPeriod.BackColor = Color.PaleGreen;
                             groupBoxTime.BackColor = Color.PaleGreen;
@@ -5129,7 +4832,6 @@ namespace mySCA2
                             {
                                 comboBoxFio.SelectedIndex = comboBoxFio.FindString(textBoxFIO.Text);
                             }
-                            //                    nameOfLastTableFromDB = "PersonRegistered";
                         }
                     }
                 }
@@ -5141,43 +4843,55 @@ namespace mySCA2
 
         private void dataGridView1_DoubleClick(object sender, EventArgs e)
         {
-            if (dataGridView1.Rows.Count > 0 && dataGridView1.CurrentRow.Index < dataGridView1.Rows.Count)
+            try
             {
-                if (nameOfLastTableFromDB == "PersonGroupDesciption")
+                if (dataGridView1.Rows.Count > 0 && dataGridView1.CurrentRow.Index < dataGridView1.Rows.Count)
                 {
-                    bErrorData = false;
-                    MembersGroup();
-                }
-                else if (nameOfLastTableFromDB == "PersonGroup")
-                {
-                    int IndexColumn1 = -1;
-                    int IndexColumn2 = -1;
-                    for (int i = 0; i < dataGridView1.ColumnCount; i++)
+                    if (nameOfLastTableFromDB == "PersonGroupDesciption")
                     {
-                        if (dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время, часы")
-                            IndexColumn1 = i;
-                        else if (dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время, минуты")
-                            IndexColumn2 = i;
+                        bErrorData = false;
+                        MembersOfGroup(textBoxGroup.Text.Trim());
                     }
-                    if (IndexColumn1 > -1 || IndexColumn2 > -1)
-                        UpdateControllingItem.Visible = true;
-                    else
-                        UpdateControllingItem.Visible = false;
+                    else if (nameOfLastTableFromDB == "PersonGroup")
+                    {
+                        int IndexColumn1 = -1;
+                        int IndexColumn2 = -1;
+                        for (int i = 0; i < dataGridView1.ColumnCount; i++)
+                        {
+                            if (dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время")
+                                IndexColumn1 = i;
+                            else if (dataGridView1.Columns[i].HeaderText.ToString() == "Уход с работы")
+                                IndexColumn2 = i;
+                        }
+                        if (IndexColumn1 > -1 || IndexColumn2 > -1)
+                            UpdateControllingItem.Visible = true;
+                        else
+                            UpdateControllingItem.Visible = false;
+                    }
                 }
-            }
+            }catch(Exception expt) { MessageBox.Show(expt.ToString()); }
         }
 
         private void UpdateControllingItem_Click(object sender, EventArgs e)
         {
+            string fio = "";
+            string nav = "";
+            string[] timeIn = { "09", "00", "09:00" };
+            string[] timeOut = { "18", "00", "18:00" };
+            decimal[] timeInDecimal = { 9, 0, 09 };
+            decimal[] timeOutDecimal = { 18, 0, 18 };
+            string group = "";
+
             if (nameOfLastTableFromDB == "PersonGroup")
             {
                 int IndexCurrentRow = _dataGridView1CurrentRowIndex();
+                int IndexCurrentCollumn = _dataGridView1CurrentCollumnIndex();
 
                 int IndexColumn1 = -1;
                 int IndexColumn2 = -1;
-                int IndexColumn3 = -1;
-                int IndexColumn4 = -1;
                 int IndexColumn5 = -1;
+                int IndexColumn6 = -1;
+                int IndexColumn7 = -1;
 
                 for (int i = 0; i < dataGridView1.ColumnCount; i++)
                 {
@@ -5185,103 +4899,232 @@ namespace mySCA2
                         IndexColumn1 = i;
                     else if (dataGridView1.Columns[i].HeaderText.ToString() == "NAV-код")
                         IndexColumn2 = i;
-                    else if (dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время, часы")
-                        IndexColumn3 = i;
-                    else if (dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время, минуты")
-                        IndexColumn4 = i;
                     else if (dataGridView1.Columns[i].HeaderText.ToString() == "Группа")
                         IndexColumn5 = i;
+                    else if (dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время")
+                        IndexColumn6 = i;
+                    else if (dataGridView1.Columns[i].HeaderText.ToString() == "Уход с работы")
+                        IndexColumn7 = i;
                 }
+                
+                fio =dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
+                textBoxFIO.Text = fio;
 
-                textBoxFIO.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
-                textBoxNav.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString(); //Take the name of selected group
-                textBoxGroup.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn5].Value.ToString(); //Take the name of selected group
+                nav =dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString();
+                textBoxNav.Text = nav; //Take the name of selected group
 
-                decimal hourControlStart = Convert.ToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn3].Value.ToString());
-                decimal minuteControlStart = Convert.ToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn4].Value.ToString());
-                decimal controlStartHours = hourControlStart + (minuteControlStart + 1) / 60 - (1 / 60);
-                MessageBox.Show(hourControlStart + "\n" + minuteControlStart + "\n" + textBoxFIO + "\n" + numUpDownHour.Value + "\n" + numUpDownMinute.Value);
+                group =dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn5].Value.ToString();
+                textBoxGroup.Text = group; //Take the name of selected group
+
+                timeIn = ConvertDecimalTimeToStringHHMMArray(ConvertStringTimeHHMMToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn6].Value.ToString()));
+                timeInDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringTimeToStringHHMM(timeIn[0], timeIn[1]));
+
+                timeOut = ConvertDecimalTimeToStringHHMMArray(ConvertStringTimeHHMMToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn7].Value.ToString()));
+                timeInDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringTimeToStringHHMM(timeOut[0], timeOut[1]));
 
                 using (var connection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
                     connection.Open();
-                    using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PersonGroup' (FIO, NAV, GroupPerson, HourControlling, MinuteControlling, Controlling) " +
-                                            "VALUES (@FIO, @NAV, @GroupPerson, @HourControlling, @MinuteControlling, @Controlling)", connection))
+
+                    using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PersonGroup' (FIO, NAV, GroupPerson, HourControlling, MinuteControlling, Controlling, HourControllingOut, MinuteControllingOut, ControllingOut, ControllingHHMM, ControllingOUTHHMM) " +
+                                                "VALUES (@FIO, @NAV, @GroupPerson, @HourControlling, @MinuteControlling, @Controlling, @HourControllingOut, @MinuteControllingOut, @ControllingOut, @ControllingHHMM, @ControllingOUTHHMM)", connection))
                     {
-                        command.Parameters.Add("@FIO", DbType.String).Value = textBoxFIO.Text;
-                        command.Parameters.Add("@NAV", DbType.String).Value = textBoxNav.Text;
-                        command.Parameters.Add("@GroupPerson", DbType.String).Value = textBoxGroup.Text;
-                        command.Parameters.Add("@HourControlling", DbType.String).Value = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn3].Value.ToString();
-                        command.Parameters.Add("@MinuteControlling", DbType.String).Value = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn4].Value.ToString();
-                        command.Parameters.Add("@Controlling", DbType.Decimal).Value = controlStartHours;
+                        command.Parameters.Add("@FIO", DbType.String).Value = fio;
+                        command.Parameters.Add("@NAV", DbType.String).Value = nav;
+                        command.Parameters.Add("@GroupPerson", DbType.String).Value = group;
+                        command.Parameters.Add("@HourControlling", DbType.String).Value = timeIn[0];
+                        command.Parameters.Add("@MinuteControlling", DbType.String).Value = timeIn[1];
+                        command.Parameters.Add("@Controlling", DbType.Decimal).Value = timeInDecimal[2];
+
+                        command.Parameters.Add("@HourControllingOut", DbType.String).Value = timeOut[0];
+                        command.Parameters.Add("@MinuteControllingOut", DbType.String).Value = timeOut[1];
+                        command.Parameters.Add("@ControllingOut", DbType.Decimal).Value = timeOutDecimal[2];
+
+                        command.Parameters.Add("@ControllingHHMM", DbType.String).Value = timeIn[2];
+                        command.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = timeOut[2];
                         try { command.ExecuteNonQuery(); } catch { }
                     }
                 }
 
-                ShowDataTableQuery(databasePerson, "PersonGroup",
-                  "SELECT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', GroupPerson AS 'Группа'," +
-                  " HourControlling AS 'Контрольное время, часы', MinuteControlling AS 'Контрольное время, минуты' ",
-                  " Where GroupPerson like '" + textBoxGroup.Text + "' ORDER BY FIO");
-                StatusLabel2.Text = @"Обновлены данные " + textBoxFIO.Text + " в группе: " + textBoxGroup.Text;
+                  ShowDataTableQuery(databasePerson, "PersonGroup",
+                  "SELECT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', GroupPerson AS 'Группа', " +
+                  "ControllingHHMM AS 'Контрольное время', ControllingOUTHHMM AS 'Уход с работы' ",
+                  "Where GroupPerson like '" + group + "' ORDER BY FIO ");
+
+                StatusLabel2.Text = @"Обновлены данные " + fio + " в группе: " + group;
             }
-            //UpdateControllingItem.Visible = false;
+            UpdateControllingItem.Visible = false;
         }
 
         private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            if (nameOfLastTableFromDB == "PersonGroup")
+            try
             {
-                int IndexCurrentRow = _dataGridView1CurrentRowIndex();
+                string fio = "";
+                string nav = "";
+                string[] timeIn = { "09", "00", "09:00" };
+                string[] timeOut = { "18", "00", "18:00" };
+                decimal[] timeInDecimal = { 9, 0, 09 };
+                decimal[] timeOutDecimal = { 18, 0, 18 };
+                string group = "";
 
-                int IndexColumn1 = -1;
-                int IndexColumn2 = -1;
-                int IndexColumn3 = -1;
-                int IndexColumn4 = -1;
-                int IndexColumn5 = -1;
-
-                for (int i = 0; i < dataGridView1.ColumnCount; i++)
+                if (nameOfLastTableFromDB == "PersonGroup")
                 {
-                    if (dataGridView1.Columns[i].HeaderText.ToString() == "Фамилия Имя Отчество")
-                        IndexColumn1 = i;
-                    else if (dataGridView1.Columns[i].HeaderText.ToString() == "NAV-код")
-                        IndexColumn2 = i;
-                    else if (dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время, часы")
-                        IndexColumn3 = i;
-                    else if (dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время, минуты")
-                        IndexColumn4 = i;
-                    else if (dataGridView1.Columns[i].HeaderText.ToString() == "Группа")
-                        IndexColumn5 = i;
-                }
+                    int IndexCurrentRow = _dataGridView1CurrentRowIndex();
+                    int IndexCurrentCollumn = _dataGridView1CurrentCollumnIndex();
 
-                textBoxFIO.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
-                textBoxNav.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString(); //Take the name of selected group
-                textBoxGroup.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn5].Value.ToString(); //Take the name of selected group
+                    int IndexColumn1 = -1;
+                    int IndexColumn2 = -1;
+                    int IndexColumn5 = -1;
+                    int IndexColumn6 = -1;
+                    int IndexColumn7 = -1;
 
-                decimal hourControlStart = Convert.ToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn3].Value.ToString());
-                decimal minuteControlStart = Convert.ToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn4].Value.ToString());
-                decimal controlStartHours = hourControlStart + (minuteControlStart + 1) / 60 - (1 / 60);
-
-                using (var connection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
-                {
-                    connection.Open();
-                    using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PersonGroup' (FIO, NAV, GroupPerson, HourControlling, MinuteControlling, Controlling) " +
-                                            "VALUES (@FIO, @NAV, @GroupPerson, @HourControlling, @MinuteControlling, @Controlling)", connection))
+                    for (int i = 0; i < dataGridView1.ColumnCount; i++)
                     {
-                        command.Parameters.Add("@FIO", DbType.String).Value = textBoxFIO.Text;
-                        command.Parameters.Add("@NAV", DbType.String).Value = textBoxNav.Text;
-                        command.Parameters.Add("@GroupPerson", DbType.String).Value = textBoxGroup.Text;
-                        command.Parameters.Add("@HourControlling", DbType.String).Value = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn3].Value.ToString();
-                        command.Parameters.Add("@MinuteControlling", DbType.String).Value = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn4].Value.ToString();
-                        command.Parameters.Add("@Controlling", DbType.Decimal).Value = controlStartHours;
-                        try { command.ExecuteNonQuery(); } catch { }
+                        if (dataGridView1.Columns[i].HeaderText.ToString() == "Фамилия Имя Отчество")
+                            IndexColumn1 = i;
+                        else if (dataGridView1.Columns[i].HeaderText.ToString() == "NAV-код")
+                            IndexColumn2 = i;
+                        else if (dataGridView1.Columns[i].HeaderText.ToString() == "Группа")
+                            IndexColumn5 = i;
+                        else if (dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время")
+                            IndexColumn6 = i;
+                        else if (dataGridView1.Columns[i].HeaderText.ToString() == "Уход с работы")
+                            IndexColumn7 = i;
+                    }
+
+                    fio = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
+                    textBoxFIO.Text = fio;
+
+                    nav = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString();
+                    textBoxNav.Text = nav; //Take the name of selected group
+
+                    group = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn5].Value.ToString();
+                    textBoxGroup.Text = group; //Take the name of selected group
+
+                    timeIn = ConvertDecimalTimeToStringHHMMArray(ConvertStringTimeHHMMToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn6].Value.ToString()));
+                    timeInDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringTimeToStringHHMM(timeIn[0], timeIn[1]));
+
+                    timeOut = ConvertDecimalTimeToStringHHMMArray(ConvertStringTimeHHMMToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn7].Value.ToString()));
+                    timeInDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringTimeToStringHHMM(timeOut[0], timeOut[1]));
+
+                    using (var connection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+                    {
+                        connection.Open();
+
+                        using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PersonGroup' (FIO, NAV, GroupPerson, HourControlling, MinuteControlling, Controlling, HourControllingOut, MinuteControllingOut, ControllingOut, ControllingHHMM, ControllingOUTHHMM) " +
+                                                    "VALUES (@FIO, @NAV, @GroupPerson, @HourControlling, @MinuteControlling, @Controlling, @HourControllingOut, @MinuteControllingOut, @ControllingOut, @ControllingHHMM, @ControllingOUTHHMM)", connection))
+                        {
+                            command.Parameters.Add("@FIO", DbType.String).Value = fio;
+                            command.Parameters.Add("@NAV", DbType.String).Value = nav;
+                            command.Parameters.Add("@GroupPerson", DbType.String).Value = group;
+                            command.Parameters.Add("@HourControlling", DbType.String).Value = timeIn[0];
+                            command.Parameters.Add("@MinuteControlling", DbType.String).Value = timeIn[1];
+                            command.Parameters.Add("@Controlling", DbType.Decimal).Value = timeInDecimal[2];
+
+                            command.Parameters.Add("@HourControllingOut", DbType.String).Value = timeOut[0];
+                            command.Parameters.Add("@MinuteControllingOut", DbType.String).Value = timeOut[1];
+                            command.Parameters.Add("@ControllingOut", DbType.Decimal).Value = timeOutDecimal[2];
+
+                            command.Parameters.Add("@ControllingHHMM", DbType.String).Value = timeIn[2];
+                            command.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = timeOut[2];
+                            try { command.ExecuteNonQuery(); } catch { }
+                        }
+                    }
+
+                    ShowDataTableQuery(databasePerson, "PersonGroup",
+                    "SELECT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', GroupPerson AS 'Группа', " +
+                    "ControllingHHMM AS 'Контрольное время', ControllingOUTHHMM AS 'Уход с работы' ",
+                    "Where GroupPerson like '" + textBoxGroup.Text + "' ORDER BY FIO ");
+
+                    StatusLabel2.Text = @"Обновлено время прихода " + ShortFIO(textBoxFIO.Text) + " в группе: " + textBoxGroup.Text;
+                }
+            }
+            catch
+            {
+                try
+                {
+                    string fio = "";
+                    string nav = "";
+                    string[] timeIn = { "09", "00", "09:00" };
+                    string[] timeOut = { "18", "00", "18:00" };
+                    decimal[] timeInDecimal = { 9, 0, 09 };
+                    decimal[] timeOutDecimal = { 18, 0, 18 };
+                    string group = "";
+
+                    if (nameOfLastTableFromDB == "PersonGroup")
+                    {
+                        int IndexCurrentRow = _dataGridView1CurrentRowIndex();
+                        int IndexCurrentCollumn = _dataGridView1CurrentCollumnIndex();
+
+                        int IndexColumn1 = -1;
+                        int IndexColumn2 = -1;
+                        int IndexColumn5 = -1;
+                        int IndexColumn6 = -1;
+                        int IndexColumn7 = -1;
+
+                        for (int i = 0; i < dataGridView1.ColumnCount; i++)
+                        {
+                            if (dataGridView1.Columns[i].HeaderText.ToString() == "Фамилия Имя Отчество")
+                                IndexColumn1 = i;
+                            else if (dataGridView1.Columns[i].HeaderText.ToString() == "NAV-код")
+                                IndexColumn2 = i;
+                            else if (dataGridView1.Columns[i].HeaderText.ToString() == "Группа")
+                                IndexColumn5 = i;
+                            else if (dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время")
+                                IndexColumn6 = i;
+                            else if (dataGridView1.Columns[i].HeaderText.ToString() == "Уход с работы")
+                                IndexColumn7 = i;
+                        }
+
+                        fio = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
+                        textBoxFIO.Text = fio;
+
+                        nav = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString();
+                        textBoxNav.Text = nav; //Take the name of selected group
+
+                        group = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn5].Value.ToString();
+                        textBoxGroup.Text = group; //Take the name of selected group
+
+                        timeIn = ConvertDecimalTimeToStringHHMMArray(ConvertStringTimeHHMMToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn6].Value.ToString()));
+                        timeInDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringTimeToStringHHMM(timeIn[0], timeIn[1]));
+
+                        timeOut = ConvertDecimalTimeToStringHHMMArray(ConvertStringTimeHHMMToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn7].Value.ToString()));
+                        timeInDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringTimeToStringHHMM(timeOut[0], timeOut[1]));
+
+                        using (var connection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+                        {
+                            connection.Open();
+
+                            using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PersonGroup' (FIO, NAV, GroupPerson, HourControlling, MinuteControlling, Controlling, HourControllingOut, MinuteControllingOut, ControllingOut, ControllingHHMM, ControllingOUTHHMM) " +
+                                                        "VALUES (@FIO, @NAV, @GroupPerson, @HourControlling, @MinuteControlling, @Controlling, @HourControllingOut, @MinuteControllingOut, @ControllingOut, @ControllingHHMM, @ControllingOUTHHMM)", connection))
+                            {
+                                command.Parameters.Add("@FIO", DbType.String).Value = fio;
+                                command.Parameters.Add("@NAV", DbType.String).Value = nav;
+                                command.Parameters.Add("@GroupPerson", DbType.String).Value = group;
+                                command.Parameters.Add("@HourControlling", DbType.String).Value = timeIn[0];
+                                command.Parameters.Add("@MinuteControlling", DbType.String).Value = timeIn[1];
+                                command.Parameters.Add("@Controlling", DbType.Decimal).Value = timeInDecimal[2];
+
+                                command.Parameters.Add("@HourControllingOut", DbType.String).Value = timeOut[0];
+                                command.Parameters.Add("@MinuteControllingOut", DbType.String).Value = timeOut[1];
+                                command.Parameters.Add("@ControllingOut", DbType.Decimal).Value = timeOutDecimal[2];
+
+                                command.Parameters.Add("@ControllingHHMM", DbType.String).Value = timeIn[2];
+                                command.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = timeOut[2];
+                                try { command.ExecuteNonQuery(); } catch { }
+                            }
+                        }
+
+                        ShowDataTableQuery(databasePerson, "PersonGroup",
+                        "SELECT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', GroupPerson AS 'Группа', " +
+                        "ControllingHHMM AS 'Контрольное время', ControllingOUTHHMM AS 'Уход с работы' ",
+                        "Where GroupPerson like '" + textBoxGroup.Text + "' ORDER BY FIO ");
+
+                        StatusLabel2.Text = @"Обновлено время прихода " + ShortFIO(textBoxFIO.Text) + " в группе: " + textBoxGroup.Text;
                     }
                 }
-
-                ShowDataTableQuery(databasePerson, "PersonGroup",
-                  "SELECT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', GroupPerson AS 'Группа'," +
-                  " HourControlling AS 'Контрольное время, часы', MinuteControlling AS 'Контрольное время, минуты' ",
-                  " Where GroupPerson like '" + textBoxGroup.Text + "' ORDER BY FIO");
-                StatusLabel2.Text = @"Обновлено время прихода " + ShortFIO(textBoxFIO.Text) + " в группе: " + textBoxGroup.Text;
+                catch { }
             }
         }
 
@@ -5290,22 +5133,40 @@ namespace mySCA2
         {
             if (nameOfLastTableFromDB == "PersonGroup")
             {
-                DataGridViewCell cell;
-                if ((e.ColumnIndex == this.dataGridView1.Columns["Контрольное время, часы"].Index) && e.Value != null)
+                try
                 {
-                    cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
-                    cell.ToolTipText = "Для установки нового значения нажмите F2,\nвнесите новое значение,\nа затем нажмите Enter";
+                    DataGridViewCell cell;
+                    if ((e.ColumnIndex == this.dataGridView1.Columns["Фамилия Имя Отчество"].Index) && e.Value != null)
+                    {
+                        cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                        cell.ToolTipText = cell.Value.ToString();
+                    }
+                    else if ((e.ColumnIndex == this.dataGridView1.Columns["NAV-код"].Index) && e.Value != null)
+                    {
+                        cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                        cell.ToolTipText = cell.Value.ToString();
+                    }
+                    else if ((e.ColumnIndex == this.dataGridView1.Columns["Контрольное время"].Index) && e.Value != null)
+                    {
+                        cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                        cell.ToolTipText = "Для установки нового значения нажмите F2,\nвнесите новое значение,\nа затем нажмите Enter";
+                    }
+                    else if ((e.ColumnIndex == this.dataGridView1.Columns["Уход с работы"].Index) && e.Value != null)
+                    {
+                        cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                        cell.ToolTipText = "Для установки нового значения нажмите F2,\nвнесите новое значение,\nа затем нажмите Enter";
+                    }
+                    else
+                    {
+                        try
+                        {
+                            cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                            cell.ToolTipText = cell.Value.ToString();
+                        }
+                        catch { }
+                    }
                 }
-                else if ((e.ColumnIndex == this.dataGridView1.Columns["Контрольное время, минуты"].Index) && e.Value != null)
-                {
-                    cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
-                    cell.ToolTipText = "Для установки нового значения нажмите F2,\nвнесите новое значение,\nа затем нажмите Enter";
-                }
-                else
-                {
-                    cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
-                    cell.ToolTipText = cell.Value.ToString();
-                }
+                catch { }
             }
         }
 
