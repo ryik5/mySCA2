@@ -3056,55 +3056,116 @@ namespace mySCA2
         //DataTable dt = new DataTable();         
         //dt.DefaultView.Sort = "Column_name desc";
         //dt = dt.DefaultView.ToTable();
-        
+
+        private string[] DecimalTimeToStringArray(decimal decimalTime)
+        {
+            string[] result = new string[2];
+            int hour=(int)(decimalTime);
+            int minute =Convert.ToInt32( 60*(decimalTime-hour));
+            result[0] = hour.ToString();
+            result[1] = minute.ToString();
+            return result;
+        }
+
+        private decimal stringsToDecimalTime(string stringHour, string stringMinute)
+        {
+            decimal result = TryParseStringToDecimal(stringHour) + (TryParseStringToDecimal(stringMinute) + 1) / 60 - (1 / 60);
+            return result;
+        }
+
+        //dataRow[6] = TryParseStringToDecimal(d3) + (TryParseStringToDecimal(d4) + 1) / 60 - (1 / 60);
+
 
         private void FilterDataByNav(Person personNAV,DataTable dataTableSource ,DataTable dataTableForStoring)    //Copy Data from PersonRegistered into PersonTemp by Filter(NAV and anual dates or minimalTime or dayoff)
         {
             DataRow rowStoring;
-            DataTable tempCollector = new DataTable();
-            tempCollector = dtPeople.Clone();
-            HashSet<string> hsDates = new HashSet<string>();
+            DataTable tempCollector =  dtPeople.Clone();
+
+            HashSet<string> hsDays = new HashSet<string>();
+            DataTable FirstTimeRow = dtPeople.Clone(); //select first by pass
+            DataTable LastTimeRow = dtPeople.Clone(); //select last by pass
+
+            decimal decimalFirstRegistrationInDay;
+            string[] stringHourMinuteFirstRegistrationInDay = new  string[2];
+            decimal decimalLastRegistrationInDay;
+            string[] stringHourMinuteLastRegistrationInDay = new string[2];
 
 
-            string prevDate = "";
-            decimal prevTime = 0;
-      
-            string currentDate = "";
-            decimal currentTime = 0;
+            DataRow tempRow;
 
             if (_CheckboxChecked(checkBoxReEnter)) //checkBoxReEnter.Checked
             {
-                var tempRows =dataTableSource.Select("[NAV-код] = '" + personNAV.NAV + "'");
-                 tempCollector = tempRows.CopyToDataTable();
+                var allWorkedDaysPerson =dataTableSource.Select("[NAV-код] = '" + personNAV.NAV + "'");
+                 
+                //tempCollector = tempRows.CopyToDataTable();
 
-                foreach (DataRow dataRowDate in tempRows)
+                foreach (DataRow dataRowDate in allWorkedDaysPerson)
                 {
-                    hsDates.Add(dataRowDate[12].ToString()); //make list of dates
+                    hsDays.Add(dataRowDate[12].ToString()); //make the list of worked days
                 }
 
-                var FirstTimeRow = tempCollector.Select("[Время регистрации] = MIN([Время регистрации])"); //select first by pass
-                var LastTimeRow = tempCollector.Select("[Время регистрации] = MAX([Время регистрации])"); //select last by pass
+                foreach (var workedDay in hsDays.ToArray()) 
+                {
+                    MessageBox.Show(workedDay);//test caught days
+
+                    FirstTimeRow = dataTableSource.Select("[Дата регистрации] = '" + workedDay + "'").CopyToDataTable();
+                    decimalFirstRegistrationInDay = Convert.ToDecimal(FirstTimeRow.Compute("MIN([Время регистрации])", string.Empty));
+                    decimalLastRegistrationInDay = Convert.ToDecimal(FirstTimeRow.Compute("MAX([Время регистрации])", string.Empty));
+
+                    tempRow = FirstTimeRow.Select("[Дата регистрации] = '" + workedDay + "'").First();
+                    tempRow[12] = decimalFirstRegistrationInDay;
+                    stringHourMinuteFirstRegistrationInDay = DecimalTimeToStringArray(decimalFirstRegistrationInDay);
+                    tempRow[13] = stringHourMinuteFirstRegistrationInDay[0];
+                    tempRow[14] = stringHourMinuteFirstRegistrationInDay[1];
+
+                    tempRow[18] = decimalLastRegistrationInDay;
+                    stringHourMinuteLastRegistrationInDay = DecimalTimeToStringArray(decimalLastRegistrationInDay);
+                    tempRow[16] = stringHourMinuteLastRegistrationInDay[0];
+                    tempRow[17] = stringHourMinuteLastRegistrationInDay[1];
+                    dataTableForStoring.ImportRow(tempRow);
+                }
+
+                //new DataColumn("Время прихода", typeof(decimal)),//6
+                //new DataColumn("Время ухода", typeof(decimal)),//9
+                //new DataColumn("Дата регистрации", typeof(string)),//12
+                //new DataColumn("Время регистрации,часы",typeof(string)),//13
+                //new DataColumn("Время регистрации,минут", typeof(string)),//14
+                //new DataColumn("Время регистрации", typeof(decimal)), //15
+                //new DataColumn("Реальное время ухода,часы", typeof(string)),//16
+                //new DataColumn("Реальное время ухода,минут", typeof(string)),//17
+                //new DataColumn("Реальное время ухода", typeof(decimal)), //18
+                //new DataColumn("Направление прохода", typeof(string)), //21
+
+                //var FirstTimeRow = tempCollector.Select("[Время регистрации] = MIN([Время регистрации])"); //select first by pass
+                //var LastTimeRow = tempCollector.Select("[Время регистрации] = MAX([Время регистрации])"); //select last by pass
+                int minTimeLevel = int.MaxValue;
+                int maxTimeLevel = int.MinValue;
+                foreach (DataRow dr in dataTableSource.Rows)
+                {
+                    int accountLevel = dr.Field<int>("Время регистрации");
+                    minTimeLevel = Math.Min(minTimeLevel, accountLevel);
+                    maxTimeLevel = Math.Max(maxTimeLevel, accountLevel);
+                }
+                //or
+                int minLevel = Convert.ToInt32(dataTableSource.Compute("min([Время регистрации])", string.Empty));
+                //or
+                List<int> levels = dataTableSource.AsEnumerable().Select(al => al.Field<int>("Время регистрации")).Distinct().ToList();
+                int min = levels.Min();
+                int max = levels.Max();
 
                 /*
                 foreach(DataRow dataRow in tempCollector.Rows)
                 {
                     if(TryParseStringToDecimal(dataRow[15].ToString())==)
                 }*/
-                foreach (DataRow dr in FirstTimeRow) {
+                /*foreach (DataRow dr in FirstTimeRow) {
                     MessageBox.Show("MIN:\n"+dr[12].ToString()+"\n"+ dr[15].ToString());
                 }
                 foreach (DataRow dr in LastTimeRow)
                 {
                     MessageBox.Show("MAX:\n" + dr[12].ToString() + "\n" + dr[15].ToString());
-                }
-
-
-                //new DataColumn("Время прихода", typeof(decimal)),//6
-                //new DataColumn("Время ухода", typeof(decimal)),//9
-                //new DataColumn("Дата регистрации", typeof(string)),//12
-                //new DataColumn("Время регистрации", typeof(decimal)), //15
-                //new DataColumn("Реальное время ухода", typeof(decimal)), //18
-                //new DataColumn("Направление прохода", typeof(string)), //21
+                }*/
+                
 
 
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
