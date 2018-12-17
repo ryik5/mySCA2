@@ -5427,11 +5427,14 @@ namespace mySCA2
         public string RealWorkedDayHoursHHMM = "09:00";
         public string RealDate = "";
 
+        public bool Late = false;
+        public bool Early = false;
+
         public string serverSKD = "";
         public string namePassPoint = "";
         public string directionPass = "";
-
     }
+
 
     public class EncryptDecrypt
     {
