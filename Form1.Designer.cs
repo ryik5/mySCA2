@@ -29,17 +29,17 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormPersonViewerSCA));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.comboBoxFio = new System.Windows.Forms.ComboBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.numUpDownHour = new System.Windows.Forms.NumericUpDown();
-            this.numUpDownMinute = new System.Windows.Forms.NumericUpDown();
+            this.numUpDownHourStart = new System.Windows.Forms.NumericUpDown();
+            this.numUpDownMinuteStart = new System.Windows.Forms.NumericUpDown();
             this.groupBoxRemoveDays = new System.Windows.Forms.GroupBox();
             this.checkBoxReEnter = new System.Windows.Forms.CheckBox();
-            this.checkBoxStartWorkInTime = new System.Windows.Forms.CheckBox();
+            this.checkBoxStartInTime = new System.Windows.Forms.CheckBox();
             this.checkBoxCelebrate = new System.Windows.Forms.CheckBox();
             this.checkBoxWeekend = new System.Windows.Forms.CheckBox();
             this.statusStrip = new System.Windows.Forms.StatusStrip();
@@ -56,6 +56,8 @@
             this.groupBoxPeriod = new System.Windows.Forms.GroupBox();
             this.labelInfoStart = new System.Windows.Forms.Label();
             this.labelInfoEnd = new System.Windows.Forms.Label();
+            this.numUpDownHourEnd = new System.Windows.Forms.NumericUpDown();
+            this.numUpDownMinuteEnd = new System.Windows.Forms.NumericUpDown();
             this.menuStrip = new System.Windows.Forms.MenuStrip();
             this.FunctionMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.GetFioItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -100,9 +102,9 @@
             this.HelpSystemItem = new System.Windows.Forms.ToolStripMenuItem();
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.labelHour = new System.Windows.Forms.Label();
-            this.labelMinute = new System.Windows.Forms.Label();
-            this.groupBoxTime = new System.Windows.Forms.GroupBox();
+            this.labelHourStart = new System.Windows.Forms.Label();
+            this.labelMinuteStart = new System.Windows.Forms.Label();
+            this.groupBoxTimeStart = new System.Windows.Forms.GroupBox();
             this.monthCalendar = new System.Windows.Forms.MonthCalendar();
             this.labelGroup = new System.Windows.Forms.Label();
             this.panelView = new System.Windows.Forms.Panel();
@@ -110,35 +112,41 @@
             this.btnPropertiesSaveInRegistry = new System.Windows.Forms.Button();
             this.buttonPropertiesCancel = new System.Windows.Forms.Button();
             this.btnPropertiesSaveInDB = new System.Windows.Forms.Button();
+            this.groupBoxTimeEnd = new System.Windows.Forms.GroupBox();
+            this.labelHourEnd = new System.Windows.Forms.Label();
+            this.labelMinuteEnd = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numUpDownHour)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numUpDownMinute)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numUpDownHourStart)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numUpDownMinuteStart)).BeginInit();
             this.groupBoxRemoveDays.SuspendLayout();
             this.statusStrip.SuspendLayout();
             this.groupBoxPeriod.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numUpDownHourEnd)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numUpDownMinuteEnd)).BeginInit();
             this.menuStrip.SuspendLayout();
-            this.groupBoxTime.SuspendLayout();
+            this.groupBoxTimeStart.SuspendLayout();
             this.panelView.SuspendLayout();
             this.groupBoxProperties.SuspendLayout();
+            this.groupBoxTimeEnd.SuspendLayout();
             this.SuspendLayout();
             // 
             // dataGridView1
             // 
             this.dataGridView1.AllowUserToOrderColumns = true;
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.Color.SteelBlue;
-            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.Color.SteelBlue;
+            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle3;
             resources.ApplyResources(this.dataGridView1, "dataGridView1");
             this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dataGridView1.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedHeaders;
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            dataGridViewCellStyle2.ForeColor = System.Drawing.Color.Black;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.LightBlue;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.DarkSlateGray;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.Color.LightBlue;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.Color.DarkSlateGray;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnF2;
             this.dataGridView1.Name = "dataGridView1";
@@ -159,33 +167,35 @@
             this.toolTip1.SetToolTip(this.comboBoxFio, resources.GetString("comboBoxFio.ToolTip"));
             this.comboBoxFio.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
             // 
-            // numUpDownHour
+            // numUpDownHourStart
             // 
-            resources.ApplyResources(this.numUpDownHour, "numUpDownHour");
-            this.numUpDownHour.Maximum = new decimal(new int[] {
+            resources.ApplyResources(this.numUpDownHourStart, "numUpDownHourStart");
+            this.numUpDownHourStart.Maximum = new decimal(new int[] {
             23,
             0,
             0,
             0});
-            this.numUpDownHour.Name = "numUpDownHour";
-            this.toolTip1.SetToolTip(this.numUpDownHour, resources.GetString("numUpDownHour.ToolTip"));
+            this.numUpDownHourStart.Name = "numUpDownHourStart";
+            this.toolTip1.SetToolTip(this.numUpDownHourStart, resources.GetString("numUpDownHourStart.ToolTip"));
+            this.numUpDownHourStart.ValueChanged += new System.EventHandler(this.NumUpDown_ValueChanged);
             // 
-            // numUpDownMinute
+            // numUpDownMinuteStart
             // 
-            resources.ApplyResources(this.numUpDownMinute, "numUpDownMinute");
-            this.numUpDownMinute.Maximum = new decimal(new int[] {
+            resources.ApplyResources(this.numUpDownMinuteStart, "numUpDownMinuteStart");
+            this.numUpDownMinuteStart.Maximum = new decimal(new int[] {
             59,
             0,
             0,
             0});
-            this.numUpDownMinute.Name = "numUpDownMinute";
-            this.toolTip1.SetToolTip(this.numUpDownMinute, resources.GetString("numUpDownMinute.ToolTip"));
+            this.numUpDownMinuteStart.Name = "numUpDownMinuteStart";
+            this.toolTip1.SetToolTip(this.numUpDownMinuteStart, resources.GetString("numUpDownMinuteStart.ToolTip"));
+            this.numUpDownMinuteStart.ValueChanged += new System.EventHandler(this.NumUpDown_ValueChanged);
             // 
             // groupBoxRemoveDays
             // 
             resources.ApplyResources(this.groupBoxRemoveDays, "groupBoxRemoveDays");
             this.groupBoxRemoveDays.Controls.Add(this.checkBoxReEnter);
-            this.groupBoxRemoveDays.Controls.Add(this.checkBoxStartWorkInTime);
+            this.groupBoxRemoveDays.Controls.Add(this.checkBoxStartInTime);
             this.groupBoxRemoveDays.Controls.Add(this.checkBoxCelebrate);
             this.groupBoxRemoveDays.Controls.Add(this.checkBoxWeekend);
             this.groupBoxRemoveDays.Name = "groupBoxRemoveDays";
@@ -200,13 +210,13 @@
             this.checkBoxReEnter.UseVisualStyleBackColor = true;
             this.checkBoxReEnter.CheckStateChanged += new System.EventHandler(this.checkBox_CheckStateChanged);
             // 
-            // checkBoxStartWorkInTime
+            // checkBoxStartInTime
             // 
-            resources.ApplyResources(this.checkBoxStartWorkInTime, "checkBoxStartWorkInTime");
-            this.checkBoxStartWorkInTime.Name = "checkBoxStartWorkInTime";
-            this.toolTip1.SetToolTip(this.checkBoxStartWorkInTime, resources.GetString("checkBoxStartWorkInTime.ToolTip"));
-            this.checkBoxStartWorkInTime.UseVisualStyleBackColor = true;
-            this.checkBoxStartWorkInTime.CheckStateChanged += new System.EventHandler(this.checkBox_CheckStateChanged);
+            resources.ApplyResources(this.checkBoxStartInTime, "checkBoxStartInTime");
+            this.checkBoxStartInTime.Name = "checkBoxStartInTime";
+            this.toolTip1.SetToolTip(this.checkBoxStartInTime, resources.GetString("checkBoxStartInTime.ToolTip"));
+            this.checkBoxStartInTime.UseVisualStyleBackColor = true;
+            this.checkBoxStartInTime.CheckStateChanged += new System.EventHandler(this.checkBox_CheckStateChanged);
             // 
             // checkBoxCelebrate
             // 
@@ -311,13 +321,39 @@
             // 
             // labelInfoStart
             // 
+            this.labelInfoStart.BackColor = System.Drawing.Color.Transparent;
             resources.ApplyResources(this.labelInfoStart, "labelInfoStart");
             this.labelInfoStart.Name = "labelInfoStart";
             // 
             // labelInfoEnd
             // 
+            this.labelInfoEnd.BackColor = System.Drawing.Color.Transparent;
             resources.ApplyResources(this.labelInfoEnd, "labelInfoEnd");
             this.labelInfoEnd.Name = "labelInfoEnd";
+            // 
+            // numUpDownHourEnd
+            // 
+            resources.ApplyResources(this.numUpDownHourEnd, "numUpDownHourEnd");
+            this.numUpDownHourEnd.Maximum = new decimal(new int[] {
+            23,
+            0,
+            0,
+            0});
+            this.numUpDownHourEnd.Name = "numUpDownHourEnd";
+            this.toolTip1.SetToolTip(this.numUpDownHourEnd, resources.GetString("numUpDownHourEnd.ToolTip"));
+            this.numUpDownHourEnd.ValueChanged += new System.EventHandler(this.NumUpDown_ValueChanged);
+            // 
+            // numUpDownMinuteEnd
+            // 
+            resources.ApplyResources(this.numUpDownMinuteEnd, "numUpDownMinuteEnd");
+            this.numUpDownMinuteEnd.Maximum = new decimal(new int[] {
+            59,
+            0,
+            0,
+            0});
+            this.numUpDownMinuteEnd.Name = "numUpDownMinuteEnd";
+            this.toolTip1.SetToolTip(this.numUpDownMinuteEnd, resources.GetString("numUpDownMinuteEnd.ToolTip"));
+            this.numUpDownMinuteEnd.ValueChanged += new System.EventHandler(this.NumUpDown_ValueChanged);
             // 
             // menuStrip
             // 
@@ -628,25 +664,25 @@
             this.timer1.Interval = 500;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
-            // labelHour
+            // labelHourStart
             // 
-            resources.ApplyResources(this.labelHour, "labelHour");
-            this.labelHour.Name = "labelHour";
+            resources.ApplyResources(this.labelHourStart, "labelHourStart");
+            this.labelHourStart.Name = "labelHourStart";
             // 
-            // labelMinute
+            // labelMinuteStart
             // 
-            resources.ApplyResources(this.labelMinute, "labelMinute");
-            this.labelMinute.Name = "labelMinute";
+            resources.ApplyResources(this.labelMinuteStart, "labelMinuteStart");
+            this.labelMinuteStart.Name = "labelMinuteStart";
             // 
-            // groupBoxTime
+            // groupBoxTimeStart
             // 
-            resources.ApplyResources(this.groupBoxTime, "groupBoxTime");
-            this.groupBoxTime.Controls.Add(this.numUpDownHour);
-            this.groupBoxTime.Controls.Add(this.labelHour);
-            this.groupBoxTime.Controls.Add(this.numUpDownMinute);
-            this.groupBoxTime.Controls.Add(this.labelMinute);
-            this.groupBoxTime.Name = "groupBoxTime";
-            this.groupBoxTime.TabStop = false;
+            resources.ApplyResources(this.groupBoxTimeStart, "groupBoxTimeStart");
+            this.groupBoxTimeStart.Controls.Add(this.numUpDownHourStart);
+            this.groupBoxTimeStart.Controls.Add(this.labelHourStart);
+            this.groupBoxTimeStart.Controls.Add(this.numUpDownMinuteStart);
+            this.groupBoxTimeStart.Controls.Add(this.labelMinuteStart);
+            this.groupBoxTimeStart.Name = "groupBoxTimeStart";
+            this.groupBoxTimeStart.TabStop = false;
             // 
             // monthCalendar
             // 
@@ -696,6 +732,26 @@
             this.btnPropertiesSaveInDB.UseVisualStyleBackColor = true;
             this.btnPropertiesSaveInDB.Click += new System.EventHandler(this.buttonPropertiesSave_Click);
             // 
+            // groupBoxTimeEnd
+            // 
+            resources.ApplyResources(this.groupBoxTimeEnd, "groupBoxTimeEnd");
+            this.groupBoxTimeEnd.Controls.Add(this.numUpDownHourEnd);
+            this.groupBoxTimeEnd.Controls.Add(this.labelHourEnd);
+            this.groupBoxTimeEnd.Controls.Add(this.numUpDownMinuteEnd);
+            this.groupBoxTimeEnd.Controls.Add(this.labelMinuteEnd);
+            this.groupBoxTimeEnd.Name = "groupBoxTimeEnd";
+            this.groupBoxTimeEnd.TabStop = false;
+            // 
+            // labelHourEnd
+            // 
+            resources.ApplyResources(this.labelHourEnd, "labelHourEnd");
+            this.labelHourEnd.Name = "labelHourEnd";
+            // 
+            // labelMinuteEnd
+            // 
+            resources.ApplyResources(this.labelMinuteEnd, "labelMinuteEnd");
+            this.labelMinuteEnd.Name = "labelMinuteEnd";
+            // 
             // FormPersonViewerSCA
             // 
             resources.ApplyResources(this, "$this");
@@ -710,9 +766,10 @@
             this.Controls.Add(this.textBoxNav);
             this.Controls.Add(this.labelGroup);
             this.Controls.Add(this.monthCalendar);
+            this.Controls.Add(this.groupBoxTimeEnd);
             this.Controls.Add(this.groupBoxRemoveDays);
             this.Controls.Add(this.groupBoxPeriod);
-            this.Controls.Add(this.groupBoxTime);
+            this.Controls.Add(this.groupBoxTimeStart);
             this.Controls.Add(this.menuStrip);
             this.Controls.Add(this.comboBoxFio);
             this.MainMenuStrip = this.menuStrip;
@@ -721,20 +778,24 @@
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numUpDownHour)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.numUpDownMinute)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numUpDownHourStart)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numUpDownMinuteStart)).EndInit();
             this.groupBoxRemoveDays.ResumeLayout(false);
             this.groupBoxRemoveDays.PerformLayout();
             this.statusStrip.ResumeLayout(false);
             this.statusStrip.PerformLayout();
             this.groupBoxPeriod.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.numUpDownHourEnd)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numUpDownMinuteEnd)).EndInit();
             this.menuStrip.ResumeLayout(false);
             this.menuStrip.PerformLayout();
-            this.groupBoxTime.ResumeLayout(false);
-            this.groupBoxTime.PerformLayout();
+            this.groupBoxTimeStart.ResumeLayout(false);
+            this.groupBoxTimeStart.PerformLayout();
             this.panelView.ResumeLayout(false);
             this.groupBoxProperties.ResumeLayout(false);
             this.groupBoxProperties.PerformLayout();
+            this.groupBoxTimeEnd.ResumeLayout(false);
+            this.groupBoxTimeEnd.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -751,20 +812,20 @@
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.ToolStripProgressBar ProgressBar1;
         private System.Windows.Forms.ToolStripStatusLabel StatusLabel2;
-        private System.Windows.Forms.NumericUpDown numUpDownHour;
-        private System.Windows.Forms.NumericUpDown numUpDownMinute;
-        private System.Windows.Forms.Label labelHour;
-        private System.Windows.Forms.Label labelMinute;
+        private System.Windows.Forms.NumericUpDown numUpDownHourStart;
+        private System.Windows.Forms.NumericUpDown numUpDownMinuteStart;
+        private System.Windows.Forms.Label labelHourStart;
+        private System.Windows.Forms.Label labelMinuteStart;
         private System.Windows.Forms.DateTimePicker dateTimePickerStart;
         private System.Windows.Forms.DateTimePicker dateTimePickerEnd;
         private System.Windows.Forms.Label labelInfoEnd;
         private System.Windows.Forms.Label labelInfoStart;
-        private System.Windows.Forms.GroupBox groupBoxTime;
+        private System.Windows.Forms.GroupBox groupBoxTimeStart;
         private System.Windows.Forms.GroupBox groupBoxPeriod;
         private System.Windows.Forms.GroupBox groupBoxRemoveDays;
         private System.Windows.Forms.CheckBox checkBoxCelebrate;
         private System.Windows.Forms.CheckBox checkBoxWeekend;
-        private System.Windows.Forms.CheckBox checkBoxStartWorkInTime;
+        private System.Windows.Forms.CheckBox checkBoxStartInTime;
         private System.Windows.Forms.MonthCalendar monthCalendar;
         private System.Windows.Forms.CheckBox checkBoxReEnter;
         private System.Windows.Forms.MenuStrip menuStrip;
@@ -820,6 +881,11 @@
         private System.Windows.Forms.ToolStripMenuItem importPeopleInLocalDBToolStripMenuItem;
         private System.Windows.Forms.Button btnPropertiesSaveInRegistry;
         private System.Windows.Forms.ToolStripMenuItem ClearRegistryItem;
+        private System.Windows.Forms.GroupBox groupBoxTimeEnd;
+        private System.Windows.Forms.NumericUpDown numUpDownHourEnd;
+        private System.Windows.Forms.Label labelHourEnd;
+        private System.Windows.Forms.NumericUpDown numUpDownMinuteEnd;
+        private System.Windows.Forms.Label labelMinuteEnd;
     }
 }
 

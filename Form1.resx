@@ -126,7 +126,7 @@
     <value>4, 3</value>
   </data>
   <data name="dataGridView1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>622, 498</value>
+    <value>619, 498</value>
   </data>
   <assembly alias="mscorlib" name="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   <data name="dataGridView1.TabIndex" type="System.Int32, mscorlib">
@@ -144,6 +144,9 @@
   <data name="&gt;&gt;dataGridView1.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
+  <metadata name="toolTip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
   <data name="comboBoxFio.Location" type="System.Drawing.Point, System.Drawing">
     <value>12, 28</value>
   </data>
@@ -153,9 +156,6 @@
   <data name="comboBoxFio.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
   </data>
-  <metadata name="toolTip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>17, 17</value>
-  </metadata>
   <data name="comboBoxFio.ToolTip" xml:space="preserve">
     <value>При выборе из списка предпочитайте ФИО с NAV-кодом</value>
   </data>
@@ -169,60 +169,63 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;comboBoxFio.ZOrder" xml:space="preserve">
-    <value>14</value>
+    <value>15</value>
   </data>
-  <data name="numUpDownHour.Location" type="System.Drawing.Point, System.Drawing">
-    <value>35, 32</value>
+  <metadata name="toolTip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
+  <data name="numUpDownHourStart.Location" type="System.Drawing.Point, System.Drawing">
+    <value>41, 18</value>
   </data>
-  <data name="numUpDownHour.Size" type="System.Drawing.Size, System.Drawing">
+  <data name="numUpDownHourStart.Size" type="System.Drawing.Size, System.Drawing">
     <value>36, 20</value>
   </data>
-  <data name="numUpDownHour.TabIndex" type="System.Int32, mscorlib">
+  <data name="numUpDownHourStart.TabIndex" type="System.Int32, mscorlib">
     <value>6</value>
   </data>
-  <data name="numUpDownHour.TextAlign" type="System.Windows.Forms.HorizontalAlignment, System.Windows.Forms">
+  <data name="numUpDownHourStart.TextAlign" type="System.Windows.Forms.HorizontalAlignment, System.Windows.Forms">
     <value>Center</value>
   </data>
-  <data name="numUpDownHour.ToolTip" xml:space="preserve">
+  <data name="numUpDownHourStart.ToolTip" xml:space="preserve">
     <value>Начало рабочего дня. Часы</value>
   </data>
-  <data name="&gt;&gt;numUpDownHour.Name" xml:space="preserve">
-    <value>numUpDownHour</value>
+  <data name="&gt;&gt;numUpDownHourStart.Name" xml:space="preserve">
+    <value>numUpDownHourStart</value>
   </data>
-  <data name="&gt;&gt;numUpDownHour.Type" xml:space="preserve">
+  <data name="&gt;&gt;numUpDownHourStart.Type" xml:space="preserve">
     <value>System.Windows.Forms.NumericUpDown, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;numUpDownHour.Parent" xml:space="preserve">
-    <value>groupBoxTime</value>
+  <data name="&gt;&gt;numUpDownHourStart.Parent" xml:space="preserve">
+    <value>groupBoxTimeStart</value>
   </data>
-  <data name="&gt;&gt;numUpDownHour.ZOrder" xml:space="preserve">
+  <data name="&gt;&gt;numUpDownHourStart.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
-  <data name="numUpDownMinute.Location" type="System.Drawing.Point, System.Drawing">
-    <value>157, 31</value>
+  <data name="numUpDownMinuteStart.Location" type="System.Drawing.Point, System.Drawing">
+    <value>144, 19</value>
   </data>
-  <data name="numUpDownMinute.Size" type="System.Drawing.Size, System.Drawing">
+  <data name="numUpDownMinuteStart.Size" type="System.Drawing.Size, System.Drawing">
     <value>36, 20</value>
   </data>
-  <data name="numUpDownMinute.TabIndex" type="System.Int32, mscorlib">
+  <data name="numUpDownMinuteStart.TabIndex" type="System.Int32, mscorlib">
     <value>7</value>
   </data>
-  <data name="numUpDownMinute.TextAlign" type="System.Windows.Forms.HorizontalAlignment, System.Windows.Forms">
+  <data name="numUpDownMinuteStart.TextAlign" type="System.Windows.Forms.HorizontalAlignment, System.Windows.Forms">
     <value>Center</value>
   </data>
-  <data name="numUpDownMinute.ToolTip" xml:space="preserve">
+  <data name="numUpDownMinuteStart.ToolTip" xml:space="preserve">
     <value>Начало рабочего дня. Минуты</value>
   </data>
-  <data name="&gt;&gt;numUpDownMinute.Name" xml:space="preserve">
-    <value>numUpDownMinute</value>
+  <data name="&gt;&gt;numUpDownMinuteStart.Name" xml:space="preserve">
+    <value>numUpDownMinuteStart</value>
   </data>
-  <data name="&gt;&gt;numUpDownMinute.Type" xml:space="preserve">
+  <data name="&gt;&gt;numUpDownMinuteStart.Type" xml:space="preserve">
     <value>System.Windows.Forms.NumericUpDown, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;numUpDownMinute.Parent" xml:space="preserve">
-    <value>groupBoxTime</value>
+  <data name="&gt;&gt;numUpDownMinuteStart.Parent" xml:space="preserve">
+    <value>groupBoxTimeStart</value>
   </data>
-  <data name="&gt;&gt;numUpDownMinute.ZOrder" xml:space="preserve">
+  <data name="&gt;&gt;numUpDownMinuteStart.ZOrder" xml:space="preserve">
     <value>2</value>
   </data>
   <data name="groupBoxRemoveDays.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
@@ -258,34 +261,34 @@
   <data name="&gt;&gt;checkBoxReEnter.ZOrder" xml:space="preserve">
     <value>0</value>
   </data>
-  <data name="checkBoxStartWorkInTime.AutoSize" type="System.Boolean, mscorlib">
+  <data name="checkBoxStartInTime.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="checkBoxStartWorkInTime.Location" type="System.Drawing.Point, System.Drawing">
+  <data name="checkBoxStartInTime.Location" type="System.Drawing.Point, System.Drawing">
     <value>8, 53</value>
   </data>
-  <data name="checkBoxStartWorkInTime.Size" type="System.Drawing.Size, System.Drawing">
+  <data name="checkBoxStartInTime.Size" type="System.Drawing.Size, System.Drawing">
     <value>113, 17</value>
   </data>
-  <data name="checkBoxStartWorkInTime.TabIndex" type="System.Int32, mscorlib">
+  <data name="checkBoxStartInTime.TabIndex" type="System.Int32, mscorlib">
     <value>9</value>
   </data>
-  <data name="checkBoxStartWorkInTime.Text" xml:space="preserve">
+  <data name="checkBoxStartInTime.Text" xml:space="preserve">
     <value>Приход во время</value>
   </data>
-  <data name="checkBoxStartWorkInTime.ToolTip" xml:space="preserve">
+  <data name="checkBoxStartInTime.ToolTip" xml:space="preserve">
     <value>Убрать из отчета регистрации в дни, в которые первая в день была выполнена вовремя, до начала рабочего дня</value>
   </data>
-  <data name="&gt;&gt;checkBoxStartWorkInTime.Name" xml:space="preserve">
-    <value>checkBoxStartWorkInTime</value>
+  <data name="&gt;&gt;checkBoxStartInTime.Name" xml:space="preserve">
+    <value>checkBoxStartInTime</value>
   </data>
-  <data name="&gt;&gt;checkBoxStartWorkInTime.Type" xml:space="preserve">
+  <data name="&gt;&gt;checkBoxStartInTime.Type" xml:space="preserve">
     <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;checkBoxStartWorkInTime.Parent" xml:space="preserve">
+  <data name="&gt;&gt;checkBoxStartInTime.Parent" xml:space="preserve">
     <value>groupBoxRemoveDays</value>
   </data>
-  <data name="&gt;&gt;checkBoxStartWorkInTime.ZOrder" xml:space="preserve">
+  <data name="&gt;&gt;checkBoxStartInTime.ZOrder" xml:space="preserve">
     <value>1</value>
   </data>
   <data name="checkBoxCelebrate.AutoSize" type="System.Boolean, mscorlib">
@@ -349,7 +352,7 @@
     <value>3</value>
   </data>
   <data name="groupBoxRemoveDays.Location" type="System.Drawing.Point, System.Drawing">
-    <value>638, 246</value>
+    <value>633, 264</value>
   </data>
   <data name="groupBoxRemoveDays.Size" type="System.Drawing.Size, System.Drawing">
     <value>227, 127</value>
@@ -358,7 +361,7 @@
     <value>3</value>
   </data>
   <data name="groupBoxRemoveDays.Text" xml:space="preserve">
-    <value>Убрать из отчета:</value>
+    <value>Фильтр отчета:</value>
   </data>
   <data name="groupBoxRemoveDays.ToolTip" xml:space="preserve">
     <value>Убрать из отчета отмеченные пункты</value>
@@ -373,29 +376,11 @@
     <value>$this</value>
   </data>
   <data name="&gt;&gt;groupBoxRemoveDays.ZOrder" xml:space="preserve">
-    <value>10</value>
+    <value>11</value>
   </data>
   <metadata name="statusStrip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>220, 17</value>
   </metadata>
-  <data name="StatusLabel1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>73, 17</value>
-  </data>
-  <data name="StatusLabel1.Text" xml:space="preserve">
-    <value>StatusLabel1</value>
-  </data>
-  <data name="ProgressBar1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>75, 16</value>
-  </data>
-  <data name="StatusLabel2.Size" type="System.Drawing.Size, System.Drawing">
-    <value>73, 17</value>
-  </data>
-  <data name="StatusLabel2.Text" xml:space="preserve">
-    <value>StatusLabel2</value>
-  </data>
-  <data name="StatusLabel2.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
-    <value>MiddleRight</value>
-  </data>
   <data name="statusStrip.Location" type="System.Drawing.Point, System.Drawing">
     <value>0, 564</value>
   </data>
@@ -423,8 +408,26 @@
   <data name="&gt;&gt;statusStrip.ZOrder" xml:space="preserve">
     <value>2</value>
   </data>
+  <data name="StatusLabel1.Size" type="System.Drawing.Size, System.Drawing">
+    <value>73, 17</value>
+  </data>
+  <data name="StatusLabel1.Text" xml:space="preserve">
+    <value>StatusLabel1</value>
+  </data>
+  <data name="ProgressBar1.Size" type="System.Drawing.Size, System.Drawing">
+    <value>75, 16</value>
+  </data>
+  <data name="StatusLabel2.Size" type="System.Drawing.Size, System.Drawing">
+    <value>73, 17</value>
+  </data>
+  <data name="StatusLabel2.Text" xml:space="preserve">
+    <value>StatusLabel2</value>
+  </data>
+  <data name="StatusLabel2.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
+    <value>MiddleRight</value>
+  </data>
   <data name="dateTimePickerStart.Location" type="System.Drawing.Point, System.Drawing">
-    <value>18, 31</value>
+    <value>18, 19</value>
   </data>
   <data name="dateTimePickerStart.Size" type="System.Drawing.Size, System.Drawing">
     <value>202, 20</value>
@@ -448,7 +451,7 @@
     <value>1</value>
   </data>
   <data name="dateTimePickerEnd.Location" type="System.Drawing.Point, System.Drawing">
-    <value>20, 67</value>
+    <value>20, 52</value>
   </data>
   <data name="dateTimePickerEnd.Size" type="System.Drawing.Size, System.Drawing">
     <value>200, 20</value>
@@ -472,7 +475,7 @@
     <value>0</value>
   </data>
   <data name="textBoxGroup.Location" type="System.Drawing.Point, System.Drawing">
-    <value>542, 29</value>
+    <value>540, 29</value>
   </data>
   <data name="textBoxGroup.Size" type="System.Drawing.Size, System.Drawing">
     <value>79, 20</value>
@@ -523,7 +526,7 @@
     <value>7</value>
   </data>
   <data name="textBoxGroupDescription.Location" type="System.Drawing.Point, System.Drawing">
-    <value>690, 29</value>
+    <value>685, 29</value>
   </data>
   <data name="textBoxGroupDescription.Size" type="System.Drawing.Size, System.Drawing">
     <value>168, 20</value>
@@ -574,7 +577,7 @@
     <value>5</value>
   </data>
   <data name="labelGroupDescription.Location" type="System.Drawing.Point, System.Drawing">
-    <value>629, 29</value>
+    <value>624, 29</value>
   </data>
   <data name="labelGroupDescription.Size" type="System.Drawing.Size, System.Drawing">
     <value>58, 20</value>
@@ -606,8 +609,59 @@
   <data name="groupBoxPeriod.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
   </data>
+  <data name="&gt;&gt;labelInfoStart.Name" xml:space="preserve">
+    <value>labelInfoStart</value>
+  </data>
+  <data name="&gt;&gt;labelInfoStart.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelInfoStart.Parent" xml:space="preserve">
+    <value>groupBoxPeriod</value>
+  </data>
+  <data name="&gt;&gt;labelInfoStart.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;labelInfoEnd.Name" xml:space="preserve">
+    <value>labelInfoEnd</value>
+  </data>
+  <data name="&gt;&gt;labelInfoEnd.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelInfoEnd.Parent" xml:space="preserve">
+    <value>groupBoxPeriod</value>
+  </data>
+  <data name="&gt;&gt;labelInfoEnd.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="groupBoxPeriod.Location" type="System.Drawing.Point, System.Drawing">
+    <value>633, 59</value>
+  </data>
+  <data name="groupBoxPeriod.Size" type="System.Drawing.Size, System.Drawing">
+    <value>226, 82</value>
+  </data>
+  <data name="groupBoxPeriod.TabIndex" type="System.Int32, mscorlib">
+    <value>30</value>
+  </data>
+  <data name="groupBoxPeriod.Text" xml:space="preserve">
+    <value>Сделать выборку данных за период:</value>
+  </data>
+  <data name="groupBoxPeriod.ToolTip" xml:space="preserve">
+    <value>Загрузка, анализ или визуализация данных за период:</value>
+  </data>
+  <data name="&gt;&gt;groupBoxPeriod.Name" xml:space="preserve">
+    <value>groupBoxPeriod</value>
+  </data>
+  <data name="&gt;&gt;groupBoxPeriod.Type" xml:space="preserve">
+    <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;groupBoxPeriod.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;groupBoxPeriod.ZOrder" xml:space="preserve">
+    <value>12</value>
+  </data>
   <data name="labelInfoStart.Location" type="System.Drawing.Point, System.Drawing">
-    <value>-6, 36</value>
+    <value>-6, 24</value>
   </data>
   <data name="labelInfoStart.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
@@ -637,7 +691,7 @@
     <value>2</value>
   </data>
   <data name="labelInfoEnd.Location" type="System.Drawing.Point, System.Drawing">
-    <value>-3, 67</value>
+    <value>-3, 52</value>
   </data>
   <data name="labelInfoEnd.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
@@ -666,36 +720,93 @@
   <data name="&gt;&gt;labelInfoEnd.ZOrder" xml:space="preserve">
     <value>3</value>
   </data>
-  <data name="groupBoxPeriod.Location" type="System.Drawing.Point, System.Drawing">
-    <value>638, 59</value>
+  <data name="numUpDownHourEnd.Location" type="System.Drawing.Point, System.Drawing">
+    <value>41, 18</value>
   </data>
-  <data name="groupBoxPeriod.Size" type="System.Drawing.Size, System.Drawing">
-    <value>226, 106</value>
+  <data name="numUpDownHourEnd.Size" type="System.Drawing.Size, System.Drawing">
+    <value>36, 20</value>
   </data>
-  <data name="groupBoxPeriod.TabIndex" type="System.Int32, mscorlib">
-    <value>30</value>
+  <data name="numUpDownHourEnd.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
   </data>
-  <data name="groupBoxPeriod.Text" xml:space="preserve">
-    <value>Сделать выборку данных за период:</value>
+  <data name="numUpDownHourEnd.TextAlign" type="System.Windows.Forms.HorizontalAlignment, System.Windows.Forms">
+    <value>Center</value>
   </data>
-  <data name="groupBoxPeriod.ToolTip" xml:space="preserve">
-    <value>Загрузка, анализ или визуализация данных за период:</value>
+  <data name="numUpDownHourEnd.ToolTip" xml:space="preserve">
+    <value>Начало рабочего дня. Часы</value>
   </data>
-  <data name="&gt;&gt;groupBoxPeriod.Name" xml:space="preserve">
-    <value>groupBoxPeriod</value>
+  <data name="&gt;&gt;numUpDownHourEnd.Name" xml:space="preserve">
+    <value>numUpDownHourEnd</value>
   </data>
-  <data name="&gt;&gt;groupBoxPeriod.Type" xml:space="preserve">
-    <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  <data name="&gt;&gt;numUpDownHourEnd.Type" xml:space="preserve">
+    <value>System.Windows.Forms.NumericUpDown, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;groupBoxPeriod.Parent" xml:space="preserve">
-    <value>$this</value>
+  <data name="&gt;&gt;numUpDownHourEnd.Parent" xml:space="preserve">
+    <value>groupBoxTimeEnd</value>
   </data>
-  <data name="&gt;&gt;groupBoxPeriod.ZOrder" xml:space="preserve">
-    <value>11</value>
+  <data name="&gt;&gt;numUpDownHourEnd.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="numUpDownMinuteEnd.Location" type="System.Drawing.Point, System.Drawing">
+    <value>144, 19</value>
+  </data>
+  <data name="numUpDownMinuteEnd.Size" type="System.Drawing.Size, System.Drawing">
+    <value>36, 20</value>
+  </data>
+  <data name="numUpDownMinuteEnd.TabIndex" type="System.Int32, mscorlib">
+    <value>7</value>
+  </data>
+  <data name="numUpDownMinuteEnd.TextAlign" type="System.Windows.Forms.HorizontalAlignment, System.Windows.Forms">
+    <value>Center</value>
+  </data>
+  <data name="numUpDownMinuteEnd.ToolTip" xml:space="preserve">
+    <value>Начало рабочего дня. Минуты</value>
+  </data>
+  <data name="&gt;&gt;numUpDownMinuteEnd.Name" xml:space="preserve">
+    <value>numUpDownMinuteEnd</value>
+  </data>
+  <data name="&gt;&gt;numUpDownMinuteEnd.Type" xml:space="preserve">
+    <value>System.Windows.Forms.NumericUpDown, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;numUpDownMinuteEnd.Parent" xml:space="preserve">
+    <value>groupBoxTimeEnd</value>
+  </data>
+  <data name="&gt;&gt;numUpDownMinuteEnd.ZOrder" xml:space="preserve">
+    <value>2</value>
   </data>
   <metadata name="menuStrip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>503, 17</value>
   </metadata>
+  <data name="menuStrip.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="menuStrip.Size" type="System.Drawing.Size, System.Drawing">
+    <value>864, 24</value>
+  </data>
+  <data name="menuStrip.TabIndex" type="System.Int32, mscorlib">
+    <value>14</value>
+  </data>
+  <data name="menuStrip.Text" xml:space="preserve">
+    <value>menuStrip1</value>
+  </data>
+  <data name="&gt;&gt;menuStrip.Name" xml:space="preserve">
+    <value>menuStrip</value>
+  </data>
+  <data name="&gt;&gt;menuStrip.Type" xml:space="preserve">
+    <value>System.Windows.Forms.MenuStrip, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;menuStrip.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;menuStrip.ZOrder" xml:space="preserve">
+    <value>14</value>
+  </data>
+  <data name="FunctionMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>64, 20</value>
+  </data>
+  <data name="FunctionMenuItem.Text" xml:space="preserve">
+    <value>Главное</value>
+  </data>
   <data name="GetFioItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>287, 22</value>
   </data>
@@ -729,6 +840,18 @@
   <data name="VisualWorkedTimeItem.Text" xml:space="preserve">
     <value>Визуализация отработанного времени</value>
   </data>
+  <data name="SelectColorMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>287, 22</value>
+  </data>
+  <data name="SelectColorMenuItem.Text" xml:space="preserve">
+    <value>Изменить цвет</value>
+  </data>
+  <data name="ColorRegistrationMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>233, 22</value>
+  </data>
+  <data name="ColorRegistrationMenuItem.Text" xml:space="preserve">
+    <value>Выбрать цвета визуализации</value>
+  </data>
   <data name="BlueItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>123, 22</value>
   </data>
@@ -753,18 +876,6 @@
   <data name="GreenItem.Text" xml:space="preserve">
     <value>Зеленый</value>
   </data>
-  <data name="ColorRegistrationMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>233, 22</value>
-  </data>
-  <data name="ColorRegistrationMenuItem.Text" xml:space="preserve">
-    <value>Выбрать цвета визуализации</value>
-  </data>
-  <data name="SelectColorMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>287, 22</value>
-  </data>
-  <data name="SelectColorMenuItem.Text" xml:space="preserve">
-    <value>Изменить цвет</value>
-  </data>
   <data name="ReportsItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>287, 22</value>
   </data>
@@ -777,11 +888,14 @@
   <data name="ExitItem.Text" xml:space="preserve">
     <value>Выход</value>
   </data>
-  <data name="FunctionMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>64, 20</value>
+  <data name="GroupsMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>61, 20</value>
   </data>
-  <data name="FunctionMenuItem.Text" xml:space="preserve">
-    <value>Главное</value>
+  <data name="GroupsMenuItem.Text" xml:space="preserve">
+    <value>Группы</value>
+  </data>
+  <data name="GroupsMenuItem.ToolTipText" xml:space="preserve">
+    <value>Работа только с группами для персон с NAV-кодами</value>
   </data>
   <data name="PersonOrGroupItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>341, 22</value>
@@ -849,14 +963,14 @@
   <data name="importPeopleInLocalDBToolStripMenuItem.Text" xml:space="preserve">
     <value>Импорт персонала и групп из текстового файла</value>
   </data>
-  <data name="GroupsMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>61, 20</value>
+  <data name="AnualDatesMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>79, 20</value>
   </data>
-  <data name="GroupsMenuItem.Text" xml:space="preserve">
-    <value>Группы</value>
+  <data name="AnualDatesMenuItem.Text" xml:space="preserve">
+    <value>Праздники</value>
   </data>
-  <data name="GroupsMenuItem.ToolTipText" xml:space="preserve">
-    <value>Работа только с группами для персон с NAV-кодами</value>
+  <data name="AnualDatesMenuItem.ToolTipText" xml:space="preserve">
+    <value>Работа с календарем</value>
   </data>
   <data name="EnterEditAnualItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>316, 22</value>
@@ -882,14 +996,11 @@
   <data name="DeleteAnualDateItem.ToolTipText" xml:space="preserve">
     <value>Удалить выделенный из набора праздничных дней</value>
   </data>
-  <data name="AnualDatesMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+  <data name="QuickSettingsItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>79, 20</value>
   </data>
-  <data name="AnualDatesMenuItem.Text" xml:space="preserve">
-    <value>Праздники</value>
-  </data>
-  <data name="AnualDatesMenuItem.ToolTipText" xml:space="preserve">
-    <value>Работа с календарем</value>
+  <data name="QuickSettingsItem.Text" xml:space="preserve">
+    <value>Настройки</value>
   </data>
   <data name="SettingsEquipmentItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>254, 22</value>
@@ -957,12 +1068,6 @@
   <data name="ClearRegistryItem.Text" xml:space="preserve">
     <value>ClearRegistry</value>
   </data>
-  <data name="QuickSettingsItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>79, 20</value>
-  </data>
-  <data name="QuickSettingsItem.Text" xml:space="preserve">
-    <value>Настройки</value>
-  </data>
   <data name="UpdateControllingItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>73, 20</value>
   </data>
@@ -971,6 +1076,12 @@
   </data>
   <data name="UpdateControllingItem.ToolTipText" xml:space="preserve">
     <value>Сохранить новое контрольное время для выбранной персоны</value>
+  </data>
+  <data name="HelpMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>68, 20</value>
+  </data>
+  <data name="HelpMenuItem.Text" xml:space="preserve">
+    <value>Помощь</value>
   </data>
   <data name="HelpAboutItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>211, 22</value>
@@ -989,36 +1100,6 @@
   </data>
   <data name="HelpSystemItem.Text" xml:space="preserve">
     <value>Служебная информация</value>
-  </data>
-  <data name="HelpMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>68, 20</value>
-  </data>
-  <data name="HelpMenuItem.Text" xml:space="preserve">
-    <value>Помощь</value>
-  </data>
-  <data name="menuStrip.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 0</value>
-  </data>
-  <data name="menuStrip.Size" type="System.Drawing.Size, System.Drawing">
-    <value>864, 24</value>
-  </data>
-  <data name="menuStrip.TabIndex" type="System.Int32, mscorlib">
-    <value>14</value>
-  </data>
-  <data name="menuStrip.Text" xml:space="preserve">
-    <value>menuStrip1</value>
-  </data>
-  <data name="&gt;&gt;menuStrip.Name" xml:space="preserve">
-    <value>menuStrip</value>
-  </data>
-  <data name="&gt;&gt;menuStrip.Type" xml:space="preserve">
-    <value>System.Windows.Forms.MenuStrip, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;menuStrip.Parent" xml:space="preserve">
-    <value>$this</value>
-  </data>
-  <data name="&gt;&gt;menuStrip.ZOrder" xml:space="preserve">
-    <value>13</value>
   </data>
   <metadata name="notifyIcon1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>114, 17</value>
@@ -2129,104 +2210,104 @@
   <metadata name="timer1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>329, 17</value>
   </metadata>
-  <data name="labelHour.AutoSize" type="System.Boolean, mscorlib">
+  <data name="labelHourStart.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="labelHour.Location" type="System.Drawing.Point, System.Drawing">
-    <value>12, 35</value>
+  <data name="labelHourStart.Location" type="System.Drawing.Point, System.Drawing">
+    <value>18, 21</value>
   </data>
-  <data name="labelHour.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+  <data name="labelHourStart.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
   </data>
-  <data name="labelHour.Size" type="System.Drawing.Size, System.Drawing">
+  <data name="labelHourStart.Size" type="System.Drawing.Size, System.Drawing">
     <value>23, 13</value>
   </data>
-  <data name="labelHour.TabIndex" type="System.Int32, mscorlib">
+  <data name="labelHourStart.TabIndex" type="System.Int32, mscorlib">
     <value>34</value>
   </data>
-  <data name="labelHour.Text" xml:space="preserve">
+  <data name="labelHourStart.Text" xml:space="preserve">
     <value>ЧЧ</value>
   </data>
-  <data name="labelHour.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
+  <data name="labelHourStart.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
     <value>MiddleCenter</value>
   </data>
-  <data name="&gt;&gt;labelHour.Name" xml:space="preserve">
-    <value>labelHour</value>
+  <data name="&gt;&gt;labelHourStart.Name" xml:space="preserve">
+    <value>labelHourStart</value>
   </data>
-  <data name="&gt;&gt;labelHour.Type" xml:space="preserve">
+  <data name="&gt;&gt;labelHourStart.Type" xml:space="preserve">
     <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;labelHour.Parent" xml:space="preserve">
-    <value>groupBoxTime</value>
+  <data name="&gt;&gt;labelHourStart.Parent" xml:space="preserve">
+    <value>groupBoxTimeStart</value>
   </data>
-  <data name="&gt;&gt;labelHour.ZOrder" xml:space="preserve">
+  <data name="&gt;&gt;labelHourStart.ZOrder" xml:space="preserve">
     <value>1</value>
   </data>
-  <data name="labelMinute.AutoSize" type="System.Boolean, mscorlib">
+  <data name="labelMinuteStart.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
-  <data name="labelMinute.Location" type="System.Drawing.Point, System.Drawing">
-    <value>131, 34</value>
+  <data name="labelMinuteStart.Location" type="System.Drawing.Point, System.Drawing">
+    <value>118, 22</value>
   </data>
-  <data name="labelMinute.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+  <data name="labelMinuteStart.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
   </data>
-  <data name="labelMinute.Size" type="System.Drawing.Size, System.Drawing">
+  <data name="labelMinuteStart.Size" type="System.Drawing.Size, System.Drawing">
     <value>25, 13</value>
   </data>
-  <data name="labelMinute.TabIndex" type="System.Int32, mscorlib">
+  <data name="labelMinuteStart.TabIndex" type="System.Int32, mscorlib">
     <value>35</value>
   </data>
-  <data name="labelMinute.Text" xml:space="preserve">
+  <data name="labelMinuteStart.Text" xml:space="preserve">
     <value>ММ</value>
   </data>
-  <data name="labelMinute.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
+  <data name="labelMinuteStart.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
     <value>MiddleCenter</value>
   </data>
-  <data name="&gt;&gt;labelMinute.Name" xml:space="preserve">
-    <value>labelMinute</value>
+  <data name="&gt;&gt;labelMinuteStart.Name" xml:space="preserve">
+    <value>labelMinuteStart</value>
   </data>
-  <data name="&gt;&gt;labelMinute.Type" xml:space="preserve">
+  <data name="&gt;&gt;labelMinuteStart.Type" xml:space="preserve">
     <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;labelMinute.Parent" xml:space="preserve">
-    <value>groupBoxTime</value>
+  <data name="&gt;&gt;labelMinuteStart.Parent" xml:space="preserve">
+    <value>groupBoxTimeStart</value>
   </data>
-  <data name="&gt;&gt;labelMinute.ZOrder" xml:space="preserve">
+  <data name="&gt;&gt;labelMinuteStart.ZOrder" xml:space="preserve">
     <value>3</value>
   </data>
-  <data name="groupBoxTime.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+  <data name="groupBoxTimeStart.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
   </data>
-  <data name="groupBoxTime.Location" type="System.Drawing.Point, System.Drawing">
-    <value>638, 171</value>
+  <data name="groupBoxTimeStart.Location" type="System.Drawing.Point, System.Drawing">
+    <value>633, 148</value>
   </data>
-  <data name="groupBoxTime.Size" type="System.Drawing.Size, System.Drawing">
-    <value>226, 69</value>
+  <data name="groupBoxTimeStart.Size" type="System.Drawing.Size, System.Drawing">
+    <value>226, 52</value>
   </data>
-  <data name="groupBoxTime.TabIndex" type="System.Int32, mscorlib">
+  <data name="groupBoxTimeStart.TabIndex" type="System.Int32, mscorlib">
     <value>33</value>
   </data>
-  <data name="groupBoxTime.Text" xml:space="preserve">
-    <value>Начало рабочего дня в:</value>
+  <data name="groupBoxTimeStart.Text" xml:space="preserve">
+    <value>Начало рабочего дня:</value>
   </data>
-  <data name="&gt;&gt;groupBoxTime.Name" xml:space="preserve">
-    <value>groupBoxTime</value>
+  <data name="&gt;&gt;groupBoxTimeStart.Name" xml:space="preserve">
+    <value>groupBoxTimeStart</value>
   </data>
-  <data name="&gt;&gt;groupBoxTime.Type" xml:space="preserve">
+  <data name="&gt;&gt;groupBoxTimeStart.Type" xml:space="preserve">
     <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;groupBoxTime.Parent" xml:space="preserve">
+  <data name="&gt;&gt;groupBoxTimeStart.Parent" xml:space="preserve">
     <value>$this</value>
   </data>
-  <data name="&gt;&gt;groupBoxTime.ZOrder" xml:space="preserve">
-    <value>12</value>
+  <data name="&gt;&gt;groupBoxTimeStart.ZOrder" xml:space="preserve">
+    <value>13</value>
   </data>
   <data name="monthCalendar.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
   </data>
   <data name="monthCalendar.Location" type="System.Drawing.Point, System.Drawing">
-    <value>638, 383</value>
+    <value>633, 396</value>
   </data>
   <data name="monthCalendar.TabIndex" type="System.Int32, mscorlib">
     <value>12</value>
@@ -2244,7 +2325,7 @@
     <value>9</value>
   </data>
   <data name="labelGroup.Location" type="System.Drawing.Point, System.Drawing">
-    <value>494, 28</value>
+    <value>492, 28</value>
   </data>
   <data name="labelGroup.Size" type="System.Drawing.Size, System.Drawing">
     <value>45, 20</value>
@@ -2303,6 +2384,66 @@
   <data name="groupBoxProperties.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
+  <data name="&gt;&gt;btnPropertiesSaveInRegistry.Name" xml:space="preserve">
+    <value>btnPropertiesSaveInRegistry</value>
+  </data>
+  <data name="&gt;&gt;btnPropertiesSaveInRegistry.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnPropertiesSaveInRegistry.Parent" xml:space="preserve">
+    <value>groupBoxProperties</value>
+  </data>
+  <data name="&gt;&gt;btnPropertiesSaveInRegistry.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;buttonPropertiesCancel.Name" xml:space="preserve">
+    <value>buttonPropertiesCancel</value>
+  </data>
+  <data name="&gt;&gt;buttonPropertiesCancel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;buttonPropertiesCancel.Parent" xml:space="preserve">
+    <value>groupBoxProperties</value>
+  </data>
+  <data name="&gt;&gt;buttonPropertiesCancel.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;btnPropertiesSaveInDB.Name" xml:space="preserve">
+    <value>btnPropertiesSaveInDB</value>
+  </data>
+  <data name="&gt;&gt;btnPropertiesSaveInDB.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;btnPropertiesSaveInDB.Parent" xml:space="preserve">
+    <value>groupBoxProperties</value>
+  </data>
+  <data name="&gt;&gt;btnPropertiesSaveInDB.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="groupBoxProperties.Location" type="System.Drawing.Point, System.Drawing">
+    <value>14, 65</value>
+  </data>
+  <data name="groupBoxProperties.Size" type="System.Drawing.Size, System.Drawing">
+    <value>605, 484</value>
+  </data>
+  <data name="groupBoxProperties.TabIndex" type="System.Int32, mscorlib">
+    <value>23</value>
+  </data>
+  <data name="groupBoxProperties.Text" xml:space="preserve">
+    <value>Настройки</value>
+  </data>
+  <data name="&gt;&gt;groupBoxProperties.Name" xml:space="preserve">
+    <value>groupBoxProperties</value>
+  </data>
+  <data name="&gt;&gt;groupBoxProperties.Type" xml:space="preserve">
+    <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;groupBoxProperties.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;groupBoxProperties.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
   <data name="btnPropertiesSaveInRegistry.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
@@ -2310,7 +2451,7 @@
     <value>NoControl</value>
   </data>
   <data name="btnPropertiesSaveInRegistry.Location" type="System.Drawing.Point, System.Drawing">
-    <value>288, 18</value>
+    <value>279, 18</value>
   </data>
   <data name="btnPropertiesSaveInRegistry.Size" type="System.Drawing.Size, System.Drawing">
     <value>193, 27</value>
@@ -2340,7 +2481,7 @@
     <value>NoControl</value>
   </data>
   <data name="buttonPropertiesCancel.Location" type="System.Drawing.Point, System.Drawing">
-    <value>523, 18</value>
+    <value>506, 18</value>
   </data>
   <data name="buttonPropertiesCancel.Size" type="System.Drawing.Size, System.Drawing">
     <value>82, 27</value>
@@ -2390,28 +2531,127 @@
   <data name="&gt;&gt;btnPropertiesSaveInDB.ZOrder" xml:space="preserve">
     <value>2</value>
   </data>
-  <data name="groupBoxProperties.Location" type="System.Drawing.Point, System.Drawing">
-    <value>14, 65</value>
+  <data name="groupBoxTimeEnd.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Right</value>
   </data>
-  <data name="groupBoxProperties.Size" type="System.Drawing.Size, System.Drawing">
-    <value>618, 484</value>
+  <data name="&gt;&gt;labelHourEnd.Name" xml:space="preserve">
+    <value>labelHourEnd</value>
   </data>
-  <data name="groupBoxProperties.TabIndex" type="System.Int32, mscorlib">
-    <value>23</value>
+  <data name="&gt;&gt;labelHourEnd.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="groupBoxProperties.Text" xml:space="preserve">
-    <value>Настройки</value>
+  <data name="&gt;&gt;labelHourEnd.Parent" xml:space="preserve">
+    <value>groupBoxTimeEnd</value>
   </data>
-  <data name="&gt;&gt;groupBoxProperties.Name" xml:space="preserve">
-    <value>groupBoxProperties</value>
+  <data name="&gt;&gt;labelHourEnd.ZOrder" xml:space="preserve">
+    <value>1</value>
   </data>
-  <data name="&gt;&gt;groupBoxProperties.Type" xml:space="preserve">
+  <data name="&gt;&gt;labelMinuteEnd.Name" xml:space="preserve">
+    <value>labelMinuteEnd</value>
+  </data>
+  <data name="&gt;&gt;labelMinuteEnd.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelMinuteEnd.Parent" xml:space="preserve">
+    <value>groupBoxTimeEnd</value>
+  </data>
+  <data name="&gt;&gt;labelMinuteEnd.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="groupBoxTimeEnd.Location" type="System.Drawing.Point, System.Drawing">
+    <value>633, 207</value>
+  </data>
+  <data name="groupBoxTimeEnd.Size" type="System.Drawing.Size, System.Drawing">
+    <value>226, 52</value>
+  </data>
+  <data name="groupBoxTimeEnd.TabIndex" type="System.Int32, mscorlib">
+    <value>36</value>
+  </data>
+  <data name="groupBoxTimeEnd.Text" xml:space="preserve">
+    <value>Завершение рабочего дня:</value>
+  </data>
+  <data name="&gt;&gt;groupBoxTimeEnd.Name" xml:space="preserve">
+    <value>groupBoxTimeEnd</value>
+  </data>
+  <data name="&gt;&gt;groupBoxTimeEnd.Type" xml:space="preserve">
     <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;groupBoxProperties.Parent" xml:space="preserve">
+  <data name="&gt;&gt;groupBoxTimeEnd.Parent" xml:space="preserve">
     <value>$this</value>
   </data>
-  <data name="&gt;&gt;groupBoxProperties.ZOrder" xml:space="preserve">
+  <data name="&gt;&gt;groupBoxTimeEnd.ZOrder" xml:space="preserve">
+    <value>10</value>
+  </data>
+  <data name="labelHourEnd.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="labelHourEnd.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="labelHourEnd.Location" type="System.Drawing.Point, System.Drawing">
+    <value>18, 21</value>
+  </data>
+  <data name="labelHourEnd.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 0, 0</value>
+  </data>
+  <data name="labelHourEnd.Size" type="System.Drawing.Size, System.Drawing">
+    <value>23, 13</value>
+  </data>
+  <data name="labelHourEnd.TabIndex" type="System.Int32, mscorlib">
+    <value>34</value>
+  </data>
+  <data name="labelHourEnd.Text" xml:space="preserve">
+    <value>ЧЧ</value>
+  </data>
+  <data name="labelHourEnd.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
+    <value>MiddleCenter</value>
+  </data>
+  <data name="&gt;&gt;labelHourEnd.Name" xml:space="preserve">
+    <value>labelHourEnd</value>
+  </data>
+  <data name="&gt;&gt;labelHourEnd.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelHourEnd.Parent" xml:space="preserve">
+    <value>groupBoxTimeEnd</value>
+  </data>
+  <data name="&gt;&gt;labelHourEnd.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="labelMinuteEnd.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="labelMinuteEnd.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="labelMinuteEnd.Location" type="System.Drawing.Point, System.Drawing">
+    <value>118, 22</value>
+  </data>
+  <data name="labelMinuteEnd.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 0, 0</value>
+  </data>
+  <data name="labelMinuteEnd.Size" type="System.Drawing.Size, System.Drawing">
+    <value>25, 13</value>
+  </data>
+  <data name="labelMinuteEnd.TabIndex" type="System.Int32, mscorlib">
+    <value>35</value>
+  </data>
+  <data name="labelMinuteEnd.Text" xml:space="preserve">
+    <value>ММ</value>
+  </data>
+  <data name="labelMinuteEnd.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
+    <value>MiddleCenter</value>
+  </data>
+  <data name="&gt;&gt;labelMinuteEnd.Name" xml:space="preserve">
+    <value>labelMinuteEnd</value>
+  </data>
+  <data name="&gt;&gt;labelMinuteEnd.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelMinuteEnd.Parent" xml:space="preserve">
+    <value>groupBoxTimeEnd</value>
+  </data>
+  <data name="&gt;&gt;labelMinuteEnd.ZOrder" xml:space="preserve">
     <value>3</value>
   </data>
   <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">

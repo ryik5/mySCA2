@@ -10,6 +10,11 @@ namespace mySCA2
     {
 
 
+        /*
+dtPersonTemp = new DataTable();
+dtPersonTemp = dtPersonRegisteredFull.Copy();
+dtPersonTemp.Columns[0].ColumnMapping = MappingType.Hidden;*/
+        // copyDataTable.Columns.RemoveAt(0); //Remove column with index 0
 
         /*
          dataView.RowFilter = "id = 10";      // no special character in column name "id"
