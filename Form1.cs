@@ -3878,21 +3878,18 @@ namespace mySCA2
         private void VisualItem_Click(object sender, EventArgs e)
         {
             Person personVisual = new Person();
-            if (bLoaded) { SelectPersonFromControls(personVisual); }
-
-            if (bLoaded && (nameOfLastTableFromDB == "PersonRegistered" || nameOfLastTableFromDB == "PersonGroup"))
+            if (bLoaded)
             {
+                SelectPersonFromControls(personVisual);
                 dataGridView1.Visible = false;
                 FindWorkDatesInSelected();
                 DrawRegistration(personVisual);
                 ReportsItem.Visible = true;
-                VisualWorkedTimeItem.Visible = true;
                 VisualItem.Visible = false;
+                VisualWorkedTimeItem.Visible = true;
             }
-            else { MessageBox.Show("Таблица с данными пустая.\nНет данных для визуализации!"); }
-
-            if (nameOfLastTableFromDB == "PersonGroup")
-            { MessageBox.Show("Визуализация выполняется только для одной выбранной персоны!"); }
+            else
+            { MessageBox.Show("Таблица с данными пустая.\nНе загружены данные для визуализации!"); }
         }
         
         private void DrawRegistration(Person personDraw)  // Visualisation of registration
@@ -4026,7 +4023,7 @@ namespace mySCA2
                                     irectsTempReal++;
 
                                     //test only
-                                    //MessageBox.Show("irectsTempReal вход " + irectsTempReal);
+                                    MessageBox.Show("test only\n" + "irectsTempReal вход " + "\n"+ d0 + "\n" + irectsTempReal);
                                 }
                             }
                             else if (sDirectionCurrent.ToLower().Contains("выход") && sDirectionPrevious.ToLower().Contains("вход") && sDatePrevious.Contains(sDateCurrent))
@@ -4039,7 +4036,7 @@ namespace mySCA2
                                     rectsReal[irectsTempReal] = new Rectangle(iShiftStart + iTimeComingPrevious, 2 * iStringHeight + iShiftHeightText + k * iStringHeight + 1, iTimeComingCurrent - iTimeComingPrevious, 3 * iStringHeight / 4);
 
                                     //test only
-                                    //MessageBox.Show("irectsTempReal выход " + irectsTempReal);
+                                    MessageBox.Show("test only\n" +"irectsTempReal выход " + "\n"+ d0 + "\n"+ irectsTempReal);
                                     irectsTempReal++;
                                 }
                             }
@@ -4146,12 +4143,10 @@ namespace mySCA2
 
         private void VisualWorkedTimeItem_Click(object sender, EventArgs e)
         {
-            Person personVisual = new Person();
-
-            if (bLoaded) { SelectPersonFromDataGrid(personVisual); }
-
-            if (bLoaded && (nameOfLastTableFromDB == "PersonRegistered" || nameOfLastTableFromDB == "PersonGroup"))
+            if (bLoaded )
             {
+                Person personVisual = new Person();
+                SelectPersonFromDataGrid(personVisual); 
                 dataGridView1.Visible = false;
                 FindWorkDatesInSelected();
                 DrawFullWorkedPeriodRegistration(personVisual);
@@ -4159,9 +4154,8 @@ namespace mySCA2
                 VisualItem.Visible = true;
                 VisualWorkedTimeItem.Visible = false;
             }
-            else { MessageBox.Show("Таблица с данными пустая.\nНет данных для визуализации!"); }
-            if (nameOfLastTableFromDB == "PersonGroup")
-            { MessageBox.Show("Визуализация выполняется только с одной выбранной персоны!"); }
+            else
+            { MessageBox.Show("Таблица с данными пустая.\nНе загружены данные для визуализации!"); }
         }
 
         private void DrawFullWorkedPeriodRegistration(Person personDraw)  // Draw the whole period registration
@@ -4332,20 +4326,21 @@ namespace mySCA2
 
                     //set parameters for persons's constant
                     if (d5 * 60 + d6 > 0) iTimeComing = d5 * 60 + d6;
-                    //MessageBox.Show("d0 " + d0);
-                    if (d0.Length > 3)   //учитываем все проходы через все считыватели на всех серверах
+                    
+                    //test only
+                    //MessageBox.Show("workSelectedDays " + workSelectedDays.Length);
+                    for (int k = 0; k < workSelectedDays.Length; k++)
                     {
-                        //MessageBox.Show("workSelectedDays " + workSelectedDays.Length);
-                        for (int k = 0; k < workSelectedDays.Length; k++)
-                        {
-                        //    MessageBox.Show("workSelectedDays " + workSelectedDays[k].Length);
-                            if (workSelectedDays[k].Length == 10 && d2.Contains(workSelectedDays[k])) //учитываем проходы ТОЛЬКО в рабочие дни
-                            {
-                               MessageBox.Show("d0 "+ d0+"\nd2 " + d2);
 
-                                rectsRealMark[irectsTempReal] = new Rectangle(iShiftStart + iTimeComing, 2 * iStringHeight + iShiftHeightText + k * iStringHeight + 1, 2, 3 * iStringHeight / 4);
-                                irectsTempReal++;
-                            }
+                        //test only
+                        //    MessageBox.Show("workSelectedDays " + workSelectedDays[k].Length);
+                        if (workSelectedDays[k].Length == 10 && d2.Contains(workSelectedDays[k])) //учитываем проходы ТОЛЬКО в рабочие дни
+                        {
+                            //test only
+                            MessageBox.Show("d0 " + d0 + "\nd2 " + d2);
+
+                            rectsRealMark[irectsTempReal] = new Rectangle(iShiftStart + iTimeComing, 2 * iStringHeight + iShiftHeightText + k * iStringHeight + 1, 2, 3 * iStringHeight / 4);
+                            irectsTempReal++;
                         }
                     }
                 }
