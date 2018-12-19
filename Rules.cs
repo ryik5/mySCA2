@@ -57,6 +57,116 @@ dtPersonTemp.Columns[0].ColumnMapping = MappingType.Hidden;*/
          dataView.RowFilter = "SUM(Child.Price) >= 500";  // select orders which total price (sum of items prices) is greater or equal $500
           */
 
+
+
+        /*
+        private void FilterDataByTimeLate(Person personNAV, DataTable dataTableSource, DataTable dataTableForStoring)    //Copy Data from PersonRegistered into PersonTemp by Filter(NAV and anual dates or minimalTime or dayoff)
+        {
+            try
+            {
+                DataRow rowDtStoring;
+
+                HashSet<string> hsDays = new HashSet<string>();
+                DataTable dtAllRegistrationsInSelectedDay = dataTableSource.Clone(); //All registrations in the selected day
+
+                decimal decimalFirstRegistrationInDay;
+                string[] stringHourMinuteFirstRegistrationInDay = new string[2];
+                decimal decimalLastRegistrationInDay;
+                string[] stringHourMinuteLastRegistrationInDay = new string[2];
+                decimal workedHours = 0;
+
+                if (_CheckboxChecked(checkBoxReEnter)) //checkBoxReEnter.Checked
+                {
+                    var allWorkedDaysPerson = dataTableSource.Select("[NAV-код] = '" + personNAV.NAV + "'");
+
+                    foreach (DataRow dataRowDate in allWorkedDaysPerson) //make the list of worked days
+                    { hsDays.Add(dataRowDate[12].ToString()); }
+
+                    foreach (var workedDay in hsDays.ToArray())
+                    {
+                        dtAllRegistrationsInSelectedDay = allWorkedDaysPerson.Distinct().CopyToDataTable().Select("[Дата регистрации] = '" + workedDay + "'").CopyToDataTable();
+                        //dtAllRegistrationsInSelectedDay = dataTableSource.Select("[Дата регистрации] = '" + workedDay + "'").CopyToDataTable();
+
+                        //find first registration within the during selected workedDay
+                        //var tempDayStoring = dataTableSource.Select("[Время регистрации] = MIN([Время регистрации])"); //select first by pass
+                        decimalFirstRegistrationInDay = Convert.ToDecimal(dtAllRegistrationsInSelectedDay.Compute("MIN([Время регистрации])", string.Empty));
+
+                        //find last registration within the during selected workedDay
+                        //var tempDayStoring = dataTableSource.Select("[Время регистрации] = MAX([Время регистрации])"); //select last by pass
+                        decimalLastRegistrationInDay = Convert.ToDecimal(dtAllRegistrationsInSelectedDay.Compute("MAX([Время регистрации])", string.Empty));
+
+                        //Select only one row with selected NAV for the selected workedDay
+                        rowDtStoring = dtAllRegistrationsInSelectedDay.Select("[Дата регистрации] = '" + workedDay + "'").First();
+                        //take and convert a real time coming into a string timearray
+                        stringHourMinuteFirstRegistrationInDay = ConvertDecimalTimeToStringHHMMArray(decimalFirstRegistrationInDay);
+                        //take the first registration time from the timearray and set into the temprow
+
+                        rowDtStoring[13] = stringHourMinuteFirstRegistrationInDay[0];  //("Время регистрации,часы",typeof(string)),//13
+                        rowDtStoring[14] = stringHourMinuteFirstRegistrationInDay[1];  //("Время регистрации,минут", typeof(string)),//14
+                        rowDtStoring[15] = decimalFirstRegistrationInDay;              //("Время регистрации", typeof(decimal)), //15
+                        rowDtStoring[24] = stringHourMinuteFirstRegistrationInDay[2];  //("Реальное время прихода ЧЧ:ММ", typeof(string)),//24
+
+                        //convert a controlling time coming into a string timearray
+                        stringHourMinuteFirstRegistrationInDay = ConvertDecimalTimeToStringHHMMArray(TryParseStringToDecimal(rowDtStoring[6].ToString()));
+                        //take a controling time from the timearray and set into the temprow
+                        rowDtStoring[22] = stringHourMinuteFirstRegistrationInDay[2];    //("Время прихода ЧЧ:ММ",typeof(string)),//22
+
+                        rowDtStoring[18] = decimalLastRegistrationInDay;                 //("Реальное время ухода", typeof(decimal)), //18
+                        stringHourMinuteLastRegistrationInDay = ConvertDecimalTimeToStringHHMMArray(decimalLastRegistrationInDay);
+                        rowDtStoring[16] = stringHourMinuteLastRegistrationInDay[0];     //("Реальное время ухода,часы", typeof(string)),//16
+                        rowDtStoring[17] = stringHourMinuteLastRegistrationInDay[1];     //("Реальное время ухода,минут", typeof(string)),//17
+                        rowDtStoring[25] = stringHourMinuteLastRegistrationInDay[2];     //("Реальное время ухода ЧЧ:ММ", typeof(string)), //25
+
+                        //taking and conversation controling time come out
+                        stringHourMinuteLastRegistrationInDay = ConvertDecimalTimeToStringHHMMArray(TryParseStringToDecimal(rowDtStoring[9].ToString()));
+                        rowDtStoring[23] = stringHourMinuteLastRegistrationInDay[2];    //("Время ухода ЧЧ:ММ", typeof(string)),//23
+
+                        //worked out times
+                        workedHours = decimalLastRegistrationInDay - decimalFirstRegistrationInDay;
+                        rowDtStoring[26] = workedHours;                                  // ("Реальное отработанное время", typeof(decimal)), //26
+                        rowDtStoring[27] = ConvertDecimalTimeToStringHHMMArray(workedHours)[2];  //("Реальное отработанное время ЧЧ:ММ", typeof(string)), //27
+
+                        if (decimalFirstRegistrationInDay > personNAV.ControllingDecimal) // "Опоздание", typeof(bool)),           //28
+                        { rowDtStoring[28] = "Да"; }
+                        else { rowDtStoring[28] = ""; }
+
+                        if (decimalLastRegistrationInDay < personNAV.ControllingOutDecimal)  // "Ранний уход", typeof(bool)),                 //29
+                        { rowDtStoring[29] = "Да"; }
+                        else { rowDtStoring[29] = ""; }
+                        // MessageBox.Show(                            rowDtStoring[15].ToString() + " - " + rowDtStoring[18].ToString() + "\n" +                            rowDtStoring[28].ToString() + "\n" + rowDtStoring[29].ToString());
+                        //rowDtStoring[30] = "false";  //("Отпуск (отгул)", typeof(bool)),                 //30
+                        //rowDtStoring[31] = "false";  ("Коммандировка", typeof(bool)),                 //31
+
+                        dataTableForStoring.ImportRow(rowDtStoring);
+                    }
+                }
+                else
+                {
+                    var allWorkedDaysPerson = dataTableSource.Select("[NAV-код] = '" + personNAV.NAV + "'");
+                    foreach (DataRow dr in allWorkedDaysPerson)
+                    { dataTableForStoring.ImportRow(dr); }
+                }
+
+                if (_CheckboxChecked(checkBoxWeekend))//checkBoxWeekend Checking
+                {
+                    dataTableForStoring = dataTableSource.Clone();
+                    DeleteAnualDatesFromDataTables(dataTableForStoring, personNAV);
+                }
+
+                if (_CheckboxChecked(checkBoxStartWorkInTime)) //checkBoxStartWorkInTime Checking
+                {
+                    //todo filtering
+                    dataTableForStoring = dataTableSource.Clone();
+                    QueryDeleteDataFromDataTable(
+                        dataTableForStoring,
+                        "[Время регистрации]=" + personNAV.RealInDecimal, personNAV.NAV);
+                }
+            }
+            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+        }
+        */
+
+
         /*
         //datatable
         var table = new DataTable();
