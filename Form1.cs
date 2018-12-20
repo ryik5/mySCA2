@@ -4132,6 +4132,7 @@ namespace mySCA2
 
             d0 = null; d1 = null; d2 = null; d3 = 0; d4 = 0; d5 = 0; d6 = 0; d7 = null;
             pictureBox1.Image = bmp;
+            //check
             pictureBox1.Refresh();
             panelView.Controls.Add(pictureBox1);
             font.Dispose();
