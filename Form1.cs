@@ -1420,14 +1420,14 @@ namespace mySCA2
                             { checkHourS = numUpHourStart.ToString(); }
                             row[3] = checkHourS;
                             row[4] = cell[4];
-                            row[5] = ConvertStringToDecimalTime(checkHourS, cell[4]);
+                            row[5] = ConvertTwoStringsTimeToDecimal(checkHourS, cell[4]);
 
                             checkHourE = cell[5];
                             if (TryParseStringToDecimal(checkHourE) == 0)
                             { checkHourE = numUpDownHourEnd.ToString(); }
                             row[6] = checkHourE;
                             row[7] = cell[6];
-                            row[8] = ConvertStringToDecimalTime(checkHourE, cell[6]);
+                            row[8] = ConvertTwoStringsTimeToDecimal(checkHourE, cell[6]);
 
                             dt.Rows.Add(row);
                             row = dt.NewRow();
@@ -2114,10 +2114,10 @@ namespace mySCA2
                                 dataRow[3] = namePointedGroup;
                                 dataRow[4] = d3;
                                 dataRow[5] = d4;
-                                dataRow[6] = ConvertStringToDecimalTime(d3, d4);
+                                dataRow[6] = ConvertTwoStringsTimeToDecimal(d3, d4);
                                 dataRow[7] = d13;
                                 dataRow[8] = d14;
-                                dataRow[9] = ConvertStringToDecimalTime(d13, d14);
+                                dataRow[9] = ConvertTwoStringsTimeToDecimal(d13, d14);
                                 dataRow[11] = namePointedGroup;
                                 dataRow[22] = ConvertStringTimeToStringHHMM(d13, d14);
                                 dataRow[24] = ConvertStringTimeToStringHHMM(d3, d4);
@@ -2873,6 +2873,13 @@ namespace mySCA2
             return result;
         }
 
+        private int TryParseStringToInt(string str)  //string -> decimal. if error it will return 0
+        {
+            int result = 0;
+            try { result = int.Parse(str); } catch { }
+            return result;
+        }
+
         private string[] ConvertDecimalTimeToStringHHMMArray(decimal decimalTime)
         {
             string[] result = new string[3];
@@ -2910,7 +2917,7 @@ namespace mySCA2
             return result;
         }
 
-        private decimal ConvertStringToDecimalTime(string hour, string minute)
+        private decimal ConvertTwoStringsTimeToDecimal(string hour, string minute)
         {
             decimal result = TryParseStringToDecimal(hour) + TryParseStringToDecimal(TimeSpan.FromMinutes(TryParseStringToDouble(minute)).TotalHours.ToString());
             return result;
@@ -2945,9 +2952,10 @@ namespace mySCA2
                 hour = timeInHHMM;
             }
 
-            result[0] = TryParseStringToDecimal(hour);
-            result[1] = TryParseStringToDecimal(minute);
-            result[2] = ConvertDecimalSeparatedTimeToDecimal(result[0], result[1]);
+            result[0] = TryParseStringToDecimal(hour);                              // hour in decimal          22
+            result[1] = TryParseStringToDecimal(minute);                            // Minute in decimal        15
+            result[2] = ConvertDecimalSeparatedTimeToDecimal(result[0], result[1]); // hours in decimal         22.25
+            result[3] = 60*result[0]+ result[1];                                    // minutes in decimal       1335
 
             return result;
         }
@@ -2964,7 +2972,7 @@ namespace mySCA2
             return sFullNameOnly;
         }
 
-        //---- Start Block with convertors of data ----//
+        //---- End Block with convertors of data ----//
 
 
 
@@ -3898,7 +3906,7 @@ namespace mySCA2
             int iStringHeight = 19;
             int iShiftHeightText = 0;
             int iShiftHeightAll = 36;
-            string d0 = "", d1 = "", d2 = "", d7 = "", d8 = "";
+            string fio = "", nav = "", dayRegistration = "", DirectionPass = "", pointName = "";
             int d3 = 0, d4 = 0, d5 = 0, d6 = 0;
             var font = new Font("Courier", 10, FontStyle.Regular);
             
@@ -3948,7 +3956,9 @@ namespace mySCA2
 
             //   bmp?.Dispose();
             pictureBox1?.Dispose();
-            if (panelView.Controls.Count > 1) panelView.Controls.RemoveAt(1);
+            if (panelView.Controls.Count > 1)
+            { panelView.Controls.RemoveAt(1); }
+
             pictureBox1 = new PictureBox
             {
                 //    Location = new Point(0, 0),
@@ -3983,6 +3993,7 @@ namespace mySCA2
                 Rectangle[] rectsReal;
                 Rectangle[] rects = new Rectangle[workSelectedDays.Length * countNAVs];
                 int iLenghtRect = 0; //количество  входов-выходов в рабочие дни для всех отобранных людей для  анализа регистраций входа-выхода
+
                 DataRow[] dataRowsDraw;
                 foreach (string singleNav in arrayNAVs)
                 {
@@ -3990,11 +4001,11 @@ namespace mySCA2
                     dataRowsDraw = rowsPersonRegistrationsForDraw.CopyToDataTable().Select("[NAV-код] = '" + singleNav + "'");
                     foreach (DataRow row in dataRowsDraw)
                     {
-                        d0 = ""; d2 = ""; d8 = "";
-                        try { d0 = row["Фамилия Имя Отчество"].ToString().Trim(); } catch { }
-                        try { d2 = row["Дата регистрации"].ToString().Trim(); } catch { }
-                        try { d8 = row["Имя точки прохода"].ToString().Trim(); } catch { }
-                        iLenghtRect += workSelectedDays.Count(t => t.Length == 10 && d2.Contains(t));
+                        fio = ""; dayRegistration = ""; pointName = "";
+                        try { fio = row["Фамилия Имя Отчество"].ToString().Trim(); } catch { }
+                        try { dayRegistration = row["Дата регистрации"].ToString().Trim(); } catch { }
+                        try { pointName = row["Имя точки прохода"].ToString().Trim(); } catch { }
+                        iLenghtRect += workSelectedDays.Count(t => t.Length == 10 && dayRegistration.Contains(t));
                     }
                 }
                 rectsReal = new Rectangle[iLenghtRect]; //количество пересечений
@@ -4006,32 +4017,32 @@ namespace mySCA2
                     dataRowsDraw = rowsPersonRegistrationsForDraw.CopyToDataTable().Select("[NAV-код] = '" + singleNav + "'");
                     foreach (DataRow row in dataRowsDraw)
                     {
-                        d0 = ""; d1 = ""; d2 = ""; d3 = 0; d4 = 0; d5 = 0; d6 = 0; d7 = ""; d8 = ""; iTimeComing = 0;
-                        try { d0 = row["Фамилия Имя Отчество"].ToString(); } catch { }
-                        try { d1 = row["NAV-код"].ToString(); } catch { }
-                        try { d2 = row["Дата регистрации"].ToString(); } catch { }
+                        fio = ""; nav = ""; dayRegistration = ""; d3 = 0; d4 = 0; d5 = 0; d6 = 0; DirectionPass = ""; pointName = ""; iTimeComing = 0;
+                        try { fio = row["Фамилия Имя Отчество"].ToString(); } catch { }
+                        try { nav = row["NAV-код"].ToString(); } catch { }
+                        try { dayRegistration = row["Дата регистрации"].ToString(); } catch { }
                         try { d3 = Convert.ToInt32(row["Время прихода,часы"].ToString()); } catch { }
                         try { d4 = Convert.ToInt32(row["Время прихода,минут"].ToString()); } catch { }
                         try { d5 = Convert.ToInt32(row["Время регистрации,часы"].ToString()); } catch { }
                         try { d6 = Convert.ToInt32(row["Время регистрации,минут"].ToString()); } catch { }
-                        try { d7 = row["Направление прохода"].ToString(); } catch { }
-                        try { d8 = row["Имя точки прохода"].ToString(); } catch { }
+                        try { DirectionPass = row["Направление прохода"].ToString(); } catch { }
+                        try { pointName = row["Имя точки прохода"].ToString(); } catch { }
 
                         //set parameters for persons's constant
-                        if (d0.Length > 1) sFIO = d0;
-                        if (d1.Length == 6) sNAV = d1;
+                        if (fio.Length > 1) sFIO = fio;
+                        if (nav.Length == 6) sNAV = nav;
                         if (d3 * 60 + d4 > 0) iTimeControling = d3 * 60 + d4;
                         if (d5 * 60 + d6 > 0) iTimeComing = d5 * 60 + d6;
-                        if (d8.Length > 0) sPoint = d8;
+                        if (pointName.Length > 0) sPoint = pointName;
 
                         for (int k = 0; k < workSelectedDays.Length; k++)
                         {
-                            if (workSelectedDays[k].Length == 10 && d2.Contains(workSelectedDays[k]))  //если приход пришел в рабочий день - считаем
+                            if (workSelectedDays[k].Length == 10 && dayRegistration.Contains(workSelectedDays[k]))  //если приход пришел в рабочий день - считаем
                             {
                                 //date
-                                sDatePrevious = sDateCurrent; sDateCurrent = d2;
+                                sDatePrevious = sDateCurrent; sDateCurrent = dayRegistration;
                                 //direction
-                                sDirectionPrevious = sDirectionCurrent; sDirectionCurrent = d7;
+                                sDirectionPrevious = sDirectionCurrent; sDirectionCurrent = DirectionPass;
                                 //TimeComming
                                 iTimeComingPrevious = iTimeComingCurrent; iTimeComingCurrent = iTimeComing;
 
@@ -4130,7 +4141,7 @@ namespace mySCA2
             //End the Block Draw
 
 
-            d0 = null; d1 = null; d2 = null; d3 = 0; d4 = 0; d5 = 0; d6 = 0; d7 = null;
+            fio = null; nav = null; dayRegistration = null; d3 = 0; d4 = 0; d5 = 0; d6 = 0; DirectionPass = null;
             pictureBox1.Image = bmp;
             //check
             pictureBox1.Refresh();
@@ -4193,18 +4204,18 @@ namespace mySCA2
             int iHourShouldEnd = 1080;
             // int iHoursWorkDay = 540;
 
+            //  bmp?.Dispose();
             panelView.Height = iShiftHeightAll + iStringHeight * workSelectedDays.Length;
             // panelView.AutoScroll = false;
             // panelView.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-
             // panelView.Anchor = AnchorStyles.Bottom;
             // panelView.Anchor = AnchorStyles.Left;
             // panelView.Dock = DockStyle.None;
-
-            //  bmp?.Dispose();
             panelView.ResumeLayout();
+
             pictureBox1?.Dispose();
-            if (panelView.Controls.Count > 1) panelView.Controls.RemoveAt(1);
+            if (panelView.Controls.Count > 1)
+            { panelView.Controls.RemoveAt(1); }
             pictureBox1 = new PictureBox
             {
                 //    Location = new Point(0, 0),
@@ -4219,9 +4230,11 @@ namespace mySCA2
             //set to comment it if wanted to set the PictureBox  at the Center place
             bmp = new Bitmap(pictureBox1.Width, pictureBox1.Height);
 
-            string d0 = "", d1 = "", d2 = "";
-            int d3 = 0, d4 = 0, d5 = 0, d6 = 0;
-            decimal d7 = 0;
+            string fio = "", nav = "", dayRegistration = "";
+            int minutesIn = 0;     // время входа в минутах планируемое
+            int minutesInFact = 0;     // время выхода в минутах фактическое
+            int minutesOut = 0;    // время входа в минутах планируемое
+            int minutesOutFact = 0;    // время выхода в минутах фактическое
 
             //Start the Block of Draw 
             //Draw the Axises and common Data
@@ -4231,16 +4244,10 @@ namespace mySCA2
             string sNAV = personDraw.NAV;
             string sGroup = _textBoxReturnText(textBoxGroup);
             int iTimeControling = 0;
+            int iTimeComeFact = 0;
+            int iTimeOutControling = 0;
+            int iTimeOutFact = 0;
 
-            //variable for a person
-            string sDatePrevious = "";      //дата в предыдущей выборке
-            string sDateCurrent = "";       //дата в текущей выборке
-            int iTimeComingPrevious = 0;
-            int iTimeComingCurrent = 0;
-            decimal iTimeComingHourPrevious = 0;
-            decimal iTimeComingHourCurrent = 0;
-
-            int iTimeComing = 0;
             int irectsTempReal = 0;
 
             DataRow[] rowsPersonRegistrationsForDraw = new DataRow[1];
@@ -4252,11 +4259,33 @@ namespace mySCA2
             { rowsPersonRegistrationsForDraw = dtPersonTempAllCollumns.Select("[Фамилия Имя Отчество] = '" + sFIO + "'"); }
 
 
+            //count uniq NAV-codes
+            HashSet<string> hsNAV = new HashSet<string>();
+            HashSet<string> hsFIO = new HashSet<string>();
+            foreach (DataRow drNAV in rowsPersonRegistrationsForDraw)
+            {
+                hsNAV.Add(drNAV["NAV-код"].ToString());
+            }
+
+            foreach (string personNav in hsNAV.ToArray())
+            {
+                foreach (DataRow drNAV in rowsPersonRegistrationsForDraw)
+                {
+                    if (drNAV["NAV-код"].ToString()== personNav)
+                    { hsFIO.Add(drNAV["Фамилия Имя Отчество"].ToString()); }
+                }
+            }
+
+            string[] arrayNAVs = hsNAV.ToArray();
+            string[] arrayNAVsFIO = hsFIO.ToArray();
+            int countNAVs = arrayNAVs.Count();
+            hsNAV = null;
+        
+
             //Start the Block of Draw 
             //-------------------------------
 
             //Draw the Axises and common Data
-
             using (var gr = Graphics.FromImage(bmp))
             {
                 var myBrushWorkHour = new SolidBrush(Color.Gray);
@@ -4265,73 +4294,108 @@ namespace mySCA2
                 Pen axis = new Pen(Color.Black);
                 Rectangle[] rectsReal;
                 Rectangle[] rectsRealMark;
-                var rects = new Rectangle[workSelectedDays.Length];
+                Rectangle[] rects = new Rectangle[workSelectedDays.Count()];
 
-                int iLenghtRect = 0; //количество  вх-вых в рабочие дни
+                int iLenghtRect = 0; //количество  прямоугольников соотствествующих входам-выходам в рабочие дни
 
-                foreach (DataRow row in rowsPersonRegistrationsForDraw)
+
+                //Test only
+                int countRect = 0;
+
+                 DataRow[] dataRowsDraw;
+               foreach (string singleNav in arrayNAVs)
                 {
-                    d0 = ""; d2 = "";
-                    try { d0 = row["Фамилия Имя Отчество"].ToString().Trim(); } catch { }
-                    try { d2 = row["Дата регистрации"].ToString().Trim(); } catch { }
-                    iLenghtRect += workSelectedDays.Count(t => t.Length == 10 && d2.Contains(t));
+                    dataRowsDraw = null;
+
+                    //проще: Проверить результат
+                    // iLenghtRect += rowsPersonRegistrationsForDraw.CopyToDataTable().Select("[NAV-код] = '" + singleNav + "'").Count();
+                    countRect += rowsPersonRegistrationsForDraw.CopyToDataTable().Select("[NAV-код] = '" + singleNav + "'").Count();
+
+                    dataRowsDraw = rowsPersonRegistrationsForDraw.CopyToDataTable().Select("[NAV-код] = '" + singleNav + "'");
+                    foreach (DataRow row in dataRowsDraw)
+                    {
+                        fio = ""; dayRegistration = "";
+                        try { fio = row["Фамилия Имя Отчество"].ToString().Trim(); } catch { }
+                        try { dayRegistration = row["Дата регистрации"].ToString().Trim(); } catch { }
+                        iLenghtRect += workSelectedDays.Count(t => t.Length == 10 && dayRegistration.Contains(t));
+                    }
                 }
+                
+                //Test only
+                MessageBox.Show("countRect - " + countRect+ "\niLenghtRect  - " + iLenghtRect);
+
 
                 rectsRealMark = new Rectangle[iLenghtRect];
-                rectsReal = new Rectangle[iLenghtRect];
+                rectsReal = new Rectangle[iLenghtRect]; //количество прямоугольников
+                //Draw axis and Paint FIO, workdays
+                var myBrushAxis = new SolidBrush(Color.Black);
+                var pointForN = new PointF(iShiftStart - 300, iStringHeight + iShiftHeightText);
+
+                //foreach (string singleNav in arrayNAVs)
+                // {
+                //dataRowsDraw = rowsPersonRegistrationsForDraw.CopyToDataTable().Select("[NAV-код] = '" + singleNav + "'");
+                //foreach (DataRow row in dataRowsDraw)
 
                 foreach (DataRow row in rowsPersonRegistrationsForDraw)
                 {
-                    d0 = ""; d1 = ""; d2 = ""; d3 = 0; d4 = 0; d5 = 0; d6 = 0; d7 = 0; iTimeComing = 0;
-                    try { d0 = row["Фамилия Имя Отчество"].ToString().Trim(); } catch { }
-                    try { d1 = row["NAV-код"].ToString().Trim(); } catch { }
-                    try { d2 = row["Дата регистрации"].ToString().Trim(); } catch { }
-                    try { d3 = Convert.ToInt32(row["Время прихода,часы"].ToString().Trim()); } catch { }
-                    try { d4 = Convert.ToInt32(row["Время прихода,минут"].ToString().Trim()); } catch { }
-                    try { d5 = Convert.ToInt32(row["Время регистрации,часы"].ToString().Trim()); } catch { }
-                    try { d6 = Convert.ToInt32(row["Время регистрации,минут"].ToString().Trim()); } catch { }
-                    try { d7 = Convert.ToDecimal(row["Время регистрации"].ToString().Trim()); } catch { }
-
-
+                    fio = ""; nav = ""; dayRegistration = ""; iTimeComeFact = 0;
+                    minutesIn = 0; minutesInFact = 0; minutesOut = 0; minutesOutFact = 0;
+                    
+                    try { fio = row["Фамилия Имя Отчество"].ToString(); } catch { }
+                    try { nav = row["NAV-код"].ToString(); } catch { }
+                    try { dayRegistration = row["Дата регистрации"].ToString(); } catch { }
+                    minutesIn = (int)ConvertStringTimeHHMMToDecimalArray(row["Время прихода ЧЧ:ММ"].ToString())[3];
+                    minutesInFact = (int)ConvertStringTimeHHMMToDecimalArray(row["Реальное время прихода ЧЧ:ММ"].ToString())[3];
+                    minutesOut = (int)ConvertStringTimeHHMMToDecimalArray(row["Время ухода ЧЧ:ММ"].ToString())[3];
+                    minutesOutFact = (int)ConvertStringTimeHHMMToDecimalArray(row["Реальное время ухода ЧЧ:ММ"].ToString())[3];
+                    
                     //set parameters for persons's constant
-                    if (d0.Length > 1) sFIO = d0;
-                    if (d1.Length == 6) sNAV = d1;
-                    if (d3 * 60 + d4 > 0) iTimeControling = d3 * 60 + d4;
-                    if (d5 * 60 + d6 > 0) iTimeComing = d5 * 60 + d6;
+                    if (fio.Length > 1) sFIO = fio;
+                    if (nav.Length == 6) sNAV = nav;
+                    if (minutesIn > 0) iTimeControling = minutesIn;
+                    if (minutesInFact > 0) iTimeComeFact = minutesInFact;
+                    if (minutesOut > 0) iTimeOutControling = minutesOut;
+                    if (minutesOutFact > 0) iTimeOutFact = minutesOutFact;
 
-                    if (d0.Length > 3)   //учитываем все проходы через все считыватели на всех серверах
+
+                    for (int k = 0; k < workSelectedDays.Length; k++)
                     {
-                        for (int k = 0; k < workSelectedDays.Length; k++)
+                        if (workSelectedDays[k].Length == 10 && dayRegistration.Contains(workSelectedDays[k])) //учитываем проходы ТОЛЬКО в рабочие дни
                         {
-                            if (workSelectedDays[k].Length == 10 && d2.Contains(workSelectedDays[k])) //учитываем проходы ТОЛЬКО в рабочие дни
-                            {
-                                //Day
-                                sDatePrevious = sDateCurrent;
-                                sDateCurrent = d2;
-                                //TimeComming
-                                iTimeComingPrevious = iTimeComingCurrent;
-                                iTimeComingCurrent = iTimeComing;
-                                iTimeComingHourPrevious = iTimeComingHourCurrent;
-                                iTimeComingHourCurrent = d7;
-
-                                if (sDatePrevious == sDateCurrent && iTimeComingHourPrevious <= iTimeComingHourCurrent)
-                                { rectsReal[irectsTempReal] = new Rectangle(iShiftStart + iTimeComingPrevious, 2 * iStringHeight + iShiftHeightText + k * iStringHeight + 1, iTimeComingCurrent - iTimeComingPrevious, 3 * iStringHeight / 4); }
-                                irectsTempReal++;
-                            }
+                            rectsReal[irectsTempReal] = new Rectangle(
+                                iShiftStart + minutesInFact,
+                                2 * iStringHeight + iShiftHeightText + k * iStringHeight + 1,
+                                iTimeOutFact - iTimeComeFact,
+                                3 * iStringHeight / 4
+                                );
+                            irectsTempReal++;
                         }
                     }
                 }
 
-                //Draw axis and Paint FIO, workdays
-                var myBrushAxis = new SolidBrush(Color.Black);
-                var pointForN = new PointF(iShiftStart - 300, iStringHeight + iShiftHeightText);
-                for (int k = 0; k < workSelectedDays.Length; k++)
+
+                for (int i=0; i<arrayNAVs.Length;i++)
                 {
-                    pointForN.Y += iStringHeight;
-                    gr.DrawLine(axis, new Point(0, iShiftHeightAll + k * iStringHeight), new Point(pictureBox1.Width, iShiftHeightAll + k * iStringHeight));
-                    gr.DrawString(workSelectedDays[k] + " (" + ShortFIO(sFIO) + ")", font, myBrushAxis, pointForN); //Paint workdays and person's FIO
+                    for (int k = 0; k < workSelectedDays.Length; k++)
+                    {
+                        pointForN.Y += iStringHeight;
+                        gr.DrawLine(
+                            axis,
+                            new Point(0, iShiftHeightAll + k * iStringHeight),
+                            new Point(pictureBox1.Width, iShiftHeightAll + k * iStringHeight)
+                            );
+                        gr.DrawString(
+                            workSelectedDays[k] + " (" + ShortFIO(arrayNAVsFIO[i]) + ")",
+                            font,
+                            myBrushAxis, pointForN
+                            ); //Paint workdays and person's FIO
+                    }
                 }
-                gr.DrawLine(axis, new Point(0, iShiftHeightAll + workSelectedDays.Length * iStringHeight), new Point(pictureBox1.Width, iShiftHeightAll + workSelectedDays.Length * iStringHeight));
+                gr.DrawLine(
+                    axis, 
+                    new Point(0, iShiftHeightAll + workSelectedDays.Length * iStringHeight), 
+                    new Point(pictureBox1.Width, iShiftHeightAll + workSelectedDays.Length * iStringHeight)
+                    );
                 myBrushAxis = null;
                 
                 //Paint Marks of Registration
@@ -4340,28 +4404,22 @@ namespace mySCA2
 
                 foreach (DataRow row in rowsPersonRegistrationsForDraw)
                 {
-                    d0 = ""; d2 = ""; d5 = 0; d6 = 0; iTimeComing = 0;
-                    try { d0 = row["Фамилия Имя Отчество"].ToString().Trim(); } catch { }
-                    try { d2 = row["Дата регистрации"].ToString().Trim(); } catch { }
-                    try { d5 = Convert.ToInt32(row["Время регистрации,часы"].ToString().Trim()); } catch { }
-                    try { d6 = Convert.ToInt32(row["Время регистрации,минут"].ToString().Trim()); } catch { }
+                     fio = row["Фамилия Имя Отчество"].ToString(); 
+                    dayRegistration = row["Дата регистрации"].ToString(); 
+                    minutesInFact = (int)ConvertStringTimeHHMMToDecimalArray(row["Реальное время прихода ЧЧ:ММ"].ToString())[3];
 
                     //set parameters for persons's constant
-                    if (d5 * 60 + d6 > 0) iTimeComing = d5 * 60 + d6;
-                    
-                    //test only
-                    //MessageBox.Show("workSelectedDays " + workSelectedDays.Length);
+                    if (minutesInFact > 0) iTimeComeFact = minutesInFact;
                     for (int k = 0; k < workSelectedDays.Length; k++)
                     {
-
-                        //test only
-                        //    MessageBox.Show("workSelectedDays " + workSelectedDays[k].Length);
-                        if (workSelectedDays[k].Length == 10 && d2.Contains(workSelectedDays[k])) //учитываем проходы ТОЛЬКО в рабочие дни
+                        if (workSelectedDays[k].Length == 10 && dayRegistration.Contains(workSelectedDays[k])) //учитываем проходы ТОЛЬКО в рабочие дни
                         {
-                            //test only
-                            //MessageBox.Show("d0 " + d0 + "\nd2 " + d2);
-
-                            rectsRealMark[irectsTempReal] = new Rectangle(iShiftStart + iTimeComing, 2 * iStringHeight + iShiftHeightText + k * iStringHeight + 1, 2, 3 * iStringHeight / 4);
+                            rectsRealMark[irectsTempReal] = new Rectangle(
+                                iShiftStart + iTimeComeFact, 
+                                2 * iStringHeight + iShiftHeightText + k * iStringHeight + 1, 
+                                2, 
+                                3 * iStringHeight / 4
+                                );
                             irectsTempReal++;
                         }
                     }
@@ -4422,7 +4480,7 @@ namespace mySCA2
             pictureBox1.Refresh();
             panelView.Controls.Add(pictureBox1);
 
-            d0 = null; d1 = null; d2 = null; d3 = 0; d4 = 0; d5 = 0; d6 = 0;
+            fio = null; nav = null; dayRegistration = null; 
             font.Dispose();
             //Отмечаем ФИО как выборанный и устанавливаем на него фокус
             textBoxFIO.Text = sFIO;
