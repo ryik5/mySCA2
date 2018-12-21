@@ -120,7 +120,7 @@ namespace mySCA2
                 };
         private string[] arrayAllCollumnsDataTablePeople =
             {
-                                              @"№ п/п",//0
+                                  @"№ п/п",//0
                                   @"Фамилия Имя Отчество",//1
                                   @"NAV-код",//2
                                   @"Группа",//3
@@ -3909,6 +3909,41 @@ namespace mySCA2
         private int numberPeopleInLoading = 1;
         private void DrawRegistration(Person personDraw)  // Visualisation of registration
         {
+            //distinct Records               
+            string[] arrayHiddenCollumns =
+                            {
+                                  @"№ п/п",//0
+                                //  @"Фамилия Имя Отчество",//1
+                                //  @"NAV-код",//2
+                               //   @"Группа",//3
+                              //    @"Время прихода,часы",//4
+                               //   @"Время прихода,минут", //5
+                               //   @"Время прихода",//6
+                               //   @"Время ухода,часы",//7
+                               //   @"Время ухода,минут",//8
+                               //   @"Время ухода",//9
+                                  @"№ пропуска", //10
+                                  @"Отдел",//11
+                                 // @"Дата регистрации",//12
+                                //  @"Время регистрации,часы",//13
+                                //  @"Время регистрации,минут",//14
+                                 // @"Время регистрации", //15
+                                 // @"Реальное время ухода,часы",//16
+                                //  @"Реальное время ухода,минут",//17
+                                 // @"Реальное время ухода", //18
+                                  @"Сервер СКД", //19
+                                //  @"Имя точки прохода", //20
+                                //  @"Направление прохода", //21
+                               //   @"Время прихода ЧЧ:ММ",//22
+                                //  @"Время ухода ЧЧ:ММ",//23
+                                //  @"Реальное время прихода ЧЧ:ММ",//24
+                                //  @"Реальное время ухода ЧЧ:ММ", //25
+                                  @"Реальное отработанное время", //26
+                                  @"Реальное отработанное время ЧЧ:ММ", //27
+                            };
+            string[] namesDistinctCollumnsArray = arrayAllCollumnsDataTablePeople.Except(arrayHiddenCollumns).ToArray();//take distinct data
+
+
             //  int iPanelBorder = 2;
             int iMinutesInHour = 60;
             int iShiftStart = 300;
@@ -3917,6 +3952,12 @@ namespace mySCA2
             int iShiftHeightAll = 36;
             string fio = "", nav = "", dayRegistration = "", DirectionPass = "", pointName = "";
             int d3 = 0, d4 = 0, d5 = 0, d6 = 0;
+            int minutesIn = 0;     // время входа в минутах планируемое
+            int minutesInFact = 0;     // время выхода в минутах фактическое
+            int minutesOut = 0;    // время входа в минутах планируемое
+            int minutesOutFact = 0;    // время выхода в минутах фактическое
+
+
             var font = new Font("Courier", 10, FontStyle.Regular);
             
             //constant for a person
@@ -3925,6 +3966,11 @@ namespace mySCA2
             string sGroup = _textBoxReturnText(textBoxGroup);
             string sPoint = "";
             int iTimeControling = 0;
+
+            int startPoint = 0; 
+            int lastPoint = 0;
+            int result = 0;
+
 
             //variable for a person
             string sDatePrevious = "";      //дата в предыдущей выборке
@@ -3936,13 +3982,20 @@ namespace mySCA2
             int iTimeComing;
             int irectsTempReal = 0;
 
-            DataRow[] rowsPersonRegistrationsForDraw = new DataRow[1];
+            //select and distinct dataRow
+            var rowsPersonRegistrationsForDraw = dtPersonTempAllCollumns.AsEnumerable();
             if (sGroup.Length > 0)
-            { rowsPersonRegistrationsForDraw = dtPersonRegisteredFull.Select("[Группа] = '" + sGroup + "'"); }
+            {
+                rowsPersonRegistrationsForDraw = GetDistinctRecords(dtPersonTempAllCollumns.Select("[Группа] = '" + sGroup + "'").CopyToDataTable(), namesDistinctCollumnsArray).AsEnumerable();
+            }
             else if (sNAV.Length == 6)
-            { rowsPersonRegistrationsForDraw = dtPersonRegisteredFull.Select("[NAV-код] = '" + sNAV + "'"); }
+            {
+                rowsPersonRegistrationsForDraw = GetDistinctRecords(dtPersonTempAllCollumns.Select("[NAV-код] = '" + sNAV + "'").CopyToDataTable(), namesDistinctCollumnsArray).AsEnumerable();
+            }
             else if (sNAV.Length != 6 && sFIO.Length > 1)
-            { rowsPersonRegistrationsForDraw = dtPersonRegisteredFull.Select("[Фамилия Имя Отчество] = '" + sFIO + "'"); }
+            {
+                rowsPersonRegistrationsForDraw = GetDistinctRecords(dtPersonTempAllCollumns.Select("[Фамилия Имя Отчество] = '" + sFIO + "'").CopyToDataTable(), namesDistinctCollumnsArray).AsEnumerable();
+            }
 
 
             //count uniq NAV-codes
@@ -3958,7 +4011,7 @@ namespace mySCA2
             int iHourShouldStart = (int)personDraw.HourControllingDecimal * iMinutesInHour + (int)personDraw.MinuteControllingDecimal;
             
             //a point end of day(personaly)
-            int iHourShouldEnd = 18*60; //minutes from 0 to the end of workday
+            int iHourShouldEnd = 18* iMinutesInHour; //minutes from 0 to the end of workday
             //     int iHoursWorkDay = 540;
 
             panelView.Height = iShiftHeightAll + iStringHeight * workSelectedDays.Length* countNAVs;
@@ -4006,20 +4059,16 @@ namespace mySCA2
                 DataRow[] dataRowsDraw;
                 foreach (string singleNav in arrayNAVs)
                 {
-                    dataRowsDraw = null;
                     dataRowsDraw = rowsPersonRegistrationsForDraw.CopyToDataTable().Select("[NAV-код] = '" + singleNav + "'");
-                    foreach (DataRow row in dataRowsDraw)
-                    {
-                        fio = ""; dayRegistration = ""; pointName = "";
-                        try { fio = row["Фамилия Имя Отчество"].ToString().Trim(); } catch { }
-                        try { dayRegistration = row["Дата регистрации"].ToString().Trim(); } catch { }
-                        try { pointName = row["Имя точки прохода"].ToString().Trim(); } catch { }
-                        iLenghtRect += workSelectedDays.Count(t => t.Length == 10 && dayRegistration.Contains(t));
-                    }
+                    iLenghtRect += dataRowsDraw.Count();
+                    dataRowsDraw = null;
                 }
                 rectsReal = new Rectangle[iLenghtRect]; //количество пересечений
 
                 int numberNAVinArray = 0; //number of NAV in arra
+                 lastPoint = 0;
+                 result = 0;
+
                 foreach (string singleNav in arrayNAVs)
                 {
                     numberNAVinArray++;
@@ -4055,11 +4104,18 @@ namespace mySCA2
                                 //TimeComming
                                 iTimeComingPrevious = iTimeComingCurrent; iTimeComingCurrent = iTimeComing;
 
+                                lastPoint = 2 * iStringHeight + iShiftHeightText + k * iStringHeight + 1;
+                                result = startPoint + lastPoint;
+
                                 if (sDirectionCurrent.ToLower().Contains("вход") && sDirectionPrevious.ToLower().Contains("вход") && sDatePrevious.Contains(sDateCurrent))
                                 {
                                     if (iTimeComingCurrent > iTimeComingPrevious)
                                     {
-                                        rectsReal[irectsTempReal] = new Rectangle(iShiftStart + iTimeComingPrevious, 2 * iStringHeight + iShiftHeightText + k * iStringHeight + 1, iTimeComingCurrent - iTimeComingPrevious, 3 * iStringHeight / 4);
+                                        rectsReal[irectsTempReal] = new Rectangle(
+                                            iShiftStart + iTimeComingPrevious,
+                                            result, 
+                                            iTimeComingCurrent - iTimeComingPrevious, 
+                                            3 * iStringHeight / 4);
                                         irectsTempReal++;
                                     }
                                 }
@@ -4068,12 +4124,18 @@ namespace mySCA2
 
                                     if (iTimeComingCurrent > iTimeComingPrevious)
                                     {
-                                        rectsReal[irectsTempReal] = new Rectangle(iShiftStart + iTimeComingPrevious, 2 * iStringHeight + iShiftHeightText + k * iStringHeight + 1, iTimeComingCurrent - iTimeComingPrevious, 3 * iStringHeight / 4);
+                                        rectsReal[irectsTempReal] = new Rectangle(
+                                            iShiftStart + iTimeComingPrevious,
+                                            result, 
+                                            iTimeComingCurrent - iTimeComingPrevious, 
+                                            3 * iStringHeight / 4);
                                         irectsTempReal++;
                                     }
                                 }
                             }
                         }
+
+                        startPoint = lastPoint;
                     }
                     //end DataRow
 
@@ -4085,7 +4147,6 @@ namespace mySCA2
                             new Point(pictureBox1.Width, iShiftHeightAll + k * iStringHeight* numberNAVinArray));
                         gr.DrawString(workSelectedDays[k] + " (" + ShortFIO(sFIO) + ")", font, myBrushAxis, pointForN); //Paint workdates and person's FIO
                     }
-
                     iHourShouldStart = iTimeControling;
                 }
 
@@ -4099,7 +4160,9 @@ namespace mySCA2
                     rects[k] = new Rectangle(
                         iShiftStart + iHourShouldStart,
                         2 * iStringHeight + iShiftHeightText + k * iStringHeight + iStringHeight / 4 + 1,
-                        iHourShouldEnd - iHourShouldStart, iStringHeight / 4);
+                        iHourShouldEnd - iHourShouldStart, 
+                        iStringHeight / 4
+                        );
                 }
                 //Fill with rectangles RealWork
                 gr.FillRectangles(myBrushRealWorkHour, rectsReal);
@@ -4200,7 +4263,36 @@ namespace mySCA2
         }
 
         private void DrawFullWorkedPeriodRegistration(Person personDraw)  // Draw the whole period registration
-        {
+        { 
+            //distinct Records               
+            string[] arrayHiddenCollumns =
+                            {
+                                  @"№ п/п",//0
+                                  @"Время прихода,часы",//4
+                                  @"Время прихода,минут", //5
+                                  @"Время прихода",//6
+                                  @"Время ухода,часы",//7
+                                  @"Время ухода,минут",//8
+                                  @"Время ухода",//9
+                                  @"№ пропуска", //10
+                                  @"Отдел",//11
+                                  @"Время регистрации,часы",//13
+                                  @"Время регистрации,минут",//14
+                                  @"Время регистрации", //15
+                                  @"Реальное время ухода,часы",//16
+                                  @"Реальное время ухода,минут",//17
+                                  @"Реальное время ухода", //18
+                                  @"Сервер СКД", //19
+                                  @"Имя точки прохода", //20
+                                  @"Направление прохода", //21
+                                  @"Реальное отработанное время", //26
+                                  @"Опоздание",                    //28
+                                  @"Ранний уход",                 //29
+                                  @"Отпуск (отгул)",                 //30
+                                  @"Коммандировка"                 //31
+                            };
+            string[] namesDistinctCollumnsArray = arrayAllCollumnsDataTablePeople.Except(arrayHiddenCollumns).ToArray();//take distinct data
+
             // int iPanelBorder = 2;
             int iMinutesInHour = 60;
             int iShiftStart = 300;
@@ -4208,17 +4300,12 @@ namespace mySCA2
             int iShiftHeightText = 0;
             int iShiftHeightAll = 36;
 
-
-
             string fio = "", nav = "", dayRegistration = "";
             int minutesIn = 0;     // время входа в минутах планируемое
             int minutesInFact = 0;     // время выхода в минутах фактическое
             int minutesOut = 0;    // время входа в минутах планируемое
             int minutesOutFact = 0;    // время выхода в минутах фактическое
 
-            //Start the Block of Draw 
-            //Draw the Axises and common Data
-            var font = new Font("Courier", 10, FontStyle.Regular);
             //constant for a person
             string sFIO = personDraw.FIO;
             string sNAV = personDraw.NAV;
@@ -4228,16 +4315,20 @@ namespace mySCA2
             int iTimeOutControling = 0;
             int iTimeOutFact = 0;
 
-            int irectsTempReal = 0;
-
-            DataRow[] rowsPersonRegistrationsForDraw = new DataRow[1];
+            //select and distinct dataRow
+            var rowsPersonRegistrationsForDraw = dtPersonTempAllCollumns.AsEnumerable();
             if (sGroup.Length > 0)
-            { rowsPersonRegistrationsForDraw = dtPersonTempAllCollumns.Select("[Группа] = '" + sGroup + "'"); }
+            {
+                rowsPersonRegistrationsForDraw = GetDistinctRecords( dtPersonTempAllCollumns.Select("[Группа] = '" + sGroup + "'").CopyToDataTable(), namesDistinctCollumnsArray).AsEnumerable();
+            }
             else if (sNAV.Length == 6)
-            { rowsPersonRegistrationsForDraw = dtPersonTempAllCollumns.Select("[NAV-код] = '" + sNAV + "'"); }
+            {
+                rowsPersonRegistrationsForDraw = GetDistinctRecords(dtPersonTempAllCollumns.Select("[NAV-код] = '" + sNAV + "'").CopyToDataTable(), namesDistinctCollumnsArray).AsEnumerable();
+            }
             else if (sNAV.Length != 6 && sFIO.Length > 1)
-            { rowsPersonRegistrationsForDraw = dtPersonTempAllCollumns.Select("[Фамилия Имя Отчество] = '" + sFIO + "'"); }
-
+            {
+                rowsPersonRegistrationsForDraw = GetDistinctRecords(dtPersonTempAllCollumns.Select("[Фамилия Имя Отчество] = '" + sFIO + "'").CopyToDataTable(), namesDistinctCollumnsArray).AsEnumerable();
+            }
 
             //count uniq NAV-codes
             HashSet<string> hsNAV = new HashSet<string>();
@@ -4253,7 +4344,7 @@ namespace mySCA2
 
 
             int iHourShouldStart = (int)personDraw.HourControllingDecimal * iMinutesInHour + (int)personDraw.MinuteControllingDecimal;
-            int iHourShouldEnd = 1080;
+            int iHourShouldEnd = 18*iMinutesInHour;
             // int iHoursWorkDay = 540;
 
             //  bmp?.Dispose();
@@ -4286,8 +4377,9 @@ namespace mySCA2
 
             //Start the Block of Draw 
             //-------------------------------
-
             //Draw the Axises and common Data
+            var font = new Font("Courier", 10, FontStyle.Regular);
+            int irectsTempReal = 0;
             using (var gr = Graphics.FromImage(bmp))
             {
                 var myBrushWorkHour = new SolidBrush(Color.Gray);
@@ -4312,10 +4404,15 @@ namespace mySCA2
                 var myBrushAxis = new SolidBrush(Color.Black);
                 var pointForN = new PointF(iShiftStart - 300, iStringHeight + iShiftHeightText);
 
+                int startPoint = 0;
+                int lastPoint = 0;
+                int result = 0;
+
                 foreach (string singleNav in arrayNAVs)
                 {
                     dataRowsDraw = rowsPersonRegistrationsForDraw.CopyToDataTable().Select("[NAV-код] = '" + singleNav + "'");
-                    foreach (DataRow row in dataRowsDraw)
+
+                    foreach (DataRow row in dataRowsDraw.Distinct())
                     {
                         fio = row["Фамилия Имя Отчество"].ToString();
                         nav = row["NAV-код"].ToString();
@@ -4337,9 +4434,12 @@ namespace mySCA2
                         {
                             if (workSelectedDays[k].Length == 10 && dayRegistration.Contains(workSelectedDays[k])) //учитываем проходы ТОЛЬКО в рабочие дни
                             {
+                                lastPoint = 2 * iStringHeight + iShiftHeightText + k * iStringHeight + 1;
+                                result = startPoint + lastPoint;
+
                                 rectsReal[irectsTempReal] = new Rectangle(
                                     iShiftStart + minutesInFact,
-                                    2 * iStringHeight + iShiftHeightText + k * iStringHeight + 1,
+                                    result,
                                     iTimeOutFact - iTimeComeFact,
                                     3 * iStringHeight / 4
                                     );
@@ -4347,6 +4447,7 @@ namespace mySCA2
                             }
                         }
                     }
+                    startPoint = lastPoint;
                     dataRowsDraw = null;
                     
                     for (int k = 0; k < workSelectedDays.Length; k++)
@@ -4364,23 +4465,26 @@ namespace mySCA2
                             ); //Paint workdays and person's FIO
                     }
                 }
-                
                 gr.DrawLine(
                     axis,
                     new Point(0, iShiftHeightAll + workSelectedDays.Length * iStringHeight * countNAVs),
                     new Point(pictureBox1.Width, iShiftHeightAll + workSelectedDays.Length * iStringHeight * countNAVs)
                     );
-                myBrushAxis = null;
+
+                //Fill RealWork
+                gr.FillRectangles(myBrushRealWorkHour, rectsReal);
+
+                 startPoint = 0;
+                 lastPoint = 0;
+
 
                 //Paint Marks of Registration
                 iHourShouldStart = iTimeControling;
                 irectsTempReal = 0;
 
-                int startPoint = 0;
-                int lastPoint = 0;
-                //Check. doesn't work correctly
                 foreach (string singleNav in arrayNAVs)
                 {
+                    dataRowsDraw = null;
                     dataRowsDraw = rowsPersonRegistrationsForDraw.CopyToDataTable().Select("[NAV-код] = '" + singleNav + "'");
                     foreach (DataRow row in dataRowsDraw)
                     {
@@ -4406,9 +4510,11 @@ namespace mySCA2
                             if (workSelectedDays[k].Length == 10 && dayRegistration.Contains(workSelectedDays[k])) //учитываем проходы ТОЛЬКО в рабочие дни
                             {
                                 lastPoint = 2 * iStringHeight + iShiftHeightText + k * iStringHeight + 1;
+                                result = startPoint + lastPoint;
+
                                 rectsRealMark[irectsTempReal] = new Rectangle(
                                     iShiftStart + iTimeComeFact,
-                                   startPoint+lastPoint,
+                                   result,
                                     2,
                                     3 * iStringHeight / 4
                                     );
@@ -4418,21 +4524,23 @@ namespace mySCA2
                     }
                     startPoint = lastPoint;
                 }
-                
+                //Fill All Mark at Passthrow Points
+               gr.FillRectangles(myBrushRealWorkHour, rectsRealMark); //draw the real first come of the person
+
+
                 // наносим рисунки с рабочими часами
                 for (int k = 0; k < workSelectedDays.Length* countNAVs; k++)
                 {
                     rects[k] = new Rectangle(
-                        iShiftStart + iHourShouldStart, 2 * iStringHeight + iShiftHeightText + k * iStringHeight + iStringHeight / 4 + 1,
-                        iHourShouldEnd - iHourShouldStart, iStringHeight / 4);
+                        iShiftStart + iHourShouldStart, 
+                        2 * iStringHeight + iShiftHeightText + k * iStringHeight + iStringHeight / 4 + 1,
+                        iHourShouldEnd - iHourShouldStart, 
+                        iStringHeight / 4
+                        );
                 }
-                //Fill RealWork
-                gr.FillRectangles(myBrushRealWorkHour, rectsReal);
-                //Fill All Mark at Passthrow Points
-                gr.FillRectangles(myBrushRealWorkHour, rectsRealMark);
                 // Fill WorkTime
-                gr.FillRectangles(myBrushWorkHour, rects);
-
+                gr.FillRectangles(myBrushWorkHour, rects); //Draw a set worktime of schedule
+                
 
                 //second part
                 myBrushAxis = new SolidBrush(Color.Black);
@@ -4492,7 +4600,6 @@ namespace mySCA2
                 myBrushWorkHour = null;
                 myBrushAxis = null;
             }
-
 
 
             pictureBox1.Image = bmp;
