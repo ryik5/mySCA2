@@ -123,10 +123,13 @@
   </data>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="dataGridView1.Location" type="System.Drawing.Point, System.Drawing">
-    <value>4, 3</value>
+    <value>5, 4</value>
+  </data>
+  <data name="dataGridView1.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
   </data>
   <data name="dataGridView1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>619, 498</value>
+    <value>825, 613</value>
   </data>
   <assembly alias="mscorlib" name="mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   <data name="dataGridView1.TabIndex" type="System.Int32, mscorlib">
@@ -145,10 +148,13 @@
     <value>0</value>
   </data>
   <data name="comboBoxFio.Location" type="System.Drawing.Point, System.Drawing">
-    <value>12, 28</value>
+    <value>16, 34</value>
+  </data>
+  <data name="comboBoxFio.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
   </data>
   <data name="comboBoxFio.Size" type="System.Drawing.Size, System.Drawing">
-    <value>222, 21</value>
+    <value>295, 24</value>
   </data>
   <data name="comboBoxFio.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
@@ -172,10 +178,13 @@
     <value>15</value>
   </data>
   <data name="numUpDownHourStart.Location" type="System.Drawing.Point, System.Drawing">
-    <value>41, 18</value>
+    <value>55, 22</value>
+  </data>
+  <data name="numUpDownHourStart.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
   </data>
   <data name="numUpDownHourStart.Size" type="System.Drawing.Size, System.Drawing">
-    <value>36, 20</value>
+    <value>48, 22</value>
   </data>
   <data name="numUpDownHourStart.TabIndex" type="System.Int32, mscorlib">
     <value>6</value>
@@ -199,10 +208,13 @@
     <value>0</value>
   </data>
   <data name="numUpDownMinuteStart.Location" type="System.Drawing.Point, System.Drawing">
-    <value>144, 19</value>
+    <value>192, 23</value>
+  </data>
+  <data name="numUpDownMinuteStart.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
   </data>
   <data name="numUpDownMinuteStart.Size" type="System.Drawing.Size, System.Drawing">
-    <value>36, 20</value>
+    <value>48, 22</value>
   </data>
   <data name="numUpDownMinuteStart.TabIndex" type="System.Int32, mscorlib">
     <value>7</value>
@@ -232,10 +244,13 @@
     <value>True</value>
   </data>
   <data name="checkBoxReEnter.Location" type="System.Drawing.Point, System.Drawing">
-    <value>8, 29</value>
+    <value>11, 36</value>
+  </data>
+  <data name="checkBoxReEnter.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
   </data>
   <data name="checkBoxReEnter.Size" type="System.Drawing.Size, System.Drawing">
-    <value>148, 17</value>
+    <value>191, 21</value>
   </data>
   <data name="checkBoxReEnter.TabIndex" type="System.Int32, mscorlib">
     <value>8</value>
@@ -262,10 +277,13 @@
     <value>True</value>
   </data>
   <data name="checkBoxTimeViolations.Location" type="System.Drawing.Point, System.Drawing">
-    <value>8, 53</value>
+    <value>11, 65</value>
+  </data>
+  <data name="checkBoxTimeViolations.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
   </data>
   <data name="checkBoxTimeViolations.Size" type="System.Drawing.Size, System.Drawing">
-    <value>146, 17</value>
+    <value>188, 21</value>
   </data>
   <data name="checkBoxTimeViolations.TabIndex" type="System.Int32, mscorlib">
     <value>9</value>
@@ -292,10 +310,13 @@
     <value>True</value>
   </data>
   <data name="checkBoxCelebrate.Location" type="System.Drawing.Point, System.Drawing">
-    <value>8, 101</value>
+    <value>11, 124</value>
+  </data>
+  <data name="checkBoxCelebrate.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
   </data>
   <data name="checkBoxCelebrate.Size" type="System.Drawing.Size, System.Drawing">
-    <value>82, 17</value>
+    <value>102, 21</value>
   </data>
   <data name="checkBoxCelebrate.TabIndex" type="System.Int32, mscorlib">
     <value>11</value>
@@ -322,10 +343,13 @@
     <value>True</value>
   </data>
   <data name="checkBoxWeekend.Location" type="System.Drawing.Point, System.Drawing">
-    <value>8, 77</value>
+    <value>11, 95</value>
+  </data>
+  <data name="checkBoxWeekend.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
   </data>
   <data name="checkBoxWeekend.Size" type="System.Drawing.Size, System.Drawing">
-    <value>147, 17</value>
+    <value>186, 21</value>
   </data>
   <data name="checkBoxWeekend.TabIndex" type="System.Int32, mscorlib">
     <value>10</value>
@@ -349,10 +373,16 @@
     <value>3</value>
   </data>
   <data name="groupBoxRemoveDays.Location" type="System.Drawing.Point, System.Drawing">
-    <value>633, 264</value>
+    <value>844, 325</value>
+  </data>
+  <data name="groupBoxRemoveDays.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
+  </data>
+  <data name="groupBoxRemoveDays.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
   </data>
   <data name="groupBoxRemoveDays.Size" type="System.Drawing.Size, System.Drawing">
-    <value>227, 127</value>
+    <value>303, 156</value>
   </data>
   <data name="groupBoxRemoveDays.TabIndex" type="System.Int32, mscorlib">
     <value>3</value>
@@ -379,16 +409,16 @@
     <value>220, 17</value>
   </metadata>
   <data name="StatusLabel1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>73, 17</value>
+    <value>93, 21</value>
   </data>
   <data name="StatusLabel1.Text" xml:space="preserve">
     <value>StatusLabel1</value>
   </data>
   <data name="ProgressBar1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>75, 16</value>
+    <value>100, 20</value>
   </data>
   <data name="StatusLabel2.Size" type="System.Drawing.Size, System.Drawing">
-    <value>73, 17</value>
+    <value>93, 21</value>
   </data>
   <data name="StatusLabel2.Text" xml:space="preserve">
     <value>StatusLabel2</value>
@@ -397,10 +427,13 @@
     <value>MiddleRight</value>
   </data>
   <data name="statusStrip.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 564</value>
+    <value>0, 695</value>
+  </data>
+  <data name="statusStrip.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>1, 0, 19, 0</value>
   </data>
   <data name="statusStrip.Size" type="System.Drawing.Size, System.Drawing">
-    <value>864, 22</value>
+    <value>1152, 26</value>
   </data>
   <data name="statusStrip.TabIndex" type="System.Int32, mscorlib">
     <value>15</value>
@@ -424,10 +457,13 @@
     <value>2</value>
   </data>
   <data name="dateTimePickerStart.Location" type="System.Drawing.Point, System.Drawing">
-    <value>18, 19</value>
+    <value>24, 23</value>
+  </data>
+  <data name="dateTimePickerStart.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
   </data>
   <data name="dateTimePickerStart.Size" type="System.Drawing.Size, System.Drawing">
-    <value>202, 20</value>
+    <value>268, 22</value>
   </data>
   <data name="dateTimePickerStart.TabIndex" type="System.Int32, mscorlib">
     <value>4</value>
@@ -448,10 +484,13 @@
     <value>1</value>
   </data>
   <data name="dateTimePickerEnd.Location" type="System.Drawing.Point, System.Drawing">
-    <value>20, 52</value>
+    <value>27, 64</value>
+  </data>
+  <data name="dateTimePickerEnd.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
   </data>
   <data name="dateTimePickerEnd.Size" type="System.Drawing.Size, System.Drawing">
-    <value>200, 20</value>
+    <value>265, 22</value>
   </data>
   <data name="dateTimePickerEnd.TabIndex" type="System.Int32, mscorlib">
     <value>5</value>
@@ -472,10 +511,13 @@
     <value>0</value>
   </data>
   <data name="textBoxGroup.Location" type="System.Drawing.Point, System.Drawing">
-    <value>540, 29</value>
+    <value>720, 36</value>
+  </data>
+  <data name="textBoxGroup.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
   </data>
   <data name="textBoxGroup.Size" type="System.Drawing.Size, System.Drawing">
-    <value>79, 20</value>
+    <value>104, 22</value>
   </data>
   <data name="textBoxGroup.TabIndex" type="System.Int32, mscorlib">
     <value>2</value>
@@ -496,10 +538,13 @@
     <value>1</value>
   </data>
   <data name="textBoxNav.Location" type="System.Drawing.Point, System.Drawing">
-    <value>431, 29</value>
+    <value>575, 36</value>
+  </data>
+  <data name="textBoxNav.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
   </data>
   <data name="textBoxNav.Size" type="System.Drawing.Size, System.Drawing">
-    <value>49, 20</value>
+    <value>64, 22</value>
   </data>
   <data name="textBoxNav.TabIndex" type="System.Int32, mscorlib">
     <value>111</value>
@@ -523,10 +568,13 @@
     <value>7</value>
   </data>
   <data name="textBoxGroupDescription.Location" type="System.Drawing.Point, System.Drawing">
-    <value>685, 29</value>
+    <value>913, 36</value>
+  </data>
+  <data name="textBoxGroupDescription.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
   </data>
   <data name="textBoxGroupDescription.Size" type="System.Drawing.Size, System.Drawing">
-    <value>168, 20</value>
+    <value>223, 22</value>
   </data>
   <data name="textBoxGroupDescription.TabIndex" type="System.Int32, mscorlib">
     <value>3</value>
@@ -547,10 +595,13 @@
     <value>0</value>
   </data>
   <data name="textBoxFIO.Location" type="System.Drawing.Point, System.Drawing">
-    <value>238, 29</value>
+    <value>317, 36</value>
+  </data>
+  <data name="textBoxFIO.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
   </data>
   <data name="textBoxFIO.Size" type="System.Drawing.Size, System.Drawing">
-    <value>188, 20</value>
+    <value>249, 22</value>
   </data>
   <data name="textBoxFIO.TabIndex" type="System.Int32, mscorlib">
     <value>46</value>
@@ -574,10 +625,13 @@
     <value>5</value>
   </data>
   <data name="labelGroupDescription.Location" type="System.Drawing.Point, System.Drawing">
-    <value>624, 29</value>
+    <value>832, 36</value>
+  </data>
+  <data name="labelGroupDescription.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 0, 4, 0</value>
   </data>
   <data name="labelGroupDescription.Size" type="System.Drawing.Size, System.Drawing">
-    <value>58, 20</value>
+    <value>77, 25</value>
   </data>
   <data name="labelGroupDescription.TabIndex" type="System.Int32, mscorlib">
     <value>45</value>
@@ -607,13 +661,13 @@
     <value>Top, Right</value>
   </data>
   <data name="labelInfoStart.Location" type="System.Drawing.Point, System.Drawing">
-    <value>-6, 24</value>
+    <value>-8, 30</value>
   </data>
   <data name="labelInfoStart.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
   </data>
   <data name="labelInfoStart.Size" type="System.Drawing.Size, System.Drawing">
-    <value>30, 15</value>
+    <value>40, 18</value>
   </data>
   <data name="labelInfoStart.TabIndex" type="System.Int32, mscorlib">
     <value>31</value>
@@ -637,13 +691,13 @@
     <value>2</value>
   </data>
   <data name="labelInfoEnd.Location" type="System.Drawing.Point, System.Drawing">
-    <value>-3, 52</value>
+    <value>-4, 64</value>
   </data>
   <data name="labelInfoEnd.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
   </data>
   <data name="labelInfoEnd.Size" type="System.Drawing.Size, System.Drawing">
-    <value>30, 15</value>
+    <value>40, 18</value>
   </data>
   <data name="labelInfoEnd.TabIndex" type="System.Int32, mscorlib">
     <value>32</value>
@@ -667,10 +721,16 @@
     <value>3</value>
   </data>
   <data name="groupBoxPeriod.Location" type="System.Drawing.Point, System.Drawing">
-    <value>633, 59</value>
+    <value>844, 73</value>
+  </data>
+  <data name="groupBoxPeriod.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
+  </data>
+  <data name="groupBoxPeriod.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
   </data>
   <data name="groupBoxPeriod.Size" type="System.Drawing.Size, System.Drawing">
-    <value>226, 82</value>
+    <value>301, 101</value>
   </data>
   <data name="groupBoxPeriod.TabIndex" type="System.Int32, mscorlib">
     <value>30</value>
@@ -694,10 +754,13 @@
     <value>12</value>
   </data>
   <data name="numUpDownHourEnd.Location" type="System.Drawing.Point, System.Drawing">
-    <value>41, 18</value>
+    <value>55, 22</value>
+  </data>
+  <data name="numUpDownHourEnd.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
   </data>
   <data name="numUpDownHourEnd.Size" type="System.Drawing.Size, System.Drawing">
-    <value>36, 20</value>
+    <value>48, 22</value>
   </data>
   <data name="numUpDownHourEnd.TabIndex" type="System.Int32, mscorlib">
     <value>6</value>
@@ -721,10 +784,13 @@
     <value>0</value>
   </data>
   <data name="numUpDownMinuteEnd.Location" type="System.Drawing.Point, System.Drawing">
-    <value>144, 19</value>
+    <value>192, 23</value>
+  </data>
+  <data name="numUpDownMinuteEnd.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
   </data>
   <data name="numUpDownMinuteEnd.Size" type="System.Drawing.Size, System.Drawing">
-    <value>36, 20</value>
+    <value>48, 22</value>
   </data>
   <data name="numUpDownMinuteEnd.TabIndex" type="System.Int32, mscorlib">
     <value>7</value>
@@ -751,7 +817,7 @@
     <value>503, 17</value>
   </metadata>
   <data name="GetFioItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>287, 22</value>
+    <value>358, 26</value>
   </data>
   <data name="GetFioItem.Text" xml:space="preserve">
     <value>Получить список ФИО</value>
@@ -760,91 +826,91 @@
     <value>Получить/обновить список ФИО персон заведенных на серверах</value>
   </data>
   <data name="QuickLoadDataItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>287, 22</value>
+    <value>358, 26</value>
   </data>
   <data name="QuickLoadDataItem.Text" xml:space="preserve">
     <value>Загрузка данных</value>
   </data>
   <data name="ExportIntoExcelItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>287, 22</value>
+    <value>358, 26</value>
   </data>
   <data name="ExportIntoExcelItem.Text" xml:space="preserve">
     <value>Экспорт таблицы в Excel</value>
   </data>
   <data name="VisualItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>287, 22</value>
+    <value>358, 26</value>
   </data>
   <data name="VisualItem.Text" xml:space="preserve">
     <value>Визуализация регистраций</value>
   </data>
   <data name="VisualWorkedTimeItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>287, 22</value>
+    <value>358, 26</value>
   </data>
   <data name="VisualWorkedTimeItem.Text" xml:space="preserve">
     <value>Визуализация отработанного времени</value>
   </data>
   <data name="BlueItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>123, 22</value>
+    <value>146, 26</value>
   </data>
   <data name="BlueItem.Text" xml:space="preserve">
     <value>Синий</value>
   </data>
   <data name="RedItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>123, 22</value>
+    <value>146, 26</value>
   </data>
   <data name="RedItem.Text" xml:space="preserve">
     <value>Красный</value>
   </data>
   <data name="YellowItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>123, 22</value>
+    <value>146, 26</value>
   </data>
   <data name="YellowItem.Text" xml:space="preserve">
     <value>Желтый</value>
   </data>
   <data name="GreenItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>123, 22</value>
+    <value>146, 26</value>
   </data>
   <data name="GreenItem.Text" xml:space="preserve">
     <value>Зеленый</value>
   </data>
   <data name="ColorRegistrationMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>233, 22</value>
+    <value>289, 26</value>
   </data>
   <data name="ColorRegistrationMenuItem.Text" xml:space="preserve">
     <value>Выбрать цвета визуализации</value>
   </data>
   <data name="SelectColorMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>287, 22</value>
+    <value>358, 26</value>
   </data>
   <data name="SelectColorMenuItem.Text" xml:space="preserve">
     <value>Изменить цвет</value>
   </data>
   <data name="ReportsItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>287, 22</value>
+    <value>358, 26</value>
   </data>
   <data name="ReportsItem.Text" xml:space="preserve">
     <value>Показать в табличном виде</value>
   </data>
   <data name="ExitItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>287, 22</value>
+    <value>358, 26</value>
   </data>
   <data name="ExitItem.Text" xml:space="preserve">
     <value>Выход</value>
   </data>
   <data name="FunctionMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>64, 20</value>
+    <value>78, 24</value>
   </data>
   <data name="FunctionMenuItem.Text" xml:space="preserve">
     <value>Главное</value>
   </data>
   <data name="PersonOrGroupItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>341, 22</value>
+    <value>421, 26</value>
   </data>
   <data name="PersonOrGroupItem.Text" xml:space="preserve">
     <value>PersonOrGroup</value>
   </data>
   <data name="CreateGroupItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>341, 22</value>
+    <value>421, 26</value>
   </data>
   <data name="CreateGroupItem.Text" xml:space="preserve">
     <value>Создать новую группу</value>
@@ -853,7 +919,7 @@
     <value>Создать группу персон или заменить описание для существующей</value>
   </data>
   <data name="AddPersonToGroupItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>341, 22</value>
+    <value>421, 26</value>
   </data>
   <data name="AddPersonToGroupItem.Text" xml:space="preserve">
     <value>Добавить персону в группу</value>
@@ -862,7 +928,7 @@
     <value>Добавить персону в группу или обновить параметры начала рабочего дня</value>
   </data>
   <data name="ListGroupItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>341, 22</value>
+    <value>421, 26</value>
   </data>
   <data name="ListGroupItem.Text" xml:space="preserve">
     <value>Список сохраненных групп</value>
@@ -871,7 +937,7 @@
     <value>Вызвать список ранее созданных групп</value>
   </data>
   <data name="MembersGroupItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>341, 22</value>
+    <value>421, 26</value>
   </data>
   <data name="MembersGroupItem.Text" xml:space="preserve">
     <value>Состав выделенной группы</value>
@@ -880,7 +946,7 @@
     <value>Перечень ФИО сотрудников, входящих в состав группы персон с настройками начала рабочего дня</value>
   </data>
   <data name="DeleteGroupItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>341, 22</value>
+    <value>421, 26</value>
   </data>
   <data name="DeleteGroupItem.Text" xml:space="preserve">
     <value>Удалить выделенную группу</value>
@@ -889,7 +955,7 @@
     <value>Удалить всю группу персон с настройками</value>
   </data>
   <data name="DeletePersonFromGroupItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>341, 22</value>
+    <value>421, 26</value>
   </data>
   <data name="DeletePersonFromGroupItem.Text" xml:space="preserve">
     <value>Удалить персону из группы</value>
@@ -898,13 +964,13 @@
     <value>Удалить из состава группы персону и ее настройки</value>
   </data>
   <data name="importPeopleInLocalDBToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>341, 22</value>
+    <value>421, 26</value>
   </data>
   <data name="importPeopleInLocalDBToolStripMenuItem.Text" xml:space="preserve">
     <value>Импорт персонала и групп из текстового файла</value>
   </data>
   <data name="GroupsMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>61, 20</value>
+    <value>73, 24</value>
   </data>
   <data name="GroupsMenuItem.Text" xml:space="preserve">
     <value>Группы</value>
@@ -913,13 +979,13 @@
     <value>Работа только с группами для персон с NAV-кодами</value>
   </data>
   <data name="EnterEditAnualItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>316, 22</value>
+    <value>396, 26</value>
   </data>
   <data name="EnterEditAnualItem.Text" xml:space="preserve">
     <value>Войти в режим редактирования праздников</value>
   </data>
   <data name="AddAnualDateItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>316, 22</value>
+    <value>396, 26</value>
   </data>
   <data name="AddAnualDateItem.Text" xml:space="preserve">
     <value>Добавить праздничный день</value>
@@ -928,7 +994,7 @@
     <value>Добавить выделенный день как праздничный</value>
   </data>
   <data name="DeleteAnualDateItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>316, 22</value>
+    <value>396, 26</value>
   </data>
   <data name="DeleteAnualDateItem.Text" xml:space="preserve">
     <value>Удалить праздничный день</value>
@@ -937,7 +1003,7 @@
     <value>Удалить выделенный из набора праздничных дней</value>
   </data>
   <data name="AnualDatesMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>79, 20</value>
+    <value>98, 24</value>
   </data>
   <data name="AnualDatesMenuItem.Text" xml:space="preserve">
     <value>Праздники</value>
@@ -946,7 +1012,7 @@
     <value>Работа с календарем</value>
   </data>
   <data name="SettingsEquipmentItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>254, 22</value>
+    <value>314, 26</value>
   </data>
   <data name="SettingsEquipmentItem.Text" xml:space="preserve">
     <value>Оборудования</value>
@@ -955,13 +1021,13 @@
     <value>False</value>
   </data>
   <data name="SettingsProgrammItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>254, 22</value>
+    <value>314, 26</value>
   </data>
   <data name="SettingsProgrammItem.Text" xml:space="preserve">
     <value>Программы</value>
   </data>
   <data name="SettingsOtherItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>254, 22</value>
+    <value>314, 26</value>
   </data>
   <data name="SettingsOtherItem.Text" xml:space="preserve">
     <value>Другие</value>
@@ -970,7 +1036,7 @@
     <value>False</value>
   </data>
   <data name="ClearReportItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>254, 22</value>
+    <value>314, 26</value>
   </data>
   <data name="ClearReportItem.Text" xml:space="preserve">
     <value>Очистить таблицы с отчетами</value>
@@ -979,7 +1045,7 @@
     <value>Очистить локальную таблицу от всех регистраций персонала</value>
   </data>
   <data name="ClearDataItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>254, 22</value>
+    <value>314, 26</value>
   </data>
   <data name="ClearDataItem.Text" xml:space="preserve">
     <value>Очистить таблицы с данными</value>
@@ -988,7 +1054,7 @@
     <value>Очистить все таблицы, кроме таблиц с настройками</value>
   </data>
   <data name="ClearAllItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>254, 22</value>
+    <value>314, 26</value>
   </data>
   <data name="ClearAllItem.Text" xml:space="preserve">
     <value>Удалить все данные и настройки</value>
@@ -997,7 +1063,7 @@
     <value>Удалить базу данных и все, ранее сохраненные, настройки!</value>
   </data>
   <data name="TestCryptionItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>254, 22</value>
+    <value>314, 26</value>
   </data>
   <data name="TestCryptionItem.Text" xml:space="preserve">
     <value>TestCryption</value>
@@ -1006,19 +1072,19 @@
     <value>False</value>
   </data>
   <data name="ClearRegistryItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>254, 22</value>
+    <value>314, 26</value>
   </data>
   <data name="ClearRegistryItem.Text" xml:space="preserve">
     <value>ClearRegistry</value>
   </data>
   <data name="QuickSettingsItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>79, 20</value>
+    <value>96, 24</value>
   </data>
   <data name="QuickSettingsItem.Text" xml:space="preserve">
     <value>Настройки</value>
   </data>
   <data name="UpdateControllingItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>73, 20</value>
+    <value>90, 24</value>
   </data>
   <data name="UpdateControllingItem.Text" xml:space="preserve">
     <value>Обновить</value>
@@ -1027,25 +1093,25 @@
     <value>Сохранить новое контрольное время для выбранной персоны</value>
   </data>
   <data name="HelpAboutItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>211, 22</value>
+    <value>256, 26</value>
   </data>
   <data name="HelpAboutItem.Text" xml:space="preserve">
     <value>О программе</value>
   </data>
   <data name="SetupItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>211, 22</value>
+    <value>256, 26</value>
   </data>
   <data name="SetupItem.Text" xml:space="preserve">
     <value>Настрока программы</value>
   </data>
   <data name="HelpSystemItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>211, 22</value>
+    <value>256, 26</value>
   </data>
   <data name="HelpSystemItem.Text" xml:space="preserve">
     <value>Служебная информация</value>
   </data>
   <data name="HelpMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>68, 20</value>
+    <value>81, 24</value>
   </data>
   <data name="HelpMenuItem.Text" xml:space="preserve">
     <value>Помощь</value>
@@ -1053,8 +1119,11 @@
   <data name="menuStrip.Location" type="System.Drawing.Point, System.Drawing">
     <value>0, 0</value>
   </data>
+  <data name="menuStrip.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>8, 2, 0, 2</value>
+  </data>
   <data name="menuStrip.Size" type="System.Drawing.Size, System.Drawing">
-    <value>864, 24</value>
+    <value>1152, 28</value>
   </data>
   <data name="menuStrip.TabIndex" type="System.Int32, mscorlib">
     <value>14</value>
@@ -2187,13 +2256,13 @@
     <value>True</value>
   </data>
   <data name="labelHourStart.Location" type="System.Drawing.Point, System.Drawing">
-    <value>18, 21</value>
+    <value>24, 26</value>
   </data>
   <data name="labelHourStart.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
   </data>
   <data name="labelHourStart.Size" type="System.Drawing.Size, System.Drawing">
-    <value>23, 13</value>
+    <value>28, 17</value>
   </data>
   <data name="labelHourStart.TabIndex" type="System.Int32, mscorlib">
     <value>34</value>
@@ -2220,13 +2289,13 @@
     <value>True</value>
   </data>
   <data name="labelMinuteStart.Location" type="System.Drawing.Point, System.Drawing">
-    <value>118, 22</value>
+    <value>157, 27</value>
   </data>
   <data name="labelMinuteStart.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
   </data>
   <data name="labelMinuteStart.Size" type="System.Drawing.Size, System.Drawing">
-    <value>25, 13</value>
+    <value>30, 17</value>
   </data>
   <data name="labelMinuteStart.TabIndex" type="System.Int32, mscorlib">
     <value>35</value>
@@ -2253,10 +2322,16 @@
     <value>Top, Right</value>
   </data>
   <data name="groupBoxTimeStart.Location" type="System.Drawing.Point, System.Drawing">
-    <value>633, 148</value>
+    <value>844, 182</value>
+  </data>
+  <data name="groupBoxTimeStart.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
+  </data>
+  <data name="groupBoxTimeStart.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
   </data>
   <data name="groupBoxTimeStart.Size" type="System.Drawing.Size, System.Drawing">
-    <value>226, 52</value>
+    <value>301, 64</value>
   </data>
   <data name="groupBoxTimeStart.TabIndex" type="System.Int32, mscorlib">
     <value>33</value>
@@ -2280,7 +2355,10 @@
     <value>Top, Right</value>
   </data>
   <data name="monthCalendar.Location" type="System.Drawing.Point, System.Drawing">
-    <value>633, 396</value>
+    <value>844, 487</value>
+  </data>
+  <data name="monthCalendar.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>12, 11, 12, 11</value>
   </data>
   <data name="monthCalendar.TabIndex" type="System.Int32, mscorlib">
     <value>12</value>
@@ -2298,10 +2376,13 @@
     <value>9</value>
   </data>
   <data name="labelGroup.Location" type="System.Drawing.Point, System.Drawing">
-    <value>492, 28</value>
+    <value>656, 34</value>
+  </data>
+  <data name="labelGroup.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 0, 4, 0</value>
   </data>
   <data name="labelGroup.Size" type="System.Drawing.Size, System.Drawing">
-    <value>45, 20</value>
+    <value>60, 25</value>
   </data>
   <data name="labelGroup.TabIndex" type="System.Int32, mscorlib">
     <value>40</value>
@@ -2328,13 +2409,13 @@
     <value>Top, Bottom, Left, Right</value>
   </data>
   <data name="panelView.Location" type="System.Drawing.Point, System.Drawing">
-    <value>3, 56</value>
+    <value>4, 69</value>
   </data>
   <data name="panelView.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
   </data>
   <data name="panelView.Size" type="System.Drawing.Size, System.Drawing">
-    <value>626, 504</value>
+    <value>835, 620</value>
   </data>
   <data name="panelView.TabIndex" type="System.Int32, mscorlib">
     <value>112</value>
@@ -2364,10 +2445,13 @@
     <value>NoControl</value>
   </data>
   <data name="btnPropertiesSaveInRegistry.Location" type="System.Drawing.Point, System.Drawing">
-    <value>279, 18</value>
+    <value>372, 22</value>
+  </data>
+  <data name="btnPropertiesSaveInRegistry.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
   </data>
   <data name="btnPropertiesSaveInRegistry.Size" type="System.Drawing.Size, System.Drawing">
-    <value>193, 27</value>
+    <value>303, 33</value>
   </data>
   <data name="btnPropertiesSaveInRegistry.TabIndex" type="System.Int32, mscorlib">
     <value>2</value>
@@ -2394,10 +2478,13 @@
     <value>NoControl</value>
   </data>
   <data name="buttonPropertiesCancel.Location" type="System.Drawing.Point, System.Drawing">
-    <value>506, 18</value>
+    <value>675, 22</value>
+  </data>
+  <data name="buttonPropertiesCancel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
   </data>
   <data name="buttonPropertiesCancel.Size" type="System.Drawing.Size, System.Drawing">
-    <value>82, 27</value>
+    <value>109, 33</value>
   </data>
   <data name="buttonPropertiesCancel.TabIndex" type="System.Int32, mscorlib">
     <value>1</value>
@@ -2421,10 +2508,13 @@
     <value>True</value>
   </data>
   <data name="btnPropertiesSaveInDB.Location" type="System.Drawing.Point, System.Drawing">
-    <value>6, 18</value>
+    <value>8, 22</value>
+  </data>
+  <data name="btnPropertiesSaveInDB.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
   </data>
   <data name="btnPropertiesSaveInDB.Size" type="System.Drawing.Size, System.Drawing">
-    <value>234, 27</value>
+    <value>373, 33</value>
   </data>
   <data name="btnPropertiesSaveInDB.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>
@@ -2445,10 +2535,16 @@
     <value>2</value>
   </data>
   <data name="groupBoxProperties.Location" type="System.Drawing.Point, System.Drawing">
-    <value>14, 65</value>
+    <value>19, 80</value>
+  </data>
+  <data name="groupBoxProperties.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
+  </data>
+  <data name="groupBoxProperties.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
   </data>
   <data name="groupBoxProperties.Size" type="System.Drawing.Size, System.Drawing">
-    <value>605, 484</value>
+    <value>807, 596</value>
   </data>
   <data name="groupBoxProperties.TabIndex" type="System.Int32, mscorlib">
     <value>23</value>
@@ -2478,13 +2574,13 @@
     <value>NoControl</value>
   </data>
   <data name="labelHourEnd.Location" type="System.Drawing.Point, System.Drawing">
-    <value>18, 21</value>
+    <value>24, 26</value>
   </data>
   <data name="labelHourEnd.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
   </data>
   <data name="labelHourEnd.Size" type="System.Drawing.Size, System.Drawing">
-    <value>23, 13</value>
+    <value>28, 17</value>
   </data>
   <data name="labelHourEnd.TabIndex" type="System.Int32, mscorlib">
     <value>34</value>
@@ -2514,13 +2610,13 @@
     <value>NoControl</value>
   </data>
   <data name="labelMinuteEnd.Location" type="System.Drawing.Point, System.Drawing">
-    <value>118, 22</value>
+    <value>157, 27</value>
   </data>
   <data name="labelMinuteEnd.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
     <value>0, 0, 0, 0</value>
   </data>
   <data name="labelMinuteEnd.Size" type="System.Drawing.Size, System.Drawing">
-    <value>25, 13</value>
+    <value>30, 17</value>
   </data>
   <data name="labelMinuteEnd.TabIndex" type="System.Int32, mscorlib">
     <value>35</value>
@@ -2544,10 +2640,16 @@
     <value>3</value>
   </data>
   <data name="groupBoxTimeEnd.Location" type="System.Drawing.Point, System.Drawing">
-    <value>633, 207</value>
+    <value>844, 254</value>
+  </data>
+  <data name="groupBoxTimeEnd.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
+  </data>
+  <data name="groupBoxTimeEnd.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
   </data>
   <data name="groupBoxTimeEnd.Size" type="System.Drawing.Size, System.Drawing">
-    <value>226, 52</value>
+    <value>301, 64</value>
   </data>
   <data name="groupBoxTimeEnd.TabIndex" type="System.Int32, mscorlib">
     <value>36</value>
@@ -2574,10 +2676,10 @@
     <value>112</value>
   </metadata>
   <data name="$this.AutoScaleDimensions" type="System.Drawing.SizeF, System.Drawing">
-    <value>6, 13</value>
+    <value>8, 16</value>
   </data>
   <data name="$this.ClientSize" type="System.Drawing.Size, System.Drawing">
-    <value>864, 586</value>
+    <value>1152, 721</value>
   </data>
   <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
@@ -3675,6 +3777,9 @@
         AAAAAAAAAAD//wAA//wAAP/wAADjwAAA4QAAAOABAADgAQAA8AMAAMAPAACADwAAgAcAAAAHAAADxwAA
         D/8AAD//AAD//wAA
 </value>
+  </data>
+  <data name="$this.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>4, 4, 4, 4</value>
   </data>
   <data name="$this.Text" xml:space="preserve">
     <value>PersonViewerSCA</value>

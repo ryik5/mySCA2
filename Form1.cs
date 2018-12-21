@@ -1764,17 +1764,17 @@ namespace mySCA2
                         person.FIO = row[1].ToString();
                         person.NAV = row[2].ToString();
                         person.GroupPerson = selectedGroup;
-                        person.HourControlling = row[4].ToString();
-                        person.HourControllingDecimal = dControlHourIn;
-                        person.MinuteControlling = row[5].ToString();
-                        person.MinuteControllingDecimal = dControlMinuteIn;
-                        person.ControllingDecimal = ConvertDecimalSeparatedTimeToDecimal(dControlHourIn, dControlMinuteIn);
+                        person.ControlInHour = row[4].ToString();
+                        person.ControlInHourDecimal = dControlHourIn;
+                        person.ControlInMinute = row[5].ToString();
+                        person.ControlInMinuteDecimal = dControlMinuteIn;
+                        person.ControlInDecimal = ConvertDecimalSeparatedTimeToDecimal(dControlHourIn, dControlMinuteIn);
 
-                        person.HourControllingOut = row[7].ToString();
-                        person.HourControllingOutDecimal = dControlHourOut;
-                        person.MinuteControllingOut = row[8].ToString();
-                        person.MinuteControllingOutDecimal = dControlMinuteOut;
-                        person.ControllingOutDecimal = ConvertDecimalSeparatedTimeToDecimal(dControlHourOut, dControlMinuteOut);
+                        person.ControlOutHour = row[7].ToString();
+                        person.ControlOutHourDecimal = dControlHourOut;
+                        person.ControlOutMinute = row[8].ToString();
+                        person.ControlOutMinuteDecimal = dControlMinuteOut;
+                        person.ControlOutDecimal = ConvertDecimalSeparatedTimeToDecimal(dControlHourOut, dControlMinuteOut);
 
                         GetPersonRegistrationFromServer(dtPersonRegisteredFull, person);     //Search Registration at checkpoints of the selected person
                     }
@@ -1791,17 +1791,17 @@ namespace mySCA2
                 person.FIO = _textBoxReturnText(textBoxFIO);
                 person.GroupPerson = selectedGroup;
 
-                person.HourControlling = dControlHourIn.ToString();
-                person.HourControllingDecimal = dControlHourIn;
-                person.MinuteControlling = dControlMinuteIn.ToString();
-                person.MinuteControllingDecimal = dControlMinuteIn;
-                person.ControllingDecimal = ConvertDecimalSeparatedTimeToDecimal(dControlHourIn, dControlMinuteIn);
+                person.ControlInHour = dControlHourIn.ToString();
+                person.ControlInHourDecimal = dControlHourIn;
+                person.ControlInMinute = dControlMinuteIn.ToString();
+                person.ControlInMinuteDecimal = dControlMinuteIn;
+                person.ControlInDecimal = ConvertDecimalSeparatedTimeToDecimal(dControlHourIn, dControlMinuteIn);
 
-                person.HourControllingOut = dControlHourOut.ToString();
-                person.HourControllingOutDecimal = dControlHourOut;
-                person.MinuteControllingOut = dControlMinuteOut.ToString();
-                person.MinuteControllingOutDecimal = dControlMinuteOut;
-                person.ControllingOutDecimal = ConvertDecimalSeparatedTimeToDecimal(dControlHourOut, dControlMinuteOut);
+                person.ControlOutHour = dControlHourOut.ToString();
+                person.ControlOutHourDecimal = dControlHourOut;
+                person.ControlOutMinute = dControlMinuteOut.ToString();
+                person.ControlOutMinuteDecimal = dControlMinuteOut;
+                person.ControlOutDecimal = ConvertDecimalSeparatedTimeToDecimal(dControlHourOut, dControlMinuteOut);
 
                 GetPersonRegistrationFromServer(dtPersonRegisteredFull, person);
 
@@ -1866,11 +1866,11 @@ namespace mySCA2
         {
             DataRow rowPerson;
 
-            decimal hourControlStart = person.HourControllingDecimal;
-            decimal minuteControlStart = person.MinuteControllingDecimal;
+            decimal hourControlStart = person.ControlInHourDecimal;
+            decimal minuteControlStart = person.ControlInMinuteDecimal;
             decimal controlStart = ConvertDecimalSeparatedTimeToDecimal(hourControlStart, minuteControlStart);
-            decimal hourControlEnd = person.HourControllingOutDecimal;
-            decimal minuteControlEnd = person.MinuteControllingOutDecimal;
+            decimal hourControlEnd = person.ControlOutHourDecimal;
+            decimal minuteControlEnd = person.ControlOutMinuteDecimal;
             decimal controlEnd = ConvertDecimalSeparatedTimeToDecimal(hourControlEnd, minuteControlEnd);
 
             string stringIdCardIntellect = "";
@@ -2056,12 +2056,12 @@ namespace mySCA2
                 rowPerson[2] = person.NAV;
                 rowPerson[3] = person.GroupPerson;
                 rowPerson[10] = cellData[2];
-                rowPerson[4] = person.HourControlling;
-                rowPerson[5] = person.MinuteControlling;
+                rowPerson[4] = person.ControlInHour;
+                rowPerson[5] = person.ControlInMinute;
                 rowPerson[6] = controlStart;
-                rowPerson[7] = person.HourControllingOut;
-                rowPerson[8] = person.MinuteControllingOut;
-                rowPerson[9] = person.ControllingOutDecimal;
+                rowPerson[7] = person.ControlOutHour;
+                rowPerson[8] = person.ControlOutMinute;
+                rowPerson[9] = person.ControlOutDecimal;
                 rowPerson[12] = cellData[3];
                 rowPerson[13] = cellData[4];
                 rowPerson[14] = cellData[5];
@@ -2070,7 +2070,7 @@ namespace mySCA2
                 rowPerson[20] = namePoint;
                 rowPerson[21] = nameDirection;
                 rowPerson[22] = ConvertStringTimeToStringHHMM(cellData[7], cellData[8]);
-                rowPerson[23] = ConvertStringTimeToStringHHMM(person.HourControllingOut, person.MinuteControllingOut);
+                rowPerson[23] = ConvertStringTimeToStringHHMM(person.ControlOutHour, person.ControlOutMinute);
                 rowPerson[24] = ConvertStringTimeToStringHHMM(cellData[4], cellData[5]);
 
                 dt.Rows.Add(rowPerson);
@@ -2461,7 +2461,7 @@ namespace mySCA2
         }
 
 
-        private void _numUpDownSet(NumericUpDown numericUpDown, int i) //add string into comboBoxTargedPC from other threads
+        private void _numUpDownSet(NumericUpDown numericUpDown, decimal i) //add string into comboBoxTargedPC from other threads
         {
             if (InvokeRequired)
             {
@@ -2477,9 +2477,9 @@ namespace mySCA2
         {
             decimal iCombo = 0;
             if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { iCombo = (decimal)numericUpDown.Value; }));
+                Invoke(new MethodInvoker(delegate { iCombo = numericUpDown.Value; }));
             else
-                iCombo = (decimal)numericUpDown.Value;
+                iCombo = numericUpDown.Value;
             return iCombo;
         }
 
@@ -3027,20 +3027,19 @@ namespace mySCA2
             personCheck.FIO = _textBoxReturnText(textBoxFIO);
             personCheck.NAV = _textBoxReturnText(textBoxNav);
             personCheck.GroupPerson = nameGroup;
-
             personCheck.Department = nameGroup;
 
-            personCheck.HourControlling = numUpHourStart.ToString();
-            personCheck.HourControllingDecimal = numUpHourStart;
-            personCheck.MinuteControlling = numUpMinuteStart.ToString();
-            personCheck.MinuteControllingDecimal = numUpMinuteStart;
-            personCheck.ControllingDecimal = ConvertDecimalSeparatedTimeToDecimal(numUpHourStart, numUpMinuteStart);
+            personCheck.ControlInHour = numUpHourStart.ToString();
+            personCheck.ControlInHourDecimal = numUpHourStart;
+            personCheck.ControlInMinute = numUpMinuteStart.ToString();
+            personCheck.ControlInMinuteDecimal = numUpMinuteStart;
+            personCheck.ControlInDecimal = ConvertDecimalSeparatedTimeToDecimal(numUpHourStart, numUpMinuteStart);
 
-            personCheck.HourControllingOut = numUpHourEnd.ToString();
-            personCheck.HourControllingOutDecimal = numUpHourEnd;
-            personCheck.MinuteControllingOut = numUpMinuteEnd.ToString();
-            personCheck.MinuteControllingOutDecimal = numUpMinuteEnd;
-            personCheck.ControllingOutDecimal = ConvertDecimalSeparatedTimeToDecimal(numUpHourEnd, numUpMinuteEnd);
+            personCheck.ControlOutHour = numUpHourEnd.ToString();
+            personCheck.ControlOutHourDecimal = numUpHourEnd;
+            personCheck.ControlOutMinute = numUpMinuteEnd.ToString();
+            personCheck.ControlOutMinuteDecimal = numUpMinuteEnd;
+            personCheck.ControlOutDecimal = ConvertDecimalSeparatedTimeToDecimal(numUpHourEnd, numUpMinuteEnd);
 
             dtPersonTemp?.Clear();
 
@@ -3062,17 +3061,17 @@ namespace mySCA2
                             personCheck.GroupPerson = nameGroup;
                             personCheck.Department = nameGroup;
 
-                            personCheck.HourControlling = row[4].ToString();
-                            personCheck.HourControllingDecimal = TryParseStringToDecimal(row[4].ToString());
-                            personCheck.MinuteControlling = row[5].ToString();
-                            personCheck.MinuteControllingDecimal = TryParseStringToDecimal(row[5].ToString());
-                            personCheck.ControllingDecimal = TryParseStringToDecimal(row[6].ToString());
+                            personCheck.ControlInHour = row[4].ToString();
+                            personCheck.ControlInHourDecimal = TryParseStringToDecimal(row[4].ToString());
+                            personCheck.ControlInMinute = row[5].ToString();
+                            personCheck.ControlInMinuteDecimal = TryParseStringToDecimal(row[5].ToString());
+                            personCheck.ControlInDecimal = TryParseStringToDecimal(row[6].ToString());
 
-                            personCheck.HourControllingOut = row[7].ToString();
-                            personCheck.HourControllingOutDecimal = TryParseStringToDecimal(row[7].ToString());
-                            personCheck.MinuteControllingOut = row[8].ToString();
-                            personCheck.MinuteControllingOutDecimal = TryParseStringToDecimal(row[8].ToString());
-                            personCheck.ControllingOutDecimal = TryParseStringToDecimal(row[9].ToString());
+                            personCheck.ControlOutHour = row[7].ToString();
+                            personCheck.ControlOutHourDecimal = TryParseStringToDecimal(row[7].ToString());
+                            personCheck.ControlOutMinute = row[8].ToString();
+                            personCheck.ControlOutMinuteDecimal = TryParseStringToDecimal(row[8].ToString());
+                            personCheck.ControlOutDecimal = TryParseStringToDecimal(row[9].ToString());
 
                             FilterDataByNav(personCheck, dtPersonRegisteredFull, dtTempIntermediate);
                         }
@@ -3227,11 +3226,11 @@ namespace mySCA2
                         rowDtStoring[26] = workedHours;                                  // ("Реальное отработанное время", typeof(decimal)), //26
                         rowDtStoring[27] = ConvertDecimalTimeToStringHHMMArray(workedHours)[2];  //("Реальное отработанное время ЧЧ:ММ", typeof(string)), //27
 
-                        if (decimalFirstRegistrationInDay > personNAV.ControllingDecimal) // "Опоздание", typeof(bool)),           //28
+                        if (decimalFirstRegistrationInDay > personNAV.ControlInDecimal) // "Опоздание", typeof(bool)),           //28
                         { rowDtStoring[28] = "Да"; }
                         else { rowDtStoring[28] = ""; }
 
-                        if (decimalLastRegistrationInDay < personNAV.ControllingOutDecimal)  // "Ранний уход", typeof(bool)),                 //29
+                        if (decimalLastRegistrationInDay < personNAV.ControlOutDecimal)  // "Ранний уход", typeof(bool)),                 //29
                         { rowDtStoring[29] = "Да"; }
                         else { rowDtStoring[29] = ""; }
                         // MessageBox.Show(                            rowDtStoring[15].ToString() + " - " + rowDtStoring[18].ToString() + "\n" +                            rowDtStoring[28].ToString() + "\n" + rowDtStoring[29].ToString());
@@ -3633,6 +3632,9 @@ namespace mySCA2
         
         private void SelectPersonFromDataGrid(Person personSelected)
         {
+            decimal[] timeIn = new decimal[4];
+            decimal[] timeOut = new decimal[4];
+
             try
             {
                 int IndexCurrentRow = _dataGridView1CurrentRowIndex();
@@ -3640,8 +3642,9 @@ namespace mySCA2
                 {
                     int IndexColumn1 = 0;           // индекс 1-й колонки в датагрид
                     int IndexColumn2 = 0;           // индекс 2-й колонки в датагрид
-                    int IndexColumn3 = 0;           // индекс 3-й колонки в датагрид
-                    int IndexColumn4 = 0;           // индекс 4-й колонки в датагрид
+                    int IndexColumn5 = 0;           // индекс 5-й колонки в датагрид
+                    int IndexColumn6 = 0;           // индекс 6-й колонки в датагрид
+                    int IndexColumn7 = 0;           // индекс 7-й колонки в датагрид
 
                     for (int i = 0; i < dataGridView1.ColumnCount; i++)
                     {
@@ -3659,69 +3662,88 @@ namespace mySCA2
                         catch { }
                         try
                         {
-                            if (dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время, часы")
-                            { IndexColumn3 = i; }
-                        }
-                        catch { }
+                            if (dataGridView1.Columns[i].HeaderText.ToString() == "Группа")
+                            { IndexColumn5 = i; }
+                        } catch { }
                         try
                         {
-                            if (dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время, минуты")
-                            { IndexColumn4 = i; }
-                        }
-                        catch { }
+                            if (dataGridView1.Columns[i].HeaderText.ToString() == "Время прихода ЧЧ:ММ")
+                            { IndexColumn6 = i; }
+                        } catch { }
+                        try
+                        {
+                            if (dataGridView1.Columns[i].HeaderText.ToString() == "Время ухода ЧЧ:ММ")
+                            { IndexColumn7 = i; }
+                        } catch { }
                     }
-
 
                     if (nameOfLastTableFromDB == "PersonGroup")
                     {
-                        personSelected.FIO = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
-                        textBoxFIO.Text = personSelected.FIO;
+                        personSelected.FIO = _dataGridView1CellValue(IndexCurrentRow, IndexColumn1);
+                        personSelected.NAV = _dataGridView1CellValue(IndexCurrentRow, IndexColumn2); //Take the name of selected group
+                        personSelected.GroupPerson = _dataGridView1CellValue(IndexCurrentRow, IndexColumn5); //Take the name of selected group
 
-                        personSelected.NAV = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString(); //Take the name of selected group
-                        textBoxNav.Text = personSelected.NAV;
+                        personSelected.ControlInHHMM = _dataGridView1CellValue(IndexCurrentRow, IndexColumn6); //Take the name of selected group
+                        timeIn = ConvertStringTimeHHMMToDecimalArray(personSelected.ControlInHHMM);
+                        personSelected.ControlInHour = timeIn[0].ToString();
+                        personSelected.ControlInHourDecimal = timeIn[0];
+                        personSelected.ControlInMinute = timeIn[1].ToString();
+                        personSelected.ControlInMinuteDecimal = timeIn[1];
+                        personSelected.ControlInDecimal = timeIn[2];
 
-                        personSelected.GroupPerson = textBoxGroup.Text;
+                        personSelected.ControlOutHHMM = _dataGridView1CellValue(IndexCurrentRow, IndexColumn7); //Take the name of selected group
+                        timeOut = ConvertStringTimeHHMMToDecimalArray(personSelected.ControlOutHHMM);
+                        personSelected.ControlOutHour = timeOut[0].ToString();
+                        personSelected.ControlOutHourDecimal = timeOut[0];
+                        personSelected.ControlOutMinute = timeOut[1].ToString();
+                        personSelected.ControlOutMinuteDecimal = timeOut[1];
+                        personSelected.ControlOutDecimal = timeOut[2];
+
+                        _numUpDownSet(numUpDownHourStart, personSelected.ControlInHourDecimal);
+                        _numUpDownSet(numUpDownMinuteStart, personSelected.ControlInMinuteDecimal);
+
                         StatusLabel2.Text = @"Выбрана группа: " + personSelected.GroupPerson + @" | Курсор на: " + personSelected.FIO;
+
                         groupBoxPeriod.BackColor = Color.PaleGreen;
-
-                        string hour = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn3].Value.ToString();
-                        personSelected.HourControlling = hour;
-                        personSelected.HourControllingDecimal = TryParseStringToDecimal(hour);
-                        numUpDownHourStart.Value = personSelected.HourControllingDecimal;
-
-                        string minute = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn4].Value.ToString();
-                        personSelected.MinuteControlling = minute;
-                        personSelected.MinuteControllingDecimal = TryParseStringToDecimal(minute);
-                        numUpDownMinuteStart.Value = personSelected.MinuteControllingDecimal;
                     }
                     else if (nameOfLastTableFromDB == "PersonRegistered")
                     {
-                        personSelected.FIO = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
-                        textBoxFIO.Text = personSelected.FIO;
+                        personSelected.FIO = _dataGridView1CellValue(IndexCurrentRow, IndexColumn1);
+                        personSelected.NAV = _dataGridView1CellValue(IndexCurrentRow, IndexColumn2); //Take the name of selected group
+                        personSelected.GroupPerson = _textBoxReturnText(textBoxGroup);
 
-                        personSelected.NAV = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString(); //Take the name of selected group
-                        textBoxNav.Text = personSelected.NAV;
+                        personSelected.ControlInHHMM = _dataGridView1CellValue(IndexCurrentRow, IndexColumn6); //Take the name of selected group
+                        timeIn = ConvertStringTimeHHMMToDecimalArray(personSelected.ControlInHHMM);
+                        personSelected.ControlInHour = timeIn[0].ToString();
+                        personSelected.ControlInHourDecimal = timeIn[0];
+                        personSelected.ControlInMinute = timeIn[1].ToString();
+                        personSelected.ControlInMinuteDecimal = timeIn[1];
+                        personSelected.ControlInDecimal = timeIn[2];
 
-                        personSelected.GroupPerson = textBoxGroup.Text;
+                        personSelected.ControlOutHHMM = _dataGridView1CellValue(IndexCurrentRow, IndexColumn7); //Take the name of selected group
+                        timeOut = ConvertStringTimeHHMMToDecimalArray(personSelected.ControlOutHHMM);
+                        personSelected.ControlOutHour = timeOut[0].ToString();
+                        personSelected.ControlOutHourDecimal = timeOut[0];
+                        personSelected.ControlOutMinute = timeOut[1].ToString();
+                        personSelected.ControlOutMinuteDecimal = timeOut[1];
+                        personSelected.ControlOutDecimal = timeOut[2];
 
-                        string hour = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn3].Value.ToString();
-                        personSelected.HourControlling = hour;
-                        personSelected.HourControllingDecimal = TryParseStringToDecimal(hour);
-                        numUpDownHourStart.Value = personSelected.HourControllingDecimal;
-
-                        string minute = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn4].Value.ToString();
-                        personSelected.MinuteControlling = minute;
-                        personSelected.MinuteControllingDecimal = TryParseStringToDecimal(minute);
-                        numUpDownMinuteStart.Value = personSelected.MinuteControllingDecimal;
+                        _numUpDownSet(numUpDownHourStart, personSelected.ControlInHourDecimal);
+                        _numUpDownSet(numUpDownMinuteStart, personSelected.ControlInMinuteDecimal);
 
                         StatusLabel2.Text = @"Выбран: " + personSelected.FIO + @" |  Всего ФИО: " + iFIO;
-                        nameOfLastTableFromDB = "PersonRegistered";
                     }
                 }
             }
             catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+
+            if (personSelected.FIO.Length == 0)
+            {
+                SelectPersonFromControls(personSelected);
+            }
         }
 
+        //gathering a person's features from textboxes and other controls
         private void SelectPersonFromControls(Person personSelected)
         {
             try
@@ -3730,14 +3752,18 @@ namespace mySCA2
                 personSelected.NAV = _textBoxReturnText(textBoxNav);
                 personSelected.GroupPerson = _textBoxReturnText(textBoxGroup);
 
-                personSelected.HourControllingDecimal = _numUpDownReturn(numUpDownHourStart);
-                personSelected.HourControlling = personSelected.HourControllingDecimal.ToString();
+                personSelected.ControlInHourDecimal = _numUpDownReturn(numUpDownHourStart);
+                personSelected.ControlInHour = personSelected.ControlInHourDecimal.ToString();
+                personSelected.ControlInMinuteDecimal = _numUpDownReturn(numUpDownMinuteStart);
+                personSelected.ControlInMinute = personSelected.ControlInMinuteDecimal.ToString();
+                personSelected.ControlInHHMM = ConvertStringTimeToStringHHMM(personSelected.ControlInHour, personSelected.ControlInMinute);
 
-                personSelected.MinuteControllingDecimal = _numUpDownReturn(numUpDownMinuteStart);
-                personSelected.MinuteControlling = personSelected.MinuteControllingDecimal.ToString();
-
-            }
-            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                personSelected.ControlOutHourDecimal = _numUpDownReturn(numUpDownHourEnd);
+                personSelected.ControlOutHour = personSelected.ControlOutHourDecimal.ToString();
+                personSelected.ControlOutMinuteDecimal = _numUpDownReturn(numUpDownMinuteEnd);
+                personSelected.ControlOutMinute = personSelected.ControlOutMinuteDecimal.ToString();
+                personSelected.ControlOutHHMM = ConvertStringTimeToStringHHMM(personSelected.ControlOutHour, personSelected.ControlOutMinute);
+            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
         }
 
         private void FindWorkDatesInSelected() //
@@ -3896,7 +3922,7 @@ namespace mySCA2
             Person personVisual = new Person();
             if (bLoaded)
             {
-                SelectPersonFromControls(personVisual);
+                SelectPersonFromDataGrid(personVisual);
                 dataGridView1.Visible = false;
                 FindWorkDatesInSelected();
                 DrawRegistration(personVisual);
@@ -3934,8 +3960,8 @@ namespace mySCA2
                                   @"Сервер СКД", //19
                                 //  @"Имя точки прохода", //20
                                 //  @"Направление прохода", //21
-                               //   @"Время прихода ЧЧ:ММ",//22
-                                //  @"Время ухода ЧЧ:ММ",//23
+                                  @"Время прихода ЧЧ:ММ",//22
+                                  @"Время ухода ЧЧ:ММ",//23
                                 //  @"Реальное время прихода ЧЧ:ММ",//24
                                 //  @"Реальное время ухода ЧЧ:ММ", //25
                                   @"Реальное отработанное время", //26
@@ -4008,7 +4034,7 @@ namespace mySCA2
             numberPeopleInLoading = countNAVs;
 
             //a point of a start of day (personaly)
-            int iHourShouldStart = (int)personDraw.HourControllingDecimal * iMinutesInHour + (int)personDraw.MinuteControllingDecimal;
+            int iHourShouldStart = (int)personDraw.ControlInHourDecimal * iMinutesInHour + (int)personDraw.ControlInMinuteDecimal;
             
             //a point end of day(personaly)
             int iHourShouldEnd = 18* iMinutesInHour; //minutes from 0 to the end of workday
@@ -4263,7 +4289,7 @@ namespace mySCA2
         }
 
         private void DrawFullWorkedPeriodRegistration(Person personDraw)  // Draw the whole period registration
-        { 
+        {
             //distinct Records               
             string[] arrayHiddenCollumns =
                             {
@@ -4295,39 +4321,35 @@ namespace mySCA2
 
             // int iPanelBorder = 2;
             int iMinutesInHour = 60;
-            int iShiftStart = 300;
+            int iShiftStart = 300; //начальное смещение для визуализаций графиков
             int iStringHeight = 19;
             int iShiftHeightText = 0;
             int iShiftHeightAll = 36;
 
-            string fio = "", nav = "", dayRegistration = "";
+            string fio = personDraw.FIO;
+            string nav = personDraw.NAV;
+            string group = personDraw.GroupPerson;
+
+            //constant for a person
+            string dayRegistration = "";
             int minutesIn = 0;     // время входа в минутах планируемое
             int minutesInFact = 0;     // время выхода в минутах фактическое
             int minutesOut = 0;    // время входа в минутах планируемое
             int minutesOutFact = 0;    // время выхода в минутах фактическое
 
-            //constant for a person
-            string sFIO = personDraw.FIO;
-            string sNAV = personDraw.NAV;
-            string sGroup = _textBoxReturnText(textBoxGroup);
-            int iTimeControling = 0;
-            int iTimeComeFact = 0;
-            int iTimeOutControling = 0;
-            int iTimeOutFact = 0;
-
             //select and distinct dataRow
             var rowsPersonRegistrationsForDraw = dtPersonTempAllCollumns.AsEnumerable();
-            if (sGroup.Length > 0)
+            if (group.Length > 0)
             {
-                rowsPersonRegistrationsForDraw = GetDistinctRecords( dtPersonTempAllCollumns.Select("[Группа] = '" + sGroup + "'").CopyToDataTable(), namesDistinctCollumnsArray).AsEnumerable();
+                rowsPersonRegistrationsForDraw = GetDistinctRecords(dtPersonTempAllCollumns.Select("[Группа] = '" + group + "'").CopyToDataTable(), namesDistinctCollumnsArray).AsEnumerable();
             }
-            else if (sNAV.Length == 6)
+            else if (nav.Length == 6)
             {
-                rowsPersonRegistrationsForDraw = GetDistinctRecords(dtPersonTempAllCollumns.Select("[NAV-код] = '" + sNAV + "'").CopyToDataTable(), namesDistinctCollumnsArray).AsEnumerable();
+                rowsPersonRegistrationsForDraw = GetDistinctRecords(dtPersonTempAllCollumns.Select("[NAV-код] = '" + nav + "'").CopyToDataTable(), namesDistinctCollumnsArray).AsEnumerable();
             }
-            else if (sNAV.Length != 6 && sFIO.Length > 1)
+            else if (nav.Length != 6 && fio.Length > 1)
             {
-                rowsPersonRegistrationsForDraw = GetDistinctRecords(dtPersonTempAllCollumns.Select("[Фамилия Имя Отчество] = '" + sFIO + "'").CopyToDataTable(), namesDistinctCollumnsArray).AsEnumerable();
+                rowsPersonRegistrationsForDraw = GetDistinctRecords(dtPersonTempAllCollumns.Select("[Фамилия Имя Отчество] = '" + fio + "'").CopyToDataTable(), namesDistinctCollumnsArray).AsEnumerable();
             }
 
             //count uniq NAV-codes
@@ -4342,13 +4364,8 @@ namespace mySCA2
             hsNAV = null;
             numberPeopleInLoading = countNAVs;
 
-
-            int iHourShouldStart = (int)personDraw.HourControllingDecimal * iMinutesInHour + (int)personDraw.MinuteControllingDecimal;
-            int iHourShouldEnd = 18*iMinutesInHour;
-            // int iHoursWorkDay = 540;
-
             //  bmp?.Dispose();
-            panelView.Height = iShiftHeightAll + iStringHeight * workSelectedDays.Length* countNAVs;
+            panelView.Height = iShiftHeightAll + iStringHeight * workSelectedDays.Length * countNAVs;
             // panelView.AutoScroll = false;
             // panelView.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             // panelView.Anchor = AnchorStyles.Bottom;
@@ -4373,8 +4390,7 @@ namespace mySCA2
             //set to comment it if wanted to set the PictureBox  at the Center place
             bmp = new Bitmap(pictureBox1.Width, pictureBox1.Height);
 
-
-
+            
             //Start the Block of Draw 
             //-------------------------------
             //Draw the Axises and common Data
@@ -4390,23 +4406,28 @@ namespace mySCA2
                 Rectangle[] rectsRealMark;
                 Rectangle[] rects = new Rectangle[workSelectedDays.Count() * countNAVs];
                 DataRow[] dataRowsDraw;
-
                 int iLenghtRect = 0; //количество  прямоугольников соотствествующих входам-выходам в рабочие дни
+
                 foreach (string singleNav in arrayNAVs)
                 {
                     iLenghtRect += rowsPersonRegistrationsForDraw.CopyToDataTable().Select("[NAV-код] = '" + singleNav + "'").Count();
                 }
 
-
                 rectsRealMark = new Rectangle[iLenghtRect];
                 rectsReal = new Rectangle[iLenghtRect]; //количество прямоугольников
+
                 //Draw axis and Paint FIO, workdays
                 var myBrushAxis = new SolidBrush(Color.Black);
                 var pointForN = new PointF(iShiftStart - 300, iStringHeight + iShiftHeightText);
 
-                int startPoint = 0;
-                int lastPoint = 0;
-                int result = 0;
+                int startPointDrawPerson_rectsRealMark = 0;
+                int lastPointDrawPerson_rectsRealMark = 0;
+
+                int startPointDrawPerson_rectsReal = 0;
+                int lastPointDrawPerson_rectsReal = 0;
+
+                int startPointDrawPerson_rects = 0;
+                int lastPointDrawPerson_rects = 0;
 
                 foreach (string singleNav in arrayNAVs)
                 {
@@ -4422,36 +4443,28 @@ namespace mySCA2
                         minutesOut = (int)ConvertStringTimeHHMMToDecimalArray(row["Время ухода ЧЧ:ММ"].ToString())[3];
                         minutesOutFact = (int)ConvertStringTimeHHMMToDecimalArray(row["Реальное время ухода ЧЧ:ММ"].ToString())[3];
 
-                        //set parameters for persons's constant
-                        if (fio.Length > 1) sFIO = fio;
-                        if (nav.Length == 6) sNAV = nav;
-                        if (minutesIn > 0) iTimeControling = minutesIn;
-                        if (minutesInFact > 0) iTimeComeFact = minutesInFact;
-                        if (minutesOut > 0) iTimeOutControling = minutesOut;
-                        if (minutesOutFact > 0) iTimeOutFact = minutesOutFact;
-
                         for (int k = 0; k < workSelectedDays.Length; k++)
                         {
                             if (workSelectedDays[k].Length == 10 && dayRegistration.Contains(workSelectedDays[k])) //учитываем проходы ТОЛЬКО в рабочие дни
                             {
-                                lastPoint = 2 * iStringHeight + iShiftHeightText + k * iStringHeight + 1;
-                                result = startPoint + lastPoint;
+                                lastPointDrawPerson_rectsReal = 2 * iStringHeight + iShiftHeightText + k * iStringHeight + 1;
 
                                 rectsReal[irectsTempReal] = new Rectangle(
                                     iShiftStart + minutesInFact,
-                                    result,
-                                    iTimeOutFact - iTimeComeFact,
+                                    startPointDrawPerson_rectsReal + lastPointDrawPerson_rectsReal,
+                                    minutesOutFact - minutesInFact,
                                     3 * iStringHeight / 4
                                     );
                                 irectsTempReal++;
                             }
                         }
                     }
-                    startPoint = lastPoint;
+                    startPointDrawPerson_rectsReal = lastPointDrawPerson_rectsReal;
                     dataRowsDraw = null;
-                    
+
                     for (int k = 0; k < workSelectedDays.Length; k++)
                     {
+
                         pointForN.Y += iStringHeight;
                         gr.DrawLine(
                             axis,
@@ -4474,17 +4487,14 @@ namespace mySCA2
                 //Fill RealWork
                 gr.FillRectangles(myBrushRealWorkHour, rectsReal);
 
-                 startPoint = 0;
-                 lastPoint = 0;
-
-
                 //Paint Marks of Registration
-                iHourShouldStart = iTimeControling;
                 irectsTempReal = 0;
+
+                //second part
+                pointForN = new PointF(iShiftStart - 100, iStringHeight + iShiftHeightText);
 
                 foreach (string singleNav in arrayNAVs)
                 {
-                    dataRowsDraw = null;
                     dataRowsDraw = rowsPersonRegistrationsForDraw.CopyToDataTable().Select("[NAV-код] = '" + singleNav + "'");
                     foreach (DataRow row in dataRowsDraw)
                     {
@@ -4497,66 +4507,54 @@ namespace mySCA2
                         minutesOutFact = (int)ConvertStringTimeHHMMToDecimalArray(row["Реальное время ухода ЧЧ:ММ"].ToString())[3];
 
                         //set parameters for persons's constant
-                        if (fio.Length > 1) sFIO = fio;
-                        if (nav.Length == 6) sNAV = nav;
-                        if (minutesIn > 0) iTimeControling = minutesIn;
-                        if (minutesInFact > 0) iTimeComeFact = minutesInFact;
-                        if (minutesOut > 0) iTimeOutControling = minutesOut;
-                        if (minutesOutFact > 0) iTimeOutFact = minutesOutFact;
-
-                        //set parameters for persons's constant
                         for (int k = 0; k < workSelectedDays.Length; k++)
                         {
                             if (workSelectedDays[k].Length == 10 && dayRegistration.Contains(workSelectedDays[k])) //учитываем проходы ТОЛЬКО в рабочие дни
                             {
-                                lastPoint = 2 * iStringHeight + iShiftHeightText + k * iStringHeight + 1;
-                                result = startPoint + lastPoint;
+                                lastPointDrawPerson_rectsRealMark = 2 * iStringHeight + iShiftHeightText + k * iStringHeight + 1;
 
                                 rectsRealMark[irectsTempReal] = new Rectangle(
-                                    iShiftStart + iTimeComeFact,
-                                   result,
+                                    iShiftStart + minutesInFact,
+                                   startPointDrawPerson_rectsRealMark + lastPointDrawPerson_rectsRealMark,
                                     2,
                                     3 * iStringHeight / 4
                                     );
                                 irectsTempReal++;
                             }
                         }
+                    dataRowsDraw = null;
                     }
-                    startPoint = lastPoint;
+
+                    for (int k = 0; k < workSelectedDays.Length; k++)
+                    {
+                        // наносим рисунки с рабочими часами
+                        lastPointDrawPerson_rects = iStringHeight / 4 + 2 * iStringHeight + iShiftHeightText + k * iStringHeight + 1;
+                        rects[k] = new Rectangle(
+                            iShiftStart + minutesIn,
+                          startPointDrawPerson_rects + lastPointDrawPerson_rects,
+                            minutesOut - minutesIn,
+                            iStringHeight / 4
+                            );
+
+                        //lines
+                        pointForN.Y += iStringHeight;
+                        gr.DrawLine(
+                            axis,
+                            new Point(0, iShiftHeightAll + k * iStringHeight),
+                            new Point(pictureBox1.Width, iShiftHeightAll + k * iStringHeight)
+                            );
+                    }
+
+                    //начальное смещение для каждого следующего сотрудника
+                    startPointDrawPerson_rectsRealMark = lastPointDrawPerson_rectsRealMark;
+                    startPointDrawPerson_rects = lastPointDrawPerson_rects;
                 }
+
                 //Fill All Mark at Passthrow Points
-               gr.FillRectangles(myBrushRealWorkHour, rectsRealMark); //draw the real first come of the person
+                gr.FillRectangles(myBrushRealWorkHour, rectsRealMark); //draw the real first come of the person
 
-
-                // наносим рисунки с рабочими часами
-                for (int k = 0; k < workSelectedDays.Length* countNAVs; k++)
-                {
-                    rects[k] = new Rectangle(
-                        iShiftStart + iHourShouldStart, 
-                        2 * iStringHeight + iShiftHeightText + k * iStringHeight + iStringHeight / 4 + 1,
-                        iHourShouldEnd - iHourShouldStart, 
-                        iStringHeight / 4
-                        );
-                }
                 // Fill WorkTime
                 gr.FillRectangles(myBrushWorkHour, rects); //Draw a set worktime of schedule
-                
-
-                //second part
-                myBrushAxis = new SolidBrush(Color.Black);
-                pointForN = new PointF(iShiftStart - 100, iStringHeight + iShiftHeightText);
-
-                axis = new Pen(Color.Black);
-                //рисуем оси дат и делаем к ним подписи
-                for (int k = 0; k < workSelectedDays.Length* countNAVs; k++)
-                {
-                    pointForN.Y += iStringHeight;
-                    gr.DrawLine(
-                        axis, 
-                        new Point(0, iShiftHeightAll + k * iStringHeight), 
-                        new Point(pictureBox1.Width, iShiftHeightAll + k * iStringHeight)
-                        );
-                }
 
                 //рисуем оси Часов и делаем к ним подписи
                 gr.DrawString(
@@ -4601,18 +4599,16 @@ namespace mySCA2
                 myBrushAxis = null;
             }
 
-
+            //назначаем контролу pictureBox1 изображение - BMP
             pictureBox1.Image = bmp;
             pictureBox1.Refresh();
             panelView.Controls.Add(pictureBox1);
 
-            fio = null; nav = null; dayRegistration = null;
-            font.Dispose();
-            //Отмечаем ФИО как выборанный и устанавливаем на него фокус
-            textBoxFIO.Text = sFIO;
-            textBoxNav.Text = sNAV;
-            StatusLabel2.Text = @"Выбран: " + ShortFIO(sFIO) + @" |  NAV: " + sNAV;
-            if (comboBoxFio.FindString(sFIO) != -1) comboBoxFio.SelectedIndex = comboBoxFio.FindString(sFIO); //ищем в комбобокс выбранный ФИО и устанавливаем на него фокус
+            //Отмечаем последний выбранный ФИО как выборанный и устанавливаем на него фокус
+            _textBoxSetText(textBoxFIO, fio);
+            _textBoxSetText(textBoxNav, nav);
+            _toolStripStatusLabelSetText(StatusLabel2, @"Выбран: " + ShortFIO(fio) + @" |  NAV: " + nav);
+            if (comboBoxFio.FindString(fio) != -1) comboBoxFio.SelectedIndex = comboBoxFio.FindString(fio); //ищем в комбобокс выбранный ФИО и устанавливаем на него фокус
 
             //Write down the selected color
             if (!databasePerson.Exists) return;
@@ -4632,6 +4628,9 @@ namespace mySCA2
             sLastSelectedElement = "DrawFullWorkedPeriodRegistration";
             _RefreshPictureBox(pictureBox1, bmp);
             panelViewResize(countNAVs);
+
+            fio = null; nav = null; dayRegistration = null;
+            font.Dispose();
         }
 
         private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
@@ -5732,16 +5731,18 @@ namespace mySCA2
         public string NAV = "";
         public string Department = "";
         public string GroupPerson = "Office";
-        public string HourControlling = "9";
-        public decimal HourControllingDecimal = 9;
-        public string MinuteControlling = "0";
-        public decimal MinuteControllingDecimal = 0;
-        public decimal ControllingDecimal = 9;
-        public string HourControllingOut = "18";
-        public decimal HourControllingOutDecimal = 18;
-        public string MinuteControllingOut = "0";
-        public decimal MinuteControllingOutDecimal = 0;
-        public decimal ControllingOutDecimal = 18;
+        public string ControlInHour = "9";
+        public decimal ControlInHourDecimal = 9;
+        public string ControlInMinute = "0";
+        public decimal ControlInMinuteDecimal = 0;
+        public decimal ControlInDecimal = 9;
+        public string ControlOutHour = "18";
+        public decimal ControlOutHourDecimal = 18;
+        public string ControlOutMinute = "0";
+        public decimal ControlOutMinuteDecimal = 0;
+        public decimal ControlOutDecimal = 18;
+        public string ControlInHHMM = "09:00";
+        public string ControlOutHHMM = "18:00";
 
         public string RealInHour = "9";
         public string RealInMinute = "0";
