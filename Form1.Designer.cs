@@ -64,7 +64,6 @@
             this.QuickLoadDataItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ExportIntoExcelItem = new System.Windows.Forms.ToolStripMenuItem();
             this.VisualItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.VisualWorkedTimeItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SelectColorMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ColorRegistrationMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.BlueItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -375,7 +374,6 @@
             this.QuickLoadDataItem,
             this.ExportIntoExcelItem,
             this.VisualItem,
-            this.VisualWorkedTimeItem,
             this.SelectColorMenuItem,
             this.ReportsItem,
             this.ExitItem});
@@ -405,12 +403,6 @@
             this.VisualItem.Name = "VisualItem";
             resources.ApplyResources(this.VisualItem, "VisualItem");
             this.VisualItem.Click += new System.EventHandler(this.VisualItem_Click);
-            // 
-            // VisualWorkedTimeItem
-            // 
-            this.VisualWorkedTimeItem.Name = "VisualWorkedTimeItem";
-            resources.ApplyResources(this.VisualWorkedTimeItem, "VisualWorkedTimeItem");
-            this.VisualWorkedTimeItem.Click += new System.EventHandler(this.VisualWorkedTimeItem_Click);
             // 
             // SelectColorMenuItem
             // 
@@ -870,7 +862,6 @@
         private System.Windows.Forms.ToolStripMenuItem QuickLoadDataItem;
         private System.Windows.Forms.ToolStripMenuItem ExportIntoExcelItem;
         private System.Windows.Forms.ToolStripMenuItem VisualItem;
-        private System.Windows.Forms.ToolStripMenuItem VisualWorkedTimeItem;
         private System.Windows.Forms.ToolStripMenuItem SelectColorMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ColorRegistrationMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ReportsItem;
