@@ -29,9 +29,9 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormPersonViewerSCA));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.comboBoxFio = new System.Windows.Forms.ComboBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
@@ -62,15 +62,15 @@
             this.FunctionMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.GetFioItem = new System.Windows.Forms.ToolStripMenuItem();
             this.QuickLoadDataItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.ExportIntoExcelItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.VisualItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.SelectColorMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.TableExportToExcelItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.TableModeItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.VisualModeItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.VisualSelectColorMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ColorRegistrationMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.BlueItem = new System.Windows.Forms.ToolStripMenuItem();
             this.RedItem = new System.Windows.Forms.ToolStripMenuItem();
             this.YellowItem = new System.Windows.Forms.ToolStripMenuItem();
             this.GreenItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.ReportsItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ExitItem = new System.Windows.Forms.ToolStripMenuItem();
             this.GroupsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.PersonOrGroupItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -132,20 +132,20 @@
             // dataGridView1
             // 
             this.dataGridView1.AllowUserToOrderColumns = true;
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.Color.SteelBlue;
-            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.Color.SteelBlue;
+            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle3;
             resources.ApplyResources(this.dataGridView1, "dataGridView1");
             this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dataGridView1.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedHeaders;
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            dataGridViewCellStyle2.ForeColor = System.Drawing.Color.Black;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.LightBlue;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.DarkSlateGray;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.Color.LightBlue;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.Color.DarkSlateGray;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnF2;
             this.dataGridView1.Name = "dataGridView1";
@@ -372,10 +372,10 @@
             this.FunctionMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.GetFioItem,
             this.QuickLoadDataItem,
-            this.ExportIntoExcelItem,
-            this.VisualItem,
-            this.SelectColorMenuItem,
-            this.ReportsItem,
+            this.TableExportToExcelItem,
+            this.TableModeItem,
+            this.VisualModeItem,
+            this.VisualSelectColorMenuItem,
             this.ExitItem});
             this.FunctionMenuItem.Name = "FunctionMenuItem";
             resources.ApplyResources(this.FunctionMenuItem, "FunctionMenuItem");
@@ -392,24 +392,30 @@
             resources.ApplyResources(this.QuickLoadDataItem, "QuickLoadDataItem");
             this.QuickLoadDataItem.Click += new System.EventHandler(this.GetDataItem_Click);
             // 
-            // ExportIntoExcelItem
+            // TableExportToExcelItem
             // 
-            this.ExportIntoExcelItem.Name = "ExportIntoExcelItem";
-            resources.ApplyResources(this.ExportIntoExcelItem, "ExportIntoExcelItem");
-            this.ExportIntoExcelItem.Click += new System.EventHandler(this.Export_Click);
+            this.TableExportToExcelItem.Name = "TableExportToExcelItem";
+            resources.ApplyResources(this.TableExportToExcelItem, "TableExportToExcelItem");
+            this.TableExportToExcelItem.Click += new System.EventHandler(this.Export_Click);
             // 
-            // VisualItem
+            // TableModeItem
             // 
-            this.VisualItem.Name = "VisualItem";
-            resources.ApplyResources(this.VisualItem, "VisualItem");
-            this.VisualItem.Click += new System.EventHandler(this.VisualItem_Click);
+            this.TableModeItem.Name = "TableModeItem";
+            resources.ApplyResources(this.TableModeItem, "TableModeItem");
+            this.TableModeItem.Click += new System.EventHandler(this.ReportsItem_Click);
             // 
-            // SelectColorMenuItem
+            // VisualModeItem
             // 
-            this.SelectColorMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.VisualModeItem.Name = "VisualModeItem";
+            resources.ApplyResources(this.VisualModeItem, "VisualModeItem");
+            this.VisualModeItem.Click += new System.EventHandler(this.VisualItem_Click);
+            // 
+            // VisualSelectColorMenuItem
+            // 
+            this.VisualSelectColorMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.ColorRegistrationMenuItem});
-            this.SelectColorMenuItem.Name = "SelectColorMenuItem";
-            resources.ApplyResources(this.SelectColorMenuItem, "SelectColorMenuItem");
+            this.VisualSelectColorMenuItem.Name = "VisualSelectColorMenuItem";
+            resources.ApplyResources(this.VisualSelectColorMenuItem, "VisualSelectColorMenuItem");
             // 
             // ColorRegistrationMenuItem
             // 
@@ -444,12 +450,6 @@
             this.GreenItem.Name = "GreenItem";
             resources.ApplyResources(this.GreenItem, "GreenItem");
             this.GreenItem.Click += new System.EventHandler(this.GreenItem_Click);
-            // 
-            // ReportsItem
-            // 
-            this.ReportsItem.Name = "ReportsItem";
-            resources.ApplyResources(this.ReportsItem, "ReportsItem");
-            this.ReportsItem.Click += new System.EventHandler(this.ReportsItem_Click);
             // 
             // ExitItem
             // 
@@ -860,11 +860,11 @@
         private System.Windows.Forms.ToolStripMenuItem SetupItem;
         private System.Windows.Forms.ToolStripMenuItem UpdateControllingItem;
         private System.Windows.Forms.ToolStripMenuItem QuickLoadDataItem;
-        private System.Windows.Forms.ToolStripMenuItem ExportIntoExcelItem;
-        private System.Windows.Forms.ToolStripMenuItem VisualItem;
-        private System.Windows.Forms.ToolStripMenuItem SelectColorMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem TableExportToExcelItem;
+        private System.Windows.Forms.ToolStripMenuItem VisualModeItem;
+        private System.Windows.Forms.ToolStripMenuItem VisualSelectColorMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ColorRegistrationMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem ReportsItem;
+        private System.Windows.Forms.ToolStripMenuItem TableModeItem;
         private System.Windows.Forms.ToolStripMenuItem BlueItem;
         private System.Windows.Forms.ToolStripMenuItem RedItem;
         private System.Windows.Forms.ToolStripMenuItem YellowItem;
