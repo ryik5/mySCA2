@@ -168,7 +168,8 @@ namespace mySCA2
                                   new DataColumn(@"№ п/п",typeof(int)),              //0
                                   new DataColumn(@"Код",typeof(string)),             //1
                                   new DataColumn(@"Группа",typeof(string)),          //2
-                                  new DataColumn(@"Вышестоящая группа",typeof(string))//3
+                                  new DataColumn(@"Вышестоящая группа",typeof(string)),//3
+                                  new DataColumn(@"Описание группы",typeof(string)),   //4
                             };
 
         //Color of Person's Control elements which depend on the selected MenuItem  
@@ -1351,8 +1352,8 @@ namespace mySCA2
             groupBoxProperties.Visible = false;
             dataGridView1.Visible = true;
 
-            ShowDataTableQuery(databasePerson, "PersonGroupDesciption", "SELECT GroupPerson, GroupPersonDescription ", " group by GroupPerson ORDER BY GroupPerson asc; ");
-
+            ShowDataTableQuery(databasePerson, "PersonGroupDesciption", "SELECT GroupPerson AS 'Группа', GroupPersonDescription AS 'Описание группы' ", " group by GroupPerson ORDER BY GroupPerson asc; ");
+            
             try
             {
                 textBoxGroup.Text = dataGridView1.Rows[0].Cells[0].Value.ToString();
@@ -1376,13 +1377,136 @@ namespace mySCA2
         private void MembersGroupItem_Click(object sender, EventArgs e)
         {
             bErrorData = false;
-            MembersOfGroup(textBoxGroup.Text.Trim());
+            SearchMembersSelectedGroup();
+        }
+
+        private void SearchMembersSelectedGroup()
+        {
+            try
+            {
+                if (0 < dataGridView1.Rows.Count && dataGridView1.CurrentRow.Index < dataGridView1.Rows.Count)
+                {
+                    if (nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup")
+                    {
+                        int IndexColumn1 = -1;
+                        int IndexColumn2 = -1;
+                        int IndexCurrentRow = _dataGridView1CurrentRowIndex();
+
+                        string nameGroup = "";
+                        for (int i = 0; i < dataGridView1.ColumnCount; i++)
+                        {
+                            if (dataGridView1.Columns[i].HeaderText.ToString() == "GroupPerson" || dataGridView1.Columns[i].HeaderText.ToString() == "Группа")
+                            { IndexColumn1 = i; }
+                            else if (dataGridView1.Columns[i].HeaderText.ToString() == "GroupPersonDescription" || dataGridView1.Columns[i].HeaderText.ToString() == "Описание группа")
+                            { IndexColumn2 = i; }
+                        }
+                        if (IndexColumn1 > -1 || IndexColumn2 > -1)
+                        {
+                            nameGroup = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
+                            UpdateControllingItem.Visible = true;
+                        }
+                        else
+                        { UpdateControllingItem.Visible = false; }
+
+                        numberPeopleInLoading = 0;
+                        DataRow dataRow;
+                        using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+                        {
+                            sqlConnection.Open();
+                            using (var sqlCommand = new SQLiteCommand(
+
+                                "Select * FROM PersonGroup where GroupPerson like '" + nameGroup + "';", sqlConnection))
+                            {
+                                using (var sqlReader = sqlCommand.ExecuteReader())
+                                {
+                                    string d1 = "", d2 = "", d3 = "9", d4 = "0", d13 = "18", d14 = "0";
+
+                                    foreach (DbDataRecord record in sqlReader)
+                                    {
+                                        try { d1 = record["FIO"].ToString().Trim(); } catch { }
+
+                                        if (record != null && d1.Length > 0)
+                                        {
+                                            dataRow = dtPersonGroup.NewRow();
+
+                                            try { d2 = record["NAV"].ToString().Trim(); } catch { }
+                                            try { d3 = record["HourControlling"].ToString().Trim(); } catch { }
+                                            try { d4 = record["MinuteControlling"].ToString().Trim(); } catch { }
+                                            try { d13 = record["HourControllingOut"].ToString().Trim(); } catch { }
+                                            try { d14 = record["MinuteControllingOut"].ToString().Trim(); } catch { }
+                                            //HourControllingOut TEXT, MinuteControllingOut TEXT
+                                            //FIO|NAV|H|M
+
+                                            dataRow[1] = d1;
+                                            dataRow[2] = d2;
+                                            dataRow[3] = nameGroup;
+                                            dataRow[4] = d3;
+                                            dataRow[5] = d4;
+                                            dataRow[6] = ConvertTwoStringsTimeToDecimal(d3, d4);
+                                            dataRow[7] = d13;
+                                            dataRow[8] = d14;
+                                            dataRow[9] = ConvertTwoStringsTimeToDecimal(d13, d14);
+                                            dataRow[11] = nameGroup;
+                                            dataRow[22] = ConvertStringTimeToStringHHMM(d3, d4);
+                                            dataRow[23] = ConvertStringTimeToStringHHMM(d13, d14);
+
+                                            dtPersonGroup.Rows.Add(dataRow);
+                                            numberPeopleInLoading++;
+                                        }
+                                    }
+                                    d1 = null; d2 = null; d3 = null; d4 = null; d13 = null; d14 = null;
+                                }
+                            }
+                        }
+
+                        string[] nameHidenCollumnsArray =
+                        {
+                                  @"№ п/п",//0
+                                  @"Время прихода,часы",//4
+                                  @"Время прихода,минут", //5
+                                  @"Время прихода",//6
+                                  @"Время ухода,часы",//7
+                                  @"Время ухода,минут",//8
+                                  @"Время ухода",//9
+                                  @"№ пропуска", //10
+                                  //@"Отдел",//11
+                                  @"Дата регистрации",//12
+                                  @"Время регистрации,часы",//13
+                                  @"Время регистрации,минут",//14
+                                  @"Время регистрации", //15
+                                  @"Реальное время ухода,часы",//16
+                                  @"Реальное время ухода,минут",//17
+                                  @"Реальное время ухода", //18
+                                  @"Сервер СКД", //19
+                                  @"Имя точки прохода", //20
+                                  @"Направление прохода", //21
+                                  @"Реальное время прихода ЧЧ:ММ",//24
+                                  @"Реальное время ухода ЧЧ:ММ", //25
+                                  @"Реальное отработанное время", //26
+                                  @"Реальное отработанное время ЧЧ:ММ", //27
+                                  @"Опоздание",                    //28
+                                  @"Ранний уход",                 //29
+                                  @"Отпуск (отгул)",                 //30
+                                  @"Коммандировка"                 //31
+                        };
+
+                        var namesDistinctCollumnsArray = arrayAllCollumnsDataTablePeople.Except(nameHidenCollumnsArray).ToArray(); //take distinct data
+                        dtPersonTemp = GetDistinctRecords(dtPersonGroup, namesDistinctCollumnsArray);
+                        
+                        ShowDatatableOnDatagridview(dtPersonTemp, nameHidenCollumnsArray);
+                        _MenuItemVisible(DeletePersonFromGroupItem,true);
+                        nameOfLastTableFromDB = "PersonGroup";
+                    }
+                }
+            } catch (Exception expt)
+            {
+                MessageBox.Show(expt.ToString());
+            }
         }
 
 
-        //("Время прихода ЧЧ:ММ",typeof(string)),//22
-        //("Время ухода ЧЧ:ММ",typeof(string)),//23
-        private void MembersOfGroup(string group)
+
+       private void MembersOfGroup(string group)
         {
             groupBoxProperties.Visible = false;
             dataGridView1.Visible = false;
@@ -1412,15 +1536,13 @@ namespace mySCA2
                 @"Коммандировка"                 //31
             };
 
-                GetGroupInfoFromDBToDtPersonGroup(dtGroup, group);
-                var namesDistinctCollumnsArray = arrayAllCollumnsDataTablePeople.Except(nameHidenCollumnsArray).ToArray(); //take distinct data
-                dtPersonTemp = GetDistinctRecords(dtGroup, namesDistinctCollumnsArray);
-                ShowDatatableOnDatagridview(dtPersonTemp, nameHidenCollumnsArray);
-
-                /* ShowDataTableQuery(databasePerson, "PersonGroup",
-                   "SELECT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', GroupPerson AS 'Группа', " +
-                   "ControllingHHMM AS 'Контрольное время', ControllingOUTHHMM AS 'Уход с работы' ",
-                   "Where GroupPerson like '" + group + "' ORDER BY FIO ");*/
+                try
+                {
+                    GetGroupInfoFromDBToDtPersonGroup(dtGroup, group);
+                    var namesDistinctCollumnsArray = arrayAllCollumnsDataTablePeople.Except(nameHidenCollumnsArray).ToArray(); //take distinct data
+                    dtPersonTemp = GetDistinctRecords(dtGroup, namesDistinctCollumnsArray);
+                    ShowDatatableOnDatagridview(dtPersonTemp, nameHidenCollumnsArray);
+                }catch(Exception expt) { MessageBox.Show(expt.ToString()); }
             }
 
             if (!bErrorData)
@@ -2247,6 +2369,8 @@ namespace mySCA2
         private void DeletePersonFromGroup()
         {
             int IndexCurrentRow = _dataGridView1CurrentRowIndex();
+            string nameGroup = "";
+            string nav = "";
             if (IndexCurrentRow > -1)
             {
                 if (nameOfLastTableFromDB == "PersonGroup")
@@ -2261,16 +2385,113 @@ namespace mySCA2
                         if (dataGridView1.Columns[i].HeaderText == "Группа")
                             IndexColumn2 = i;
                     }
-                    DeleteDataTableQuery(databasePerson, "PersonGroup", " where NAV like '%" + _textBoxReturnText(textBoxNav) + "%'", "NAV", dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString().Trim(),
-                        "GroupPerson", dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString().Trim());
+                    if (IndexColumn1 > -1 || IndexColumn2 > -1)
+                    {
+                        nav = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
+                        nameGroup = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString();
+                    }
                 }
-                nameOfLastTableFromDB = "PersonGroup";
-                PersonOrGroupItem.Text = "Работа с одной персоной";
 
-                ShowDataTableQuery(databasePerson, "PersonGroup",
-                  "SELECT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', GroupPerson AS 'Группа', " +
-                  "ControllingHHMM AS 'Контрольное время', ControllingOUTHHMM AS 'Уход с работы' ",
-                  "Where GroupPerson like '" + textBoxGroup.Text.ToString() + "' ORDER BY FIO ");
+                numberPeopleInLoading = 0;
+                dtPersonTemp.Clear();
+                dtPersonGroup.Clear();
+                DataRow dataRow;
+
+                using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+                {
+                    sqlConnection.Open();
+
+                    using (var sqlCommand = new SQLiteCommand("DELETE FROM 'PersonGroup' Where NAV like '" + nav + "' AND 'GroupPerson' like '" + nameGroup + "';", sqlConnection))
+                    {
+                        sqlCommand.Parameters.Add("@GroupPerson", DbType.String).Value = nameGroup;
+                        try { sqlCommand.ExecuteNonQuery(); } catch { }
+                    }
+
+                    //vacuum DB
+                    using (var sqlCommand = new SQLiteCommand("vacuum;", sqlConnection))
+                    { try { sqlCommand.ExecuteNonQuery(); } catch { } }
+
+
+                    using (var sqlCommand = new SQLiteCommand("Select * FROM PersonGroup where GroupPerson like '" + nameGroup + "';", sqlConnection))
+                    {
+                        using (var sqlReader = sqlCommand.ExecuteReader())
+                        {
+                            string d1 = "", d2 = "", d3 = "9", d4 = "0", d13 = "18", d14 = "0";
+
+                            foreach (DbDataRecord record in sqlReader)
+                            {
+                                try { d1 = record["FIO"].ToString().Trim(); } catch { }
+
+                                if (record != null && d1.Length > 0)
+                                {
+                                    dataRow = dtPersonGroup.NewRow();
+
+                                    try { d2 = record["NAV"].ToString().Trim(); } catch { }
+                                    try { d3 = record["HourControlling"].ToString().Trim(); } catch { }
+                                    try { d4 = record["MinuteControlling"].ToString().Trim(); } catch { }
+                                    try { d13 = record["HourControllingOut"].ToString().Trim(); } catch { }
+                                    try { d14 = record["MinuteControllingOut"].ToString().Trim(); } catch { }
+                                    //HourControllingOut TEXT, MinuteControllingOut TEXT
+                                    //FIO|NAV|H|M
+
+                                    dataRow[1] = d1;
+                                    dataRow[2] = d2;
+                                    dataRow[3] = nameGroup;
+                                    dataRow[4] = d3;
+                                    dataRow[5] = d4;
+                                    dataRow[6] = ConvertTwoStringsTimeToDecimal(d3, d4);
+                                    dataRow[7] = d13;
+                                    dataRow[8] = d14;
+                                    dataRow[9] = ConvertTwoStringsTimeToDecimal(d13, d14);
+                                    dataRow[11] = nameGroup;
+                                    dataRow[22] = ConvertStringTimeToStringHHMM(d3, d4);
+                                    dataRow[23] = ConvertStringTimeToStringHHMM(d13, d14);
+
+                                    dtPersonGroup.Rows.Add(dataRow);
+                                    numberPeopleInLoading++;
+                                }
+                            }
+                            d1 = null; d2 = null; d3 = null; d4 = null; d13 = null; d14 = null;
+                        }
+                    }
+                }
+
+                string[] nameHidenCollumnsArray =
+{
+                                  @"№ п/п",//0
+                                  @"Время прихода,часы",//4
+                                  @"Время прихода,минут", //5
+                                  @"Время прихода",//6
+                                  @"Время ухода,часы",//7
+                                  @"Время ухода,минут",//8
+                                  @"Время ухода",//9
+                                  @"№ пропуска", //10
+                                  //@"Отдел",//11
+                                  @"Дата регистрации",//12
+                                  @"Время регистрации,часы",//13
+                                  @"Время регистрации,минут",//14
+                                  @"Время регистрации", //15
+                                  @"Реальное время ухода,часы",//16
+                                  @"Реальное время ухода,минут",//17
+                                  @"Реальное время ухода", //18
+                                  @"Сервер СКД", //19
+                                  @"Имя точки прохода", //20
+                                  @"Направление прохода", //21
+                                  @"Реальное время прихода ЧЧ:ММ",//24
+                                  @"Реальное время ухода ЧЧ:ММ", //25
+                                  @"Реальное отработанное время", //26
+                                  @"Реальное отработанное время ЧЧ:ММ", //27
+                                  @"Опоздание",                    //28
+                                  @"Ранний уход",                 //29
+                                  @"Отпуск (отгул)",                 //30
+                                  @"Коммандировка"                 //31
+                        };
+
+                var namesDistinctCollumnsArray = arrayAllCollumnsDataTablePeople.Except(nameHidenCollumnsArray).ToArray(); //take distinct data
+                dtPersonTemp = GetDistinctRecords(dtPersonGroup, namesDistinctCollumnsArray);
+                ShowDatatableOnDatagridview(dtPersonTemp, nameHidenCollumnsArray);
+
+                nameOfLastTableFromDB = "PersonGroup";
             }
         }
 
@@ -5231,35 +5452,7 @@ namespace mySCA2
 
         private void dataGridView1_DoubleClick(object sender, EventArgs e)
         {
-            try
-            {
-                if (0 < dataGridView1.Rows.Count && dataGridView1.CurrentRow.Index < dataGridView1.Rows.Count)
-                {
-                    if (nameOfLastTableFromDB == "PersonGroupDesciption")
-                    {
-                        bErrorData = false;
-                        MembersOfGroup(textBoxGroup.Text.Trim());
-                    }
-                    else if (nameOfLastTableFromDB == "PersonGroup")
-                    {
-                        int IndexColumn1 = -1;
-                        int IndexColumn2 = -1;
-                        for (int i = 0; i < dataGridView1.ColumnCount; i++)
-                        {
-                            if (dataGridView1.Columns[i].HeaderText.ToString() == "Время прихода ЧЧ:ММ" ||
-                                dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время")
-                            { IndexColumn1 = i; }
-                            else if (dataGridView1.Columns[i].HeaderText.ToString() == "Время ухода ЧЧ:ММ" ||
-                                dataGridView1.Columns[i].HeaderText.ToString() == "Уход с работы")
-                            { IndexColumn2 = i; }
-                        }
-                        if (IndexColumn1 > -1 || IndexColumn2 > -1)
-                        { UpdateControllingItem.Visible = true; }
-                        else
-                        { UpdateControllingItem.Visible = false; }
-                    }
-                }
-            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            SearchMembersSelectedGroup();
         }
 
         private void UpdateControllingItem_Click(object sender, EventArgs e)//UpdateControlling()
