@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // атрибутов. Отредактируйте значения этих атрибутов, чтобы изменить
 // общие сведения об этой сборке.
 [assembly: AssemblyTitle("PersonViewerSCA2")]
-[assembly: AssemblyDescription("Анализ времени регистраций пропусков персонала")]
+[assembly: AssemblyDescription("Анализ регистрации пропусков персонала в СКД")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("©Yuri Ryabchenko")]
 [assembly: AssemblyProduct("PersonViewerSCA2")]
@@ -30,4 +30,4 @@ using System.Runtime.InteropServices;
 //      Редакция
 //
 [assembly: AssemblyVersion("3.1.9.5")]
-[assembly: AssemblyFileVersion("3.1.7.1")]
+[assembly: AssemblyFileVersion("3.1.7.11")]

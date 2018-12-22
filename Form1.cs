@@ -2861,6 +2861,19 @@ namespace mySCA2
         }
 
 
+        private void _menuItemTextSet(ToolStripMenuItem menuItem, string newTextControl) //access from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    menuItem.Text = newTextControl;
+                }));
+            else
+            {
+                menuItem.Text = newTextControl;
+            }
+        }
+
         private void _controlVisible(Control control, bool state) //access from other threads
         {
             if (InvokeRequired)
@@ -4752,7 +4765,7 @@ namespace mySCA2
         private void YellowItem_Click(object sender, EventArgs e)
         { ColorizeDraw(Color.Orange); }
 
-        public void ColorizeDraw(System.Drawing.Color color)
+        public void ColorizeDraw(Color color)
         {
             Person personSelected = new Person();
             SelectPersonFromControls(personSelected);
@@ -4781,19 +4794,25 @@ namespace mySCA2
         private void dateTimePickerEnd_CloseUp(object sender, EventArgs e)
         { dateTimePickerStart.MaxDate = DateTime.Parse(dateTimePickerEnd.Value.Year + "-" + dateTimePickerEnd.Value.Month + "-" + dateTimePickerEnd.Value.Day); }
 
+        private bool isPerson = true; //Check
         private void PersonOrGroupItem_Click(object sender, EventArgs e)
         {
-            if (PersonOrGroupItem.Text == "Работа с одной персоной")
+            PersonOrGroup(isPerson);
+        }
+
+        private void PersonOrGroup(bool isPerson)
+        {
+            if (isPerson)
             {
-                PersonOrGroupItem.Text = "Работа с группой";
+                _menuItemTextSet(PersonOrGroupItem, "Работа с группой");
                 nameOfLastTableFromDB = "PersonGroup";
-                //textBoxGroup.Text = "";
-                //textBoxGroupDescription.Text = "";
+                isPerson = false;
             }
             else
             {
-                PersonOrGroupItem.Text = "Работа с одной персоной";
+                _menuItemTextSet(PersonOrGroupItem, "Работа с одной персоной");
                 nameOfLastTableFromDB = "PersonRegistered";
+                isPerson = true;
             }
         }
 
