@@ -2368,9 +2368,10 @@ namespace mySCA2
 
         private void DeletePersonFromGroup()
         {
+            _controlVisible(dataGridView1, false);
             int IndexCurrentRow = _dataGridView1CurrentRowIndex();
-            string nameGroup = "";
             string nav = "";
+            string nameGroup = "";
             if (IndexCurrentRow > -1)
             {
                 if (nameOfLastTableFromDB == "PersonGroup")
@@ -2396,21 +2397,11 @@ namespace mySCA2
                 dtPersonTemp.Clear();
                 dtPersonGroup.Clear();
                 DataRow dataRow;
+                DeleteDataTableQueryNAV(databasePerson, "PersonGroup", "NAV", nav, "GroupPerson", nameGroup);
 
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
                     sqlConnection.Open();
-
-                    using (var sqlCommand = new SQLiteCommand("DELETE FROM 'PersonGroup' Where NAV like '" + nav + "' AND 'GroupPerson' like '" + nameGroup + "';", sqlConnection))
-                    {
-                        sqlCommand.Parameters.Add("@GroupPerson", DbType.String).Value = nameGroup;
-                        try { sqlCommand.ExecuteNonQuery(); } catch { }
-                    }
-
-                    //vacuum DB
-                    using (var sqlCommand = new SQLiteCommand("vacuum;", sqlConnection))
-                    { try { sqlCommand.ExecuteNonQuery(); } catch { } }
-
 
                     using (var sqlCommand = new SQLiteCommand("Select * FROM PersonGroup where GroupPerson like '" + nameGroup + "';", sqlConnection))
                     {
@@ -2493,6 +2484,7 @@ namespace mySCA2
 
                 nameOfLastTableFromDB = "PersonGroup";
             }
+            _controlVisible(dataGridView1, true);
         }
 
         private void DeleteGroupItem_Click(object sender, EventArgs e) //DeleteGroup()
