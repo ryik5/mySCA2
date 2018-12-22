@@ -5233,7 +5233,7 @@ namespace mySCA2
         {
             try
             {
-                if (dataGridView1.Rows.Count > 0 && dataGridView1.CurrentRow.Index < dataGridView1.Rows.Count)
+                if (0 < dataGridView1.Rows.Count && dataGridView1.CurrentRow.Index < dataGridView1.Rows.Count)
                 {
                     if (nameOfLastTableFromDB == "PersonGroupDesciption")
                     {
@@ -5248,19 +5248,18 @@ namespace mySCA2
                         {
                             if (dataGridView1.Columns[i].HeaderText.ToString() == "Время прихода ЧЧ:ММ" ||
                                 dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время")
-                                IndexColumn1 = i;
+                            { IndexColumn1 = i; }
                             else if (dataGridView1.Columns[i].HeaderText.ToString() == "Время ухода ЧЧ:ММ" ||
                                 dataGridView1.Columns[i].HeaderText.ToString() == "Уход с работы")
-                                IndexColumn2 = i;
+                            { IndexColumn2 = i; }
                         }
                         if (IndexColumn1 > -1 || IndexColumn2 > -1)
-                            UpdateControllingItem.Visible = true;
+                        { UpdateControllingItem.Visible = true; }
                         else
-                            UpdateControllingItem.Visible = false;
+                        { UpdateControllingItem.Visible = false; }
                     }
                 }
-            }
-            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
         }
 
         private void UpdateControllingItem_Click(object sender, EventArgs e)//UpdateControlling()
