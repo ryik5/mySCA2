@@ -86,15 +86,12 @@
             this.AddAnualDateItem = new System.Windows.Forms.ToolStripMenuItem();
             this.DeleteAnualDateItem = new System.Windows.Forms.ToolStripMenuItem();
             this.QuickSettingsItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.SettingsEquipmentItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SettingsProgrammItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.SettingsOtherItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ClearReportItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ClearDataItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ClearAllItem = new System.Windows.Forms.ToolStripMenuItem();
             this.TestCryptionItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ClearRegistryItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.UpdateControllingItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpAboutItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SetupItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -362,7 +359,6 @@
             this.GroupsMenuItem,
             this.AnualDatesMenuItem,
             this.QuickSettingsItem,
-            this.UpdateControllingItem,
             this.HelpMenuItem});
             resources.ApplyResources(this.menuStrip, "menuStrip");
             this.menuStrip.Name = "menuStrip";
@@ -555,9 +551,7 @@
             // QuickSettingsItem
             // 
             this.QuickSettingsItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.SettingsEquipmentItem,
             this.SettingsProgrammItem,
-            this.SettingsOtherItem,
             this.ClearReportItem,
             this.ClearDataItem,
             this.ClearAllItem,
@@ -566,21 +560,11 @@
             this.QuickSettingsItem.Name = "QuickSettingsItem";
             resources.ApplyResources(this.QuickSettingsItem, "QuickSettingsItem");
             // 
-            // SettingsEquipmentItem
-            // 
-            this.SettingsEquipmentItem.Name = "SettingsEquipmentItem";
-            resources.ApplyResources(this.SettingsEquipmentItem, "SettingsEquipmentItem");
-            // 
             // SettingsProgrammItem
             // 
             this.SettingsProgrammItem.Name = "SettingsProgrammItem";
             resources.ApplyResources(this.SettingsProgrammItem, "SettingsProgrammItem");
             this.SettingsProgrammItem.Click += new System.EventHandler(this.SettingsProgrammItem_Click);
-            // 
-            // SettingsOtherItem
-            // 
-            this.SettingsOtherItem.Name = "SettingsOtherItem";
-            resources.ApplyResources(this.SettingsOtherItem, "SettingsOtherItem");
             // 
             // ClearReportItem
             // 
@@ -612,12 +596,6 @@
             this.ClearRegistryItem.Name = "ClearRegistryItem";
             resources.ApplyResources(this.ClearRegistryItem, "ClearRegistryItem");
             this.ClearRegistryItem.Click += new System.EventHandler(this.ClearRegistryItem_Click);
-            // 
-            // UpdateControllingItem
-            // 
-            this.UpdateControllingItem.Name = "UpdateControllingItem";
-            resources.ApplyResources(this.UpdateControllingItem, "UpdateControllingItem");
-            this.UpdateControllingItem.Click += new System.EventHandler(this.UpdateControllingItem_Click);
             // 
             // HelpMenuItem
             // 
@@ -843,9 +821,7 @@
         private System.Windows.Forms.ToolStripMenuItem AddAnualDateItem;
         private System.Windows.Forms.ToolStripMenuItem DeleteAnualDateItem;
         private System.Windows.Forms.ToolStripMenuItem QuickSettingsItem;
-        private System.Windows.Forms.ToolStripMenuItem SettingsEquipmentItem;
         private System.Windows.Forms.ToolStripMenuItem SettingsProgrammItem;
-        private System.Windows.Forms.ToolStripMenuItem SettingsOtherItem;
         private System.Windows.Forms.ToolStripMenuItem DeletePersonFromGroupItem;
         private System.Windows.Forms.TextBox textBoxFIO;
         private System.Windows.Forms.ToolStripMenuItem ClearReportItem;
@@ -858,7 +834,6 @@
         private System.Windows.Forms.Button buttonPropertiesCancel;
         private System.Windows.Forms.ToolStripMenuItem PersonOrGroupItem;
         private System.Windows.Forms.ToolStripMenuItem SetupItem;
-        private System.Windows.Forms.ToolStripMenuItem UpdateControllingItem;
         private System.Windows.Forms.ToolStripMenuItem QuickLoadDataItem;
         private System.Windows.Forms.ToolStripMenuItem TableExportToExcelItem;
         private System.Windows.Forms.ToolStripMenuItem VisualModeItem;

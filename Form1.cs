@@ -1407,11 +1407,6 @@ namespace mySCA2
                         if (IndexColumn1 > -1 || IndexColumn2 > -1)
                         {
                             nameFoundGroup = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
-                            UpdateControllingItem.Visible = true;
-                        }
-                        else
-                        {
-                            UpdateControllingItem.Visible = false;
                         }
                     }
                 }
@@ -5330,12 +5325,7 @@ namespace mySCA2
             SearchMembersSelectedGroup();
         }
 
-        private void UpdateControllingItem_Click(object sender, EventArgs e)//UpdateControlTime()
-        {
-            UpdateControlTimeSelectedPerson(true);
-            SeekAndShowMembersOfGroup(textBoxGroup.Text);
-        }
-
+                /*
         private void UpdateControlTimeSelectedPerson(bool groupFromDatagridview, string group="")
         {
             string fio = "";
@@ -5420,7 +5410,7 @@ namespace mySCA2
             }
             UpdateControllingItem.Visible = false;
         }
-
+        */
         private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e) //dataGridView1CellEndEdit()
         { dataGridView1CellEndEdit(); }
 

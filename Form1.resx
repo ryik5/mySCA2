@@ -939,29 +939,11 @@
   <data name="AnualDatesMenuItem.ToolTipText" xml:space="preserve">
     <value>Работа с календарем</value>
   </data>
-  <data name="SettingsEquipmentItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>254, 22</value>
-  </data>
-  <data name="SettingsEquipmentItem.Text" xml:space="preserve">
-    <value>Оборудования</value>
-  </data>
-  <data name="SettingsEquipmentItem.Visible" type="System.Boolean, mscorlib">
-    <value>False</value>
-  </data>
   <data name="SettingsProgrammItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>254, 22</value>
   </data>
   <data name="SettingsProgrammItem.Text" xml:space="preserve">
     <value>Программы</value>
-  </data>
-  <data name="SettingsOtherItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>254, 22</value>
-  </data>
-  <data name="SettingsOtherItem.Text" xml:space="preserve">
-    <value>Другие</value>
-  </data>
-  <data name="SettingsOtherItem.Visible" type="System.Boolean, mscorlib">
-    <value>False</value>
   </data>
   <data name="ClearReportItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>254, 22</value>
@@ -1003,22 +985,13 @@
     <value>254, 22</value>
   </data>
   <data name="ClearRegistryItem.Text" xml:space="preserve">
-    <value>ClearRegistry</value>
+    <value>Удалить данные из реестра</value>
   </data>
   <data name="QuickSettingsItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>79, 20</value>
   </data>
   <data name="QuickSettingsItem.Text" xml:space="preserve">
     <value>Настройки</value>
-  </data>
-  <data name="UpdateControllingItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>73, 20</value>
-  </data>
-  <data name="UpdateControllingItem.Text" xml:space="preserve">
-    <value>Обновить</value>
-  </data>
-  <data name="UpdateControllingItem.ToolTipText" xml:space="preserve">
-    <value>Сохранить новое контрольное время для выбранной персоны</value>
   </data>
   <data name="HelpAboutItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>211, 22</value>
@@ -3862,22 +3835,10 @@
   <data name="&gt;&gt;QuickSettingsItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;SettingsEquipmentItem.Name" xml:space="preserve">
-    <value>SettingsEquipmentItem</value>
-  </data>
-  <data name="&gt;&gt;SettingsEquipmentItem.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
   <data name="&gt;&gt;SettingsProgrammItem.Name" xml:space="preserve">
     <value>SettingsProgrammItem</value>
   </data>
   <data name="&gt;&gt;SettingsProgrammItem.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;SettingsOtherItem.Name" xml:space="preserve">
-    <value>SettingsOtherItem</value>
-  </data>
-  <data name="&gt;&gt;SettingsOtherItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;ClearReportItem.Name" xml:space="preserve">
@@ -3908,12 +3869,6 @@
     <value>ClearRegistryItem</value>
   </data>
   <data name="&gt;&gt;ClearRegistryItem.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;UpdateControllingItem.Name" xml:space="preserve">
-    <value>UpdateControllingItem</value>
-  </data>
-  <data name="&gt;&gt;UpdateControllingItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;HelpMenuItem.Name" xml:space="preserve">
