@@ -1408,59 +1408,71 @@ namespace mySCA2
                         else
                         { UpdateControllingItem.Visible = false; }
 
-                        numberPeopleInLoading = 0;
-                        DataRow dataRow;
-                        using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+                        SeekMembersOfGroup(nameGroup);
+                    }
+                }
+            } catch (Exception expt)
+            {
+                MessageBox.Show(expt.ToString());
+            }
+        }
+
+        private void SeekMembersOfGroup(string nameGroup)
+        {
+            var dtTemp = dtPeople.Clone();
+            numberPeopleInLoading = 0;
+            DataRow dataRow;
+            using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = new SQLiteCommand(
+
+                    "Select * FROM PersonGroup where GroupPerson like '" + nameGroup + "';", sqlConnection))
+                {
+                    using (var sqlReader = sqlCommand.ExecuteReader())
+                    {
+                        string d1 = "", d2 = "", d3 = "9", d4 = "0", d13 = "18", d14 = "0";
+
+                        foreach (DbDataRecord record in sqlReader)
                         {
-                            sqlConnection.Open();
-                            using (var sqlCommand = new SQLiteCommand(
+                            try { d1 = record["FIO"].ToString().Trim(); } catch { }
 
-                                "Select * FROM PersonGroup where GroupPerson like '" + nameGroup + "';", sqlConnection))
+                            if (record != null && d1.Length > 0)
                             {
-                                using (var sqlReader = sqlCommand.ExecuteReader())
-                                {
-                                    string d1 = "", d2 = "", d3 = "9", d4 = "0", d13 = "18", d14 = "0";
+                                dataRow = dtTemp.NewRow();
 
-                                    foreach (DbDataRecord record in sqlReader)
-                                    {
-                                        try { d1 = record["FIO"].ToString().Trim(); } catch { }
+                                try { d2 = record["NAV"].ToString().Trim(); } catch { }
+                                try { d3 = record["HourControlling"].ToString().Trim(); } catch { }
+                                try { d4 = record["MinuteControlling"].ToString().Trim(); } catch { }
+                                try { d13 = record["HourControllingOut"].ToString().Trim(); } catch { }
+                                try { d14 = record["MinuteControllingOut"].ToString().Trim(); } catch { }
+                                //HourControllingOut TEXT, MinuteControllingOut TEXT
+                                //FIO|NAV|H|M
 
-                                        if (record != null && d1.Length > 0)
-                                        {
-                                            dataRow = dtPersonGroup.NewRow();
+                                dataRow[1] = d1;
+                                dataRow[2] = d2;
+                                dataRow[3] = nameGroup;
+                                dataRow[4] = d3;
+                                dataRow[5] = d4;
+                                dataRow[6] = ConvertTwoStringsTimeToDecimal(d3, d4);
+                                dataRow[7] = d13;
+                                dataRow[8] = d14;
+                                dataRow[9] = ConvertTwoStringsTimeToDecimal(d13, d14);
+                                dataRow[11] = nameGroup;
+                                dataRow[22] = ConvertStringTimeToStringHHMM(d3, d4);
+                                dataRow[23] = ConvertStringTimeToStringHHMM(d13, d14);
 
-                                            try { d2 = record["NAV"].ToString().Trim(); } catch { }
-                                            try { d3 = record["HourControlling"].ToString().Trim(); } catch { }
-                                            try { d4 = record["MinuteControlling"].ToString().Trim(); } catch { }
-                                            try { d13 = record["HourControllingOut"].ToString().Trim(); } catch { }
-                                            try { d14 = record["MinuteControllingOut"].ToString().Trim(); } catch { }
-                                            //HourControllingOut TEXT, MinuteControllingOut TEXT
-                                            //FIO|NAV|H|M
-
-                                            dataRow[1] = d1;
-                                            dataRow[2] = d2;
-                                            dataRow[3] = nameGroup;
-                                            dataRow[4] = d3;
-                                            dataRow[5] = d4;
-                                            dataRow[6] = ConvertTwoStringsTimeToDecimal(d3, d4);
-                                            dataRow[7] = d13;
-                                            dataRow[8] = d14;
-                                            dataRow[9] = ConvertTwoStringsTimeToDecimal(d13, d14);
-                                            dataRow[11] = nameGroup;
-                                            dataRow[22] = ConvertStringTimeToStringHHMM(d3, d4);
-                                            dataRow[23] = ConvertStringTimeToStringHHMM(d13, d14);
-
-                                            dtPersonGroup.Rows.Add(dataRow);
-                                            numberPeopleInLoading++;
-                                        }
-                                    }
-                                    d1 = null; d2 = null; d3 = null; d4 = null; d13 = null; d14 = null;
-                                }
+                                dtTemp.Rows.Add(dataRow);
+                                numberPeopleInLoading++;
                             }
                         }
+                        d1 = null; d2 = null; d3 = null; d4 = null; d13 = null; d14 = null;
+                    }
+                }
+            }
 
-                        string[] nameHidenCollumnsArray =
-                        {
+            string[] nameHidenCollumnsArray =
+            {
                                   @"№ п/п",//0
                                   @"Время прихода,часы",//4
                                   @"Время прихода,минут", //5
@@ -1490,90 +1502,17 @@ namespace mySCA2
                                   @"Коммандировка"                 //31
                         };
 
-                        var namesDistinctCollumnsArray = arrayAllCollumnsDataTablePeople.Except(nameHidenCollumnsArray).ToArray(); //take distinct data
-                        dtPersonTemp = GetDistinctRecords(dtPersonGroup, namesDistinctCollumnsArray);
-                        
-                        ShowDatatableOnDatagridview(dtPersonTemp, nameHidenCollumnsArray);
-                        _MenuItemVisible(DeletePersonFromGroupItem,true);
-                        nameOfLastTableFromDB = "PersonGroup";
-                    }
-                }
-            } catch (Exception expt)
-            {
-                MessageBox.Show(expt.ToString());
-            }
+            var namesDistinctCollumnsArray = arrayAllCollumnsDataTablePeople.Except(nameHidenCollumnsArray).ToArray(); //take distinct data
+            dtPersonTemp = GetDistinctRecords(dtTemp, namesDistinctCollumnsArray);
+
+            ShowDatatableOnDatagridview(dtPersonTemp, nameHidenCollumnsArray);
+            _MenuItemVisible(DeletePersonFromGroupItem, true);
+            nameOfLastTableFromDB = "PersonGroup";
+            dtTemp.Dispose();
         }
 
 
-
-       private void MembersOfGroup(string group)
-        {
-            groupBoxProperties.Visible = false;
-            dataGridView1.Visible = false;
-            if (textBoxGroup.Text.Trim().Length > 0)
-            {
-                string[] nameHidenCollumnsArray =
-{
-                @"№ п/п",//0
-                @"Время прихода,часы",//4
-                @"Время прихода,минут", //5
-                @"Время прихода",//6
-                @"Время ухода,часы",//7
-                @"Время ухода,минут",//8
-                @"Время ухода",//9
-                @"Время регистрации,часы",//13
-                @"Время регистрации,минут",//14
-                @"Время регистрации", //15
-                @"Реальное время ухода,часы",//16
-                @"Реальное время ухода,минут",//17
-                @"Реальное время ухода", //18
-                //@"Время ухода ЧЧ:ММ",       //23
-                @"Реальное отработанное время", //26
-                @"Реальное отработанное время ЧЧ:ММ", //27
-                @"Опоздание",                    //28
-                @"Ранний уход",                 //29
-                @"Отпуск (отгул)",              //30
-                @"Коммандировка"                 //31
-            };
-
-                try
-                {
-                    GetGroupInfoFromDBToDtPersonGroup(dtGroup, group);
-                    var namesDistinctCollumnsArray = arrayAllCollumnsDataTablePeople.Except(nameHidenCollumnsArray).ToArray(); //take distinct data
-                    dtPersonTemp = GetDistinctRecords(dtGroup, namesDistinctCollumnsArray);
-                    ShowDatatableOnDatagridview(dtPersonTemp, nameHidenCollumnsArray);
-                }catch(Exception expt) { MessageBox.Show(expt.ToString()); }
-            }
-
-            if (!bErrorData)
-                try
-                {
-                    comboBoxFio.SelectedIndex = comboBoxFio.FindString(textBoxFIO.Text);
-                    textBoxNav.Text = dataGridView1.Rows[0].Cells[1].Value.ToString();
-                    textBoxGroup.Text = dataGridView1.Rows[0].Cells[2].Value.ToString();
-                    textBoxFIO.Text = dataGridView1.Rows[0].Cells[0].Value.ToString();
-                    StatusLabel2.Text = @"Выбрана группа: " + textBoxGroup.Text + @" |  Всего ФИО: " + iFIO;
-
-                    QuickLoadDataItem.BackColor = Color.PaleGreen;
-                    groupBoxPeriod.BackColor = Color.PaleGreen;
-                    groupBoxTimeStart.BackColor = Color.PaleGreen;
-                   groupBoxTimeEnd.BackColor = Color.PaleGreen;
-                    groupBoxRemoveDays.BackColor = SystemColors.Control;
-                }
-                catch { }
-
-            if (iCounterLine > 0)
-            {
-                PersonOrGroupItem.Text = "Работа с одной персоной";
-                nameOfLastTableFromDB = "PersonGroup";
-                DeleteGroupItem.Visible = true;
-                DeletePersonFromGroupItem.Visible = true;
-            }
-            else
-            { ListGroup(); }
-            dataGridView1.Visible = true;
-        }
-
+       
         private void AddPersonToGroupItem_Click(object sender, EventArgs e) //Add the selected person into the named group
         { AddPersonToGroup(); }
 
@@ -1812,8 +1751,9 @@ namespace mySCA2
                     }
                     catch { }
             }
+            SeekMembersOfGroup(sTextGroup);
 
-            MembersOfGroup(textBoxGroup.Text.Trim());
+          //  MembersOfGroup(textBoxGroup.Text.Trim());
             PersonOrGroupItem.Text = "Работа с одной персоной";
             controlStartHours = 0;
             sTextGroup = null; sTextFIOSelected = null;
@@ -5526,12 +5466,12 @@ namespace mySCA2
                     }
                 }
 
-                MembersOfGroup(group);
+                SeekMembersOfGroup(group);
 
-               /* ShowDataTableQuery(databasePerson, "PersonGroup",
-            "SELECT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', GroupPerson AS 'Группа', " +
-            "ControllingHHMM AS 'Контрольное время', ControllingOUTHHMM AS 'Уход с работы' ",
-            "Where GroupPerson like '" + group + "' ORDER BY FIO ");*/
+                /* ShowDataTableQuery(databasePerson, "PersonGroup",
+             "SELECT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', GroupPerson AS 'Группа', " +
+             "ControllingHHMM AS 'Контрольное время', ControllingOUTHHMM AS 'Уход с работы' ",
+             "Where GroupPerson like '" + group + "' ORDER BY FIO ");*/
 
                 StatusLabel2.Text = @"Обновлены данные " + fio + " в группе: " + group;
             }
@@ -5618,8 +5558,9 @@ namespace mySCA2
                             try { command.ExecuteNonQuery(); } catch { }
                         }
                     }
+                    SeekMembersOfGroup(group);
 
-                    MembersOfGroup(textBoxGroup.Text.Trim());
+                   // MembersOfGroup(textBoxGroup.Text.Trim());
 /*
                     ShowDataTableQuery(databasePerson, "PersonGroup",
                     "SELECT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', GroupPerson AS 'Группа', " +
@@ -5706,11 +5647,13 @@ namespace mySCA2
                             }
                         }
 
-                        ShowDataTableQuery(databasePerson, "PersonGroup",
+                        SeekMembersOfGroup(group);
+
+                       /* ShowDataTableQuery(databasePerson, "PersonGroup",
                         "SELECT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', GroupPerson AS 'Группа', " +
                         "ControllingHHMM AS 'Контрольное время', ControllingOUTHHMM AS 'Уход с работы' ",
                         "Where GroupPerson like '" + textBoxGroup.Text + "' ORDER BY FIO ");
-
+                        */
                         StatusLabel2.Text = @"Обновлено время прихода " + ShortFIO(textBoxFIO.Text) + " в группе: " + textBoxGroup.Text;
                     }
                 }
