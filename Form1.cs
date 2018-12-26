@@ -35,7 +35,6 @@ namespace mySCA2
         private List<string> listPoints = new List<string>(); // List of all Points of SCA
         private List<string> listRegistrations = new List<string>(); // List whole of registration of the selected person at All servers
         private int iFIO = 0;
-        private bool bErrorData = false;
 
         //Controls "NumUpDown"
         private decimal numUpHourStart = 9;
@@ -1286,9 +1285,9 @@ namespace mySCA2
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
-        { SelectDataFromCombobox(); }
+        { SelectFioAndNavFromCombobox(); }
 
-        private void SelectDataFromCombobox()
+        private void SelectFioAndNavFromCombobox()
         {
             string sComboboxFIO;
             textBoxFIO.Text = "";
@@ -1302,8 +1301,8 @@ namespace mySCA2
             try
             {
                 sComboboxFIO = comboBoxFio.SelectedItem.ToString().Trim();
-                textBoxNav.Text = Regex.Split(sComboboxFIO, "[|]")[1].Trim();
                 textBoxFIO.Text = Regex.Split(sComboboxFIO, "[|]")[0].Trim();
+                textBoxNav.Text = Regex.Split(sComboboxFIO, "[|]")[1].Trim();
                 StatusLabel2.Text = @"Выбран: " + ShortFIO(textBoxFIO.Text) + @" |  Всего ФИО: " + iFIO;
             }
             catch { }
@@ -1339,18 +1338,17 @@ namespace mySCA2
                 controlStartHours = 0;
                 PersonOrGroupItem.Text = "Работа с одной персоной";
                 nameOfLastTableFromDB = "PersonGroup";
-
             }
-            ListGroup();
+            ListGroups();
         }
 
-        private void ListGroupItem_Click(object sender, EventArgs e)
-        { ListGroup(); }
+        private void ListGroupsItem_Click(object sender, EventArgs e)
+        { ListGroups(); }
 
-        private void ListGroup()
+        private void ListGroups()
         {
             groupBoxProperties.Visible = false;
-            dataGridView1.Visible = true;
+            dataGridView1.Visible = false;
 
             ShowDataTableQuery(databasePerson, "PersonGroupDesciption", "SELECT GroupPerson AS 'Группа', GroupPersonDescription AS 'Описание группы' ", " group by GroupPerson ORDER BY GroupPerson asc; ");
             
@@ -1367,8 +1365,9 @@ namespace mySCA2
                 groupBoxRemoveDays.BackColor = SystemColors.Control;
             }
             catch { }
-            DeleteGroupItem.Visible = true;
 
+            DeleteGroupItem.Visible = true;
+            dataGridView1.Visible = true;
             nameOfLastTableFromDB = "PersonGroupDesciption";
             MembersGroupItem.Enabled = true;
             PersonOrGroupItem.Text = "Работа с одной персоной";
@@ -1376,12 +1375,19 @@ namespace mySCA2
 
         private void MembersGroupItem_Click(object sender, EventArgs e)
         {
-            bErrorData = false;
             SearchMembersSelectedGroup();
         }
 
         private void SearchMembersSelectedGroup()
         {
+            int IndexCurrentRow = _dataGridView1CurrentRowIndex();
+            string nameGroup = DefinyGroupNameByIndexRowDatagridview(IndexCurrentRow);
+            SeekAndShowMembersOfGroup(nameGroup);
+        }
+
+        private string DefinyGroupNameByIndexRowDatagridview(int IndexCurrentRow)
+        {
+            string nameFoundGroup = @"%%";
             try
             {
                 if (0 < dataGridView1.Rows.Count && dataGridView1.CurrentRow.Index < dataGridView1.Rows.Count)
@@ -1390,9 +1396,7 @@ namespace mySCA2
                     {
                         int IndexColumn1 = -1;
                         int IndexColumn2 = -1;
-                        int IndexCurrentRow = _dataGridView1CurrentRowIndex();
 
-                        string nameGroup = "";
                         for (int i = 0; i < dataGridView1.ColumnCount; i++)
                         {
                             if (dataGridView1.Columns[i].HeaderText.ToString() == "GroupPerson" || dataGridView1.Columns[i].HeaderText.ToString() == "Группа")
@@ -1402,31 +1406,31 @@ namespace mySCA2
                         }
                         if (IndexColumn1 > -1 || IndexColumn2 > -1)
                         {
-                            nameGroup = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
+                            nameFoundGroup = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
                             UpdateControllingItem.Visible = true;
                         }
                         else
-                        { UpdateControllingItem.Visible = false; }
-
-                        SeekMembersOfGroup(nameGroup);
+                        {
+                            UpdateControllingItem.Visible = false;
+                        }
                     }
                 }
-            } catch (Exception expt)
-            {
-                MessageBox.Show(expt.ToString());
-            }
+            } catch { }
+            return nameFoundGroup;
         }
 
-        private void SeekMembersOfGroup(string nameGroup)
+        private void SeekAndShowMembersOfGroup(string nameGroup)
         {
+            dtPersonTemp.Dispose();
+            dtPersonTemp = dtPeople.Clone();
             var dtTemp = dtPeople.Clone();
+
             numberPeopleInLoading = 0;
             DataRow dataRow;
             using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = new SQLiteCommand(
-
                     "Select * FROM PersonGroup where GroupPerson like '" + nameGroup + "';", sqlConnection))
                 {
                     using (var sqlReader = sqlCommand.ExecuteReader())
@@ -1510,13 +1514,11 @@ namespace mySCA2
             nameOfLastTableFromDB = "PersonGroup";
             dtTemp.Dispose();
         }
-
-
+        
        
         private void AddPersonToGroupItem_Click(object sender, EventArgs e) //Add the selected person into the named group
         { AddPersonToGroup(); }
-
-
+        
         private void importPeopleInLocalDBToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ImportTextToTable(dtPersonGroup);
@@ -1685,82 +1687,99 @@ namespace mySCA2
 
         private void AddPersonToGroup() //Add the selected person into the named group
         {
-            string sTextGroup = textBoxGroup.Text.Trim();
-            string sTextFIOSelected = comboBoxFio.SelectedItem.ToString().Trim();
-            decimal controlStartHours = numUpDownHourStart.Value + (numUpDownMinuteStart.Value + 1) / 60 - (1 / 60);
-            SelectDataFromCombobox();
+            nameOfLastTableFromDB = "PersonGroup";
+
+            SelectFioAndNavFromCombobox();
+
+            string group = textBoxGroup.Text.Trim();
+            string fio = textBoxFIO.Text;
+            string nav = textBoxNav.Text;
+            string[] timeIn = { "09", "00", "09:00" };
+            string[] timeOut = { "18", "00", "18:00" };
+            decimal[] timeInDecimal = { 9, 0, 09 };
+            decimal[] timeOutDecimal = { 18, 0, 18 };
+
+            int IndexCurrentRow = _dataGridView1CurrentRowIndex();
+            int IndexColumn6 = -1;
+            int IndexColumn7 = -1;
+
+            for (int i = 0; i < dataGridView1.ColumnCount; i++)
+            {
+                if (dataGridView1.Columns[i].HeaderText.ToString() == "Время прихода ЧЧ:ММ" ||
+                    dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время")
+                    IndexColumn6 = i;
+                else if (dataGridView1.Columns[i].HeaderText.ToString() == "Время ухода ЧЧ:ММ" ||
+                    dataGridView1.Columns[i].HeaderText.ToString() == "Уход с работы")
+                    IndexColumn7 = i;
+            }
+            if (IndexCurrentRow > -1)
+            {
+                timeIn = ConvertDecimalTimeToStringHHMMArray(ConvertStringTimeHHMMToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn6].Value.ToString()));
+                timeOut = ConvertDecimalTimeToStringHHMMArray(ConvertStringTimeHHMMToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn7].Value.ToString()));
+            }
+
+            timeInDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringTimeToStringHHMM(timeIn[0], timeIn[1]));
+            timeOutDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringTimeToStringHHMM(timeOut[0], timeOut[1]));
 
             using (var connection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
             {
                 connection.Open();
-                if (sTextGroup.Length > 0)
+                if (group.Length > 0)
                 {
                     using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PersonGroupDesciption' (GroupPerson, GroupPersonDescription) " +
                                             "VALUES (@GroupPerson, @GroupPersonDescription )", connection))
                     {
-                        command.Parameters.Add("@GroupPerson", DbType.String).Value = sTextGroup;
+                        command.Parameters.Add("@GroupPerson", DbType.String).Value = group;
                         command.Parameters.Add("@GroupPersonDescription", DbType.String).Value = textBoxGroupDescription.Text.Trim();
                         try { command.ExecuteNonQuery(); } catch { }
                     }
-
                 }
-                if (sTextGroup.Length > 0 && textBoxNav.Text.Trim().Length > 0 && sTextFIOSelected.Length > 10)
+
+                if (group.Length > 0 && textBoxNav.Text.Trim().Length > 0)
                 {
-                    using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PersonGroup' (FIO, NAV, GroupPerson, HourControlling, MinuteControlling, Controlling) " +
-                                            "VALUES (@FIO, @NAV, @GroupPerson, @HourControlling, @MinuteControlling, @Controlling)", connection))
+
+                    using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PersonGroup' (FIO, NAV, GroupPerson, HourControlling, MinuteControlling, Controlling, HourControllingOut, MinuteControllingOut, ControllingOut, ControllingHHMM, ControllingOUTHHMM) " +
+                                                "VALUES (@FIO, @NAV, @GroupPerson, @HourControlling, @MinuteControlling, @Controlling, @HourControllingOut, @MinuteControllingOut, @ControllingOut, @ControllingHHMM, @ControllingOUTHHMM)", connection))
                     {
-                        command.Parameters.Add("@FIO", DbType.String).Value = Regex.Split(sTextFIOSelected, "[|]")[0].Trim();
-                        command.Parameters.Add("@NAV", DbType.String).Value = Regex.Split(sTextFIOSelected, "[|]")[1].Trim();
-                        command.Parameters.Add("@GroupPerson", DbType.String).Value = sTextGroup;
-                        command.Parameters.Add("@HourControlling", DbType.String).Value = numUpDownHourStart.Value.ToString();
-                        command.Parameters.Add("@MinuteControlling", DbType.String).Value = numUpDownMinuteStart.Value.ToString();
-                        command.Parameters.Add("@Controlling", DbType.Decimal).Value = controlStartHours;
+                        command.Parameters.Add("@FIO", DbType.String).Value = fio;
+                        command.Parameters.Add("@NAV", DbType.String).Value = nav;
+                        command.Parameters.Add("@GroupPerson", DbType.String).Value = group;
+                        command.Parameters.Add("@HourControlling", DbType.String).Value = timeIn[0];
+                        command.Parameters.Add("@MinuteControlling", DbType.String).Value = timeIn[1];
+                        command.Parameters.Add("@Controlling", DbType.Decimal).Value = timeInDecimal[2];
+
+                        command.Parameters.Add("@HourControllingOut", DbType.String).Value = timeOut[0];
+                        command.Parameters.Add("@MinuteControllingOut", DbType.String).Value = timeOut[1];
+                        command.Parameters.Add("@ControllingOut", DbType.Decimal).Value = timeOutDecimal[2];
+
+                        command.Parameters.Add("@ControllingHHMM", DbType.String).Value = timeIn[2];
+                        command.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = timeOut[2];
                         try { command.ExecuteNonQuery(); } catch { }
                     }
-                    nameOfLastTableFromDB = "PersonGroup";
-                    try
-                    {
-                        StatusLabel2.Text = "\"" + ShortFIO(Regex.Split(sTextFIOSelected, "[|]")[0].Trim()) + "\"" + " добавлен в группу \"" + sTextGroup + "\"";
-                        _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
-                        bErrorData = true;
-                    }
-                    catch { }
+                    StatusLabel2.Text = "\"" + ShortFIO(textBoxFIO.Text) + "\"" + " добавлен в группу \"" + group + "\"";
+                    _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
                 }
-                else if (sTextGroup.Length > 0 && textBoxNav.Text.Trim().Length == 0 && sTextFIOSelected.Length > 10)
+                else if (group.Length > 0 && textBoxNav.Text.Trim().Length == 0)
                     try
                     {
-                        StatusLabel2.Text = "Отсутствует NAV-код у:" + ShortFIO(Regex.Split(sTextFIOSelected, "[|]")[0].Trim());
+                        StatusLabel2.Text = "Отсутствует NAV-код у:" + ShortFIO(textBoxFIO.Text);
                         _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
-                        bErrorData = true;
-                    }
-                    catch { }
-                else if (sTextGroup.Length == 0 && textBoxNav.Text.Trim().Length > 0 && sTextFIOSelected.Length > 10)
+                    } catch { }
+                else if (group.Length == 0 && textBoxNav.Text.Trim().Length > 0)
                     try
                     {
                         StatusLabel2.Text = "Не указана группа, в которую нужно добавить!";
                         _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
-                        bErrorData = true;
-                    }
-                    catch { }
-                else
-                    try
-                    {
-                        StatusLabel2.Text = "Проверьте вводимые данные!";
-                        _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
-                        bErrorData = true;
-                    }
-                    catch { }
-            }
-            SeekMembersOfGroup(sTextGroup);
+                    } catch { }
+        }
+            SeekAndShowMembersOfGroup(group);
 
-          //  MembersOfGroup(textBoxGroup.Text.Trim());
             PersonOrGroupItem.Text = "Работа с одной персоной";
-            controlStartHours = 0;
-            sTextGroup = null; sTextFIOSelected = null;
+
+            group = null; 
             labelGroup.BackColor = SystemColors.Control;
         }
-
-
+        
         private void GetNamePoints() //Get names of the pass by points
         {
             if (databasePerson.Exists)
@@ -1906,7 +1925,7 @@ namespace mySCA2
 
             if ((nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup") && selectedGroup.Length > 0)
             {
-                GetGroupInfoFromDBToDtPersonGroup(dtPersonGroup, selectedGroup); //result will be in dtPersonGroup
+                LoadGroupMembersFromDbToDataTable(dtPersonGroup, selectedGroup); //result will be in dtPersonGroup
 
                 foreach (DataRow row in dtPersonGroup.Rows)
                 {
@@ -2247,7 +2266,7 @@ namespace mySCA2
         }
 
         //Get info the selected group from DB and make a few lists with these data
-        private void GetGroupInfoFromDBToDtPersonGroup(DataTable dtTarget, string namePointedGroup) //"Select * FROM PersonGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
+        private void LoadGroupMembersFromDbToDataTable(DataTable dtTarget, string namePointedGroup) //"Select * FROM PersonGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
         {
             dtTarget?.Dispose();
             dtTarget = dtPeople.Clone();
@@ -2309,10 +2328,26 @@ namespace mySCA2
         private void DeletePersonFromGroup()
         {
             _controlVisible(dataGridView1, false);
-            int IndexCurrentRow = _dataGridView1CurrentRowIndex();
-            string nav = "";
-            string nameGroup = "";
-            if (IndexCurrentRow > -1)
+            numberPeopleInLoading = 0;
+
+            int indexCurrentRow = _dataGridView1CurrentRowIndex();
+            if (indexCurrentRow > -1)
+            {
+                string nameGroup = DefinyGroupNameByIndexRowDatagridview(indexCurrentRow);
+                string navCode = FindPersonNAVInDatagridview(indexCurrentRow);
+                
+                DeleteDataTableQueryNAV(databasePerson, "PersonGroup", "NAV", navCode, "GroupPerson", nameGroup);
+                SeekAndShowMembersOfGroup(nameGroup);
+            }
+
+            nameOfLastTableFromDB = "PersonGroup";
+            _controlVisible(dataGridView1, true);
+        }
+
+        private string FindPersonNAVInDatagridview(int indexRow)
+        {
+            string foundNavCode = "";
+            try
             {
                 if (nameOfLastTableFromDB == "PersonGroup")
                 {
@@ -2328,103 +2363,11 @@ namespace mySCA2
                     }
                     if (IndexColumn1 > -1 || IndexColumn2 > -1)
                     {
-                        nav = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
-                        nameGroup = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString();
+                        foundNavCode = dataGridView1.Rows[indexRow].Cells[IndexColumn1].Value.ToString();
                     }
                 }
-
-                numberPeopleInLoading = 0;
-                dtPersonTemp.Clear();
-                dtPersonGroup.Clear();
-                DataRow dataRow;
-                DeleteDataTableQueryNAV(databasePerson, "PersonGroup", "NAV", nav, "GroupPerson", nameGroup);
-
-                using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
-                {
-                    sqlConnection.Open();
-
-                    using (var sqlCommand = new SQLiteCommand("Select * FROM PersonGroup where GroupPerson like '" + nameGroup + "';", sqlConnection))
-                    {
-                        using (var sqlReader = sqlCommand.ExecuteReader())
-                        {
-                            string d1 = "", d2 = "", d3 = "9", d4 = "0", d13 = "18", d14 = "0";
-
-                            foreach (DbDataRecord record in sqlReader)
-                            {
-                                try { d1 = record["FIO"].ToString().Trim(); } catch { }
-
-                                if (record != null && d1.Length > 0)
-                                {
-                                    dataRow = dtPersonGroup.NewRow();
-
-                                    try { d2 = record["NAV"].ToString().Trim(); } catch { }
-                                    try { d3 = record["HourControlling"].ToString().Trim(); } catch { }
-                                    try { d4 = record["MinuteControlling"].ToString().Trim(); } catch { }
-                                    try { d13 = record["HourControllingOut"].ToString().Trim(); } catch { }
-                                    try { d14 = record["MinuteControllingOut"].ToString().Trim(); } catch { }
-                                    //HourControllingOut TEXT, MinuteControllingOut TEXT
-                                    //FIO|NAV|H|M
-
-                                    dataRow[1] = d1;
-                                    dataRow[2] = d2;
-                                    dataRow[3] = nameGroup;
-                                    dataRow[4] = d3;
-                                    dataRow[5] = d4;
-                                    dataRow[6] = ConvertTwoStringsTimeToDecimal(d3, d4);
-                                    dataRow[7] = d13;
-                                    dataRow[8] = d14;
-                                    dataRow[9] = ConvertTwoStringsTimeToDecimal(d13, d14);
-                                    dataRow[11] = nameGroup;
-                                    dataRow[22] = ConvertStringTimeToStringHHMM(d3, d4);
-                                    dataRow[23] = ConvertStringTimeToStringHHMM(d13, d14);
-
-                                    dtPersonGroup.Rows.Add(dataRow);
-                                    numberPeopleInLoading++;
-                                }
-                            }
-                            d1 = null; d2 = null; d3 = null; d4 = null; d13 = null; d14 = null;
-                        }
-                    }
-                }
-
-                string[] nameHidenCollumnsArray =
-{
-                                  @"№ п/п",//0
-                                  @"Время прихода,часы",//4
-                                  @"Время прихода,минут", //5
-                                  @"Время прихода",//6
-                                  @"Время ухода,часы",//7
-                                  @"Время ухода,минут",//8
-                                  @"Время ухода",//9
-                                  @"№ пропуска", //10
-                                  //@"Отдел",//11
-                                  @"Дата регистрации",//12
-                                  @"Время регистрации,часы",//13
-                                  @"Время регистрации,минут",//14
-                                  @"Время регистрации", //15
-                                  @"Реальное время ухода,часы",//16
-                                  @"Реальное время ухода,минут",//17
-                                  @"Реальное время ухода", //18
-                                  @"Сервер СКД", //19
-                                  @"Имя точки прохода", //20
-                                  @"Направление прохода", //21
-                                  @"Реальное время прихода ЧЧ:ММ",//24
-                                  @"Реальное время ухода ЧЧ:ММ", //25
-                                  @"Реальное отработанное время", //26
-                                  @"Реальное отработанное время ЧЧ:ММ", //27
-                                  @"Опоздание",                    //28
-                                  @"Ранний уход",                 //29
-                                  @"Отпуск (отгул)",                 //30
-                                  @"Коммандировка"                 //31
-                        };
-
-                var namesDistinctCollumnsArray = arrayAllCollumnsDataTablePeople.Except(nameHidenCollumnsArray).ToArray(); //take distinct data
-                dtPersonTemp = GetDistinctRecords(dtPersonGroup, namesDistinctCollumnsArray);
-                ShowDatatableOnDatagridview(dtPersonTemp, nameHidenCollumnsArray);
-
-                nameOfLastTableFromDB = "PersonGroup";
-            }
-            _controlVisible(dataGridView1, true);
+            } catch { }
+            return foundNavCode;
         }
 
         private void DeleteGroupItem_Click(object sender, EventArgs e) //DeleteGroup()
@@ -2435,7 +2378,6 @@ namespace mySCA2
             int IndexCurrentRow = _dataGridView1CurrentRowIndex();
             if (IndexCurrentRow > -1)
             {
-
                 switch (nameOfLastTableFromDB)
                 {
                     case "PersonGroupDesciption":
@@ -2463,10 +2405,10 @@ namespace mySCA2
                 }
                 PersonOrGroupItem.Text = "Работа с одной персоной";
                 nameOfLastTableFromDB = "PersonGroup";
-                ShowDataTableQuery(databasePerson, "PersonGroupDesciption", "SELECT GroupPerson, GroupPersonDescription ", " group by GroupPerson ORDER BY GroupPerson asc; ");
+
                 MembersGroupItem.Enabled = true;
             }
-            ListGroup();
+            ListGroups();
         }
 
         private void infoItem_Click(object sender, EventArgs e)
@@ -3309,7 +3251,7 @@ namespace mySCA2
 
             if ((nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup") && nameGroup.Length > 0)
             {
-                GetGroupInfoFromDBToDtPersonGroup(dtPersonGroup, nameGroup); //result will be in dtPersonGroup  //"Select * FROM PersonGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
+                LoadGroupMembersFromDbToDataTable(dtPersonGroup, nameGroup); //result will be in dtPersonGroup  //"Select * FROM PersonGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
 
 
                 if (_CheckboxCheckedStateReturn(checkBoxReEnter))
@@ -3386,7 +3328,8 @@ namespace mySCA2
             //store all collumns
             dtPersonTempAllCollumns = dtTempIntermediate.Copy();
             //show selected data     
-            //distinct Records                
+            //distinct Records         
+            
             var namesDistinctCollumnsArray = arrayAllCollumnsDataTablePeople.Except(arrayHiddenCollumns).ToArray(); //take distinct data
             dtPersonTemp = GetDistinctRecords(dtTempIntermediate, namesDistinctCollumnsArray);
             ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenCollumns);
@@ -5387,10 +5330,13 @@ namespace mySCA2
             SearchMembersSelectedGroup();
         }
 
-        private void UpdateControllingItem_Click(object sender, EventArgs e)//UpdateControlling()
-        { UpdateControlling(); }
+        private void UpdateControllingItem_Click(object sender, EventArgs e)//UpdateControlTime()
+        {
+            UpdateControlTimeSelectedPerson(true);
+            SeekAndShowMembersOfGroup(textBoxGroup.Text);
+        }
 
-        private void UpdateControlling()
+        private void UpdateControlTimeSelectedPerson(bool groupFromDatagridview, string group="")
         {
             string fio = "";
             string nav = "";
@@ -5398,7 +5344,6 @@ namespace mySCA2
             string[] timeOut = { "18", "00", "18:00" };
             decimal[] timeInDecimal = { 9, 0, 09 };
             decimal[] timeOutDecimal = { 18, 0, 18 };
-            string group = "";
 
             if (nameOfLastTableFromDB == "PersonGroup")
             {
@@ -5433,14 +5378,19 @@ namespace mySCA2
                 nav = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString();
                 textBoxNav.Text = nav; //Take the name of selected group
 
-                group = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn5].Value.ToString();
-                textBoxGroup.Text = group; //Take the name of selected group
+
+                if (groupFromDatagridview)
+                {
+                    group = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn5].Value.ToString();
+                    textBoxGroup.Text = group; //Take the name of selected group
+                }
+
 
                 timeIn = ConvertDecimalTimeToStringHHMMArray(ConvertStringTimeHHMMToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn6].Value.ToString()));
                 timeInDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringTimeToStringHHMM(timeIn[0], timeIn[1]));
 
                 timeOut = ConvertDecimalTimeToStringHHMMArray(ConvertStringTimeHHMMToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn7].Value.ToString()));
-                timeInDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringTimeToStringHHMM(timeOut[0], timeOut[1]));
+                timeOutDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringTimeToStringHHMM(timeOut[0], timeOut[1]));
 
                 using (var connection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
@@ -5465,13 +5415,6 @@ namespace mySCA2
                         try { command.ExecuteNonQuery(); } catch { }
                     }
                 }
-
-                SeekMembersOfGroup(group);
-
-                /* ShowDataTableQuery(databasePerson, "PersonGroup",
-             "SELECT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', GroupPerson AS 'Группа', " +
-             "ControllingHHMM AS 'Контрольное время', ControllingOUTHHMM AS 'Уход с работы' ",
-             "Where GroupPerson like '" + group + "' ORDER BY FIO ");*/
 
                 StatusLabel2.Text = @"Обновлены данные " + fio + " в группе: " + group;
             }
@@ -5533,7 +5476,7 @@ namespace mySCA2
                     timeInDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringTimeToStringHHMM(timeIn[0], timeIn[1]));
 
                     timeOut = ConvertDecimalTimeToStringHHMMArray(ConvertStringTimeHHMMToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn7].Value.ToString()));
-                    timeInDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringTimeToStringHHMM(timeOut[0], timeOut[1]));
+                    timeOutDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringTimeToStringHHMM(timeOut[0], timeOut[1]));
 
                     using (var connection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                     {
@@ -5558,7 +5501,7 @@ namespace mySCA2
                             try { command.ExecuteNonQuery(); } catch { }
                         }
                     }
-                    SeekMembersOfGroup(group);
+                    SeekAndShowMembersOfGroup(group);
 
                    // MembersOfGroup(textBoxGroup.Text.Trim());
 /*
@@ -5621,7 +5564,7 @@ namespace mySCA2
                         timeInDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringTimeToStringHHMM(timeIn[0], timeIn[1]));
 
                         timeOut = ConvertDecimalTimeToStringHHMMArray(ConvertStringTimeHHMMToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn7].Value.ToString()));
-                        timeInDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringTimeToStringHHMM(timeOut[0], timeOut[1]));
+                        timeOutDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringTimeToStringHHMM(timeOut[0], timeOut[1]));
 
                         using (var connection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                         {
@@ -5647,7 +5590,7 @@ namespace mySCA2
                             }
                         }
 
-                        SeekMembersOfGroup(group);
+                        SeekAndShowMembersOfGroup(group);
 
                        /* ShowDataTableQuery(databasePerson, "PersonGroup",
                         "SELECT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', GroupPerson AS 'Группа', " +
