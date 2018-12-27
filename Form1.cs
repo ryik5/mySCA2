@@ -4158,19 +4158,16 @@ namespace mySCA2
                 string fio = personDraw.FIO;
                 string nav = personDraw.NAV;
                 string group = personDraw.GroupPerson;
-                string dayRegistration = "", DirectionPass = "", pointName = "";
+                string dayRegistration = ""; string directionPass = ""; //string pointName = "";
                 int minutesIn = 0;     // время входа в минутах планируемое
                 int minutesInFact = 0;     // время выхода в минутах фактическое
                 int minutesOut = 0;    // время входа в минутах планируемое
                 int minutesOutFact = 0;    // время выхода в минутах фактическое
 
                 //variable for a person
-                string sDatePrevious = "";      //дата в предыдущей выборке
-                string sDateCurrent = "";       //дата в текущей выборке
-                string sDirectionPrevious = "";
-                string sDirectionCurrent = "";
-                int iTimeComingPrevious = 0;
-                int iTimeComingCurrent = 0;
+                string dayPrevious = "";      //дата в предыдущей выборке
+                string directionPrevious = "";
+                int timePrevious = 0;
 
                 //select and distinct dataRow
                 var rowsPersonRegistrationsForDraw = dtPersonTempAllCollumns.AsEnumerable();
@@ -4283,58 +4280,44 @@ namespace mySCA2
                                     minutesInFact = (int)ConvertStringTimeHHMMToDecimalArray(row["Реальное время прихода ЧЧ:ММ"].ToString())[3];
                                     minutesOut = (int)ConvertStringTimeHHMMToDecimalArray(row["Время ухода ЧЧ:ММ"].ToString())[3];
                                     minutesOutFact = (int)ConvertStringTimeHHMMToDecimalArray(row["Реальное время ухода ЧЧ:ММ"].ToString())[3];
-                                    DirectionPass = row["Направление прохода"].ToString();
-                                    pointName = row["Имя точки прохода"].ToString();
+                                    directionPass = row["Направление прохода"].ToString().ToLower();
+                                    // pointName = row["Имя точки прохода"].ToString();
 
                                     try
                                     {
-                                      rectsRealMark[numberRectangle_rectsRealMark] = new Rectangle(
-                                      iShiftStart + minutesInFact,    //X
-                                      pointDrawYfor_rectsReal,        //Y
-                                      2,                              //width
-                                      14                              //height
-                                      );
-                                        
+                                        rectsRealMark[numberRectangle_rectsRealMark] = new Rectangle(
+                                        iShiftStart + minutesInFact,    //X
+                                        pointDrawYfor_rectsReal,        //Y
+                                        2,                              //width
+                                        14                              //height
+                                        );
+
                                         //test only
-                                    }catch(Exception expt) { MessageBox.Show(numberRectangle_rectsRealMark + " - numberRectangle_rectsRealMark\n" + expt.ToString()); }
+                                    } catch (Exception expt) { MessageBox.Show(numberRectangle_rectsRealMark + " - numberRectangle_rectsRealMark\n" + expt.ToString()); }
 
                                     {
-                                        /*
-                                        //date
-                                        sDatePrevious = sDateCurrent;
-                                        sDateCurrent = dayRegistration;
-                                        //direction
-                                        sDirectionPrevious = sDirectionCurrent;
-                                        sDirectionCurrent = DirectionPass;
-                                        //TimeComming
-                                        iTimeComingPrevious = iTimeComingCurrent;
-                                        iTimeComingCurrent = minutesInFact;
+                                        if (directionPass.Contains("вход"))
+                                        {
+                                            timePrevious = minutesInFact;
+                                            dayPrevious = dayRegistration;
+                                            directionPrevious = directionPass;
+                                        }
+                                        else if (directionPass.Contains("выход") && directionPrevious.Contains("вход") && dayPrevious.Contains(dayRegistration))
+                                        {
+                                            if (minutesInFact > timePrevious)
+                                            {
+                                                rectsReal[irectsTempReal] = new Rectangle(
+                                                        iShiftStart + timePrevious,
+                                                        pointDrawYfor_rectsReal,
+                                                        minutesInFact - timePrevious,
+                                                        14);                //height
 
-                                        if (sDirectionCurrent.ToLower().Contains("вход") && sDirectionPrevious.ToLower().Contains("вход") && sDatePrevious.Contains(sDateCurrent))
-                                        {
-                                            if (iTimeComingCurrent > iTimeComingPrevious)
-                                            {
-                                                rectsReal[irectsTempReal] = new Rectangle(
-                                                    iShiftStart + iTimeComingPrevious,
-                                                    pointDrawYfor_rectsReal,
-                                                    iTimeComingCurrent - iTimeComingPrevious,
-                                                    14);                  //height
-                                                //  irectsTempReal++;
+                                                irectsTempReal++;
+                                                timePrevious = minutesInFact;
+                                                dayPrevious = dayRegistration;
+                                                directionPrevious = directionPass;
                                             }
                                         }
-                                        else if (sDirectionCurrent.ToLower().Contains("выход") && sDirectionPrevious.ToLower().Contains("вход") && sDatePrevious.Contains(sDateCurrent))
-                                        {
-                                            if (iTimeComingCurrent > iTimeComingPrevious)
-                                            {
-                                                rectsReal[irectsTempReal] = new Rectangle(
-                                                    iShiftStart + iTimeComingPrevious,
-                                                    pointDrawYfor_rectsReal,
-                                                    iTimeComingCurrent - iTimeComingPrevious,
-                                                    14);                //height
-                                                // irectsTempReal++;
-                                            }
-                                        }
-                                        */
                                     }
 
                                     numberRectangle_rectsRealMark++;
@@ -4441,7 +4424,7 @@ namespace mySCA2
                 _RefreshPictureBox(pictureBox1, bmp);
                 panelViewResize(numberPeopleInLoading);
 
-                fio = null; nav = null; dayRegistration = null; DirectionPass = null;
+                fio = null; nav = null; dayRegistration = null; directionPass = null;
                 font.Dispose(); hsNAV = null;
 
                 //---------------------------------------------------------------
