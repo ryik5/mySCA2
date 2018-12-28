@@ -1003,7 +1003,7 @@
     <value>211, 22</value>
   </data>
   <data name="SetupItem.Text" xml:space="preserve">
-    <value>Настрока программы</value>
+    <value>О настройке</value>
   </data>
   <data name="HelpSystemItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>211, 22</value>
