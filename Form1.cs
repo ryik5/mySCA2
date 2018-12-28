@@ -4129,6 +4129,8 @@ namespace mySCA2
                 SelectPersonFromDataGrid(personVisual);
                 dataGridView1.Visible = false;
                 FindWorkDatesInSelected();
+                CheckBoxesFiltersAll_Enable(false);
+
                 if (_CheckboxCheckedStateReturn(checkBoxReEnter))
                 { DrawFullWorkedPeriodRegistration(personVisual); }
                 else
@@ -4333,7 +4335,7 @@ namespace mySCA2
                     //Fill with rectangles RealWork
                     gr.FillRectangles(myBrushRealWorkHour, rectsReal);
 
-                    // Fill rectangles WorkTime
+                    // Fill rectangles WorkTime shit
                     gr.FillRectangles(myBrushWorkHour, rects);
 
                     //Fill All Mark at Passthrow Points
@@ -4431,35 +4433,6 @@ namespace mySCA2
 
         private void DrawFullWorkedPeriodRegistration(Person personDraw)  // Draw the whole period registration
         {
-            //distinct Records               
-            string[] arrayHiddenCollumns =
-                            {
-                                  @"№ п/п",//0
-                               //   @"Время прихода,часы",//4
-                               //   @"Время прихода,минут", //5
-                               //   @"Время прихода",//6
-                               //   @"Время ухода,часы",//7
-                               //   @"Время ухода,минут",//8
-                              //    @"Время ухода",//9
-                                  @"№ пропуска", //10
-                                  @"Отдел",//11
-                               //   @"Время регистрации,часы",//13
-                               //   @"Время регистрации,минут",//14
-                              //    @"Время регистрации", //15
-                               //   @"Реальное время ухода,часы",//16
-                              //    @"Реальное время ухода,минут",//17
-                              //    @"Реальное время ухода", //18
-                              //    @"Сервер СКД", //19
-                               //   @"Имя точки прохода", //20
-                              //    @"Направление прохода", //21
-                               //   @"Реальное отработанное время", //26
-                               //   @"Опоздание",                    //28
-                               //   @"Ранний уход",                 //29
-                                  @"Отпуск (отгул)",                 //30
-                                  @"Коммандировка"                 //31
-                            };
-            string[] namesDistinctCollumnsArray = arrayAllCollumnsDataTablePeople.Except(arrayHiddenCollumns).ToArray();//take distinct data
-
             //  int iPanelBorder = 2;
             int iMinutesInHour = 60;
             int iShiftStart = 300;
@@ -4477,11 +4450,6 @@ namespace mySCA2
             int minutesInFact = 0;     // время выхода в минутах фактическое
             int minutesOut = 0;    // время входа в минутах планируемое
             int minutesOutFact = 0;    // время выхода в минутах фактическое
-
-            //variable for a person
-            string dayPrevious = "";      //дата в предыдущей выборке
-            string directionPrevious = "";
-            int timePrevious = 0;
 
             //select and distinct dataRow
             var rowsPersonRegistrationsForDraw = dtPersonTempAllCollumns.AsEnumerable();
@@ -4617,11 +4585,11 @@ namespace mySCA2
                     }
                 }
 
-                // Fill rectangles WorkTime
-                gr.FillRectangles(myBrushWorkHour, rects);
-
                 //Fill All Mark at Passthrow Points
                 gr.FillRectangles(myBrushRealWorkHour, rectsRealMark); //draw the real first come of the person
+
+                // Fill rectangles WorkTime shit
+                gr.FillRectangles(myBrushWorkHour, rects);
 
                 //Draw axes for days 
                 for (int k = 0; k < workSelectedDays.Length * countNAVs; k++)
@@ -4718,8 +4686,7 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
                 g.DrawImage(b, 0, 0, nWidth, nHeight);
             return result;
         }
-
-
+        
         private void ReportsItem_Click(object sender, EventArgs e)
         {
             pictureBox1.Visible = false;
