@@ -1943,6 +1943,7 @@ namespace mySCA2
                         person.ControlInMinuteDecimal = dControlMinuteIn;
                         person.ControlInDecimal = ConvertDecimalSeparatedTimeToDecimal(dControlHourIn, dControlMinuteIn);
                         person.ControlInHHMM = ConvertStringTimeToStringHHMM(row[4].ToString(),row[5].ToString());
+
                         person.ControlOutHour = row[7].ToString();
                         person.ControlOutHourDecimal = dControlHourOut;
                         person.ControlOutMinute = row[8].ToString();
@@ -1970,12 +1971,14 @@ namespace mySCA2
                 person.ControlInMinute = dControlMinuteIn.ToString();
                 person.ControlInMinuteDecimal = dControlMinuteIn;
                 person.ControlInDecimal = ConvertDecimalSeparatedTimeToDecimal(dControlHourIn, dControlMinuteIn);
+                person.ControlInHHMM = ConvertStringTimeToStringHHMM(dControlHourIn.ToString(), dControlMinuteIn.ToString());
 
                 person.ControlOutHour = dControlHourOut.ToString();
                 person.ControlOutHourDecimal = dControlHourOut;
                 person.ControlOutMinute = dControlMinuteOut.ToString();
                 person.ControlOutMinuteDecimal = dControlMinuteOut;
                 person.ControlOutDecimal = ConvertDecimalSeparatedTimeToDecimal(dControlHourOut, dControlMinuteOut);
+                person.ControlOutHHMM = ConvertStringTimeToStringHHMM(dControlHourOut.ToString(), dControlMinuteOut.ToString());
 
                 GetPersonRegistrationFromServer(dtPersonRegisteredFull, person);
 
@@ -3275,13 +3278,11 @@ namespace mySCA2
                             FilterDataByNav(personCheck, dtPersonRegisteredFull, dtTempIntermediate);
                         }
                     }
-                    // dtPersonTemp = dtTempIntermediate.Select("[Группа] = '" + nameGroup + "'").Distinct().CopyToDataTable();
                 }
                 else
                 {
                     dtTempIntermediate = dtPersonRegisteredFull.Select("[Группа] = '" + nameGroup + "'").Distinct().CopyToDataTable();
                 }
-                // dtTempIntermediate = null;
             }
             else
             {
@@ -3350,6 +3351,7 @@ namespace mySCA2
                 _controlEnable(checkBoxCelebrate, false);
             }
 
+             dtTempIntermediate = null;
             _controlEnable(checkBoxReEnter, true);
         }
 
