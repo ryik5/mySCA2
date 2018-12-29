@@ -116,6 +116,12 @@ namespace mySCA2
                                   new DataColumn(@"Ранний уход",typeof(string)),                 //29
                                   new DataColumn(@"Отпуск (отгул)",typeof(string)),                 //30
                                   new DataColumn(@"Коммандировка",typeof(string)),                 //31
+                                  new DataColumn(@"День недели",typeof(string)),                 //32
+                                  new DataColumn(@"Больничный",typeof(string)),                 //33
+                                  new DataColumn(@"Согласованное отсутствие",typeof(string)),   //34
+                                  new DataColumn(@"Код",typeof(string)),                     //35
+                                  new DataColumn(@"Вышестоящая группа",typeof(string)),//36
+                                  new DataColumn(@"Описание группы",typeof(string)),   //37
                 };
         private string[] arrayAllCollumnsDataTablePeople =
             {
@@ -150,7 +156,13 @@ namespace mySCA2
                                   @"Опоздание",                    //28
                                   @"Ранний уход",                 //29
                                   @"Отпуск (отгул)",                 //30
-                                  @"Коммандировка"                 //31
+                                  @"Коммандировка",                 //31
+                                  @"День недели",                    //32
+                                  @"Больничный",                    //33
+                                  @"Согласованное отсутствие",      //34
+                                  @"Код",                           //35
+                                  @"Вышестоящая группа",            //36
+                                  @"Описание группы"                //37
         };
 
         private DataTable dtPersonTemp = new DataTable("PersonTemp");
@@ -259,6 +271,7 @@ namespace mySCA2
             VisualModeItem.Visible = false;
             VisualSelectColorMenuItem.Visible = false;
             TableExportToExcelItem.Visible = false;
+            listFioItem.Visible = true;
 
             //search selected FIO
             int IndexCurrentRow = 2;
@@ -875,6 +888,7 @@ namespace mySCA2
                 await Task.Run(() => ShowDatatableOnDatagridview(dtPeople, arrayHiddenCollumns));
 
                 await Task.Run(() => panelViewResize(numberPeopleInLoading));
+                listFioItem.Visible = true;
             }
             else { GetInfoSetup(); }
 
@@ -884,7 +898,9 @@ namespace mySCA2
         private void GetFioFromServers(DataTable dataTablePeopple) //Get the list of registered users
         {
             Person personFromServer = new Person();
-            dataTablePeopple.Clear();
+          //  dataTablePeopple.Dispose();
+          //  dtGroup.Dispose();
+            dataTablePeopple .Clear();
             dtGroup.Clear();
             iFIO = 0;
 
@@ -924,18 +940,30 @@ namespace mySCA2
                                         personFromServer.PositionInDepartment = record["post"].ToString().Trim();
                                         personFromServer.Department = record["parent_id"].ToString().Trim();
 
+                                        personFromServer.ControlInHour = _numUpDownReturn(numUpDownHourStart).ToString();
+                                        personFromServer.ControlInHourDecimal = _numUpDownReturn(numUpDownHourStart);
+                                        personFromServer.ControlInMinute = _numUpDownReturn(numUpDownMinuteStart).ToString();
+                                        personFromServer.ControlInMinuteDecimal = _numUpDownReturn(numUpDownMinuteStart);
+                                        personFromServer.ControlInHHMM = ConvertStringsTimeToStringHHMM(personFromServer.ControlInHour, personFromServer.ControlInMinute);
+
+                                        personFromServer.ControlOutHour = _numUpDownReturn(numUpDownHourEnd).ToString();
+                                        personFromServer.ControlOutHourDecimal = _numUpDownReturn(numUpDownHourEnd);
+                                        personFromServer.ControlOutMinute = _numUpDownReturn(numUpDownMinuteEnd).ToString();
+                                        personFromServer.ControlOutMinuteDecimal = _numUpDownReturn(numUpDownMinuteEnd);
+                                        personFromServer.ControlOutHHMM = ConvertStringsTimeToStringHHMM(personFromServer.ControlOutHour, personFromServer.ControlOutMinute);
+
                                         row[0] = iFIO;
                                         row[1] = personFromServer.FIO;
                                         row[2] = personFromServer.NAV;
                                         row[3] = personFromServer.Department;
                                         row[4] = personFromServer.ControlInHour;
                                         row[5] = personFromServer.ControlInMinute;
-                                        row[6] = ConvertTwoStringsTimeToDecimal(personFromServer.ControlInHour, personFromServer.ControlInMinute);
+                                        row[6] = ConvertStringsTimeToDecimal(personFromServer.ControlInHour, personFromServer.ControlInMinute);
                                         row[7] = personFromServer.ControlOutHour;
                                         row[8] = personFromServer.ControlOutMinute;
-                                        row[6] = ConvertTwoStringsTimeToDecimal(personFromServer.ControlOutHour, personFromServer.ControlOutMinute);
-                                        row[22] = ConvertStringTimeToStringHHMM(personFromServer.ControlInHour, personFromServer.ControlInMinute);
-                                        row[23] = ConvertStringTimeToStringHHMM(personFromServer.ControlOutHour, personFromServer.ControlOutMinute);
+                                        row[6] = ConvertStringsTimeToDecimal(personFromServer.ControlOutHour, personFromServer.ControlOutMinute);
+                                        row[22] = ConvertStringsTimeToStringHHMM(personFromServer.ControlInHour, personFromServer.ControlInMinute);
+                                        row[23] = ConvertStringsTimeToStringHHMM(personFromServer.ControlOutHour, personFromServer.ControlOutMinute);
                                         row[10] = personFromServer.idCard;
 
                                         dataTablePeopple.Rows.Add(row);
@@ -1067,7 +1095,46 @@ namespace mySCA2
             _MenuItemEnabled(GroupsMenuItem, true);
         }
 
+        private void listFioItem_Click(object sender, EventArgs e) //ListFioReturn()
+        { ListFioReturn(); }
 
+        private async void ListFioReturn()
+        {
+            string[] arrayHiddenCollumns =
+                    {
+                            //@"Группа",                  //3
+                            @"Время прихода,часы",       //4
+                            @"Время прихода,минут",      //5
+                            @"Время прихода",            //6
+                            @"Время ухода,часы",         //7
+                            @"Время ухода,минут",        //8
+                            @"Время ухода",              //9
+                            @"№ пропуска",               //10
+                            @"Дата регистрации",         //12
+                            @"Время регистрации,часы",   //13
+                            @"Время регистрации,минут",  //14
+                            @"Время регистрации",        //15
+                            @"Реальное время ухода,часы",//16
+                            @"Реальное время ухода,минут",//17
+                            @"Реальное время ухода",     //18
+                            @"Сервер СКД",               //19
+                            @"Имя точки прохода",        //20
+                            @"Направление прохода",      //21
+                           // @"Время прихода ЧЧ:ММ",      //22
+                           // @"Время ухода ЧЧ:ММ",        //23
+                            @"Реальное время прихода ЧЧ:ММ",//24
+                            @"Реальное время ухода ЧЧ:ММ", //25
+                            @"Реальное отработанное время", //26
+                            @"Реальное отработанное время ЧЧ:ММ", //27
+                            @"Опоздание",                   //28
+                            @"Ранний уход",              //29
+                            @"Отпуск (отгул)",           //30
+                            @"Коммандировка"             //31
+                      };
+
+            await Task.Run(() => ShowDatatableOnDatagridview(dtPeople, arrayHiddenCollumns));
+
+        }
 
         private void BoldAnualDates() //Excluded Anual Days from the table "PersonTemp" DB
         {
@@ -1451,13 +1518,13 @@ namespace mySCA2
                                 dataRow[3] = nameGroup;
                                 dataRow[4] = d3;
                                 dataRow[5] = d4;
-                                dataRow[6] = ConvertTwoStringsTimeToDecimal(d3, d4);
+                                dataRow[6] = ConvertStringsTimeToDecimal(d3, d4);
                                 dataRow[7] = d13;
                                 dataRow[8] = d14;
-                                dataRow[9] = ConvertTwoStringsTimeToDecimal(d13, d14);
+                                dataRow[9] = ConvertStringsTimeToDecimal(d13, d14);
                                 dataRow[11] = nameGroup;
-                                dataRow[22] = ConvertStringTimeToStringHHMM(d3, d4);
-                                dataRow[23] = ConvertStringTimeToStringHHMM(d13, d14);
+                                dataRow[22] = ConvertStringsTimeToStringHHMM(d3, d4);
+                                dataRow[23] = ConvertStringsTimeToStringHHMM(d13, d14);
 
                                 dtTemp.Rows.Add(dataRow);
                                 numberPeopleInLoading++;
@@ -1559,8 +1626,8 @@ namespace mySCA2
                             { checkHourS = numUpHourStart.ToString(); }
                             row[3] = checkHourS;
                             row[4] = cell[4];
-                            row[5] = ConvertTwoStringsTimeToDecimal(checkHourS, cell[4]);
-                            row[22] = ConvertStringTimeToStringHHMM(checkHourS, cell[4]);
+                            row[5] = ConvertStringsTimeToDecimal(checkHourS, cell[4]);
+                            row[22] = ConvertStringsTimeToStringHHMM(checkHourS, cell[4]);
 
 
                             checkHourE = cell[5];
@@ -1568,8 +1635,8 @@ namespace mySCA2
                             { checkHourE = numUpDownHourEnd.ToString(); }
                             row[6] = checkHourE;
                             row[7] = cell[6];
-                            row[8] = ConvertTwoStringsTimeToDecimal(checkHourE, cell[6]);
-                            row[23] = ConvertStringTimeToStringHHMM(checkHourE, cell[6]);
+                            row[8] = ConvertStringsTimeToDecimal(checkHourE, cell[6]);
+                            row[23] = ConvertStringsTimeToStringHHMM(checkHourE, cell[6]);
 
                             dt.Rows.Add(row);
                             row = dt.NewRow();
@@ -1711,8 +1778,8 @@ namespace mySCA2
                 timeOut = ConvertDecimalTimeToStringHHMMArray(ConvertStringTimeHHMMToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn7].Value.ToString()));
             }
 
-            timeInDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringTimeToStringHHMM(timeIn[0], timeIn[1]));
-            timeOutDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringTimeToStringHHMM(timeOut[0], timeOut[1]));
+            timeInDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringsTimeToStringHHMM(timeIn[0], timeIn[1]));
+            timeOutDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringsTimeToStringHHMM(timeOut[0], timeOut[1]));
 
             using (var connection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
             {
@@ -1942,14 +2009,14 @@ namespace mySCA2
                         person.ControlInMinute = row[5].ToString();
                         person.ControlInMinuteDecimal = dControlMinuteIn;
                         person.ControlInDecimal = ConvertDecimalSeparatedTimeToDecimal(dControlHourIn, dControlMinuteIn);
-                        person.ControlInHHMM = ConvertStringTimeToStringHHMM(row[4].ToString(),row[5].ToString());
+                        person.ControlInHHMM = ConvertStringsTimeToStringHHMM(row[4].ToString(),row[5].ToString());
 
                         person.ControlOutHour = row[7].ToString();
                         person.ControlOutHourDecimal = dControlHourOut;
                         person.ControlOutMinute = row[8].ToString();
                         person.ControlOutMinuteDecimal = dControlMinuteOut;
                         person.ControlOutDecimal = ConvertDecimalSeparatedTimeToDecimal(dControlHourOut, dControlMinuteOut);
-                        person.ControlOutHHMM = ConvertStringTimeToStringHHMM(row[7].ToString(),row[8].ToString());
+                        person.ControlOutHHMM = ConvertStringsTimeToStringHHMM(row[7].ToString(),row[8].ToString());
 
                         GetPersonRegistrationFromServer(dtPersonRegisteredFull, person);     //Search Registration at checkpoints of the selected person
                     }
@@ -1971,14 +2038,14 @@ namespace mySCA2
                 person.ControlInMinute = dControlMinuteIn.ToString();
                 person.ControlInMinuteDecimal = dControlMinuteIn;
                 person.ControlInDecimal = ConvertDecimalSeparatedTimeToDecimal(dControlHourIn, dControlMinuteIn);
-                person.ControlInHHMM = ConvertStringTimeToStringHHMM(dControlHourIn.ToString(), dControlMinuteIn.ToString());
+                person.ControlInHHMM = ConvertStringsTimeToStringHHMM(dControlHourIn.ToString(), dControlMinuteIn.ToString());
 
                 person.ControlOutHour = dControlHourOut.ToString();
                 person.ControlOutHourDecimal = dControlHourOut;
                 person.ControlOutMinute = dControlMinuteOut.ToString();
                 person.ControlOutMinuteDecimal = dControlMinuteOut;
                 person.ControlOutDecimal = ConvertDecimalSeparatedTimeToDecimal(dControlHourOut, dControlMinuteOut);
-                person.ControlOutHHMM = ConvertStringTimeToStringHHMM(dControlHourOut.ToString(), dControlMinuteOut.ToString());
+                person.ControlOutHHMM = ConvertStringsTimeToStringHHMM(dControlHourOut.ToString(), dControlMinuteOut.ToString());
 
                 GetPersonRegistrationFromServer(dtPersonRegisteredFull, person);
 
@@ -2246,9 +2313,9 @@ namespace mySCA2
                 rowPerson[19] = sServer1;
                 rowPerson[20] = namePoint;
                 rowPerson[21] = nameDirection;
-                rowPerson[22] = ConvertStringTimeToStringHHMM(cellData[7], cellData[8]);
-                rowPerson[23] = ConvertStringTimeToStringHHMM(person.ControlOutHour, person.ControlOutMinute);
-                rowPerson[24] = ConvertStringTimeToStringHHMM(cellData[4], cellData[5]);
+                rowPerson[22] = ConvertStringsTimeToStringHHMM(cellData[7], cellData[8]);
+                rowPerson[23] = ConvertStringsTimeToStringHHMM(person.ControlOutHour, person.ControlOutMinute);
+                rowPerson[24] = ConvertStringsTimeToStringHHMM(cellData[4], cellData[5]);
 
                 dt.Rows.Add(rowPerson);
             }
@@ -2300,13 +2367,13 @@ namespace mySCA2
                                 dataRow[3] = namePointedGroup;
                                 dataRow[4] = d3;
                                 dataRow[5] = d4;
-                                dataRow[6] = ConvertTwoStringsTimeToDecimal(d3, d4);
+                                dataRow[6] = ConvertStringsTimeToDecimal(d3, d4);
                                 dataRow[7] = d13;
                                 dataRow[8] = d14;
-                                dataRow[9] = ConvertTwoStringsTimeToDecimal(d13, d14);
+                                dataRow[9] = ConvertStringsTimeToDecimal(d13, d14);
                                 dataRow[11] = namePointedGroup;
-                                dataRow[22] = ConvertStringTimeToStringHHMM(d3, d4);
-                                dataRow[23] = ConvertStringTimeToStringHHMM(d13, d14);
+                                dataRow[22] = ConvertStringsTimeToStringHHMM(d3, d4);
+                                dataRow[23] = ConvertStringsTimeToStringHHMM(d13, d14);
 
                                 dtPersonGroup.Rows.Add(dataRow);
                                 numberPeopleInLoading++;
@@ -3109,17 +3176,7 @@ namespace mySCA2
             return result;
         }
 
-        private string ConvertStringTimeToStringHHMM(string hour, string minute)
-        {
-            int h = 9;
-            int m = 0;
-            try { h = Convert.ToInt32(hour); } catch { }
-            try { m = Convert.ToInt32(minute); } catch { }
-            string result = String.Format("{0:d2}:{1:d2}", h, m);
-            return result;
-        }
-
-        private string ConvertDecimalTimeToStringHHMM(decimal decimalTime)
+         private string ConvertDecimalTimeToStringHHMM(decimal decimalTime)
         {
             string result;
             int hour = (int)(decimalTime);
@@ -3134,7 +3191,17 @@ namespace mySCA2
             return result;
         }
 
-        private decimal ConvertTwoStringsTimeToDecimal(string hour, string minute)
+        private string ConvertStringsTimeToStringHHMM(string hour, string minute)
+        {
+            int h = 9;
+            int m = 0;
+            try { h = Convert.ToInt32(hour); } catch { }
+            try { m = Convert.ToInt32(minute); } catch { }
+            string result = String.Format("{0:d2}:{1:d2}", h, m);
+            return result;
+        }
+
+        private decimal ConvertStringsTimeToDecimal(string hour, string minute)
         {
             decimal result = TryParseStringToDecimal(hour) + TryParseStringToDecimal(TimeSpan.FromMinutes(TryParseStringToDouble(minute)).TotalHours.ToString());
             return result;
@@ -3961,13 +4028,13 @@ namespace mySCA2
                 personSelected.ControlInHour = personSelected.ControlInHourDecimal.ToString();
                 personSelected.ControlInMinuteDecimal = _numUpDownReturn(numUpDownMinuteStart);
                 personSelected.ControlInMinute = personSelected.ControlInMinuteDecimal.ToString();
-                personSelected.ControlInHHMM = ConvertStringTimeToStringHHMM(personSelected.ControlInHour, personSelected.ControlInMinute);
+                personSelected.ControlInHHMM = ConvertStringsTimeToStringHHMM(personSelected.ControlInHour, personSelected.ControlInMinute);
 
                 personSelected.ControlOutHourDecimal = _numUpDownReturn(numUpDownHourEnd);
                 personSelected.ControlOutHour = personSelected.ControlOutHourDecimal.ToString();
                 personSelected.ControlOutMinuteDecimal = _numUpDownReturn(numUpDownMinuteEnd);
                 personSelected.ControlOutMinute = personSelected.ControlOutMinuteDecimal.ToString();
-                personSelected.ControlOutHHMM = ConvertStringTimeToStringHHMM(personSelected.ControlOutHour, personSelected.ControlOutMinute);
+                personSelected.ControlOutHHMM = ConvertStringsTimeToStringHHMM(personSelected.ControlOutHour, personSelected.ControlOutMinute);
             }
             catch (Exception expt) { MessageBox.Show(expt.ToString()); }
         }
@@ -5363,10 +5430,10 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
                     textBoxGroup.Text = group; //Take the name of selected group
 
                     timeIn = ConvertDecimalTimeToStringHHMMArray(ConvertStringTimeHHMMToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn6].Value.ToString()));
-                    timeInDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringTimeToStringHHMM(timeIn[0], timeIn[1]));
+                    timeInDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringsTimeToStringHHMM(timeIn[0], timeIn[1]));
 
                     timeOut = ConvertDecimalTimeToStringHHMMArray(ConvertStringTimeHHMMToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn7].Value.ToString()));
-                    timeOutDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringTimeToStringHHMM(timeOut[0], timeOut[1]));
+                    timeOutDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringsTimeToStringHHMM(timeOut[0], timeOut[1]));
 
                     using (var connection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                     {
@@ -5451,10 +5518,10 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
                         textBoxGroup.Text = group; //Take the name of selected group
 
                         timeIn = ConvertDecimalTimeToStringHHMMArray(ConvertStringTimeHHMMToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn6].Value.ToString()));
-                        timeInDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringTimeToStringHHMM(timeIn[0], timeIn[1]));
+                        timeInDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringsTimeToStringHHMM(timeIn[0], timeIn[1]));
 
                         timeOut = ConvertDecimalTimeToStringHHMMArray(ConvertStringTimeHHMMToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn7].Value.ToString()));
-                        timeOutDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringTimeToStringHHMM(timeOut[0], timeOut[1]));
+                        timeOutDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringsTimeToStringHHMM(timeOut[0], timeOut[1]));
 
                         using (var connection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                         {
@@ -5741,6 +5808,8 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
                 MessageBox.Show("Decrypted:    " + decrypted);
             }
         }
+
+
         //End of the Block Encryption-Decryption
 
 

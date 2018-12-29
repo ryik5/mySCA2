@@ -759,6 +759,12 @@
   <data name="GetFioItem.ToolTipText" xml:space="preserve">
     <value>Получить/обновить список ФИО персон заведенных на серверах</value>
   </data>
+  <data name="listFioItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>226, 22</value>
+  </data>
+  <data name="listFioItem.Text" xml:space="preserve">
+    <value>ListFio</value>
+  </data>
   <data name="QuickLoadDataItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>226, 22</value>
   </data>
@@ -3906,6 +3912,12 @@
   </data>
   <data name="&gt;&gt;timer1.Type" xml:space="preserve">
     <value>System.Windows.Forms.Timer, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;listFioItem.Name" xml:space="preserve">
+    <value>listFioItem</value>
+  </data>
+  <data name="&gt;&gt;listFioItem.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;$this.Name" xml:space="preserve">
     <value>FormPersonViewerSCA</value>
