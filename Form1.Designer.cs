@@ -61,6 +61,7 @@
             this.menuStrip = new System.Windows.Forms.MenuStrip();
             this.FunctionMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.GetFioItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.listFioItem = new System.Windows.Forms.ToolStripMenuItem();
             this.QuickLoadDataItem = new System.Windows.Forms.ToolStripMenuItem();
             this.TableExportToExcelItem = new System.Windows.Forms.ToolStripMenuItem();
             this.TableModeItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -111,7 +112,6 @@
             this.groupBoxTimeEnd = new System.Windows.Forms.GroupBox();
             this.labelHourEnd = new System.Windows.Forms.Label();
             this.labelMinuteEnd = new System.Windows.Forms.Label();
-            this.listFioItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownHourStart)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownMinuteStart)).BeginInit();
@@ -383,6 +383,12 @@
             this.GetFioItem.Name = "GetFioItem";
             resources.ApplyResources(this.GetFioItem, "GetFioItem");
             this.GetFioItem.Click += new System.EventHandler(this.GetFio_Click);
+            // 
+            // listFioItem
+            // 
+            this.listFioItem.Name = "listFioItem";
+            resources.ApplyResources(this.listFioItem, "listFioItem");
+            this.listFioItem.Click += new System.EventHandler(this.listFioItem_Click);
             // 
             // QuickLoadDataItem
             // 
@@ -723,12 +729,6 @@
             // 
             resources.ApplyResources(this.labelMinuteEnd, "labelMinuteEnd");
             this.labelMinuteEnd.Name = "labelMinuteEnd";
-            // 
-            // listFioItem
-            // 
-            this.listFioItem.Name = "listFioItem";
-            resources.ApplyResources(this.listFioItem, "listFioItem");
-            this.listFioItem.Click += new System.EventHandler(this.listFioItem_Click);
             // 
             // FormPersonViewerSCA
             // 

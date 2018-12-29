@@ -271,30 +271,14 @@ namespace mySCA2
             VisualModeItem.Visible = false;
             VisualSelectColorMenuItem.Visible = false;
             TableExportToExcelItem.Visible = false;
-            listFioItem.Visible = true;
-
-            //search selected FIO
-            int IndexCurrentRow = 2;
-            int IndexColumn1 = 0;           // индекс 1-й колонки в датагрид
-            int IndexColumn2 = 1;           // индекс 2-й колонки в датагрид
+            listFioItem.Visible = false;
 
             string sFIO = "";
-
-            try
-            {
-                textBoxFIO.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
-                sFIO = textBoxFIO.Text;
-            }
-            catch { }
-            try { textBoxNav.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString(); } catch { }
-
             try
             {
                 comboBoxFio.SelectedIndex = comboBoxFio.FindString(sFIO); //ищем в комбобокс-e выбранный ФИО и устанавливаем на него фокус
                 if (comboBoxFio.FindString(sFIO) != -1 && ShortFIO(sFIO).Length > 3)
-                {
-                    StatusLabel2.Text = @"Выбран: " + ShortFIO(sFIO) + @" |  Всего ФИО: " + iFIO;
-                }
+                { StatusLabel2.Text = @"Выбран: " + ShortFIO(sFIO) + @" |  Всего ФИО: " + iFIO; }
                 else if (ShortFIO(sFIO).Length < 3 && iFIO > 0)
                 { StatusLabel2.Text = @"Всего ФИО: " + iFIO; }
             }
@@ -877,7 +861,13 @@ namespace mySCA2
                             @"Опоздание",                   //28
                             @"Ранний уход",              //29
                             @"Отпуск (отгул)",           //30
-                            @"Коммандировка"             //31
+                                  @"Коммандировка",                 //31
+                                  @"День недели",                    //32
+                                  @"Больничный",                    //33
+                                  @"Согласованное отсутствие",      //34
+                                  @"Код",                           //35
+                                  @"Вышестоящая группа",            //36
+                                  @"Описание группы"                //37
                       };
 
                 //show selected data     
@@ -1129,7 +1119,13 @@ namespace mySCA2
                             @"Опоздание",                   //28
                             @"Ранний уход",              //29
                             @"Отпуск (отгул)",           //30
-                            @"Коммандировка"             //31
+                                  @"Коммандировка",                 //31
+                                  @"День недели",                    //32
+                                  @"Больничный",                    //33
+                                  @"Согласованное отсутствие",      //34
+                                  @"Код",                           //35
+                                  @"Вышестоящая группа",            //36
+                                  @"Описание группы"                //37
                       };
 
             await Task.Run(() => ShowDatatableOnDatagridview(dtPeople, arrayHiddenCollumns));
@@ -1563,7 +1559,13 @@ namespace mySCA2
                                   @"Опоздание",                    //28
                                   @"Ранний уход",                 //29
                                   @"Отпуск (отгул)",                 //30
-                                  @"Коммандировка"                 //31
+                                  @"Коммандировка",                 //31
+                                  @"День недели",                    //32
+                                  @"Больничный",                    //33
+                                  @"Согласованное отсутствие",      //34
+                                  @"Код",                           //35
+                                  @"Вышестоящая группа",            //36
+                                  @"Описание группы"                //37
                         };
 
             var namesDistinctCollumnsArray = arrayAllCollumnsDataTablePeople.Except(nameHidenCollumnsArray).ToArray(); //take distinct data
@@ -2081,7 +2083,13 @@ namespace mySCA2
                 @"Опоздание",                    //28
                 @"Ранний уход",                 //29
                 @"Отпуск (отгул)",              //30
-                @"Коммандировка"                 //31
+                                  @"Коммандировка",                 //31
+                                  @"День недели",                    //32
+                                  @"Больничный",                    //33
+                                  @"Согласованное отсутствие",      //34
+                                  @"Код",                           //35
+                                  @"Вышестоящая группа",            //36
+                                  @"Описание группы"                //37
             };
 
 
