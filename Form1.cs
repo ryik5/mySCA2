@@ -59,6 +59,13 @@ namespace mySCA2
         private Label labelServer1UserPassword;
         private TextBox textBoxServer1UserPassword;
 
+        private Label labelMailServerName;
+        private TextBox textBoxMailServerName;
+        private Label labelMailServerUserName;
+        private TextBox textBoxMailServerUserName;
+        private Label labelMailServerUserPassword;
+        private TextBox textBoxMailServerUserPassword;
+
         private Color clrRealRegistration = Color.PaleGreen;
         private string sLastSelectedElement = "MainForm";
 
@@ -73,6 +80,17 @@ namespace mySCA2
         private string sServer1UserPassword = "";
         private string sServer1UserPasswordRegistry = "";
         private string sServer1UserPasswordDB = "";
+
+        private string mailServer = "";
+        private string mailServerRegistry = "";
+        private string mailServerDB = "";
+        private string mailServerUserName = "";
+        private string mailServerUserNameRegistry = "";
+        private string mailServerUserNameDB = "";
+        private string mailServerUserPassword = "";
+        private string mailServerUserPasswordRegistry = "";
+        private string mailServerUserPasswordDB = "";
+
 
         private readonly byte[] btsMess1 = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
         private readonly byte[] btsMess2 = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
@@ -249,8 +267,7 @@ namespace mySCA2
             BoldAnualDates();
 
             //read last saved parameters from db and Registry and set their into variables
-            CheckSavedDataInRegistry();
-            LoadLastParametersFromDBIntoVariable();
+            LoadPrevioslySavedParameters();
             sServer1 = sServer1Registry.Length > 0 ? sServer1Registry : sServer1DB;
             sServer1UserName = sServer1UserNameRegistry.Length > 0 ? sServer1UserNameRegistry : sServer1UserNameDB;
             sServer1UserPassword = sServer1UserPasswordRegistry.Length > 0 ? sServer1UserPasswordRegistry : sServer1UserPasswordDB;
@@ -417,7 +434,7 @@ namespace mySCA2
             LastDateStarted = null; Reserv1 = null; Reserv2 = null;
         }
 
-        private void LoadLastParametersFromDBIntoVariable()   //Select Previous Data from DB and write it into the combobox and Parameters
+        private void LoadPrevioslySavedParameters()   //Select Previous Data from DB and write it into the combobox and Parameters
         {
             int iCombo = 0;
             if (databasePerson.Exists)
@@ -495,8 +512,14 @@ namespace mySCA2
                                         if (record["EquipmentParameterValue"].ToString().Trim() == "Server1" && record["EquipmentParameterName"].ToString().Trim() == "Server1UserName")
                                         {
                                             sServer1DB = record["EquipmentParameterServer"].ToString();
-                                            sServer1UserNameDB = record["Reserv1"].ToString();
-                                            sServer1UserPasswordDB = record["Reserv2"].ToString();
+                                            sServer1UserNameDB = DecryptBase64ToString(record["Reserv1"].ToString(), btsMess1, btsMess2);
+                                            sServer1UserPasswordDB = DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2);
+                                        }
+                                        if (record["EquipmentParameterValue"].ToString().Trim() == "MailServerName" && record["EquipmentParameterName"].ToString().Trim() == "MailServerUserName")
+                                        {
+                                            mailServerDB = record["EquipmentParameterServer"].ToString();
+                                            mailServerUserNameDB = record["Reserv1"].ToString();
+                                            mailServerUserPasswordDB = DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2);
                                         }
                                     }
                                 }
@@ -508,6 +531,17 @@ namespace mySCA2
             }
             iFIO = iCombo;
             try { comboBoxFio.SelectedIndex = 0; } catch { }
+
+            using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(myRegKey, Microsoft.Win32.RegistryKeyPermissionCheck.ReadSubTree, System.Security.AccessControl.RegistryRights.ReadKey))
+            {
+                try { sServer1Registry = EvUserKey.GetValue("SKDServer").ToString().Trim(); } catch { }
+                try { sServer1UserNameRegistry = DecryptBase64ToString(EvUserKey.GetValue("SKDUser").ToString(), btsMess1, btsMess2).ToString().Trim(); } catch { }
+                try { sServer1UserPasswordRegistry = DecryptBase64ToString(EvUserKey.GetValue("SKDUserPassword").ToString(), btsMess1, btsMess2).ToString().Trim(); } catch { }
+
+                try { mailServerRegistry = EvUserKey.GetValue("MailServer").ToString().Trim(); } catch { }
+                try { mailServerUserNameRegistry = EvUserKey.GetValue("MailUser").ToString().Trim(); } catch { }
+                try { mailServerUserPasswordRegistry = DecryptBase64ToString(EvUserKey.GetValue("MailUserPassword").ToString(), btsMess1, btsMess2).ToString().Trim(); } catch { }
+            }
         }
 
 
@@ -3066,6 +3100,19 @@ namespace mySCA2
             }
         }
 
+        private void _controlDispose(Control control) //access from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    control?.Dispose();
+                }));
+            else
+            {
+                control?.Dispose();
+            }
+        }
+
         private void _changeControlBackColor(Control control, Color color) //add string into  from other threads
         {
             if (InvokeRequired)
@@ -4971,7 +5018,7 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
             textBoxServer1UserName = new TextBox
             {
                 Text = sServer1UserName,
-                PasswordChar = '*',
+                //PasswordChar = '*',
                 Location = new Point(300, 61),
                 Size = new Size(90, 20),
                 BorderStyle = BorderStyle.FixedSingle,
@@ -5000,27 +5047,142 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
             };
             toolTip1.SetToolTip(textBoxServer1UserPassword, "Пароль администратора \"sa\" SQL-сервера \"Server\"");
 
+            //new - mail server
+            labelMailServerName = new Label
+            {
+                Text = "MailServer",
+                BackColor = Color.PaleGreen,
+                Location = new Point(20, 90),
+                Size = new Size(590, 22),
+                BorderStyle = BorderStyle.None,
+                TextAlign = ContentAlignment.MiddleLeft,
+                Parent = groupBoxProperties
+            };
+            textBoxMailServerName = new TextBox
+            {
+                Text = mailServer,
+                Location = new Point(90, 91),
+                Size = new Size(90, 20),
+                BorderStyle = BorderStyle.FixedSingle,
+                Parent = groupBoxProperties
+            };
+            toolTip1.SetToolTip(textBoxMailServerName, "Имя почтового сервера \"Mail Server\" в виде - NameOfServer.Domain.Subdomain");
+
+            labelMailServerUserName = new Label
+            {
+                Text = "Sender's e-mail",
+                BackColor = Color.PaleGreen,
+                Location = new Point(220, 91),
+                Size = new Size(90, 22),
+                BorderStyle = BorderStyle.None,
+                TextAlign = ContentAlignment.MiddleLeft,
+                Parent = groupBoxProperties
+            };
+            textBoxMailServerUserName = new TextBox
+            {
+                Text = mailServerUserName,
+                Location = new Point(300, 91),
+                Size = new Size(90, 20),
+                BorderStyle = BorderStyle.FixedSingle,
+                Parent = groupBoxProperties
+            };
+            toolTip1.SetToolTip(textBoxMailServerUserName, "E-mail отправителя рассылок виде - User.Name@MailServer.Domain.Subdomain");
+
+            labelMailServerUserPassword = new Label
+            {
+                Text = "Sender's password",
+                BackColor = Color.PaleGreen,
+                Location = new Point(420, 91),
+                Size = new Size(70, 20),
+                BorderStyle = BorderStyle.None,
+                TextAlign = ContentAlignment.MiddleLeft,
+                Parent = groupBoxProperties
+            };
+            textBoxMailServerUserPassword = new TextBox
+            {
+                Text = mailServerUserPassword,
+                PasswordChar = '*',
+                Location = new Point(500, 91),
+                Size = new Size(90, 20),
+                BorderStyle = BorderStyle.FixedSingle,
+                Parent = groupBoxProperties
+            };
+            toolTip1.SetToolTip(textBoxMailServerUserPassword, "Пароль E-mail отправителя почты");
+
+            labelServer1.BringToFront();
+            labelServer1UserName.BringToFront();
+            labelServer1UserPassword.BringToFront();
+            labelMailServerName.BringToFront();
+            labelMailServerUserName.BringToFront();
+            labelMailServerUserPassword.BringToFront();
+
             textBoxServer1.BringToFront();
             textBoxServer1UserName.BringToFront();
             textBoxServer1UserPassword.BringToFront();
-            labelServer1UserName.BringToFront();
-            labelServer1UserPassword.BringToFront();
+            textBoxMailServerName.BringToFront();
+            textBoxMailServerUserName.BringToFront();
+            textBoxMailServerUserPassword.BringToFront();
 
             groupBoxProperties.Visible = true;
         }
 
-        private void buttonPropertiesSave_Click(object sender, EventArgs e)
+        private void buttonPropertiesSave_Click(object sender, EventArgs e) //PropertiesSave()
         { PropertiesSave(); }
 
-        private void PropertiesSave()
+        private void buttonPropertiesCancel_Click(object sender, EventArgs e)
         {
-            sServer1 = textBoxServer1.Text.Trim();
-            sServer1UserName = textBoxServer1UserName.Text.Trim();
-            sServer1UserPassword = textBoxServer1UserPassword.Text.Trim();
+            groupBoxProperties.Visible = false;
 
-            if (sServer1.Length > 0 && sServer1UserName.Length > 0 && sServer1UserPassword.Length > 0)
+            labelServer1.Dispose();
+            labelServer1UserName.Dispose();
+            labelServer1UserPassword.Dispose();
+            textBoxServer1.Dispose();
+            textBoxServer1UserName.Dispose();
+            textBoxServer1UserPassword.Dispose();
+
+            _MenuItemEnabled(FunctionMenuItem, true);
+            CheckBoxesFiltersAll_Enable(true);
+
+            panelView.Visible = true;
+        }
+
+        private async void PropertiesSave() //Save Parameters into Registry and variables
+        {
+            string server = _textBoxReturnText(textBoxServer1);
+            string user = _textBoxReturnText(textBoxServer1UserName);
+            string password = _textBoxReturnText(textBoxServer1UserPassword);
+
+            string stringMailServer = _textBoxReturnText(textBoxMailServerName);
+            string stringMailUser = _textBoxReturnText(textBoxMailServerUserName);
+            string stringMailUserpassword = _textBoxReturnText(textBoxMailServerUserPassword);
+
+            await Task.Run(() => CheckAliveServer(server, user, password));
+
+            if (bServer1Exist)
             {
-                groupBoxProperties.Visible = false;
+                _controlVisible(groupBoxProperties, false);
+
+                sServer1 = server;
+                sServer1UserName = user;
+                sServer1UserPassword = password;
+
+                mailServer = stringMailServer;
+                mailServerUserName = stringMailUser;
+                mailServerUserPassword = stringMailUserpassword;
+
+                try
+                {
+                    using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(myRegKey))
+                    {
+                        EvUserKey.SetValue("SKDServer", server, Microsoft.Win32.RegistryValueKind.String);
+                        EvUserKey.SetValue("SKDUser", EncryptStringToBase64Text(user, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String);
+                        EvUserKey.SetValue("SKDUserPassword", EncryptStringToBase64Text(password, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String);
+
+                        EvUserKey.SetValue("MailServer", mailServer, Microsoft.Win32.RegistryValueKind.String);
+                        EvUserKey.SetValue("MailUser", mailServerUserName, Microsoft.Win32.RegistryValueKind.String);
+                        EvUserKey.SetValue("MailUserPassword", EncryptStringToBase64Text(mailServerUserPassword, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String);
+                    }
+                } catch { MessageBox.Show("Ошибки с доступом на запись в реестр. Данные сохранены не корректно."); }
 
                 if (databasePerson.Exists)
                 {
@@ -5040,6 +5202,13 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
                             sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = EncryptStringToBase64Text(sServer1UserName, btsMess1, btsMess2);
                             sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = EncryptStringToBase64Text(sServer1UserPassword, btsMess1, btsMess2);
                             try { sqlCommand.ExecuteNonQuery(); } catch { }
+
+                            sqlCommand.Parameters.Add("@EquipmentParameterName", DbType.String).Value = "MailServerUserName";
+                            sqlCommand.Parameters.Add("@EquipmentParameterValue", DbType.String).Value = "MailServerName";
+                            sqlCommand.Parameters.Add("@EquipmentParameterServer", DbType.String).Value = mailServer;
+                            sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = mailServerUserName;
+                            sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = EncryptStringToBase64Text(mailServerUserPassword, btsMess1, btsMess2);
+                            try { sqlCommand.ExecuteNonQuery(); } catch { }
                         }
 
                         sqlCommand1 = new SQLiteCommand("end", sqlConnection);
@@ -5047,13 +5216,19 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
                         sqlCommand1.Dispose();
                     }
                 }
+                _controlDispose(labelServer1);
+                _controlDispose(labelServer1UserName);
+                _controlDispose(labelServer1UserPassword);
+                _controlDispose(labelMailServerName);
+                _controlDispose(labelMailServerUserName);
+                _controlDispose(labelMailServerUserPassword);
 
-                labelServer1.Dispose();
-                labelServer1UserName.Dispose();
-                labelServer1UserPassword.Dispose();
-                textBoxServer1.Dispose();
-                textBoxServer1UserName.Dispose();
-                textBoxServer1UserPassword.Dispose();
+                _controlDispose(textBoxServer1);
+                _controlDispose(textBoxServer1UserName);
+                _controlDispose(textBoxServer1UserPassword);
+                _controlDispose(textBoxMailServerName);
+                _controlDispose(textBoxMailServerUserName);
+                _controlDispose(textBoxMailServerUserPassword);
 
                 _MenuItemEnabled(FunctionMenuItem, true);
                 _controlVisible(panelView, true);
@@ -5063,23 +5238,6 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
                 GetInfoSetup();
                 _MenuItemEnabled(QuickSettingsItem, true);
             }
-        }
-
-        private void buttonPropertiesCancel_Click(object sender, EventArgs e)
-        {
-            groupBoxProperties.Visible = false;
-
-            labelServer1.Dispose();
-            labelServer1UserName.Dispose();
-            labelServer1UserPassword.Dispose();
-            textBoxServer1.Dispose();
-            textBoxServer1UserName.Dispose();
-            textBoxServer1UserPassword.Dispose();
-
-            _MenuItemEnabled(FunctionMenuItem, true);
-            CheckBoxesFiltersAll_Enable(true);
-
-            panelView.Visible = true;
         }
 
         private void ClearRegistryItem_Click(object sender, EventArgs e)
@@ -5099,61 +5257,7 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
             catch { MessageBox.Show("Ошибки с доступом у реестру на запись. Данные не удалены."); }
         }
 
-        private void btnPropertiesSaveInRegistry_Click(object sender, EventArgs e)
-        { SaveDataInRegistry(); }
 
-        private async void SaveDataInRegistry() //Save Parameters into Registry and variables
-        {
-            string server = textBoxServer1.Text.Trim();
-            string user = textBoxServer1UserName.Text.Trim();
-            string password = textBoxServer1UserPassword.Text.Trim();
-            await Task.Run(() => CheckAliveServer(server, user, password));
-
-            if (bServer1Exist)
-            {
-                _controlVisible(groupBoxProperties, false);
-
-                sServer1 = server;
-                sServer1UserName = user;
-                sServer1UserPassword = password;
-
-                try
-                {
-                    using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(myRegKey))
-                    {
-                        EvUserKey.SetValue("SKDServer", server, Microsoft.Win32.RegistryValueKind.String);
-                        EvUserKey.SetValue("SKDUser", EncryptStringToBase64Text(user, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String);
-                        EvUserKey.SetValue("SKDUserPassword", EncryptStringToBase64Text(password, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String);
-                    }
-                }
-                catch { MessageBox.Show("Ошибки с доступом на запись в реестр. Данные сохранены не корректно."); }
-                labelServer1.Dispose();
-                labelServer1UserName.Dispose();
-                labelServer1UserPassword.Dispose();
-                textBoxServer1.Dispose();
-                textBoxServer1UserName.Dispose();
-                textBoxServer1UserPassword.Dispose();
-
-                _MenuItemEnabled(FunctionMenuItem, true);
-
-                panelView.Visible = true;
-            }
-            else
-            {
-                GetInfoSetup();
-                _MenuItemEnabled(QuickSettingsItem, true);
-            }
-        }
-
-        private void CheckSavedDataInRegistry() //Read Parameters into Registry and variables
-        {
-            using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(myRegKey, Microsoft.Win32.RegistryKeyPermissionCheck.ReadSubTree, System.Security.AccessControl.RegistryRights.ReadKey))
-            {
-                try { sServer1Registry = EvUserKey.GetValue("SKDServer").ToString().Trim(); } catch { }
-                try { sServer1UserNameRegistry = DecryptBase64ToString(EvUserKey.GetValue("SKDUser").ToString(), btsMess1, btsMess2).ToString().Trim(); } catch { }
-                try { sServer1UserPasswordRegistry = DecryptBase64ToString(EvUserKey.GetValue("SKDUserPassword").ToString(), btsMess1, btsMess2).ToString().Trim(); } catch { }
-            }
-        }
 
         //--- End. Features of programm ---//
 
@@ -5296,97 +5400,9 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
         }
 
         private void dataGridView1_DoubleClick(object sender, EventArgs e)
-        {
-            SearchMembersSelectedGroup();
-        }
+        { SearchMembersSelectedGroup(); }
 
-                /*
-        private void UpdateControlTimeSelectedPerson(bool groupFromDatagridview, string group="")
-        {
-            string fio = "";
-            string nav = "";
-            string[] timeIn = { "09", "00", "09:00" };
-            string[] timeOut = { "18", "00", "18:00" };
-            decimal[] timeInDecimal = { 9, 0, 09 };
-            decimal[] timeOutDecimal = { 18, 0, 18 };
-
-            if (nameOfLastTableFromDB == "PersonGroup")
-            {
-                int IndexCurrentRow = _dataGridView1CurrentRowIndex();
-                int IndexCurrentCollumn = _dataGridView1CurrentCollumnIndex();
-
-                int IndexColumn1 = -1;
-                int IndexColumn2 = -1;
-                int IndexColumn5 = -1;
-                int IndexColumn6 = -1;
-                int IndexColumn7 = -1;
-
-                for (int i = 0; i < dataGridView1.ColumnCount; i++)
-                {
-                    if (dataGridView1.Columns[i].HeaderText.ToString() == "Фамилия Имя Отчество")
-                        IndexColumn1 = i;
-                    else if (dataGridView1.Columns[i].HeaderText.ToString() == "NAV-код")
-                        IndexColumn2 = i;
-                    else if (dataGridView1.Columns[i].HeaderText.ToString() == "Группа")
-                        IndexColumn5 = i;
-                    else if (dataGridView1.Columns[i].HeaderText.ToString() == "Время прихода ЧЧ:ММ" ||
-                        dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время")
-                        IndexColumn6 = i;
-                    else if (dataGridView1.Columns[i].HeaderText.ToString() == "Время ухода ЧЧ:ММ" ||
-                        dataGridView1.Columns[i].HeaderText.ToString() == "Уход с работы")
-                        IndexColumn7 = i;
-                }
-
-                fio = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
-                textBoxFIO.Text = fio;
-
-                nav = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString();
-                textBoxNav.Text = nav; //Take the name of selected group
-
-
-                if (groupFromDatagridview)
-                {
-                    group = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn5].Value.ToString();
-                    textBoxGroup.Text = group; //Take the name of selected group
-                }
-
-
-                timeIn = ConvertDecimalTimeToStringHHMMArray(ConvertStringTimeHHMMToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn6].Value.ToString()));
-                timeInDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringTimeToStringHHMM(timeIn[0], timeIn[1]));
-
-                timeOut = ConvertDecimalTimeToStringHHMMArray(ConvertStringTimeHHMMToDecimal(dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn7].Value.ToString()));
-                timeOutDecimal = ConvertStringTimeHHMMToDecimalArray(ConvertStringTimeToStringHHMM(timeOut[0], timeOut[1]));
-
-                using (var connection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
-                {
-                    connection.Open();
-
-                    using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PersonGroup' (FIO, NAV, GroupPerson, HourControlling, MinuteControlling, Controlling, HourControllingOut, MinuteControllingOut, ControllingOut, ControllingHHMM, ControllingOUTHHMM) " +
-                                                "VALUES (@FIO, @NAV, @GroupPerson, @HourControlling, @MinuteControlling, @Controlling, @HourControllingOut, @MinuteControllingOut, @ControllingOut, @ControllingHHMM, @ControllingOUTHHMM)", connection))
-                    {
-                        command.Parameters.Add("@FIO", DbType.String).Value = fio;
-                        command.Parameters.Add("@NAV", DbType.String).Value = nav;
-                        command.Parameters.Add("@GroupPerson", DbType.String).Value = group;
-                        command.Parameters.Add("@HourControlling", DbType.String).Value = timeIn[0];
-                        command.Parameters.Add("@MinuteControlling", DbType.String).Value = timeIn[1];
-                        command.Parameters.Add("@Controlling", DbType.Decimal).Value = timeInDecimal[2];
-
-                        command.Parameters.Add("@HourControllingOut", DbType.String).Value = timeOut[0];
-                        command.Parameters.Add("@MinuteControllingOut", DbType.String).Value = timeOut[1];
-                        command.Parameters.Add("@ControllingOut", DbType.Decimal).Value = timeOutDecimal[2];
-
-                        command.Parameters.Add("@ControllingHHMM", DbType.String).Value = timeIn[2];
-                        command.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = timeOut[2];
-                        try { command.ExecuteNonQuery(); } catch { }
-                    }
-                }
-
-                StatusLabel2.Text = @"Обновлены данные " + fio + " в группе: " + group;
-            }
-            UpdateControllingItem.Visible = false;
-        }
-        */
-        private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e) //dataGridView1CellEndEdit()
+         private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e) //dataGridView1CellEndEdit()
         { dataGridView1CellEndEdit(); }
 
         private void dataGridView1CellEndEdit()
@@ -5467,13 +5483,6 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
                         }
                     }
                     SeekAndShowMembersOfGroup(group);
-
-                   // MembersOfGroup(textBoxGroup.Text.Trim());
-/*
-                    ShowDataTableQuery(databasePerson, "PersonGroup",
-                    "SELECT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', GroupPerson AS 'Группа', " +
-                    "ControllingHHMM AS 'Контрольное время', ControllingOUTHHMM AS 'Уход с работы' ",
-                    "Where GroupPerson like '" + textBoxGroup.Text + "' ORDER BY FIO ");*/
 
                     StatusLabel2.Text = @"Обновлено время прихода " + ShortFIO(textBoxFIO.Text) + " в группе: " + textBoxGroup.Text;
                 }
@@ -5557,11 +5566,6 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
 
                         SeekAndShowMembersOfGroup(group);
 
-                       /* ShowDataTableQuery(databasePerson, "PersonGroup",
-                        "SELECT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', GroupPerson AS 'Группа', " +
-                        "ControllingHHMM AS 'Контрольное время', ControllingOUTHHMM AS 'Уход с работы' ",
-                        "Where GroupPerson like '" + textBoxGroup.Text + "' ORDER BY FIO ");
-                        */
                         StatusLabel2.Text = @"Обновлено время прихода " + ShortFIO(textBoxFIO.Text) + " в группе: " + textBoxGroup.Text;
                     }
                 }
@@ -5816,8 +5820,6 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
                 MessageBox.Show("Decrypted:    " + decrypted);
             }
         }
-
-
         //End of the Block Encryption-Decryption
 
 
@@ -5888,8 +5890,7 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
 
 
     }
-
-
+    
     public class EncryptDecrypt
     {
         /*
@@ -6007,5 +6008,5 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
             return plaintext;
         }
     }
-}
 
+}

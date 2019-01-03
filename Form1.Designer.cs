@@ -29,9 +29,9 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormPersonViewerSCA));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.comboBoxFio = new System.Windows.Forms.ComboBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
@@ -106,9 +106,8 @@
             this.labelGroup = new System.Windows.Forms.Label();
             this.panelView = new System.Windows.Forms.Panel();
             this.groupBoxProperties = new System.Windows.Forms.GroupBox();
-            this.btnPropertiesSaveInRegistry = new System.Windows.Forms.Button();
-            this.buttonPropertiesCancel = new System.Windows.Forms.Button();
-            this.btnPropertiesSaveInDB = new System.Windows.Forms.Button();
+            this.btnPropertiesChangingCancel = new System.Windows.Forms.Button();
+            this.btnPropertiesSave = new System.Windows.Forms.Button();
             this.groupBoxTimeEnd = new System.Windows.Forms.GroupBox();
             this.labelHourEnd = new System.Windows.Forms.Label();
             this.labelMinuteEnd = new System.Windows.Forms.Label();
@@ -130,20 +129,20 @@
             // dataGridView1
             // 
             this.dataGridView1.AllowUserToOrderColumns = true;
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.Color.SteelBlue;
-            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.Color.SteelBlue;
+            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle3;
             resources.ApplyResources(this.dataGridView1, "dataGridView1");
             this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dataGridView1.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedHeaders;
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            dataGridViewCellStyle2.ForeColor = System.Drawing.Color.Black;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.LightBlue;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.DarkSlateGray;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.Color.LightBlue;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.Color.DarkSlateGray;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnF2;
             this.dataGridView1.Name = "dataGridView1";
@@ -683,32 +682,24 @@
             // groupBoxProperties
             // 
             resources.ApplyResources(this.groupBoxProperties, "groupBoxProperties");
-            this.groupBoxProperties.Controls.Add(this.btnPropertiesSaveInRegistry);
-            this.groupBoxProperties.Controls.Add(this.buttonPropertiesCancel);
-            this.groupBoxProperties.Controls.Add(this.btnPropertiesSaveInDB);
+            this.groupBoxProperties.Controls.Add(this.btnPropertiesChangingCancel);
+            this.groupBoxProperties.Controls.Add(this.btnPropertiesSave);
             this.groupBoxProperties.Name = "groupBoxProperties";
             this.groupBoxProperties.TabStop = false;
             // 
-            // btnPropertiesSaveInRegistry
+            // btnPropertiesChangingCancel
             // 
-            resources.ApplyResources(this.btnPropertiesSaveInRegistry, "btnPropertiesSaveInRegistry");
-            this.btnPropertiesSaveInRegistry.Name = "btnPropertiesSaveInRegistry";
-            this.btnPropertiesSaveInRegistry.UseVisualStyleBackColor = true;
-            this.btnPropertiesSaveInRegistry.Click += new System.EventHandler(this.btnPropertiesSaveInRegistry_Click);
+            resources.ApplyResources(this.btnPropertiesChangingCancel, "btnPropertiesChangingCancel");
+            this.btnPropertiesChangingCancel.Name = "btnPropertiesChangingCancel";
+            this.btnPropertiesChangingCancel.UseVisualStyleBackColor = true;
+            this.btnPropertiesChangingCancel.Click += new System.EventHandler(this.buttonPropertiesCancel_Click);
             // 
-            // buttonPropertiesCancel
+            // btnPropertiesSave
             // 
-            resources.ApplyResources(this.buttonPropertiesCancel, "buttonPropertiesCancel");
-            this.buttonPropertiesCancel.Name = "buttonPropertiesCancel";
-            this.buttonPropertiesCancel.UseVisualStyleBackColor = true;
-            this.buttonPropertiesCancel.Click += new System.EventHandler(this.buttonPropertiesCancel_Click);
-            // 
-            // btnPropertiesSaveInDB
-            // 
-            resources.ApplyResources(this.btnPropertiesSaveInDB, "btnPropertiesSaveInDB");
-            this.btnPropertiesSaveInDB.Name = "btnPropertiesSaveInDB";
-            this.btnPropertiesSaveInDB.UseVisualStyleBackColor = true;
-            this.btnPropertiesSaveInDB.Click += new System.EventHandler(this.buttonPropertiesSave_Click);
+            resources.ApplyResources(this.btnPropertiesSave, "btnPropertiesSave");
+            this.btnPropertiesSave.Name = "btnPropertiesSave";
+            this.btnPropertiesSave.UseVisualStyleBackColor = true;
+            this.btnPropertiesSave.Click += new System.EventHandler(this.buttonPropertiesSave_Click);
             // 
             // groupBoxTimeEnd
             // 
@@ -837,9 +828,9 @@
         private System.Windows.Forms.ToolStripMenuItem ClearAllItem;
         private System.Windows.Forms.Panel panelView;
         private System.Windows.Forms.GroupBox groupBoxProperties;
-        private System.Windows.Forms.Button btnPropertiesSaveInDB;
+        private System.Windows.Forms.Button btnPropertiesSave;
         private System.Windows.Forms.ToolStripMenuItem TestCryptionItem;
-        private System.Windows.Forms.Button buttonPropertiesCancel;
+        private System.Windows.Forms.Button btnPropertiesChangingCancel;
         private System.Windows.Forms.ToolStripMenuItem PersonOrGroupItem;
         private System.Windows.Forms.ToolStripMenuItem SetupItem;
         private System.Windows.Forms.ToolStripMenuItem QuickLoadDataItem;
@@ -853,7 +844,6 @@
         private System.Windows.Forms.ToolStripMenuItem YellowItem;
         private System.Windows.Forms.ToolStripMenuItem GreenItem;
         private System.Windows.Forms.ToolStripMenuItem importPeopleInLocalDBToolStripMenuItem;
-        private System.Windows.Forms.Button btnPropertiesSaveInRegistry;
         private System.Windows.Forms.ToolStripMenuItem ClearRegistryItem;
         private System.Windows.Forms.GroupBox groupBoxTimeEnd;
         private System.Windows.Forms.NumericUpDown numUpDownHourEnd;
