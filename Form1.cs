@@ -372,6 +372,9 @@ namespace mySCA2
                     "Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('PersonsList', Reserv1) ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonsLastComboList' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, ComboList TEXT, " +
                     "Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('ComboList', Reserv1) ON CONFLICT REPLACE);", databasePerson);
+
+            ExecuteSql("CREATE TABLE IF NOT EXISTS 'Mailing' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, SenderEmail TEXT, " +
+                    "RecipientEmail TEXT, Schedule TEXT, TypeReport TEXT, Description TEXT, UNIQUE (SenderEmail, RecipientEmail, TypeReport) ON CONFLICT REPLACE);", databasePerson);
         }
 
         private void UpdateTableOfDB()
@@ -403,6 +406,7 @@ namespace mySCA2
             TryUpdateStructureSqlDB("EquipmentSettings", "EquipmentParameterName TEXT, EquipmentParameterValue TEXT, EquipmentParameterServer TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
             TryUpdateStructureSqlDB("PersonsLastList", "PersonsList TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
             TryUpdateStructureSqlDB("PersonsLastComboList", "ComboList TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
+            TryUpdateStructureSqlDB("Mailing", "SenderEmail TEXT, RecipientEmail TEXT, Schedule TEXT, TypeReport TEXT, Description TEXT ", databasePerson);
         }
 
         private void SetTechInfoIntoDB() //Write into DB Technical Info
@@ -577,6 +581,132 @@ namespace mySCA2
                 }
             }
         }
+
+        private void MailingItem_Click(object sender, EventArgs e)
+        {
+            btnPropertiesSave.Text = "Сохранить рассылку";
+            MailingItem();
+        }
+
+        private void MailingItem()
+        {
+            SettingsProgramm(
+                    "Server", sServer1, "Имя сервера \"Server\" с базой Intellect в виде - NameOfServer.Domain.Subdomain",
+                    "Имя администратора", sServer1UserName, "Имя администратора \"sa\" SQL-сервера",
+                    "Password", sServer1UserPassword, "Пароль администратора \"sa\" SQL-сервера \"Server\"",
+                    "MailServer", mailServer, "Имя почтового сервера \"Mail Server\" в виде - NameOfServer.Domain.Subdomain",
+                    "Sender's e-mail", mailServerUserName, "E-mail отправителя рассылок виде - User.Name@MailServer.Domain.Subdomain",
+                    "Sender's password", mailServerUserPassword, "Пароль E-mail отправителя почты"
+                    );
+        }
+
+       private void MailingsSave()
+        {
+            // todo - save data into DB
+
+            /
+            /
+
+            string server = _textBoxReturnText(textBoxServer1);
+            string user = _textBoxReturnText(textBoxServer1UserName);
+            string password = _textBoxReturnText(textBoxServer1UserPassword);
+
+            string stringMailServer = _textBoxReturnText(textBoxMailServerName);
+            string stringMailUser = _textBoxReturnText(textBoxMailServerUserName);
+            string stringMailUserpassword = _textBoxReturnText(textBoxMailServerUserPassword);
+
+            CheckAliveServer(server, user, password);
+
+            if (bServer1Exist)
+            {
+                _controlVisible(groupBoxProperties, false);
+
+                sServer1 = server;
+                sServer1UserName = user;
+                sServer1UserPassword = password;
+
+                mailServer = stringMailServer;
+                mailServerUserName = stringMailUser;
+                mailServerUserPassword = stringMailUserpassword;
+
+                try
+                {
+                    using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(myRegKey))
+                    {
+                        EvUserKey.SetValue("SKDServer", server, Microsoft.Win32.RegistryValueKind.String);
+                        EvUserKey.SetValue("SKDUser", EncryptStringToBase64Text(user, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String);
+                        EvUserKey.SetValue("SKDUserPassword", EncryptStringToBase64Text(password, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String);
+
+                        EvUserKey.SetValue("MailServer", mailServer, Microsoft.Win32.RegistryValueKind.String);
+                        EvUserKey.SetValue("MailUser", mailServerUserName, Microsoft.Win32.RegistryValueKind.String);
+                        EvUserKey.SetValue("MailUserPassword", EncryptStringToBase64Text(mailServerUserPassword, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String);
+                    }
+                } catch { MessageBox.Show("Ошибки с доступом на запись в реестр. Данные сохранены не корректно."); }
+
+                if (databasePerson.Exists)
+                {
+                    using (SQLiteConnection sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+                    {
+                        sqlConnection.Open();
+
+                        SQLiteCommand sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
+                        sqlCommand1.ExecuteNonQuery();
+
+                        using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'EquipmentSettings' (EquipmentParameterName, EquipmentParameterValue, EquipmentParameterServer, Reserv1, Reserv2)" +
+                                   " VALUES (@EquipmentParameterName, @EquipmentParameterValue, @EquipmentParameterServer, @Reserv1, @Reserv2)", sqlConnection))
+                        {
+                            sqlCommand.Parameters.Add("@EquipmentParameterName", DbType.String).Value = "SKDUser";
+                            sqlCommand.Parameters.Add("@EquipmentParameterValue", DbType.String).Value = "SKDServer";
+                            sqlCommand.Parameters.Add("@EquipmentParameterServer", DbType.String).Value = sServer1;
+                            sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = EncryptStringToBase64Text(sServer1UserName, btsMess1, btsMess2);
+                            sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = EncryptStringToBase64Text(sServer1UserPassword, btsMess1, btsMess2);
+                            try { sqlCommand.ExecuteNonQuery(); } catch { }
+                        }
+
+                        using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'EquipmentSettings' (EquipmentParameterName, EquipmentParameterValue, EquipmentParameterServer, Reserv1, Reserv2)" +
+                                " VALUES (@EquipmentParameterName, @EquipmentParameterValue, @EquipmentParameterServer, @Reserv1, @Reserv2)", sqlConnection))
+                        {
+                            sqlCommand.Parameters.Add("@EquipmentParameterName", DbType.String).Value = "MailUser";
+                            sqlCommand.Parameters.Add("@EquipmentParameterValue", DbType.String).Value = "MailServer";
+                            sqlCommand.Parameters.Add("@EquipmentParameterServer", DbType.String).Value = mailServer;
+                            sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = mailServerUserName;
+                            sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = EncryptStringToBase64Text(mailServerUserPassword, btsMess1, btsMess2);
+                            try { sqlCommand.ExecuteNonQuery(); } catch { }
+                        }
+
+                        sqlCommand1 = new SQLiteCommand("end", sqlConnection);
+                        sqlCommand1.ExecuteNonQuery();
+                        sqlCommand1.Dispose();
+                    }
+                }
+                _controlDispose(labelServer1);
+                _controlDispose(labelServer1UserName);
+                _controlDispose(labelServer1UserPassword);
+                _controlDispose(labelMailServerName);
+                _controlDispose(labelMailServerUserName);
+                _controlDispose(labelMailServerUserPassword);
+
+                _controlDispose(textBoxServer1);
+                _controlDispose(textBoxServer1UserName);
+                _controlDispose(textBoxServer1UserPassword);
+                _controlDispose(textBoxMailServerName);
+                _controlDispose(textBoxMailServerUserName);
+                _controlDispose(textBoxMailServerUserPassword);
+
+                _MenuItemEnabled(FunctionMenuItem, true);
+                _controlVisible(panelView, true);
+            }
+            else
+            {
+                GetInfoSetup();
+                _MenuItemEnabled(QuickSettingsItem, true);
+            }
+
+
+
+            ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Расписание', TypeReport AS 'Тип отчета', Description AS 'Описание' ", " group by SenderEmail ORDER BY SenderEmail asc; ");
+        }
+
 
         //void ShowDataTableQuery(
         private void ShowDataTableQuery(System.IO.FileInfo databasePerson, string myTable, string mySqlQuery = "SELECT DISTINCT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', " +
@@ -4979,9 +5109,26 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
         //---- Start. Features of programm ---//
 
         private void SettingsProgrammItem_Click(object sender, EventArgs e)
-        { SettingsProgramm(); }
+        {
+            btnPropertiesSave.Text = "Сохранить настройки";
+            SettingsProgramm(
+                "Server", sServer1, "Имя сервера \"Server\" с базой Intellect в виде - NameOfServer.Domain.Subdomain",
+                "Имя администратора", sServer1UserName, "Имя администратора \"sa\" SQL-сервера",
+                "Password", sServer1UserPassword, "Пароль администратора \"sa\" SQL-сервера \"Server\"",
+                "MailServer", mailServer, "Имя почтового сервера \"Mail Server\" в виде - NameOfServer.Domain.Subdomain",
+                "Sender's e-mail", mailServerUserName, "E-mail отправителя рассылок виде - User.Name@MailServer.Domain.Subdomain",
+                "Sender's password", mailServerUserPassword, "Пароль E-mail отправителя почты"
+                );
+        }
 
-        private void SettingsProgramm()
+        private void SettingsProgramm(
+            string label1,string txtbox1, string tooltip1, 
+            string label2, string txtbox2, string tooltip2,
+            string label3, string txtboxPassword3, string tooltip3,
+            string label4, string txtbox4, string tooltip4,
+            string label5, string txtbox5, string tooltip5,
+            string label6, string txtboxPassword6, string tooltip6
+            )
         {
             panelViewResize(numberPeopleInLoading);
             panelView.Visible = false;
@@ -4990,7 +5137,7 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
 
             labelServer1 = new Label
             {
-                Text = "Server",
+                Text = label1,
                 BackColor = Color.PaleGreen,
                 Location = new Point(20, 60),
                 Size = new Size(590, 22),
@@ -5000,17 +5147,17 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
             };
             textBoxServer1 = new TextBox
             {
-                Text = sServer1,
+                Text = txtbox1,
                 Location = new Point(90, 61),
                 Size = new Size(90, 20),
                 BorderStyle = BorderStyle.FixedSingle,
                 Parent = groupBoxProperties
             };
-            toolTip1.SetToolTip(textBoxServer1, "Имя сервера \"Server\" с базой Intellect в виде - NameOfServer.Domain.Subdomain");
+            toolTip1.SetToolTip(textBoxServer1, tooltip1);
 
             labelServer1UserName = new Label
             {
-                Text = "Имя администратора",
+                Text = label2,
                 BackColor = Color.PaleGreen,
                 Location = new Point(220, 61),
                 Size = new Size(70, 20),
@@ -5020,18 +5167,18 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
             };
             textBoxServer1UserName = new TextBox
             {
-                Text = sServer1UserName,
+                Text = txtbox2,
                 //PasswordChar = '*',
                 Location = new Point(300, 61),
                 Size = new Size(90, 20),
                 BorderStyle = BorderStyle.FixedSingle,
                 Parent = groupBoxProperties
             };
-            toolTip1.SetToolTip(textBoxServer1UserName, "Имя администратора \"sa\" SQL-сервера");
+            toolTip1.SetToolTip(textBoxServer1UserName, tooltip2);
 
             labelServer1UserPassword = new Label
             {
-                Text = "Password",
+                Text = label3,
                 BackColor = Color.PaleGreen,
                 Location = new Point(420, 61),
                 Size = new Size(70, 20),
@@ -5041,19 +5188,19 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
             };
             textBoxServer1UserPassword = new TextBox
             {
-                Text = sServer1UserPassword,
+                Text = txtboxPassword3,
                 PasswordChar = '*',
                 Location = new Point(500, 61),
                 Size = new Size(90, 20),
                 BorderStyle = BorderStyle.FixedSingle,
                 Parent = groupBoxProperties
             };
-            toolTip1.SetToolTip(textBoxServer1UserPassword, "Пароль администратора \"sa\" SQL-сервера \"Server\"");
+            toolTip1.SetToolTip(textBoxServer1UserPassword, tooltip3);
 
             //new - mail server
             labelMailServerName = new Label
             {
-                Text = "MailServer",
+                Text = label4,
                 BackColor = Color.PaleGreen,
                 Location = new Point(20, 90),
                 Size = new Size(590, 22),
@@ -5063,17 +5210,17 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
             };
             textBoxMailServerName = new TextBox
             {
-                Text = mailServer,
+                Text = txtbox4,
                 Location = new Point(90, 91),
                 Size = new Size(90, 20),
                 BorderStyle = BorderStyle.FixedSingle,
                 Parent = groupBoxProperties
             };
-            toolTip1.SetToolTip(textBoxMailServerName, "Имя почтового сервера \"Mail Server\" в виде - NameOfServer.Domain.Subdomain");
+            toolTip1.SetToolTip(textBoxMailServerName, tooltip4);
 
             labelMailServerUserName = new Label
             {
-                Text = "Sender's e-mail",
+                Text = label5,
                 BackColor = Color.PaleGreen,
                 Location = new Point(220, 91),
                 Size = new Size(90, 22),
@@ -5083,17 +5230,17 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
             };
             textBoxMailServerUserName = new TextBox
             {
-                Text = mailServerUserName,
+                Text = txtbox5,
                 Location = new Point(300, 91),
                 Size = new Size(90, 20),
                 BorderStyle = BorderStyle.FixedSingle,
                 Parent = groupBoxProperties
             };
-            toolTip1.SetToolTip(textBoxMailServerUserName, "E-mail отправителя рассылок виде - User.Name@MailServer.Domain.Subdomain");
+            toolTip1.SetToolTip(textBoxMailServerUserName, label5);
 
             labelMailServerUserPassword = new Label
             {
-                Text = "Sender's password",
+                Text = label6,
                 BackColor = Color.PaleGreen,
                 Location = new Point(420, 91),
                 Size = new Size(70, 20),
@@ -5103,14 +5250,14 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
             };
             textBoxMailServerUserPassword = new TextBox
             {
-                Text = mailServerUserPassword,
+                Text = txtboxPassword6,
                 PasswordChar = '*',
                 Location = new Point(500, 91),
                 Size = new Size(90, 20),
                 BorderStyle = BorderStyle.FixedSingle,
                 Parent = groupBoxProperties
             };
-            toolTip1.SetToolTip(textBoxMailServerUserPassword, "Пароль E-mail отправителя почты");
+            toolTip1.SetToolTip(textBoxMailServerUserPassword,tooltip6);
 
             labelServer1.BringToFront();
             labelServer1UserName.BringToFront();
@@ -5131,23 +5278,47 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
          
         private void buttonPropertiesCancel_Click(object sender, EventArgs e)
         {
+            string btnName = btnPropertiesSave.Text;
+
             groupBoxProperties.Visible = false;
 
-            labelServer1.Dispose();
-            labelServer1UserName.Dispose();
-            labelServer1UserPassword.Dispose();
-            textBoxServer1.Dispose();
-            textBoxServer1UserName.Dispose();
-            textBoxServer1UserPassword.Dispose();
+            _controlDispose(labelServer1);
+            _controlDispose(labelServer1UserName);
+            _controlDispose(labelServer1UserPassword);
+            _controlDispose(labelMailServerName);
+            _controlDispose(labelMailServerUserName);
+            _controlDispose(labelMailServerUserPassword);
+
+            _controlDispose(textBoxServer1);
+            _controlDispose(textBoxServer1UserName);
+            _controlDispose(textBoxServer1UserPassword);
+            _controlDispose(textBoxMailServerName);
+            _controlDispose(textBoxMailServerUserName);
+            _controlDispose(textBoxMailServerUserPassword);
 
             _MenuItemEnabled(FunctionMenuItem, true);
             CheckBoxesFiltersAll_Enable(true);
 
             panelView.Visible = true;
+           if (btnName == @"Сохранить рассылку")
+            {
+                ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Расписание', TypeReport AS 'Тип отчета', Description AS 'Описание' ", " group by SenderEmail ORDER BY SenderEmail asc; ");
+            }
         }
 
         private async void buttonPropertiesSave_Click(object sender, EventArgs e) //PropertiesSave()
-        { await Task.Run(() => PropertiesSave()); }
+        {
+            string btnName = btnPropertiesSave.Text;
+            if (btnName == @"Сохранить настройки")
+            {
+                await Task.Run(() => PropertiesSave());
+            }
+           else if (btnName == @"Сохранить рассылку")
+            {
+                await Task.Run(() =>MailingsSave());
+            }
+            
+        }
 
         private  void PropertiesSave() //Save Parameters into Registry and variables
         {

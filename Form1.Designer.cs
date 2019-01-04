@@ -93,6 +93,7 @@
             this.ClearAllItem = new System.Windows.Forms.ToolStripMenuItem();
             this.TestCryptionItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ClearRegistryItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.mailingItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpAboutItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SetupItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -563,7 +564,8 @@
             this.ClearDataItem,
             this.ClearAllItem,
             this.TestCryptionItem,
-            this.ClearRegistryItem});
+            this.ClearRegistryItem,
+            this.mailingItem});
             this.QuickSettingsItem.Name = "QuickSettingsItem";
             resources.ApplyResources(this.QuickSettingsItem, "QuickSettingsItem");
             // 
@@ -603,6 +605,12 @@
             this.ClearRegistryItem.Name = "ClearRegistryItem";
             resources.ApplyResources(this.ClearRegistryItem, "ClearRegistryItem");
             this.ClearRegistryItem.Click += new System.EventHandler(this.ClearRegistryItem_Click);
+            // 
+            // mailingItem
+            // 
+            this.mailingItem.Name = "mailingItem";
+            resources.ApplyResources(this.mailingItem, "mailingItem");
+            this.mailingItem.Click += new System.EventHandler(this.MailingItem_Click);
             // 
             // HelpMenuItem
             // 
@@ -851,6 +859,7 @@
         private System.Windows.Forms.NumericUpDown numUpDownMinuteEnd;
         private System.Windows.Forms.Label labelMinuteEnd;
         private System.Windows.Forms.ToolStripMenuItem listFioItem;
+        private System.Windows.Forms.ToolStripMenuItem mailingItem;
     }
 }
 
