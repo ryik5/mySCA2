@@ -271,6 +271,10 @@ namespace mySCA2
             sServer1 = sServer1Registry.Length > 0 ? sServer1Registry : sServer1DB;
             sServer1UserName = sServer1UserNameRegistry.Length > 0 ? sServer1UserNameRegistry : sServer1UserNameDB;
             sServer1UserPassword = sServer1UserPasswordRegistry.Length > 0 ? sServer1UserPasswordRegistry : sServer1UserPasswordDB;
+            mailServer = mailServerRegistry.Length > 0 ? mailServerRegistry : mailServerDB;
+            mailServerUserName = mailServerUserNameRegistry.Length > 0 ? mailServerUserNameRegistry : mailServerUserNameDB;
+            mailServerUserPassword = mailServerUserPasswordRegistry.Length > 0 ? mailServerUserPasswordRegistry : mailServerUserPasswordDB;
+
 
             CheckForIllegalCrossThreadCalls = false;
             AddAnualDateItem.Enabled = false;
@@ -509,13 +513,13 @@ namespace mySCA2
                                 {
                                     if (record != null && record.ToString().Length > 0)
                                     {
-                                        if (record["EquipmentParameterValue"].ToString().Trim() == "Server1" && record["EquipmentParameterName"].ToString().Trim() == "Server1UserName")
+                                        if (record["EquipmentParameterValue"].ToString().Trim() == "SKDServer" && record["EquipmentParameterName"].ToString().Trim() == "SKDUser")
                                         {
                                             sServer1DB = record["EquipmentParameterServer"].ToString();
                                             sServer1UserNameDB = DecryptBase64ToString(record["Reserv1"].ToString(), btsMess1, btsMess2);
                                             sServer1UserPasswordDB = DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2);
                                         }
-                                        if (record["EquipmentParameterValue"].ToString().Trim() == "MailServerName" && record["EquipmentParameterName"].ToString().Trim() == "MailServerUserName")
+                                        if (record["EquipmentParameterValue"].ToString().Trim() == "MailServer" && record["EquipmentParameterName"].ToString().Trim() == "MailUser")
                                         {
                                             mailServerDB = record["EquipmentParameterServer"].ToString();
                                             mailServerUserNameDB = record["Reserv1"].ToString();
@@ -543,7 +547,6 @@ namespace mySCA2
                 try { mailServerUserPasswordRegistry = DecryptBase64ToString(EvUserKey.GetValue("MailUserPassword").ToString(), btsMess1, btsMess2).ToString().Trim(); } catch { }
             }
         }
-
 
         private void ExecuteSql(string SqlQuery, System.IO.FileInfo FileDB) //Prepare DB and execute of SQL Query
         {
@@ -5125,10 +5128,7 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
 
             groupBoxProperties.Visible = true;
         }
-
-        private void buttonPropertiesSave_Click(object sender, EventArgs e) //PropertiesSave()
-        { PropertiesSave(); }
-
+         
         private void buttonPropertiesCancel_Click(object sender, EventArgs e)
         {
             groupBoxProperties.Visible = false;
@@ -5146,7 +5146,10 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
             panelView.Visible = true;
         }
 
-        private async void PropertiesSave() //Save Parameters into Registry and variables
+        private async void buttonPropertiesSave_Click(object sender, EventArgs e) //PropertiesSave()
+        { await Task.Run(() => PropertiesSave()); }
+
+        private  void PropertiesSave() //Save Parameters into Registry and variables
         {
             string server = _textBoxReturnText(textBoxServer1);
             string user = _textBoxReturnText(textBoxServer1UserName);
@@ -5156,7 +5159,7 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
             string stringMailUser = _textBoxReturnText(textBoxMailServerUserName);
             string stringMailUserpassword = _textBoxReturnText(textBoxMailServerUserPassword);
 
-            await Task.Run(() => CheckAliveServer(server, user, password));
+            CheckAliveServer(server, user, password);
 
             if (bServer1Exist)
             {
@@ -5196,15 +5199,19 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
                         using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'EquipmentSettings' (EquipmentParameterName, EquipmentParameterValue, EquipmentParameterServer, Reserv1, Reserv2)" +
                                    " VALUES (@EquipmentParameterName, @EquipmentParameterValue, @EquipmentParameterServer, @Reserv1, @Reserv2)", sqlConnection))
                         {
-                            sqlCommand.Parameters.Add("@EquipmentParameterName", DbType.String).Value = "Server1UserName";
-                            sqlCommand.Parameters.Add("@EquipmentParameterValue", DbType.String).Value = "Server1";
+                            sqlCommand.Parameters.Add("@EquipmentParameterName", DbType.String).Value = "SKDUser";
+                            sqlCommand.Parameters.Add("@EquipmentParameterValue", DbType.String).Value = "SKDServer";
                             sqlCommand.Parameters.Add("@EquipmentParameterServer", DbType.String).Value = sServer1;
                             sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = EncryptStringToBase64Text(sServer1UserName, btsMess1, btsMess2);
                             sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = EncryptStringToBase64Text(sServer1UserPassword, btsMess1, btsMess2);
                             try { sqlCommand.ExecuteNonQuery(); } catch { }
+                        }
 
-                            sqlCommand.Parameters.Add("@EquipmentParameterName", DbType.String).Value = "MailServerUserName";
-                            sqlCommand.Parameters.Add("@EquipmentParameterValue", DbType.String).Value = "MailServerName";
+                        using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'EquipmentSettings' (EquipmentParameterName, EquipmentParameterValue, EquipmentParameterServer, Reserv1, Reserv2)" +
+                                " VALUES (@EquipmentParameterName, @EquipmentParameterValue, @EquipmentParameterServer, @Reserv1, @Reserv2)", sqlConnection))
+                        {
+                            sqlCommand.Parameters.Add("@EquipmentParameterName", DbType.String).Value = "MailUser";
+                            sqlCommand.Parameters.Add("@EquipmentParameterValue", DbType.String).Value = "MailServer";
                             sqlCommand.Parameters.Add("@EquipmentParameterServer", DbType.String).Value = mailServer;
                             sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = mailServerUserName;
                             sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = EncryptStringToBase64Text(mailServerUserPassword, btsMess1, btsMess2);
@@ -5240,7 +5247,7 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
             }
         }
 
-        private void ClearRegistryItem_Click(object sender, EventArgs e)
+        private void ClearRegistryItem_Click(object sender, EventArgs e) //ClearRegistryData()
         { ClearRegistryData(); }
 
         private void ClearRegistryData()
@@ -5249,16 +5256,18 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
             {
                 using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(myRegKey))
                 {
-                    EvUserKey.DeleteSubKey("SKDServer");
-                    EvUserKey.DeleteSubKey("SKDUser");
-                    EvUserKey.DeleteSubKey("SKDUserPassword");
+                    EvUserKey?.DeleteSubKey("SKDServer");
+                    EvUserKey?.DeleteSubKey("SKDUser");
+                    EvUserKey?.DeleteSubKey("SKDUserPassword");
+                    EvUserKey?.DeleteSubKey("MailServer");
+                    EvUserKey?.DeleteSubKey("MailUser");
+                    EvUserKey?.DeleteSubKey("MailUserPassword");
                 }
             }
             catch { MessageBox.Show("Ошибки с доступом у реестру на запись. Данные не удалены."); }
         }
 
-
-
+        
         //--- End. Features of programm ---//
 
 
@@ -5399,7 +5408,7 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
             }
         }
 
-        private void dataGridView1_DoubleClick(object sender, EventArgs e)
+        private void dataGridView1_DoubleClick(object sender, EventArgs e) //SearchMembersSelectedGroup()
         { SearchMembersSelectedGroup(); }
 
          private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e) //dataGridView1CellEndEdit()
