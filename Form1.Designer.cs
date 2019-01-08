@@ -153,6 +153,7 @@
             this.dataGridView1.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellEndEdit);
             this.dataGridView1.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.dataGridView1_CellFormatting);
             this.dataGridView1.DoubleClick += new System.EventHandler(this.dataGridView1_DoubleClick);
+            this.dataGridView1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.dataGridView1_MouseClick);
             // 
             // comboBoxFio
             // 
@@ -618,7 +619,7 @@
             // 
             this.deleteSelectedMailingItem.Name = "deleteSelectedMailingItem";
             resources.ApplyResources(this.deleteSelectedMailingItem, "deleteSelectedMailingItem");
-            this.deleteSelectedMailingItem.Click += new System.EventHandler(this.deleteSelectedMailingItem_Click);
+            this.deleteSelectedMailingItem.Click += new System.EventHandler(this.MailingDelete);
             // 
             // HelpMenuItem
             // 

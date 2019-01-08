@@ -18,7 +18,7 @@ using System.Text;
 
 namespace mySCA2
 {
-    public partial class FormPersonViewerSCA : Form
+    public partial class FormPersonViewerSCA :Form
     {
         private System.Diagnostics.FileVersionInfo myFileVersionInfo;
         private string myRegKey = @"SOFTWARE\RYIK\PersonViewerSCA2";
@@ -304,8 +304,7 @@ namespace mySCA2
                 { StatusLabel2.Text = @"Выбран: " + ShortFIO(sFIO) + @" |  Всего ФИО: " + iFIO; }
                 else if (ShortFIO(sFIO).Length < 3 && iFIO > 0)
                 { StatusLabel2.Text = @"Всего ФИО: " + iFIO; }
-            }
-            catch { StatusLabel2.Text = " Начните работу с кнопки - \"Получить ФИО\""; }
+            } catch { StatusLabel2.Text = " Начните работу с кнопки - \"Получить ФИО\""; }
 
 
             //Prepare Datatables
@@ -376,7 +375,7 @@ namespace mySCA2
                     "Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('ComboList', Reserv1) ON CONFLICT REPLACE);", databasePerson);
 
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'Mailing' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, SenderEmail TEXT, " +
-                    "RecipientEmail TEXT, Schedule TEXT, TypeReport TEXT, Description TEXT, DateCreated TEXT, UNIQUE (SenderEmail, RecipientEmail, TypeReport) ON CONFLICT REPLACE);", databasePerson);
+                    "RecipientEmail TEXT, Schedule TEXT, TypeReport TEXT, Description TEXT, DateCreated TEXT, UNIQUE ('SenderEmail', 'RecipientEmail', 'Schedule', 'TypeReport') ON CONFLICT REPLACE);", databasePerson);
         }
 
         private void UpdateTableOfDB()
@@ -465,8 +464,7 @@ namespace mySCA2
                                     {
                                         listFIO.Add(record["PersonsList"].ToString().Trim());
                                     }
-                                }
-                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
@@ -484,8 +482,7 @@ namespace mySCA2
                                         _comboBoxFioAdd(record["ComboList"].ToString().Trim());
                                         iCombo++;
                                     }
-                                }
-                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
@@ -503,8 +500,7 @@ namespace mySCA2
                                         if (record["PoParameterName"].ToString().Trim() == "clrRealRegistration")
                                             clrRealRegistration = Color.FromName(record["PoParameterValue"].ToString());
                                     }
-                                }
-                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
@@ -532,8 +528,7 @@ namespace mySCA2
                                             try { mailServerUserPasswordDB = DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2); } catch { }
                                         }
                                     }
-                                }
-                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
@@ -565,8 +560,7 @@ namespace mySCA2
                 {
                     using (var command = new SQLiteCommand(SqlQuery, connection))
                     { command.ExecuteNonQuery(); }
-                }
-                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
             }
             SqlQuery = null;
         }
@@ -583,105 +577,6 @@ namespace mySCA2
                 }
             }
         }
-
-        private void MailingItem_Click(object sender, EventArgs e) //MailingItem()
-        {
-            _MenuItemEnabled(SettingsMenuItem, false);
-            _MenuItemEnabled(FunctionMenuItem, false);
-            _MenuItemEnabled(GroupsMenuItem, false);
-            _MenuItemEnabled(AnualDatesMenuItem, false);
-            CheckBoxesFiltersAll_Enable(false);
-            _controlVisible(panelView, false);
-
-            btnPropertiesSave.Text = "Сохранить рассылку";
-
-            MailingItem();
-        }
-
-        private void MailingItem()
-        {
-            List<string> listComboParameters = new List<string>();
-            listComboParameters.Add("Ежедневная");
-            listComboParameters.Add("Еженедельная");
-            listComboParameters.Add("Ежемесячная");
-
-            SettingsView(
-                    "Отправитель", mailServerUserName, @"Отправитель рассылки",
-                    "Получатель рассылки", "", @"Получатель рассылки в виде: Name@Domain.Subdomain",
-                    "", "", "Неиспользуемое поле",
-                    "Наименование", "", @"Краткое наименование рассылки",
-                    "Описание", "", "Краткое описание рассылки",
-                    "", "", "Неиспользуемое поле", 
-                    "Расписание", listComboParameters
-                    );
-        }
-        
-        private void MailingsSave()
-        {
-            DateTime localDate = DateTime.Now;
-
-            // todo - save data into DB
-            string recipientEmail = _textBoxReturnText(textBoxServer1UserName);            
-            string senderEmail = mailServerUserName;
-
-            string typeReport = _textBoxReturnText(textBoxMailServerName);
-            string description = _textBoxReturnText(textBoxMailServerUserName);
-            string schedule = _comboBoxReturnSelected(listCombo);
-
-            _controlVisible(groupBoxProperties, false);
-
-            if (databasePerson.Exists)
-            {
-                using (SQLiteConnection sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
-                {
-                    sqlConnection.Open();
-
-                    SQLiteCommand sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
-
-                    using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'Mailing' (SenderEmail, RecipientEmail, Schedule, TypeReport, Description, DateCreated)" +
-                               " VALUES (@SenderEmail, @RecipientEmail, @Schedule, @TypeReport, @Description, @DateCreated)", sqlConnection))
-                    {
-                        sqlCommand.Parameters.Add("@SenderEmail", DbType.String).Value = senderEmail;
-                        sqlCommand.Parameters.Add("@RecipientEmail", DbType.String).Value = recipientEmail;
-                        sqlCommand.Parameters.Add("@Schedule", DbType.String).Value = schedule;
-                        sqlCommand.Parameters.Add("@TypeReport", DbType.String).Value = typeReport;
-                        sqlCommand.Parameters.Add("@Description", DbType.String).Value = description;
-                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = localDate.ToString();
-
-                        try { sqlCommand.ExecuteNonQuery(); } catch { }
-                    }
-
-                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
-                    sqlCommand1.Dispose();
-                }
-            }
-            _controlDispose(labelServer1);
-            _controlDispose(labelServer1UserName);
-            _controlDispose(labelServer1UserPassword);
-            _controlDispose(labelMailServerName);
-            _controlDispose(labelMailServerUserName);
-            _controlDispose(labelMailServerUserPassword);
-
-            _controlDispose(textBoxServer1);
-            _controlDispose(textBoxServer1UserName);
-            _controlDispose(textBoxServer1UserPassword);
-            _controlDispose(textBoxMailServerName);
-            _controlDispose(textBoxMailServerUserName);
-            _controlDispose(textBoxMailServerUserPassword);
-            
-            _controlDispose(listComboLabel);
-            _controlDispose(listCombo);
-
-            _MenuItemEnabled(FunctionMenuItem, true);
-            _controlVisible(panelView, true);
-
-            nameOfLastTableFromDB = "mailing";
-
-            ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Расписание', TypeReport AS 'Тип отчета', Description AS 'Описание', DateCreated AS 'Дата создания/модификации'  ", " group by SenderEmail ORDER BY SenderEmail asc; ");
-        }
-
 
         //void ShowDataTableQuery(
         private void ShowDataTableQuery(System.IO.FileInfo databasePerson, string myTable, string mySqlQuery = "SELECT DISTINCT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', " +
@@ -714,8 +609,7 @@ namespace mySCA2
                                 {
                                     if (record?["id"] != null)
                                     { iCounterLine++; }
-                                }
-                                catch { }
+                                } catch { }
                             }
                         }
                     }
@@ -734,9 +628,11 @@ namespace mySCA2
             }
 
             _dataGridViewSource(dataTable);
+            _toolStripStatusLabelSetText(StatusLabel2, "Всего записей: " + _dataGridView1RowsCount());
+            
             sLastSelectedElement = "dataGridView";
         }
-        
+
 
         private void CopyWholeDataFromOneTableIntoAnother(System.IO.FileInfo databasePerson, string myTableInto, string myTableFrom) //Copy into Table from other Table
         {
@@ -888,17 +784,10 @@ namespace mySCA2
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
                     sqlConnection.Open();
-                    if (mySqlParameter1.Length > 0)
+
+                    if (mySqlParameter1.Length > 0 && mySqlParameter2.Length > 0)
                     {
-                        using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where " + mySqlParameter1 + "= @" + mySqlParameter1 + ";", sqlConnection))
-                        {
-                            sqlCommand.Parameters.Add("@" + mySqlParameter1, DbType.String).Value = mySqlData1;
-                            try { sqlCommand.ExecuteNonQuery(); } catch { }
-                        }
-                    }
-                    else if (mySqlParameter1.Length > 0 && mySqlParameter2.Length > 0)
-                    {
-                        using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where " + mySqlParameter1 + "= @" + mySqlParameter1 +" AND " + mySqlParameter2 + "= @" + mySqlParameter2 + ";", sqlConnection))
+                        using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where " + mySqlParameter1 + "= @" + mySqlParameter1 + " AND " + mySqlParameter2 + "= @" + mySqlParameter2 + ";", sqlConnection))
                         {
                             sqlCommand.Parameters.Add("@" + mySqlParameter1, DbType.String).Value = mySqlData1;
                             sqlCommand.Parameters.Add("@" + mySqlParameter2, DbType.String).Value = mySqlData2;
@@ -906,9 +795,17 @@ namespace mySCA2
                             try { sqlCommand.ExecuteNonQuery(); } catch { }
                         }
                     }
-
+                    else if (mySqlParameter1.Length > 0)
+                    {
+                        using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where " + mySqlParameter1 + "= @" + mySqlParameter1 + ";", sqlConnection))
+                        {
+                            sqlCommand.Parameters.Add("@" + mySqlParameter1, DbType.String).Value = mySqlData1;
+                            try { sqlCommand.ExecuteNonQuery(); } catch { }
+                        }
+                    }
                     using (var sqlCommand = new SQLiteCommand("vacuum;", sqlConnection))   //vacuum DB
                     { try { sqlCommand.ExecuteNonQuery(); } catch { } }
+                    sqlConnection.Close();
                 }
             }
             myTable = null; mySqlParameter1 = null; mySqlData1 = null;
@@ -918,7 +815,7 @@ namespace mySCA2
         {
             bServer1Exist = false;
             string stringConnection;
-           // _toolStripStatusLabelSetText(StatusLabel2, "Проверка доступности " + serverName + ". Ждите окончания процесса...");
+            // _toolStripStatusLabelSetText(StatusLabel2, "Проверка доступности " + serverName + ". Ждите окончания процесса...");
             stimerPrev = "Проверка доступности " + serverName + ". Ждите окончания процесса...";
             stringConnection = "Data Source=" + serverName + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + userName + ";Password=" + userPasswords + "; Connect Timeout=5";
 
@@ -936,8 +833,7 @@ namespace mySCA2
                         }
                     }
                 }
-            }
-            catch
+            } catch
             { bServer1Exist = false; }
 
             if (bServer1Exist)
@@ -1037,9 +933,9 @@ namespace mySCA2
         private void GetFioFromServers(DataTable dataTablePeopple) //Get the list of registered users
         {
             Person personFromServer = new Person();
-          //  dataTablePeopple.Dispose();
-          //  dtGroup.Dispose();
-            dataTablePeopple .Clear();
+            //  dataTablePeopple.Dispose();
+            //  dtGroup.Dispose();
+            dataTablePeopple.Clear();
             dtGroup.Clear();
             iFIO = 0;
 
@@ -1111,8 +1007,7 @@ namespace mySCA2
                                                     record["tabnum"].ToString().Trim() + "|" + sServer1);
                                         ListFIOTemp.Add(record["name"].ToString().Trim() + " " + record["surname"].ToString().Trim() + " " + record["patronymic"].ToString().Trim() + "|" + record["tabnum"].ToString().Trim());
                                     }
-                                }
-                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 _ProgressWork1();
                             }
                         }
@@ -1138,8 +1033,7 @@ namespace mySCA2
 
                                         dtGroup.Rows.Add(row);
                                     }
-                                }
-                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 _ProgressWork1();
                             }
                         }
@@ -1148,8 +1042,7 @@ namespace mySCA2
 
                 _toolStripStatusLabelSetText(StatusLabel2, "Все списки с ФИО с серверов СКД успешно получены");
                 stimerPrev = "Все списки с ФИО с сервера СКД успешно получены";
-            }
-            catch (Exception Expt)
+            } catch (Exception Expt)
             {
                 bServer1Exist = false;
                 stimerPrev = "Сервер не доступен или неправильная авторизация";
@@ -1207,8 +1100,7 @@ namespace mySCA2
                 foreach (string str in ListFIOCombo.ToArray())
                 { _comboBoxFioAdd(str); }
                 try
-                { _comboBoxFioIndex(0); }
-                catch { };
+                { _comboBoxFioIndex(0); } catch { };
 
                 _timer1Enabled(false);
                 _toolStripStatusLabelSetText(StatusLabel2, "Получено ФИО - " + iFIO + " ");
@@ -1477,13 +1369,11 @@ namespace mySCA2
             {
                 System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
                 obj = null;
-            }
-            catch (Exception ex)
+            } catch (Exception ex)
             {
                 obj = null;
                 MessageBox.Show("Exception Occured while releasing object of Excel \n" + ex);
-            }
-            finally
+            } finally
             { GC.Collect(); }
         }
 
@@ -1516,8 +1406,7 @@ namespace mySCA2
                 textBoxFIO.Text = Regex.Split(sComboboxFIO, "[|]")[0].Trim();
                 textBoxNav.Text = Regex.Split(sComboboxFIO, "[|]")[1].Trim();
                 StatusLabel2.Text = @"Выбран: " + ShortFIO(textBoxFIO.Text) + @" |  Всего ФИО: " + iFIO;
-            }
-            catch { }
+            } catch { }
             if (comboBoxFio.SelectedIndex > -1)
             {
                 QuickLoadDataItem.BackColor = Color.PaleGreen;
@@ -1563,20 +1452,19 @@ namespace mySCA2
             dataGridView1.Visible = false;
 
             ShowDataTableQuery(databasePerson, "PersonGroupDesciption", "SELECT GroupPerson AS 'Группа', GroupPersonDescription AS 'Описание группы' ", " group by GroupPerson ORDER BY GroupPerson asc; ");
-            
+
             try
             {
                 textBoxGroup.Text = dataGridView1.Rows[0].Cells[0].Value.ToString();
                 textBoxGroupDescription.Text = dataGridView1.Rows[0].Cells[1].Value.ToString();
-                StatusLabel2.Text = @"Выбрана группа: " + textBoxGroup.Text + @" |  Всего ФИО: " + iFIO;
+                StatusLabel2.Text = @"Выбрана группа: " + textBoxGroup.Text + @" |  Всего групп: " + _dataGridView1RowsCount();
 
                 QuickLoadDataItem.BackColor = Color.PaleGreen;
                 groupBoxPeriod.BackColor = Color.PaleGreen;
                 groupBoxTimeStart.BackColor = Color.PaleGreen;
                 groupBoxTimeEnd.BackColor = Color.PaleGreen;
                 groupBoxRemoveDays.BackColor = SystemColors.Control;
-            }
-            catch { }
+            } catch { }
 
             DeleteGroupItem.Visible = true;
             dataGridView1.Visible = true;
@@ -1590,9 +1478,12 @@ namespace mySCA2
 
         private void SearchMembersSelectedGroup()
         {
-            int IndexCurrentRow = _dataGridView1CurrentRowIndex();
-            string nameGroup = DefinyGroupNameByIndexRowDatagridview(IndexCurrentRow);
-            SeekAndShowMembersOfGroup(nameGroup);
+            if (nameOfLastTableFromDB == "PersonGroup"&& nameOfLastTableFromDB == "PersonGroupDesciption")
+            {
+                int IndexCurrentRow = _dataGridView1CurrentRowIndex();
+                string nameGroup = DefinyGroupNameByIndexRowDatagridview(IndexCurrentRow);
+                SeekAndShowMembersOfGroup(nameGroup);
+            }
         }
 
         private string DefinyGroupNameByIndexRowDatagridview(int IndexCurrentRow)
@@ -1725,8 +1616,8 @@ namespace mySCA2
             nameOfLastTableFromDB = "PersonGroup";
             dtTemp.Dispose();
         }
-        
-        
+
+
         private void importPeopleInLocalDBToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ImportTextToTable(dtPersonGroup);
@@ -1883,8 +1774,7 @@ namespace mySCA2
                             }
                         }
                     }
-                }
-                catch (Exception expt) { MessageBox.Show("Error was happened on " + i + " row\n" + expt.ToString()); }
+                } catch (Exception expt) { MessageBox.Show("Error was happened on " + i + " row\n" + expt.ToString()); }
                 if (i > listMaxLength - 10 || i == 0)
                 {
                     MessageBox.Show("Error was happened on " + i + " row\n You've been chosen the long file!");
@@ -1892,7 +1782,7 @@ namespace mySCA2
             }
             return listValue;
         }
-       
+
         private void AddPersonToGroupItem_Click(object sender, EventArgs e) //AddPersonToGroup() //Add the selected person into the named group
         { AddPersonToGroup(); }
 
@@ -1982,15 +1872,15 @@ namespace mySCA2
                         StatusLabel2.Text = "Не указана группа, в которую нужно добавить!";
                         _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
                     } catch { }
-        }
+            }
             SeekAndShowMembersOfGroup(group);
 
             PersonOrGroupItem.Text = "Работа с одной персоной";
 
-            group = null; 
+            group = null;
             labelGroup.BackColor = SystemColors.Control;
         }
-        
+
         private void GetNamePoints() //Get names of the pass by points
         {
             if (databasePerson.Exists)
@@ -2012,8 +1902,7 @@ namespace mySCA2
                                 {
                                     if (record != null && record["id"].ToString().Trim().Length > 0)
                                     { listPoints.Add(sServer1 + "|" + record["id"].ToString().Trim() + "|" + record["name"].ToString().Trim()); }
-                                }
-                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
@@ -2050,7 +1939,7 @@ namespace mySCA2
             _changeControlBackColor(groupBoxTimeStart, SystemColors.Control);
             _changeControlBackColor(groupBoxTimeEnd, SystemColors.Control);
             _ChangeMenuItemBackColor(QuickLoadDataItem, SystemColors.Control);
-            
+
             _MenuItemEnabled(QuickLoadDataItem, false);
             _MenuItemEnabled(FunctionMenuItem, false);
             _MenuItemEnabled(SettingsMenuItem, false);
@@ -2160,14 +2049,14 @@ namespace mySCA2
                         person.ControlInMinute = row[5].ToString();
                         person.ControlInMinuteDecimal = dControlMinuteIn;
                         person.ControlInDecimal = ConvertDecimalSeparatedTimeToDecimal(dControlHourIn, dControlMinuteIn);
-                        person.ControlInHHMM = ConvertStringsTimeToStringHHMM(row[4].ToString(),row[5].ToString());
+                        person.ControlInHHMM = ConvertStringsTimeToStringHHMM(row[4].ToString(), row[5].ToString());
 
                         person.ControlOutHour = row[7].ToString();
                         person.ControlOutHourDecimal = dControlHourOut;
                         person.ControlOutMinute = row[8].ToString();
                         person.ControlOutMinuteDecimal = dControlMinuteOut;
                         person.ControlOutDecimal = ConvertDecimalSeparatedTimeToDecimal(dControlHourOut, dControlMinuteOut);
-                        person.ControlOutHHMM = ConvertStringsTimeToStringHHMM(row[7].ToString(),row[8].ToString());
+                        person.ControlOutHHMM = ConvertStringsTimeToStringHHMM(row[7].ToString(), row[8].ToString());
 
                         GetPersonRegistrationFromServer(dtPersonRegisteredFull, person);     //Search Registration at checkpoints of the selected person
                     }
@@ -2309,8 +2198,7 @@ namespace mySCA2
                                             person.idCard = Convert.ToInt32(record["id"].ToString().Trim());
                                             break;
                                         }
-                                    }
-                                    catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                    } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 }
                             }
                         }
@@ -2326,8 +2214,7 @@ namespace mySCA2
                             {
                                 stringIdCardIntellect = Regex.Split(strRowWithNav, "[|]")[3].Trim();
                                 person.idCard = Convert.ToInt32(stringIdCardIntellect);
-                            }
-                            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                     }
 
                     if (stringIdCardIntellect.Length == 0)
@@ -2343,13 +2230,11 @@ namespace mySCA2
                                 {
                                     stringIdCardIntellect = Regex.Split(strRowWithNav, "[|]")[3].Trim();
                                     person.idCard = Convert.ToInt32(stringIdCardIntellect);
-                                }
-                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 try
                                 {
                                     personNAVTemp = Regex.Split(strRowWithNav, "[|]")[4].Trim();
-                                }
-                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 if (person.NAV.Length < 1 && personNAVTemp.Length > 0)
                                 {
                                     person.NAV = personNAVTemp;
@@ -2359,8 +2244,7 @@ namespace mySCA2
                         }
                     }
                 }
-            }
-            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
 
             try
             {
@@ -2406,8 +2290,7 @@ namespace mySCA2
 
                                             _ProgressWork1();
                                         }
-                                    }
-                                    catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                    } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 }
                             }
                         }
@@ -2417,8 +2300,7 @@ namespace mySCA2
                 stringConnection = null;
                 stringSqlWhere = null;
                 _ProgressWork1();
-            }
-            catch (Exception Expt)
+            } catch (Exception Expt)
             { MessageBox.Show(Expt.ToString(), @"Сервер не доступен, или неправильная авторизация", MessageBoxButtons.OK, MessageBoxIcon.Error); }
 
             iCounterLine = 0;
@@ -2446,8 +2328,7 @@ namespace mySCA2
                             else if (namePoint.ToLower().Contains("вход"))
                                 nameDirection = "Вход";
                             break;
-                        }
-                        catch { }
+                        } catch { }
                 }
 
                 iCounterLine++;
@@ -2555,7 +2436,7 @@ namespace mySCA2
             {
                 string nameGroup = DefinyGroupNameByIndexRowDatagridview(indexCurrentRow);
                 string navCode = FindPersonNAVInDatagridview(indexCurrentRow);
-                
+
                 DeleteDataTableQueryNAV(databasePerson, "PersonGroup", "NAV", navCode, "GroupPerson", nameGroup);
                 SeekAndShowMembersOfGroup(nameGroup);
             }
@@ -2592,70 +2473,7 @@ namespace mySCA2
 
         private void DeleteGroupItem_Click(object sender, EventArgs e) //DeleteCurrentRow()
         { DeleteCurrentRow(); }
-
-        private void DeleteCurrentRow()
-        {
-            int IndexColumn1 = -1;           // индекс 1-й колонки в датагрид
-            int IndexColumn2 = -1;           // индекс 2-й колонки в датагрид
-
-            int IndexCurrentRow = _dataGridView1CurrentRowIndex();
-            if (IndexCurrentRow > -1)
-            {
-                switch (nameOfLastTableFromDB)
-                {
-
-                    case "PersonGroupDesciption":
-                        for (int i = 0; i < dataGridView1.ColumnCount; i++)
-                        {
-                            if (dataGridView1.Columns[i].HeaderText == "GroupPerson")
-                            { IndexColumn1 = i; }
-                        }
-
-                        if (IndexColumn1 > -1)
-                        {
-                            DeleteDataTableQueryParameters(databasePerson, "PersonGroup", "GroupPerson", dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString().Trim());
-                            DeleteDataTableQueryParameters(databasePerson, "PersonGroupDesciption", "GroupPerson", dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString().Trim());
-                        }
-                        PersonOrGroupItem.Text = "Работа с одной персоной";
-                        nameOfLastTableFromDB = "PersonGroup";
-
-                        MembersGroupItem.Enabled = true;
-                        ListGroups();
-
-                        break;
-                    case "PersonGroup" when textBoxGroup.Text.Trim().Length > 0:
-                        DeleteDataTableQueryParameters(databasePerson, "PersonGroup", "GroupPerson", textBoxGroup.Text.Trim());
-                        DeleteDataTableQueryParameters(databasePerson, "PersonGroupDesciption", "GroupPerson", textBoxGroup.Text.Trim());
-                        textBoxGroup.BackColor = Color.White;
-                        PersonOrGroupItem.Text = "Работа с одной персоной";
-                        nameOfLastTableFromDB = "PersonGroup";
-
-                        MembersGroupItem.Enabled = true;
-                        ListGroups();
-
-                        break;
-                    case "mailing":
-                        for (int i = 0; i < dataGridView1.ColumnCount; i++)
-                        {
-                            if (dataGridView1.Columns[i].HeaderText == "Получатель"|| dataGridView1.Columns[i].HeaderText == "RecipientEmail")
-                            { IndexColumn1 = i; }
-                           else if (dataGridView1.Columns[i].HeaderText == "Тип отчета" || dataGridView1.Columns[i].HeaderText == "TypeReport")
-                            { IndexColumn2 = i; }
-                        }
-
-                        if (IndexColumn1 > -1&& IndexColumn2 > -1)
-                        {
-                            DeleteDataTableQueryParameters(databasePerson, "Mailing", "RecipientEmail", dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString().Trim(), "TypeReport", dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString().Trim());
-                        }
-                        ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Расписание', TypeReport AS 'Тип отчета', Description AS 'Описание', DateCreated AS 'Дата создания/модификации'  ", " group by SenderEmail ORDER BY SenderEmail asc; ");
-
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-
+                
         private void infoItem_Click(object sender, EventArgs e)
         { ShowDataTableQuery(databasePerson, "TechnicalInfo", "SELECT PCName AS 'Версия Windows',POName AS 'Путь к ПО',POVersion AS 'Версия ПО',LastDateStarted AS 'Дата использования' ", "ORDER BY LastDateStarted DESC"); }
 
@@ -2889,7 +2707,7 @@ namespace mySCA2
                 comboBoxFio.Items.Add(s);
         }
 
-         private void _comboBoxFioClr() //add string into  from other threads
+        private void _comboBoxFioClr() //add string into  from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate { comboBoxFio.Items.Clear(); }));
@@ -3405,7 +3223,7 @@ namespace mySCA2
             return result;
         }
 
-         private string ConvertDecimalTimeToStringHHMM(decimal decimalTime)
+        private string ConvertDecimalTimeToStringHHMM(decimal decimalTime)
         {
             string result;
             int hour = (int)(decimalTime);
@@ -3619,7 +3437,7 @@ namespace mySCA2
             dtPersonTempAllCollumns = dtTempIntermediate.Copy();
             //show selected data     
             //distinct Records         
-            
+
             var namesDistinctCollumnsArray = arrayAllCollumnsDataTablePeople.Except(arrayHiddenCollumns).ToArray(); //take distinct data
             dtPersonTemp = GetDistinctRecords(dtTempIntermediate, namesDistinctCollumnsArray);
             ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenCollumns);
@@ -3647,7 +3465,7 @@ namespace mySCA2
                 _controlEnable(checkBoxCelebrate, false);
             }
 
-             dtTempIntermediate = null;
+            dtTempIntermediate = null;
             _controlEnable(checkBoxReEnter, true);
         }
 
@@ -3754,8 +3572,7 @@ namespace mySCA2
                 { dataTableForStoring.ImportRow(dr); }
 
                 allWorkedDaysPerson = null;
-            }
-            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
 
             stringHourMinuteFirstRegistrationInDay = null; stringHourMinuteLastRegistrationInDay = null; hsDays = null;
             rowDtStoring = null; dtTemp = null; dtAllRegistrationsInSelectedDay = null;
@@ -3985,8 +3802,7 @@ namespace mySCA2
 
                 foreach (var row in rows)
                 { row.Delete(); }
-            }
-            catch (Exception expt)
+            } catch (Exception expt)
             { MessageBox.Show(expt.ToString()); }
             dt.AcceptChanges();
             rows = null;
@@ -4119,8 +3935,7 @@ namespace mySCA2
                                 {
                                     if (record?["id"] != null)
                                     { iCounterLine++; }
-                                }
-                                catch { }
+                                } catch { }
                             }
                         }
                     }
@@ -4150,32 +3965,27 @@ namespace mySCA2
                         {
                             if (dataGridView1.Columns[i].HeaderText.ToString() == "Фамилия Имя Отчество")
                             { IndexColumn1 = i; }
-                        }
-                        catch { }
+                        } catch { }
                         try
                         {
                             if (dataGridView1.Columns[i].HeaderText.ToString() == "NAV-код")
                             { IndexColumn2 = i; }
-                        }
-                        catch { }
+                        } catch { }
                         try
                         {
                             if (dataGridView1.Columns[i].HeaderText.ToString() == "Группа")
                             { IndexColumn5 = i; }
-                        }
-                        catch { }
+                        } catch { }
                         try
                         {
                             if (dataGridView1.Columns[i].HeaderText.ToString() == "Время прихода ЧЧ:ММ")
                             { IndexColumn6 = i; }
-                        }
-                        catch { }
+                        } catch { }
                         try
                         {
                             if (dataGridView1.Columns[i].HeaderText.ToString() == "Время ухода ЧЧ:ММ")
                             { IndexColumn7 = i; }
-                        }
-                        catch { }
+                        } catch { }
                     }
 
                     if (nameOfLastTableFromDB == "PersonGroup")
@@ -4235,8 +4045,7 @@ namespace mySCA2
                         StatusLabel2.Text = @"Выбран: " + personSelected.FIO + @" |  Всего ФИО: " + iFIO;
                     }
                 }
-            }
-            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
 
             if (personSelected.FIO.Length == 0)
             {
@@ -4264,8 +4073,7 @@ namespace mySCA2
                 personSelected.ControlOutMinuteDecimal = _numUpDownReturn(numUpDownMinuteEnd);
                 personSelected.ControlOutMinute = personSelected.ControlOutMinuteDecimal.ToString();
                 personSelected.ControlOutHHMM = ConvertStringsTimeToStringHHMM(personSelected.ControlOutHour, personSelected.ControlOutMinute);
-            }
-            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
         }
 
         private void FindWorkDatesInSelected() //
@@ -4496,7 +4304,7 @@ namespace mySCA2
                         { iLenghtRect++; }
                     }
                 }
-                 
+
                 panelView.Height = iShiftHeightAll + iStringHeight * workSelectedDays.Count() * countNAVs;
                 // panelView.AutoScroll = false;
                 // panelView.AutoSizeMode = AutoSizeMode.GrowAndShrink;
@@ -4850,7 +4658,7 @@ namespace mySCA2
                                 rectsRealMark[numberRectangle_rectsRealMark] = new Rectangle(
                                 iShiftStart + minutesInFact,             /* X */
                                 pointDrawYfor_rectsReal,                 /* Y */
-                                minutesOutFact- minutesInFact,           /* width */
+                                minutesOutFact - minutesInFact,           /* width */
                                 14                                       /* height */
                                 );
 
@@ -4977,14 +4785,14 @@ namespace mySCA2
             sLastSelectedElement = "DrawFullWorkedPeriodRegistration";
         }
 
-private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
+        private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
         {
             Bitmap result = new Bitmap(nWidth, nHeight);
             using (Graphics g = Graphics.FromImage((Image)result))
                 g.DrawImage(b, 0, 0, nWidth, nHeight);
             return result;
         }
-        
+
         private void ReportsItem_Click(object sender, EventArgs e)
         {
             pictureBox1.Visible = false;
@@ -4993,8 +4801,7 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
                 if (panelView != null && panelView.Controls.Count > 1) panelView.Controls.RemoveAt(1);
                 bmp?.Dispose();
                 pictureBox1?.Dispose();
-            }
-            catch { }
+            } catch { }
 
             dataGridView1.Visible = true;
             sLastSelectedElement = "dataGridView";
@@ -5109,9 +4916,9 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
                 @"Перед получением информации необходимо в Настройках:" + "\n\n" +
                  "1. Добавить имя СКД-сервера Интеллект (SERVER.DOMAIN.SUBDOMAIN),\nа также - имя и пароль пользователя для доступа к SQL-серверу СКД\n" +
                  "2. Сохранить введенные параметры\n" +
-                 "3.1. После этого можно получить список сотрудников, хранимый на СКД-сервере\n"+
-                 "3.2. Использовать ранее сохраненные группы пользователей локально\n"+
-                 "3.3. Добавить праздничные дни, отгулы, отпуски\n"+
+                 "3.1. После этого можно получить список сотрудников, хранимый на СКД-сервере\n" +
+                 "3.2. Использовать ранее сохраненные группы пользователей локально\n" +
+                 "3.3. Добавить праздничные дни, отгулы, отпуски\n" +
                  "4. Загрузить данные по группам или отдельным сотрудников, регистрировавшимся на входных дверях\n" +
                  "5. Далее можно проводить анализ данных в табличном виде или визуально, экспортировать данные с таблиц в Excel файл.\n\nДата и время локального ПК: " +
                 _dateTimePickerReturn(dateTimePickerEnd),
@@ -5148,6 +4955,88 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
 
 
         //---- Start. Features of programm ---//
+        private void MailingItem_Click(object sender, EventArgs e) //MailingItem()
+        {
+            nameOfLastTableFromDB = "Mailing";
+            _MenuItemEnabled(SettingsMenuItem, false);
+            _MenuItemEnabled(FunctionMenuItem, false);
+            _MenuItemEnabled(GroupsMenuItem, false);
+            _MenuItemEnabled(AnualDatesMenuItem, false);
+            CheckBoxesFiltersAll_Enable(false);
+            _controlVisible(panelView, false);
+
+            btnPropertiesSave.Text = "Сохранить рассылку";
+
+            MailingItem();
+        }
+
+        private void MailingItem()
+        {
+            List<string> listComboParameters = new List<string>();
+            listComboParameters.Add("Ежедневная");
+            listComboParameters.Add("Еженедельная");
+            listComboParameters.Add("Ежемесячная");
+
+            SettingsView(
+                    "Отправитель", mailServerUserName, @"Отправитель рассылки в виде: Name@Domain.Subdomain",
+                    "Получатель рассылки", "", @"Получатель рассылки в виде: Name@Domain.Subdomain",
+                    "", "", "Неиспользуемое поле",
+                    "Наименование", "", @"Краткое наименование рассылки",
+                    "Описание", "", "Краткое описание рассылки",
+                    "", "", "Неиспользуемое поле",
+                    "Расписание", listComboParameters
+                    );
+        }
+
+        private void MailingSave(string recipientEmail, string senderEmail, string typeReport, string description, string schedule)
+        {
+            bool recipientValid = false;
+            bool senderValid = false;
+
+            DateTime localDate = DateTime.Now;
+
+            if (recipientEmail.Length > 0 && recipientEmail.Contains('.') && recipientEmail.Contains('@') && recipientEmail.Split('.').Count() > 1)
+            { recipientValid = true; }
+
+            if (senderEmail.Length > 0 && senderEmail.Contains('.') && senderEmail.Contains('@') && senderEmail.Split('.').Count() > 1)
+            { senderValid = true; }
+
+            _controlVisible(groupBoxProperties, false);
+
+            if (databasePerson.Exists && typeReport.Length > 0 && senderValid && recipientValid)
+            {
+                using (SQLiteConnection sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+                {
+                    sqlConnection.Open();
+
+                    SQLiteCommand sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
+                    sqlCommand1.ExecuteNonQuery();
+
+                    using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'Mailing' (SenderEmail, RecipientEmail, Schedule, TypeReport, Description, DateCreated)" +
+                               " VALUES (@SenderEmail, @RecipientEmail, @Schedule, @TypeReport, @Description, @DateCreated)", sqlConnection))
+                    {
+                        sqlCommand.Parameters.Add("@SenderEmail", DbType.String).Value = senderEmail;
+                        sqlCommand.Parameters.Add("@RecipientEmail", DbType.String).Value = recipientEmail;
+                        sqlCommand.Parameters.Add("@Schedule", DbType.String).Value = schedule;
+                        sqlCommand.Parameters.Add("@TypeReport", DbType.String).Value = typeReport;
+                        sqlCommand.Parameters.Add("@Description", DbType.String).Value = description;
+                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = localDate.ToString();
+
+                        try { sqlCommand.ExecuteNonQuery(); } catch { }
+                    }
+
+                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
+                    sqlCommand1.ExecuteNonQuery();
+                    sqlCommand1.Dispose();
+                }
+            }
+
+            ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Расписание', TypeReport AS 'Тип отчета', Description AS 'Описание', DateCreated AS 'Дата создания/модификации'  ", " group by SenderEmail ORDER BY SenderEmail asc; ");
+            if (databasePerson.Exists && typeReport.Length > 0 && senderValid && recipientValid)
+            {
+                _toolStripStatusLabelSetText(StatusLabel2, "Добавлена рассылка: " + typeReport+"| Всего рассылок: "+_dataGridView1RowsCount());
+            }
+        }
 
         private void SettingsProgrammItem_Click(object sender, EventArgs e)
         {
@@ -5156,7 +5045,7 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
             _MenuItemEnabled(GroupsMenuItem, false);
             _MenuItemEnabled(AnualDatesMenuItem, false);
             CheckBoxesFiltersAll_Enable(false);
-            _controlVisible(panelView,false);
+            _controlVisible(panelView, false);
 
             btnPropertiesSave.Text = "Сохранить настройки";
             SettingsView(
@@ -5366,7 +5255,7 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
 
             groupBoxProperties.Visible = true;
         }
-         
+
         private void buttonPropertiesCancel_Click(object sender, EventArgs e)
         {
             string btnName = btnPropertiesSave.Text;
@@ -5398,7 +5287,7 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
             CheckBoxesFiltersAll_Enable(true);
 
             panelView.Visible = true;
-           if (btnName == @"Сохранить рассылку")
+            if (btnName == @"Сохранить рассылку")
             {
                 ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Расписание', TypeReport AS 'Тип отчета', Description AS 'Описание', DateCreated AS 'Дата создания/модификации'  ", " group by SenderEmail ORDER BY SenderEmail asc; ");
             }
@@ -5408,12 +5297,37 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
         {
             string btnName = btnPropertiesSave.Text;
             if (btnName == @"Сохранить настройки")
+            { PropertiesSave(); }
+            else if (btnName == @"Сохранить рассылку")
             {
-               PropertiesSave();
-            }
-           else if (btnName == @"Сохранить рассылку")
-            {
-                MailingsSave();
+                string recipientEmail = _textBoxReturnText(textBoxServer1UserName);
+                string senderEmail = mailServerUserName;
+                if (mailServerUserName.Length == 0)
+                { senderEmail = _textBoxReturnText(textBoxServer1); }
+                string typeReport = _textBoxReturnText(textBoxMailServerName);
+                string description = _textBoxReturnText(textBoxMailServerUserName);
+                string schedule = _comboBoxReturnSelected(listCombo);
+
+                MailingSave(recipientEmail, senderEmail, typeReport, description, schedule);
+
+                _controlDispose(labelServer1);
+                _controlDispose(labelServer1UserName);
+                _controlDispose(labelServer1UserPassword);
+                _controlDispose(labelMailServerName);
+                _controlDispose(labelMailServerUserName);
+                _controlDispose(labelMailServerUserPassword);
+
+                _controlDispose(textBoxServer1);
+                _controlDispose(textBoxServer1UserName);
+                _controlDispose(textBoxServer1UserPassword);
+                _controlDispose(textBoxMailServerName);
+                _controlDispose(textBoxMailServerUserName);
+                _controlDispose(textBoxMailServerUserPassword);
+
+                _controlDispose(listComboLabel);
+                _controlDispose(listCombo);
+
+                _controlVisible(panelView, true);
             }
 
             _MenuItemEnabled(SettingsMenuItem, true);
@@ -5422,7 +5336,7 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
             _MenuItemEnabled(AnualDatesMenuItem, true);
         }
 
-        private  void PropertiesSave() //Save Parameters into Registry and variables
+        private void PropertiesSave() //Save Parameters into Registry and variables
         {
             string server = _textBoxReturnText(textBoxServer1);
             string user = _textBoxReturnText(textBoxServer1UserName);
@@ -5458,8 +5372,7 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
                         EvUserKey.SetValue("MailUser", mailServerUserName, Microsoft.Win32.RegistryValueKind.String);
                         try { EvUserKey.SetValue("MailUserPassword", EncryptStringToBase64Text(mailServerUserPassword, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
                     }
-                }
-                catch { MessageBox.Show("Ошибки с доступом на запись в реестр. Данные сохранены не корректно."); }
+                } catch { MessageBox.Show("Ошибки с доступом на запись в реестр. Данные сохранены не корректно."); }
 
                 if (databasePerson.Exists)
                 {
@@ -5535,13 +5448,7 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
                     EvUserKey?.DeleteSubKey("MailUser");
                     EvUserKey?.DeleteSubKey("MailUserPassword");
                 }
-            }
-            catch { MessageBox.Show("Ошибки с доступом у реестру на запись. Данные не удалены."); }
-        }
-
-        private void deleteSelectedMailingItem_Click(object sender, EventArgs e)
-        {
-            DeleteCurrentRow();
+            } catch { MessageBox.Show("Ошибки с доступом у реестру на запись. Данные не удалены."); }
         }
 
         //--- End. Features of programm ---//
@@ -5676,8 +5583,7 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
                             }
                         }
                     }
-                }
-                catch (Exception expt)
+                } catch (Exception expt)
                 {
                     MessageBox.Show(expt.ToString());
                 }
@@ -5687,20 +5593,21 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
         private void dataGridView1_DoubleClick(object sender, EventArgs e) //SearchMembersSelectedGroup()
         { SearchMembersSelectedGroup(); }
 
-         private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e) //dataGridView1CellEndEdit()
+        private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e) //dataGridView1CellEndEdit()
         { dataGridView1CellEndEdit(); }
 
         private void dataGridView1CellEndEdit()
         {
+            string fio = "";
+            string nav = "";
+            string[] timeIn = { "09", "00", "09:00" };
+            string[] timeOut = { "18", "00", "18:00" };
+            decimal[] timeInDecimal = { 9, 0, 09 };
+            decimal[] timeOutDecimal = { 18, 0, 18 };
+            string group = "";
+
             try
             {
-                string fio = "";
-                string nav = "";
-                string[] timeIn = { "09", "00", "09:00" };
-                string[] timeOut = { "18", "00", "18:00" };
-                decimal[] timeInDecimal = { 9, 0, 09 };
-                decimal[] timeOutDecimal = { 18, 0, 18 };
-                string group = "";
 
                 if (nameOfLastTableFromDB == "PersonGroup")
                 {
@@ -5771,19 +5678,48 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
 
                     StatusLabel2.Text = @"Обновлено время прихода " + ShortFIO(textBoxFIO.Text) + " в группе: " + textBoxGroup.Text;
                 }
-            }
-            catch
+                else if (nameOfLastTableFromDB == "Mailing")
+                {
+                    string recipientEmail = "";
+                    string senderEmail = "";
+                    string typeReport = "";
+                    string description = "";
+                    string schedule = "";
+
+                    int IndexCurrentRow = _dataGridView1CurrentRowIndex();
+                    if (IndexCurrentRow > -1)
+                    {
+                        for (int i = 0; i < dataGridView1.ColumnCount; i++)
+                        {
+                            if (dataGridView1.Columns[i].HeaderText == "Получатель" || dataGridView1.Columns[i].HeaderText == "RecipientEmail")
+                            {
+                                recipientEmail = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                            }
+                            else if (dataGridView1.Columns[i].HeaderText == "Отправитель" || dataGridView1.Columns[i].HeaderText == "SenderEmail")
+                            {
+                                senderEmail = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                            }
+                            else if (dataGridView1.Columns[i].HeaderText == "Тип отчета" || dataGridView1.Columns[i].HeaderText == "TypeReport")
+                            {
+                                typeReport = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                            }
+                            else if (dataGridView1.Columns[i].HeaderText == "Описание" || dataGridView1.Columns[i].HeaderText == "Description")
+                            {
+                                description = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                            }
+                            else if (dataGridView1.Columns[i].HeaderText == "Расписание" || dataGridView1.Columns[i].HeaderText == "Schedule")
+                            {
+                                schedule = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                            }
+                        }
+                    }
+
+                    MailingSave(recipientEmail, senderEmail, typeReport, description, schedule);
+                }
+            } catch
             {
                 try
                 {
-                    string fio = "";
-                    string nav = "";
-                    string[] timeIn = { "09", "00", "09:00" };
-                    string[] timeOut = { "18", "00", "18:00" };
-                    decimal[] timeInDecimal = { 9, 0, 09 };
-                    decimal[] timeOutDecimal = { 18, 0, 18 };
-                    string group = "";
-
                     if (nameOfLastTableFromDB == "PersonGroup")
                     {
                         int IndexCurrentRow = _dataGridView1CurrentRowIndex();
@@ -5853,19 +5789,18 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
 
                         StatusLabel2.Text = @"Обновлено время прихода " + ShortFIO(textBoxFIO.Text) + " в группе: " + textBoxGroup.Text;
                     }
-                }
-                catch { }
+                } catch { }
             }
         }
 
         //Show help to Edit on some collumns DataGridView
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
-            if (nameOfLastTableFromDB == "PersonGroup")
+                     DataGridViewCell cell;
+           if (nameOfLastTableFromDB == "PersonGroup")
             {
                 try
                 {
-                    DataGridViewCell cell;
                     if ((e.ColumnIndex == this.dataGridView1.Columns["Фамилия Имя Отчество"].Index) && e.Value != null)
                     {
                         cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
@@ -5892,14 +5827,147 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
                         {
                             cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
                             cell.ToolTipText = cell.Value.ToString();
-                        }
-                        catch { }
+                        } catch { }
                     }
-                }
-                catch { }
+                } catch { }
+            }
+            if (nameOfLastTableFromDB == "Mailing" && e.RowIndex > -1 && e.ColumnIndex > -1 && e.Value != null)
+            {
+                cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                cell.ToolTipText = "Для установки нового значения нажмите F2,\nвнесите новое значение,\nа затем нажмите Enter";
             }
         }
 
+        private int currentDataGridViewRow=0;
+        private void dataGridView1_MouseClick(object sender, MouseEventArgs e)
+        {
+            /*
+            if (e.Button == MouseButtons.Right)
+            {
+                int currentMouseOverRow = dataGridView1.HitTest(e.X, e.Y).RowIndex;
+                if (nameOfLastTableFromDB == "Mailing" && currentMouseOverRow > -1)
+                {
+                    ContextMenu mRightClick = new ContextMenu();
+
+                    mRightClick.MenuItems.Add(new MenuItem("Сохранить отредактированную рассылку", MailingSave));
+                    mRightClick.MenuItems.Add(new MenuItem("Удалить выделенную рассылку", MailingDelete));
+                    currentDataGridViewRow = currentMouseOverRow;
+                    mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
+                }
+            }*/
+        }
+        /*
+        private void MailingSave(object sender, EventArgs e) 
+        {
+            string recipientEmail="";
+            string senderEmail = "";
+            string typeReport = "";
+            string description = "";
+            string schedule = "";
+
+            int IndexCurrentRow = _dataGridView1CurrentRowIndex();
+            if (IndexCurrentRow > -1)
+            {
+                for (int i = 0; i < dataGridView1.ColumnCount; i++)
+                {
+                    if (dataGridView1.Columns[i].HeaderText == "Получатель" || dataGridView1.Columns[i].HeaderText == "RecipientEmail")
+                    {
+                        recipientEmail = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                    else if (dataGridView1.Columns[i].HeaderText == "Тип отчета" || dataGridView1.Columns[i].HeaderText == "TypeReport")
+                    {
+                        typeReport = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                    else if (dataGridView1.Columns[i].HeaderText == "Отправитель" || dataGridView1.Columns[i].HeaderText == "SenderEmail")
+                    {
+                        senderEmail = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                    else if (dataGridView1.Columns[i].HeaderText == "Расписание" || dataGridView1.Columns[i].HeaderText == "Schedule")
+                    {
+                        schedule = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                    else if (dataGridView1.Columns[i].HeaderText == "Описание" || dataGridView1.Columns[i].HeaderText == "Description")
+                    {
+                        description = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                }
+            }
+
+            MailingSave(recipientEmail, senderEmail, typeReport, description, schedule);
+        }*/
+
+        private void MailingDelete(object sender, EventArgs e)
+        { DeleteCurrentRow(); }
+
+        private void DeleteCurrentRow()
+        {
+            int IndexColumn1 = -1;           // индекс 1-й колонки в датагрид
+            int IndexColumn2 = -1;           // индекс 2-й колонки в датагрид
+
+            int IndexCurrentRow = _dataGridView1CurrentRowIndex();
+            if (IndexCurrentRow > -1)
+            {
+                switch (nameOfLastTableFromDB)
+                {
+                    case "PersonGroupDesciption":
+                        {
+                            for (int i = 0; i < dataGridView1.ColumnCount; i++)
+                            {
+                                if (dataGridView1.Columns[i].HeaderText == "GroupPerson")
+                                { IndexColumn1 = i; }
+                            }
+
+                            if (IndexColumn1 > -1)
+                            {
+                                DeleteDataTableQueryParameters(databasePerson, "PersonGroup", "GroupPerson", dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString().Trim());
+                                DeleteDataTableQueryParameters(databasePerson, "PersonGroupDesciption", "GroupPerson", dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString().Trim());
+                            }
+                            PersonOrGroupItem.Text = "Работа с одной персоной";
+
+                            MembersGroupItem.Enabled = true;
+                            ListGroups();
+                            break;
+                        }
+                    case "PersonGroup" when textBoxGroup.Text.Trim().Length > 0:
+                        {
+                            DeleteDataTableQueryParameters(databasePerson, "PersonGroup", "GroupPerson", textBoxGroup.Text.Trim());
+                            DeleteDataTableQueryParameters(databasePerson, "PersonGroupDesciption", "GroupPerson", textBoxGroup.Text.Trim());
+                            textBoxGroup.BackColor = Color.White;
+                            PersonOrGroupItem.Text = "Работа с одной персоной";
+
+                            MembersGroupItem.Enabled = true;
+                            ListGroups();
+                            break;
+                        }
+                    case "Mailing":
+                        {
+                            string typeReport = "";
+                            for (int i = 0; i < dataGridView1.ColumnCount; i++)
+                            {
+                                if (dataGridView1.Columns[i].HeaderText == "Получатель" || dataGridView1.Columns[i].HeaderText == "RecipientEmail")
+                                { IndexColumn1 = i; }
+                                else if (dataGridView1.Columns[i].HeaderText == "Тип отчета" || dataGridView1.Columns[i].HeaderText == "TypeReport")
+                                {
+                                    IndexColumn2 = i;
+                                    typeReport = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString();
+                                }
+                            }
+
+                            if (IndexColumn1 > -1 && IndexColumn2 > -1)
+                            {
+                                DeleteDataTableQueryParameters(databasePerson, "Mailing",
+                                    "RecipientEmail", dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString(),
+                                    "TypeReport", typeReport);
+                            }
+                            ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Расписание', TypeReport AS 'Тип отчета', Description AS 'Описание', DateCreated AS 'Дата создания/модификации'  ", " group by SenderEmail ORDER BY SenderEmail asc; ");
+                            _toolStripStatusLabelSetText(StatusLabel2, "Удалена рассылка рассылка " + typeReport+"| Всего рассылок: "+_dataGridView1RowsCount());
+                            break;
+                        }
+                    default:
+                        break;
+                }
+            }
+        }
         /// //////////////// End  DatagridView functions
 
 
@@ -6107,6 +6175,14 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
         }
 
 
+
+
+
+
+
+
+
+
         //End of the Block Encryption-Decryption
 
 
@@ -6177,7 +6253,7 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
 
 
     }
-    
+
     public class EncryptDecrypt
     {
         /*
