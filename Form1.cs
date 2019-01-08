@@ -91,6 +91,8 @@ namespace mySCA2
         private string mailServerUserPasswordRegistry = "";
         private string mailServerUserPasswordDB = "";
 
+        private Label listComboLabel;
+        private ComboBox listCombo = new ComboBox();
 
         private readonly byte[] btsMess1 = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
         private readonly byte[] btsMess2 = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
@@ -374,7 +376,7 @@ namespace mySCA2
                     "Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('ComboList', Reserv1) ON CONFLICT REPLACE);", databasePerson);
 
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'Mailing' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, SenderEmail TEXT, " +
-                    "RecipientEmail TEXT, Schedule TEXT, TypeReport TEXT, Description TEXT, UNIQUE (SenderEmail, RecipientEmail, TypeReport) ON CONFLICT REPLACE);", databasePerson);
+                    "RecipientEmail TEXT, Schedule TEXT, TypeReport TEXT, Description TEXT, DateCreated TEXT, UNIQUE (SenderEmail, RecipientEmail, TypeReport) ON CONFLICT REPLACE);", databasePerson);
         }
 
         private void UpdateTableOfDB()
@@ -406,7 +408,7 @@ namespace mySCA2
             TryUpdateStructureSqlDB("EquipmentSettings", "EquipmentParameterName TEXT, EquipmentParameterValue TEXT, EquipmentParameterServer TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
             TryUpdateStructureSqlDB("PersonsLastList", "PersonsList TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
             TryUpdateStructureSqlDB("PersonsLastComboList", "ComboList TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
-            TryUpdateStructureSqlDB("Mailing", "SenderEmail TEXT, RecipientEmail TEXT, Schedule TEXT, TypeReport TEXT, Description TEXT ", databasePerson);
+            TryUpdateStructureSqlDB("Mailing", "SenderEmail TEXT, RecipientEmail TEXT, Schedule TEXT, TypeReport TEXT, Description TEXT, DateCreated TEXT", databasePerson);
         }
 
         private void SetTechInfoIntoDB() //Write into DB Technical Info
@@ -520,14 +522,14 @@ namespace mySCA2
                                         if (record["EquipmentParameterValue"].ToString().Trim() == "SKDServer" && record["EquipmentParameterName"].ToString().Trim() == "SKDUser")
                                         {
                                             sServer1DB = record["EquipmentParameterServer"].ToString();
-                                            sServer1UserNameDB = DecryptBase64ToString(record["Reserv1"].ToString(), btsMess1, btsMess2);
-                                            sServer1UserPasswordDB = DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2);
+                                            try { sServer1UserNameDB = DecryptBase64ToString(record["Reserv1"].ToString(), btsMess1, btsMess2); } catch { }
+                                            try { sServer1UserPasswordDB = DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2); } catch { }
                                         }
                                         if (record["EquipmentParameterValue"].ToString().Trim() == "MailServer" && record["EquipmentParameterName"].ToString().Trim() == "MailUser")
                                         {
                                             mailServerDB = record["EquipmentParameterServer"].ToString();
                                             mailServerUserNameDB = record["Reserv1"].ToString();
-                                            mailServerUserPasswordDB = DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2);
+                                            try { mailServerUserPasswordDB = DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2); } catch { }
                                         }
                                     }
                                 }
@@ -582,129 +584,102 @@ namespace mySCA2
             }
         }
 
-        private void MailingItem_Click(object sender, EventArgs e)
+        private void MailingItem_Click(object sender, EventArgs e) //MailingItem()
         {
+            _MenuItemEnabled(SettingsMenuItem, false);
+            _MenuItemEnabled(FunctionMenuItem, false);
+            _MenuItemEnabled(GroupsMenuItem, false);
+            _MenuItemEnabled(AnualDatesMenuItem, false);
+            CheckBoxesFiltersAll_Enable(false);
+            _controlVisible(panelView, false);
+
             btnPropertiesSave.Text = "Сохранить рассылку";
+
             MailingItem();
         }
 
         private void MailingItem()
         {
-            SettingsProgramm(
-                    "Server", sServer1, "Имя сервера \"Server\" с базой Intellect в виде - NameOfServer.Domain.Subdomain",
-                    "Имя администратора", sServer1UserName, "Имя администратора \"sa\" SQL-сервера",
-                    "Password", sServer1UserPassword, "Пароль администратора \"sa\" SQL-сервера \"Server\"",
-                    "MailServer", mailServer, "Имя почтового сервера \"Mail Server\" в виде - NameOfServer.Domain.Subdomain",
-                    "Sender's e-mail", mailServerUserName, "E-mail отправителя рассылок виде - User.Name@MailServer.Domain.Subdomain",
-                    "Sender's password", mailServerUserPassword, "Пароль E-mail отправителя почты"
+            List<string> listComboParameters = new List<string>();
+            listComboParameters.Add("Ежедневная");
+            listComboParameters.Add("Еженедельная");
+            listComboParameters.Add("Ежемесячная");
+
+            SettingsView(
+                    "Отправитель", mailServerUserName, @"Отправитель рассылки",
+                    "Получатель рассылки", "", @"Получатель рассылки в виде: Name@Domain.Subdomain",
+                    "", "", "Неиспользуемое поле",
+                    "Наименование", "", @"Краткое наименование рассылки",
+                    "Описание", "", "Краткое описание рассылки",
+                    "", "", "Неиспользуемое поле", 
+                    "Расписание", listComboParameters
                     );
         }
-
-       private void MailingsSave()
+        
+        private void MailingsSave()
         {
+            DateTime localDate = DateTime.Now;
+
             // todo - save data into DB
+            string recipientEmail = _textBoxReturnText(textBoxServer1UserName);            
+            string senderEmail = mailServerUserName;
 
-            /
-            /
+            string typeReport = _textBoxReturnText(textBoxMailServerName);
+            string description = _textBoxReturnText(textBoxMailServerUserName);
+            string schedule = _comboBoxReturnSelected(listCombo);
 
-            string server = _textBoxReturnText(textBoxServer1);
-            string user = _textBoxReturnText(textBoxServer1UserName);
-            string password = _textBoxReturnText(textBoxServer1UserPassword);
+            _controlVisible(groupBoxProperties, false);
 
-            string stringMailServer = _textBoxReturnText(textBoxMailServerName);
-            string stringMailUser = _textBoxReturnText(textBoxMailServerUserName);
-            string stringMailUserpassword = _textBoxReturnText(textBoxMailServerUserPassword);
-
-            CheckAliveServer(server, user, password);
-
-            if (bServer1Exist)
+            if (databasePerson.Exists)
             {
-                _controlVisible(groupBoxProperties, false);
-
-                sServer1 = server;
-                sServer1UserName = user;
-                sServer1UserPassword = password;
-
-                mailServer = stringMailServer;
-                mailServerUserName = stringMailUser;
-                mailServerUserPassword = stringMailUserpassword;
-
-                try
+                using (SQLiteConnection sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
-                    using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(myRegKey))
+                    sqlConnection.Open();
+
+                    SQLiteCommand sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
+                    sqlCommand1.ExecuteNonQuery();
+
+                    using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'Mailing' (SenderEmail, RecipientEmail, Schedule, TypeReport, Description, DateCreated)" +
+                               " VALUES (@SenderEmail, @RecipientEmail, @Schedule, @TypeReport, @Description, @DateCreated)", sqlConnection))
                     {
-                        EvUserKey.SetValue("SKDServer", server, Microsoft.Win32.RegistryValueKind.String);
-                        EvUserKey.SetValue("SKDUser", EncryptStringToBase64Text(user, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String);
-                        EvUserKey.SetValue("SKDUserPassword", EncryptStringToBase64Text(password, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String);
+                        sqlCommand.Parameters.Add("@SenderEmail", DbType.String).Value = senderEmail;
+                        sqlCommand.Parameters.Add("@RecipientEmail", DbType.String).Value = recipientEmail;
+                        sqlCommand.Parameters.Add("@Schedule", DbType.String).Value = schedule;
+                        sqlCommand.Parameters.Add("@TypeReport", DbType.String).Value = typeReport;
+                        sqlCommand.Parameters.Add("@Description", DbType.String).Value = description;
+                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = localDate.ToString();
 
-                        EvUserKey.SetValue("MailServer", mailServer, Microsoft.Win32.RegistryValueKind.String);
-                        EvUserKey.SetValue("MailUser", mailServerUserName, Microsoft.Win32.RegistryValueKind.String);
-                        EvUserKey.SetValue("MailUserPassword", EncryptStringToBase64Text(mailServerUserPassword, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String);
+                        try { sqlCommand.ExecuteNonQuery(); } catch { }
                     }
-                } catch { MessageBox.Show("Ошибки с доступом на запись в реестр. Данные сохранены не корректно."); }
 
-                if (databasePerson.Exists)
-                {
-                    using (SQLiteConnection sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
-                    {
-                        sqlConnection.Open();
-
-                        SQLiteCommand sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                        sqlCommand1.ExecuteNonQuery();
-
-                        using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'EquipmentSettings' (EquipmentParameterName, EquipmentParameterValue, EquipmentParameterServer, Reserv1, Reserv2)" +
-                                   " VALUES (@EquipmentParameterName, @EquipmentParameterValue, @EquipmentParameterServer, @Reserv1, @Reserv2)", sqlConnection))
-                        {
-                            sqlCommand.Parameters.Add("@EquipmentParameterName", DbType.String).Value = "SKDUser";
-                            sqlCommand.Parameters.Add("@EquipmentParameterValue", DbType.String).Value = "SKDServer";
-                            sqlCommand.Parameters.Add("@EquipmentParameterServer", DbType.String).Value = sServer1;
-                            sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = EncryptStringToBase64Text(sServer1UserName, btsMess1, btsMess2);
-                            sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = EncryptStringToBase64Text(sServer1UserPassword, btsMess1, btsMess2);
-                            try { sqlCommand.ExecuteNonQuery(); } catch { }
-                        }
-
-                        using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'EquipmentSettings' (EquipmentParameterName, EquipmentParameterValue, EquipmentParameterServer, Reserv1, Reserv2)" +
-                                " VALUES (@EquipmentParameterName, @EquipmentParameterValue, @EquipmentParameterServer, @Reserv1, @Reserv2)", sqlConnection))
-                        {
-                            sqlCommand.Parameters.Add("@EquipmentParameterName", DbType.String).Value = "MailUser";
-                            sqlCommand.Parameters.Add("@EquipmentParameterValue", DbType.String).Value = "MailServer";
-                            sqlCommand.Parameters.Add("@EquipmentParameterServer", DbType.String).Value = mailServer;
-                            sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = mailServerUserName;
-                            sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = EncryptStringToBase64Text(mailServerUserPassword, btsMess1, btsMess2);
-                            try { sqlCommand.ExecuteNonQuery(); } catch { }
-                        }
-
-                        sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                        sqlCommand1.ExecuteNonQuery();
-                        sqlCommand1.Dispose();
-                    }
+                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
+                    sqlCommand1.ExecuteNonQuery();
+                    sqlCommand1.Dispose();
                 }
-                _controlDispose(labelServer1);
-                _controlDispose(labelServer1UserName);
-                _controlDispose(labelServer1UserPassword);
-                _controlDispose(labelMailServerName);
-                _controlDispose(labelMailServerUserName);
-                _controlDispose(labelMailServerUserPassword);
-
-                _controlDispose(textBoxServer1);
-                _controlDispose(textBoxServer1UserName);
-                _controlDispose(textBoxServer1UserPassword);
-                _controlDispose(textBoxMailServerName);
-                _controlDispose(textBoxMailServerUserName);
-                _controlDispose(textBoxMailServerUserPassword);
-
-                _MenuItemEnabled(FunctionMenuItem, true);
-                _controlVisible(panelView, true);
             }
-            else
-            {
-                GetInfoSetup();
-                _MenuItemEnabled(QuickSettingsItem, true);
-            }
+            _controlDispose(labelServer1);
+            _controlDispose(labelServer1UserName);
+            _controlDispose(labelServer1UserPassword);
+            _controlDispose(labelMailServerName);
+            _controlDispose(labelMailServerUserName);
+            _controlDispose(labelMailServerUserPassword);
 
+            _controlDispose(textBoxServer1);
+            _controlDispose(textBoxServer1UserName);
+            _controlDispose(textBoxServer1UserPassword);
+            _controlDispose(textBoxMailServerName);
+            _controlDispose(textBoxMailServerUserName);
+            _controlDispose(textBoxMailServerUserPassword);
+            
+            _controlDispose(listComboLabel);
+            _controlDispose(listCombo);
 
+            _MenuItemEnabled(FunctionMenuItem, true);
+            _controlVisible(panelView, true);
 
-            ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Расписание', TypeReport AS 'Тип отчета', Description AS 'Описание' ", " group by SenderEmail ORDER BY SenderEmail asc; ");
+            nameOfLastTableFromDB = "mailing";
+
+            ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Расписание', TypeReport AS 'Тип отчета', Description AS 'Описание', DateCreated AS 'Дата создания/модификации'  ", " group by SenderEmail ORDER BY SenderEmail asc; ");
         }
 
 
@@ -749,8 +724,6 @@ namespace mySCA2
             sLastSelectedElement = "dataGridView";
         }
 
-
-
         private void ShowDatatableOnDatagridview(DataTable dt, string[] nameHidenCollumnsArray) //Query data from the Table of the DB
         {
             DataTable dataTable = dt.Copy();
@@ -763,8 +736,7 @@ namespace mySCA2
             _dataGridViewSource(dataTable);
             sLastSelectedElement = "dataGridView";
         }
-
-
+        
 
         private void CopyWholeDataFromOneTableIntoAnother(System.IO.FileInfo databasePerson, string myTableInto, string myTableFrom) //Copy into Table from other Table
         {
@@ -909,7 +881,7 @@ namespace mySCA2
             myTable = null; mySqlParameter1 = null; mySqlData1 = null; mySqlParameter2 = null; mySqlData2 = null; mySqlNav = null;
         }
 
-        private void DeleteDataTableOneQuery(System.IO.FileInfo databasePerson, string myTable, string mySqlParameter1 = "", string mySqlData1 = "") //Delete data from the Table of the DB by NAV (both parameters are string)
+        private void DeleteDataTableQueryParameters(System.IO.FileInfo databasePerson, string myTable, string mySqlParameter1, string mySqlData1, string mySqlParameter2 = "", string mySqlData2 = "") //Delete data from the Table of the DB by NAV (both parameters are string)
         {
             if (databasePerson.Exists)
             {
@@ -921,6 +893,16 @@ namespace mySCA2
                         using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where " + mySqlParameter1 + "= @" + mySqlParameter1 + ";", sqlConnection))
                         {
                             sqlCommand.Parameters.Add("@" + mySqlParameter1, DbType.String).Value = mySqlData1;
+                            try { sqlCommand.ExecuteNonQuery(); } catch { }
+                        }
+                    }
+                    else if (mySqlParameter1.Length > 0 && mySqlParameter2.Length > 0)
+                    {
+                        using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where " + mySqlParameter1 + "= @" + mySqlParameter1 +" AND " + mySqlParameter2 + "= @" + mySqlParameter2 + ";", sqlConnection))
+                        {
+                            sqlCommand.Parameters.Add("@" + mySqlParameter1, DbType.String).Value = mySqlData1;
+                            sqlCommand.Parameters.Add("@" + mySqlParameter2, DbType.String).Value = mySqlData2;
+
                             try { sqlCommand.ExecuteNonQuery(); } catch { }
                         }
                     }
@@ -936,8 +918,8 @@ namespace mySCA2
         {
             bServer1Exist = false;
             string stringConnection;
-            _toolStripStatusLabelSetText(StatusLabel2, "Проверка сервера " + serverName + ". Ждите окончания процесса...");
-            stimerPrev = "Проверка сервера " + serverName + ". Ждите окончания процесса...";
+           // _toolStripStatusLabelSetText(StatusLabel2, "Проверка доступности " + serverName + ". Ждите окончания процесса...");
+            stimerPrev = "Проверка доступности " + serverName + ". Ждите окончания процесса...";
             stringConnection = "Data Source=" + serverName + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + userName + ";Password=" + userPasswords + "; Connect Timeout=5";
 
             try
@@ -981,7 +963,7 @@ namespace mySCA2
             CheckBoxesFiltersAll_Enable(false);
             _MenuItemEnabled(QuickLoadDataItem, false);
             _MenuItemEnabled(FunctionMenuItem, false);
-            _MenuItemEnabled(QuickSettingsItem, false);
+            _MenuItemEnabled(SettingsMenuItem, false);
             _MenuItemEnabled(AnualDatesMenuItem, false);
             _MenuItemEnabled(GroupsMenuItem, false);
             _MenuItemEnabled(GetFioItem, false);
@@ -1049,7 +1031,7 @@ namespace mySCA2
             }
             else { GetInfoSetup(); }
 
-            _MenuItemEnabled(QuickSettingsItem, true);
+            _MenuItemEnabled(SettingsMenuItem, true);
         }
 
         private void GetFioFromServers(DataTable dataTablePeopple) //Get the list of registered users
@@ -1247,7 +1229,7 @@ namespace mySCA2
             _ProgressBar1Value100();
             _MenuItemEnabled(GetFioItem, true);
             _MenuItemEnabled(FunctionMenuItem, true);
-            _MenuItemEnabled(QuickSettingsItem, true);
+            _MenuItemEnabled(SettingsMenuItem, true);
             _MenuItemEnabled(AnualDatesMenuItem, true);
             _MenuItemEnabled(GroupsMenuItem, true);
         }
@@ -1437,10 +1419,10 @@ namespace mySCA2
         {
             _MenuItemEnabled(QuickLoadDataItem, false);
             _MenuItemEnabled(FunctionMenuItem, false);
-            _MenuItemEnabled(QuickSettingsItem, false);
+            _MenuItemEnabled(SettingsMenuItem, false);
             _MenuItemEnabled(AnualDatesMenuItem, false);
             _MenuItemEnabled(GroupsMenuItem, false);
-            _MenuItemEnabled(QuickSettingsItem, false);
+            _MenuItemEnabled(SettingsMenuItem, false);
             //_MenuItemEnabled(ViewMenuItem, false);
             _MenuItemEnabled(VisualModeItem, false);
             _MenuItemEnabled(TableModeItem, false);
@@ -1480,10 +1462,10 @@ namespace mySCA2
             _toolStripStatusLabelSetText(StatusLabel2, "Готово!");
             _MenuItemEnabled(QuickLoadDataItem, true);
             _MenuItemEnabled(FunctionMenuItem, true);
-            _MenuItemEnabled(QuickSettingsItem, true);
+            _MenuItemEnabled(SettingsMenuItem, true);
             _MenuItemEnabled(AnualDatesMenuItem, true);
             _MenuItemEnabled(GroupsMenuItem, true);
-            _MenuItemEnabled(QuickSettingsItem, true);
+            _MenuItemEnabled(SettingsMenuItem, true);
             _MenuItemEnabled(VisualModeItem, true);
             _MenuItemEnabled(TableModeItem, true);
             _controlEnable(dataGridView1, true);
@@ -2071,7 +2053,7 @@ namespace mySCA2
             
             _MenuItemEnabled(QuickLoadDataItem, false);
             _MenuItemEnabled(FunctionMenuItem, false);
-            _MenuItemEnabled(QuickSettingsItem, false);
+            _MenuItemEnabled(SettingsMenuItem, false);
             _MenuItemEnabled(AnualDatesMenuItem, false);
             _MenuItemEnabled(GroupsMenuItem, false);
             CheckBoxesFiltersAll_Enable(false);
@@ -2128,13 +2110,13 @@ namespace mySCA2
                 _MenuItemVisible(TableExportToExcelItem, true);
 
                 _MenuItemEnabled(TableExportToExcelItem, true);
-                _MenuItemEnabled(QuickSettingsItem, true);
+                _MenuItemEnabled(SettingsMenuItem, true);
                 panelViewResize(numberPeopleInLoading);
             }
             else
             {
                 GetInfoSetup();
-                _MenuItemEnabled(QuickSettingsItem, true);
+                _MenuItemEnabled(SettingsMenuItem, true);
             }
             _changeControlBackColor(groupBoxRemoveDays, Color.PaleGreen);
         }
@@ -2276,7 +2258,7 @@ namespace mySCA2
             _ChangeMenuItemBackColor(TableExportToExcelItem, Color.PaleGreen);
             _MenuItemEnabled(QuickLoadDataItem, true);
             _MenuItemEnabled(FunctionMenuItem, true);
-            _MenuItemEnabled(QuickSettingsItem, true);
+            _MenuItemEnabled(SettingsMenuItem, true);
             _MenuItemEnabled(AnualDatesMenuItem, true);
             _MenuItemEnabled(GroupsMenuItem, true);
         }
@@ -2394,12 +2376,12 @@ namespace mySCA2
                 try { idCardIntellect = Convert.ToInt32(stringIdCardIntellect); } catch { idCardIntellect = 0; }
                 if (idCardIntellect > 0)
                 {
-                    stringSqlWhere = " where action like 'ACCESS_IN' AND param1 like '" + stringIdCardIntellect + "' AND date >= '" + _dateTimePickerStart() + "' AND date <= '" + _dateTimePickerEnd() + "' ";
+                    stringSqlWhere = " where action like 'ACCESS_IN' AND param1 like '" + stringIdCardIntellect + "' AND date >= '" + _dateTimePickerStart() + "' AND date <= '" + _dateTimePickerEnd() + "' "; //ORDER BY date DESC
                     stringConnection = @"Data Source=" + sServer1 + @"\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=120";
                     using (var sqlConnection = new SqlConnection(stringConnection))
                     {
                         sqlConnection.Open();
-                        string query = "SELECT param0, param1, objid, convert(varchar, date, 120) as date, convert(varchar, PROTOCOL.time, 114) as time FROM PROTOCOL" + stringSqlWhere + "order by date asc";
+                        string query = "SELECT param0, param1, objid, CONVERT(varchar, date, 120) AS date, CONVERT(varchar, PROTOCOL.time, 114) AS time FROM protocol " + stringSqlWhere + " ORDER BY date ASC";
                         using (var cmd = new SqlCommand(query, sqlConnection))
                         {
                             using (var reader = cmd.ExecuteReader())
@@ -2608,45 +2590,70 @@ namespace mySCA2
             return foundNavCode;
         }
 
-        private void DeleteGroupItem_Click(object sender, EventArgs e) //DeleteGroup()
-        { DeleteGroup(); }
+        private void DeleteGroupItem_Click(object sender, EventArgs e) //DeleteCurrentRow()
+        { DeleteCurrentRow(); }
 
-        private void DeleteGroup()
+        private void DeleteCurrentRow()
         {
+            int IndexColumn1 = -1;           // индекс 1-й колонки в датагрид
+            int IndexColumn2 = -1;           // индекс 2-й колонки в датагрид
+
             int IndexCurrentRow = _dataGridView1CurrentRowIndex();
             if (IndexCurrentRow > -1)
             {
                 switch (nameOfLastTableFromDB)
                 {
-                    case "PersonGroupDesciption":
-                        int IndexColumn1 = -1;           // индекс 1-й колонки в датагрид
 
+                    case "PersonGroupDesciption":
                         for (int i = 0; i < dataGridView1.ColumnCount; i++)
                         {
                             if (dataGridView1.Columns[i].HeaderText == "GroupPerson")
-                                IndexColumn1 = i;
+                            { IndexColumn1 = i; }
                         }
 
                         if (IndexColumn1 > -1)
                         {
-                            DeleteDataTableOneQuery(databasePerson, "PersonGroup", "GroupPerson", dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString().Trim());
-                            DeleteDataTableOneQuery(databasePerson, "PersonGroupDesciption", "GroupPerson", dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString().Trim());
+                            DeleteDataTableQueryParameters(databasePerson, "PersonGroup", "GroupPerson", dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString().Trim());
+                            DeleteDataTableQueryParameters(databasePerson, "PersonGroupDesciption", "GroupPerson", dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString().Trim());
                         }
+                        PersonOrGroupItem.Text = "Работа с одной персоной";
+                        nameOfLastTableFromDB = "PersonGroup";
+
+                        MembersGroupItem.Enabled = true;
+                        ListGroups();
+
                         break;
                     case "PersonGroup" when textBoxGroup.Text.Trim().Length > 0:
-                        DeleteDataTableOneQuery(databasePerson, "PersonGroup", "GroupPerson", textBoxGroup.Text.Trim());
-                        DeleteDataTableOneQuery(databasePerson, "PersonGroupDesciption", "GroupPerson", textBoxGroup.Text.Trim());
+                        DeleteDataTableQueryParameters(databasePerson, "PersonGroup", "GroupPerson", textBoxGroup.Text.Trim());
+                        DeleteDataTableQueryParameters(databasePerson, "PersonGroupDesciption", "GroupPerson", textBoxGroup.Text.Trim());
                         textBoxGroup.BackColor = Color.White;
+                        PersonOrGroupItem.Text = "Работа с одной персоной";
+                        nameOfLastTableFromDB = "PersonGroup";
+
+                        MembersGroupItem.Enabled = true;
+                        ListGroups();
+
+                        break;
+                    case "mailing":
+                        for (int i = 0; i < dataGridView1.ColumnCount; i++)
+                        {
+                            if (dataGridView1.Columns[i].HeaderText == "Получатель"|| dataGridView1.Columns[i].HeaderText == "RecipientEmail")
+                            { IndexColumn1 = i; }
+                           else if (dataGridView1.Columns[i].HeaderText == "Тип отчета" || dataGridView1.Columns[i].HeaderText == "TypeReport")
+                            { IndexColumn2 = i; }
+                        }
+
+                        if (IndexColumn1 > -1&& IndexColumn2 > -1)
+                        {
+                            DeleteDataTableQueryParameters(databasePerson, "Mailing", "RecipientEmail", dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString().Trim(), "TypeReport", dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString().Trim());
+                        }
+                        ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Расписание', TypeReport AS 'Тип отчета', Description AS 'Описание', DateCreated AS 'Дата создания/модификации'  ", " group by SenderEmail ORDER BY SenderEmail asc; ");
+
                         break;
                     default:
                         break;
                 }
-                PersonOrGroupItem.Text = "Работа с одной персоной";
-                nameOfLastTableFromDB = "PersonGroup";
-
-                MembersGroupItem.Enabled = true;
             }
-            ListGroups();
         }
 
         private void infoItem_Click(object sender, EventArgs e)
@@ -2667,7 +2674,7 @@ namespace mySCA2
             FunctionMenuItem.Enabled = false;
             GroupsMenuItem.Enabled = false;
             _MenuItemEnabled(VisualModeItem, false);
-            QuickSettingsItem.Enabled = false;
+            SettingsMenuItem.Enabled = false;
             QuickLoadDataItem.Enabled = false;
             CheckBoxesFiltersAll_Enable(false);
             comboBoxFio.Enabled = false;
@@ -2695,7 +2702,7 @@ namespace mySCA2
                 _MenuItemEnabled(VisualModeItem, true);
             }
 
-            QuickSettingsItem.Enabled = true;
+            SettingsMenuItem.Enabled = true;
             QuickLoadDataItem.Enabled = true;
 
             comboBoxFio.Enabled = true;
@@ -2882,7 +2889,7 @@ namespace mySCA2
                 comboBoxFio.Items.Add(s);
         }
 
-        private void _comboBoxFioClr() //add string into  from other threads
+         private void _comboBoxFioClr() //add string into  from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate { comboBoxFio.Items.Clear(); }));
@@ -2896,6 +2903,40 @@ namespace mySCA2
                 Invoke(new MethodInvoker(delegate { comboBoxFio.SelectedIndex = i; }));
             else
                 comboBoxFio.SelectedIndex = i;
+        }
+
+        private void _comboBoxAdd(ComboBox comboBx, string s) //add string into  from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { comboBx.Items.Add(s); }));
+            else
+                comboBx.Items.Add(s);
+        }
+
+        private void _comboBoxClr(ComboBox comboBx) //add string into  from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { comboBx.Items.Clear(); }));
+            else
+                comboBx.Items.Clear();
+        }
+
+        private void _comboBoxSelectIndex(ComboBox comboBx, int i) //add string into comboBoxTargedPC from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { comboBx.SelectedIndex = i; }));
+            else
+                comboBx.SelectedIndex = i;
+        }
+
+        private string _comboBoxReturnSelected(ComboBox comboBox) //add string into comboBoxTargedPC from other threads
+        {
+            string result = "";
+            if (InvokeRequired)
+            { Invoke(new MethodInvoker(delegate { result = comboBox.SelectedItem.ToString().Trim(); })); }
+            else
+            { result = comboBox.SelectedItem.ToString().Trim(); }
+            return result;
         }
 
 
@@ -5110,168 +5151,218 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
 
         private void SettingsProgrammItem_Click(object sender, EventArgs e)
         {
+            _MenuItemEnabled(SettingsMenuItem, false);
+            _MenuItemEnabled(FunctionMenuItem, false);
+            _MenuItemEnabled(GroupsMenuItem, false);
+            _MenuItemEnabled(AnualDatesMenuItem, false);
+            CheckBoxesFiltersAll_Enable(false);
+            _controlVisible(panelView,false);
+
             btnPropertiesSave.Text = "Сохранить настройки";
-            SettingsProgramm(
+            SettingsView(
                 "Server", sServer1, "Имя сервера \"Server\" с базой Intellect в виде - NameOfServer.Domain.Subdomain",
                 "Имя администратора", sServer1UserName, "Имя администратора \"sa\" SQL-сервера",
                 "Password", sServer1UserPassword, "Пароль администратора \"sa\" SQL-сервера \"Server\"",
                 "MailServer", mailServer, "Имя почтового сервера \"Mail Server\" в виде - NameOfServer.Domain.Subdomain",
                 "Sender's e-mail", mailServerUserName, "E-mail отправителя рассылок виде - User.Name@MailServer.Domain.Subdomain",
-                "Sender's password", mailServerUserPassword, "Пароль E-mail отправителя почты"
+                "Sender's password", mailServerUserPassword, "Пароль E-mail отправителя почты",
+                "", new List<string>()
                 );
         }
 
-        private void SettingsProgramm(
-            string label1,string txtbox1, string tooltip1, 
+        private void SettingsView(
+            string label1, string txtbox1, string tooltip1,
             string label2, string txtbox2, string tooltip2,
             string label3, string txtboxPassword3, string tooltip3,
             string label4, string txtbox4, string tooltip4,
             string label5, string txtbox5, string tooltip5,
-            string label6, string txtboxPassword6, string tooltip6
+            string label6, string txtboxPassword6, string tooltip6,
+            string nameLabel, List<string> listStrings1
             )
         {
             panelViewResize(numberPeopleInLoading);
-            panelView.Visible = false;
-            _MenuItemEnabled(FunctionMenuItem, false);
-            CheckBoxesFiltersAll_Enable(false);
 
-            labelServer1 = new Label
+            if (label1.Length > 0)
             {
-                Text = label1,
-                BackColor = Color.PaleGreen,
-                Location = new Point(20, 60),
-                Size = new Size(590, 22),
-                BorderStyle = BorderStyle.None,
-                TextAlign = ContentAlignment.MiddleLeft,
-                Parent = groupBoxProperties
-            };
-            textBoxServer1 = new TextBox
-            {
-                Text = txtbox1,
-                Location = new Point(90, 61),
-                Size = new Size(90, 20),
-                BorderStyle = BorderStyle.FixedSingle,
-                Parent = groupBoxProperties
-            };
-            toolTip1.SetToolTip(textBoxServer1, tooltip1);
+                labelServer1 = new Label
+                {
+                    Text = label1,
+                    BackColor = Color.PaleGreen,
+                    Location = new Point(20, 60),
+                    Size = new Size(590, 22),
+                    BorderStyle = BorderStyle.None,
+                    TextAlign = ContentAlignment.MiddleLeft,
+                    Parent = groupBoxProperties
+                };
+                textBoxServer1 = new TextBox
+                {
+                    Text = txtbox1,
+                    Location = new Point(90, 61),
+                    Size = new Size(90, 20),
+                    BorderStyle = BorderStyle.FixedSingle,
+                    Parent = groupBoxProperties
+                };
+                toolTip1.SetToolTip(textBoxServer1, tooltip1);
+            }
 
-            labelServer1UserName = new Label
+            if (label2.Length > 0)
             {
-                Text = label2,
-                BackColor = Color.PaleGreen,
-                Location = new Point(220, 61),
-                Size = new Size(70, 20),
-                BorderStyle = BorderStyle.None,
-                TextAlign = ContentAlignment.MiddleLeft,
-                Parent = groupBoxProperties
-            };
-            textBoxServer1UserName = new TextBox
-            {
-                Text = txtbox2,
-                //PasswordChar = '*',
-                Location = new Point(300, 61),
-                Size = new Size(90, 20),
-                BorderStyle = BorderStyle.FixedSingle,
-                Parent = groupBoxProperties
-            };
-            toolTip1.SetToolTip(textBoxServer1UserName, tooltip2);
+                labelServer1UserName = new Label
+                {
+                    Text = label2,
+                    BackColor = Color.PaleGreen,
+                    Location = new Point(220, 61),
+                    Size = new Size(70, 20),
+                    BorderStyle = BorderStyle.None,
+                    TextAlign = ContentAlignment.MiddleLeft,
+                    Parent = groupBoxProperties
+                };
+                textBoxServer1UserName = new TextBox
+                {
+                    Text = txtbox2,
+                    //PasswordChar = '*',
+                    Location = new Point(300, 61),
+                    Size = new Size(90, 20),
+                    BorderStyle = BorderStyle.FixedSingle,
+                    Parent = groupBoxProperties
+                };
+                toolTip1.SetToolTip(textBoxServer1UserName, tooltip2);
+            }
 
-            labelServer1UserPassword = new Label
+            if (label3.Length > 0)
             {
-                Text = label3,
-                BackColor = Color.PaleGreen,
-                Location = new Point(420, 61),
-                Size = new Size(70, 20),
-                BorderStyle = BorderStyle.None,
-                TextAlign = ContentAlignment.MiddleLeft,
-                Parent = groupBoxProperties
-            };
-            textBoxServer1UserPassword = new TextBox
-            {
-                Text = txtboxPassword3,
-                PasswordChar = '*',
-                Location = new Point(500, 61),
-                Size = new Size(90, 20),
-                BorderStyle = BorderStyle.FixedSingle,
-                Parent = groupBoxProperties
-            };
-            toolTip1.SetToolTip(textBoxServer1UserPassword, tooltip3);
+
+                labelServer1UserPassword = new Label
+                {
+                    Text = label3,
+                    BackColor = Color.PaleGreen,
+                    Location = new Point(420, 61),
+                    Size = new Size(70, 20),
+                    BorderStyle = BorderStyle.None,
+                    TextAlign = ContentAlignment.MiddleLeft,
+                    Parent = groupBoxProperties
+                };
+                textBoxServer1UserPassword = new TextBox
+                {
+                    Text = txtboxPassword3,
+                    PasswordChar = '*',
+                    Location = new Point(500, 61),
+                    Size = new Size(90, 20),
+                    BorderStyle = BorderStyle.FixedSingle,
+                    Parent = groupBoxProperties
+                };
+                toolTip1.SetToolTip(textBoxServer1UserPassword, tooltip3);
+            }
 
             //new - mail server
-            labelMailServerName = new Label
+            if (label4.Length > 0)
             {
-                Text = label4,
-                BackColor = Color.PaleGreen,
-                Location = new Point(20, 90),
-                Size = new Size(590, 22),
-                BorderStyle = BorderStyle.None,
-                TextAlign = ContentAlignment.MiddleLeft,
-                Parent = groupBoxProperties
-            };
-            textBoxMailServerName = new TextBox
-            {
-                Text = txtbox4,
-                Location = new Point(90, 91),
-                Size = new Size(90, 20),
-                BorderStyle = BorderStyle.FixedSingle,
-                Parent = groupBoxProperties
-            };
-            toolTip1.SetToolTip(textBoxMailServerName, tooltip4);
+                labelMailServerName = new Label
+                {
+                    Text = label4,
+                    BackColor = Color.PaleGreen,
+                    Location = new Point(20, 90),
+                    Size = new Size(590, 22),
+                    BorderStyle = BorderStyle.None,
+                    TextAlign = ContentAlignment.MiddleLeft,
+                    Parent = groupBoxProperties
+                };
+                textBoxMailServerName = new TextBox
+                {
+                    Text = txtbox4,
+                    Location = new Point(90, 91),
+                    Size = new Size(90, 20),
+                    BorderStyle = BorderStyle.FixedSingle,
+                    Parent = groupBoxProperties
+                };
+                toolTip1.SetToolTip(textBoxMailServerName, tooltip4);
+            }
 
-            labelMailServerUserName = new Label
+            if (label5.Length > 0)
             {
-                Text = label5,
-                BackColor = Color.PaleGreen,
-                Location = new Point(220, 91),
-                Size = new Size(90, 22),
-                BorderStyle = BorderStyle.None,
-                TextAlign = ContentAlignment.MiddleLeft,
-                Parent = groupBoxProperties
-            };
-            textBoxMailServerUserName = new TextBox
-            {
-                Text = txtbox5,
-                Location = new Point(300, 91),
-                Size = new Size(90, 20),
-                BorderStyle = BorderStyle.FixedSingle,
-                Parent = groupBoxProperties
-            };
-            toolTip1.SetToolTip(textBoxMailServerUserName, label5);
+                labelMailServerUserName = new Label
+                {
+                    Text = label5,
+                    BackColor = Color.PaleGreen,
+                    Location = new Point(220, 91),
+                    Size = new Size(90, 22),
+                    BorderStyle = BorderStyle.None,
+                    TextAlign = ContentAlignment.MiddleLeft,
+                    Parent = groupBoxProperties
+                };
+                textBoxMailServerUserName = new TextBox
+                {
+                    Text = txtbox5,
+                    Location = new Point(300, 91),
+                    Size = new Size(90, 20),
+                    BorderStyle = BorderStyle.FixedSingle,
+                    Parent = groupBoxProperties
+                };
+                toolTip1.SetToolTip(textBoxMailServerUserName, label5);
+            }
 
-            labelMailServerUserPassword = new Label
+            if (label6.Length > 0)
             {
-                Text = label6,
-                BackColor = Color.PaleGreen,
-                Location = new Point(420, 91),
-                Size = new Size(70, 20),
-                BorderStyle = BorderStyle.None,
-                TextAlign = ContentAlignment.MiddleLeft,
-                Parent = groupBoxProperties
-            };
-            textBoxMailServerUserPassword = new TextBox
+                labelMailServerUserPassword = new Label
+                {
+                    Text = label6,
+                    BackColor = Color.PaleGreen,
+                    Location = new Point(420, 91),
+                    Size = new Size(70, 20),
+                    BorderStyle = BorderStyle.None,
+                    TextAlign = ContentAlignment.MiddleLeft,
+                    Parent = groupBoxProperties
+                };
+                textBoxMailServerUserPassword = new TextBox
+                {
+                    Text = txtboxPassword6,
+                    PasswordChar = '*',
+                    Location = new Point(500, 91),
+                    Size = new Size(90, 20),
+                    BorderStyle = BorderStyle.FixedSingle,
+                    Parent = groupBoxProperties
+                };
+                toolTip1.SetToolTip(textBoxMailServerUserPassword, tooltip6);
+            }
+
+            if (listStrings1.Count > 1 && nameLabel.Length > 0)
             {
-                Text = txtboxPassword6,
-                PasswordChar = '*',
-                Location = new Point(500, 91),
-                Size = new Size(90, 20),
-                BorderStyle = BorderStyle.FixedSingle,
-                Parent = groupBoxProperties
-            };
-            toolTip1.SetToolTip(textBoxMailServerUserPassword,tooltip6);
+                listComboLabel = new Label
+                {
+                    Text = nameLabel,
+                    BackColor = Color.PaleGreen,
+                    Location = new Point(20, 120),
+                    Size = new Size(590, 22),
+                    BorderStyle = BorderStyle.None,
+                    TextAlign = ContentAlignment.MiddleLeft,
+                    Parent = groupBoxProperties
+                };
 
-            labelServer1.BringToFront();
-            labelServer1UserName.BringToFront();
-            labelServer1UserPassword.BringToFront();
-            labelMailServerName.BringToFront();
-            labelMailServerUserName.BringToFront();
-            labelMailServerUserPassword.BringToFront();
+                listCombo = new ComboBox
+                {
+                    Location = new Point(90, 121),
+                    Size = new Size(100, 20),
+                    Parent = groupBoxProperties
+                };
 
-            textBoxServer1.BringToFront();
-            textBoxServer1UserName.BringToFront();
-            textBoxServer1UserPassword.BringToFront();
-            textBoxMailServerName.BringToFront();
-            textBoxMailServerUserName.BringToFront();
-            textBoxMailServerUserPassword.BringToFront();
+                listCombo.DataSource = listStrings1;
+            }
+
+            labelServer1?.BringToFront();
+            labelServer1UserName?.BringToFront();
+            labelServer1UserPassword?.BringToFront();
+            labelMailServerName?.BringToFront();
+            labelMailServerUserName?.BringToFront();
+            labelMailServerUserPassword?.BringToFront();
+
+            textBoxServer1?.BringToFront();
+            textBoxServer1UserName?.BringToFront();
+            textBoxServer1UserPassword?.BringToFront();
+            textBoxMailServerName?.BringToFront();
+            textBoxMailServerUserName?.BringToFront();
+            textBoxMailServerUserPassword?.BringToFront();
+            listComboLabel?.BringToFront();
+            listCombo?.BringToFront();
 
             groupBoxProperties.Visible = true;
         }
@@ -5296,28 +5387,39 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
             _controlDispose(textBoxMailServerUserName);
             _controlDispose(textBoxMailServerUserPassword);
 
+            _controlDispose(listComboLabel);
+            _controlDispose(listCombo);
+
+            _MenuItemEnabled(SettingsMenuItem, true);
             _MenuItemEnabled(FunctionMenuItem, true);
+            _MenuItemEnabled(GroupsMenuItem, true);
+            _MenuItemEnabled(AnualDatesMenuItem, true);
+
             CheckBoxesFiltersAll_Enable(true);
 
             panelView.Visible = true;
            if (btnName == @"Сохранить рассылку")
             {
-                ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Расписание', TypeReport AS 'Тип отчета', Description AS 'Описание' ", " group by SenderEmail ORDER BY SenderEmail asc; ");
+                ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Расписание', TypeReport AS 'Тип отчета', Description AS 'Описание', DateCreated AS 'Дата создания/модификации'  ", " group by SenderEmail ORDER BY SenderEmail asc; ");
             }
         }
 
-        private async void buttonPropertiesSave_Click(object sender, EventArgs e) //PropertiesSave()
+        private void buttonPropertiesSave_Click(object sender, EventArgs e) //PropertiesSave()
         {
             string btnName = btnPropertiesSave.Text;
             if (btnName == @"Сохранить настройки")
             {
-                await Task.Run(() => PropertiesSave());
+               PropertiesSave();
             }
            else if (btnName == @"Сохранить рассылку")
             {
-                await Task.Run(() =>MailingsSave());
+                MailingsSave();
             }
-            
+
+            _MenuItemEnabled(SettingsMenuItem, true);
+            _MenuItemEnabled(FunctionMenuItem, true);
+            _MenuItemEnabled(GroupsMenuItem, true);
+            _MenuItemEnabled(AnualDatesMenuItem, true);
         }
 
         private  void PropertiesSave() //Save Parameters into Registry and variables
@@ -5349,14 +5451,15 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
                     using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(myRegKey))
                     {
                         EvUserKey.SetValue("SKDServer", server, Microsoft.Win32.RegistryValueKind.String);
-                        EvUserKey.SetValue("SKDUser", EncryptStringToBase64Text(user, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String);
-                        EvUserKey.SetValue("SKDUserPassword", EncryptStringToBase64Text(password, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String);
+                        try { EvUserKey.SetValue("SKDUser", EncryptStringToBase64Text(user, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
+                        try { EvUserKey.SetValue("SKDUserPassword", EncryptStringToBase64Text(password, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
 
                         EvUserKey.SetValue("MailServer", mailServer, Microsoft.Win32.RegistryValueKind.String);
                         EvUserKey.SetValue("MailUser", mailServerUserName, Microsoft.Win32.RegistryValueKind.String);
-                        EvUserKey.SetValue("MailUserPassword", EncryptStringToBase64Text(mailServerUserPassword, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String);
+                        try { EvUserKey.SetValue("MailUserPassword", EncryptStringToBase64Text(mailServerUserPassword, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
                     }
-                } catch { MessageBox.Show("Ошибки с доступом на запись в реестр. Данные сохранены не корректно."); }
+                }
+                catch { MessageBox.Show("Ошибки с доступом на запись в реестр. Данные сохранены не корректно."); }
 
                 if (databasePerson.Exists)
                 {
@@ -5373,8 +5476,8 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
                             sqlCommand.Parameters.Add("@EquipmentParameterName", DbType.String).Value = "SKDUser";
                             sqlCommand.Parameters.Add("@EquipmentParameterValue", DbType.String).Value = "SKDServer";
                             sqlCommand.Parameters.Add("@EquipmentParameterServer", DbType.String).Value = sServer1;
-                            sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = EncryptStringToBase64Text(sServer1UserName, btsMess1, btsMess2);
-                            sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = EncryptStringToBase64Text(sServer1UserPassword, btsMess1, btsMess2);
+                            try { sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = EncryptStringToBase64Text(sServer1UserName, btsMess1, btsMess2); } catch { }
+                            try { sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = EncryptStringToBase64Text(sServer1UserPassword, btsMess1, btsMess2); } catch { }
                             try { sqlCommand.ExecuteNonQuery(); } catch { }
                         }
 
@@ -5385,7 +5488,7 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
                             sqlCommand.Parameters.Add("@EquipmentParameterValue", DbType.String).Value = "MailServer";
                             sqlCommand.Parameters.Add("@EquipmentParameterServer", DbType.String).Value = mailServer;
                             sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = mailServerUserName;
-                            sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = EncryptStringToBase64Text(mailServerUserPassword, btsMess1, btsMess2);
+                            try { sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = EncryptStringToBase64Text(mailServerUserPassword, btsMess1, btsMess2); } catch { }
                             try { sqlCommand.ExecuteNonQuery(); } catch { }
                         }
 
@@ -5408,13 +5511,11 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
                 _controlDispose(textBoxMailServerUserName);
                 _controlDispose(textBoxMailServerUserPassword);
 
-                _MenuItemEnabled(FunctionMenuItem, true);
                 _controlVisible(panelView, true);
             }
             else
             {
                 GetInfoSetup();
-                _MenuItemEnabled(QuickSettingsItem, true);
             }
         }
 
@@ -5438,7 +5539,11 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
             catch { MessageBox.Show("Ошибки с доступом у реестру на запись. Данные не удалены."); }
         }
 
-        
+        private void deleteSelectedMailingItem_Click(object sender, EventArgs e)
+        {
+            DeleteCurrentRow();
+        }
+
         //--- End. Features of programm ---//
 
 
@@ -6000,6 +6105,8 @@ private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
                 MessageBox.Show("Decrypted:    " + decrypted);
             }
         }
+
+
         //End of the Block Encryption-Decryption
 
 
