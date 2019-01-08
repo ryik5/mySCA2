@@ -5691,23 +5691,23 @@ namespace mySCA2
                     {
                         for (int i = 0; i < dataGridView1.ColumnCount; i++)
                         {
-                            if (dataGridView1.Columns[i].HeaderText == "Получатель" || dataGridView1.Columns[i].HeaderText == "RecipientEmail")
+                            if (dataGridView1.Columns[i].HeaderText == @"Получатель" || dataGridView1.Columns[i].HeaderText == @"RecipientEmail")
                             {
                                 recipientEmail = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
                             }
-                            else if (dataGridView1.Columns[i].HeaderText == "Отправитель" || dataGridView1.Columns[i].HeaderText == "SenderEmail")
+                            else if (dataGridView1.Columns[i].HeaderText == @"Отправитель" || dataGridView1.Columns[i].HeaderText == @"SenderEmail")
                             {
                                 senderEmail = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
                             }
-                            else if (dataGridView1.Columns[i].HeaderText == "Тип отчета" || dataGridView1.Columns[i].HeaderText == "TypeReport")
+                            else if (dataGridView1.Columns[i].HeaderText == @"Тип отчета" || dataGridView1.Columns[i].HeaderText == @"TypeReport")
                             {
                                 typeReport = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
                             }
-                            else if (dataGridView1.Columns[i].HeaderText == "Описание" || dataGridView1.Columns[i].HeaderText == "Description")
+                            else if (dataGridView1.Columns[i].HeaderText == @"Описание" || dataGridView1.Columns[i].HeaderText == @"Description")
                             {
                                 description = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
                             }
-                            else if (dataGridView1.Columns[i].HeaderText == "Расписание" || dataGridView1.Columns[i].HeaderText == "Schedule")
+                            else if (dataGridView1.Columns[i].HeaderText == @"Расписание" || dataGridView1.Columns[i].HeaderText == @"Schedule")
                             {
                                 schedule = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
                             }
@@ -5796,8 +5796,8 @@ namespace mySCA2
         //Show help to Edit on some collumns DataGridView
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
-                     DataGridViewCell cell;
-           if (nameOfLastTableFromDB == "PersonGroup")
+            DataGridViewCell cell;
+            if (nameOfLastTableFromDB == "PersonGroup")
             {
                 try
                 {
@@ -5836,9 +5836,9 @@ namespace mySCA2
                 cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
                 cell.ToolTipText = "Для установки нового значения нажмите F2,\nвнесите новое значение,\nа затем нажмите Enter";
             }
+            cell = null;
         }
 
-        private int currentDataGridViewRow=0;
         private void dataGridView1_MouseClick(object sender, MouseEventArgs e)
         {
             /*
