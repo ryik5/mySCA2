@@ -94,6 +94,10 @@ namespace mySCA2
         private Label listComboLabel;
         private ComboBox listCombo = new ComboBox();
 
+        private Label periodComboLabel;
+        private ComboBox periodCombo = new ComboBox();
+
+
         private readonly byte[] btsMess1 = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
         private readonly byte[] btsMess2 = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
 
@@ -212,8 +216,7 @@ namespace mySCA2
         private Color textBoxFIOCurrentBackColor;
         private Color textBoxNavCurrentBackColor;
 
-
-
+        
         public FormPersonViewerSCA()
         { InitializeComponent(); }
 
@@ -375,7 +378,7 @@ namespace mySCA2
                     "Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('ComboList', Reserv1) ON CONFLICT REPLACE);", databasePerson);
 
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'Mailing' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, SenderEmail TEXT, " +
-                    "RecipientEmail TEXT, Schedule TEXT, TypeReport TEXT, Description TEXT, DateCreated TEXT, UNIQUE ('SenderEmail', 'RecipientEmail', 'Schedule', 'TypeReport') ON CONFLICT REPLACE);", databasePerson);
+                    "RecipientEmail TEXT, Schedule TEXT, TypeReport TEXT, Description TEXT, DateCreated TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
         }
 
         private void UpdateTableOfDB()
@@ -389,8 +392,7 @@ namespace mySCA2
                     "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, " +
                     "HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL,  WorkedOut REAL, ServerOfRegistration TEXT, " +
                     "Late TEXT, Early TEXT,  Vacancy TEXT, BusinesTrip TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
-
-
+            
             TryUpdateStructureSqlDB("PersonTemp", "FIO TEXT, NAV TEXT, iDCard TEXT, DateRegistered TEXT, " +
                     "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, " +
                     "HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL,  WorkedOut REAL, ServerOfRegistration TEXT, " +
@@ -407,7 +409,7 @@ namespace mySCA2
             TryUpdateStructureSqlDB("EquipmentSettings", "EquipmentParameterName TEXT, EquipmentParameterValue TEXT, EquipmentParameterServer TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
             TryUpdateStructureSqlDB("PersonsLastList", "PersonsList TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
             TryUpdateStructureSqlDB("PersonsLastComboList", "ComboList TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
-            TryUpdateStructureSqlDB("Mailing", "SenderEmail TEXT, RecipientEmail TEXT, Schedule TEXT, TypeReport TEXT, Description TEXT, DateCreated TEXT", databasePerson);
+            TryUpdateStructureSqlDB("Mailing", "SenderEmail TEXT, RecipientEmail TEXT, Schedule TEXT, TypeReport TEXT, Description TEXT, DateCreated TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
         }
 
         private void SetTechInfoIntoDB() //Write into DB Technical Info
@@ -584,37 +586,23 @@ namespace mySCA2
             " HourControlling AS 'Контрольное время, часы', MinuteControlling AS 'Контрольное время, минуты', Reserv1 AS 'Точка прохода', Reserv2 AS 'Направление'",
             string mySqlWhere = "ORDER BY FIO, DateRegistered, Comming") //Query data from the Table of the DB
         {
+            DataTable dt = new DataTable();
             if (databasePerson.Exists)
             {
                 // dtPeople.Clear();
-                iCounterLine = 0;
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
                     sqlConnection.Open();
                     using (var sqlDA = new SQLiteDataAdapter(mySqlQuery + " FROM '" + myTable + "' " + mySqlWhere + "; ", sqlConnection))
                     {
-                        var dt = new DataTable();
+                        dt = new DataTable();
                         //dtPeople 
                         sqlDA.Fill(dt);
-                        _dataGridViewSource(dt);
-                    }
-
-                    using (var sqlCommand = new SQLiteCommand("Select * FROM '" + myTable + "' " + mySqlWhere + "; ", sqlConnection))
-                    {
-                        using (var sqlReader = sqlCommand.ExecuteReader())
-                        {
-                            foreach (DbDataRecord record in sqlReader)
-                            {
-                                try
-                                {
-                                    if (record?["id"] != null)
-                                    { iCounterLine++; }
-                                } catch { }
-                            }
-                        }
                     }
                 }
             }
+            _dataGridViewSource(dt);
+            iCounterLine = _dataGridView1RowsCount();
             sLastSelectedElement = "dataGridView";
         }
 
@@ -915,10 +903,13 @@ namespace mySCA2
                                   @"Описание группы"                //37
                       };
 
+                await Task.Run(() => ImportTablePeopleToTableGroupsInLocalDB(databasePerson.ToString(), dtTempIntermediate));
+                
                 //show selected data     
                 //distinct Records                
                 var namesDistinctCollumnsArray = arrayAllCollumnsDataTablePeople.Except(arrayHiddenCollumns).ToArray(); //take distinct data
                 dtPeople = GetDistinctRecords(dtTempIntermediate, namesDistinctCollumnsArray);
+
 
                 await Task.Run(() => ShowDatatableOnDatagridview(dtPeople, arrayHiddenCollumns));
 
@@ -974,6 +965,7 @@ namespace mySCA2
                                         personFromServer.idCard = Convert.ToInt32(record["id"].ToString().Trim());
                                         personFromServer.PositionInDepartment = record["post"].ToString().Trim();
                                         personFromServer.Department = record["parent_id"].ToString().Trim();
+                                        personFromServer.GroupPerson = record["parent_id"].ToString().Trim();
 
                                         personFromServer.ControlInHour = _numUpDownReturn(numUpDownHourStart).ToString();
                                         personFromServer.ControlInHourDecimal = _numUpDownReturn(numUpDownHourStart);
@@ -1014,7 +1006,7 @@ namespace mySCA2
                     }
 
                     //получить список департаментов с сервера
-                    query = "SELECT id,level2_id,level_id,name,owner_id,parent_id,region_id,schedule_id  FROM OBJ_DEPARTMENT";
+                    query = "SELECT id,level_id,name,owner_id,parent_id,region_id,schedule_id  FROM OBJ_DEPARTMENT";
                     using (var sqlCommand = new SqlCommand(query, sqlConnection))
                     {
                         using (var sqlReader = sqlCommand.ExecuteReader())
@@ -1027,8 +1019,8 @@ namespace mySCA2
                                     if (record?["name"].ToString().Trim().Length > 0)
                                     {
                                         DataRow row = dtGroup.NewRow();
-                                        row[1] = record["id"].ToString().Trim();
-                                        row[2] = record["name"].ToString().Trim();
+                                        row[2] = record["id"].ToString().Trim();
+                                        row[4] = record["name"].ToString().Trim();
                                         row[3] = record["parent_id"].ToString().Trim();
 
                                         dtGroup.Rows.Add(row);
@@ -1040,7 +1032,7 @@ namespace mySCA2
                     }
                 }
 
-                _toolStripStatusLabelSetText(StatusLabel2, "Все списки с ФИО с серверов СКД успешно получены");
+                _toolStripStatusLabelSetText(StatusLabel2, "Список ФИО успешно получен");
                 stimerPrev = "Все списки с ФИО с сервера СКД успешно получены";
             } catch (Exception Expt)
             {
@@ -1056,6 +1048,16 @@ namespace mySCA2
             {
                 DeleteAllDataInTableQuery(databasePerson, "PersonsLastList");
                 DeleteAllDataInTableQuery(databasePerson, "PersonsLastComboList");
+                foreach (var dr in dtGroup.AsEnumerable())
+                {
+                    DeleteDataTableQueryParameters(databasePerson, "PersonGroup", "GroupPerson", dr[2].ToString());
+                    DeleteDataTableQueryParameters(databasePerson, "PersonGroupDesciption", "GroupPerson", dr[2].ToString());
+                }
+                foreach (var dr in dtGroup.AsEnumerable())
+                {
+                  CreateGroupInDB  (databasePerson, dr[2].ToString(), dr[4].ToString());
+                }
+
 
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
@@ -1092,15 +1094,19 @@ namespace mySCA2
                             }
                         }
                     }
+
                     sqlCommand1 = new SQLiteCommand("end", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
                     sqlCommand1.Dispose();
+                    sqlConnection.Close();
                 }
+
 
                 foreach (string str in ListFIOCombo.ToArray())
                 { _comboBoxFioAdd(str); }
                 try
-                { _comboBoxFioIndex(0); } catch { };
+                { _comboBoxFioIndex(0); }
+                catch { };
 
                 _timer1Enabled(false);
                 _toolStripStatusLabelSetText(StatusLabel2, "Получено ФИО - " + iFIO + " ");
@@ -1113,7 +1119,7 @@ namespace mySCA2
             ListFIOTemp = null;
             if (!bServer1Exist)
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Ошибка доступа к SQL БД СКД-серверов!");
+                _toolStripStatusLabelSetText(StatusLabel2, "Ошибка доступа к БД СКД-сервера");
                 _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
                 _MenuItemEnabled(QuickLoadDataItem, false);
                 MessageBox.Show("Проверьте правильность написания серверов,\nимя и пароль sa-администратора,\nа а также доступность серверов и их баз!");
@@ -1423,24 +1429,33 @@ namespace mySCA2
         {
             if (textBoxGroup.Text.Trim().Length > 0)
             {
-                decimal controlStartHours = numUpDownHourStart.Value + (numUpDownMinuteStart.Value + 1) / 60 - (1 / 60);
-                using (var connection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+                CreateGroupInDB(databasePerson, textBoxGroup.Text.Trim(), textBoxGroupDescription.Text.Trim());
+            }
+
+            PersonOrGroupItem.Text = "Работа с одной персоной";
+            nameOfLastTableFromDB = "PersonGroup";
+            ListGroups();
+        }
+
+        private void CreateGroupInDB(System.IO.FileInfo fileInfo,  string nameGroup, string descriptionGroup)
+        {
+            if (nameGroup.Length > 0)
+            {
+                using (var connection = new SQLiteConnection($"Data Source={fileInfo};Version=3;"))
                 {
                     connection.Open();
                     using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PersonGroupDesciption' (GroupPerson, GroupPersonDescription) " +
                                             "VALUES (@GroupPerson, @GroupPersonDescription )", connection))
                     {
-                        command.Parameters.Add("@GroupPerson", DbType.String).Value = textBoxGroup.Text.Trim();
-                        command.Parameters.Add("@GroupPersonDescription", DbType.String).Value = textBoxGroupDescription.Text.Trim();
+                        command.Parameters.Add("@GroupPerson", DbType.String).Value = nameGroup;
+                        command.Parameters.Add("@GroupPersonDescription", DbType.String).Value = descriptionGroup;
                         try { command.ExecuteNonQuery(); } catch { }
                     }
+                    connection.Close();
                 }
-                try { StatusLabel2.Text = "Группа - \"" + textBoxGroup.Text.Trim() + "\" создана"; } catch { }
-                controlStartHours = 0;
-                PersonOrGroupItem.Text = "Работа с одной персоной";
-                nameOfLastTableFromDB = "PersonGroup";
+                _toolStripStatusLabelSetText( StatusLabel2, "Группа - \"" + nameGroup + "\" создана"); 
             }
-            ListGroups();
+
         }
 
         private void ListGroupsItem_Click(object sender, EventArgs e)
@@ -1451,7 +1466,7 @@ namespace mySCA2
             groupBoxProperties.Visible = false;
             dataGridView1.Visible = false;
 
-            ShowDataTableQuery(databasePerson, "PersonGroupDesciption", "SELECT GroupPerson AS 'Группа', GroupPersonDescription AS 'Описание группы' ", " group by GroupPerson ORDER BY GroupPerson asc; ");
+            ShowDataTableQuery(databasePerson, "PersonGroupDesciption", "SELECT GroupPerson AS 'Группа', GroupPersonDescription AS 'Описание группы', Reserv1 AS 'Колличество в группе' ", " group by GroupPerson ORDER BY GroupPerson asc; ");
 
             try
             {
@@ -1468,8 +1483,8 @@ namespace mySCA2
 
             DeleteGroupItem.Visible = true;
             dataGridView1.Visible = true;
-            nameOfLastTableFromDB = "PersonGroupDesciption";
             MembersGroupItem.Enabled = true;
+            nameOfLastTableFromDB = "PersonGroupDesciption";
             PersonOrGroupItem.Text = "Работа с одной персоной";
         }
 
@@ -1478,7 +1493,7 @@ namespace mySCA2
 
         private void SearchMembersSelectedGroup()
         {
-            if (nameOfLastTableFromDB == "PersonGroup"&& nameOfLastTableFromDB == "PersonGroupDesciption")
+            if (nameOfLastTableFromDB == "PersonGroup" || nameOfLastTableFromDB == "PersonGroupDesciption")
             {
                 int IndexCurrentRow = _dataGridView1CurrentRowIndex();
                 string nameGroup = DefinyGroupNameByIndexRowDatagridview(IndexCurrentRow);
@@ -1491,9 +1506,9 @@ namespace mySCA2
             string nameFoundGroup = @"%%";
             try
             {
-                if (0 < dataGridView1.Rows.Count && dataGridView1.CurrentRow.Index < dataGridView1.Rows.Count)
+                if (0 < dataGridView1.Rows.Count && IndexCurrentRow < dataGridView1.Rows.Count)
                 {
-                    if (nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup")
+                    if (nameOfLastTableFromDB == "PersonGroup" || nameOfLastTableFromDB == "PersonGroupDesciption")
                     {
                         int IndexColumn1 = -1;
                         int IndexColumn2 = -1;
@@ -1549,18 +1564,18 @@ namespace mySCA2
                                 //HourControllingOut TEXT, MinuteControllingOut TEXT
                                 //FIO|NAV|H|M
 
-                                dataRow[1] = d1;
-                                dataRow[2] = d2;
-                                dataRow[3] = nameGroup;
-                                dataRow[4] = d3;
-                                dataRow[5] = d4;
-                                dataRow[6] = ConvertStringsTimeToDecimal(d3, d4);
-                                dataRow[7] = d13;
-                                dataRow[8] = d14;
-                                dataRow[9] = ConvertStringsTimeToDecimal(d13, d14);
-                                dataRow[11] = nameGroup;
-                                dataRow[22] = ConvertStringsTimeToStringHHMM(d3, d4);
-                                dataRow[23] = ConvertStringsTimeToStringHHMM(d13, d14);
+                                dataRow[@"Фамилия Имя Отчество"] = d1;
+                                dataRow[@"NAV-код"] = d2;
+                                dataRow[@"Группа"] = nameGroup;
+                                dataRow[@"Время прихода,часы"] = d3;
+                                dataRow[@"Время прихода,минут"] = d4;
+                                dataRow[@"Время прихода"] = ConvertStringsTimeToDecimal(d3, d4);
+                                dataRow[@"Время ухода,часы"] = d13;
+                                dataRow[@"Время ухода,минут"] = d14;
+                                dataRow[@"Время ухода"] = ConvertStringsTimeToDecimal(d13, d14);
+                                dataRow[@"Отдел"] = nameGroup;
+                                dataRow[@"Время прихода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(d3, d4);
+                                dataRow[@"Время ухода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(d13, d14);
 
                                 dtTemp.Rows.Add(dataRow);
                                 numberPeopleInLoading++;
@@ -1621,7 +1636,8 @@ namespace mySCA2
         private void importPeopleInLocalDBToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ImportTextToTable(dtPersonGroup);
-            ImporTableToLocalDB(databasePerson.ToString(), dtPersonGroup);
+            ImportTablePeopleToTableGroupsInLocalDB(databasePerson.ToString(), dtPersonGroup);
+            ImportListGroupsDescriptionInLocalDB(databasePerson.ToString(), listGroups);
         }
 
         private void ImportTextToTable(DataTable dt) //Fill dtPeople
@@ -1692,7 +1708,7 @@ namespace mySCA2
             }
         }
 
-        private void ImporTableToLocalDB(string pathToPersonDB, DataTable dtSource) //use listGroups
+        private void ImportTablePeopleToTableGroupsInLocalDB(string pathToPersonDB, DataTable dtSource) //use listGroups
         {
             using (var connection = new SQLiteConnection($"Data Source={pathToPersonDB};Version=3;"))
             {
@@ -1700,40 +1716,54 @@ namespace mySCA2
 
                 //import groups
                 SQLiteCommand commandTransaction = new SQLiteCommand("begin", connection);
-                commandTransaction.ExecuteNonQuery();
-                using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PersonGroupDesciption' (GroupPerson, GroupPersonDescription) " +
-                                        "VALUES (@GroupPerson, @GroupPersonDescription )", connection))
-                {
-                    foreach (string group in listGroups.Distinct())
-                    {
-                        command.Parameters.Add("@GroupPerson", DbType.String).Value = group;
-                        command.Parameters.Add("@GroupPersonDescription", DbType.String).Value = group;
-                        try { command.ExecuteNonQuery(); } catch { }
-                    }
-                }
-                commandTransaction = new SQLiteCommand("end", connection);
-                commandTransaction.ExecuteNonQuery();
-
-                //import people
-                commandTransaction = new SQLiteCommand("begin", connection);
-                commandTransaction.ExecuteNonQuery();
+                commandTransaction.ExecuteNonQuery();                
                 using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PersonGroup' (FIO, NAV, GroupPerson, HourControlling, MinuteControlling, Controlling, HourControllingOut, MinuteControllingOut, ControllingOut, ControllingHHMM, ControllingOUTHHMM) " +
                                          "VALUES (@FIO, @NAV, @GroupPerson, @HourControlling, @MinuteControlling, @Controlling, @HourControllingOut, @MinuteControllingOut, @ControllingOut, @ControllingHHMM, @ControllingOUTHHMM)", connection))
                 {
                     foreach (DataRow row in dtSource.Rows)
                     {
-                        command.Parameters.Add("@FIO", DbType.String).Value = row[0].ToString(); //row[0]
-                        command.Parameters.Add("@NAV", DbType.String).Value = row[1].ToString();
-                        command.Parameters.Add("@GroupPerson", DbType.String).Value = row[2].ToString();
-                        command.Parameters.Add("@HourControlling", DbType.String).Value = row[3].ToString();
-                        command.Parameters.Add("@MinuteControlling", DbType.String).Value = row[4].ToString();
-                        command.Parameters.Add("@Controlling", DbType.Decimal).Value = TryParseStringToDecimal(row[5].ToString());
-                        command.Parameters.Add("@HourControllingOut", DbType.String).Value = row[6].ToString();
-                        command.Parameters.Add("@MinuteControllingOut", DbType.String).Value = row[7].ToString();
-                        command.Parameters.Add("@ControllingOut", DbType.Decimal).Value = TryParseStringToDecimal(row[8].ToString());
-                        command.Parameters.Add("@ControllingHHMM", DbType.String).Value = row[22].ToString();
-                        command.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = row[23].ToString();
+                        command.Parameters.Add("@FIO", DbType.String).Value = row[@"Фамилия Имя Отчество"].ToString(); //row[0]
+                        command.Parameters.Add("@NAV", DbType.String).Value = row[@"NAV-код"].ToString();
+                        command.Parameters.Add("@GroupPerson", DbType.String).Value = row[@"Группа"].ToString();
+                        command.Parameters.Add("@HourControlling", DbType.String).Value = row[@"Время прихода,часы"].ToString();
+                        command.Parameters.Add("@MinuteControlling", DbType.String).Value = row[@"Время прихода,минут"].ToString();
+                        command.Parameters.Add("@Controlling", DbType.Decimal).Value = TryParseStringToDecimal(row[@"Время прихода"].ToString());
+                        command.Parameters.Add("@HourControllingOut", DbType.String).Value = row[@"Время ухода,часы"].ToString();
+                        command.Parameters.Add("@MinuteControllingOut", DbType.String).Value = row[@"Время ухода,минут"].ToString();
+                        command.Parameters.Add("@ControllingOut", DbType.Decimal).Value = TryParseStringToDecimal(row[@"Время ухода"].ToString());
+                        command.Parameters.Add("@ControllingHHMM", DbType.String).Value = row[@"Время прихода ЧЧ:ММ"].ToString();
+                        command.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = row[@"Время ухода ЧЧ:ММ"].ToString();
                         try { command.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                    }
+                }
+                commandTransaction = new SQLiteCommand("end", connection);
+                commandTransaction.ExecuteNonQuery();
+            }
+        }
+
+        private void ImportListGroupsDescriptionInLocalDB(string pathToPersonDB, List<string> groups) //use listGroups
+        {
+            using (var connection = new SQLiteConnection($"Data Source={pathToPersonDB};Version=3;"))
+            {
+                connection.Open();
+                SQLiteCommand commandTransaction = new SQLiteCommand("begin", connection);
+                commandTransaction.ExecuteNonQuery();
+                using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PersonGroupDesciption' (GroupPerson, GroupPersonDescription) " +
+                                        "VALUES (@GroupPerson, @GroupPersonDescription )", connection))
+                {
+                    foreach (string group in groups.Distinct())
+                    {
+                        if (group.Contains('|'))
+                        {
+                            command.Parameters.Add("@GroupPerson", DbType.String).Value = group.Split('|')[0];
+                            command.Parameters.Add("@GroupPersonDescription", DbType.String).Value = group.Split('|')[1];
+                        }
+                        else
+                        {
+                            command.Parameters.Add("@GroupPerson", DbType.String).Value = group;
+                            command.Parameters.Add("@GroupPersonDescription", DbType.String).Value = group;
+                        }
+                        try { command.ExecuteNonQuery(); } catch { }
                     }
                 }
                 commandTransaction = new SQLiteCommand("end", connection);
@@ -2471,7 +2501,7 @@ namespace mySCA2
             return foundNavCode;
         }
 
-        private void DeleteGroupItem_Click(object sender, EventArgs e) //DeleteCurrentRow()
+        private void DeleteCurrentRow(object sender, EventArgs e) //DeleteCurrentRow()
         { DeleteCurrentRow(); }
                 
         private void infoItem_Click(object sender, EventArgs e)
@@ -2685,18 +2715,18 @@ namespace mySCA2
         {
             string tBox = "";
             if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { tBox = txtBox.Text.Trim(); }));
+                Invoke(new MethodInvoker(delegate { tBox = txtBox.Text.ToString().Trim(); }));
             else
-                tBox = txtBox.Text.Trim();
+                tBox = txtBox.Text.ToString().Trim();
             return tBox;
         }
 
         private void _textBoxSetText(TextBox txtBox, string s) //add string into  from other threads
         {
             if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { txtBox.Text = s; }));
+                Invoke(new MethodInvoker(delegate { txtBox.Text = s.Trim(); }));
             else
-                txtBox.Text = s;
+                txtBox.Text = s.Trim();
         }
 
         private void _comboBoxFioAdd(string s) //add string into  from other threads
@@ -2751,9 +2781,20 @@ namespace mySCA2
         {
             string result = "";
             if (InvokeRequired)
-            { Invoke(new MethodInvoker(delegate { result = comboBox.SelectedItem.ToString().Trim(); })); }
+            {
+                Invoke(new MethodInvoker(delegate
+                {
+                    result = comboBox.SelectedIndex == -1
+                     ? comboBox.Text.Trim()
+                         : comboBox.SelectedItem.ToString();
+                }));
+            }
             else
-            { result = comboBox.SelectedItem.ToString().Trim(); }
+            {
+                result = comboBox.SelectedIndex == -1
+                               ? comboBox.Text.Trim()
+                                   : comboBox.SelectedItem.ToString();
+            }
             return result;
         }
 
@@ -3851,7 +3892,7 @@ namespace mySCA2
             UpdateTableOfDB();
 
             ShowDataTableQuery(databasePerson, "PersonRegisteredFull");
-            StatusLabel2.Text = @"Отчеты удалены";
+            StatusLabel2.Text = @"Временные таблицы удалены";
         }
 
         private void ClearDataItem_Click(object sender, EventArgs e) //ReCreateAllPeopleTables()
@@ -3864,6 +3905,7 @@ namespace mySCA2
             DeleteTable(databasePerson, "PersonTemp");
             DeleteTable(databasePerson, "PersonsLastList");
             DeleteTable(databasePerson, "PersonsLastComboList");
+
             comboBoxFio.Items.Clear();
             comboBoxFio.SelectedText = "";
             try { comboBoxFio.Text = ""; } catch { }
@@ -3872,9 +3914,9 @@ namespace mySCA2
             textBoxGroupDescription.Text = "";
             textBoxNav.Text = "";
             listFIO.Clear();
-            iFIO = 0;
-            StatusLabel2.Text = @"База очищена. Остались только созданные группы";
             GC.Collect();
+            iFIO = 0;
+            StatusLabel2.Text = @"База очищена от загруженных данных. Остались только созданные группы";
             TryMakeDB();
             UpdateTableOfDB();
         }
@@ -3913,34 +3955,7 @@ namespace mySCA2
             }
             else
             { TryMakeDB(); }
-            StatusLabel2.Text = "Все данные удалены. База пересоздана";
-        }
-
-        private void CountDataInTheTableQuery(string myTable) //Count elements in myTable
-        {
-            iCounterLine = 0;
-            if (databasePerson.Exists)
-            {
-                using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
-                {
-                    sqlConnection.Open();
-
-                    using (var sqlCommand = new SQLiteCommand("Select * FROM '" + myTable + "'; ", sqlConnection))
-                    {
-                        using (var sqlReader = sqlCommand.ExecuteReader())
-                        {
-                            foreach (DbDataRecord record in sqlReader)
-                            {
-                                try
-                                {
-                                    if (record?["id"] != null)
-                                    { iCounterLine++; }
-                                } catch { }
-                            }
-                        }
-                    }
-                }
-            }
+            StatusLabel2.Text = @"Все таблицы очищены";
         }
 
         private void SelectPersonFromDataGrid(Person personSelected)
@@ -4886,10 +4901,8 @@ namespace mySCA2
         { dateTimePickerStart.MaxDate = DateTime.Parse(dateTimePickerEnd.Value.Year + "-" + dateTimePickerEnd.Value.Month + "-" + dateTimePickerEnd.Value.Day); }
 
         private bool isPerson = true; //Check
-        private void PersonOrGroupItem_Click(object sender, EventArgs e)
-        {
-            PersonOrGroup(isPerson);
-        }
+        private void PersonOrGroupItem_Click(object sender, EventArgs e) //PersonOrGroup()
+        { PersonOrGroup(isPerson); }
 
         private void PersonOrGroup(bool isPerson)
         {
@@ -4973,10 +4986,36 @@ namespace mySCA2
         private void MailingItem()
         {
             List<string> listComboParameters = new List<string>();
-            listComboParameters.Add("Ежедневная");
-            listComboParameters.Add("Еженедельная");
-            listComboParameters.Add("Ежемесячная");
+            listComboParameters.Add("Все");
 
+            List<string> periodComboParameters = new List<string>();
+            periodComboParameters.Add("Текущую неделю");
+            periodComboParameters.Add("Предыдущую неделю");
+            periodComboParameters.Add("Текущий месяц");
+            periodComboParameters.Add("Предыдущий месяц");
+            
+            //get list groups from DB and add to listComboParameters
+            using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = new SQLiteCommand(
+                    "SELECT GroupPerson, GroupPersonDescription FROM PersonGroupDesciption;", sqlConnection))
+                {
+                    using (var sqlReader = sqlCommand.ExecuteReader())
+                    {
+                        foreach (DbDataRecord record in sqlReader)
+                        {
+                            if (record != null && record["GroupPerson"].ToString().Length > 0)
+                            {
+                                listComboParameters.Add(record["GroupPerson"].ToString().Trim());
+
+                            }
+                        }
+                    }
+                }
+                sqlConnection.Close();
+            }
+                        
             SettingsView(
                     "Отправитель", mailServerUserName, @"Отправитель рассылки в виде: Name@Domain.Subdomain",
                     "Получатель рассылки", "", @"Получатель рассылки в виде: Name@Domain.Subdomain",
@@ -4984,11 +5023,12 @@ namespace mySCA2
                     "Наименование", "", @"Краткое наименование рассылки",
                     "Описание", "", "Краткое описание рассылки",
                     "", "", "Неиспользуемое поле",
-                    "Расписание", listComboParameters
+                    "Отчет", listComboParameters, "Варинт генерируемого отчета",
+                    "Период", periodComboParameters, "Выбрать, за какой период делать отчет"
                     );
         }
 
-        private void MailingSave(string recipientEmail, string senderEmail, string typeReport, string description, string schedule)
+        private void MailingSave(string recipientEmail, string senderEmail, string typeReport, string description, string schedule, string period)
         {
             bool recipientValid = false;
             bool senderValid = false;
@@ -5012,14 +5052,15 @@ namespace mySCA2
                     SQLiteCommand sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
 
-                    using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'Mailing' (SenderEmail, RecipientEmail, Schedule, TypeReport, Description, DateCreated)" +
-                               " VALUES (@SenderEmail, @RecipientEmail, @Schedule, @TypeReport, @Description, @DateCreated)", sqlConnection))
+                    using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'Mailing' (SenderEmail, RecipientEmail, Schedule, TypeReport, Description, DateCreated, Reserv1)" +
+                               " VALUES (@SenderEmail, @RecipientEmail, @Schedule, @TypeReport, @Description, @DateCreated, @Reserv1)", sqlConnection))
                     {
                         sqlCommand.Parameters.Add("@SenderEmail", DbType.String).Value = senderEmail;
                         sqlCommand.Parameters.Add("@RecipientEmail", DbType.String).Value = recipientEmail;
                         sqlCommand.Parameters.Add("@Schedule", DbType.String).Value = schedule;
                         sqlCommand.Parameters.Add("@TypeReport", DbType.String).Value = typeReport;
                         sqlCommand.Parameters.Add("@Description", DbType.String).Value = description;
+                        sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = period;
                         sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = localDate.ToString();
 
                         try { sqlCommand.ExecuteNonQuery(); } catch { }
@@ -5027,11 +5068,9 @@ namespace mySCA2
 
                     sqlCommand1 = new SQLiteCommand("end", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
-                    sqlCommand1.Dispose();
                 }
             }
 
-            ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Расписание', TypeReport AS 'Тип отчета', Description AS 'Описание', DateCreated AS 'Дата создания/модификации'  ", " group by SenderEmail ORDER BY SenderEmail asc; ");
             if (databasePerson.Exists && typeReport.Length > 0 && senderValid && recipientValid)
             {
                 _toolStripStatusLabelSetText(StatusLabel2, "Добавлена рассылка: " + typeReport+"| Всего рассылок: "+_dataGridView1RowsCount());
@@ -5055,7 +5094,8 @@ namespace mySCA2
                 "MailServer", mailServer, "Имя почтового сервера \"Mail Server\" в виде - NameOfServer.Domain.Subdomain",
                 "Sender's e-mail", mailServerUserName, "E-mail отправителя рассылок виде - User.Name@MailServer.Domain.Subdomain",
                 "Sender's password", mailServerUserPassword, "Пароль E-mail отправителя почты",
-                "", new List<string>()
+                "", new List<string>(),"",
+                "", new List<string>(), ""
                 );
         }
 
@@ -5066,7 +5106,8 @@ namespace mySCA2
             string label4, string txtbox4, string tooltip4,
             string label5, string txtbox5, string tooltip5,
             string label6, string txtboxPassword6, string tooltip6,
-            string nameLabel, List<string> listStrings1
+            string nameLabel7, List<string> listStrings7, string tooltip7,
+            string periodLabel8, List<string> periodStrings8, string tooltip8
             )
         {
             panelViewResize(numberPeopleInLoading);
@@ -5214,11 +5255,11 @@ namespace mySCA2
                 toolTip1.SetToolTip(textBoxMailServerUserPassword, tooltip6);
             }
 
-            if (listStrings1.Count > 1 && nameLabel.Length > 0)
+            if (listStrings7.Count > 1 && nameLabel7.Length > 0)
             {
                 listComboLabel = new Label
                 {
-                    Text = nameLabel,
+                    Text = nameLabel7,
                     BackColor = Color.PaleGreen,
                     Location = new Point(20, 120),
                     Size = new Size(590, 22),
@@ -5230,11 +5271,39 @@ namespace mySCA2
                 listCombo = new ComboBox
                 {
                     Location = new Point(90, 121),
-                    Size = new Size(100, 20),
+                    Size = new Size(120, 20),
+                    Parent = groupBoxProperties
+                };
+                toolTip1.SetToolTip(listCombo, tooltip7);
+
+                listCombo.DataSource = listStrings7;
+                listCombo.KeyPress += new KeyPressEventHandler(listCombo_KeyPress);
+            }
+
+
+            if (periodStrings8.Count > 1 && periodLabel8.Length > 0)
+            {
+                periodComboLabel = new Label
+                {
+                    Text = periodLabel8,
+                    BackColor = Color.PaleGreen,
+                    Location = new Point(150, 120),
+                    Size = new Size(90, 22),
+                    BorderStyle = BorderStyle.None,
+                    TextAlign = ContentAlignment.MiddleLeft,
                     Parent = groupBoxProperties
                 };
 
-                listCombo.DataSource = listStrings1;
+                periodCombo = new ComboBox
+                {
+                    Location = new Point(190, 121),
+                    Size = new Size(120, 20),
+                    Parent = groupBoxProperties
+                };
+                toolTip1.SetToolTip(periodCombo, tooltip8);
+
+                periodCombo.DataSource = periodStrings8;
+                periodCombo.KeyPress += new KeyPressEventHandler(periodCombo_KeyPress);
             }
 
             labelServer1?.BringToFront();
@@ -5254,6 +5323,22 @@ namespace mySCA2
             listCombo?.BringToFront();
 
             groupBoxProperties.Visible = true;
+        }
+
+       private void periodCombo_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)13)//если нажата Enter
+            {
+                periodCombo.Items.Add(periodCombo.Text);
+            }
+        }
+
+        private void listCombo_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)13)//если нажата Enter
+            {
+                listCombo.Items.Add(listCombo.Text);
+            }
         }
 
         private void buttonPropertiesCancel_Click(object sender, EventArgs e)
@@ -5279,6 +5364,9 @@ namespace mySCA2
             _controlDispose(listComboLabel);
             _controlDispose(listCombo);
 
+            _controlDispose(periodComboLabel);
+            _controlDispose(periodCombo);
+
             _MenuItemEnabled(SettingsMenuItem, true);
             _MenuItemEnabled(FunctionMenuItem, true);
             _MenuItemEnabled(GroupsMenuItem, true);
@@ -5289,13 +5377,16 @@ namespace mySCA2
             panelView.Visible = true;
             if (btnName == @"Сохранить рассылку")
             {
-                ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Расписание', TypeReport AS 'Тип отчета', Description AS 'Описание', DateCreated AS 'Дата создания/модификации'  ", " group by SenderEmail ORDER BY SenderEmail asc; ");
+                ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Отчет', " + 
+                    "TypeReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации' ", " ORDER BY RecipientEmail asc; ");
             }
         }
 
+
         private void buttonPropertiesSave_Click(object sender, EventArgs e) //PropertiesSave()
         {
-            string btnName = btnPropertiesSave.Text;
+            string btnName = btnPropertiesSave.Text.ToString();
+
             if (btnName == @"Сохранить настройки")
             { PropertiesSave(); }
             else if (btnName == @"Сохранить рассылку")
@@ -5309,26 +5400,30 @@ namespace mySCA2
                 string schedule = _comboBoxReturnSelected(listCombo);
 
                 MailingSave(recipientEmail, senderEmail, typeReport, description, schedule);
-
-                _controlDispose(labelServer1);
-                _controlDispose(labelServer1UserName);
-                _controlDispose(labelServer1UserPassword);
-                _controlDispose(labelMailServerName);
-                _controlDispose(labelMailServerUserName);
-                _controlDispose(labelMailServerUserPassword);
-
-                _controlDispose(textBoxServer1);
-                _controlDispose(textBoxServer1UserName);
-                _controlDispose(textBoxServer1UserPassword);
-                _controlDispose(textBoxMailServerName);
-                _controlDispose(textBoxMailServerUserName);
-                _controlDispose(textBoxMailServerUserPassword);
-
-                _controlDispose(listComboLabel);
-                _controlDispose(listCombo);
-
-                _controlVisible(panelView, true);
+                ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Отчет', " +
+                    "TypeReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации' ", " ORDER BY RecipientEmail asc; ");
             }
+            _controlDispose(labelServer1);
+            _controlDispose(labelServer1UserName);
+            _controlDispose(labelServer1UserPassword);
+            _controlDispose(labelMailServerName);
+            _controlDispose(labelMailServerUserName);
+            _controlDispose(labelMailServerUserPassword);
+
+            _controlDispose(textBoxServer1);
+            _controlDispose(textBoxServer1UserName);
+            _controlDispose(textBoxServer1UserPassword);
+            _controlDispose(textBoxMailServerName);
+            _controlDispose(textBoxMailServerUserName);
+            _controlDispose(textBoxMailServerUserPassword);
+
+            _controlDispose(listComboLabel);
+            _controlDispose(listCombo);
+
+            _controlDispose(periodComboLabel);
+            _controlDispose(periodCombo);
+
+            _controlVisible(panelView, true);
 
             _MenuItemEnabled(SettingsMenuItem, true);
             _MenuItemEnabled(FunctionMenuItem, true);
@@ -5410,21 +5505,6 @@ namespace mySCA2
                         sqlCommand1.Dispose();
                     }
                 }
-                _controlDispose(labelServer1);
-                _controlDispose(labelServer1UserName);
-                _controlDispose(labelServer1UserPassword);
-                _controlDispose(labelMailServerName);
-                _controlDispose(labelMailServerUserName);
-                _controlDispose(labelMailServerUserPassword);
-
-                _controlDispose(textBoxServer1);
-                _controlDispose(textBoxServer1UserName);
-                _controlDispose(textBoxServer1UserPassword);
-                _controlDispose(textBoxMailServerName);
-                _controlDispose(textBoxMailServerUserName);
-                _controlDispose(textBoxMailServerUserPassword);
-
-                _controlVisible(panelView, true);
             }
             else
             {
@@ -5715,6 +5795,8 @@ namespace mySCA2
                     }
 
                     MailingSave(recipientEmail, senderEmail, typeReport, description, schedule);
+                    ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Отчет', " +
+                        "TypeReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации' ", " ORDER BY RecipientEmail asc; ");
                 }
             } catch
             {
@@ -5841,20 +5923,16 @@ namespace mySCA2
 
         private void dataGridView1_MouseClick(object sender, MouseEventArgs e)
         {
-            /*
             if (e.Button == MouseButtons.Right)
             {
                 int currentMouseOverRow = dataGridView1.HitTest(e.X, e.Y).RowIndex;
-                if (nameOfLastTableFromDB == "Mailing" && currentMouseOverRow > -1)
+                if ((nameOfLastTableFromDB == "Mailing" || nameOfLastTableFromDB == "PersonGroupDesciption") && currentMouseOverRow > -1)
                 {
                     ContextMenu mRightClick = new ContextMenu();
-
-                    mRightClick.MenuItems.Add(new MenuItem("Сохранить отредактированную рассылку", MailingSave));
-                    mRightClick.MenuItems.Add(new MenuItem("Удалить выделенную рассылку", MailingDelete));
-                    currentDataGridViewRow = currentMouseOverRow;
+                    mRightClick.MenuItems.Add(new MenuItem("Удалить выделенную строку", DeleteCurrentRow));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
-            }*/
+            }
         }
         /*
         private void MailingSave(object sender, EventArgs e) 
@@ -5896,8 +5974,6 @@ namespace mySCA2
             MailingSave(recipientEmail, senderEmail, typeReport, description, schedule);
         }*/
 
-        private void MailingDelete(object sender, EventArgs e)
-        { DeleteCurrentRow(); }
 
         private void DeleteCurrentRow()
         {
@@ -5905,27 +5981,31 @@ namespace mySCA2
             int IndexColumn2 = -1;           // индекс 2-й колонки в датагрид
 
             int IndexCurrentRow = _dataGridView1CurrentRowIndex();
+
             if (IndexCurrentRow > -1)
             {
                 switch (nameOfLastTableFromDB)
                 {
                     case "PersonGroupDesciption":
                         {
+                            string selectedGroup = "";
                             for (int i = 0; i < dataGridView1.ColumnCount; i++)
                             {
-                                if (dataGridView1.Columns[i].HeaderText == "GroupPerson")
+                                if (dataGridView1.Columns[i].HeaderText == "GroupPerson"|| dataGridView1.Columns[i].HeaderText == "Группа")
                                 { IndexColumn1 = i; }
                             }
 
                             if (IndexColumn1 > -1)
                             {
-                                DeleteDataTableQueryParameters(databasePerson, "PersonGroup", "GroupPerson", dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString().Trim());
-                                DeleteDataTableQueryParameters(databasePerson, "PersonGroupDesciption", "GroupPerson", dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString().Trim());
+                                selectedGroup = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString().Trim();
+                                DeleteDataTableQueryParameters(databasePerson, "PersonGroup", "GroupPerson", selectedGroup);
+                                DeleteDataTableQueryParameters(databasePerson, "PersonGroupDesciption", "GroupPerson", selectedGroup);
                             }
                             PersonOrGroupItem.Text = "Работа с одной персоной";
 
-                            MembersGroupItem.Enabled = true;
                             ListGroups();
+                            MembersGroupItem.Enabled = true;
+                            _toolStripStatusLabelSetText(StatusLabel2, "Удалена группа: " + selectedGroup + "| Всего групп: " + _dataGridView1RowsCount());
                             break;
                         }
                     case "PersonGroup" when textBoxGroup.Text.Trim().Length > 0:
@@ -5946,7 +6026,7 @@ namespace mySCA2
                             {
                                 if (dataGridView1.Columns[i].HeaderText == "Получатель" || dataGridView1.Columns[i].HeaderText == "RecipientEmail")
                                 { IndexColumn1 = i; }
-                                else if (dataGridView1.Columns[i].HeaderText == "Тип отчета" || dataGridView1.Columns[i].HeaderText == "TypeReport")
+                                else if (dataGridView1.Columns[i].HeaderText == "Наименование" || dataGridView1.Columns[i].HeaderText == "TypeReport")
                                 {
                                     IndexColumn2 = i;
                                     typeReport = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString();
@@ -5959,8 +6039,9 @@ namespace mySCA2
                                     "RecipientEmail", dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString(),
                                     "TypeReport", typeReport);
                             }
-                            ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Расписание', TypeReport AS 'Тип отчета', Description AS 'Описание', DateCreated AS 'Дата создания/модификации'  ", " group by SenderEmail ORDER BY SenderEmail asc; ");
-                            _toolStripStatusLabelSetText(StatusLabel2, "Удалена рассылка рассылка " + typeReport+"| Всего рассылок: "+_dataGridView1RowsCount());
+                            _toolStripStatusLabelSetText(StatusLabel2, "Удалена рассылка отчета " + typeReport+"| Всего рассылок: "+_dataGridView1RowsCount());
+                            ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Отчет', " +
+                                "TypeReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации' ", " ORDER BY RecipientEmail asc; ");
                             break;
                         }
                     default:
@@ -6171,6 +6252,14 @@ namespace mySCA2
 
                 //Display the original data and the decrypted data.
                 MessageBox.Show("Decrypted:    " + decrypted);
+            }
+        }
+
+        private void comboBoxFio_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)13)//если нажата Enter
+            {
+                comboBoxFio.Items.Add(comboBoxFio.Text);
             }
         }
 

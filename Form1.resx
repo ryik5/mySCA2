@@ -2355,7 +2355,7 @@
     <value>330, 18</value>
   </data>
   <data name="btnPropertiesChangingCancel.Size" type="System.Drawing.Size, System.Drawing">
-    <value>82, 27</value>
+    <value>82, 23</value>
   </data>
   <data name="btnPropertiesChangingCancel.TabIndex" type="System.Int32, mscorlib">
     <value>1</value>
@@ -2379,10 +2379,10 @@
     <value>True</value>
   </data>
   <data name="btnPropertiesSave.Location" type="System.Drawing.Point, System.Drawing">
-    <value>31, 18</value>
+    <value>20, 18</value>
   </data>
   <data name="btnPropertiesSave.Size" type="System.Drawing.Size, System.Drawing">
-    <value>189, 27</value>
+    <value>200, 23</value>
   </data>
   <data name="btnPropertiesSave.TabIndex" type="System.Int32, mscorlib">
     <value>0</value>

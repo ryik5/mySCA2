@@ -165,6 +165,7 @@
             this.comboBoxFio.Sorted = true;
             this.toolTip1.SetToolTip(this.comboBoxFio, resources.GetString("comboBoxFio.ToolTip"));
             this.comboBoxFio.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
+            this.comboBoxFio.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.comboBoxFio_KeyPress);
             // 
             // numUpDownHourStart
             // 
@@ -517,7 +518,7 @@
             // 
             this.DeleteGroupItem.Name = "DeleteGroupItem";
             resources.ApplyResources(this.DeleteGroupItem, "DeleteGroupItem");
-            this.DeleteGroupItem.Click += new System.EventHandler(this.DeleteGroupItem_Click);
+            this.DeleteGroupItem.Click += new System.EventHandler(this.DeleteCurrentRow);
             // 
             // DeletePersonFromGroupItem
             // 
@@ -619,7 +620,7 @@
             // 
             this.deleteSelectedMailingItem.Name = "deleteSelectedMailingItem";
             resources.ApplyResources(this.deleteSelectedMailingItem, "deleteSelectedMailingItem");
-            this.deleteSelectedMailingItem.Click += new System.EventHandler(this.MailingDelete);
+            this.deleteSelectedMailingItem.Click += new System.EventHandler(this.DeleteCurrentRow);
             // 
             // HelpMenuItem
             // 
