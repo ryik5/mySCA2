@@ -2501,10 +2501,7 @@ namespace mySCA2
             return foundNavCode;
         }
 
-        private void DeleteCurrentRow(object sender, EventArgs e) //DeleteCurrentRow()
-        { DeleteCurrentRow(); }
-                
-        private void infoItem_Click(object sender, EventArgs e)
+         private void infoItem_Click(object sender, EventArgs e)
         { ShowDataTableQuery(databasePerson, "TechnicalInfo", "SELECT PCName AS 'Версия Windows',POName AS 'Путь к ПО',POVersion AS 'Версия ПО',LastDateStarted AS 'Дата использования' ", "ORDER BY LastDateStarted DESC"); }
 
         private void EnterEditAnualItem_Click(object sender, EventArgs e) //Select - EnterEditAnual() or ExitEditAnual()
@@ -4989,9 +4986,9 @@ namespace mySCA2
             listComboParameters.Add("Все");
 
             List<string> periodComboParameters = new List<string>();
-            periodComboParameters.Add("Текущую неделю");
-            periodComboParameters.Add("Предыдущую неделю");
+            periodComboParameters.Add("Текущая неделя");
             periodComboParameters.Add("Текущий месяц");
+            periodComboParameters.Add("Предыдущая неделя");
             periodComboParameters.Add("Предыдущий месяц");
             
             //get list groups from DB and add to listComboParameters
@@ -5008,7 +5005,6 @@ namespace mySCA2
                             if (record != null && record["GroupPerson"].ToString().Length > 0)
                             {
                                 listComboParameters.Add(record["GroupPerson"].ToString().Trim());
-
                             }
                         }
                     }
@@ -5079,11 +5075,7 @@ namespace mySCA2
 
         private void SettingsProgrammItem_Click(object sender, EventArgs e)
         {
-            _MenuItemEnabled(SettingsMenuItem, false);
-            _MenuItemEnabled(FunctionMenuItem, false);
-            _MenuItemEnabled(GroupsMenuItem, false);
-            _MenuItemEnabled(AnualDatesMenuItem, false);
-            CheckBoxesFiltersAll_Enable(false);
+            EnableMainMenuItems(false);
             _controlVisible(panelView, false);
 
             btnPropertiesSave.Text = "Сохранить настройки";
@@ -5341,12 +5333,9 @@ namespace mySCA2
             }
         }
 
-        private void buttonPropertiesCancel_Click(object sender, EventArgs e)
+        private void DisposeTemporaryControls()
         {
-            string btnName = btnPropertiesSave.Text;
-
-            groupBoxProperties.Visible = false;
-
+            _controlVisible(groupBoxProperties,false);
             _controlDispose(labelServer1);
             _controlDispose(labelServer1UserName);
             _controlDispose(labelServer1UserPassword);
@@ -5367,22 +5356,32 @@ namespace mySCA2
             _controlDispose(periodComboLabel);
             _controlDispose(periodCombo);
 
-            _MenuItemEnabled(SettingsMenuItem, true);
-            _MenuItemEnabled(FunctionMenuItem, true);
-            _MenuItemEnabled(GroupsMenuItem, true);
-            _MenuItemEnabled(AnualDatesMenuItem, true);
+        }
 
-            CheckBoxesFiltersAll_Enable(true);
+        private void EnableMainMenuItems(bool enabled)
+        {
+            _MenuItemEnabled(SettingsMenuItem, enabled);
+            _MenuItemEnabled(FunctionMenuItem, enabled);
+            _MenuItemEnabled(GroupsMenuItem, enabled);
+            _MenuItemEnabled(AnualDatesMenuItem, enabled);
 
-            panelView.Visible = true;
+            CheckBoxesFiltersAll_Enable(enabled);
+        }
+
+        private void buttonPropertiesCancel_Click(object sender, EventArgs e)
+        {
+            string btnName = btnPropertiesSave.Text;
+
+            DisposeTemporaryControls();
+            EnableMainMenuItems(true);
+
             if (btnName == @"Сохранить рассылку")
             {
                 ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Отчет', " + 
                     "TypeReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации' ", " ORDER BY RecipientEmail asc; ");
             }
         }
-
-
+        
         private void buttonPropertiesSave_Click(object sender, EventArgs e) //PropertiesSave()
         {
             string btnName = btnPropertiesSave.Text.ToString();
@@ -5398,37 +5397,16 @@ namespace mySCA2
                 string typeReport = _textBoxReturnText(textBoxMailServerName);
                 string description = _textBoxReturnText(textBoxMailServerUserName);
                 string schedule = _comboBoxReturnSelected(listCombo);
+                string period = _comboBoxReturnSelected(periodCombo);
 
-                MailingSave(recipientEmail, senderEmail, typeReport, description, schedule);
+                MailingSave(recipientEmail, senderEmail, typeReport, description, schedule, period);
                 ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Отчет', " +
                     "TypeReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации' ", " ORDER BY RecipientEmail asc; ");
             }
-            _controlDispose(labelServer1);
-            _controlDispose(labelServer1UserName);
-            _controlDispose(labelServer1UserPassword);
-            _controlDispose(labelMailServerName);
-            _controlDispose(labelMailServerUserName);
-            _controlDispose(labelMailServerUserPassword);
 
-            _controlDispose(textBoxServer1);
-            _controlDispose(textBoxServer1UserName);
-            _controlDispose(textBoxServer1UserPassword);
-            _controlDispose(textBoxMailServerName);
-            _controlDispose(textBoxMailServerUserName);
-            _controlDispose(textBoxMailServerUserPassword);
-
-            _controlDispose(listComboLabel);
-            _controlDispose(listCombo);
-
-            _controlDispose(periodComboLabel);
-            _controlDispose(periodCombo);
-
+            DisposeTemporaryControls();
+            EnableMainMenuItems(true);
             _controlVisible(panelView, true);
-
-            _MenuItemEnabled(SettingsMenuItem, true);
-            _MenuItemEnabled(FunctionMenuItem, true);
-            _MenuItemEnabled(GroupsMenuItem, true);
-            _MenuItemEnabled(AnualDatesMenuItem, true);
         }
 
         private void PropertiesSave() //Save Parameters into Registry and variables
@@ -5688,7 +5666,6 @@ namespace mySCA2
 
             try
             {
-
                 if (nameOfLastTableFromDB == "PersonGroup")
                 {
                     int IndexCurrentRow = _dataGridView1CurrentRowIndex();
@@ -5760,41 +5737,7 @@ namespace mySCA2
                 }
                 else if (nameOfLastTableFromDB == "Mailing")
                 {
-                    string recipientEmail = "";
-                    string senderEmail = "";
-                    string typeReport = "";
-                    string description = "";
-                    string schedule = "";
-
-                    int IndexCurrentRow = _dataGridView1CurrentRowIndex();
-                    if (IndexCurrentRow > -1)
-                    {
-                        for (int i = 0; i < dataGridView1.ColumnCount; i++)
-                        {
-                            if (dataGridView1.Columns[i].HeaderText == @"Получатель" || dataGridView1.Columns[i].HeaderText == @"RecipientEmail")
-                            {
-                                recipientEmail = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                            }
-                            else if (dataGridView1.Columns[i].HeaderText == @"Отправитель" || dataGridView1.Columns[i].HeaderText == @"SenderEmail")
-                            {
-                                senderEmail = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                            }
-                            else if (dataGridView1.Columns[i].HeaderText == @"Тип отчета" || dataGridView1.Columns[i].HeaderText == @"TypeReport")
-                            {
-                                typeReport = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                            }
-                            else if (dataGridView1.Columns[i].HeaderText == @"Описание" || dataGridView1.Columns[i].HeaderText == @"Description")
-                            {
-                                description = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                            }
-                            else if (dataGridView1.Columns[i].HeaderText == @"Расписание" || dataGridView1.Columns[i].HeaderText == @"Schedule")
-                            {
-                                schedule = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                            }
-                        }
-                    }
-
-                    MailingSave(recipientEmail, senderEmail, typeReport, description, schedule);
+                    FindSelectedMailingOnDatagridviewAndSave();
                     ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Отчет', " +
                         "TypeReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации' ", " ORDER BY RecipientEmail asc; ");
                 }
@@ -5875,6 +5818,49 @@ namespace mySCA2
             }
         }
 
+        private void FindSelectedMailingOnDatagridviewAndSave()
+        {
+            string recipientEmail = "";
+            string senderEmail = "";
+            string typeReport = "";
+            string description = "";
+            string schedule = "";
+            string period = "";
+            
+            int IndexCurrentRow = _dataGridView1CurrentRowIndex();
+            if (IndexCurrentRow > -1)
+            {
+                for (int i = 0; i < dataGridView1.ColumnCount; i++)
+                {
+                    if (dataGridView1.Columns[i].HeaderText == @"Получатель" || dataGridView1.Columns[i].HeaderText == @"RecipientEmail")
+                    {
+                        recipientEmail = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                    else if (dataGridView1.Columns[i].HeaderText == @"Отправитель" || dataGridView1.Columns[i].HeaderText == @"SenderEmail")
+                    {
+                        senderEmail = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                    else if (dataGridView1.Columns[i].HeaderText == @"Наименование" || dataGridView1.Columns[i].HeaderText == @"TypeReport")
+                    {
+                        typeReport = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                    else if (dataGridView1.Columns[i].HeaderText == @"Описание" || dataGridView1.Columns[i].HeaderText == @"Description")
+                    {
+                        description = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                    else if (dataGridView1.Columns[i].HeaderText == @"Отчет" || dataGridView1.Columns[i].HeaderText == @"Schedule")
+                    {
+                        schedule = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                    else if (dataGridView1.Columns[i].HeaderText == @"Период" || dataGridView1.Columns[i].HeaderText == @"Period")
+                    {
+                        period = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                }
+            }
+            MailingSave(recipientEmail, senderEmail, typeReport, description, schedule, period);
+        }
+
         //Show help to Edit on some collumns DataGridView
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
@@ -5926,54 +5912,80 @@ namespace mySCA2
             if (e.Button == MouseButtons.Right)
             {
                 int currentMouseOverRow = dataGridView1.HitTest(e.X, e.Y).RowIndex;
-                if ((nameOfLastTableFromDB == "Mailing" || nameOfLastTableFromDB == "PersonGroupDesciption") && currentMouseOverRow > -1)
+                if (( nameOfLastTableFromDB == "PersonGroupDesciption") && currentMouseOverRow > -1)
                 {
                     ContextMenu mRightClick = new ContextMenu();
-                    mRightClick.MenuItems.Add(new MenuItem("Удалить выделенную строку", DeleteCurrentRow));
+                    mRightClick.MenuItems.Add(new MenuItem("Удалить выделенную группу", DeleteCurrentRow));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
+                }
+                else if ((nameOfLastTableFromDB == "Mailing" ) && currentMouseOverRow > -1)
+                {
+                    ContextMenu mRightClick = new ContextMenu();
+                    mRightClick.MenuItems.Add(new MenuItem("Удалить выделенную рассылку", DeleteCurrentRow));
+                    mRightClick.MenuItems.Add(new MenuItem("Выполнить выделенную рассылку", DoMainAction));
+                    mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
+                }
+
+            }
+        }
+
+        private void DoMainAction(object sender, EventArgs e) //DoMainAction()
+        { DoMainAction(); }
+
+        private void DoMainAction()
+        {
+            int IndexColumn1 = -1;           // индекс 1-й колонки в датагрид
+            int IndexColumn2 = -1;           // индекс 2-й колонки в датагрид
+
+            int IndexCurrentRow = _dataGridView1CurrentRowIndex();
+
+            if (IndexCurrentRow > -1)
+            {
+                switch (nameOfLastTableFromDB)
+                {
+                    case "PersonGroupDesciption":
+                        {
+                            break;
+                        }
+                    case "PersonGroup" when textBoxGroup.Text.Trim().Length > 0:
+                        {
+                            break;
+                        }
+                    case "Mailing":
+                        {
+                            string typeReport = "";
+                            for (int i = 0; i < dataGridView1.ColumnCount; i++)
+                            {
+                                if (dataGridView1.Columns[i].HeaderText == "Получатель" || dataGridView1.Columns[i].HeaderText == "RecipientEmail")
+                                { IndexColumn1 = i; }
+                                else if (dataGridView1.Columns[i].HeaderText == "Наименование" || dataGridView1.Columns[i].HeaderText == "TypeReport")
+                                {
+                                    IndexColumn2 = i;
+                                    typeReport = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString();
+                                }
+                            }
+
+                            /
+
+                            if (IndexColumn1 > -1 && IndexColumn2 > -1)
+                            {
+                                DeleteDataTableQueryParameters(databasePerson, "Mailing",
+                                    "RecipientEmail", dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString(),
+                                    "TypeReport", typeReport);
+                            }
+                            _toolStripStatusLabelSetText(StatusLabel2, "Удалена рассылка отчета " + typeReport + "| Всего рассылок: " + _dataGridView1RowsCount());
+                            ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Отчет', " +
+                                "TypeReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации' ", " ORDER BY RecipientEmail asc; ");
+                            break;
+                        }
+                    default:
+                        break;
                 }
             }
         }
-        /*
-        private void MailingSave(object sender, EventArgs e) 
-        {
-            string recipientEmail="";
-            string senderEmail = "";
-            string typeReport = "";
-            string description = "";
-            string schedule = "";
 
-            int IndexCurrentRow = _dataGridView1CurrentRowIndex();
-            if (IndexCurrentRow > -1)
-            {
-                for (int i = 0; i < dataGridView1.ColumnCount; i++)
-                {
-                    if (dataGridView1.Columns[i].HeaderText == "Получатель" || dataGridView1.Columns[i].HeaderText == "RecipientEmail")
-                    {
-                        recipientEmail = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                    else if (dataGridView1.Columns[i].HeaderText == "Тип отчета" || dataGridView1.Columns[i].HeaderText == "TypeReport")
-                    {
-                        typeReport = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                    else if (dataGridView1.Columns[i].HeaderText == "Отправитель" || dataGridView1.Columns[i].HeaderText == "SenderEmail")
-                    {
-                        senderEmail = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                    else if (dataGridView1.Columns[i].HeaderText == "Расписание" || dataGridView1.Columns[i].HeaderText == "Schedule")
-                    {
-                        schedule = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                    else if (dataGridView1.Columns[i].HeaderText == "Описание" || dataGridView1.Columns[i].HeaderText == "Description")
-                    {
-                        description = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                }
-            }
-
-            MailingSave(recipientEmail, senderEmail, typeReport, description, schedule);
-        }*/
-
+        private void DeleteCurrentRow(object sender, EventArgs e) //DeleteCurrentRow()
+        { DeleteCurrentRow(); }
 
         private void DeleteCurrentRow()
         {
