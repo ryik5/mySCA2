@@ -5923,6 +5923,7 @@ namespace mySCA2
                     ContextMenu mRightClick = new ContextMenu();
                     mRightClick.MenuItems.Add(new MenuItem("Удалить выделенную рассылку", DeleteCurrentRow));
                     mRightClick.MenuItems.Add(new MenuItem("Выполнить выделенную рассылку", DoMainAction));
+
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
 
