@@ -1372,15 +1372,26 @@ namespace mySCA2
         private string filePathApplication = Application.ExecutablePath;
         private string filePathExcelReport ;
 
-        private void ExportDatatableSelectedColumnsToExcel(DataTable dtExport, string nameReport, int[] indexSelectedColumns, string[] nameSelectedColumns)  //Export DataTable to Excel 
+        private void ExportDatatableSelectedColumnsToExcel(DataTable dtExport, string nameReport)  //Export DataTable to Excel 
         {
             try
             {
                 filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), nameReport+ @".xlsx");
-                
+
+                int numberColumns = dtPersonTemp.Columns.Count;
+                int[] indexColumns = new int[numberColumns];
+                string[] nameColumns = new string[numberColumns];
+
+                for (int i = 0; i < numberColumns; i++)
+                {
+                    nameColumns[i] = dtPersonTemp.Columns[i].ColumnName;
+                    indexColumns[i] = dtPersonTemp.Columns.IndexOf(nameColumns[i]);
+                }
+
+
                 int rows = 1;
                 int rowsInTable = dtExport.Rows.Count;
-                int columnsInTable = indexSelectedColumns.Length-1; // p.Length;
+                int columnsInTable = indexColumns.Length-1; // p.Length;
                 Microsoft.Office.Interop.Excel.Application excel = new Microsoft.Office.Interop.Excel.Application
                 {
                     Visible = false, //делаем объект не видимым
@@ -1401,19 +1412,19 @@ namespace mySCA2
 
                 try
                 {
-                    sheet.Columns[GetExcelColumnName(Array.IndexOf(indexSelectedColumns, dtExport.Columns.IndexOf(@"Фамилия Имя Отчество")) + 1)]
+                    sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Фамилия Имя Отчество")) + 1)]
                     .Interior.Color = System.Drawing.Color.DarkSeaGreen;
                 }                catch { } //"Фамилия Имя Отчество"
 
                 try
                 {
-                    sheet.Columns[GetExcelColumnName(Array.IndexOf(indexSelectedColumns, dtExport.Columns.IndexOf(@"Опоздание")) + 1)]
+                    sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Опоздание")) + 1)]
                     .Interior.Color = System.Drawing.Color.SandyBrown;
                 }                catch { } //"Опоздание"
 
                 try
                 {
-                    sheet.Columns[GetExcelColumnName(Array.IndexOf(indexSelectedColumns, dtExport.Columns.IndexOf(@"Ранний уход")) + 1)]
+                    sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Ранний уход")) + 1)]
                     .Interior.Color = System.Drawing.Color.SandyBrown;
                 }                catch { } //"Ранний уход"
 
@@ -1428,7 +1439,7 @@ namespace mySCA2
                     sheet.Cells[1, column + 1].Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeBottom].Weight = Microsoft.Office.Interop.Excel.XlBorderWeight.xlThin;
                     sheet.Cells[1, column + 1].Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeRight].LineStyle = Microsoft.Office.Interop.Excel.XlLineStyle.xlContinuous;
                     sheet.Cells[1, column + 1].Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeRight].Weight = Microsoft.Office.Interop.Excel.XlBorderWeight.xlThin;
-                    sheet.Cells[1, column + 1].Value = nameSelectedColumns[column];
+                    sheet.Cells[1, column + 1].Value = nameColumns[column];
                     sheet.Cells[1, column + 1].Interior.Color = System.Drawing.Color.Silver; //colourize the first row
                     sheet.Columns[column + 1].Font.Size = 8;
                     sheet.Columns[column + 1].Font.Name = "Tahoma";
@@ -1442,7 +1453,7 @@ namespace mySCA2
                     {
                        // MessageBox.Show(rows+" "+ column);
                         sheet.Columns[column + 1].NumberFormat = "@";
-                        sheet.Cells[rows, column + 1].Value = row[indexSelectedColumns[column]];
+                        sheet.Cells[rows, column + 1].Value = row[indexColumns[column]];
                         sheet.Cells[rows, column + 1].Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeBottom].LineStyle = Microsoft.Office.Interop.Excel.XlLineStyle.xlContinuous;
                         sheet.Cells[rows, column + 1].Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeBottom].Weight = Microsoft.Office.Interop.Excel.XlBorderWeight.xlThin;
                         sheet.Cells[rows, column + 1].Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeRight].LineStyle = Microsoft.Office.Interop.Excel.XlLineStyle.xlContinuous;
@@ -1455,7 +1466,7 @@ namespace mySCA2
                 Microsoft.Office.Interop.Excel.Range range = sheet.Range["A2", GetExcelColumnName(columnsInTable) + (rows - 1)];
 
                 //По какому столбцу сортировать
-                string nameColumnSorted = GetExcelColumnName(Array.IndexOf(indexSelectedColumns, dtExport.Columns.IndexOf(@"Фамилия Имя Отчество")) + 1);
+                string nameColumnSorted = GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Фамилия Имя Отчество")) + 1);
                 Microsoft.Office.Interop.Excel.Range rangeKey = sheet.Range[nameColumnSorted + (rowsInTable - 1)];
 
                 //Добавляем параметры сортировки
@@ -1492,8 +1503,8 @@ namespace mySCA2
                 releaseObject(workbooks);
                 excel.Quit();
                 releaseObject(excel);
-                indexSelectedColumns = null;
-                nameSelectedColumns = null;
+                indexColumns = null;
+                nameColumns = null;
                 //
                 _timer1Enabled(false);
                 stimerPrev = "";
@@ -1549,17 +1560,7 @@ namespace mySCA2
             _toolStripStatusLabelSetText(StatusLabel2, "Генерирую Excel-файл");
             stimerPrev = "Наполняю файл данными из текущей таблицы";
 
-            int numberColumns = dtPersonTemp.Columns.Count;
-            int[] indexColumns = new int[numberColumns];
-            string[] nameColumns = new string[numberColumns];
-
-            for(int i =0; i< numberColumns;i++)
-            {
-                nameColumns[i] = dtPersonTemp.Columns[i].ColumnName;
-                indexColumns[i] = dtPersonTemp.Columns.IndexOf(nameColumns[i]);
-            }
-
-            await Task.Run(() => ExportDatatableSelectedColumnsToExcel(dtPersonTemp, "InOutPeople", indexColumns, nameColumns));
+            await Task.Run(() => ExportDatatableSelectedColumnsToExcel(dtPersonTemp, "InOutPeople"));
             //            await Task.Run(() => ExportDatagridToExcel());
 
             _MenuItemEnabled(FunctionMenuItem, true);
