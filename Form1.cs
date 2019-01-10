@@ -2178,7 +2178,7 @@ namespace mySCA2
             _MenuItemEnabled(GroupsMenuItem, false);
             CheckBoxesFiltersAll_Enable(false);
 
-            _controlVisible(dataGridView1, false);            
+            _controlVisible(dataGridView1, false);
             _controlVisible(pictureBox1, false);
 
             _ProgressBar1Value0();
@@ -2211,7 +2211,7 @@ namespace mySCA2
 
                 GetRegistrations(_textBoxReturnText(textBoxGroup));
 
-                dtPersonTemp = dtPersonRegisteredFull.Copy();               
+                dtPersonTemp = dtPersonRegisteredFull.Copy();
                 dtPersonTempAllColumns = dtPersonRegisteredFull.Copy(); //store all columns
 
                 string[] nameHidenColumnsArray =
@@ -2243,13 +2243,13 @@ namespace mySCA2
                 @"Вышестоящая группа",            //36
                 @"Описание группы"                //37
             };
-                
+
                 //show selected data     
                 //distinct Records                
                 var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(nameHidenColumnsArray).ToArray(); //take distinct data
                 dtPersonTemp = GetDistinctRecords(dtPersonTempAllColumns, namesDistinctColumnsArray);
                 ShowDatatableOnDatagridview(dtPersonTemp, nameHidenColumnsArray);
-                
+
                 _ProgressBar1Value100();
                 stimerPrev = "";
 
@@ -2270,7 +2270,7 @@ namespace mySCA2
                 _MenuItemVisible(VisualModeItem, true);
                 _MenuItemVisible(VisualSelectColorMenuItem, true);
                 _MenuItemVisible(TableModeItem, false);
-                _MenuItemVisible(TableExportToExcelItem, true);                
+                _MenuItemVisible(TableExportToExcelItem, true);
                 _controlVisible(dataGridView1, true);
 
                 _controlEnable(checkBoxReEnter, true);
@@ -2373,7 +2373,7 @@ namespace mySCA2
                 _toolStripStatusLabelSetText(StatusLabel2, "Данные с СКД по \"" + ShortFIO(_textBoxReturnText(textBoxFIO)) + "\" получены!");
             }
 
-            person = null;           
+            person = null;
         }
 
         private void GetPersonRegistrationFromServer(DataTable dt, Person person)
@@ -6308,7 +6308,7 @@ namespace mySCA2
 
                             _timer1Enabled(false);
                             _ProgressBar1Value100();
-                            _toolStripStatusLabelSetText(StatusLabel2, "Отчет " + typeReport + " подготовлен и отправлен "+ recipientEmail);
+                            _toolStripStatusLabelSetText(StatusLabel2, "Отчет " + typeReport + " подготовлен и отправлен " + recipientEmail);
                         }
                         break;
                     }
