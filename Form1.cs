@@ -145,9 +145,9 @@ namespace mySCA2
                                   new DataColumn(@"Согласованное отсутствие",typeof(string)),   //34
                                   new DataColumn(@"Код",typeof(string)),                     //35
                                   new DataColumn(@"Вышестоящая группа",typeof(string)),//36
-                                  new DataColumn(@"Описание группы",typeof(string)),   //37
+                                  new DataColumn(@"Описание группы",typeof(string))   //37
                 };
-        private string[] arrayAllCollumnsDataTablePeople =
+        private string[] arrayAllColumnsDataTablePeople =
             {
                                   @"№ п/п",//0
                                   @"Фамилия Имя Отчество",//1
@@ -190,7 +190,7 @@ namespace mySCA2
         };
 
         private DataTable dtPersonTemp = new DataTable("PersonTemp");
-        private DataTable dtPersonTempAllCollumns = new DataTable("PersonTempAllCollumns");
+        private DataTable dtPersonTempAllColumns = new DataTable("PersonTempAllColumns");
         private DataTable dtPersonRegisteredFull = new DataTable("PersonRegisteredFull");
         private DataTable dtPersonRegistered = new DataTable("PersonRegistered");
         private DataTable dtPersonGroup = new DataTable("PersonGroup");
@@ -315,13 +315,13 @@ namespace mySCA2
             dtPeople.DefaultView.Sort = "[Группа] ASC, [Фамилия Имя Отчество] ASC, [Дата регистрации] ASC, [Время регистрации] ASC, [Реальное время прихода ЧЧ:ММ] ASC, [Реальное время прихода ЧЧ:ММ] ASC";
 
 
-            //Clone default collumn name and structure from 'dtPeople' to other DataTables
-            dtPersonTemp = dtPeople.Clone();  //Copy only structure(Name of collumns)
-            dtPersonRegisteredFull = dtPeople.Clone();  //Copy only structure(Name of collumns)
-            dtPersonRegistered = dtPeople.Clone();  //Copy only structure(Name of collumns)
-            dtPersonGroup = dtPeople.Clone();  //Copy only structure(Name of collumns)
-            dtPersonsLastList = dtPeople.Clone();  //Copy only structure(Name of collumns)
-            dtPersonsLastComboList = dtPeople.Clone();  //Copy only structure(Name of collumns)
+            //Clone default column name and structure from 'dtPeople' to other DataTables
+            dtPersonTemp = dtPeople.Clone();  //Copy only structure(Name of columns)
+            dtPersonRegisteredFull = dtPeople.Clone();  //Copy only structure(Name of columns)
+            dtPersonRegistered = dtPeople.Clone();  //Copy only structure(Name of columns)
+            dtPersonGroup = dtPeople.Clone();  //Copy only structure(Name of columns)
+            dtPersonsLastList = dtPeople.Clone();  //Copy only structure(Name of columns)
+            dtPersonsLastComboList = dtPeople.Clone();  //Copy only structure(Name of columns)
 
             dataGridView1.ShowCellToolTips = true;
 
@@ -567,14 +567,14 @@ namespace mySCA2
             SqlQuery = null;
         }
 
-        private void TryUpdateStructureSqlDB(string tableName, string listCollumnsWithType, System.IO.FileInfo FileDB) //Update Table in DB and execute of SQL Query
+        private void TryUpdateStructureSqlDB(string tableName, string listColumnsWithType, System.IO.FileInfo FileDB) //Update Table in DB and execute of SQL Query
         {
             using (var connection = new SQLiteConnection($"Data Source={databasePerson.FullName};Version=3;"))
             {
                 connection.Open();
-                foreach (string collumn in listCollumnsWithType.Split(','))
+                foreach (string column in listColumnsWithType.Split(','))
                 {
-                    using (var command = new SQLiteCommand("ALTER TABLE " + tableName + " ADD COLUMN " + collumn, connection))
+                    using (var command = new SQLiteCommand("ALTER TABLE " + tableName + " ADD COLUMN " + column, connection))
                         try { command.ExecuteNonQuery(); } catch { }
                 }
             }
@@ -606,13 +606,13 @@ namespace mySCA2
             sLastSelectedElement = "dataGridView";
         }
 
-        private void ShowDatatableOnDatagridview(DataTable dt, string[] nameHidenCollumnsArray) //Query data from the Table of the DB
+        private void ShowDatatableOnDatagridview(DataTable dt, string[] nameHidenColumnsArray) //Query data from the Table of the DB
         {
             DataTable dataTable = dt.Copy();
-            for (int i = 0; i < nameHidenCollumnsArray.Length; i++)
+            for (int i = 0; i < nameHidenColumnsArray.Length; i++)
             {
-                if (nameHidenCollumnsArray[i] != null && nameHidenCollumnsArray[i].Length > 0)
-                    try { dataTable.Columns[nameHidenCollumnsArray[i]].ColumnMapping = MappingType.Hidden; } catch { }
+                if (nameHidenColumnsArray[i] != null && nameHidenColumnsArray[i].Length > 0)
+                    try { dataTable.Columns[nameHidenColumnsArray[i]].ColumnMapping = MappingType.Hidden; } catch { }
             }
 
             _dataGridViewSource(dataTable);
@@ -865,7 +865,7 @@ namespace mySCA2
 
                 await Task.Run(() => GetFioFromServers(dtTempIntermediate));
 
-                string[] arrayHiddenCollumns =
+                string[] arrayHiddenColumns =
                     {
                             //@"Группа",                  //3
                             @"Время прихода,часы",       //4
@@ -907,11 +907,11 @@ namespace mySCA2
                 
                 //show selected data     
                 //distinct Records                
-                var namesDistinctCollumnsArray = arrayAllCollumnsDataTablePeople.Except(arrayHiddenCollumns).ToArray(); //take distinct data
-                dtPeople = GetDistinctRecords(dtTempIntermediate, namesDistinctCollumnsArray);
+                var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(arrayHiddenColumns).ToArray(); //take distinct data
+                dtPeople = GetDistinctRecords(dtTempIntermediate, namesDistinctColumnsArray);
 
 
-                await Task.Run(() => ShowDatatableOnDatagridview(dtPeople, arrayHiddenCollumns));
+                await Task.Run(() => ShowDatatableOnDatagridview(dtPeople, arrayHiddenColumns));
 
                 await Task.Run(() => panelViewResize(numberPeopleInLoading));
                 listFioItem.Visible = true;
@@ -1137,7 +1137,7 @@ namespace mySCA2
 
         private async void ListFioReturn()
         {
-            string[] arrayHiddenCollumns =
+            string[] arrayHiddenColumns =
                     {
                             //@"Группа",                  //3
                             @"Время прихода,часы",       //4
@@ -1175,7 +1175,7 @@ namespace mySCA2
                                   @"Описание группы"                //37
                       };
 
-            await Task.Run(() => ShowDatatableOnDatagridview(dtPeople, arrayHiddenCollumns));
+            await Task.Run(() => ShowDatatableOnDatagridview(dtPeople, arrayHiddenColumns));
 
         }
 
@@ -1326,16 +1326,16 @@ namespace mySCA2
             _MenuItemEnabled(TableModeItem, false);
             _controlEnable(dataGridView1, false);
 
-            int iDGCollumns = _dataGridView1ColumnCount();
+            int iDGColumns = _dataGridView1ColumnCount();
             int iDGRows = _dataGridView1RowsCount();
             Microsoft.Office.Interop.Excel.Application ExcelApp = new Microsoft.Office.Interop.Excel.Application();
             Microsoft.Office.Interop.Excel.Workbook ExcelWorkBook;
             Microsoft.Office.Interop.Excel.Worksheet ExcelWorkSheet;
             ExcelWorkBook = ExcelApp.Workbooks.Add(System.Reflection.Missing.Value);           //Книга
             ExcelWorkSheet = (Microsoft.Office.Interop.Excel.Worksheet)ExcelWorkBook.Worksheets.get_Item(1);    //Таблица.
-            ExcelApp.Columns.ColumnWidth = iDGCollumns;
+            ExcelApp.Columns.ColumnWidth = iDGColumns;
 
-            for (int i = 0; i < iDGCollumns; i++)
+            for (int i = 0; i < iDGColumns; i++)
             {
                 ExcelApp.Cells[1, 1 + i] = _dataGridView1ColumnHeaderText(i);
                 ExcelApp.Columns[1 + i].NumberFormat = "@";
@@ -1344,7 +1344,7 @@ namespace mySCA2
 
             for (int i = 0; i < iDGRows; i++)
             {
-                for (int j = 0; j < iDGCollumns; j++)
+                for (int j = 0; j < iDGColumns; j++)
                 { ExcelApp.Cells[i + 2, j + 1] = _dataGridView1CellValue(i, j); }
             }
 
@@ -1356,7 +1356,7 @@ namespace mySCA2
             stimerPrev = "";
             _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
             sLastSelectedElement = "ExportExcel";
-            iDGCollumns = 0; iDGRows = 0;
+            iDGColumns = 0; iDGRows = 0;
             _toolStripStatusLabelSetText(StatusLabel2, "Готово!");
             _MenuItemEnabled(QuickLoadDataItem, true);
             _MenuItemEnabled(FunctionMenuItem, true);
@@ -1369,7 +1369,144 @@ namespace mySCA2
             _controlEnable(dataGridView1, true);
         }
 
-        private void releaseObject(object obj) //for function - ExportDatagridToExcel()
+        private string filePathApplication = Application.ExecutablePath;
+        private string filePathExcelReport ;
+
+        private void ExportDatatableSelectedColumnsToExcel(DataTable dtExport, string nameReport, int[] indexSelectedColumns, string[] nameSelectedColumns)  //Export DataTable to Excel 
+        {
+            try
+            {
+                filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), nameReport+ @".xlsx");
+                
+                int rows = 1;
+                int rowsInTable = dtExport.Rows.Count;
+                int columnsInTable = indexSelectedColumns.Length-1; // p.Length;
+                Microsoft.Office.Interop.Excel.Application excel = new Microsoft.Office.Interop.Excel.Application
+                {
+                    Visible = false, //делаем объект не видимым
+                    DisplayAlerts = false, //не отображать диалоги о перезаписи
+                    SheetsInNewWorkbook = 1//количество листов в книге
+                };
+                Microsoft.Office.Interop.Excel.Workbooks workbooks = excel.Workbooks;
+                excel.Workbooks.Add(); //добавляем книгу
+                Microsoft.Office.Interop.Excel.Workbook workbook = workbooks[1];
+                Microsoft.Office.Interop.Excel.Sheets sheets = workbook.Worksheets;
+                Microsoft.Office.Interop.Excel.Worksheet sheet = sheets.get_Item(1);
+                sheet.Name = nameReport;
+                //sheet.Names.Add("next", "=" + Path.GetFileNameWithoutExtension(filePathExcelReport) + "!$A$1", true, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
+              //  MessageBox.Show(columnsInTable.ToString());
+
+                //colourize of columns
+                sheet.Columns[columnsInTable].Interior.Color = System.Drawing.Color.Silver;  // последняя колонка
+
+                try
+                {
+                    sheet.Columns[GetExcelColumnName(Array.IndexOf(indexSelectedColumns, dtExport.Columns.IndexOf(@"Фамилия Имя Отчество")) + 1)]
+                    .Interior.Color = System.Drawing.Color.DarkSeaGreen;
+                }                catch { } //"Фамилия Имя Отчество"
+
+                try
+                {
+                    sheet.Columns[GetExcelColumnName(Array.IndexOf(indexSelectedColumns, dtExport.Columns.IndexOf(@"Опоздание")) + 1)]
+                    .Interior.Color = System.Drawing.Color.SandyBrown;
+                }                catch { } //"Опоздание"
+
+                try
+                {
+                    sheet.Columns[GetExcelColumnName(Array.IndexOf(indexSelectedColumns, dtExport.Columns.IndexOf(@"Ранний уход")) + 1)]
+                    .Interior.Color = System.Drawing.Color.SandyBrown;
+                }                catch { } //"Ранний уход"
+
+                for (int column = 0; column < columnsInTable; column++)
+                {
+                  //  MessageBox.Show( column.ToString());
+
+                    sheet.Cells[column + 1].WrapText = true;
+                    sheet.Cells[1, column + 1].HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
+                    sheet.Cells[1, column + 1].VerticalAlignment = Microsoft.Office.Interop.Excel.XlVAlign.xlVAlignTop;
+                    sheet.Cells[1, column + 1].Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeBottom].LineStyle = Microsoft.Office.Interop.Excel.XlLineStyle.xlContinuous;
+                    sheet.Cells[1, column + 1].Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeBottom].Weight = Microsoft.Office.Interop.Excel.XlBorderWeight.xlThin;
+                    sheet.Cells[1, column + 1].Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeRight].LineStyle = Microsoft.Office.Interop.Excel.XlLineStyle.xlContinuous;
+                    sheet.Cells[1, column + 1].Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeRight].Weight = Microsoft.Office.Interop.Excel.XlBorderWeight.xlThin;
+                    sheet.Cells[1, column + 1].Value = nameSelectedColumns[column];
+                    sheet.Cells[1, column + 1].Interior.Color = System.Drawing.Color.Silver; //colourize the first row
+                    sheet.Columns[column + 1].Font.Size = 8;
+                    sheet.Columns[column + 1].Font.Name = "Tahoma";
+                }
+
+                //input data and set type of cells - numbers /text
+                foreach (DataRow row in dtExport.Rows)
+                {
+                    rows++;
+                    for (int column = 0; column < columnsInTable; column++)
+                    {
+                       // MessageBox.Show(rows+" "+ column);
+                        sheet.Columns[column + 1].NumberFormat = "@";
+                        sheet.Cells[rows, column + 1].Value = row[indexSelectedColumns[column]];
+                        sheet.Cells[rows, column + 1].Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeBottom].LineStyle = Microsoft.Office.Interop.Excel.XlLineStyle.xlContinuous;
+                        sheet.Cells[rows, column + 1].Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeBottom].Weight = Microsoft.Office.Interop.Excel.XlBorderWeight.xlThin;
+                        sheet.Cells[rows, column + 1].Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeRight].LineStyle = Microsoft.Office.Interop.Excel.XlLineStyle.xlContinuous;
+                        sheet.Cells[rows, column + 1].Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeRight].Weight = Microsoft.Office.Interop.Excel.XlBorderWeight.xlThin;
+                        sheet.Columns[column + 1].AutoFit();
+                    }
+                }
+                
+                //Область сортировки          
+                Microsoft.Office.Interop.Excel.Range range = sheet.Range["A2", GetExcelColumnName(columnsInTable) + (rows - 1)];
+
+                //По какому столбцу сортировать
+                string nameColumnSorted = GetExcelColumnName(Array.IndexOf(indexSelectedColumns, dtExport.Columns.IndexOf(@"Фамилия Имя Отчество")) + 1);
+                Microsoft.Office.Interop.Excel.Range rangeKey = sheet.Range[nameColumnSorted + (rowsInTable - 1)];
+
+                //Добавляем параметры сортировки
+                sheet.Sort.SortFields.Add(rangeKey);
+                sheet.Sort.SetRange(range);
+                sheet.Sort.Orientation = Microsoft.Office.Interop.Excel.XlSortOrientation.xlSortColumns;
+                sheet.Sort.SortMethod = Microsoft.Office.Interop.Excel.XlSortMethod.xlPinYin;
+                sheet.Sort.Apply();
+                //Очищаем фильтр
+                sheet.Sort.SortFields.Clear();
+
+                //Autofilter
+                range = sheet.UsedRange; //sheet.Cells.Range["A1", GetExcelColumnName(columnsInTable) + rowsInTable];
+                range.Select();
+                range.AutoFilter(1, Type.Missing, Microsoft.Office.Interop.Excel.XlAutoFilterOperator.xlAnd, Type.Missing, true);
+
+                workbook.SaveAs(filePathExcelReport,
+                    Microsoft.Office.Interop.Excel.XlFileFormat.xlWorkbookDefault,
+                    System.Reflection.Missing.Value, System.Reflection.Missing.Value,
+                    true, false, //save without asking
+                    Microsoft.Office.Interop.Excel.XlSaveAsAccessMode.xlExclusive,
+                    Microsoft.Office.Interop.Excel.XlSaveConflictResolution.xlLocalSessionChanges, System.Reflection.Missing.Value, 
+                    System.Reflection.Missing.Value, System.Reflection.Missing.Value, 
+                    System.Reflection.Missing.Value
+                    );
+                workbook.Close(false, System.Reflection.Missing.Value, System.Reflection.Missing.Value);
+                workbooks.Close();
+
+                releaseObject(range);
+                releaseObject(rangeKey);
+                releaseObject(sheet);
+                releaseObject(sheets);
+                releaseObject(workbook);
+                releaseObject(workbooks);
+                excel.Quit();
+                releaseObject(excel);
+                indexSelectedColumns = null;
+                nameSelectedColumns = null;
+                //
+                _timer1Enabled(false);
+                stimerPrev = "";
+               _toolStripStatusLabelSetText(StatusLabel2,"Путь к отчету: " + filePathExcelReport);
+                _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
+            }
+            catch (Exception expt) {
+                MessageBox.Show(expt.ToString()); }
+
+            sLastSelectedElement = "ExportExcel";
+        }
+
+        private void releaseObject(object obj) //for function - ExportToExcel()
         {
             try
             {
@@ -1383,13 +1520,53 @@ namespace mySCA2
             { GC.Collect(); }
         }
 
+        static string GetExcelColumnName(int number)
+        {
+            string result;
+            if (number > 0)
+            {
+                int alphabets = (number - 1) / 26;
+                int remainder = (number - 1) % 26;
+                result = ((char)('A' + remainder)).ToString();
+                if (alphabets > 0)
+                    result = GetExcelColumnName(alphabets) + result;
+            }
+            else
+                result = null;
+            return result;
+        }
+
+
         private async void Export_Click(object sender, EventArgs e)
         {
+            _MenuItemEnabled(FunctionMenuItem, false);
+            _MenuItemEnabled(SettingsMenuItem, false);
+            _MenuItemEnabled(AnualDatesMenuItem, false);
+            _MenuItemEnabled(GroupsMenuItem, false);
+            _controlEnable(dataGridView1, false);
+
             _timer1Enabled(true);
             _toolStripStatusLabelSetText(StatusLabel2, "Генерирую Excel-файл");
             stimerPrev = "Наполняю файл данными из текущей таблицы";
 
-            await Task.Run(() => ExportDatagridToExcel());
+            int numberColumns = dtPersonTemp.Columns.Count;
+            int[] indexColumns = new int[numberColumns];
+            string[] nameColumns = new string[numberColumns];
+
+            for(int i =0; i< numberColumns;i++)
+            {
+                nameColumns[i] = dtPersonTemp.Columns[i].ColumnName;
+                indexColumns[i] = dtPersonTemp.Columns.IndexOf(nameColumns[i]);
+            }
+
+            await Task.Run(() => ExportDatatableSelectedColumnsToExcel(dtPersonTemp, "InOutPeople", indexColumns, nameColumns));
+            //            await Task.Run(() => ExportDatagridToExcel());
+
+            _MenuItemEnabled(FunctionMenuItem, true);
+            _MenuItemEnabled(SettingsMenuItem, true);
+            _MenuItemEnabled(AnualDatesMenuItem, true);
+            _MenuItemEnabled(GroupsMenuItem, true);
+            _controlEnable(dataGridView1, true);
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -1586,7 +1763,7 @@ namespace mySCA2
                 }
             }
 
-            string[] nameHidenCollumnsArray =
+            string[] nameHidenColumnsArray =
             {
                                   @"№ п/п",//0
                                   @"Время прихода,часы",//4
@@ -1623,10 +1800,10 @@ namespace mySCA2
                                   @"Описание группы"                //37
                         };
 
-            var namesDistinctCollumnsArray = arrayAllCollumnsDataTablePeople.Except(nameHidenCollumnsArray).ToArray(); //take distinct data
+            var namesDistinctCollumnsArray = arrayAllColumnsDataTablePeople.Except(nameHidenColumnsArray).ToArray(); //take distinct data
             dtPersonTemp = GetDistinctRecords(dtTemp, namesDistinctCollumnsArray);
 
-            ShowDatatableOnDatagridview(dtPersonTemp, nameHidenCollumnsArray);
+            ShowDatatableOnDatagridview(dtPersonTemp, nameHidenColumnsArray);
             _MenuItemVisible(DeletePersonFromGroupItem, true);
             nameOfLastTableFromDB = "PersonGroup";
             dtTemp.Dispose();
@@ -2127,10 +2304,10 @@ namespace mySCA2
             person = null;
 
             dtPersonTemp = dtPersonRegisteredFull.Copy();
-            //store all collumns
-            dtPersonTempAllCollumns = dtPersonRegisteredFull.Copy();
+            //store all columns
+            dtPersonTempAllColumns = dtPersonRegisteredFull.Copy();
 
-            string[] nameHidenCollumnsArray =
+            string[] nameHidenColumnsArray =
             {
                 @"№ п/п",//0
                 @"Время прихода,часы",//4
@@ -2151,21 +2328,21 @@ namespace mySCA2
                 @"Опоздание",                    //28
                 @"Ранний уход",                 //29
                 @"Отпуск (отгул)",              //30
-                                  @"Коммандировка",                 //31
-                                  @"День недели",                    //32
-                                  @"Больничный",                    //33
-                                  @"Согласованное отсутствие",      //34
-                                  @"Код",                           //35
-                                  @"Вышестоящая группа",            //36
-                                  @"Описание группы"                //37
+                @"Коммандировка",                 //31
+                @"День недели",  //32
+                @"Больничный",  //33
+                @"Согласованное отсутствие",      //34
+                @"Код",         //35
+                @"Вышестоящая группа",            //36
+                @"Описание группы"                //37
             };
 
 
             //show selected data     
             //distinct Records                
-            var namesDistinctCollumnsArray = arrayAllCollumnsDataTablePeople.Except(nameHidenCollumnsArray).ToArray(); //take distinct data
-            dtPersonTemp = GetDistinctRecords(dtPersonTempAllCollumns, namesDistinctCollumnsArray);
-            ShowDatatableOnDatagridview(dtPersonTemp, nameHidenCollumnsArray);
+            var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(nameHidenColumnsArray).ToArray(); //take distinct data
+            dtPersonTemp = GetDistinctRecords(dtPersonTempAllColumns, namesDistinctColumnsArray);
+            ShowDatatableOnDatagridview(dtPersonTemp, nameHidenColumnsArray);
 
 
             _ProgressBar1Value100();
@@ -2669,7 +2846,7 @@ namespace mySCA2
             return iDgv;
         }
 
-        private int _dataGridView1CurrentCollumnIndex() //add string into  from other threads
+        private int _dataGridView1CurrentColumnIndex() //add string into  from other threads
         {
             int iDgv = -1;
             if (InvokeRequired)
@@ -3376,7 +3553,7 @@ namespace mySCA2
             string nameGroup = _textBoxReturnText(textBoxGroup);
 
             DataTable dtTempIntermediate = dtPersonRegisteredFull.Clone();
-            dtPersonTempAllCollumns = dtPersonRegisteredFull.Clone();
+            dtPersonTempAllColumns = dtPersonRegisteredFull.Clone();
             Person personCheck = new Person();
             personCheck.FIO = _textBoxReturnText(textBoxFIO);
             personCheck.NAV = _textBoxReturnText(textBoxNav);
@@ -3449,7 +3626,7 @@ namespace mySCA2
                 nameOfLastTableFromDB = "PersonRegistered";
             }
 
-            string[] arrayHiddenCollumns =
+            string[] arrayHiddenColumns =
             {
                 @"№ п/п",//0
                 @"Время прихода,часы",//4
@@ -3471,14 +3648,14 @@ namespace mySCA2
                 @"Реальное отработанное время" //26
             };
 
-            //store all collumns
-            dtPersonTempAllCollumns = dtTempIntermediate.Copy();
+            //store all columns
+            dtPersonTempAllColumns = dtTempIntermediate.Copy();
             //show selected data     
             //distinct Records         
 
-            var namesDistinctCollumnsArray = arrayAllCollumnsDataTablePeople.Except(arrayHiddenCollumns).ToArray(); //take distinct data
-            dtPersonTemp = GetDistinctRecords(dtTempIntermediate, namesDistinctCollumnsArray);
-            ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenCollumns);
+            var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(arrayHiddenColumns).ToArray(); //take distinct data
+            dtPersonTemp = GetDistinctRecords(dtTempIntermediate, namesDistinctColumnsArray);
+            ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenColumns);
 
             panelViewResize(numberPeopleInLoading);
             _controlVisible(dataGridView1, true);
@@ -4290,13 +4467,13 @@ namespace mySCA2
                 int timePrevious = 0;
 
                 //select and distinct dataRow
-                var rowsPersonRegistrationsForDraw = dtPersonTempAllCollumns.AsEnumerable();
+                var rowsPersonRegistrationsForDraw = dtPersonTempAllColumns.AsEnumerable();
                 if (group.Length > 0)
-                { rowsPersonRegistrationsForDraw = dtPersonTempAllCollumns.Select("[Группа] = '" + group + "'").CopyToDataTable().AsEnumerable(); }
+                { rowsPersonRegistrationsForDraw = dtPersonTempAllColumns.Select("[Группа] = '" + group + "'").CopyToDataTable().AsEnumerable(); }
                 else if (nav.Length == 6)
-                { rowsPersonRegistrationsForDraw = dtPersonTempAllCollumns.Select("[NAV-код] = '" + nav + "'").CopyToDataTable().AsEnumerable(); }
+                { rowsPersonRegistrationsForDraw = dtPersonTempAllColumns.Select("[NAV-код] = '" + nav + "'").CopyToDataTable().AsEnumerable(); }
                 else if (nav.Length != 6 && fio.Length > 1)
-                { rowsPersonRegistrationsForDraw = dtPersonTempAllCollumns.Select("[Фамилия Имя Отчество] = '" + fio + "'").CopyToDataTable().AsEnumerable(); }
+                { rowsPersonRegistrationsForDraw = dtPersonTempAllColumns.Select("[Фамилия Имя Отчество] = '" + fio + "'").CopyToDataTable().AsEnumerable(); }
 
                 //select and count unique NAV-codes - the number of selected people
                 HashSet<string> hsNAV = new HashSet<string>(); //unique NAV-codes
@@ -4570,13 +4747,13 @@ namespace mySCA2
             int minutesOutFact = 0;    // время выхода в минутах фактическое
 
             //select and distinct dataRow
-            var rowsPersonRegistrationsForDraw = dtPersonTempAllCollumns.AsEnumerable();
+            var rowsPersonRegistrationsForDraw = dtPersonTempAllColumns.AsEnumerable();
             if (group.Length > 0)
-            { rowsPersonRegistrationsForDraw = dtPersonTempAllCollumns.Select("[Группа] = '" + group + "'").CopyToDataTable().AsEnumerable(); }
+            { rowsPersonRegistrationsForDraw = dtPersonTempAllColumns.Select("[Группа] = '" + group + "'").CopyToDataTable().AsEnumerable(); }
             else if (nav.Length == 6)
-            { rowsPersonRegistrationsForDraw = dtPersonTempAllCollumns.Select("[NAV-код] = '" + nav + "'").CopyToDataTable().AsEnumerable(); }
+            { rowsPersonRegistrationsForDraw = dtPersonTempAllColumns.Select("[NAV-код] = '" + nav + "'").CopyToDataTable().AsEnumerable(); }
             else if (nav.Length != 6 && fio.Length > 1)
-            { rowsPersonRegistrationsForDraw = dtPersonTempAllCollumns.Select("[Фамилия Имя Отчество] = '" + fio + "'").CopyToDataTable().AsEnumerable(); }
+            { rowsPersonRegistrationsForDraw = dtPersonTempAllColumns.Select("[Фамилия Имя Отчество] = '" + fio + "'").CopyToDataTable().AsEnumerable(); }
 
             //select and count unique NAV-codes - the number of selected people
             HashSet<string> hsNAV = new HashSet<string>(); //unique NAV-codes
@@ -5669,7 +5846,7 @@ namespace mySCA2
                 if (nameOfLastTableFromDB == "PersonGroup")
                 {
                     int IndexCurrentRow = _dataGridView1CurrentRowIndex();
-                    int IndexCurrentCollumn = _dataGridView1CurrentCollumnIndex();
+                    int IndexCurrentColumn = _dataGridView1CurrentColumnIndex();
 
                     int IndexColumn1 = -1;
                     int IndexColumn2 = -1;
@@ -5737,7 +5914,7 @@ namespace mySCA2
                 }
                 else if (nameOfLastTableFromDB == "Mailing")
                 {
-                    FindSelectedMailingOnDatagridviewAndSave();
+                    FindSelectedMailingOnDatagridviewAndAction("saveEmail");
                     ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Отчет', " +
                         "TypeReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации' ", " ORDER BY RecipientEmail asc; ");
                 }
@@ -5748,7 +5925,7 @@ namespace mySCA2
                     if (nameOfLastTableFromDB == "PersonGroup")
                     {
                         int IndexCurrentRow = _dataGridView1CurrentRowIndex();
-                        int IndexCurrentCollumn = _dataGridView1CurrentCollumnIndex();
+                        int IndexCurrentColumn = _dataGridView1CurrentColumnIndex();
 
                         int IndexColumn1 = -1;
                         int IndexColumn2 = -1;
@@ -5818,50 +5995,8 @@ namespace mySCA2
             }
         }
 
-        private void FindSelectedMailingOnDatagridviewAndSave()
-        {
-            string recipientEmail = "";
-            string senderEmail = "";
-            string typeReport = "";
-            string description = "";
-            string schedule = "";
-            string period = "";
-            
-            int IndexCurrentRow = _dataGridView1CurrentRowIndex();
-            if (IndexCurrentRow > -1)
-            {
-                for (int i = 0; i < dataGridView1.ColumnCount; i++)
-                {
-                    if (dataGridView1.Columns[i].HeaderText == @"Получатель" || dataGridView1.Columns[i].HeaderText == @"RecipientEmail")
-                    {
-                        recipientEmail = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                    else if (dataGridView1.Columns[i].HeaderText == @"Отправитель" || dataGridView1.Columns[i].HeaderText == @"SenderEmail")
-                    {
-                        senderEmail = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                    else if (dataGridView1.Columns[i].HeaderText == @"Наименование" || dataGridView1.Columns[i].HeaderText == @"TypeReport")
-                    {
-                        typeReport = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                    else if (dataGridView1.Columns[i].HeaderText == @"Описание" || dataGridView1.Columns[i].HeaderText == @"Description")
-                    {
-                        description = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                    else if (dataGridView1.Columns[i].HeaderText == @"Отчет" || dataGridView1.Columns[i].HeaderText == @"Schedule")
-                    {
-                        schedule = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                    else if (dataGridView1.Columns[i].HeaderText == @"Период" || dataGridView1.Columns[i].HeaderText == @"Period")
-                    {
-                        period = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                }
-            }
-            MailingSave(recipientEmail, senderEmail, typeReport, description, schedule, period);
-        }
 
-        //Show help to Edit on some collumns DataGridView
+        //Show help to Edit on some columns DataGridView
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
             DataGridViewCell cell;
@@ -5907,7 +6042,7 @@ namespace mySCA2
             cell = null;
         }
 
-        private void dataGridView1_MouseClick(object sender, MouseEventArgs e)
+        private void dataGridView1_MouseClick(object sender, MouseEventArgs e) //right click of mouse on the datagridview
         {
             if (e.Button == MouseButtons.Right)
             {
@@ -5920,13 +6055,20 @@ namespace mySCA2
                 }
                 else if ((nameOfLastTableFromDB == "Mailing" ) && currentMouseOverRow > -1)
                 {
+                    string mailing = "";
+                    for (int i = 0; i < dataGridView1.ColumnCount; i++)
+                    {
+                        if (dataGridView1.Columns[i].HeaderText == "Наименование" || dataGridView1.Columns[i].HeaderText == "TypeReport")
+                        {
+                            mailing = dataGridView1.Rows[currentMouseOverRow].Cells[i].Value.ToString();
+                        }
+                    }
                     ContextMenu mRightClick = new ContextMenu();
                     mRightClick.MenuItems.Add(new MenuItem("Удалить выделенную рассылку", DeleteCurrentRow));
-                    mRightClick.MenuItems.Add(new MenuItem("Выполнить выделенную рассылку", DoMainAction));
+                    mRightClick.MenuItems.Add(new MenuItem("Выполнить рассылку: "+ mailing, DoMainAction));
 
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
-
             }
         }
 
@@ -5935,8 +6077,12 @@ namespace mySCA2
 
         private void DoMainAction()
         {
-            int IndexColumn1 = -1;           // индекс 1-й колонки в датагрид
-            int IndexColumn2 = -1;           // индекс 2-й колонки в датагрид
+            string recipientEmail = "";
+            string senderEmail = "";
+            string typeReport = "";
+            string description = "";
+            string schedule = "";
+            string period = "";
 
             int IndexCurrentRow = _dataGridView1CurrentRowIndex();
 
@@ -5952,31 +6098,28 @@ namespace mySCA2
                         {
                             break;
                         }
-                    case "Mailing":
+                    case "Mailing": //send report by e-mail
                         {
-                            string typeReport = "";
+
                             for (int i = 0; i < dataGridView1.ColumnCount; i++)
                             {
-                                if (dataGridView1.Columns[i].HeaderText == "Получатель" || dataGridView1.Columns[i].HeaderText == "RecipientEmail")
-                                { IndexColumn1 = i; }
-                                else if (dataGridView1.Columns[i].HeaderText == "Наименование" || dataGridView1.Columns[i].HeaderText == "TypeReport")
+                                if (dataGridView1.Columns[i].HeaderText == @"Получатель" || dataGridView1.Columns[i].HeaderText == @"RecipientEmail")
                                 {
-                                    IndexColumn2 = i;
-                                    typeReport = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString();
+                                    recipientEmail = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                                }
+                                else if (dataGridView1.Columns[i].HeaderText == @"Наименование" || dataGridView1.Columns[i].HeaderText == @"TypeReport")
+                                {
+                                    typeReport = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                                }
+                                else if (dataGridView1.Columns[i].HeaderText == @"Период" || dataGridView1.Columns[i].HeaderText == @"Period")
+                                {
+                                    period = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
                                 }
                             }
 
-                            /
+                            FindSelectedMailingOnDatagridviewAndAction("sendEmail");
 
-                            if (IndexColumn1 > -1 && IndexColumn2 > -1)
-                            {
-                                DeleteDataTableQueryParameters(databasePerson, "Mailing",
-                                    "RecipientEmail", dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString(),
-                                    "TypeReport", typeReport);
-                            }
-                            _toolStripStatusLabelSetText(StatusLabel2, "Удалена рассылка отчета " + typeReport + "| Всего рассылок: " + _dataGridView1RowsCount());
-                            ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Отчет', " +
-                                "TypeReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации' ", " ORDER BY RecipientEmail asc; ");
+                            _toolStripStatusLabelSetText(StatusLabel2, typeReport +" отправлен " + recipientEmail);
                             break;
                         }
                     default:
@@ -6059,6 +6202,146 @@ namespace mySCA2
                         }
                     default:
                         break;
+                }
+            }
+        }
+
+        private void FindSelectedMailingOnDatagridviewAndAction(string actionDGV)
+        {
+            string recipientEmail = "";
+            string senderEmail = "";
+            string typeReport = "";
+            string description = "";
+            string schedule = "";
+            string period = "";
+
+            int IndexCurrentRow = _dataGridView1CurrentRowIndex();
+            if (IndexCurrentRow > -1)
+            {
+                for (int i = 0; i < dataGridView1.ColumnCount; i++)
+                {
+                    if (dataGridView1.Columns[i].HeaderText == @"Получатель" || dataGridView1.Columns[i].HeaderText == @"RecipientEmail")
+                    {
+                        recipientEmail = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                    else if (dataGridView1.Columns[i].HeaderText == @"Отправитель" || dataGridView1.Columns[i].HeaderText == @"SenderEmail")
+                    {
+                        senderEmail = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                    else if (dataGridView1.Columns[i].HeaderText == @"Наименование" || dataGridView1.Columns[i].HeaderText == @"TypeReport")
+                    {
+                        typeReport = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                    else if (dataGridView1.Columns[i].HeaderText == @"Описание" || dataGridView1.Columns[i].HeaderText == @"Description")
+                    {
+                        description = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                    else if (dataGridView1.Columns[i].HeaderText == @"Отчет" || dataGridView1.Columns[i].HeaderText == @"Schedule")
+                    {
+                        schedule = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                    else if (dataGridView1.Columns[i].HeaderText == @"Период" || dataGridView1.Columns[i].HeaderText == @"Period")
+                    {
+                        period = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                }
+            }
+
+            switch (nameOfLastTableFromDB)
+            {
+                case "saveEmail":
+                    {
+                        MailingSave(recipientEmail, senderEmail, typeReport, description, schedule, period);
+                        break;
+                    }
+                case "sendEmail":
+                    {
+                        //todo
+                        //making report
+
+                        int[] indexColumnsDatatableSend = new int[]
+                        {
+                dtPersonTemp.Columns.IndexOf(@"Фамилия Имя Отчество"),
+                dtPersonTemp.Columns.IndexOf(@"NAV-код"),
+                dtPersonTemp.Columns.IndexOf(@"Группа"),//3
+                dtPersonTemp.Columns.IndexOf(@"№ пропуска"), //10
+                dtPersonTemp.Columns.IndexOf(@"Отдел"),//11
+                dtPersonTemp.Columns.IndexOf(@"Дата регистрации"),//12
+                dtPersonTemp.Columns.IndexOf(@"Время прихода ЧЧ:ММ"),//22
+                dtPersonTemp.Columns.IndexOf(@"Время ухода ЧЧ:ММ"),//23
+                dtPersonTemp.Columns.IndexOf(@"Реальное время прихода ЧЧ:ММ"),//24
+                dtPersonTemp.Columns.IndexOf(@"Реальное время ухода ЧЧ:ММ"), //25
+                dtPersonTemp.Columns.IndexOf(@"Реальное отработанное время ЧЧ:ММ"), //27
+                dtPersonTemp.Columns.IndexOf(@"Опоздание"),  //28
+                dtPersonTemp.Columns.IndexOf(@"Ранний уход"),                 //29
+                dtPersonTemp.Columns.IndexOf(@"Отпуск (отгул)"),                 //30
+                dtPersonTemp.Columns.IndexOf(@"Коммандировка"),                 //31
+                dtPersonTemp.Columns.IndexOf(@"День недели"),  //32
+                dtPersonTemp.Columns.IndexOf(@"Больничный")  //33
+                        };
+
+                        string[] nameColumnsDatatableSend =
+                        {
+                @"Фамилия Имя Отчество",//1
+                @"NAV-код",//2
+                @"Группа",//3
+                @"№ пропуска", //10
+                @"Отдел",//11
+                @"Дата регистрации",//12
+                @"Время прихода ЧЧ:ММ",//22
+                @"Время ухода ЧЧ:ММ",//23
+                @"Реальное время прихода ЧЧ:ММ",//24
+                @"Реальное время ухода ЧЧ:ММ", //25
+                @"Реальное отработанное время ЧЧ:ММ", //27
+                @"Опоздание",  //28
+                @"Ранний уход",                 //29
+                @"Отпуск (отгул)",                 //30
+                @"Коммандировка",                 //31
+                @"День недели",  //32
+                @"Больничный"                    //33
+                };
+                        //                        ExportDatatableSelectedColumnsToExcel();
+                        SendEmailAsync(senderEmail, recipientEmail, typeReport, description, filePathExcelReport);
+                        break;
+                    }
+                default:
+                    break;
+
+            }
+        }
+
+        private async void SendEmailAsync(string sender, string recipient, string title, string message, string pathToFile) //Compose and send e-mail
+        {
+           // string startupPath = AppDomain.CurrentDomain.RelativeSearchPath;
+           // string path = System.IO.Path.Combine(startupPath, "HtmlTemplates", "NotifyTemplate.html");
+           // string body = System.IO.File.ReadAllText(path);
+
+            // адрес smtp-сервера и порт, с которого будем отправлять письмо
+            using (System.Net.Mail.SmtpClient smtpClient = new System.Net.Mail.SmtpClient(mailServer, 587))
+            {
+                smtpClient.EnableSsl = true;
+                smtpClient.DeliveryMethod = System.Net.Mail.SmtpDeliveryMethod.Network;
+                smtpClient.Timeout = 50000;
+                // создаем объект сообщения
+                using (System.Net.Mail.MailMessage newMail = new System.Net.Mail.MailMessage())
+                {
+                    // письмо представляет код html
+                    newMail.IsBodyHtml = true;
+                    // отправитель - устанавливаем адрес и отображаемое в письме имя
+                    System.Net.Mail.MailAddress from = new System.Net.Mail.MailAddress(sender, myFileVersionInfo.ProductName);
+                    // кому отправляем
+                    System.Net.Mail.MailAddress to = new System.Net.Mail.MailAddress(recipient);
+                    // тема письма
+                    newMail.Subject = title;
+                    // текст письма
+                    newMail.Body = string.Format(@"<p>" + title + @"</p>" +
+                        @"<img src=""cid:{0}/> <p>" + message + @"</p>",
+                        Properties.Resources.LogoRYIK);
+                    //добавляем вложение
+                    newMail.Attachments.Add(new System.Net.Mail.Attachment(pathToFile));
+                    // логин и пароль
+                    smtpClient.Credentials = new System.Net.NetworkCredential(sender.Split('@')[0], "");
+                    await smtpClient.SendMailAsync(newMail);
                 }
             }
         }
