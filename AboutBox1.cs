@@ -3,7 +3,7 @@ using System.Windows.Forms;
 using System.Linq;
 
 
-namespace mySCA2
+namespace PersonViewerSCA2
 {
     partial class AboutBox1 : Form
     {

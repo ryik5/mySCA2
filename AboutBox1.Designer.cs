@@ -1,4 +1,4 @@
-﻿namespace mySCA2
+﻿namespace PersonViewerSCA2
 {
     partial class AboutBox1
     {
@@ -81,7 +81,7 @@
             // 
             // logoPictureBox
             // 
-            this.logoPictureBox.BackgroundImage = global::mySCA2.Properties.Resources.LogoRYIK;
+            this.logoPictureBox.BackgroundImage = global::PersonViewerSCA2.Properties.Resources.LogoRYIK;
             this.logoPictureBox.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.logoPictureBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.logoPictureBox.Dock = System.Windows.Forms.DockStyle.Fill;

@@ -16,7 +16,7 @@ using System.Windows.Forms;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace mySCA2
+namespace PersonViewerSCA2
 {
     public partial class FormPersonViewerSCA :Form
     {

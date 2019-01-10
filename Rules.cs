@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace mySCA2
+namespace PersonViewerSCA2
 {
     class Rules
     {

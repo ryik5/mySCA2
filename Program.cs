@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace mySCA2
+namespace PersonViewerSCA2
 {
     static class Program
     {

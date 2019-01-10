@@ -6,7 +6,7 @@
     <ProjectGuid>{6C84406F-DC6A-4BB4-9716-1B56D6313C43}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <NoStandardLibraries>false</NoStandardLibraries>
-    <AssemblyName>PersonViewerSCA</AssemblyName>
+    <AssemblyName>PersonViewerSCA2</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
@@ -59,7 +59,7 @@
     <FileAlignment>1024</FileAlignment>
   </PropertyGroup>
   <PropertyGroup>
-    <RootNamespace>mySCA2</RootNamespace>
+    <RootNamespace>PersonViewerSCA2</RootNamespace>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Resources\RYIK.ico</ApplicationIcon>
