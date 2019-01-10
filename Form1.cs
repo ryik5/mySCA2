@@ -189,6 +189,28 @@ namespace mySCA2
                                   @"Описание группы"                //37
         };
 
+        private string[] orderColumnsFinacialReport =
+            {
+                                  @"Фамилия Имя Отчество",//1
+                                  @"NAV-код",//2
+                                  @"Группа",//3
+                                  @"№ пропуска", //10
+                                  @"Отдел",//11
+                                  @"Дата регистрации",//12
+                                  @"День недели",                    //32
+                                  @"Время прихода ЧЧ:ММ",//22
+                                  @"Время ухода ЧЧ:ММ",//23
+                                  @"Реальное время прихода ЧЧ:ММ",//24
+                                  @"Реальное время ухода ЧЧ:ММ", //25
+                                  @"Реальное отработанное время ЧЧ:ММ", //27
+                                  @"Опоздание",                    //28
+                                  @"Ранний уход",                 //29
+                                  @"Отпуск (отгул)",                 //30
+                                  @"Коммандировка",                 //31
+                                  @"Больничный",                    //33
+                                  @"Согласованное отсутствие"      //34
+        };
+
         private DataTable dtPersonTemp = new DataTable("PersonTemp");
         private DataTable dtPersonTempAllColumns = new DataTable("PersonTempAllColumns");
         private DataTable dtPersonRegisteredFull = new DataTable("PersonRegisteredFull");
@@ -216,7 +238,7 @@ namespace mySCA2
         private Color textBoxFIOCurrentBackColor;
         private Color textBoxNavCurrentBackColor;
 
-        
+
         public FormPersonViewerSCA()
         { InitializeComponent(); }
 
@@ -392,7 +414,7 @@ namespace mySCA2
                     "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, " +
                     "HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL,  WorkedOut REAL, ServerOfRegistration TEXT, " +
                     "Late TEXT, Early TEXT,  Vacancy TEXT, BusinesTrip TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
-            
+
             TryUpdateStructureSqlDB("PersonTemp", "FIO TEXT, NAV TEXT, iDCard TEXT, DateRegistered TEXT, " +
                     "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, " +
                     "HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL,  WorkedOut REAL, ServerOfRegistration TEXT, " +
@@ -617,7 +639,7 @@ namespace mySCA2
 
             _dataGridViewSource(dataTable);
             _toolStripStatusLabelSetText(StatusLabel2, "Всего записей: " + _dataGridView1RowsCount());
-            
+
             sLastSelectedElement = "dataGridView";
         }
 
@@ -904,7 +926,7 @@ namespace mySCA2
                       };
 
                 await Task.Run(() => ImportTablePeopleToTableGroupsInLocalDB(databasePerson.ToString(), dtTempIntermediate));
-                
+
                 //show selected data     
                 //distinct Records                
                 var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(arrayHiddenColumns).ToArray(); //take distinct data
@@ -1055,7 +1077,7 @@ namespace mySCA2
                 }
                 foreach (var dr in dtGroup.AsEnumerable())
                 {
-                  CreateGroupInDB  (databasePerson, dr[2].ToString(), dr[4].ToString());
+                    CreateGroupInDB(databasePerson, dr[2].ToString(), dr[4].ToString());
                 }
 
 
@@ -1105,8 +1127,7 @@ namespace mySCA2
                 foreach (string str in ListFIOCombo.ToArray())
                 { _comboBoxFioAdd(str); }
                 try
-                { _comboBoxFioIndex(0); }
-                catch { };
+                { _comboBoxFioIndex(0); } catch { };
 
                 _timer1Enabled(false);
                 _toolStripStatusLabelSetText(StatusLabel2, "Получено ФИО - " + iFIO + " ");
@@ -1370,28 +1391,27 @@ namespace mySCA2
         }
 
         private string filePathApplication = Application.ExecutablePath;
-        private string filePathExcelReport ;
+        private string filePathExcelReport;
 
         private void ExportDatatableSelectedColumnsToExcel(DataTable dtExport, string nameReport)  //Export DataTable to Excel 
         {
             try
             {
-                filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), nameReport+ @".xlsx");
+                filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), nameReport + @".xlsx");
 
-                int numberColumns = dtPersonTemp.Columns.Count;
+                int numberColumns = dtExport.Columns.Count;
                 int[] indexColumns = new int[numberColumns];
                 string[] nameColumns = new string[numberColumns];
 
                 for (int i = 0; i < numberColumns; i++)
                 {
-                    nameColumns[i] = dtPersonTemp.Columns[i].ColumnName;
-                    indexColumns[i] = dtPersonTemp.Columns.IndexOf(nameColumns[i]);
+                    nameColumns[i] = dtExport.Columns[i].ColumnName;
+                    indexColumns[i] = dtExport.Columns.IndexOf(nameColumns[i]);
                 }
-
-
+                
                 int rows = 1;
                 int rowsInTable = dtExport.Rows.Count;
-                int columnsInTable = indexColumns.Length-1; // p.Length;
+                int columnsInTable = indexColumns.Length - 1; // p.Length;
                 Microsoft.Office.Interop.Excel.Application excel = new Microsoft.Office.Interop.Excel.Application
                 {
                     Visible = false, //делаем объект не видимым
@@ -1405,32 +1425,32 @@ namespace mySCA2
                 Microsoft.Office.Interop.Excel.Worksheet sheet = sheets.get_Item(1);
                 sheet.Name = nameReport;
                 //sheet.Names.Add("next", "=" + Path.GetFileNameWithoutExtension(filePathExcelReport) + "!$A$1", true, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
-              //  MessageBox.Show(columnsInTable.ToString());
+                //  MessageBox.Show(columnsInTable.ToString());
 
                 //colourize of columns
-                sheet.Columns[columnsInTable].Interior.Color = System.Drawing.Color.Silver;  // последняя колонка
+                sheet.Columns[columnsInTable].Interior.Color = Color.Silver;  // последняя колонка
 
                 try
                 {
                     sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Фамилия Имя Отчество")) + 1)]
-                    .Interior.Color = System.Drawing.Color.DarkSeaGreen;
-                }                catch { } //"Фамилия Имя Отчество"
+                    .Interior.Color = Color.DarkSeaGreen;
+                } catch { } //"Фамилия Имя Отчество"
 
                 try
                 {
                     sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Опоздание")) + 1)]
                     .Interior.Color = System.Drawing.Color.SandyBrown;
-                }                catch { } //"Опоздание"
+                } catch { } //"Опоздание"
 
                 try
                 {
                     sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Ранний уход")) + 1)]
                     .Interior.Color = System.Drawing.Color.SandyBrown;
-                }                catch { } //"Ранний уход"
+                } catch { } //"Ранний уход"
 
                 for (int column = 0; column < columnsInTable; column++)
                 {
-                  //  MessageBox.Show( column.ToString());
+                    //  MessageBox.Show( column.ToString());
 
                     sheet.Cells[column + 1].WrapText = true;
                     sheet.Cells[1, column + 1].HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
@@ -1451,7 +1471,7 @@ namespace mySCA2
                     rows++;
                     for (int column = 0; column < columnsInTable; column++)
                     {
-                       // MessageBox.Show(rows+" "+ column);
+                        // MessageBox.Show(rows+" "+ column);
                         sheet.Columns[column + 1].NumberFormat = "@";
                         sheet.Cells[rows, column + 1].Value = row[indexColumns[column]];
                         sheet.Cells[rows, column + 1].Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeBottom].LineStyle = Microsoft.Office.Interop.Excel.XlLineStyle.xlContinuous;
@@ -1461,7 +1481,7 @@ namespace mySCA2
                         sheet.Columns[column + 1].AutoFit();
                     }
                 }
-                
+
                 //Область сортировки          
                 Microsoft.Office.Interop.Excel.Range range = sheet.Range["A2", GetExcelColumnName(columnsInTable) + (rows - 1)];
 
@@ -1488,8 +1508,8 @@ namespace mySCA2
                     System.Reflection.Missing.Value, System.Reflection.Missing.Value,
                     true, false, //save without asking
                     Microsoft.Office.Interop.Excel.XlSaveAsAccessMode.xlExclusive,
-                    Microsoft.Office.Interop.Excel.XlSaveConflictResolution.xlLocalSessionChanges, System.Reflection.Missing.Value, 
-                    System.Reflection.Missing.Value, System.Reflection.Missing.Value, 
+                    Microsoft.Office.Interop.Excel.XlSaveConflictResolution.xlLocalSessionChanges, System.Reflection.Missing.Value,
+                    System.Reflection.Missing.Value, System.Reflection.Missing.Value,
                     System.Reflection.Missing.Value
                     );
                 workbook.Close(false, System.Reflection.Missing.Value, System.Reflection.Missing.Value);
@@ -1508,11 +1528,12 @@ namespace mySCA2
                 //
                 _timer1Enabled(false);
                 stimerPrev = "";
-               _toolStripStatusLabelSetText(StatusLabel2,"Путь к отчету: " + filePathExcelReport);
+                _toolStripStatusLabelSetText(StatusLabel2, "Путь к отчету: " + filePathExcelReport);
                 _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
+            } catch (Exception expt)
+            {
+                MessageBox.Show(expt.ToString());
             }
-            catch (Exception expt) {
-                MessageBox.Show(expt.ToString()); }
 
             sLastSelectedElement = "ExportExcel";
         }
@@ -1547,7 +1568,6 @@ namespace mySCA2
             return result;
         }
 
-
         private async void Export_Click(object sender, EventArgs e)
         {
             _MenuItemEnabled(FunctionMenuItem, false);
@@ -1559,6 +1579,9 @@ namespace mySCA2
             _timer1Enabled(true);
             _toolStripStatusLabelSetText(StatusLabel2, "Генерирую Excel-файл");
             stimerPrev = "Наполняю файл данными из текущей таблицы";
+
+
+            dtPersonTemp.SetColumnsOrder(orderColumnsFinacialReport);
 
             await Task.Run(() => ExportDatatableSelectedColumnsToExcel(dtPersonTemp, "InOutPeople"));
             //            await Task.Run(() => ExportDatagridToExcel());
@@ -1615,7 +1638,7 @@ namespace mySCA2
             ListGroups();
         }
 
-        private void CreateGroupInDB(System.IO.FileInfo fileInfo,  string nameGroup, string descriptionGroup)
+        private void CreateGroupInDB(System.IO.FileInfo fileInfo, string nameGroup, string descriptionGroup)
         {
             if (nameGroup.Length > 0)
             {
@@ -1631,7 +1654,7 @@ namespace mySCA2
                     }
                     connection.Close();
                 }
-                _toolStripStatusLabelSetText( StatusLabel2, "Группа - \"" + nameGroup + "\" создана"); 
+                _toolStripStatusLabelSetText(StatusLabel2, "Группа - \"" + nameGroup + "\" создана");
             }
 
         }
@@ -1894,7 +1917,7 @@ namespace mySCA2
 
                 //import groups
                 SQLiteCommand commandTransaction = new SQLiteCommand("begin", connection);
-                commandTransaction.ExecuteNonQuery();                
+                commandTransaction.ExecuteNonQuery();
                 using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PersonGroup' (FIO, NAV, GroupPerson, HourControlling, MinuteControlling, Controlling, HourControllingOut, MinuteControllingOut, ControllingOut, ControllingHHMM, ControllingOUTHHMM) " +
                                          "VALUES (@FIO, @NAV, @GroupPerson, @HourControlling, @MinuteControlling, @Controlling, @HourControllingOut, @MinuteControllingOut, @ControllingOut, @ControllingHHMM, @ControllingOUTHHMM)", connection))
                 {
@@ -2679,7 +2702,7 @@ namespace mySCA2
             return foundNavCode;
         }
 
-         private void infoItem_Click(object sender, EventArgs e)
+        private void infoItem_Click(object sender, EventArgs e)
         { ShowDataTableQuery(databasePerson, "TechnicalInfo", "SELECT PCName AS 'Версия Windows',POName AS 'Путь к ПО',POVersion AS 'Версия ПО',LastDateStarted AS 'Дата использования' ", "ORDER BY LastDateStarted DESC"); }
 
         private void EnterEditAnualItem_Click(object sender, EventArgs e) //Select - EnterEditAnual() or ExitEditAnual()
@@ -3646,7 +3669,10 @@ namespace mySCA2
                 @"Сервер СКД", //19
                 @"Имя точки прохода", //20
                 @"Направление прохода", //21
-                @"Реальное отработанное время" //26
+                @"Реальное отработанное время", //26
+                @"Код",         //35
+                @"Вышестоящая группа",            //36
+                @"Описание группы"                //37            
             };
 
             //store all columns
@@ -5168,7 +5194,7 @@ namespace mySCA2
             periodComboParameters.Add("Текущий месяц");
             periodComboParameters.Add("Предыдущая неделя");
             periodComboParameters.Add("Предыдущий месяц");
-            
+
             //get list groups from DB and add to listComboParameters
             using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
             {
@@ -5189,7 +5215,7 @@ namespace mySCA2
                 }
                 sqlConnection.Close();
             }
-                        
+
             SettingsView(
                     "Отправитель", mailServerUserName, @"Отправитель рассылки в виде: Name@Domain.Subdomain",
                     "Получатель рассылки", "", @"Получатель рассылки в виде: Name@Domain.Subdomain",
@@ -5247,7 +5273,7 @@ namespace mySCA2
 
             if (databasePerson.Exists && typeReport.Length > 0 && senderValid && recipientValid)
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Добавлена рассылка: " + typeReport+"| Всего рассылок: "+_dataGridView1RowsCount());
+                _toolStripStatusLabelSetText(StatusLabel2, "Добавлена рассылка: " + typeReport + "| Всего рассылок: " + _dataGridView1RowsCount());
             }
         }
 
@@ -5264,7 +5290,7 @@ namespace mySCA2
                 "MailServer", mailServer, "Имя почтового сервера \"Mail Server\" в виде - NameOfServer.Domain.Subdomain",
                 "Sender's e-mail", mailServerUserName, "E-mail отправителя рассылок виде - User.Name@MailServer.Domain.Subdomain",
                 "Sender's password", mailServerUserPassword, "Пароль E-mail отправителя почты",
-                "", new List<string>(),"",
+                "", new List<string>(), "",
                 "", new List<string>(), ""
                 );
         }
@@ -5495,7 +5521,7 @@ namespace mySCA2
             groupBoxProperties.Visible = true;
         }
 
-       private void periodCombo_KeyPress(object sender, KeyPressEventArgs e)
+        private void periodCombo_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == (char)13)//если нажата Enter
             {
@@ -5513,7 +5539,7 @@ namespace mySCA2
 
         private void DisposeTemporaryControls()
         {
-            _controlVisible(groupBoxProperties,false);
+            _controlVisible(groupBoxProperties, false);
             _controlDispose(labelServer1);
             _controlDispose(labelServer1UserName);
             _controlDispose(labelServer1UserPassword);
@@ -5555,11 +5581,11 @@ namespace mySCA2
 
             if (btnName == @"Сохранить рассылку")
             {
-                ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Отчет', " + 
+                ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Отчет', " +
                     "TypeReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации' ", " ORDER BY RecipientEmail asc; ");
             }
         }
-        
+
         private void buttonPropertiesSave_Click(object sender, EventArgs e) //PropertiesSave()
         {
             string btnName = btnPropertiesSave.Text.ToString();
@@ -6048,13 +6074,13 @@ namespace mySCA2
             if (e.Button == MouseButtons.Right)
             {
                 int currentMouseOverRow = dataGridView1.HitTest(e.X, e.Y).RowIndex;
-                if (( nameOfLastTableFromDB == "PersonGroupDesciption") && currentMouseOverRow > -1)
+                if ((nameOfLastTableFromDB == "PersonGroupDesciption") && currentMouseOverRow > -1)
                 {
                     ContextMenu mRightClick = new ContextMenu();
                     mRightClick.MenuItems.Add(new MenuItem("Удалить выделенную группу", DeleteCurrentRow));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
-                else if ((nameOfLastTableFromDB == "Mailing" ) && currentMouseOverRow > -1)
+                else if ((nameOfLastTableFromDB == "Mailing") && currentMouseOverRow > -1)
                 {
                     string mailing = "";
                     for (int i = 0; i < dataGridView1.ColumnCount; i++)
@@ -6066,7 +6092,7 @@ namespace mySCA2
                     }
                     ContextMenu mRightClick = new ContextMenu();
                     mRightClick.MenuItems.Add(new MenuItem("Удалить выделенную рассылку", DeleteCurrentRow));
-                    mRightClick.MenuItems.Add(new MenuItem("Выполнить рассылку: "+ mailing, DoMainAction));
+                    mRightClick.MenuItems.Add(new MenuItem("Выполнить рассылку: " + mailing, DoMainAction));
 
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
@@ -6101,6 +6127,8 @@ namespace mySCA2
                         }
                     case "Mailing": //send report by e-mail
                         {
+                            DataGridViewSeekSelectedData dgSeek = new DataGridViewSeekSelectedData();
+                            dgSeek.FindValueInCells(dataGridView1, new string[] { @"Получатель", @"Наименование", @"Период" });
 
                             for (int i = 0; i < dataGridView1.ColumnCount; i++)
                             {
@@ -6118,9 +6146,12 @@ namespace mySCA2
                                 }
                             }
 
+                            //test only
+                            MessageBox.Show(dgSeek.values[0] + " "+ recipientEmail+ "\n"+ dgSeek.values[1] + " " + typeReport + "\n"+dgSeek.values[2] + " " + period + "\n");
+
                             FindSelectedMailingOnDatagridviewAndAction("sendEmail");
 
-                            _toolStripStatusLabelSetText(StatusLabel2, typeReport +" отправлен " + recipientEmail);
+                            _toolStripStatusLabelSetText(StatusLabel2, typeReport + " отправлен " + recipientEmail);
                             break;
                         }
                     default:
@@ -6148,7 +6179,7 @@ namespace mySCA2
                             string selectedGroup = "";
                             for (int i = 0; i < dataGridView1.ColumnCount; i++)
                             {
-                                if (dataGridView1.Columns[i].HeaderText == "GroupPerson"|| dataGridView1.Columns[i].HeaderText == "Группа")
+                                if (dataGridView1.Columns[i].HeaderText == "GroupPerson" || dataGridView1.Columns[i].HeaderText == "Группа")
                                 { IndexColumn1 = i; }
                             }
 
@@ -6196,7 +6227,7 @@ namespace mySCA2
                                     "RecipientEmail", dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString(),
                                     "TypeReport", typeReport);
                             }
-                            _toolStripStatusLabelSetText(StatusLabel2, "Удалена рассылка отчета " + typeReport+"| Всего рассылок: "+_dataGridView1RowsCount());
+                            _toolStripStatusLabelSetText(StatusLabel2, "Удалена рассылка отчета " + typeReport + "| Всего рассылок: " + _dataGridView1RowsCount());
                             ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Отчет', " +
                                 "TypeReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации' ", " ORDER BY RecipientEmail asc; ");
                             break;
@@ -6260,48 +6291,8 @@ namespace mySCA2
                         //todo
                         //making report
 
-                        int[] indexColumnsDatatableSend = new int[]
-                        {
-                dtPersonTemp.Columns.IndexOf(@"Фамилия Имя Отчество"),
-                dtPersonTemp.Columns.IndexOf(@"NAV-код"),
-                dtPersonTemp.Columns.IndexOf(@"Группа"),//3
-                dtPersonTemp.Columns.IndexOf(@"№ пропуска"), //10
-                dtPersonTemp.Columns.IndexOf(@"Отдел"),//11
-                dtPersonTemp.Columns.IndexOf(@"Дата регистрации"),//12
-                dtPersonTemp.Columns.IndexOf(@"Время прихода ЧЧ:ММ"),//22
-                dtPersonTemp.Columns.IndexOf(@"Время ухода ЧЧ:ММ"),//23
-                dtPersonTemp.Columns.IndexOf(@"Реальное время прихода ЧЧ:ММ"),//24
-                dtPersonTemp.Columns.IndexOf(@"Реальное время ухода ЧЧ:ММ"), //25
-                dtPersonTemp.Columns.IndexOf(@"Реальное отработанное время ЧЧ:ММ"), //27
-                dtPersonTemp.Columns.IndexOf(@"Опоздание"),  //28
-                dtPersonTemp.Columns.IndexOf(@"Ранний уход"),                 //29
-                dtPersonTemp.Columns.IndexOf(@"Отпуск (отгул)"),                 //30
-                dtPersonTemp.Columns.IndexOf(@"Коммандировка"),                 //31
-                dtPersonTemp.Columns.IndexOf(@"День недели"),  //32
-                dtPersonTemp.Columns.IndexOf(@"Больничный")  //33
-                        };
 
-                        string[] nameColumnsDatatableSend =
-                        {
-                @"Фамилия Имя Отчество",//1
-                @"NAV-код",//2
-                @"Группа",//3
-                @"№ пропуска", //10
-                @"Отдел",//11
-                @"Дата регистрации",//12
-                @"Время прихода ЧЧ:ММ",//22
-                @"Время ухода ЧЧ:ММ",//23
-                @"Реальное время прихода ЧЧ:ММ",//24
-                @"Реальное время ухода ЧЧ:ММ", //25
-                @"Реальное отработанное время ЧЧ:ММ", //27
-                @"Опоздание",  //28
-                @"Ранний уход",                 //29
-                @"Отпуск (отгул)",                 //30
-                @"Коммандировка",                 //31
-                @"День недели",  //32
-                @"Больничный"                    //33
-                };
-                        //                        ExportDatatableSelectedColumnsToExcel();
+                        ExportDatatableSelectedColumnsToExcel(dtPersonTemp, typeReport);
                         SendEmailAsync(senderEmail, recipientEmail, typeReport, description, filePathExcelReport);
                         break;
                     }
@@ -6313,9 +6304,9 @@ namespace mySCA2
 
         private async void SendEmailAsync(string sender, string recipient, string title, string message, string pathToFile) //Compose and send e-mail
         {
-           // string startupPath = AppDomain.CurrentDomain.RelativeSearchPath;
-           // string path = System.IO.Path.Combine(startupPath, "HtmlTemplates", "NotifyTemplate.html");
-           // string body = System.IO.File.ReadAllText(path);
+            // string startupPath = AppDomain.CurrentDomain.RelativeSearchPath;
+            // string path = System.IO.Path.Combine(startupPath, "HtmlTemplates", "NotifyTemplate.html");
+            // string body = System.IO.File.ReadAllText(path);
 
             // адрес smtp-сервера и порт, с которого будем отправлять письмо
             using (System.Net.Mail.SmtpClient smtpClient = new System.Net.Mail.SmtpClient(mailServer, 587))
@@ -6421,14 +6412,22 @@ namespace mySCA2
         }
 
         private void NumUpDown_ValueChanged(object sender, EventArgs e) //numUpDownValueChanged()
-        { numUpDownValueChanged(); }
+        { NumUpDownValueChanged(); }
 
-        private void numUpDownValueChanged()
+        private void NumUpDownValueChanged()
         {
             numUpHourStart = _numUpDownReturn(numUpDownHourStart);
             numUpMinuteStart = _numUpDownReturn(numUpDownMinuteStart);
             numUpHourEnd = _numUpDownReturn(numUpDownHourEnd);
             numUpMinuteEnd = _numUpDownReturn(numUpDownMinuteEnd);
+        }
+
+        private void comboBoxFio_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)13)//если нажата Enter
+            {
+                comboBoxFio.Items.Add(comboBoxFio.Text);
+            }
         }
 
 
@@ -6552,13 +6551,7 @@ namespace mySCA2
             }
         }
 
-        private void comboBoxFio_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == (char)13)//если нажата Enter
-            {
-                comboBoxFio.Items.Add(comboBoxFio.Text);
-            }
-        }
+
 
 
 
@@ -6616,28 +6609,63 @@ namespace mySCA2
         public string serverSKD = "";
         public string namePassPoint = "";
         public string directionPass = "";
+    }
 
-        private decimal ConvertTwoStringsTimeToDecimal(string hour, string minute)
+    public class DataGridViewSeekSelectedData
+    {
+        public string[] values = new string[10];
+
+        public void FindValueInCells(DataGridView DGV, params string[] columnsName)
         {
-            decimal result = TryParseStringToDecimal(hour) + TryParseStringToDecimal(TimeSpan.FromMinutes(TryParseStringToDouble(minute)).TotalHours.ToString());
-            return result;
+            int IndexCurrentRow = DGV.CurrentRow.Index > -1 ? DGV.CurrentRow.Index : -1;
+            if (IndexCurrentRow > -1)
+            {
+                for (int i = 0; i < DGV.ColumnCount; i++)
+                {
+                    if (DGV.Columns[i].HeaderText == columnsName[0])
+                    {
+                        values[0] = DGV.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                    else if (columnsName.Length > 1 && DGV.Columns[i].HeaderText == columnsName[1])
+                    {
+                        values[1] = DGV.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                    else if (columnsName.Length > 2 && DGV.Columns[i].HeaderText == columnsName[2])
+                    {
+                        values[2] = DGV.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                    else if (columnsName.Length > 3 && DGV.Columns[i].HeaderText == columnsName[3])
+                    {
+                        values[3] = DGV.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                    else if (columnsName.Length > 4 && DGV.Columns[i].HeaderText == columnsName[4])
+                    {
+                        values[4] = DGV.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                    else if (columnsName.Length > 5 && DGV.Columns[i].HeaderText == columnsName[5])
+                    {
+                        values[5] = DGV.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                    else if (columnsName.Length > 6 && DGV.Columns[i].HeaderText == columnsName[6])
+                    {
+                        values[6] = DGV.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                    else if (columnsName.Length > 7 && DGV.Columns[i].HeaderText == columnsName[7])
+                    {
+                        values[7] = DGV.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                    else if (columnsName.Length > 8 && DGV.Columns[i].HeaderText == columnsName[8])
+                    {
+                        values[8] = DGV.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                    else if (columnsName.Length > 9 && DGV.Columns[i].HeaderText == columnsName[9])
+                    {
+                        values[9] = DGV.Rows[IndexCurrentRow].Cells[i].Value.ToString();
+                    }
+                }
+            }
+
         }
-
-        private decimal TryParseStringToDecimal(string str)  //string -> decimal. if error it will return 0
-        {
-            decimal result = 0;
-            try { result = decimal.Parse(str); } catch { result = 0; }
-            return result;
-        }
-
-        private double TryParseStringToDouble(string str)  //string -> decimal. if error it will return 0
-        {
-            double result = 0;
-            try { result = double.Parse(str); } catch { }
-            return result;
-        }
-
-
     }
 
     public class EncryptDecrypt
@@ -6758,4 +6786,18 @@ namespace mySCA2
         }
     }
 
+    public static class DataTableExtensions
+    {
+        public static void SetColumnsOrder(this DataTable table, params String[] columnNames)
+        {
+            int columnIndex = 0;
+            foreach (var columnName in columnNames)
+            {
+                table.Columns[columnName].SetOrdinal(columnIndex);
+                columnIndex++;
+            }
+        }
+    }
+
+  
 }
