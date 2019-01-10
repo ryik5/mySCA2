@@ -37,7 +37,7 @@
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.numUpDownHourStart = new System.Windows.Forms.NumericUpDown();
             this.numUpDownMinuteStart = new System.Windows.Forms.NumericUpDown();
-            this.groupBoxRemoveDays = new System.Windows.Forms.GroupBox();
+            this.groupBoxFilterReport = new System.Windows.Forms.GroupBox();
             this.checkBoxReEnter = new System.Windows.Forms.CheckBox();
             this.checkBoxTimeViolations = new System.Windows.Forms.CheckBox();
             this.checkBoxCelebrate = new System.Windows.Forms.CheckBox();
@@ -116,7 +116,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownHourStart)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownMinuteStart)).BeginInit();
-            this.groupBoxRemoveDays.SuspendLayout();
+            this.groupBoxFilterReport.SuspendLayout();
             this.statusStrip.SuspendLayout();
             this.groupBoxPeriod.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownHourEnd)).BeginInit();
@@ -191,16 +191,16 @@
             this.toolTip1.SetToolTip(this.numUpDownMinuteStart, resources.GetString("numUpDownMinuteStart.ToolTip"));
             this.numUpDownMinuteStart.ValueChanged += new System.EventHandler(this.NumUpDown_ValueChanged);
             // 
-            // groupBoxRemoveDays
+            // groupBoxFilterReport
             // 
-            resources.ApplyResources(this.groupBoxRemoveDays, "groupBoxRemoveDays");
-            this.groupBoxRemoveDays.Controls.Add(this.checkBoxReEnter);
-            this.groupBoxRemoveDays.Controls.Add(this.checkBoxTimeViolations);
-            this.groupBoxRemoveDays.Controls.Add(this.checkBoxCelebrate);
-            this.groupBoxRemoveDays.Controls.Add(this.checkBoxWeekend);
-            this.groupBoxRemoveDays.Name = "groupBoxRemoveDays";
-            this.groupBoxRemoveDays.TabStop = false;
-            this.toolTip1.SetToolTip(this.groupBoxRemoveDays, resources.GetString("groupBoxRemoveDays.ToolTip"));
+            resources.ApplyResources(this.groupBoxFilterReport, "groupBoxFilterReport");
+            this.groupBoxFilterReport.Controls.Add(this.checkBoxReEnter);
+            this.groupBoxFilterReport.Controls.Add(this.checkBoxTimeViolations);
+            this.groupBoxFilterReport.Controls.Add(this.checkBoxCelebrate);
+            this.groupBoxFilterReport.Controls.Add(this.checkBoxWeekend);
+            this.groupBoxFilterReport.Name = "groupBoxFilterReport";
+            this.groupBoxFilterReport.TabStop = false;
+            this.toolTip1.SetToolTip(this.groupBoxFilterReport, resources.GetString("groupBoxFilterReport.ToolTip"));
             // 
             // checkBoxReEnter
             // 
@@ -754,7 +754,7 @@
             this.Controls.Add(this.labelGroup);
             this.Controls.Add(this.monthCalendar);
             this.Controls.Add(this.groupBoxTimeEnd);
-            this.Controls.Add(this.groupBoxRemoveDays);
+            this.Controls.Add(this.groupBoxFilterReport);
             this.Controls.Add(this.groupBoxPeriod);
             this.Controls.Add(this.groupBoxTimeStart);
             this.Controls.Add(this.menuStrip);
@@ -767,8 +767,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownHourStart)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownMinuteStart)).EndInit();
-            this.groupBoxRemoveDays.ResumeLayout(false);
-            this.groupBoxRemoveDays.PerformLayout();
+            this.groupBoxFilterReport.ResumeLayout(false);
+            this.groupBoxFilterReport.PerformLayout();
             this.statusStrip.ResumeLayout(false);
             this.statusStrip.PerformLayout();
             this.groupBoxPeriod.ResumeLayout(false);
@@ -809,7 +809,7 @@
         private System.Windows.Forms.Label labelInfoStart;
         private System.Windows.Forms.GroupBox groupBoxTimeStart;
         private System.Windows.Forms.GroupBox groupBoxPeriod;
-        private System.Windows.Forms.GroupBox groupBoxRemoveDays;
+        private System.Windows.Forms.GroupBox groupBoxFilterReport;
         private System.Windows.Forms.CheckBox checkBoxCelebrate;
         private System.Windows.Forms.CheckBox checkBoxWeekend;
         private System.Windows.Forms.CheckBox checkBoxTimeViolations;

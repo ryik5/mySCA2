@@ -225,7 +225,7 @@
   <data name="&gt;&gt;numUpDownMinuteStart.ZOrder" xml:space="preserve">
     <value>2</value>
   </data>
-  <data name="groupBoxRemoveDays.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+  <data name="groupBoxFilterReport.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
   </data>
   <data name="checkBoxReEnter.AutoSize" type="System.Boolean, mscorlib">
@@ -253,7 +253,7 @@
     <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;checkBoxReEnter.Parent" xml:space="preserve">
-    <value>groupBoxRemoveDays</value>
+    <value>groupBoxFilterReport</value>
   </data>
   <data name="&gt;&gt;checkBoxReEnter.ZOrder" xml:space="preserve">
     <value>0</value>
@@ -283,7 +283,7 @@
     <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;checkBoxTimeViolations.Parent" xml:space="preserve">
-    <value>groupBoxRemoveDays</value>
+    <value>groupBoxFilterReport</value>
   </data>
   <data name="&gt;&gt;checkBoxTimeViolations.ZOrder" xml:space="preserve">
     <value>1</value>
@@ -313,7 +313,7 @@
     <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;checkBoxCelebrate.Parent" xml:space="preserve">
-    <value>groupBoxRemoveDays</value>
+    <value>groupBoxFilterReport</value>
   </data>
   <data name="&gt;&gt;checkBoxCelebrate.ZOrder" xml:space="preserve">
     <value>2</value>
@@ -343,36 +343,36 @@
     <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;checkBoxWeekend.Parent" xml:space="preserve">
-    <value>groupBoxRemoveDays</value>
+    <value>groupBoxFilterReport</value>
   </data>
   <data name="&gt;&gt;checkBoxWeekend.ZOrder" xml:space="preserve">
     <value>3</value>
   </data>
-  <data name="groupBoxRemoveDays.Location" type="System.Drawing.Point, System.Drawing">
+  <data name="groupBoxFilterReport.Location" type="System.Drawing.Point, System.Drawing">
     <value>633, 264</value>
   </data>
-  <data name="groupBoxRemoveDays.Size" type="System.Drawing.Size, System.Drawing">
+  <data name="groupBoxFilterReport.Size" type="System.Drawing.Size, System.Drawing">
     <value>227, 127</value>
   </data>
-  <data name="groupBoxRemoveDays.TabIndex" type="System.Int32, mscorlib">
+  <data name="groupBoxFilterReport.TabIndex" type="System.Int32, mscorlib">
     <value>3</value>
   </data>
-  <data name="groupBoxRemoveDays.Text" xml:space="preserve">
+  <data name="groupBoxFilterReport.Text" xml:space="preserve">
     <value>Фильтр отчета:</value>
   </data>
-  <data name="groupBoxRemoveDays.ToolTip" xml:space="preserve">
+  <data name="groupBoxFilterReport.ToolTip" xml:space="preserve">
     <value>Убрать из отчета отмеченные пункты</value>
   </data>
-  <data name="&gt;&gt;groupBoxRemoveDays.Name" xml:space="preserve">
-    <value>groupBoxRemoveDays</value>
+  <data name="&gt;&gt;groupBoxFilterReport.Name" xml:space="preserve">
+    <value>groupBoxFilterReport</value>
   </data>
-  <data name="&gt;&gt;groupBoxRemoveDays.Type" xml:space="preserve">
+  <data name="&gt;&gt;groupBoxFilterReport.Type" xml:space="preserve">
     <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;groupBoxRemoveDays.Parent" xml:space="preserve">
+  <data name="&gt;&gt;groupBoxFilterReport.Parent" xml:space="preserve">
     <value>$this</value>
   </data>
-  <data name="&gt;&gt;groupBoxRemoveDays.ZOrder" xml:space="preserve">
+  <data name="&gt;&gt;groupBoxFilterReport.ZOrder" xml:space="preserve">
     <value>11</value>
   </data>
   <metadata name="statusStrip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">

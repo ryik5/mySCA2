@@ -1408,7 +1408,7 @@ namespace mySCA2
                     nameColumns[i] = dtExport.Columns[i].ColumnName;
                     indexColumns[i] = dtExport.Columns.IndexOf(nameColumns[i]);
                 }
-                
+
                 int rows = 1;
                 int rowsInTable = dtExport.Rows.Count;
                 int columnsInTable = indexColumns.Length - 1; // p.Length;
@@ -1620,7 +1620,7 @@ namespace mySCA2
                 groupBoxPeriod.BackColor = Color.PaleGreen;
                 groupBoxTimeStart.BackColor = Color.PaleGreen;
                 groupBoxTimeEnd.BackColor = Color.PaleGreen;
-                groupBoxRemoveDays.BackColor = SystemColors.Control;
+                groupBoxFilterReport.BackColor = SystemColors.Control;
             }
             sComboboxFIO = null;
             nameOfLastTableFromDB = "PersonRegistered";
@@ -1679,7 +1679,7 @@ namespace mySCA2
                 groupBoxPeriod.BackColor = Color.PaleGreen;
                 groupBoxTimeStart.BackColor = Color.PaleGreen;
                 groupBoxTimeEnd.BackColor = Color.PaleGreen;
-                groupBoxRemoveDays.BackColor = SystemColors.Control;
+                groupBoxFilterReport.BackColor = SystemColors.Control;
             } catch { }
 
             DeleteGroupItem.Visible = true;
@@ -2177,7 +2177,8 @@ namespace mySCA2
             _MenuItemEnabled(AnualDatesMenuItem, false);
             _MenuItemEnabled(GroupsMenuItem, false);
             CheckBoxesFiltersAll_Enable(false);
-            _controlEnable(dataGridView1, false);
+
+            _controlVisible(dataGridView1, false);            
             _controlVisible(pictureBox1, false);
 
             _ProgressBar1Value0();
@@ -2205,54 +2206,101 @@ namespace mySCA2
                     nameOfLastTableFromDB = "PersonRegistered";
                 }
 
-                _timer1Enabled(true);
-                GetRegistrations();
 
-                CheckBoxesFiltersAll_CheckedState(false);
+                dtPersonRegisteredFull.Clear();
 
+                GetRegistrations(_textBoxReturnText(textBoxGroup));
+
+                dtPersonTemp = dtPersonRegisteredFull.Copy();               
+                dtPersonTempAllColumns = dtPersonRegisteredFull.Copy(); //store all columns
+
+                string[] nameHidenColumnsArray =
+            {
+                @"№ п/п",//0
+                @"Время прихода,часы",//4
+                @"Время прихода,минут", //5
+                @"Время прихода",//6
+                @"Время ухода,часы",//7
+                @"Время ухода,минут",//8
+                @"Время ухода",//9
+                @"Время регистрации,часы",//13
+                @"Время регистрации,минут",//14
+                @"Время регистрации", //15
+                @"Реальное время ухода,часы",//16
+                @"Реальное время ухода,минут",//17
+                @"Реальное время ухода", //18
+                //@"Время ухода ЧЧ:ММ",       //23
+                @"Реальное отработанное время", //26
+                @"Реальное отработанное время ЧЧ:ММ", //27
+                @"Опоздание",                    //28
+                @"Ранний уход",                 //29
+                @"Отпуск (отгул)",              //30
+                @"Коммандировка",                 //31
+                @"День недели",  //32
+                @"Больничный",  //33
+                @"Согласованное отсутствие",      //34
+                @"Код",         //35
+                @"Вышестоящая группа",            //36
+                @"Описание группы"                //37
+            };
+                
+                //show selected data     
+                //distinct Records                
+                var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(nameHidenColumnsArray).ToArray(); //take distinct data
+                dtPersonTemp = GetDistinctRecords(dtPersonTempAllColumns, namesDistinctColumnsArray);
+                ShowDatatableOnDatagridview(dtPersonTemp, nameHidenColumnsArray);
+                
+                _ProgressBar1Value100();
+                stimerPrev = "";
+
+                _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
+                _MenuItemDefaultColorSet(QuickLoadDataItem);
+                _ChangeMenuItemBackColor(TableExportToExcelItem, Color.PaleGreen);
+
+                _MenuItemEnabled(QuickLoadDataItem, true);
+                _MenuItemEnabled(FunctionMenuItem, true);
+                _MenuItemEnabled(SettingsMenuItem, true);
+                _MenuItemEnabled(AnualDatesMenuItem, true);
+                _MenuItemEnabled(GroupsMenuItem, true);
+                _MenuItemEnabled(VisualModeItem, true);
+                _MenuItemEnabled(VisualSelectColorMenuItem, true);
+                _MenuItemEnabled(TableModeItem, true);
+                _MenuItemEnabled(TableExportToExcelItem, true);
+
+                _MenuItemVisible(VisualModeItem, true);
+                _MenuItemVisible(VisualSelectColorMenuItem, true);
+                _MenuItemVisible(TableModeItem, false);
+                _MenuItemVisible(TableExportToExcelItem, true);                
                 _controlVisible(dataGridView1, true);
-                _controlEnable(dataGridView1, true);
+
                 _controlEnable(checkBoxReEnter, true);
                 _controlEnable(checkBoxTimeViolations, false);
                 _controlEnable(checkBoxWeekend, false);
                 _controlEnable(checkBoxCelebrate, false);
+                CheckBoxesFiltersAll_CheckedState(false);
 
-                _MenuItemEnabled(VisualModeItem, true);
-                _MenuItemVisible(VisualModeItem, true);
-
-                _MenuItemEnabled(VisualSelectColorMenuItem, true);
-                _MenuItemVisible(VisualSelectColorMenuItem, true);
-
-                _MenuItemEnabled(TableModeItem, true);
-                _MenuItemVisible(TableModeItem, false);
-
-                _MenuItemEnabled(TableExportToExcelItem, true);
-                _MenuItemVisible(TableExportToExcelItem, true);
-
-                _MenuItemEnabled(TableExportToExcelItem, true);
-                _MenuItemEnabled(SettingsMenuItem, true);
                 panelViewResize(numberPeopleInLoading);
+
+                nameHidenColumnsArray = null;
+                namesDistinctColumnsArray = null;
             }
             else
             {
                 GetInfoSetup();
                 _MenuItemEnabled(SettingsMenuItem, true);
             }
-            _changeControlBackColor(groupBoxRemoveDays, Color.PaleGreen);
+            _changeControlBackColor(groupBoxFilterReport, Color.PaleGreen);
         }
 
-        private void GetRegistrations()
+        private void GetRegistrations(string selectedGroup)
         {
-            _controlVisible(dataGridView1, false);
-
             Person person = new Person();
-            string selectedGroup = _textBoxReturnText(textBoxGroup);
+
             decimal dControlHourIn = _numUpDownReturn(numUpDownHourStart);
             decimal dControlMinuteIn = _numUpDownReturn(numUpDownMinuteStart);
             decimal dControlHourOut = _numUpDownReturn(numUpDownHourEnd);
             decimal dControlMinuteOut = _numUpDownReturn(numUpDownMinuteEnd);
 
-            dtPersonRegisteredFull.Clear();
 
             if ((nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup") && selectedGroup.Length > 0)
             {
@@ -2325,62 +2373,7 @@ namespace mySCA2
                 _toolStripStatusLabelSetText(StatusLabel2, "Данные с СКД по \"" + ShortFIO(_textBoxReturnText(textBoxFIO)) + "\" получены!");
             }
 
-            person = null;
-
-            dtPersonTemp = dtPersonRegisteredFull.Copy();
-            //store all columns
-            dtPersonTempAllColumns = dtPersonRegisteredFull.Copy();
-
-            string[] nameHidenColumnsArray =
-            {
-                @"№ п/п",//0
-                @"Время прихода,часы",//4
-                @"Время прихода,минут", //5
-                @"Время прихода",//6
-                @"Время ухода,часы",//7
-                @"Время ухода,минут",//8
-                @"Время ухода",//9
-                @"Время регистрации,часы",//13
-                @"Время регистрации,минут",//14
-                @"Время регистрации", //15
-                @"Реальное время ухода,часы",//16
-                @"Реальное время ухода,минут",//17
-                @"Реальное время ухода", //18
-                //@"Время ухода ЧЧ:ММ",       //23
-                @"Реальное отработанное время", //26
-                @"Реальное отработанное время ЧЧ:ММ", //27
-                @"Опоздание",                    //28
-                @"Ранний уход",                 //29
-                @"Отпуск (отгул)",              //30
-                @"Коммандировка",                 //31
-                @"День недели",  //32
-                @"Больничный",  //33
-                @"Согласованное отсутствие",      //34
-                @"Код",         //35
-                @"Вышестоящая группа",            //36
-                @"Описание группы"                //37
-            };
-
-
-            //show selected data     
-            //distinct Records                
-            var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(nameHidenColumnsArray).ToArray(); //take distinct data
-            dtPersonTemp = GetDistinctRecords(dtPersonTempAllColumns, namesDistinctColumnsArray);
-            ShowDatatableOnDatagridview(dtPersonTemp, nameHidenColumnsArray);
-
-
-            _ProgressBar1Value100();
-            stimerPrev = "";
-            _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
-
-            _controlVisible(dataGridView1, true);
-            _MenuItemDefaultColorSet(QuickLoadDataItem);
-            _ChangeMenuItemBackColor(TableExportToExcelItem, Color.PaleGreen);
-            _MenuItemEnabled(QuickLoadDataItem, true);
-            _MenuItemEnabled(FunctionMenuItem, true);
-            _MenuItemEnabled(SettingsMenuItem, true);
-            _MenuItemEnabled(AnualDatesMenuItem, true);
-            _MenuItemEnabled(GroupsMenuItem, true);
+            person = null;           
         }
 
         private void GetPersonRegistrationFromServer(DataTable dt, Person person)
@@ -2479,9 +2472,11 @@ namespace mySCA2
 
             try
             {
-                string stringConnection;
-                string stringSqlWhere = "";
-
+                string stringConnection = @"Data Source=" + sServer1 + @"\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=120";
+                string query = "SELECT param0, param1, objid, CONVERT(varchar, date, 120) AS date, CONVERT(varchar, PROTOCOL.time, 114) AS time FROM protocol " +
+                    " where action like 'ACCESS_IN' AND param1 like '" + stringIdCardIntellect + "' AND date >= '" + _dateTimePickerStart() + "' AND date <= '" + _dateTimePickerEnd() + "' " +
+                    " ORDER BY date ASC";
+                string stringDataNew = "";
                 int idCardIntellect = 0;
 
                 decimal hourManaging = 0;
@@ -2491,12 +2486,9 @@ namespace mySCA2
                 try { idCardIntellect = Convert.ToInt32(stringIdCardIntellect); } catch { idCardIntellect = 0; }
                 if (idCardIntellect > 0)
                 {
-                    stringSqlWhere = " where action like 'ACCESS_IN' AND param1 like '" + stringIdCardIntellect + "' AND date >= '" + _dateTimePickerStart() + "' AND date <= '" + _dateTimePickerEnd() + "' "; //ORDER BY date DESC
-                    stringConnection = @"Data Source=" + sServer1 + @"\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=120";
                     using (var sqlConnection = new SqlConnection(stringConnection))
                     {
                         sqlConnection.Open();
-                        string query = "SELECT param0, param1, objid, CONVERT(varchar, date, 120) AS date, CONVERT(varchar, PROTOCOL.time, 114) AS time FROM protocol " + stringSqlWhere + " ORDER BY date ASC";
                         using (var cmd = new SqlCommand(query, sqlConnection))
                         {
                             using (var reader = cmd.ExecuteReader())
@@ -2507,7 +2499,7 @@ namespace mySCA2
                                     {
                                         if (record != null && record["param0"].ToString().Trim().Length > 0)
                                         {
-                                            string stringDataNew = Regex.Split(record["date"].ToString().Trim(), "[ ]")[0];
+                                            stringDataNew = Regex.Split(record["date"].ToString().Trim(), "[ ]")[0];
                                             hourManaging = Convert.ToDecimal(Regex.Split(record["time"].ToString().Trim(), "[:]")[0]);
                                             minuteManaging = Convert.ToDecimal(Regex.Split(record["time"].ToString().Trim(), "[:]")[1]);
                                             managingHours = ConvertDecimalSeparatedTimeToDecimal(hourManaging, minuteManaging);
@@ -2528,8 +2520,8 @@ namespace mySCA2
                     }
                 }
 
-                stringConnection = null;
-                stringSqlWhere = null;
+                stringDataNew = null; query = null; stringConnection = null;
+
                 _ProgressWork1();
             } catch (Exception Expt)
             { MessageBox.Show(Expt.ToString(), @"Сервер не доступен, или неправильная авторизация", MessageBoxButtons.OK, MessageBoxIcon.Error); }
@@ -5753,7 +5745,7 @@ namespace mySCA2
                             textBoxGroup.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString(); //Take the name of selected group
                             textBoxGroupDescription.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString(); //Take the name of selected group
                             groupBoxPeriod.BackColor = Color.PaleGreen;
-                            groupBoxRemoveDays.BackColor = SystemColors.Control;
+                            groupBoxFilterReport.BackColor = SystemColors.Control;
                             StatusLabel2.Text = @"Выбрана группа: " + textBoxGroup.Text + @" |  Всего ФИО: " + iFIO;
                             if (textBoxFIO.TextLength > 3)
                             {
@@ -5835,7 +5827,7 @@ namespace mySCA2
                             groupBoxTimeStart.BackColor = Color.PaleGreen;
                             groupBoxTimeEnd.BackColor = Color.PaleGreen;
 
-                            groupBoxRemoveDays.BackColor = SystemColors.Control;
+                            groupBoxFilterReport.BackColor = SystemColors.Control;
 
                             numUpDownHourStart.Value = 9;
                             numUpDownMinuteStart.Value = 0;
@@ -6127,9 +6119,10 @@ namespace mySCA2
                         }
                     case "Mailing": //send report by e-mail
                         {
-                            DataGridViewSeekSelectedData dgSeek = new DataGridViewSeekSelectedData();
+                            DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
                             dgSeek.FindValueInCells(dataGridView1, new string[] { @"Получатель", @"Наименование", @"Период" });
 
+                            //remove after check
                             for (int i = 0; i < dataGridView1.ColumnCount; i++)
                             {
                                 if (dataGridView1.Columns[i].HeaderText == @"Получатель" || dataGridView1.Columns[i].HeaderText == @"RecipientEmail")
@@ -6147,7 +6140,7 @@ namespace mySCA2
                             }
 
                             //test only
-                            MessageBox.Show(dgSeek.values[0] + " "+ recipientEmail+ "\n"+ dgSeek.values[1] + " " + typeReport + "\n"+dgSeek.values[2] + " " + period + "\n");
+                            MessageBox.Show(dgSeek.values[0] + " " + recipientEmail + "\n" + dgSeek.values[1] + " " + typeReport + "\n" + dgSeek.values[2] + " " + period + "\n");
 
                             FindSelectedMailingOnDatagridviewAndAction("sendEmail");
 
@@ -6238,7 +6231,7 @@ namespace mySCA2
             }
         }
 
-        private void FindSelectedMailingOnDatagridviewAndAction(string actionDGV)
+        private async void FindSelectedMailingOnDatagridviewAndAction(string actionDGV)
         {
             string recipientEmail = "";
             string senderEmail = "";
@@ -6288,12 +6281,35 @@ namespace mySCA2
                     }
                 case "sendEmail":
                     {
-                        //todo
-                        //making report
+                        //Check making report
+                        await Task.Run(() => CheckAliveServer(sServer1, sServer1UserName, sServer1UserPassword));
 
+                        if (bServer1Exist)
+                        {
+                            _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + typeReport);
+                            stimerPrev = "";
+                            _ProgressBar1Value0();
+                            _timer1Enabled(true);
 
-                        ExportDatatableSelectedColumnsToExcel(dtPersonTemp, typeReport);
-                        SendEmailAsync(senderEmail, recipientEmail, typeReport, description, filePathExcelReport);
+                            DeleteAllDataInTableQuery(databasePerson, "PersonTemp");
+                            DeleteAllDataInTableQuery(databasePerson, "PersonRegistered");
+                            DeleteAllDataInTableQuery(databasePerson, "PersonRegisteredFull");
+
+                            GetNamePoints();  //Get names of the points
+                            dtPersonRegisteredFull.Clear();
+
+                            GetRegistrations(typeReport);//typeReport== only one group
+
+                            dtPersonTemp = dtPersonRegisteredFull.Copy();
+                            dtPersonTemp.SetColumnsOrder(orderColumnsFinacialReport);
+
+                            ExportDatatableSelectedColumnsToExcel(dtPersonTemp, typeReport);
+                            SendEmailAsync(senderEmail, recipientEmail, typeReport, description, filePathExcelReport);
+
+                            _timer1Enabled(false);
+                            _ProgressBar1Value100();
+                            _toolStripStatusLabelSetText(StatusLabel2, "Отчет " + typeReport + " подготовлен и отправлен "+ recipientEmail);
+                        }
                         break;
                     }
                 default:
@@ -6551,17 +6567,6 @@ namespace mySCA2
             }
         }
 
-
-
-
-
-
-
-
-
-
-
-
         //End of the Block Encryption-Decryption
 
 
@@ -6588,6 +6593,7 @@ namespace mySCA2
         public string ControlOutMinute = "0";
         public decimal ControlOutMinuteDecimal = 0;
         public decimal ControlOutDecimal = 18;
+
         public string ControlInHHMM = "09:00";
         public string ControlOutHHMM = "18:00";
 
@@ -6598,8 +6604,10 @@ namespace mySCA2
         public string RealOutMinute = "0";
         public decimal RealOutDecimal = 18;
         public decimal RealWorkedDayHoursDecimal = 9;
+
         public string RealInHHMM = "09:00";
         public string RealOutHHMM = "18:00";
+
         public string RealWorkedDayHoursHHMM = "09:00";
         public string RealDate = "";
 
@@ -6611,14 +6619,17 @@ namespace mySCA2
         public string directionPass = "";
     }
 
-    public class DataGridViewSeekSelectedData
+    public class DataGridViewSeekValuesInSelectedRow
     {
         public string[] values = new string[10];
+        public bool correctData { get; set; }
 
         public void FindValueInCells(DataGridView DGV, params string[] columnsName)
         {
             int IndexCurrentRow = DGV.CurrentRow.Index > -1 ? DGV.CurrentRow.Index : -1;
-            if (IndexCurrentRow > -1)
+            correctData = IndexCurrentRow > -1 ? true : false;
+
+            if (correctData)
             {
                 for (int i = 0; i < DGV.ColumnCount; i++)
                 {
@@ -6799,5 +6810,4 @@ namespace mySCA2
         }
     }
 
-  
 }
