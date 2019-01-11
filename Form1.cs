@@ -20,8 +20,9 @@ namespace PersonViewerSCA2
 {
     public partial class FormPersonViewerSCA :Form
     {
-        private System.Diagnostics.FileVersionInfo myFileVersionInfo;
+        private System.Diagnostics.FileVersionInfo myFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
         private string myRegKey = @"SOFTWARE\RYIK\PersonViewerSCA2";
+        private string modeWorkApp = "interactive";
 
         private string strVersion;
         private ContextMenu contextMenu1;
@@ -188,7 +189,6 @@ namespace PersonViewerSCA2
                                   @"Вышестоящая группа",            //36
                                   @"Описание группы"                //37
         };
-
         private string[] orderColumnsFinacialReport =
             {
                                   @"Фамилия Имя Отчество",//1
@@ -245,13 +245,14 @@ namespace PersonViewerSCA2
         private void Form1_Load(object sender, EventArgs e)
         { Form1Load(); }
 
+        private string productName = "";
         private void Form1Load()
         {
             myFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
             strVersion = myFileVersionInfo.Comments + " ver." + myFileVersionInfo.FileVersion + " " + myFileVersionInfo.LegalCopyright;
             StatusLabel1.Text = myFileVersionInfo.ProductName + " ver." + myFileVersionInfo.FileVersion + " " + myFileVersionInfo.LegalCopyright;
             StatusLabel1.Alignment = ToolStripItemAlignment.Right;
-
+            productName = myFileVersionInfo.ProductName;
             contextMenu1 = new ContextMenu();  //Context Menu on notify Icon
             notifyIcon1.ContextMenu = contextMenu1;
             contextMenu1.MenuItems.Add("About", AboutSoft);
@@ -400,7 +401,7 @@ namespace PersonViewerSCA2
                     "Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('ComboList', Reserv1) ON CONFLICT REPLACE);", databasePerson);
 
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'Mailing' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, SenderEmail TEXT, " +
-                    "RecipientEmail TEXT, Schedule TEXT, TypeReport TEXT, Description TEXT, DateCreated TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
+                    "RecipientEmail TEXT, Schedule TEXT, TypeReport TEXT, Description TEXT, DateCreated TEXT, Period TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
         }
 
         private void UpdateTableOfDB()
@@ -431,7 +432,7 @@ namespace PersonViewerSCA2
             TryUpdateStructureSqlDB("EquipmentSettings", "EquipmentParameterName TEXT, EquipmentParameterValue TEXT, EquipmentParameterServer TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
             TryUpdateStructureSqlDB("PersonsLastList", "PersonsList TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
             TryUpdateStructureSqlDB("PersonsLastComboList", "ComboList TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
-            TryUpdateStructureSqlDB("Mailing", "SenderEmail TEXT, RecipientEmail TEXT, Schedule TEXT, TypeReport TEXT, Description TEXT, DateCreated TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
+            TryUpdateStructureSqlDB("Mailing", "SenderEmail TEXT, RecipientEmail TEXT, Schedule TEXT, TypeReport TEXT, Description TEXT, DateCreated TEXT, Period TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
         }
 
         private void SetTechInfoIntoDB() //Write into DB Technical Info
@@ -1393,12 +1394,10 @@ namespace PersonViewerSCA2
         private string filePathApplication = Application.ExecutablePath;
         private string filePathExcelReport;
 
-        private void ExportDatatableSelectedColumnsToExcel(DataTable dtExport, string nameReport)  //Export DataTable to Excel 
+        private void ExportDatatableSelectedColumnsToExcel(DataTable dtExport, string nameReport, string filePath)  //Export DataTable to Excel 
         {
             try
             {
-                filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), nameReport + @".xlsx");
-
                 int numberColumns = dtExport.Columns.Count;
                 int[] indexColumns = new int[numberColumns];
                 string[] nameColumns = new string[numberColumns];
@@ -1503,7 +1502,7 @@ namespace PersonViewerSCA2
                 range.Select();
                 range.AutoFilter(1, Type.Missing, Microsoft.Office.Interop.Excel.XlAutoFilterOperator.xlAnd, Type.Missing, true);
 
-                workbook.SaveAs(filePathExcelReport,
+                workbook.SaveAs(filePath,
                     Microsoft.Office.Interop.Excel.XlFileFormat.xlWorkbookDefault,
                     System.Reflection.Missing.Value, System.Reflection.Missing.Value,
                     true, false, //save without asking
@@ -1528,7 +1527,7 @@ namespace PersonViewerSCA2
                 //
                 _timer1Enabled(false);
                 stimerPrev = "";
-                _toolStripStatusLabelSetText(StatusLabel2, "Путь к отчету: " + filePathExcelReport);
+                _toolStripStatusLabelSetText(StatusLabel2, "Путь к отчету: " + filePath);
                 _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
             } catch (Exception expt)
             {
@@ -1582,8 +1581,9 @@ namespace PersonViewerSCA2
 
 
             dtPersonTemp.SetColumnsOrder(orderColumnsFinacialReport);
+            filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), "InOutPeople" + @".xlsx");
 
-            await Task.Run(() => ExportDatatableSelectedColumnsToExcel(dtPersonTemp, "InOutPeople"));
+            await Task.Run(() => ExportDatatableSelectedColumnsToExcel(dtPersonTemp, "InOutPeople", filePathExcelReport));
             //            await Task.Run(() => ExportDatagridToExcel());
 
             _MenuItemEnabled(FunctionMenuItem, true);
@@ -2290,6 +2290,7 @@ namespace PersonViewerSCA2
                 _MenuItemEnabled(SettingsMenuItem, true);
             }
             _changeControlBackColor(groupBoxFilterReport, Color.PaleGreen);
+            _timer1Enabled(false);
         }
 
         private void GetRegistrations(string selectedGroup)
@@ -2300,10 +2301,9 @@ namespace PersonViewerSCA2
             decimal dControlMinuteIn = _numUpDownReturn(numUpDownMinuteStart);
             decimal dControlHourOut = _numUpDownReturn(numUpDownHourEnd);
             decimal dControlMinuteOut = _numUpDownReturn(numUpDownMinuteEnd);
-
-
-            if ((nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup") && selectedGroup.Length > 0)
-            {
+            
+            if ((nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup"||modeWorkApp== "sendEmail") && selectedGroup.Length > 0)
+            {//
                 LoadGroupMembersFromDbToDataTable(dtPersonGroup, selectedGroup); //result will be in dtPersonGroup
 
                 foreach (DataRow row in dtPersonGroup.Rows)
@@ -2311,10 +2311,11 @@ namespace PersonViewerSCA2
                     if (row[1].ToString().Length > 0 && row[3].ToString() == selectedGroup)
                     {
                         person = new Person();
-
-                        _textBoxSetText(textBoxFIO, row[1].ToString());   //иммитируем выбор данных
-                        _textBoxSetText(textBoxNav, row[2].ToString());   //Select person                  
-
+                        if (!(modeWorkApp == "sendEmail"))
+                        {
+                            _textBoxSetText(textBoxFIO, row[1].ToString());   //иммитируем выбор данных
+                            _textBoxSetText(textBoxNav, row[2].ToString());   //Select person                  
+                        }
                         dControlHourIn = TryParseStringToDecimal(row[4].ToString());
                         dControlMinuteIn = TryParseStringToDecimal(row[5].ToString());
                         dControlHourOut = TryParseStringToDecimal(row[7].ToString());
@@ -2341,8 +2342,6 @@ namespace PersonViewerSCA2
                     }
                 }
 
-                nameOfLastTableFromDB = "PersonGroup";
-                _timer1Enabled(false);
                 _toolStripStatusLabelSetText(StatusLabel2, "Данные по группе \"" + selectedGroup + "\" получены");
             }
             else
@@ -2369,7 +2368,6 @@ namespace PersonViewerSCA2
                 GetPersonRegistrationFromServer(dtPersonRegisteredFull, person);
 
                 nameOfLastTableFromDB = "PersonRegistered";
-                _timer1Enabled(false);
                 _toolStripStatusLabelSetText(StatusLabel2, "Данные с СКД по \"" + ShortFIO(_textBoxReturnText(textBoxFIO)) + "\" получены!");
             }
 
@@ -3594,7 +3592,6 @@ namespace PersonViewerSCA2
             {
                 LoadGroupMembersFromDbToDataTable(dtPersonGroup, nameGroup); //result will be in dtPersonGroup  //"Select * FROM PersonGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
 
-
                 if (_CheckboxCheckedStateReturn(checkBoxReEnter))
                 {
                     foreach (DataRow row in dtPersonGroup.Rows)
@@ -3728,7 +3725,7 @@ namespace PersonViewerSCA2
             {
                 var allWorkedDaysPerson = dataTableSource.Select("[NAV-код] = '" + personNAV.NAV + "'");
 
-                if (_CheckboxCheckedStateReturn(checkBoxReEnter)) //checkBoxReEnter.Checked
+                if (_CheckboxCheckedStateReturn(checkBoxReEnter)|| modeWorkApp == "sendEmail") //checkBoxReEnter.Checked
                 {
                     foreach (DataRow dataRowDate in allWorkedDaysPerson) //make the list of worked days
                     { hsDays.Add(dataRowDate[12].ToString()); }
@@ -3796,8 +3793,12 @@ namespace PersonViewerSCA2
                     { dtTemp.ImportRow(dr); }
                 }
 
-                if (_CheckboxCheckedStateReturn(checkBoxWeekend))//checkBoxWeekend Checking
-                { DeleteAnualDatesFromDataTables(dtTemp, personNAV); }
+                if (_CheckboxCheckedStateReturn(checkBoxWeekend) || modeWorkApp == "sendEmail")//checkBoxWeekend Checking
+                {
+                    DeleteAnualDatesFromDataTables(dtTemp, personNAV,
+                        dateTimePickerStart.Value.Year, dateTimePickerStart.Value.Month, dateTimePickerStart.Value.Day,
+                        dateTimePickerEnd.Value.Year, dateTimePickerEnd.Value.Month, dateTimePickerEnd.Value.Day);
+                }
 
                 if (_CheckboxCheckedStateReturn(checkBoxTimeViolations)) //checkBoxStartWorkInTime Checking
                 { QueryDeleteDataFromDataTable(dtTemp, "[Опоздание]='' AND [Ранний уход]=''", personNAV.NAV); }
@@ -3811,10 +3812,10 @@ namespace PersonViewerSCA2
             stringHourMinuteFirstRegistrationInDay = null; stringHourMinuteLastRegistrationInDay = null; hsDays = null;
             rowDtStoring = null; dtTemp = null; dtAllRegistrationsInSelectedDay = null;
         }
-
+        
         private void DeleteAnualDates(System.IO.FileInfo databasePerson, string myTable) //Exclude Anual Days from the table "PersonTemp" DB
         {
-            var oneDay = TimeSpan.FromDays(1);
+         /*   var oneDay = TimeSpan.FromDays(1);
 
             var mySelectedStartDay = new DateTime(dateTimePickerStart.Value.Year, dateTimePickerStart.Value.Month, dateTimePickerStart.Value.Day);
             var mySelectedEndDay = new DateTime(dateTimePickerEnd.Value.Year, dateTimePickerEnd.Value.Month, dateTimePickerEnd.Value.Day);
@@ -3915,15 +3916,15 @@ namespace PersonViewerSCA2
                     }
                 }
             }
-        }
-
-        private void DeleteAnualDatesFromDataTables(DataTable dt, Person person) //Exclude Anual Days from the table "PersonTemp" DB
+        */}
+        
+        private void DeleteAnualDatesFromDataTables(DataTable dt, Person person, int startYear, int startMonth,int startDay, int endYear, int endMonth, int endDay) //Exclude Anual Days from the table "PersonTemp" DB
         {
             var oneDay = TimeSpan.FromDays(1);
 
-            var mySelectedStartDay = new DateTime(dateTimePickerStart.Value.Year, dateTimePickerStart.Value.Month, dateTimePickerStart.Value.Day);
-            var mySelectedEndDay = new DateTime(dateTimePickerEnd.Value.Year, dateTimePickerEnd.Value.Month, dateTimePickerEnd.Value.Day);
-            int myYearNow = DateTime.Now.Year;
+            var mySelectedStartDay = new DateTime(startYear, startMonth, startDay);
+            var mySelectedEndDay = new DateTime(endYear, endMonth, endDay);
+          //  int myYearNow = DateTime.Now.Year;
             var myMonthCalendar = new MonthCalendar();
 
             myMonthCalendar.MaxSelectionCount = 60;
@@ -3932,19 +3933,19 @@ namespace PersonViewerSCA2
 
             for (int year = 0; year < 4; year++)
             {
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow - year, 1, 1));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow - year, 1, 2));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow - year, 3, 8));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow - year, 5, 1));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow - year, 5, 2));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow - year, 5, 9));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow - year, 6, 28));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow - year, 8, 24));    // (plavayuschaya data)
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow - year, 10, 16));   // (plavayuschaya data)
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear - year, 1, 1));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear - year, 1, 2));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear - year, 3, 8));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear - year, 5, 1));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear - year, 5, 2));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear - year, 5, 9));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear - year, 6, 28));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear - year, 8, 24));    // (plavayuschaya data)
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear - year, 10, 16));   // (plavayuschaya data)
             }
 
             // Алгоритм для вычисления католической Пасхи http://snippets.dzone.com/posts/show/765
-            int Y = myYearNow;
+            int Y = startYear;
             int a = Y % 19;
             int b = Y / 100;
             int c = Y % 100;
@@ -3961,13 +3962,13 @@ namespace PersonViewerSCA2
             int dayEaster = ((h + L - 7 * m + 114) % 31) + 1;
 
             //Easter - Paskha
-            myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, monthEaster, dayEaster) + oneDay);
+            myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, monthEaster, dayEaster) + oneDay);
             //Independence day
-            DateTime dayBolded = new DateTime(myYearNow, 8, 24);
+            DateTime dayBolded = new DateTime(startYear, 8, 24);
             switch ((int)dayBolded.DayOfWeek)
             {
                 case (int)Day.Sunday:
-                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 8, 24) + oneDay);    // (plavayuschaya data)
+                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 8, 24) + oneDay);    // (plavayuschaya data)
                     break;
                 default:
                     break;
@@ -3975,17 +3976,17 @@ namespace PersonViewerSCA2
             switch ((int)dayBolded.DayOfWeek)
             {
                 case (int)Day.Saturday:
-                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 8, 24) + oneDay + oneDay);    // (plavayuschaya data)
+                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 8, 24) + oneDay + oneDay);    // (plavayuschaya data)
                     break;
                 default:
                     break;
             }
             //day of Ukraine Force
-            dayBolded = new DateTime(myYearNow, 10, 16);
+            dayBolded = new DateTime(startYear, 10, 16);
             switch ((int)dayBolded.DayOfWeek)
             {
                 case (int)Day.Sunday:
-                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 10, 16) + oneDay);    // (plavayuschaya data)
+                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 10, 16) + oneDay);    // (plavayuschaya data)
                     break;
                 default:
                     break;
@@ -3993,7 +3994,7 @@ namespace PersonViewerSCA2
             switch ((int)dayBolded.DayOfWeek)
             {
                 case (int)Day.Saturday:
-                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 10, 16) + oneDay + oneDay);    // (plavayuschaya data)
+                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 10, 16) + oneDay + oneDay);    // (plavayuschaya data)
                     break;
                 default:
                     break;
@@ -4021,6 +4022,7 @@ namespace PersonViewerSCA2
                 }
             }
             dt.AcceptChanges();
+            myMonthCalendar.Dispose();  
         }
 
         private void QueryDeleteDataFromDataTable(DataTable dt, string queryFull, string NAVcode) //Delete data from the Table of the DB by NAV (both parameters are string)
@@ -5244,15 +5246,15 @@ namespace PersonViewerSCA2
                     SQLiteCommand sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
 
-                    using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'Mailing' (SenderEmail, RecipientEmail, Schedule, TypeReport, Description, DateCreated, Reserv1)" +
-                               " VALUES (@SenderEmail, @RecipientEmail, @Schedule, @TypeReport, @Description, @DateCreated, @Reserv1)", sqlConnection))
+                    using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'Mailing' (SenderEmail, RecipientEmail, Schedule, TypeReport, Description, DateCreated, Period)" +
+                               " VALUES (@SenderEmail, @RecipientEmail, @Schedule, @TypeReport, @Description, @DateCreated, @Period)", sqlConnection))
                     {
                         sqlCommand.Parameters.Add("@SenderEmail", DbType.String).Value = senderEmail;
                         sqlCommand.Parameters.Add("@RecipientEmail", DbType.String).Value = recipientEmail;
                         sqlCommand.Parameters.Add("@Schedule", DbType.String).Value = schedule;
                         sqlCommand.Parameters.Add("@TypeReport", DbType.String).Value = typeReport;
                         sqlCommand.Parameters.Add("@Description", DbType.String).Value = description;
-                        sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = period;
+                        sqlCommand.Parameters.Add("@Period", DbType.String).Value = period;
                         sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = localDate.ToString();
 
                         try { sqlCommand.ExecuteNonQuery(); } catch { }
@@ -5475,7 +5477,7 @@ namespace PersonViewerSCA2
                 {
                     Text = periodLabel8,
                     BackColor = Color.PaleGreen,
-                    Location = new Point(150, 120),
+                    Location = new Point(220, 120),
                     Size = new Size(90, 22),
                     BorderStyle = BorderStyle.None,
                     TextAlign = ContentAlignment.MiddleLeft,
@@ -5484,7 +5486,7 @@ namespace PersonViewerSCA2
 
                 periodCombo = new ComboBox
                 {
-                    Location = new Point(190, 121),
+                    Location = new Point(300, 121),
                     Size = new Size(120, 20),
                     Parent = groupBoxProperties
                 };
@@ -5500,6 +5502,7 @@ namespace PersonViewerSCA2
             labelMailServerName?.BringToFront();
             labelMailServerUserName?.BringToFront();
             labelMailServerUserPassword?.BringToFront();
+            listComboLabel?.BringToFront();
 
             textBoxServer1?.BringToFront();
             textBoxServer1UserName?.BringToFront();
@@ -5507,8 +5510,10 @@ namespace PersonViewerSCA2
             textBoxMailServerName?.BringToFront();
             textBoxMailServerUserName?.BringToFront();
             textBoxMailServerUserPassword?.BringToFront();
-            listComboLabel?.BringToFront();
             listCombo?.BringToFront();
+
+            periodComboLabel?.BringToFront();
+            periodCombo?.BringToFront();
 
             groupBoxProperties.Visible = true;
         }
@@ -5569,13 +5574,14 @@ namespace PersonViewerSCA2
             string btnName = btnPropertiesSave.Text;
 
             DisposeTemporaryControls();
-            EnableMainMenuItems(true);
 
             if (btnName == @"Сохранить рассылку")
             {
                 ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Отчет', " +
-                    "TypeReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации' ", " ORDER BY RecipientEmail asc; ");
+                    "TypeReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации' ", " ORDER BY RecipientEmail asc, DateCreated desc; ");
             }
+            EnableMainMenuItems(true);
+            _controlVisible(panelView, true);
         }
 
         private void buttonPropertiesSave_Click(object sender, EventArgs e) //PropertiesSave()
@@ -5597,7 +5603,7 @@ namespace PersonViewerSCA2
 
                 MailingSave(recipientEmail, senderEmail, typeReport, description, schedule, period);
                 ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Отчет', " +
-                    "TypeReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации' ", " ORDER BY RecipientEmail asc; ");
+                    "TypeReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации' ", " ORDER BY RecipientEmail asc, DateCreated desc; ");
             }
 
             DisposeTemporaryControls();
@@ -6083,7 +6089,7 @@ namespace PersonViewerSCA2
                         }
                     }
                     ContextMenu mRightClick = new ContextMenu();
-                    mRightClick.MenuItems.Add(new MenuItem("Удалить выделенную рассылку", DeleteCurrentRow));
+                    mRightClick.MenuItems.Add(new MenuItem("Удалить рассылку: " + mailing, DeleteCurrentRow));
                     mRightClick.MenuItems.Add(new MenuItem("Выполнить рассылку: " + mailing, DoMainAction));
 
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
@@ -6096,60 +6102,26 @@ namespace PersonViewerSCA2
 
         private void DoMainAction()
         {
-            string recipientEmail = "";
-            string senderEmail = "";
-            string typeReport = "";
-            string description = "";
-            string schedule = "";
-            string period = "";
-
-            int IndexCurrentRow = _dataGridView1CurrentRowIndex();
-
-            if (IndexCurrentRow > -1)
+            switch (nameOfLastTableFromDB)
             {
-                switch (nameOfLastTableFromDB)
-                {
-                    case "PersonGroupDesciption":
-                        {
-                            break;
-                        }
-                    case "PersonGroup" when textBoxGroup.Text.Trim().Length > 0:
-                        {
-                            break;
-                        }
-                    case "Mailing": //send report by e-mail
-                        {
-                            DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-                            dgSeek.FindValueInCells(dataGridView1, new string[] { @"Получатель", @"Наименование", @"Период" });
-
-                            //remove after check
-                            for (int i = 0; i < dataGridView1.ColumnCount; i++)
-                            {
-                                if (dataGridView1.Columns[i].HeaderText == @"Получатель" || dataGridView1.Columns[i].HeaderText == @"RecipientEmail")
-                                {
-                                    recipientEmail = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                                }
-                                else if (dataGridView1.Columns[i].HeaderText == @"Наименование" || dataGridView1.Columns[i].HeaderText == @"TypeReport")
-                                {
-                                    typeReport = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                                }
-                                else if (dataGridView1.Columns[i].HeaderText == @"Период" || dataGridView1.Columns[i].HeaderText == @"Period")
-                                {
-                                    period = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                                }
-                            }
-
-                            //test only
-                            MessageBox.Show(dgSeek.values[0] + " " + recipientEmail + "\n" + dgSeek.values[1] + " " + typeReport + "\n" + dgSeek.values[2] + " " + period + "\n");
-
-                            FindSelectedMailingOnDatagridviewAndAction("sendEmail");
-
-                            _toolStripStatusLabelSetText(StatusLabel2, typeReport + " отправлен " + recipientEmail);
-                            break;
-                        }
-                    default:
+                case "PersonGroupDesciption":
+                    {
                         break;
-                }
+                    }
+                case "PersonGroup" when textBoxGroup.Text.Trim().Length > 0:
+                    {
+                        break;
+                    }
+                case "Mailing": //send report by e-mail
+                    {
+                        //текущий режим работы приложения
+                        modeWorkApp = "sendEmail";
+
+                        FindSelectedMailingOnDatagridviewAndAction("sendEmail");
+                        break;
+                    }
+                default:
+                    break;
             }
         }
 
@@ -6231,48 +6203,20 @@ namespace PersonViewerSCA2
             }
         }
 
-        private async void FindSelectedMailingOnDatagridviewAndAction(string actionDGV)
+        private void FindSelectedMailingOnDatagridviewAndAction(string actionDGV)
         {
-            string recipientEmail = "";
-            string senderEmail = "";
-            string typeReport = "";
-            string description = "";
-            string schedule = "";
-            string period = "";
+            DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
+            dgSeek.FindValueInCells(dataGridView1, new string[] { @"Получатель", @"Отправитель", @"Наименование", @"Описание", @"Отчет", @"Период" });
 
-            int IndexCurrentRow = _dataGridView1CurrentRowIndex();
-            if (IndexCurrentRow > -1)
-            {
-                for (int i = 0; i < dataGridView1.ColumnCount; i++)
-                {
-                    if (dataGridView1.Columns[i].HeaderText == @"Получатель" || dataGridView1.Columns[i].HeaderText == @"RecipientEmail")
-                    {
-                        recipientEmail = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                    else if (dataGridView1.Columns[i].HeaderText == @"Отправитель" || dataGridView1.Columns[i].HeaderText == @"SenderEmail")
-                    {
-                        senderEmail = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                    else if (dataGridView1.Columns[i].HeaderText == @"Наименование" || dataGridView1.Columns[i].HeaderText == @"TypeReport")
-                    {
-                        typeReport = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                    else if (dataGridView1.Columns[i].HeaderText == @"Описание" || dataGridView1.Columns[i].HeaderText == @"Description")
-                    {
-                        description = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                    else if (dataGridView1.Columns[i].HeaderText == @"Отчет" || dataGridView1.Columns[i].HeaderText == @"Schedule")
-                    {
-                        schedule = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                    else if (dataGridView1.Columns[i].HeaderText == @"Период" || dataGridView1.Columns[i].HeaderText == @"Period")
-                    {
-                        period = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                }
-            }
+            string recipientEmail = dgSeek.values[0];
+            string senderEmail = dgSeek.values[1];
+            string typeReport = dgSeek.values[2];
+            string description = dgSeek.values[3];
+            string schedule = dgSeek.values[4];
+           
+            string period = dgSeek.values[5];
 
-            switch (nameOfLastTableFromDB)
+            switch (actionDGV)
             {
                 case "saveEmail":
                     {
@@ -6282,10 +6226,13 @@ namespace PersonViewerSCA2
                 case "sendEmail":
                     {
                         //Check making report
-                        await Task.Run(() => CheckAliveServer(sServer1, sServer1UserName, sServer1UserPassword));
+                        CheckAliveServer(sServer1, sServer1UserName, sServer1UserPassword);
 
                         if (bServer1Exist)
                         {
+                            DataTable dtTempIntermediate = dtPersonRegisteredFull.Clone();
+                            Person personCheck = new Person();
+
                             _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + typeReport);
                             stimerPrev = "";
                             _ProgressBar1Value0();
@@ -6296,29 +6243,77 @@ namespace PersonViewerSCA2
                             DeleteAllDataInTableQuery(databasePerson, "PersonRegisteredFull");
 
                             GetNamePoints();  //Get names of the points
-                            dtPersonRegisteredFull.Clear();
 
-                            GetRegistrations(typeReport);//typeReport== only one group
+                            //test only //turn into changing group
+                            string[] nameGroups = schedule.Split('+'); ;
 
-                            dtPersonTemp = dtPersonRegisteredFull.Copy();
-                            dtPersonTemp.SetColumnsOrder(orderColumnsFinacialReport);
+                            foreach (string nameGroup in nameGroups)
+                            {
+                                dtPersonRegisteredFull.Clear();
+                                GetRegistrations(nameGroup);//typeReport== only one group
 
-                            ExportDatatableSelectedColumnsToExcel(dtPersonTemp, typeReport);
-                            SendEmailAsync(senderEmail, recipientEmail, typeReport, description, filePathExcelReport);
+                                dtTempIntermediate = dtPersonRegisteredFull.Clone();
+                                personCheck = new Person();
+
+                                dtPersonTemp?.Clear();
+
+                                LoadGroupMembersFromDbToDataTable(dtPersonGroup, nameGroup); //result will be in dtPersonGroup  //"Select * FROM PersonGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
+
+                                foreach (DataRow row in dtPersonGroup.Rows)
+                                {
+                                    if (row[1].ToString().Length > 0 && row[3].ToString() == nameGroup)
+                                    {
+                                        personCheck = new Person();
+
+                                        personCheck.FIO = row[1].ToString();
+                                        personCheck.NAV = row[2].ToString();
+                                        personCheck.GroupPerson = nameGroup;
+                                        personCheck.Department = nameGroup;
+
+                                        personCheck.ControlInHour = row[4].ToString();
+                                        personCheck.ControlInHourDecimal = TryParseStringToDecimal(row[4].ToString());
+                                        personCheck.ControlInMinute = row[5].ToString();
+                                        personCheck.ControlInMinuteDecimal = TryParseStringToDecimal(row[5].ToString());
+                                        personCheck.ControlInDecimal = TryParseStringToDecimal(row[6].ToString());
+
+                                        personCheck.ControlOutHour = row[7].ToString();
+                                        personCheck.ControlOutHourDecimal = TryParseStringToDecimal(row[7].ToString());
+                                        personCheck.ControlOutMinute = row[8].ToString();
+                                        personCheck.ControlOutMinuteDecimal = TryParseStringToDecimal(row[8].ToString());
+                                        personCheck.ControlOutDecimal = TryParseStringToDecimal(row[9].ToString());
+
+                                        FilterDataByNav(personCheck, dtPersonRegisteredFull, dtTempIntermediate);
+                                    }
+                                }
+
+                                dtPersonTemp = GetDistinctRecords(dtTempIntermediate, orderColumnsFinacialReport);
+                                dtPersonTemp.SetColumnsOrder(orderColumnsFinacialReport);
+
+                                filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), typeReport+"_"+ nameGroup + @".xlsx");
+                                try { System.IO.File.Delete(filePathExcelReport); }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+
+                                ExportDatatableSelectedColumnsToExcel(dtPersonTemp, typeReport, filePathExcelReport);
+
+                                personCheck = null;
+                                dtTempIntermediate?.Dispose();
+                                dtPersonTemp?.Dispose();
+                                string bodyOfMail = "Отчет " + typeReport + " по группе " + nameGroup;
+                                SendEmailAsync(senderEmail, recipientEmail, typeReport, bodyOfMail, filePathExcelReport, Properties.Resources.LogoRYIK);
+                                _toolStripStatusLabelSetText(StatusLabel2, "Отчет " + typeReport + " по группе " + nameGroup + " подготовлен и отправлен " + recipientEmail);
+                            }
 
                             _timer1Enabled(false);
                             _ProgressBar1Value100();
-                            _toolStripStatusLabelSetText(StatusLabel2, "Отчет " + typeReport + " подготовлен и отправлен " + recipientEmail);
                         }
                         break;
                     }
                 default:
                     break;
-
             }
         }
 
-        private async void SendEmailAsync(string sender, string recipient, string title, string message, string pathToFile) //Compose and send e-mail
+        private async void SendEmailAsync(string sender, string recipient, string title, string message, string pathToFile, Bitmap myLogo) //Compose and send e-mail
         {
             // string startupPath = AppDomain.CurrentDomain.RelativeSearchPath;
             // string path = System.IO.Path.Combine(startupPath, "HtmlTemplates", "NotifyTemplate.html");
@@ -6329,29 +6324,51 @@ namespace PersonViewerSCA2
             {
                 smtpClient.EnableSsl = true;
                 smtpClient.DeliveryMethod = System.Net.Mail.SmtpDeliveryMethod.Network;
+                smtpClient.UseDefaultCredentials = false;
                 smtpClient.Timeout = 50000;
                 // создаем объект сообщения
                 using (System.Net.Mail.MailMessage newMail = new System.Net.Mail.MailMessage())
                 {
                     // письмо представляет код html
                     newMail.IsBodyHtml = true;
+                    newMail.BodyEncoding = UTF8Encoding.UTF8;
+
+                    newMail.AlternateViews.Add(getEmbeddedImage(title, message, myLogo));
                     // отправитель - устанавливаем адрес и отображаемое в письме имя
-                    System.Net.Mail.MailAddress from = new System.Net.Mail.MailAddress(sender, myFileVersionInfo.ProductName);
+                    newMail.From = new System.Net.Mail.MailAddress(sender, productName);
                     // кому отправляем
-                    System.Net.Mail.MailAddress to = new System.Net.Mail.MailAddress(recipient);
+                    newMail.To.Add(new System.Net.Mail.MailAddress(recipient));
                     // тема письма
                     newMail.Subject = title;
-                    // текст письма
-                    newMail.Body = string.Format(@"<p>" + title + @"</p>" +
-                        @"<img src=""cid:{0}/> <p>" + message + @"</p>",
-                        Properties.Resources.LogoRYIK);
                     //добавляем вложение
                     newMail.Attachments.Add(new System.Net.Mail.Attachment(pathToFile));
                     // логин и пароль
                     smtpClient.Credentials = new System.Net.NetworkCredential(sender.Split('@')[0], "");
+                    //if error - show error
+                    newMail.DeliveryNotificationOptions = System.Net.Mail.DeliveryNotificationOptions.OnFailure;
+                    //async send email
                     await smtpClient.SendMailAsync(newMail);
                 }
             }
+        }
+
+        private System.Net.Mail.AlternateView getEmbeddedImage(string title, string message,Bitmap bmp )
+        {
+            //convert embedded resources into memorystream
+            Bitmap b = new Bitmap(bmp);
+            ImageConverter ic = new ImageConverter();
+            Byte[] ba = (Byte[])ic.ConvertTo(b, typeof(Byte[]));
+            System.IO.MemoryStream logo = new System.IO.MemoryStream(ba);
+
+            System.Net.Mail.LinkedResource res = new System.Net.Mail.LinkedResource(logo, "image/jpeg");
+            res.ContentId = Guid.NewGuid().ToString();
+           
+            // текст письма
+            string htmlBody = @"<p>" + title + @"</p>" + @"<p>" + message + @"</p>" + @"<img src='cid:" + res.ContentId + @"'/>";
+
+            System.Net.Mail.AlternateView alternateView = System.Net.Mail.AlternateView.CreateAlternateViewFromString(htmlBody, null, System.Net.Mime.MediaTypeNames.Text.Html);
+            alternateView.LinkedResources.Add(res);
+            return alternateView;
         }
         /// //////////////// End  DatagridView functions
 
