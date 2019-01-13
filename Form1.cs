@@ -6,15 +6,14 @@ using System.Data.SqlClient;
 using System.Data.SQLite;
 using System.Drawing;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 //using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 // for Crypography
-//using System.IO;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace PersonViewerSCA2
 {
@@ -22,7 +21,8 @@ namespace PersonViewerSCA2
     {
         private System.Diagnostics.FileVersionInfo myFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
         private string myRegKey = @"SOFTWARE\RYIK\PersonViewerSCA2";
-        private string modeWorkApp = "interactive";
+        private string currentAction = "";
+        private bool currentModeAppManual = false;
 
         private string strVersion;
         private ContextMenu contextMenu1;
@@ -97,6 +97,9 @@ namespace PersonViewerSCA2
 
         private Label periodComboLabel;
         private ComboBox periodCombo = new ComboBox();
+
+        private Label labelSettings9;
+        private ComboBox comboSettings9 = new ComboBox();
 
 
         private readonly byte[] btsMess1 = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
@@ -246,6 +249,10 @@ namespace PersonViewerSCA2
         private string productName = "";
         private void Form1Load()
         {
+            _menuItemTextSet(modeItem, "Интеррактивный режим");
+            _menuItemTooltipSet(modeItem, "Включен интеррактивный режим. Остановлены все рассылки");
+            currentModeAppManual = true;
+
             myFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
             strVersion = myFileVersionInfo.Comments + " ver." + myFileVersionInfo.FileVersion + " " + myFileVersionInfo.LegalCopyright;
             StatusLabel1.Text = myFileVersionInfo.ProductName + " ver." + myFileVersionInfo.FileVersion + " " + myFileVersionInfo.LegalCopyright;
@@ -348,8 +355,41 @@ namespace PersonViewerSCA2
             dataGridView1.ShowCellToolTips = true;
 
             dtGroup.Columns.AddRange(dcGroup);
+
         }
 
+
+
+        private void ModeAppItem_Click(object sender, EventArgs e) //CurrentModeApp(); 
+        { CurrentModeApp(); }
+
+        bool interruptAnyAction = false;
+        private async void CurrentModeApp()
+        {
+            if (currentModeAppManual)
+            {
+                interruptAnyAction = true;
+                _menuItemTextSet(modeItem, "Автоматический режим");
+                _menuItemTooltipSet(modeItem, "Включить интеррактивный режим. Остановить все рассылки");
+                currentModeAppManual = false;
+                do
+                {
+                 await Task.Run(() => SelectMailingDoAction());
+                } while (interruptAnyAction);
+            }
+            else if (!currentModeAppManual)
+            {
+                interruptAnyAction = true;
+
+                _menuItemTextSet(modeItem, "Интеррактивный режим");
+                _menuItemTooltipSet(modeItem, "Включить режим автоматической рассылки. Запустить рассылки");
+
+                currentModeAppManual = true;
+            }
+
+
+            interruptAnyAction = false;
+        }
 
         private void AboutSoft(object sender, EventArgs e) //Кнопка "О программе"
         { AboutSoft(); }
@@ -398,9 +438,8 @@ namespace PersonViewerSCA2
                     "Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('PersonsList', Reserv1) ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonsLastComboList' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, ComboList TEXT, " +
                     "Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('ComboList', Reserv1) ON CONFLICT REPLACE);", databasePerson);
-
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'Mailing' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, SenderEmail TEXT, " +
-                    "RecipientEmail TEXT, Schedule TEXT, TypeReport TEXT, Description TEXT, DateCreated TEXT, Period TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
+                    "RecipientEmail TEXT, Report TEXT, NameReport TEXT, Description TEXT, DateCreated TEXT, Period TEXT, Status TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
         }
 
         private void UpdateTableOfDB()
@@ -431,7 +470,7 @@ namespace PersonViewerSCA2
             TryUpdateStructureSqlDB("EquipmentSettings", "EquipmentParameterName TEXT, EquipmentParameterValue TEXT, EquipmentParameterServer TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
             TryUpdateStructureSqlDB("PersonsLastList", "PersonsList TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
             TryUpdateStructureSqlDB("PersonsLastComboList", "ComboList TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
-            TryUpdateStructureSqlDB("Mailing", "SenderEmail TEXT, RecipientEmail TEXT, Schedule TEXT, TypeReport TEXT, Description TEXT, DateCreated TEXT, Period TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
+            TryUpdateStructureSqlDB("Mailing", "SenderEmail TEXT, RecipientEmail TEXT, Report TEXT, NameReport TEXT, Description TEXT, DateCreated TEXT, Period TEXT, Status TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
         }
 
         private void SetTechInfoIntoDB() //Write into DB Technical Info
@@ -484,7 +523,7 @@ namespace PersonViewerSCA2
                             {
                                 try
                                 {
-                                    if (record != null && record.ToString().Length > 0)
+                                    if (record != null && record["PersonsList"].ToString().Length > 0)
                                     {
                                         listFIO.Add(record["PersonsList"].ToString().Trim());
                                     }
@@ -502,7 +541,7 @@ namespace PersonViewerSCA2
                             {
                                 try
                                 {
-                                    if (record != null && record.ToString().Length > 0)
+                                    if (record != null && record["ComboList"].ToString().Length > 0)
                                     {
                                         _comboBoxFioAdd(record["ComboList"].ToString().Trim());
                                         iCombo++;
@@ -540,7 +579,7 @@ namespace PersonViewerSCA2
                             {
                                 try
                                 {
-                                    if (record != null && record.ToString().Length > 0)
+                                    if (record != null && record["EquipmentParameterValue"].ToString().Length > 0)
                                     {
                                         if (record["EquipmentParameterValue"].ToString().Trim() == "SKDServer" && record["EquipmentParameterName"].ToString().Trim() == "SKDUser")
                                         {
@@ -2324,7 +2363,7 @@ namespace PersonViewerSCA2
             decimal dControlHourOut = _numUpDownReturn(numUpDownHourEnd);
             decimal dControlMinuteOut = _numUpDownReturn(numUpDownMinuteEnd);
 
-            if ((nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup" || modeWorkApp == "sendEmail") && selectedGroup.Length > 0)
+            if ((nameOfLastTableFromDB == "PersonGroupDesciption" || nameOfLastTableFromDB == "PersonGroup" || currentAction == "sendEmail") && selectedGroup.Length > 0)
             {//
                 LoadGroupMembersFromDbToDataTable(dtPersonGroup, selectedGroup); //result will be in dtPersonGroup
 
@@ -2333,7 +2372,7 @@ namespace PersonViewerSCA2
                     if (row[1].ToString().Length > 0 && row[3].ToString() == selectedGroup)
                     {
                         person = new Person();
-                        if (!(modeWorkApp == "sendEmail"))
+                        if (!(currentAction == "sendEmail"))
                         {
                             _textBoxSetText(textBoxFIO, row[1].ToString());   //иммитируем выбор данных
                             _textBoxSetText(textBoxNav, row[2].ToString());   //Select person                  
@@ -3026,7 +3065,7 @@ namespace PersonViewerSCA2
                 comboBx.Items.Clear();
         }
 
-        private void _comboBoxSelectIndex(ComboBox comboBx, int i) //add string into comboBoxTargedPC from other threads
+        private void _comboBoxSelectIndex(ComboBox comboBx, int i) //from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate { comboBx.SelectedIndex = i; }));
@@ -3034,7 +3073,7 @@ namespace PersonViewerSCA2
                 comboBx.SelectedIndex = i;
         }
 
-        private string _comboBoxReturnSelected(ComboBox comboBox) //add string into comboBoxTargedPC from other threads
+        private string _comboBoxReturnSelected(ComboBox comboBox) //from other threads
         {
             string result = "";
             if (InvokeRequired)
@@ -3361,6 +3400,19 @@ namespace PersonViewerSCA2
             else
             {
                 menuItem.Text = newTextControl;
+            }
+        }
+
+        private void _menuItemTooltipSet(ToolStripMenuItem menuItem, string newTooltip) //access from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    menuItem.ToolTipText = newTooltip;
+                }));
+            else
+            {
+                menuItem.ToolTipText = newTooltip;
             }
         }
 
@@ -3794,7 +3846,7 @@ namespace PersonViewerSCA2
             {
                 var allWorkedDaysPerson = dataTableSource.Select("[NAV-код] = '" + personNAV.NAV + "'");
 
-                if (_CheckboxCheckedStateReturn(checkBoxReEnter) || modeWorkApp == "sendEmail") //checkBoxReEnter.Checked
+                if (_CheckboxCheckedStateReturn(checkBoxReEnter) || currentAction == "sendEmail") //checkBoxReEnter.Checked
                 {
                     foreach (DataRow dataRowDate in allWorkedDaysPerson) //make the list of worked days
                     { hsDays.Add(dataRowDate[12].ToString()); }
@@ -3862,7 +3914,7 @@ namespace PersonViewerSCA2
                     { dtTemp.ImportRow(dr); }
                 }
 
-                if (_CheckboxCheckedStateReturn(checkBoxWeekend) || modeWorkApp == "sendEmail")//checkBoxWeekend Checking
+                if (_CheckboxCheckedStateReturn(checkBoxWeekend) || currentAction == "sendEmail")//checkBoxWeekend Checking
                 {
                     DeleteAnualDatesFromDataTables(dtTemp, personNAV,
                         dateTimePickerStart.Value.Year, dateTimePickerStart.Value.Month, dateTimePickerStart.Value.Day,
@@ -5270,6 +5322,11 @@ namespace PersonViewerSCA2
             periodComboParameters.Add("Предыдущая неделя");
             periodComboParameters.Add("Предыдущий месяц");
 
+            List<string> listComboParameters9 = new List<string>();
+            listComboParameters9.Add("Активная");
+            listComboParameters9.Add("Неактивная");
+
+
             //get list groups from DB and add to listComboParameters
             using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
             {
@@ -5299,11 +5356,12 @@ namespace PersonViewerSCA2
                     "Описание", "", "Краткое описание рассылки",
                     "", "", "Неиспользуемое поле",
                     "Отчет", listComboParameters, "Варинт генерируемого отчета",
-                    "Период", periodComboParameters, "Выбрать, за какой период делать отчет"
+                    "Период", periodComboParameters, "Выбрать, за какой период делать отчет",
+                    "Статус", listComboParameters9, "Статус рассылки"
                     );
         }
 
-        private void MailingSave(string recipientEmail, string senderEmail, string typeReport, string description, string schedule, string period)
+        private void MailingSave(string recipientEmail, string senderEmail, string typeReport, string description, string schedule, string period, string status)
         {
             bool recipientValid = false;
             bool senderValid = false;
@@ -5327,15 +5385,16 @@ namespace PersonViewerSCA2
                     SQLiteCommand sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
 
-                    using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'Mailing' (SenderEmail, RecipientEmail, Schedule, TypeReport, Description, DateCreated, Period)" +
-                               " VALUES (@SenderEmail, @RecipientEmail, @Schedule, @TypeReport, @Description, @DateCreated, @Period)", sqlConnection))
+                    using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'Mailing' (SenderEmail, RecipientEmail, Report, NameReport, Description, DateCreated, Period, Status)" +
+                               " VALUES (@SenderEmail, @RecipientEmail, @Report, @NameReport, @Description, @DateCreated, @Period, @Status)", sqlConnection))
                     {
                         sqlCommand.Parameters.Add("@SenderEmail", DbType.String).Value = senderEmail;
                         sqlCommand.Parameters.Add("@RecipientEmail", DbType.String).Value = recipientEmail;
-                        sqlCommand.Parameters.Add("@Schedule", DbType.String).Value = schedule;
-                        sqlCommand.Parameters.Add("@TypeReport", DbType.String).Value = typeReport;
+                        sqlCommand.Parameters.Add("@Report", DbType.String).Value = schedule;
+                        sqlCommand.Parameters.Add("@NameReport", DbType.String).Value = typeReport;
                         sqlCommand.Parameters.Add("@Description", DbType.String).Value = description;
                         sqlCommand.Parameters.Add("@Period", DbType.String).Value = period;
+                        sqlCommand.Parameters.Add("@Status", DbType.String).Value = status;
                         sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = localDate.ToString();
 
                         try { sqlCommand.ExecuteNonQuery(); } catch { }
@@ -5366,6 +5425,7 @@ namespace PersonViewerSCA2
                 "Sender's e-mail", mailServerUserName, "E-mail отправителя рассылок виде - User.Name@MailServer.Domain.Subdomain",
                 "Sender's password", mailServerUserPassword, "Пароль E-mail отправителя почты",
                 "", new List<string>(), "",
+                "", new List<string>(), "",
                 "", new List<string>(), ""
                 );
         }
@@ -5378,7 +5438,8 @@ namespace PersonViewerSCA2
             string label5, string txtbox5, string tooltip5,
             string label6, string txtboxPassword6, string tooltip6,
             string nameLabel7, List<string> listStrings7, string tooltip7,
-            string periodLabel8, List<string> periodStrings8, string tooltip8
+            string periodLabel8, List<string> periodStrings8, string tooltip8,
+            string label9, List<string> listStrings9, string tooltip9
             )
         {
             panelViewResize(numberPeopleInLoading);
@@ -5551,7 +5612,6 @@ namespace PersonViewerSCA2
                 listCombo.KeyPress += new KeyPressEventHandler(listCombo_KeyPress);
             }
 
-
             if (periodStrings8.Count > 1 && periodLabel8.Length > 0)
             {
                 periodComboLabel = new Label
@@ -5577,6 +5637,28 @@ namespace PersonViewerSCA2
                 periodCombo.KeyPress += new KeyPressEventHandler(periodCombo_KeyPress);
             }
 
+            if (listStrings9.Count > 1 && label9.Length > 0)
+            {
+                labelSettings9 = new Label
+                {
+                    Text = label9,
+                    BackColor = Color.PaleGreen,
+                    Location = new Point(20, 150),
+                    Size = new Size(590, 22),
+                    BorderStyle = BorderStyle.None,
+                    TextAlign = ContentAlignment.MiddleLeft,
+                    Parent = groupBoxProperties
+                };
+                comboSettings9 = new ComboBox
+                {
+                    Location = new Point(300, 151),
+                    Size = new Size(120, 20),
+                    Parent = groupBoxProperties
+                };
+                comboSettings9.DataSource = listStrings9;
+                toolTip1.SetToolTip(comboSettings9, tooltip9);
+            }
+
             labelServer1?.BringToFront();
             labelServer1UserName?.BringToFront();
             labelServer1UserPassword?.BringToFront();
@@ -5595,6 +5677,9 @@ namespace PersonViewerSCA2
 
             periodComboLabel?.BringToFront();
             periodCombo?.BringToFront();
+
+            labelSettings9?.BringToFront();
+            comboSettings9?.BringToFront();
 
             groupBoxProperties.Visible = true;
         }
@@ -5638,6 +5723,8 @@ namespace PersonViewerSCA2
             _controlDispose(periodComboLabel);
             _controlDispose(periodCombo);
 
+            _controlDispose(labelSettings9);
+            _controlDispose(comboSettings9);
         }
 
         private void EnableMainMenuItems(bool enabled)
@@ -5658,8 +5745,8 @@ namespace PersonViewerSCA2
 
             if (btnName == @"Сохранить рассылку")
             {
-                ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Отчет', " +
-                    "TypeReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации' ", " ORDER BY RecipientEmail asc, DateCreated desc; ");
+                ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Report AS 'Отчет', " +
+                    "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', Status AS 'Статус' ", " ORDER BY RecipientEmail asc, DateCreated desc; ");
             }
             EnableMainMenuItems(true);
             _controlVisible(panelView, true);
@@ -5681,10 +5768,11 @@ namespace PersonViewerSCA2
                 string description = _textBoxReturnText(textBoxMailServerUserName);
                 string schedule = _comboBoxReturnSelected(listCombo);
                 string period = _comboBoxReturnSelected(periodCombo);
+                string status = _comboBoxReturnSelected(comboSettings9);
 
-                MailingSave(recipientEmail, senderEmail, typeReport, description, schedule, period);
-                ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Отчет', " +
-                    "TypeReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации' ", " ORDER BY RecipientEmail asc, DateCreated desc; ");
+                MailingSave(recipientEmail, senderEmail, typeReport, description, schedule, period, status);
+                ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Report AS 'Отчет', " +
+                    "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', Status AS 'Статус' ", " ORDER BY RecipientEmail asc, DateCreated desc; ");
             }
 
             DisposeTemporaryControls();
@@ -5942,6 +6030,9 @@ namespace PersonViewerSCA2
 
         private void dataGridView1CellEndEdit()
         {
+            _ProgressBar1Value0();
+            _timer1Enabled(true);
+
             string fio = "";
             string nav = "";
             string[] timeIn = { "09", "00", "09:00" };
@@ -6023,9 +6114,14 @@ namespace PersonViewerSCA2
                 }
                 else if (nameOfLastTableFromDB == "Mailing")
                 {
-                    FindSelectedMailingOnDatagridviewAndAction("saveEmail");
-                    ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Отчет', " +
-                        "TypeReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации' ", " ORDER BY RecipientEmail asc; ");
+                    DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
+                    dgSeek.FindValueInCells(dataGridView1, new string[] { @"Получатель", @"Отправитель", @"Наименование", @"Описание", @"Отчет", @"Период", @"Статус" });
+                    _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + dgSeek.values[3]);
+                    stimerPrev = "";
+                    MailingAction("sendEmail", dgSeek.values[0], dgSeek.values[0], dgSeek.values[2], dgSeek.values[3], dgSeek.values[4], dgSeek.values[5], dgSeek.values[6]);
+
+                    ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Report AS 'Отчет', " +
+                        "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', Status AS 'Статус'  ", " ORDER BY RecipientEmail asc; ");
                 }
             }
             catch
@@ -6104,9 +6200,11 @@ namespace PersonViewerSCA2
                 }
                 catch { }
             }
+
+            _timer1Enabled(false);
+            _ProgressBar1Value100();
         }
-
-
+        
         //Show help to Edit on some columns DataGridView
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
@@ -6171,7 +6269,7 @@ namespace PersonViewerSCA2
                     string mailing = "";
                     for (int i = 0; i < dataGridView1.ColumnCount; i++)
                     {
-                        if (dataGridView1.Columns[i].HeaderText == "Наименование" || dataGridView1.Columns[i].HeaderText == "TypeReport")
+                        if (dataGridView1.Columns[i].HeaderText == "Наименование" || dataGridView1.Columns[i].HeaderText == "NameReport")
                         {
                             mailing = dataGridView1.Rows[currentMouseOverRow].Cells[i].Value.ToString();
                         }
@@ -6190,6 +6288,9 @@ namespace PersonViewerSCA2
 
         private void DoMainAction()
         {
+            _ProgressBar1Value0();
+            _timer1Enabled(true);
+
             switch (nameOfLastTableFromDB)
             {
                 case "PersonGroupDesciption":
@@ -6203,14 +6304,22 @@ namespace PersonViewerSCA2
                 case "Mailing": //send report by e-mail
                     {
                         //текущий режим работы приложения
-                        modeWorkApp = "sendEmail";
+                        currentAction = "sendEmail";
 
-                        FindSelectedMailingOnDatagridviewAndAction("sendEmail");
+                        DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
+                        dgSeek.FindValueInCells(dataGridView1, new string[] { @"Получатель", @"Отправитель", @"Наименование", @"Описание", @"Отчет", @"Период", @"Статус" });
+                        _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + dgSeek.values[3]);
+                        stimerPrev = "";
+
+                        MailingAction("sendEmail", dgSeek.values[0], dgSeek.values[1], dgSeek.values[2], dgSeek.values[3], dgSeek.values[4], dgSeek.values[5], dgSeek.values[6]);
                         break;
                     }
                 default:
                     break;
             }
+
+            _timer1Enabled(false);
+            _ProgressBar1Value100();
         }
 
         private void DeleteCurrentRow(object sender, EventArgs e) //DeleteCurrentRow()
@@ -6281,8 +6390,8 @@ namespace PersonViewerSCA2
                                     "TypeReport", typeReport);
                             }
                             _toolStripStatusLabelSetText(StatusLabel2, "Удалена рассылка отчета " + typeReport + "| Всего рассылок: " + _dataGridView1RowsCount());
-                            ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Schedule AS 'Отчет', " +
-                                "TypeReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации' ", " ORDER BY RecipientEmail asc; ");
+                            ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Report AS 'Отчет', " +
+                                "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', Status AS 'Статус' ", " ORDER BY RecipientEmail asc; ");
                             break;
                         }
                     default:
@@ -6291,47 +6400,67 @@ namespace PersonViewerSCA2
             }
         }
 
-        private string selectPeriodMonth(bool current = false) //firstDay + "|" + lastDay
+        private void SelectMailingDoAction()
         {
-            //periodComboParameters.Add("Текущая неделя");
-            //periodComboParameters.Add("Текущий месяц");
-            //periodComboParameters.Add("Предыдущая неделя");
-            //periodComboParameters.Add("Предыдущий месяц");
+            string sender = "";
+            string recipient = "";
+            string report = "";
+            string nameReport = "";
+            string descriptionReport = "";
+            string period = "";
+            string status = "";
 
-            string result = "";
-            var today = DateTime.Today;
-            var lastDayPrevMonth = new DateTime(today.Year, today.Month, 1).AddDays(-1);
-            if (current)
+            using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
             {
-                lastDayPrevMonth = new DateTime(today.Year, today.Month, today.Day);
-            }
+                sqlConnection.Open();
 
-            var firstDay = lastDayPrevMonth.ToString("yyyy-MM") + "-01 00:00:00";
-            var lastDay = lastDayPrevMonth.ToString("yyyy-MM-dd") + " 23:59:59";
-            result = firstDay + "|" + lastDay;
-            return result;
+                using (var sqlCommand = new SQLiteCommand("SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Report AS 'Отчет', " +
+                        "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', Status AS 'Статус'  FROM Mailing;", sqlConnection))
+                {
+                    using (var reader = sqlCommand.ExecuteReader())
+                    {
+                        foreach (DbDataRecord record in reader)
+                        {
+                            try
+                            {
+                                if (record != null && record[1].ToString().Length > 0)
+                                {
+                                    recipient = record["RecipientEmail"].ToString();
+                                    sender = record["SenderEmail"].ToString();
+                                    report = record["Report"].ToString();
+                                    nameReport = record["NameReport"].ToString();
+                                    descriptionReport = record["Description"].ToString();
+                                    period = record["Period"].ToString();
+                                    status = record["Status"].ToString().Trim().ToLower();
+
+                                    if (status == "активная")
+                                    {
+                                        MailingAction("sendEmail", recipient, sender, report, descriptionReport, nameReport, period, status);
+                                    }
+                                }
+                            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                            if (interruptAnyAction)
+                            {
+                                interruptAnyAction = false;
+                                break;
+                            }
+
+                        }
+                    }
+                }
+            }
         }
 
-        private void FindSelectedMailingOnDatagridviewAndAction(string actionDGV)
+        private void MailingAction(string actionDGV, string recipientEmail, string senderEmail, string typeReport, string description, string schedule, string period, string status)
         {
-            _ProgressBar1Value0();
-            _timer1Enabled(true);
-            DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-            dgSeek.FindValueInCells(dataGridView1, new string[] { @"Получатель", @"Отправитель", @"Наименование", @"Описание", @"Отчет", @"Период" });
-
-            string recipientEmail = dgSeek.values[0];
-            string senderEmail = dgSeek.values[1];
-            string typeReport = dgSeek.values[2];
-            string description = dgSeek.values[3];
-            string schedule = dgSeek.values[4];
-
-            string period = dgSeek.values[5];
-
             switch (actionDGV)
             {
                 case "saveEmail":
                     {
-                        MailingSave(recipientEmail, senderEmail, typeReport, description, schedule, period);
+                        MailingSave(recipientEmail, senderEmail, typeReport, description, schedule, period, status);
+                                                ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Report AS 'Отчет', " +
+                                                    "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', Status AS 'Статус' ", " ORDER BY RecipientEmail asc, DateCreated desc; ");
+
                         break;
                     }
                 case "sendEmail":
@@ -6343,9 +6472,6 @@ namespace PersonViewerSCA2
                         {
                             DataTable dtTempIntermediate = dtPeople.Clone();
                             Person personCheck = new Person();
-
-                            _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + typeReport);
-                            stimerPrev = "";
 
                             DeleteAllDataInTableQuery(databasePerson, "PersonTemp");
                             DeleteAllDataInTableQuery(databasePerson, "PersonRegistered");
@@ -6365,6 +6491,8 @@ namespace PersonViewerSCA2
                             string[] nameGroups = schedule.Split('+');
                             string name = "";
                             string selectedPeriod = startDay.Split(' ')[0] + " - " + lastDay.Split(' ')[0];
+                            string bodyOfMail = "";
+                            string titleOfbodyMail = "";
                             foreach (string nameGroup in nameGroups)
                             {
                                 name = nameGroup.Trim();
@@ -6409,28 +6537,52 @@ namespace PersonViewerSCA2
                                 dtPersonTemp.SetColumnsOrder(orderColumnsFinacialReport);
 
                                 filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), typeReport + "_" + selectedPeriod + "_" + name + @".xlsx");
-                                try { System.IO.File.Delete(filePathExcelReport); }
-                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                try { System.IO.File.Delete(filePathExcelReport); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
 
                                 ExportDatatableSelectedColumnsToExcel(dtPersonTemp, typeReport, filePathExcelReport);
 
-                                personCheck = null;
-                                dtTempIntermediate?.Dispose();
-                                dtPersonTemp?.Dispose();
-                                string bodyOfMail = "Отчет \"" + typeReport + "\" " + " по группе \"" + name + "\"";
-                                string titleOfbodyMail = "Отчет за период" + selectedPeriod;
+                                bodyOfMail = "Отчет \"" + typeReport + "\" " + " по группе \"" + name + "\"";
+                                titleOfbodyMail = "Отчет за период" + selectedPeriod;
+
                                 SendEmailAsync(senderEmail, recipientEmail, titleOfbodyMail, bodyOfMail, filePathExcelReport, Properties.Resources.LogoRYIK);
                                 _toolStripStatusLabelSetText(StatusLabel2, "Отчет " + typeReport + " по группе " + name + " подготовлен и отправлен " + recipientEmail);
-                            }
 
+                                //destroy temporary variables
+                                personCheck = null;
+                                dtPersonTemp?.Dispose();
+                                dtTempIntermediate?.Dispose();
+                            }
+                            //destroy temporary variables
+                            startDay = null; lastDay = null;
+                            bodyOfMail = null; titleOfbodyMail = null;
+                            nameGroups = null; name = null; selectedPeriod = null;
                         }
                         break;
                     }
                 default:
                     break;
             }
-            _timer1Enabled(false);
-            _ProgressBar1Value100();
+        }
+
+        private string selectPeriodMonth(bool current = false) //firstDay + "|" + lastDay
+        {
+            //periodComboParameters.Add("Текущая неделя");
+            //periodComboParameters.Add("Текущий месяц");
+            //periodComboParameters.Add("Предыдущая неделя");
+            //periodComboParameters.Add("Предыдущий месяц");
+
+            string result = "";
+            var today = DateTime.Today;
+            var lastDayPrevMonth = new DateTime(today.Year, today.Month, 1).AddDays(-1);
+            if (current)
+            {
+                lastDayPrevMonth = new DateTime(today.Year, today.Month, today.Day);
+            }
+
+            var firstDay = lastDayPrevMonth.ToString("yyyy-MM") + "-01 00:00:00";
+            var lastDay = lastDayPrevMonth.ToString("yyyy-MM-dd") + " 23:59:59";
+            result = firstDay + "|" + lastDay;
+            return result;
         }
 
         private async void SendEmailAsync(string sender, string recipient, string title, string message, string pathToFile, Bitmap myLogo) //Compose and send e-mail
@@ -6703,6 +6855,9 @@ namespace PersonViewerSCA2
                 MessageBox.Show("Decrypted:    " + decrypted);
             }
         }
+
+
+
 
         //End of the Block Encryption-Decryption
 
