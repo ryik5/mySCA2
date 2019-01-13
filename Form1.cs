@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+
 // for Crypography
 using System.Security.Cryptography;
 
@@ -249,8 +250,8 @@ namespace PersonViewerSCA2
         private string productName = "";
         private void Form1Load()
         {
-            _menuItemTextSet(modeItem, "Интеррактивный режим");
-            _menuItemTooltipSet(modeItem, "Включен интеррактивный режим. Остановлены все рассылки");
+            _menuItemTextSet(modeItem, "Включить автоматический режим");
+            _menuItemTooltipSet(modeItem, "Остановлены все рассылки");
             currentModeAppManual = true;
 
             myFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
@@ -359,37 +360,6 @@ namespace PersonViewerSCA2
         }
 
 
-
-        private void ModeAppItem_Click(object sender, EventArgs e) //CurrentModeApp(); 
-        { CurrentModeApp(); }
-
-        bool interruptAnyAction = false;
-        private async void CurrentModeApp()
-        {
-            if (currentModeAppManual)
-            {
-                interruptAnyAction = true;
-                _menuItemTextSet(modeItem, "Автоматический режим");
-                _menuItemTooltipSet(modeItem, "Включить интеррактивный режим. Остановить все рассылки");
-                currentModeAppManual = false;
-                do
-                {
-                 await Task.Run(() => SelectMailingDoAction());
-                } while (interruptAnyAction);
-            }
-            else if (!currentModeAppManual)
-            {
-                interruptAnyAction = true;
-
-                _menuItemTextSet(modeItem, "Интеррактивный режим");
-                _menuItemTooltipSet(modeItem, "Включить режим автоматической рассылки. Запустить рассылки");
-
-                currentModeAppManual = true;
-            }
-
-
-            interruptAnyAction = false;
-        }
 
         private void AboutSoft(object sender, EventArgs e) //Кнопка "О программе"
         { AboutSoft(); }
@@ -6399,6 +6369,80 @@ namespace PersonViewerSCA2
                 }
             }
         }
+
+
+
+        private void ModeAppItem_Click(object sender, EventArgs e) //CurrentModeApp(); 
+        { CurrentModeApp(); }
+
+      private  bool interruptAnyAction = false;
+        private async void CurrentModeApp()
+        {
+            if (currentModeAppManual)
+            {
+                interruptAnyAction = true;
+                _menuItemTextSet(modeItem, "Включить автоматический режим");
+                currentModeAppManual = false;
+                do
+                {
+                    await Task.Run(() => ScheduleTimer());
+
+                } while (interruptAnyAction);
+            }
+            else if (!currentModeAppManual)
+            {
+                interruptAnyAction = true;
+
+                _menuItemTextSet(modeItem, "Включить интеррактивный режим");
+                _menuItemTooltipSet(modeItem, "Включить режим автоматической рассылки. Запустить рассылки");
+
+                currentModeAppManual = true;
+            }
+
+            interruptAnyAction = false;
+        }
+
+
+      private  System.Timers.Timer timer;
+        private void ScheduleTimer()
+        {
+
+            DateTime nowTime = DateTime.Now;
+            DateTime scheduledTime = new DateTime(nowTime.Year, nowTime.Month, nowTime.Day, 1, 0, 0, 0); //Specify your scheduled time HH,MM,SS [8am and 42 minutes]
+            _menuItemTooltipSet(modeItem, "Автоматическая рассылка будет выполнена"+ scheduledTime.ToString() + "\n.Включить интеррактивный режим. Остановить все рассылки");
+
+            if (nowTime > scheduledTime)
+            {
+                scheduledTime = scheduledTime.AddDays(1);
+            }
+
+            double tickTime = (double)(scheduledTime - DateTime.Now).TotalMilliseconds;
+            timer = new System.Timers.Timer(tickTime);
+            timer.Elapsed += new System.Timers.ElapsedEventHandler(timer_Elapsed);
+            if (interruptAnyAction)
+            {
+                timer.Enabled = false;
+            }
+            else
+            { timer.Enabled = true; timer.Start(); }
+        }
+
+        private void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            timer.Stop();
+            if (interruptAnyAction)
+            {
+                timer.Enabled = false;
+            }
+            else
+            {
+                SelectMailingDoAction();
+                ScheduleTimer();
+            }
+        }
+
+
+
 
         private void SelectMailingDoAction()
         {
