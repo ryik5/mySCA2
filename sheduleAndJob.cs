@@ -209,3 +209,69 @@ namespace PersonViewerSCA2
         }
     }
 }
+
+
+
+
+
+---------------
+Usage
+
+#region Initializing Schedulers
+
+var meetings = TaskManager.CreateScheduler(0, "Meeting Scheduler");
+var jobs = TaskManager.CreateScheduler(1, "Work Scheduler");
+
+#endregion
+
+#region EventHandler Registration
+
+meetings.Trigger += (sender, job) => Console.WriteLine(job.Name);
+jobs.Trigger += (sender, job) => Console.WriteLine(job.Name);
+
+#endregion
+
+
+#region Adding Jobs
+
+//One time meeting to be triggered after 15 seconds.
+meetings.Add(new Job(Job, DateTime.Now.AddSeconds(15), "Meet Barack Obama"));
+
+//Repeated meeting to be triggered after 5 days and repeated every 5 days.
+meetings.Add(new Job(Job, DateTime.Now.AddDays(5), "Visit Your Dad").TriggerEvery(5).Days());
+
+//Repeated job to be triggered after 5 minutes and repeated every 2 hours.
+jobs.Add(new Job(Job, DateTime.Now.AddMinutes(5), "Make a cheese sandwich").TriggerEvery(2).Hours());
+
+#endregion
+
+#region Starting Schedulers
+
+meetings.Start();
+jobs.Start();
+
+#endregion
+
+#region Extra Features
+
+//Get all running schedulers
+var allRunningSchedulers = TaskManager.RunningSchedulers;
+
+//Get all schedulers
+var allSchedulers = TaskManager.AllSchedulers;
+
+//Get specific scheduler by name
+var meetingScheduler = TaskManager.GetScheduler("Meeting Scheduler");
+
+//Remove specific scheduler
+bool succeed = TaskManager.RemoveScheduler(meetingScheduler);
+
+//Get repeating jobs from scheduler
+IEnumerable<Job> steveJobs = meetingScheduler.GetRepeatingJobs();
+
+//Get triggered jobs from scheduler
+IEnumerable<Job> triggeredJobs = meetingScheduler.GetTriggeredJobs();
+
+#endregion
+
+Console.ReadLine();
