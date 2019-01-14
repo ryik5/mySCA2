@@ -409,7 +409,7 @@ namespace PersonViewerSCA2
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonsLastComboList' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, ComboList TEXT, " +
                     "Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('ComboList', Reserv1) ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'Mailing' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, SenderEmail TEXT, " +
-                    "RecipientEmail TEXT, Report TEXT, NameReport TEXT, Description TEXT, DateCreated TEXT, Period TEXT, Status TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
+                    "RecipientEmail TEXT, GroupsReport TEXT, NameReport TEXT, Description TEXT, DateCreated TEXT, Period TEXT, Status TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
         }
 
         private void UpdateTableOfDB()
@@ -440,7 +440,7 @@ namespace PersonViewerSCA2
             TryUpdateStructureSqlDB("EquipmentSettings", "EquipmentParameterName TEXT, EquipmentParameterValue TEXT, EquipmentParameterServer TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
             TryUpdateStructureSqlDB("PersonsLastList", "PersonsList TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
             TryUpdateStructureSqlDB("PersonsLastComboList", "ComboList TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
-            TryUpdateStructureSqlDB("Mailing", "SenderEmail TEXT, RecipientEmail TEXT, Report TEXT, NameReport TEXT, Description TEXT, DateCreated TEXT, Period TEXT, Status TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
+            TryUpdateStructureSqlDB("Mailing", "SenderEmail TEXT, RecipientEmail TEXT, GroupsReport TEXT, NameReport TEXT, Description TEXT, DateCreated TEXT, Period TEXT, Status TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
         }
 
         private void SetTechInfoIntoDB() //Write into DB Technical Info
@@ -801,7 +801,7 @@ namespace PersonViewerSCA2
             myTable = null; mySqlParameter1 = null; mySqlData1 = null; mySqlParameter2 = null; mySqlData2 = null; mySqlNav = null;
         }
 
-        private void DeleteDataTableQueryParameters(System.IO.FileInfo databasePerson, string myTable, string mySqlParameter1, string mySqlData1, string mySqlParameter2 = "", string mySqlData2 = "") //Delete data from the Table of the DB by NAV (both parameters are string)
+        private void DeleteDataTableQueryParameters(System.IO.FileInfo databasePerson, string myTable, string mySqlParameter1, string mySqlData1, string mySqlParameter2 , string mySqlData2, string mySqlParameter3, string mySqlData3) //Delete data from the Table of the DB by NAV (both parameters are string)
         {
             if (databasePerson.Exists)
             {
@@ -809,7 +809,18 @@ namespace PersonViewerSCA2
                 {
                     sqlConnection.Open();
 
-                    if (mySqlParameter1.Length > 0 && mySqlParameter2.Length > 0)
+                    if (mySqlParameter1.Length > 0 && mySqlParameter2.Length > 0 && mySqlParameter3.Length > 0)
+                    {
+                        using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where " + mySqlParameter1 + "= @" + mySqlParameter1 + " AND " + mySqlParameter2 + "= @" + mySqlParameter2 + " AND " + mySqlParameter3 + "= @" + mySqlParameter3 + ";", sqlConnection))
+                        {
+                            sqlCommand.Parameters.Add("@" + mySqlParameter1, DbType.String).Value = mySqlData1;
+                            sqlCommand.Parameters.Add("@" + mySqlParameter2, DbType.String).Value = mySqlData2;
+                            sqlCommand.Parameters.Add("@" + mySqlParameter3, DbType.String).Value = mySqlData3;
+
+                            try { sqlCommand.ExecuteNonQuery(); } catch { }
+                        }
+                    }
+                    else if (mySqlParameter1.Length > 0 && mySqlParameter2.Length > 0)
                     {
                         using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where " + mySqlParameter1 + "= @" + mySqlParameter1 + " AND " + mySqlParameter2 + "= @" + mySqlParameter2 + ";", sqlConnection))
                         {
@@ -862,7 +873,10 @@ namespace PersonViewerSCA2
             { bServer1Exist = false; }
 
             if (bServer1Exist)
-            { _MenuItemEnabled(GetFioItem, true); }
+            {
+                _toolStripStatusLabelSetText(StatusLabel2, "Есть доступ к серверу "+ serverName);
+                _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
+                _MenuItemEnabled(GetFioItem, true); }
             else
             {
                 _toolStripStatusLabelSetText(StatusLabel2, "Ошибка доступа к " + serverName + " SQL БД СКД-сервера!");
@@ -1090,15 +1104,14 @@ namespace PersonViewerSCA2
                 DeleteAllDataInTableQuery(databasePerson, "PersonsLastComboList");
                 foreach (var dr in dtGroup.AsEnumerable())
                 {
-                    DeleteDataTableQueryParameters(databasePerson, "PersonGroup", "GroupPerson", dr[2].ToString());
-                    DeleteDataTableQueryParameters(databasePerson, "PersonGroupDesciption", "GroupPerson", dr[2].ToString());
+                    DeleteDataTableQueryParameters(databasePerson, "PersonGroup", "GroupPerson", dr[2].ToString(),"","", "", "");
+                    DeleteDataTableQueryParameters(databasePerson, "PersonGroupDesciption", "GroupPerson", dr[2].ToString(), "", "", "", "");
                 }
                 foreach (var dr in dtGroup.AsEnumerable())
                 {
                     CreateGroupInDB(databasePerson, dr[2].ToString(), dr[4].ToString());
                 }
-
-
+                
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
                     sqlConnection.Open();
@@ -5325,13 +5338,13 @@ namespace PersonViewerSCA2
                     "Наименование", "", @"Краткое наименование рассылки",
                     "Описание", "", "Краткое описание рассылки",
                     "", "", "Неиспользуемое поле",
-                    "Отчет", listComboParameters, "Варинт генерируемого отчета",
+                    "Отчет", listComboParameters, "Выполнить отчет по группам",
                     "Период", periodComboParameters, "Выбрать, за какой период делать отчет",
                     "Статус", listComboParameters9, "Статус рассылки"
                     );
         }
 
-        private void MailingSave(string recipientEmail, string senderEmail, string typeReport, string description, string schedule, string period, string status)
+        private void MailingSave(string recipientEmail, string senderEmail, string groupsReport, string nameReport, string description, string period, string status)
         {
             bool recipientValid = false;
             bool senderValid = false;
@@ -5346,7 +5359,7 @@ namespace PersonViewerSCA2
 
             _controlVisible(groupBoxProperties, false);
 
-            if (databasePerson.Exists && typeReport.Length > 0 && senderValid && recipientValid)
+            if (databasePerson.Exists && nameReport.Length > 0 && senderValid && recipientValid)
             {
                 using (SQLiteConnection sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
@@ -5355,13 +5368,13 @@ namespace PersonViewerSCA2
                     SQLiteCommand sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
 
-                    using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'Mailing' (SenderEmail, RecipientEmail, Report, NameReport, Description, DateCreated, Period, Status)" +
-                               " VALUES (@SenderEmail, @RecipientEmail, @Report, @NameReport, @Description, @DateCreated, @Period, @Status)", sqlConnection))
+                    using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'Mailing' (SenderEmail, RecipientEmail, GroupsReport, NameReport, Description, Period, Status, DateCreated)" +
+                               " VALUES (@SenderEmail, @RecipientEmail, @GroupsReport, @NameReport, @Description, @Period, @Status, @DateCreated)", sqlConnection))
                     {
                         sqlCommand.Parameters.Add("@SenderEmail", DbType.String).Value = senderEmail;
                         sqlCommand.Parameters.Add("@RecipientEmail", DbType.String).Value = recipientEmail;
-                        sqlCommand.Parameters.Add("@Report", DbType.String).Value = schedule;
-                        sqlCommand.Parameters.Add("@NameReport", DbType.String).Value = typeReport;
+                        sqlCommand.Parameters.Add("@GroupsReport", DbType.String).Value = groupsReport;
+                        sqlCommand.Parameters.Add("@NameReport", DbType.String).Value = nameReport;
                         sqlCommand.Parameters.Add("@Description", DbType.String).Value = description;
                         sqlCommand.Parameters.Add("@Period", DbType.String).Value = period;
                         sqlCommand.Parameters.Add("@Status", DbType.String).Value = status;
@@ -5375,9 +5388,9 @@ namespace PersonViewerSCA2
                 }
             }
 
-            if (databasePerson.Exists && typeReport.Length > 0 && senderValid && recipientValid)
+            if (databasePerson.Exists && nameReport.Length > 0 && senderValid && recipientValid)
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Добавлена рассылка: " + typeReport + "| Всего рассылок: " + _dataGridView1RowsCount());
+                _toolStripStatusLabelSetText(StatusLabel2, "Добавлена рассылка: " + nameReport + "| Всего рассылок: " + _dataGridView1RowsCount());
             }
         }
 
@@ -5715,7 +5728,7 @@ namespace PersonViewerSCA2
 
             if (btnName == @"Сохранить рассылку")
             {
-                ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Report AS 'Отчет', " +
+                ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                     "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', Status AS 'Статус' ", " ORDER BY RecipientEmail asc, DateCreated desc; ");
             }
             EnableMainMenuItems(true);
@@ -5734,14 +5747,14 @@ namespace PersonViewerSCA2
                 string senderEmail = mailServerUserName;
                 if (mailServerUserName.Length == 0)
                 { senderEmail = _textBoxReturnText(textBoxServer1); }
-                string typeReport = _textBoxReturnText(textBoxMailServerName);
+                string nameReport = _textBoxReturnText(textBoxMailServerName);
                 string description = _textBoxReturnText(textBoxMailServerUserName);
-                string schedule = _comboBoxReturnSelected(listCombo);
+                string report = _comboBoxReturnSelected(listCombo);
                 string period = _comboBoxReturnSelected(periodCombo);
                 string status = _comboBoxReturnSelected(comboSettings9);
 
-                MailingSave(recipientEmail, senderEmail, typeReport, description, schedule, period, status);
-                ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Report AS 'Отчет', " +
+                MailingSave(recipientEmail, senderEmail, report, nameReport, description, period, status);
+                ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                     "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', Status AS 'Статус' ", " ORDER BY RecipientEmail asc, DateCreated desc; ");
             }
 
@@ -5761,7 +5774,7 @@ namespace PersonViewerSCA2
             string stringMailUserpassword = _textBoxReturnText(textBoxMailServerUserPassword);
 
             CheckAliveServer(server, user, password);
-
+            
             if (bServer1Exist)
             {
                 _controlVisible(groupBoxProperties, false);
@@ -6085,12 +6098,12 @@ namespace PersonViewerSCA2
                 else if (nameOfLastTableFromDB == "Mailing")
                 {
                     DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-                    dgSeek.FindValueInCells(dataGridView1, new string[] { @"Получатель", @"Отправитель", @"Наименование", @"Описание", @"Отчет", @"Период", @"Статус" });
+                    dgSeek.FindValueInCells(dataGridView1, new string[] { @"Получатель", @"Отправитель", @"Отчет по группам", @"Наименование", @"Описание", @"Период", @"Статус" });
                     _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + dgSeek.values[3]);
                     stimerPrev = "";
                     MailingAction("sendEmail", dgSeek.values[0], dgSeek.values[0], dgSeek.values[2], dgSeek.values[3], dgSeek.values[4], dgSeek.values[5], dgSeek.values[6]);
 
-                    ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Report AS 'Отчет', " +
+                    ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                         "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', Status AS 'Статус'  ", " ORDER BY RecipientEmail asc; ");
                 }
             }
@@ -6239,7 +6252,7 @@ namespace PersonViewerSCA2
                     string mailing = "";
                     for (int i = 0; i < dataGridView1.ColumnCount; i++)
                     {
-                        if (dataGridView1.Columns[i].HeaderText == "Наименование" || dataGridView1.Columns[i].HeaderText == "NameReport")
+                        if (dataGridView1.Columns[i].HeaderText == "Наименование")
                         {
                             mailing = dataGridView1.Rows[currentMouseOverRow].Cells[i].Value.ToString();
                         }
@@ -6277,7 +6290,7 @@ namespace PersonViewerSCA2
                         currentAction = "sendEmail";
 
                         DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-                        dgSeek.FindValueInCells(dataGridView1, new string[] { @"Получатель", @"Отправитель", @"Наименование", @"Описание", @"Отчет", @"Период", @"Статус" });
+                        dgSeek.FindValueInCells(dataGridView1, new string[] { @"Получатель", @"Отправитель", @"Отчет по группам", @"Наименование", @"Описание", @"Период", @"Статус" });
                         _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + dgSeek.values[3]);
                         stimerPrev = "";
 
@@ -6297,9 +6310,6 @@ namespace PersonViewerSCA2
 
         private void DeleteCurrentRow()
         {
-            int IndexColumn1 = -1;           // индекс 1-й колонки в датагрид
-            int IndexColumn2 = -1;           // индекс 2-й колонки в датагрид
-
             int IndexCurrentRow = _dataGridView1CurrentRowIndex();
 
             if (IndexCurrentRow > -1)
@@ -6312,15 +6322,13 @@ namespace PersonViewerSCA2
                             for (int i = 0; i < dataGridView1.ColumnCount; i++)
                             {
                                 if (dataGridView1.Columns[i].HeaderText == "GroupPerson" || dataGridView1.Columns[i].HeaderText == "Группа")
-                                { IndexColumn1 = i; }
+                                {
+                                    selectedGroup = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString().Trim();
+                                    DeleteDataTableQueryParameters(databasePerson, "PersonGroup", "GroupPerson", selectedGroup, "", "", "", "");
+                                    DeleteDataTableQueryParameters(databasePerson, "PersonGroupDesciption", "GroupPerson", selectedGroup, "", "", "", "");
+                                }
                             }
 
-                            if (IndexColumn1 > -1)
-                            {
-                                selectedGroup = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString().Trim();
-                                DeleteDataTableQueryParameters(databasePerson, "PersonGroup", "GroupPerson", selectedGroup);
-                                DeleteDataTableQueryParameters(databasePerson, "PersonGroupDesciption", "GroupPerson", selectedGroup);
-                            }
                             PersonOrGroupItem.Text = "Работа с одной персоной";
 
                             ListGroups();
@@ -6330,8 +6338,8 @@ namespace PersonViewerSCA2
                         }
                     case "PersonGroup" when textBoxGroup.Text.Trim().Length > 0:
                         {
-                            DeleteDataTableQueryParameters(databasePerson, "PersonGroup", "GroupPerson", textBoxGroup.Text.Trim());
-                            DeleteDataTableQueryParameters(databasePerson, "PersonGroupDesciption", "GroupPerson", textBoxGroup.Text.Trim());
+                            DeleteDataTableQueryParameters(databasePerson, "PersonGroup", "GroupPerson", textBoxGroup.Text.Trim(), "", "", "", "");
+                            DeleteDataTableQueryParameters(databasePerson, "PersonGroupDesciption", "GroupPerson", textBoxGroup.Text.Trim(), "", "", "", "");
                             textBoxGroup.BackColor = Color.White;
                             PersonOrGroupItem.Text = "Работа с одной персоной";
 
@@ -6341,26 +6349,14 @@ namespace PersonViewerSCA2
                         }
                     case "Mailing":
                         {
-                            string typeReport = "";
-                            for (int i = 0; i < dataGridView1.ColumnCount; i++)
-                            {
-                                if (dataGridView1.Columns[i].HeaderText == "Получатель" || dataGridView1.Columns[i].HeaderText == "RecipientEmail")
-                                { IndexColumn1 = i; }
-                                else if (dataGridView1.Columns[i].HeaderText == "Наименование" || dataGridView1.Columns[i].HeaderText == "TypeReport")
-                                {
-                                    IndexColumn2 = i;
-                                    typeReport = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString();
-                                }
-                            }
-
-                            if (IndexColumn1 > -1 && IndexColumn2 > -1)
-                            {
-                                DeleteDataTableQueryParameters(databasePerson, "Mailing",
-                                    "RecipientEmail", dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString(),
-                                    "TypeReport", typeReport);
-                            }
-                            _toolStripStatusLabelSetText(StatusLabel2, "Удалена рассылка отчета " + typeReport + "| Всего рассылок: " + _dataGridView1RowsCount());
-                            ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Report AS 'Отчет', " +
+                            DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
+                            dgSeek.FindValueInCells(dataGridView1, new string[] { @"Получатель", @"Отправитель", @"Отчет по группам", @"Наименование", @"Описание", @"Период", @"Статус" });
+                            DeleteDataTableQueryParameters(databasePerson, "Mailing",
+                                "GroupsReport", dgSeek.values[2],
+                                "NameReport", dgSeek.values[3],
+                                "Description", dgSeek.values[4]);
+                            _toolStripStatusLabelSetText(StatusLabel2, "Удалена рассылка отчета " + dgSeek.values[2] + "| Всего рассылок: " + _dataGridView1RowsCount());
+                            ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                                 "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', Status AS 'Статус' ", " ORDER BY RecipientEmail asc; ");
                             break;
                         }
@@ -6458,7 +6454,7 @@ namespace PersonViewerSCA2
             {
                 sqlConnection.Open();
 
-                using (var sqlCommand = new SQLiteCommand("SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Report AS 'Отчет', " +
+                using (var sqlCommand = new SQLiteCommand("SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                         "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', Status AS 'Статус'  FROM Mailing;", sqlConnection))
                 {
                     using (var reader = sqlCommand.ExecuteReader())
@@ -6471,7 +6467,7 @@ namespace PersonViewerSCA2
                                 {
                                     recipient = record["RecipientEmail"].ToString();
                                     sender = record["SenderEmail"].ToString();
-                                    report = record["Report"].ToString();
+                                    report = record["GroupsReport"].ToString();
                                     nameReport = record["NameReport"].ToString();
                                     descriptionReport = record["Description"].ToString();
                                     period = record["Period"].ToString();
@@ -6479,7 +6475,7 @@ namespace PersonViewerSCA2
 
                                     if (status == "активная")
                                     {
-                                        MailingAction("sendEmail", recipient, sender, report, descriptionReport, nameReport, period, status);
+                                        MailingAction("sendEmail", recipient, sender, report, nameReport, descriptionReport, period, status);
                                     }
                                 }
                             } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
@@ -6495,16 +6491,15 @@ namespace PersonViewerSCA2
             }
         }
 
-        private void MailingAction(string actionDGV, string recipientEmail, string senderEmail, string typeReport, string description, string schedule, string period, string status)
+        private void MailingAction(string actionDGV, string recipientEmail, string senderEmail, string groupsReport, string nameReport, string description, string period, string status)
         {
             switch (actionDGV)
             {
                 case "saveEmail":
                     {
-                        MailingSave(recipientEmail, senderEmail, typeReport, description, schedule, period, status);
-                                                ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', Report AS 'Отчет', " +
-                                                    "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', Status AS 'Статус' ", " ORDER BY RecipientEmail asc, DateCreated desc; ");
-
+                        MailingSave(recipientEmail, senderEmail, groupsReport, nameReport, description, period, status);
+                        ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
+                            "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', Status AS 'Статус' ", " ORDER BY RecipientEmail asc, DateCreated desc; ");
                         break;
                     }
                 case "sendEmail":
@@ -6532,7 +6527,7 @@ namespace PersonViewerSCA2
                                 lastDay = selectPeriodMonth().Split('|')[1];
                             }
 
-                            string[] nameGroups = schedule.Split('+');
+                            string[] nameGroups = groupsReport.Split('+');
                             string name = "";
                             string selectedPeriod = startDay.Split(' ')[0] + " - " + lastDay.Split(' ')[0];
                             string bodyOfMail = "";
@@ -6580,16 +6575,16 @@ namespace PersonViewerSCA2
                                 dtPersonTemp = GetDistinctRecords(dtTempIntermediate, orderColumnsFinacialReport);
                                 dtPersonTemp.SetColumnsOrder(orderColumnsFinacialReport);
 
-                                filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), typeReport + "_" + selectedPeriod + "_" + name + @".xlsx");
+                                filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), nameReport + "_" + selectedPeriod + "_" + name + @".xlsx");
                                 try { System.IO.File.Delete(filePathExcelReport); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
 
-                                ExportDatatableSelectedColumnsToExcel(dtPersonTemp, typeReport, filePathExcelReport);
+                                ExportDatatableSelectedColumnsToExcel(dtPersonTemp, nameReport, filePathExcelReport);
 
-                                bodyOfMail = "Отчет \"" + typeReport + "\" " + " по группе \"" + name + "\"";
-                                titleOfbodyMail = "Отчет за период" + selectedPeriod;
+                                bodyOfMail = "Отчет \"" + nameReport + "\" " + " по группе \"" + name + "\"";
+                                titleOfbodyMail = "Отчет за период: " + selectedPeriod;
 
                                 SendEmailAsync(senderEmail, recipientEmail, titleOfbodyMail, bodyOfMail, filePathExcelReport, Properties.Resources.LogoRYIK);
-                                _toolStripStatusLabelSetText(StatusLabel2, "Отчет " + typeReport + " по группе " + name + " подготовлен и отправлен " + recipientEmail);
+                                _toolStripStatusLabelSetText(StatusLabel2, "Отчет " + nameReport + "(" + name + ") подготовлен и отправлен " + recipientEmail);
 
                                 //destroy temporary variables
                                 personCheck = null;
