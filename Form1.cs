@@ -6389,14 +6389,19 @@ namespace PersonViewerSCA2
 
         private void ModeAppItem_Click(object sender, EventArgs e) //CurrentModeApp(); 
         {
-           // CurrentModeApp();
+            // устанавливаем метод обратного вызова
+            System.Threading.TimerCallback tm = new System.Threading.TimerCallback(CurrentModeApp);
+            // создаем таймер
+            System.Threading.Timer timer = new System.Threading.Timer(tm, null, 1000, 60*1000); //1min
+
+            // CurrentModeApp();
         }
 
-        private void CurrentModeApp()
+        private void CurrentModeApp(object obj)
         {
-
+            string finished = (string)obj;
             SelectMailingDoAction();
-
+            //writelog result "finished"
         }
 
         private bool interruptAnyAction = false;
