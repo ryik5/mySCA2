@@ -245,7 +245,23 @@ namespace PersonViewerSCA2
         { InitializeComponent(); }
 
         private void Form1_Load(object sender, EventArgs e)
-        { Form1Load(); }
+        {
+            bool existed;
+            // получаем GIUD приложения
+            string guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString();
+            System.Threading.Mutex mutexObj = new System.Threading.Mutex(true, guid, out existed);
+
+            if (existed)
+            {
+                Form1Load();
+            }
+            else
+            {
+                ApplicationExit(); //Bolck other this app to run
+                System.Threading.Thread.Sleep(1000);
+                return;
+            }
+        }
 
         private string productName = "";
         private void Form1Load()
@@ -6372,24 +6388,15 @@ namespace PersonViewerSCA2
         System.Threading.Timer _timer;
 
         private void ModeAppItem_Click(object sender, EventArgs e) //CurrentModeApp(); 
-        { CurrentModeApp(); }
-
-        public void SetTimer()
         {
-            // this is System.Threading.Timer, ofcource
-            _timer = new System.Threading.Timer(Tick, null, 100000, 100000);
+           // CurrentModeApp();
         }
 
-        private void Tick(object state)
+        private void CurrentModeApp()
         {
-            try
-            {
-                SelectMailingDoAction();
-            }
-            finally
-            {
-                _timer?.Change(100000, 100000);
-            }
+
+            SelectMailingDoAction();
+
         }
 
         private bool interruptAnyAction = false;

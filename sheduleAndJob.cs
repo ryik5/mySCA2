@@ -9,7 +9,6 @@ namespace PersonViewerSCA2
 {
     public static class TaskManager
     {
-        //https://codereview.stackexchange.com/questions/28760/custom-task-scheduler
         private static List<Scheduler> _schedulers;
 
         /// <summary>
@@ -58,7 +57,7 @@ namespace PersonViewerSCA2
         }
     }
 
-    public class Scheduler : Queue<Job>
+    public class Scheduler :Queue<Job>
     {
         public string Name { get; private set; }
         public int Priority { get; set; }
@@ -136,7 +135,7 @@ namespace PersonViewerSCA2
         }
     }
 
-    public class Job : EventArgs, IDisposable
+    public class Job :EventArgs, IDisposable
     {
         public string Name { get; set; }
         public Func<Task> Task { get; set; }
@@ -213,7 +212,7 @@ namespace PersonViewerSCA2
 
 
 
-
+/*
 ---------------
 Usage
 
@@ -274,4 +273,4 @@ IEnumerable<Job> triggeredJobs = meetingScheduler.GetTriggeredJobs();
 
 #endregion
 
-Console.ReadLine();
+Console.ReadLine();*/
