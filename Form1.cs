@@ -6469,10 +6469,8 @@ namespace PersonViewerSCA2
                    ScheduleTimer();
                }
            }*/
-
-
-
-
+           
+            
         private void SelectMailingDoAction()
         {
             string sender = "";
