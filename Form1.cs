@@ -801,7 +801,7 @@ namespace PersonViewerSCA2
             myTable = null; mySqlParameter1 = null; mySqlData1 = null; mySqlParameter2 = null; mySqlData2 = null; mySqlNav = null;
         }
 
-        private void DeleteDataTableQueryParameters(System.IO.FileInfo databasePerson, string myTable, string mySqlParameter1, string mySqlData1, string mySqlParameter2 , string mySqlData2, string mySqlParameter3, string mySqlData3) //Delete data from the Table of the DB by NAV (both parameters are string)
+        private void DeleteDataTableQueryParameters(System.IO.FileInfo databasePerson, string myTable, string mySqlParameter1, string mySqlData1, string mySqlParameter2, string mySqlData2, string mySqlParameter3, string mySqlData3) //Delete data from the Table of the DB by NAV (both parameters are string)
         {
             if (databasePerson.Exists)
             {
@@ -874,9 +874,10 @@ namespace PersonViewerSCA2
 
             if (bServer1Exist)
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Есть доступ к серверу "+ serverName);
+                _toolStripStatusLabelSetText(StatusLabel2, "Есть доступ к серверу " + serverName);
                 _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
-                _MenuItemEnabled(GetFioItem, true); }
+                _MenuItemEnabled(GetFioItem, true);
+            }
             else
             {
                 _toolStripStatusLabelSetText(StatusLabel2, "Ошибка доступа к " + serverName + " SQL БД СКД-сервера!");
@@ -1104,14 +1105,14 @@ namespace PersonViewerSCA2
                 DeleteAllDataInTableQuery(databasePerson, "PersonsLastComboList");
                 foreach (var dr in dtGroup.AsEnumerable())
                 {
-                    DeleteDataTableQueryParameters(databasePerson, "PersonGroup", "GroupPerson", dr[2].ToString(),"","", "", "");
+                    DeleteDataTableQueryParameters(databasePerson, "PersonGroup", "GroupPerson", dr[2].ToString(), "", "", "", "");
                     DeleteDataTableQueryParameters(databasePerson, "PersonGroupDesciption", "GroupPerson", dr[2].ToString(), "", "", "", "");
                 }
                 foreach (var dr in dtGroup.AsEnumerable())
                 {
                     CreateGroupInDB(databasePerson, dr[2].ToString(), dr[4].ToString());
                 }
-                
+
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
                     sqlConnection.Open();
@@ -5774,7 +5775,7 @@ namespace PersonViewerSCA2
             string stringMailUserpassword = _textBoxReturnText(textBoxMailServerUserPassword);
 
             CheckAliveServer(server, user, password);
-            
+
             if (bServer1Exist)
             {
                 _controlVisible(groupBoxProperties, false);
@@ -6187,7 +6188,7 @@ namespace PersonViewerSCA2
             _timer1Enabled(false);
             _ProgressBar1Value100();
         }
-        
+
         //Show help to Edit on some columns DataGridView
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
@@ -6368,10 +6369,31 @@ namespace PersonViewerSCA2
 
 
 
+        System.Threading.Timer _timer;
+
         private void ModeAppItem_Click(object sender, EventArgs e) //CurrentModeApp(); 
         { CurrentModeApp(); }
 
-      private  bool interruptAnyAction = false;
+        public void SetTimer()
+        {
+            // this is System.Threading.Timer, ofcource
+            _timer = new System.Threading.Timer(Tick, null, 100000, 100000);
+        }
+
+        private void Tick(object state)
+        {
+            try
+            {
+                SelectMailingDoAction();
+            }
+            finally
+            {
+                _timer?.Change(100000, 100000);
+            }
+        }
+
+        private bool interruptAnyAction = false;
+        /*
         private async void CurrentModeApp()
         {
             if (currentModeAppManual)
@@ -6396,46 +6418,45 @@ namespace PersonViewerSCA2
             }
 
             interruptAnyAction = false;
-        }
+        } 
+        
+            private  System.Timers.Timer timer;
+           private void ScheduleTimer()
+           {
 
+               DateTime nowTime = DateTime.Now;
+               DateTime scheduledTime = new DateTime(nowTime.Year, nowTime.Month, nowTime.Day, 1, 0, 0, 0); //Specify your scheduled time HH,MM,SS [8am and 42 minutes]
+               _menuItemTooltipSet(modeItem, "Автоматическая рассылка будет выполнена"+ scheduledTime.ToString() + "\n.Включить интеррактивный режим. Остановить все рассылки");
 
-      private  System.Timers.Timer timer;
-        private void ScheduleTimer()
-        {
+               if (nowTime > scheduledTime)
+               {
+                   scheduledTime = scheduledTime.AddDays(1);
+               }
 
-            DateTime nowTime = DateTime.Now;
-            DateTime scheduledTime = new DateTime(nowTime.Year, nowTime.Month, nowTime.Day, 1, 0, 0, 0); //Specify your scheduled time HH,MM,SS [8am and 42 minutes]
-            _menuItemTooltipSet(modeItem, "Автоматическая рассылка будет выполнена"+ scheduledTime.ToString() + "\n.Включить интеррактивный режим. Остановить все рассылки");
+               double tickTime = (double)(scheduledTime - DateTime.Now).TotalMilliseconds;
+               timer = new System.Timers.Timer(tickTime);
+               timer.Elapsed += new System.Timers.ElapsedEventHandler(timer_Elapsed);
+               if (interruptAnyAction)
+               {
+                   timer.Enabled = false;
+               }
+               else
+               { timer.Enabled = true; timer.Start(); }
+           }
 
-            if (nowTime > scheduledTime)
-            {
-                scheduledTime = scheduledTime.AddDays(1);
-            }
-
-            double tickTime = (double)(scheduledTime - DateTime.Now).TotalMilliseconds;
-            timer = new System.Timers.Timer(tickTime);
-            timer.Elapsed += new System.Timers.ElapsedEventHandler(timer_Elapsed);
-            if (interruptAnyAction)
-            {
-                timer.Enabled = false;
-            }
-            else
-            { timer.Enabled = true; timer.Start(); }
-        }
-
-        private void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
-        {
-            timer.Stop();
-            if (interruptAnyAction)
-            {
-                timer.Enabled = false;
-            }
-            else
-            {
-                SelectMailingDoAction();
-                ScheduleTimer();
-            }
-        }
+           private void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+           {
+               timer.Stop();
+               if (interruptAnyAction)
+               {
+                   timer.Enabled = false;
+               }
+               else
+               {
+                   SelectMailingDoAction();
+                   ScheduleTimer();
+               }
+           }*/
 
 
 
@@ -6478,7 +6499,8 @@ namespace PersonViewerSCA2
                                         MailingAction("sendEmail", recipient, sender, report, nameReport, descriptionReport, period, status);
                                     }
                                 }
-                            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                            }
+                            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             if (interruptAnyAction)
                             {
                                 interruptAnyAction = false;
