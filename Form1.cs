@@ -11,7 +11,10 @@ using System.Text.RegularExpressions;
 //using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
+using NLog;
+//in nuget console - 
+//install-package nlog
+//install-package nlog.config
 
 // for Crypography
 using System.Security.Cryptography;
@@ -20,10 +23,12 @@ namespace PersonViewerSCA2
 {
     public partial class FormPersonViewerSCA : Form
     {
+        Logger logger = LogManager.GetCurrentClassLogger();
+
         private System.Diagnostics.FileVersionInfo myFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
         private string myRegKey = @"SOFTWARE\RYIK\PersonViewerSCA2";
         private string currentAction = "";
-        private bool currentModeAppManual = false;
+        private bool currentModeAppManual;
 
         private string strVersion;
         private ContextMenu contextMenu1;
@@ -246,6 +251,18 @@ namespace PersonViewerSCA2
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            logger.Trace("trace message");
+
+            logger.Debug("debug message");
+
+            logger.Info("info message");
+
+            logger.Warn("warn message");
+
+            logger.Error("error message");
+
+            logger.Fatal("fatal message");
+
             bool existed;
             // получаем GIUD приложения
             string guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString();
@@ -266,9 +283,9 @@ namespace PersonViewerSCA2
         private string productName = "";
         private void Form1Load()
         {
-            _menuItemTextSet(modeItem, "Включить автоматический режим");
-            _menuItemTooltipSet(modeItem, "Остановлены все рассылки");
             currentModeAppManual = true;
+            _MenuItemTextSet(modeItem, "Сменить на автоматический режим");
+            _menuItemTooltipSet(modeItem, "Включен интеррактивный режим. Все рассылки остановлены.");
 
             myFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
             strVersion = myFileVersionInfo.Comments + " ver." + myFileVersionInfo.FileVersion + " " + myFileVersionInfo.LegalCopyright;
@@ -529,7 +546,7 @@ namespace PersonViewerSCA2
                                 {
                                     if (record != null && record["ComboList"].ToString().Length > 0)
                                     {
-                                        _comboBoxFioAdd(record["ComboList"].ToString().Trim());
+                                        _comboBoxAdd(comboBoxFio, record["ComboList"].ToString().Trim());
                                         iCombo++;
                                     }
                                 }
@@ -1003,7 +1020,7 @@ namespace PersonViewerSCA2
             listFIO = new List<string>();
             try
             {
-                _comboBoxFioClr();
+                _comboBoxClr(comboBoxFio);
                 _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю списки персонала с " + sServer1 + ". Ждите окончания процесса...");
                 stimerPrev = "Запрашиваю списки персонала с " + sServer1 + ". Ждите окончания процесса...";
                 stringConnection = "Data Source=" + sServer1 + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=60";
@@ -1173,9 +1190,9 @@ namespace PersonViewerSCA2
 
 
                 foreach (string str in ListFIOCombo.ToArray())
-                { _comboBoxFioAdd(str); }
+                { _comboBoxAdd(comboBoxFio, str); }
                 try
-                { _comboBoxFioIndex(0); }
+                { _comboBoxSelectIndex(comboBoxFio, 0); }
                 catch { };
 
                 _timer1Enabled(false);
@@ -1422,7 +1439,7 @@ namespace PersonViewerSCA2
             ExcelApp.UserControl = true;
             _timer1Enabled(false);
 
-            _ChangeMenuItemBackColor(TableExportToExcelItem, SystemColors.Control);
+            _MenuItemBackColorChange(TableExportToExcelItem, SystemColors.Control);
             stimerPrev = "";
             _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
             sLastSelectedElement = "ExportExcel";
@@ -2230,7 +2247,7 @@ namespace PersonViewerSCA2
             _changeControlBackColor(groupBoxPeriod, SystemColors.Control);
             _changeControlBackColor(groupBoxTimeStart, SystemColors.Control);
             _changeControlBackColor(groupBoxTimeEnd, SystemColors.Control);
-            _ChangeMenuItemBackColor(QuickLoadDataItem, SystemColors.Control);
+            _MenuItemBackColorChange(QuickLoadDataItem, SystemColors.Control);
 
             _MenuItemEnabled(QuickLoadDataItem, false);
             _MenuItemEnabled(FunctionMenuItem, false);
@@ -2315,8 +2332,8 @@ namespace PersonViewerSCA2
                 stimerPrev = "";
 
                 _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
-                _MenuItemDefaultColorSet(QuickLoadDataItem);
-                _ChangeMenuItemBackColor(TableExportToExcelItem, Color.PaleGreen);
+                _MenuItemBackColorChange(QuickLoadDataItem, SystemColors.Control);
+                _MenuItemBackColorChange(TableExportToExcelItem, Color.PaleGreen);
 
                 _MenuItemEnabled(QuickLoadDataItem, true);
                 _MenuItemEnabled(FunctionMenuItem, true);
@@ -3025,30 +3042,6 @@ namespace PersonViewerSCA2
                 txtBox.Text = s.Trim();
         }
 
-        private void _comboBoxFioAdd(string s) //add string into  from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { comboBoxFio.Items.Add(s); }));
-            else
-                comboBoxFio.Items.Add(s);
-        }
-
-        private void _comboBoxFioClr() //add string into  from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { comboBoxFio.Items.Clear(); }));
-            else
-                comboBoxFio.Items.Clear();
-        }
-
-        private void _comboBoxFioIndex(int i) //add string into comboBoxTargedPC from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { comboBoxFio.SelectedIndex = i; }));
-            else
-                comboBoxFio.SelectedIndex = i;
-        }
-
         private void _comboBoxAdd(ComboBox comboBx, string s) //add string into  from other threads
         {
             if (InvokeRequired)
@@ -3192,7 +3185,8 @@ namespace PersonViewerSCA2
                 StatusLabel2.BackColor = s;
         }
 
-        private void _ChangeMenuItemBackColor(ToolStripMenuItem tMenuItem, Color colorMenu) //add string into  from other threads
+
+        private void _MenuItemBackColorChange(ToolStripMenuItem tMenuItem, Color colorMenu) //add string into  from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate { tMenuItem.BackColor = colorMenu; }));
@@ -3214,14 +3208,6 @@ namespace PersonViewerSCA2
                 Invoke(new MethodInvoker(delegate { tMenuItem.Visible = bEnabled; }));
             else
                 tMenuItem.Visible = bEnabled;
-        }
-
-        private void _MenuItemDefaultColorSet(ToolStripMenuItem tMenuItem) //add string into  from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { tMenuItem.BackColor = SystemColors.Control; }));
-            else
-                tMenuItem.BackColor = SystemColors.Control;
         }
 
 
@@ -3390,7 +3376,7 @@ namespace PersonViewerSCA2
         }
 
 
-        private void _menuItemTextSet(ToolStripMenuItem menuItem, string newTextControl) //access from other threads
+        private void _MenuItemTextSet(ToolStripMenuItem menuItem, string newTextControl) //access from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -3805,7 +3791,7 @@ namespace PersonViewerSCA2
                 _controlEnable(checkBoxCelebrate, true);
 
                 if (_CheckboxCheckedStateReturn(checkBoxTimeViolations))  // if (checkBoxStartWorkInTime.Checked)
-                { _ChangeMenuItemBackColor(QuickLoadDataItem, SystemColors.Control); }
+                { _MenuItemBackColorChange(QuickLoadDataItem, SystemColors.Control); }
             }
             else if (!_CheckboxCheckedStateReturn(checkBoxReEnter))
             {
@@ -5236,13 +5222,13 @@ namespace PersonViewerSCA2
         {
             if (isPerson)
             {
-                _menuItemTextSet(PersonOrGroupItem, "Работа с группой");
+                _MenuItemTextSet(PersonOrGroupItem, "Работа с группой");
                 nameOfLastTableFromDB = "PersonGroup";
                 isPerson = false;
             }
             else
             {
-                _menuItemTextSet(PersonOrGroupItem, "Работа с одной персоной");
+                _MenuItemTextSet(PersonOrGroupItem, "Работа с одной персоной");
                 nameOfLastTableFromDB = "PersonRegistered";
                 isPerson = true;
             }
@@ -6120,8 +6106,8 @@ namespace PersonViewerSCA2
                     stimerPrev = "";
                     MailingAction("sendEmail", dgSeek.values[0], dgSeek.values[0], dgSeek.values[2], dgSeek.values[3], dgSeek.values[4], dgSeek.values[5], dgSeek.values[6]);
 
-                    ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
-                        "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', Status AS 'Статус'  ", " ORDER BY RecipientEmail asc; ");
+                  //  ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
+                  //      "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', Status AS 'Статус'  ", " ORDER BY RecipientEmail asc; ");
                 }
             }
             catch
@@ -6385,108 +6371,99 @@ namespace PersonViewerSCA2
 
 
 
-        System.Threading.Timer _timer;
 
-        private void ModeAppItem_Click(object sender, EventArgs e) //CurrentModeApp(); 
+
+       private void ModeAppItem_Click(object sender, EventArgs e) //InitScheduleTask(); 
         {
-            // устанавливаем метод обратного вызова
-            System.Threading.TimerCallback tm = new System.Threading.TimerCallback(CurrentModeApp);
-            // создаем таймер
-            System.Threading.Timer timer = new System.Threading.Timer(tm, null, 1000, 60*1000); //1min
-
-            // CurrentModeApp();
-        }
-
-        private void CurrentModeApp(object obj)
-        {
-            string finished = (string)obj;
             SelectMailingDoAction();
-            //writelog result "finished"
+          //  InitScheduleTask();
         }
 
-        private bool interruptAnyAction = false;
-        /*
-        private async void CurrentModeApp()
+        // SetUpTimer(new TimeSpan(1, 1, 0, 0)); //runs on 1st at 1:00:00 
+        private void SetUpTimer(TimeSpan alertTime)
+        {
+            DateTime current = DateTime.Now;
+            TimeSpan timeToGo = alertTime - current.TimeOfDay;
+            if (timeToGo < TimeSpan.Zero)
+            {
+                return;//time already passed 
+            }
+           timer = new System.Threading.Timer(x =>
+            {
+                SelectMailingDoAction();
+            }, null, timeToGo, System.Threading.Timeout.InfiniteTimeSpan);
+        }
+        
+
+
+        static System.Threading.Timer timer;
+        long interval = 1 * 60 * 1000; //1 minute
+
+        public void InitScheduleTask() //ScheduleTask
         {
             if (currentModeAppManual)
             {
-                interruptAnyAction = true;
-                _menuItemTextSet(modeItem, "Включить автоматический режим");
                 currentModeAppManual = false;
-                do
-                {
-                    await Task.Run(() => ScheduleTimer());
+                currentAction = "sendEmail";
+                _MenuItemTextSet(modeItem, "Сменить режим на интеррактивный");
+                _menuItemTooltipSet(modeItem, "Включен автоматический режим. Выполняются Активные рассылки из БД.");
+                _MenuItemBackColorChange(modeItem, Color.DarkOrange);
 
-                } while (interruptAnyAction);
+                timer = new System.Threading.Timer(new System.Threading.TimerCallback(ScheduleTask), null, 0, interval);
             }
-            else if (!currentModeAppManual)
+            else
             {
-                interruptAnyAction = true;
-
-                _menuItemTextSet(modeItem, "Включить интеррактивный режим");
-                _menuItemTooltipSet(modeItem, "Включить режим автоматической рассылки. Запустить рассылки");
-
                 currentModeAppManual = true;
+                _MenuItemTextSet(modeItem, "Сменить на автоматический режим");
+                _menuItemTooltipSet(modeItem, "Включен интеррактивный режим. Все рассылки остановлены.");
+                _MenuItemBackColorChange(modeItem, SystemColors.Control);
+
+                _toolStripStatusLabelSetText(StatusLabel2, "Интеррактивный режим");
+                _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
+                timer.Dispose();
             }
+        }
 
-            interruptAnyAction = false;
-        } 
-        
-            private  System.Timers.Timer timer;
-           private void ScheduleTimer()
-           {
 
-               DateTime nowTime = DateTime.Now;
-               DateTime scheduledTime = new DateTime(nowTime.Year, nowTime.Month, nowTime.Day, 1, 0, 0, 0); //Specify your scheduled time HH,MM,SS [8am and 42 minutes]
-               _menuItemTooltipSet(modeItem, "Автоматическая рассылка будет выполнена"+ scheduledTime.ToString() + "\n.Включить интеррактивный режим. Остановить все рассылки");
+        static object synclock = new object();
+        static bool sent = false;
+        private void ScheduleTask(object obj) //SelectMailingDoAction()
+        {
+            lock (synclock)
+            {
+                DateTime dd = DateTime.Now;
+                if (dd.Minute == 5 && sent == false) //do something at Hour 1
+                {
+                    _toolStripStatusLabelSetText(StatusLabel2, "Ведется работа по подготовке отчетов " + DateTime.Now.ToString());
+                    _toolStripStatusLabelBackColor(StatusLabel2, Color.LightPink);
+                    SelectMailingDoAction();
+                    sent = true;
+                }
+                else if (dd.Minute != 5)
+                {
+                    sent = false;
+                    _toolStripStatusLabelSetText(StatusLabel2,"Режим почтовых рассылок. "+ DateTime.Now.ToString());
+                    _toolStripStatusLabelBackColor(StatusLabel2, Color.LightCyan);
+                }
+            }
+        }
 
-               if (nowTime > scheduledTime)
-               {
-                   scheduledTime = scheduledTime.AddDays(1);
-               }
-
-               double tickTime = (double)(scheduledTime - DateTime.Now).TotalMilliseconds;
-               timer = new System.Timers.Timer(tickTime);
-               timer.Elapsed += new System.Timers.ElapsedEventHandler(timer_Elapsed);
-               if (interruptAnyAction)
-               {
-                   timer.Enabled = false;
-               }
-               else
-               { timer.Enabled = true; timer.Start(); }
-           }
-
-           private void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
-           {
-               timer.Stop();
-               if (interruptAnyAction)
-               {
-                   timer.Enabled = false;
-               }
-               else
-               {
-                   SelectMailingDoAction();
-                   ScheduleTimer();
-               }
-           }*/
-           
-            
-        private void SelectMailingDoAction()
+        private void SelectMailingDoAction() //MailingAction()
         {
             string sender = "";
             string recipient = "";
-            string report = "";
+            string gproupsReport = "";
             string nameReport = "";
             string descriptionReport = "";
             string period = "";
             string status = "";
+            List<MailingStructure> mailingList = new List<MailingStructure>();
 
             using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
             {
                 sqlConnection.Open();
 
-                using (var sqlCommand = new SQLiteCommand("SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
-                        "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', Status AS 'Статус'  FROM Mailing;", sqlConnection))
+                using (var sqlCommand = new SQLiteCommand("SELECT SenderEmail, RecipientEmail, GroupsReport, NameReport, Description, Period, Status, DateCreated FROM Mailing;", sqlConnection))
                 {
                     using (var reader = sqlCommand.ExecuteReader())
                     {
@@ -6494,11 +6471,11 @@ namespace PersonViewerSCA2
                         {
                             try
                             {
-                                if (record != null && record[1].ToString().Length > 0)
+                                if (record != null && record["SenderEmail"].ToString().Length > 0 && record["SenderEmail"].ToString().Length > 0)
                                 {
-                                    recipient = record["RecipientEmail"].ToString();
                                     sender = record["SenderEmail"].ToString();
-                                    report = record["GroupsReport"].ToString();
+                                    recipient = record["RecipientEmail"].ToString();
+                                    gproupsReport = record["GroupsReport"].ToString();
                                     nameReport = record["NameReport"].ToString();
                                     descriptionReport = record["Description"].ToString();
                                     period = record["Period"].ToString();
@@ -6506,22 +6483,39 @@ namespace PersonViewerSCA2
 
                                     if (status == "активная")
                                     {
-                                        MailingAction("sendEmail", recipient, sender, report, nameReport, descriptionReport, period, status);
+                                        mailingList.Add(new MailingStructure()
+                                        {
+                                            _sender = sender,
+                                            _recipient = recipient,
+                                            _groupsReport = gproupsReport,
+                                            _nameReport = nameReport,
+                                            _descriptionReport = descriptionReport,
+                                            _period = period,
+                                            _status = status
+                                        });
                                     }
                                 }
                             }
                             catch (Exception expt) { MessageBox.Show(expt.ToString()); }
-                            if (interruptAnyAction)
-                            {
-                                interruptAnyAction = false;
-                                break;
-                            }
-
                         }
                     }
                 }
             }
+
+            //текущий режим работы приложения
+            currentAction = "sendEmail";
+
+            foreach (MailingStructure mailng in mailingList)
+            {
+                _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + mailng._nameReport);
+                stimerPrev = "";
+
+                MailingAction("sendEmail", mailng._recipient, mailng._sender, mailng._groupsReport, mailng._nameReport, mailng._descriptionReport, mailng._period, mailng._status);
+            }
+
+            mailingList = null;
         }
+
 
         private void MailingAction(string actionDGV, string recipientEmail, string senderEmail, string groupsReport, string nameReport, string description, string period, string status)
         {
@@ -6553,6 +6547,10 @@ namespace PersonViewerSCA2
                             string startDay = selectPeriodMonth().Split('|')[0];
                             string lastDay = selectPeriodMonth().Split('|')[1];
 
+                            //periodComboParameters.Add("Текущая неделя");
+                            //periodComboParameters.Add("Текущий месяц");
+                            //periodComboParameters.Add("Предыдущая неделя");
+                            //periodComboParameters.Add("Предыдущий месяц");
                             if (period.ToLower().Contains("текущий"))
                             {
                                 startDay = selectPeriodMonth().Split('|')[0];
@@ -6566,6 +6564,7 @@ namespace PersonViewerSCA2
                             string titleOfbodyMail = "";
                             foreach (string nameGroup in nameGroups)
                             {
+                                try { System.IO.File.Delete(filePathExcelReport); } catch { }
                                 name = nameGroup.Trim();
                                 dtPersonRegisteredFull.Clear();
                                 GetRegistrations(name, startDay, lastDay);//typeReport== only one group
@@ -6607,17 +6606,25 @@ namespace PersonViewerSCA2
                                 dtPersonTemp = GetDistinctRecords(dtTempIntermediate, orderColumnsFinacialReport);
                                 dtPersonTemp.SetColumnsOrder(orderColumnsFinacialReport);
 
-                                filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), nameReport + "_" + selectedPeriod + "_" + name + @".xlsx");
-                                try { System.IO.File.Delete(filePathExcelReport); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                if (dtPersonTemp.Rows.Count > 0)
+                                {
+                                    filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), nameReport + "_" + selectedPeriod + "_" + name + "_" + DateTime.Now.ToString("yyyy-MM-dd HH_mm") + @".xlsx");
+                                    try { System.IO.File.Delete(filePathExcelReport); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
 
-                                ExportDatatableSelectedColumnsToExcel(dtPersonTemp, nameReport, filePathExcelReport);
+                                    ExportDatatableSelectedColumnsToExcel(dtPersonTemp, nameReport, filePathExcelReport);
 
-                                bodyOfMail = "Отчет \"" + nameReport + "\" " + " по группе \"" + name + "\"";
-                                titleOfbodyMail = "Отчет за период: " + selectedPeriod;
+                                    bodyOfMail = "Отчет \"" + nameReport + "\" " + " по группе \"" + name + "\""+"\nВыполнен " + DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                    titleOfbodyMail = "Отчет за период: " + selectedPeriod;
 
-                                SendEmailAsync(senderEmail, recipientEmail, titleOfbodyMail, bodyOfMail, filePathExcelReport, Properties.Resources.LogoRYIK);
-                                _toolStripStatusLabelSetText(StatusLabel2, "Отчет " + nameReport + "(" + name + ") подготовлен и отправлен " + recipientEmail);
-
+                                    SendEmailAsync(senderEmail, recipientEmail, titleOfbodyMail, bodyOfMail, filePathExcelReport, Properties.Resources.LogoRYIK);
+                                    _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
+                                    _toolStripStatusLabelSetText(StatusLabel2, DateTime.Now.ToString("HH:mm")+ " Отчет " + nameReport + "(" + name + ") подготовлен и отправлен " + recipientEmail);
+                                }
+                                else
+                                {
+                                    _toolStripStatusLabelSetText(StatusLabel2, "Ошибка получения данных по отчету " + nameReport );
+                                    _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
+                                }
                                 //destroy temporary variables
                                 personCheck = null;
                                 dtPersonTemp?.Dispose();
@@ -6633,26 +6640,22 @@ namespace PersonViewerSCA2
                 default:
                     break;
             }
+
         }
 
         private string selectPeriodMonth(bool current = false) //firstDay + "|" + lastDay
         {
-            //periodComboParameters.Add("Текущая неделя");
-            //periodComboParameters.Add("Текущий месяц");
-            //periodComboParameters.Add("Предыдущая неделя");
-            //periodComboParameters.Add("Предыдущий месяц");
-
             string result = "";
             var today = DateTime.Today;
             var lastDayPrevMonth = new DateTime(today.Year, today.Month, 1).AddDays(-1);
             if (current)
-            {
-                lastDayPrevMonth = new DateTime(today.Year, today.Month, today.Day);
-            }
+            { lastDayPrevMonth = new DateTime(today.Year, today.Month, today.Day); }
 
-            var firstDay = lastDayPrevMonth.ToString("yyyy-MM") + "-01 00:00:00";
-            var lastDay = lastDayPrevMonth.ToString("yyyy-MM-dd") + " 23:59:59";
-            result = firstDay + "|" + lastDay;
+            result =
+                lastDayPrevMonth.ToString("yyyy-MM") + "-01" + " 00:00:00" +
+                "|" +
+                lastDayPrevMonth.ToString("yyyy-MM-dd") + " 23:59:59";
+
             return result;
         }
 
@@ -7043,6 +7046,41 @@ namespace PersonViewerSCA2
         }
     }
 
+    public static class DataTableExtensions
+    {
+        public static void SetColumnsOrder(this DataTable table, params string[] columnNames)
+        {
+            List<string> listColNames = columnNames.ToList();
+
+            //Remove invalid column names.
+            foreach (string colName in columnNames)
+            {
+                if (!table.Columns.Contains(colName))
+                {
+                    listColNames.Remove(colName);
+                }
+            }
+
+            int columnIndex = 0;
+            foreach (var columnName in listColNames)
+            {
+                table.Columns[columnName].SetOrdinal(columnIndex);
+                columnIndex++;
+            }
+        }
+    }
+
+    public class MailingStructure
+    {
+        public string _sender = "";
+        public string _recipient = "";
+        public string _groupsReport = "";
+        public string _nameReport = "";
+        public string _descriptionReport = "";
+        public string _period = "";
+        public string _status = "";
+    }
+
     public class EncryptDecrypt
     {
         /*
@@ -7161,28 +7199,5 @@ namespace PersonViewerSCA2
         }
     }
 
-    public static class DataTableExtensions
-    {
-        public static void SetColumnsOrder(this DataTable table, params string[] columnNames)
-        {
-            List<string> listColNames = columnNames.ToList();
-
-            //Remove invalid column names.
-            foreach (string colName in columnNames)
-            {
-                if (!table.Columns.Contains(colName))
-                {
-                    listColNames.Remove(colName);
-                }
-            }
-
-            int columnIndex = 0;
-            foreach (var columnName in listColNames)
-            {
-                table.Columns[columnName].SetOrdinal(columnIndex);
-                columnIndex++;
-            }
-        }
-    }
 
 }
