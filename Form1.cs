@@ -251,18 +251,12 @@ namespace PersonViewerSCA2
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            logger.Trace("trace message");
-
-            logger.Debug("debug message");
-
-            logger.Info("info message");
-
-            logger.Warn("warn message");
-
-            logger.Error("error message");
-
-            logger.Fatal("fatal message");
-
+            logger.Trace("Test trace message");
+            logger.Debug("Test debug message");
+            
+            logger.Warn("Test warn message");
+            logger.Error("Test error message");
+            logger.Fatal("Test fatal message");
             bool existed;
             // получаем GIUD приложения
             string guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString();
@@ -3164,9 +3158,15 @@ namespace PersonViewerSCA2
         private void _toolStripStatusLabelSetText(ToolStripStatusLabel statusLabel, string s) //add string into  from other threads
         {
             if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { StatusLabel2.Text = s; }));
+                Invoke(new MethodInvoker(delegate
+                {
+                    StatusLabel2.Text = s;
+                }));
             else
+            {
                 StatusLabel2.Text = s;
+            }
+            logger.Info(s);
         }
 
         private void _toolStripStatusLabelForeColor(ToolStripStatusLabel statusLabel, Color s)
@@ -6375,8 +6375,7 @@ namespace PersonViewerSCA2
 
        private void ModeAppItem_Click(object sender, EventArgs e) //InitScheduleTask(); 
         {
-            SelectMailingDoAction();
-          //  InitScheduleTask();
+            InitScheduleTask();
         }
 
         // SetUpTimer(new TimeSpan(1, 1, 0, 0)); //runs on 1st at 1:00:00 
@@ -6408,6 +6407,9 @@ namespace PersonViewerSCA2
                 _MenuItemTextSet(modeItem, "Сменить режим на интеррактивный");
                 _menuItemTooltipSet(modeItem, "Включен автоматический режим. Выполняются Активные рассылки из БД.");
                 _MenuItemBackColorChange(modeItem, Color.DarkOrange);
+
+                _toolStripStatusLabelSetText(StatusLabel2, "Режим авторассылки отчетов");
+                _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
 
                 timer = new System.Threading.Timer(new System.Threading.TimerCallback(ScheduleTask), null, 0, interval);
             }
