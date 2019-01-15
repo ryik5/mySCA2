@@ -2417,6 +2417,26 @@ namespace PersonViewerSCA2
 
         private void GetPersonRegistrationFromServer(DataTable dt, Person person, string startDate, string endDate)
         {
+            using MySql.Data.MySqlClient.;
+            // строка подключения к БД
+            string connStr = "server=localhost;user=root;database=people;password=0000;";
+            // создаём объект для подключения к БД
+            MySql.Data.MySqlClient.MySqlConnection conn = new MySql.Data.MySqlClient.MySqlConnection(connStr);
+            // устанавливаем соединение с БД
+            conn.Open();
+            // запрос
+            string sql = "SELECT name FROM men WHERE id = 2";
+            // объект для выполнения SQL-запроса
+            MySql.Data.MySqlClient.MySqlCommand command = new MySql.Data.MySqlClient.MySqlCommand(sql, conn);
+            // выполняем запрос и получаем ответ
+            string name = command.ExecuteScalar().ToString();
+            // выводим ответ в консоль
+            Console.WriteLine(name);
+            // закрываем соединение с БД
+            conn.Close();
+
+
+
             DataRow rowPerson;
 
             decimal hourControlStart = person.ControlInHourDecimal;
