@@ -26,6 +26,7 @@ namespace PersonViewerSCA2
         private NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         private System.Diagnostics.FileVersionInfo myFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
+        private string productName = "";
         private string myRegKey = @"SOFTWARE\RYIK\PersonViewerSCA2";
         private string currentAction = "";
         private bool currentModeAppManual;
@@ -323,7 +324,6 @@ namespace PersonViewerSCA2
             }
         }
 
-        private string productName = "";
         private void Form1Load()
         {
             currentModeAppManual = true;
@@ -1572,7 +1572,7 @@ namespace PersonViewerSCA2
             {
                 logger.Error("ExportDatatableSelectedColumnsToExcel - " + expt.ToString());
             }
-            logger.Info("Отчет сгенерирован " + nameReport + " и сохранен " + filePath);
+            logger.Info("Отчет сгенерирован " + nameReport + " и сохранен в " + filePath);
 
             _ProgressBar1Stop();
             sLastSelectedElement = "ExportExcel";
@@ -2417,28 +2417,8 @@ namespace PersonViewerSCA2
 
         private void GetPersonRegistrationFromServer(DataTable dt, Person person, string startDate, string endDate)
         {
-            using MySql.Data.MySqlClient.;
-            // строка подключения к БД
-            string connStr = "server=localhost;user=root;database=people;password=0000;";
-            // создаём объект для подключения к БД
-            MySql.Data.MySqlClient.MySqlConnection conn = new MySql.Data.MySqlClient.MySqlConnection(connStr);
-            // устанавливаем соединение с БД
-            conn.Open();
-            // запрос
-            string sql = "SELECT name FROM men WHERE id = 2";
-            // объект для выполнения SQL-запроса
-            MySql.Data.MySqlClient.MySqlCommand command = new MySql.Data.MySqlClient.MySqlCommand(sql, conn);
-            // выполняем запрос и получаем ответ
-            string name = command.ExecuteScalar().ToString();
-            // выводим ответ в консоль
-            Console.WriteLine(name);
-            // закрываем соединение с БД
-            conn.Close();
-
-
-
             DataRow rowPerson;
-
+            string stringConnection = "";
             decimal hourControlStart = person.ControlInHourDecimal;
             decimal minuteControlStart = person.ControlInMinuteDecimal;
             decimal controlStart = ConvertDecimalSeparatedTimeToDecimal(hourControlStart, minuteControlStart);
@@ -2453,15 +2433,14 @@ namespace PersonViewerSCA2
             try { stringSelectedFIO[1] = Regex.Split(person.FIO, "[ ]")[1]; } catch { }
             try { stringSelectedFIO[2] = Regex.Split(person.FIO, "[ ]")[2]; } catch { }
 
-
-            stimerPrev = "Получаю данные по \"" + ShortFIO(person.FIO) + "\"";
+                        stimerPrev = "Получаю данные по \"" + ShortFIO(person.FIO) + "\"";
             _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по \"" + ShortFIO(person.FIO) + "\"");
 
             try
             {
                 if (person.NAV.Length == 6)
                 {
-                    string stringConnection = @"Data Source=" + sServer1 + @"\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + @";Password=" + sServer1UserPassword + @";Connect Timeout=240";
+                    stringConnection = @"Data Source=" + sServer1 + @"\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + @";Password=" + sServer1UserPassword + @";Connect Timeout=240";
                     using (var sqlConnection = new System.Data.SqlClient.SqlConnection(stringConnection))
                     {
                         sqlConnection.Open();
@@ -2471,17 +2450,17 @@ namespace PersonViewerSCA2
                             {
                                 foreach (DbDataRecord record in reader)
                                 {
+                                    _ProgressWork1Step(1);
                                     try
                                     {
-                                        _ProgressWork1Step(1);
-
                                         if (record?["tabnum"].ToString().Trim() == person.NAV)
                                         {
                                             stringIdCardIntellect = record["id"].ToString().Trim();
                                             person.idCard = Convert.ToInt32(record["id"].ToString().Trim());
                                             break;
                                         }
-                                    } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                    }
+                                    catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 }
                             }
                         }
@@ -2531,7 +2510,7 @@ namespace PersonViewerSCA2
 
             try
             {
-                string stringConnection = @"Data Source=" + sServer1 + @"\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=120";
+                 stringConnection = @"Data Source=" + sServer1 + @"\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=120";
                 string query = "SELECT param0, param1, objid, CONVERT(varchar, date, 120) AS date, CONVERT(varchar, PROTOCOL.time, 114) AS time FROM protocol " +
                     " where action like 'ACCESS_IN' AND param1 like '" + stringIdCardIntellect + "' AND date >= '" + startDate + "' AND date <= '" + endDate + "' " +
                     " ORDER BY date ASC";
@@ -2584,9 +2563,7 @@ namespace PersonViewerSCA2
                 _ProgressWork1Step(1);
             } catch (Exception Expt)
             { MessageBox.Show(Expt.ToString(), @"Сервер не доступен, или неправильная авторизация", MessageBoxButtons.OK, MessageBoxIcon.Error); }
-
-            iCounterLine = 0;
-
+                        
             string[] cellData;
             string namePoint = "";
             string nameDirection = "";
@@ -2595,7 +2572,7 @@ namespace PersonViewerSCA2
                 cellData = Regex.Split(rowData, "[|]");
                 namePoint = "";
                 nameDirection = "";
-                //Only for the server1 of sServer1
+
                 foreach (var onePointData in listPoints.ToArray())
                 {
                     if (onePointData != null && cellData[10] != null && cellData[11] != null &&
@@ -2613,44 +2590,94 @@ namespace PersonViewerSCA2
                         } catch { }
                 }
 
-                iCounterLine++;
                 rowPerson = dt.NewRow();
-
-                rowPerson[1] = person.FIO;
-                rowPerson[2] = person.NAV;
-                rowPerson[3] = person.GroupPerson;
-                rowPerson[10] = cellData[2];
-                rowPerson[4] = person.ControlInHour;
-                rowPerson[5] = person.ControlInMinute;
-                rowPerson[6] = controlStart;
-                rowPerson[7] = person.ControlOutHour;
-                rowPerson[8] = person.ControlOutMinute;
-                rowPerson[9] = person.ControlOutDecimal;
-
+                rowPerson[@"Фамилия Имя Отчество"] = person.FIO;
+                rowPerson[@"NAV-код"] = person.NAV;
+                rowPerson[@"Группа"] = person.GroupPerson;
+                rowPerson[@"№ пропуска"] = cellData[2];
+                rowPerson[@"Время прихода,часы"] = person.ControlInHour;
+                rowPerson[@"Время прихода,минут"] = person.ControlInMinute;
+                rowPerson[@"Время прихода"] = controlStart;
+                rowPerson[@"Время ухода,часы"] = person.ControlOutHour;
+                rowPerson[@"Время ухода,минут"] = person.ControlOutMinute;
+                rowPerson[@"Время ухода"] = person.ControlOutDecimal;
                 //day of registration
-                rowPerson[12] = cellData[3];
+                rowPerson[@"Дата регистрации"] = cellData[3];
                 rowPerson[@"День недели"] = DayOfWeekRussian((DateTime.Parse(cellData[3])).DayOfWeek.ToString());
-
-                rowPerson[13] = cellData[4];
-
-                rowPerson[14] = cellData[5];
-                rowPerson[15] = TryParseStringToDecimal(cellData[6]);
-                rowPerson[19] = sServer1;
-                rowPerson[20] = namePoint;
-                rowPerson[21] = nameDirection;
-                rowPerson[22] = ConvertStringsTimeToStringHHMM(cellData[7], cellData[8]);
-                rowPerson[23] = ConvertStringsTimeToStringHHMM(person.ControlOutHour, person.ControlOutMinute);
-                rowPerson[24] = ConvertStringsTimeToStringHHMM(cellData[4], cellData[5]);
-
+                //real data
+                rowPerson[@"Время регистрации,часы"] = cellData[4];
+                rowPerson[@"Время регистрации,минут"] = cellData[5];
+                rowPerson[@"Время регистрации"] = TryParseStringToDecimal(cellData[6]);
+                rowPerson[@"Сервер СКД"] = sServer1;
+                rowPerson[@"Имя точки прохода"] = namePoint;
+                rowPerson[@"Направление прохода"] = nameDirection;
+                rowPerson[@"Время прихода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(cellData[7], cellData[8]);
+                rowPerson[@"Время ухода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(person.ControlOutHour, person.ControlOutMinute);
+                rowPerson[@"Реальное время прихода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(cellData[4], cellData[5]);
+                
                 dt.Rows.Add(rowPerson);
             }
-            if (iCounterLine > 0)
+            if (listPoints.Count > 0)
             { bLoaded = true; }
 
             listRegistrations.Clear(); rowPerson = null;
             namePoint = null; nameDirection = null;
             hourControlStart = 0; minuteControlStart = 0;
             stringIdCardIntellect = null; personNAVTemp = null; stringSelectedFIO = new string[1]; cellData = new string[1];
+
+            /* string[] arrayAllColumnsDataTablePeople =
+                            {
+                                  @"Опоздание",                    //28
+                                  @"Ранний уход",                 //29
+                                  @"Отпуск (отгул)",                 //30
+                                  @"Коммандировка",                 //31
+                                  @"День недели",                    //32
+                                  @"Больничный",                    //33
+                                  @"Согласованное отсутствие",      //34
+        };*/
+
+           /*  stringConnection = @"server=" +mailServer + @";User=" +mailServerUserName + @";Password=" +mailServerUserPassword+ @";database=wwwais;pooling = false; convert zero datetime=True;Connect Timeout=60";
+            using (var sqlConnection = new MySql.Data.MySqlClient.MySqlConnection(stringConnection))
+            {
+                sqlConnection.Open();
+                using (var cmd = new MySql.Data.MySqlClient.MySqlCommand("Select * FROM personal", sqlConnection))
+                {
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        foreach (DbDataRecord record in reader)
+                        {
+                            _ProgressWork1Step(1);
+                            try
+                            {
+                                if (record?["tabnum"].ToString().Trim() == person.NAV)
+                                {
+                                    stringIdCardIntellect = record["id"].ToString().Trim();
+                                    person.idCard = Convert.ToInt32(record["id"].ToString().Trim());
+                                    break;
+                                }
+                            }
+                            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                        }
+                    }
+                }
+            }*/
+
+            /* // строка подключения к БД
+ string connStr = "server =localhost;user=root;database=people;password=0000;";
+ // создаём объект для подключения к БД
+ MySql.Data.MySqlClient.MySqlConnection conn = new MySql.Data.MySqlClient.MySqlConnection(connStr);
+ // устанавливаем соединение с БД
+ conn.Open();
+ // запрос
+ string sql = "SELECT name FROM men WHERE id = 2";
+ // объект для выполнения SQL-запроса
+ MySql.Data.MySqlClient.MySqlCommand command = new MySql.Data.MySqlClient.MySqlCommand(sql, conn);
+ // выполняем запрос и получаем ответ
+ string name = command.ExecuteScalar().ToString();
+ // выводим ответ в консоль
+ Console.WriteLine(name);
+ // закрываем соединение с БД
+ conn.Close();*/
         }
 
         private string DayOfWeekRussian(string dayEnglish) //return short day of week in Russian
@@ -6678,7 +6705,7 @@ namespace PersonViewerSCA2
 
                                 if (dtPersonTemp.Rows.Count > 0)
                                 {
-                                    filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), nameReport + "_" + selectedPeriod + "_" + name + "_" + DateTime.Now.ToString("yyyy-MM-dd HH_mm") + @".xlsx");
+                                    filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), nameReport + "|" + startDay.Split(' ')[0] + "-" + lastDay.Split(' ')[0] + " " + name + " " + DateTime.Now.ToString("yy-MM-dd HH-mm") + @".xlsx");
                                     try { System.IO.File.Delete(filePathExcelReport); } catch (Exception expt)
                                     {
                                         logger.Error("Ошибка удаления файла " + filePathExcelReport + " " + expt.ToString());
@@ -6686,7 +6713,7 @@ namespace PersonViewerSCA2
                                     ExportDatatableSelectedColumnsToExcel(dtPersonTemp, nameReport, filePathExcelReport);
 
                                     bodyOfMail = "Отчет \"" + nameReport + "\" " + " по группе \"" + name + "\"" + "\nВыполнен " + DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-                                    titleOfbodyMail = "Отчет за период: " + selectedPeriod;
+                                    titleOfbodyMail = "Отчет за период: с " + startDay.Split(' ')[0] + " по " + lastDay.Split(' ')[0];
 
                                     SendEmailAsync(senderEmail, recipientEmail, titleOfbodyMail, bodyOfMail, filePathExcelReport, Properties.Resources.LogoRYIK);
                                     _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);

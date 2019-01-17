@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("©Yuri Ryabchenko")]
 [assembly: AssemblyProduct("PersonViewerSCA2")]
-[assembly: AssemblyCopyright("©Yuri Ryabchenko 2017-2018")]
+[assembly: AssemblyCopyright("©Yuri Ryabchenko 2017-2019")]
 [assembly: AssemblyTrademark("©RYIK")]
 [assembly: AssemblyCulture("")]
 
