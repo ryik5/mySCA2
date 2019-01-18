@@ -1158,7 +1158,7 @@ namespace PersonViewerSCA2
                 {
                     sqlConnection.Open();
 
-                    query = "Select code, family_name,first_name,last_name,vacancy,departament FROM personal where hidden=0 ";
+                    query = "Select code, family_name,first_name,last_name,vacancy,department FROM personal where hidden=0 ";
                     using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
                     {
                         using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
@@ -1181,7 +1181,7 @@ namespace PersonViewerSCA2
                                     personFromServer.NAV = reader.GetString(@"code").Trim();
                                     personFromServer.idCard = 0;
                                     personFromServer.PositionInDepartment = reader.GetString(@"vacancy").Trim();
-                                    personFromServer.Department = reader.GetString(@"departament").Trim();
+                                    personFromServer.Department = reader.GetString(@"department").Trim();
                                     personFromServer.GroupPerson = reader.GetString(@"wwwais").Trim();
 
                                     personFromServer.ControlInHour = "9";
