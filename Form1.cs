@@ -172,8 +172,8 @@ namespace PersonViewerSCA2
                                   new DataColumn(@"Код",typeof(string)),                        //35
                                   new DataColumn(@"Вышестоящая группа",typeof(string)),         //36
                                   new DataColumn(@"Описание группы",typeof(string)),            //37
-                                  new DataColumn(@"Комментарии",typeof(string))                 //38
-
+                                  new DataColumn(@"Комментарии",typeof(string)),                 //38
+                                  new DataColumn(@"Должность",typeof(string))                 //39
                 };
         public readonly string[] arrayAllColumnsDataTablePeople =
             {
@@ -215,13 +215,15 @@ namespace PersonViewerSCA2
                                   @"Код",                           //35
                                   @"Вышестоящая группа",            //36
                                   @"Описание группы",                //37
-                                  @"Комментарии"                    //38
+                                  @"Комментарии",                    //38
+                                  @"Должность"                    //39
         };
         public readonly string[] orderColumnsFinacialReport =
             {
                                   @"Фамилия Имя Отчество",//1
                                   @"NAV-код",//2
                                   @"Отдел",//11
+                                  @"Должность",                 //39
                                   @"Дата регистрации",//12
                                   @"День недели",                    //32
                                   @"Время прихода ЧЧ:ММ",//22
@@ -236,7 +238,6 @@ namespace PersonViewerSCA2
                                   @"Больничный",                    //33
                                   @"Отсутствовал на работе",      //34
                                   @"Комментарии"                    //38
-
         };
         public readonly string[] arrayHiddenColumnsFIO =
             {
@@ -247,6 +248,7 @@ namespace PersonViewerSCA2
                             @"Время ухода,минут",        //8
                             @"Время ухода",              //9
                             @"№ пропуска",               //10
+                            @"Должность",                //39
                             @"Дата регистрации",         //12
                             @"Время регистрации,часы",   //13
                             @"Время регистрации,минут",  //14
@@ -1069,7 +1071,7 @@ namespace PersonViewerSCA2
                                         iFIO++;
                                         row = dataTablePeopple.NewRow();
                                         fio = "";
-                                        try { fio=record["name"].ToString().Trim(); } catch { }
+                                        try { fio = record["name"].ToString().Trim(); } catch { }
                                         try { fio += " " + record["surname"].ToString().Trim(); fio = fio.Trim(); } catch { }
                                         try { fio += " " + record["patronymic"].ToString().Trim(); fio = fio.Trim(); } catch { }
 
@@ -1093,19 +1095,20 @@ namespace PersonViewerSCA2
                                         personFromServer.ControlOutMinuteDecimal = _numUpDownReturn(numUpDownMinuteEnd);
                                         personFromServer.ControlOutHHMM = ConvertStringsTimeToStringHHMM(personFromServer.ControlOutHour, personFromServer.ControlOutMinute);
 
-                                        row[0] = iFIO;
-                                        row[1] = personFromServer.FIO;
-                                        row[2] = personFromServer.NAV;
-                                        row[3] = personFromServer.Department;
-                                        row[4] = personFromServer.ControlInHour;
-                                        row[5] = personFromServer.ControlInMinute;
-                                        row[6] = ConvertStringsTimeToDecimal(personFromServer.ControlInHour, personFromServer.ControlInMinute);
-                                        row[7] = personFromServer.ControlOutHour;
-                                        row[8] = personFromServer.ControlOutMinute;
-                                        row[6] = ConvertStringsTimeToDecimal(personFromServer.ControlOutHour, personFromServer.ControlOutMinute);
-                                        row[22] = ConvertStringsTimeToStringHHMM(personFromServer.ControlInHour, personFromServer.ControlInMinute);
-                                        row[23] = ConvertStringsTimeToStringHHMM(personFromServer.ControlOutHour, personFromServer.ControlOutMinute);
-                                        row[10] = personFromServer.idCard;
+                                        row[@"№ п/п"] = iFIO;
+                                        row[@"Фамилия Имя Отчество"] = personFromServer.FIO;
+                                        row[@"NAV-код"] = personFromServer.NAV;
+                                        row[@"Группа"] = personFromServer.Department;
+                                        row[@"Отдел"] = personFromServer.Department;
+                                        row[@"Время прихода,часы"] = personFromServer.ControlInHour;
+                                        row[@"Время прихода,минут"] = personFromServer.ControlInMinute;
+                                        row[@"Время прихода"] = ConvertStringsTimeToDecimal(personFromServer.ControlInHour, personFromServer.ControlInMinute);
+                                        row[@"Время ухода,часы"] = personFromServer.ControlOutHour;
+                                        row[@"Время ухода,минут"] = personFromServer.ControlOutMinute;
+                                        row[@"Время ухода"] = ConvertStringsTimeToDecimal(personFromServer.ControlOutHour, personFromServer.ControlOutMinute);
+                                        row[@"Время прихода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(personFromServer.ControlInHour, personFromServer.ControlInMinute);
+                                        row[@"Время ухода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(personFromServer.ControlOutHour, personFromServer.ControlOutMinute);
+                                        row[@"№ пропуска"] = personFromServer.idCard;
 
                                         dataTablePeopple.Rows.Add(row);
 
@@ -1147,7 +1150,6 @@ namespace PersonViewerSCA2
                 }
 
 
-
                 //todo import users and group from www.ais
                 stringConnection = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;pooling = false; convert zero datetime=True;Connect Timeout=60";
                 logger.Info(stringConnection);
@@ -1156,7 +1158,7 @@ namespace PersonViewerSCA2
                 {
                     sqlConnection.Open();
 
-                    query = "Select code, family_name,first_name,last_name,departament FROM personal where hidden=0 ";
+                    query = "Select code, family_name,first_name,last_name,vacancy,departament FROM personal where hidden=0 ";
                     using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
                     {
                         using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
@@ -1166,6 +1168,7 @@ namespace PersonViewerSCA2
                                 if (reader.GetString(@"family_name") != null && reader.GetString(@"family_name").Length > 0)
                                 {
                                     _ProgressWork1Step(1);
+                                    iFIO++;
 
                                     row = dataTablePeopple.NewRow();
                                     fio = "";
@@ -1174,86 +1177,53 @@ namespace PersonViewerSCA2
                                     try { fio += " " + reader.GetString(@"last_name").Trim(); fio = fio.Trim(); } catch { }
 
                                     personFromServer = new Person();
-                                    personFromServer.FIO =  fio;
+                                    personFromServer.FIO = fio;
                                     personFromServer.NAV = reader.GetString(@"code").Trim();
                                     personFromServer.idCard = 0;
-                                    personFromServer.PositionInDepartment = reader.GetString(@"").Trim();
+                                    personFromServer.PositionInDepartment = reader.GetString(@"vacancy").Trim();
                                     personFromServer.Department = reader.GetString(@"departament").Trim();
-                                    personFromServer.GroupPerson = reader.GetString(@"departament").Trim();
+                                    personFromServer.GroupPerson = reader.GetString(@"wwwais").Trim();
 
-                                    personFromServer.ControlInHour = _numUpDownReturn(numUpDownHourStart).ToString();
-                                    personFromServer.ControlInHourDecimal = _numUpDownReturn(numUpDownHourStart);
-                                    personFromServer.ControlInMinute = _numUpDownReturn(numUpDownMinuteStart).ToString();
-                                    personFromServer.ControlInMinuteDecimal = _numUpDownReturn(numUpDownMinuteStart);
-                                    personFromServer.ControlInHHMM = ConvertStringsTimeToStringHHMM(personFromServer.ControlInHour, personFromServer.ControlInMinute);
+                                    personFromServer.ControlInHour = "9";
+                                    personFromServer.ControlInHourDecimal = 9;
+                                    personFromServer.ControlInMinute = "0";
+                                    personFromServer.ControlInMinuteDecimal = 0;
+                                    personFromServer.ControlInHHMM = "09:00";
 
-                                    personFromServer.ControlOutHour = _numUpDownReturn(numUpDownHourEnd).ToString();
-                                    personFromServer.ControlOutHourDecimal = _numUpDownReturn(numUpDownHourEnd);
-                                    personFromServer.ControlOutMinute = _numUpDownReturn(numUpDownMinuteEnd).ToString();
-                                    personFromServer.ControlOutMinuteDecimal = _numUpDownReturn(numUpDownMinuteEnd);
-                                    personFromServer.ControlOutHHMM = ConvertStringsTimeToStringHHMM(personFromServer.ControlOutHour, personFromServer.ControlOutMinute);
+                                    personFromServer.ControlOutHour = "18";
+                                    personFromServer.ControlOutHourDecimal = 18;
+                                    personFromServer.ControlOutMinute = "0";
+                                    personFromServer.ControlOutMinuteDecimal = 0;
+                                    personFromServer.ControlOutHHMM = "18:00";
 
-                                    row[0] = iFIO;
-                                    row[1] = personFromServer.FIO;
-                                    row[2] = personFromServer.NAV;
-                                    row[3] = personFromServer.Department;
-                                    row[4] = personFromServer.ControlInHour;
-                                    row[5] = personFromServer.ControlInMinute;
-                                    row[6] = ConvertStringsTimeToDecimal(personFromServer.ControlInHour, personFromServer.ControlInMinute);
-                                    row[7] = personFromServer.ControlOutHour;
-                                    row[8] = personFromServer.ControlOutMinute;
-                                    row[6] = ConvertStringsTimeToDecimal(personFromServer.ControlOutHour, personFromServer.ControlOutMinute);
-                                    row[22] = ConvertStringsTimeToStringHHMM(personFromServer.ControlInHour, personFromServer.ControlInMinute);
-                                    row[23] = ConvertStringsTimeToStringHHMM(personFromServer.ControlOutHour, personFromServer.ControlOutMinute);
-                                    row[10] = personFromServer.idCard;
+                                    row[@"№ п/п"] = iFIO;
+                                    row[@"Фамилия Имя Отчество"] = personFromServer.FIO;
+                                    row[@"NAV-код"] = personFromServer.NAV;
+                                    row[@"Группа"] = personFromServer.GroupPerson;
+                                    row[@"Отдел"] = personFromServer.Department;
+                                    row[@"Должность"] = personFromServer.PositionInDepartment;
+                                    row[@"Время прихода,часы"] = personFromServer.ControlInHour;
+                                    row[@"Время прихода,минут"] = personFromServer.ControlInMinute;
+                                    row[@"Время прихода"] = ConvertStringsTimeToDecimal(personFromServer.ControlInHour, personFromServer.ControlInMinute);
+                                    row[@"Время ухода,часы"] = personFromServer.ControlOutHour;
+                                    row[@"Время ухода,минут"] = personFromServer.ControlOutMinute;
+                                    row[@"Время ухода"] = ConvertStringsTimeToDecimal(personFromServer.ControlOutHour, personFromServer.ControlOutMinute);
+                                    row[@"Время прихода ЧЧ:ММ"] = "09:00";
+                                    row[@"Время ухода ЧЧ:ММ"] = "18:00";
 
                                     dataTablePeopple.Rows.Add(row);
-
-                                }
-                            }
-                        }
-                    }
-                    int idReason = 0;
-                    string date = "";
-                    string name = "";
-                    query = "Select * FROM out_users where user_code='" + person.NAV + "' AND reason_date >= '" + startDate.Split(' ')[0] + "' AND reason_date <= '" + endDate.Split(' ')[0] + "' ";
-                    using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
-                    {
-                        using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                if (reader.GetString(@"reason_id") != null && reader.GetString(@"reason_id").Length > 0)
-                                {
-                                    logger.Info(reader.GetString(@"reason_date"));
-                                    try { idReason = Convert.ToInt32(reader.GetString(@"reason_id")); } catch { idReason = 0; }
-                                    try { name = resons.Find((x) => x._id == idReason)._name; } catch { name = ""; }
-                                    try { date = DateTime.Parse(reader.GetString(@"reason_date")).ToString("yyyy-MM-dd"); } catch { date = ""; }
-
-                                    outPerson.Add(new OutPerson()
-                                    {
-                                        _reason_id = idReason,
-                                        _reason_Name = name,
-                                        _nav = reader.GetString(@"user_code"),
-                                        _date = date,
-                                        _from = ConvertStringsTimeToSeconds(reader.GetString(@"from_hour"), reader.GetString(@"from_min")),
-                                        _to = ConvertStringsTimeToSeconds(reader.GetString(@"to_hour"), reader.GetString(@"to_min")),
-                                        _hourly = 0
-                                    });
                                 }
                             }
                         }
                     }
                     sqlConnection.Close();
                 }
-                logger.Info(" всего записей: " + outPerson.Count);
 
+                row = dtGroup.NewRow();
+                row[2] = "wwwais";
+                row[4] = "wwwais";
 
-
-
-
-
-
+                dtGroup.Rows.Add(row);
 
                 _toolStripStatusLabelSetText(StatusLabel2, "Список ФИО успешно получен");
                 stimerPrev = "Все списки с ФИО с сервера СКД успешно получены";
