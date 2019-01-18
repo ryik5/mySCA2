@@ -6823,7 +6823,7 @@ namespace PersonViewerSCA2
 
                                 if (dtPersonTemp.Rows.Count > 0)
                                 {
-                                    string nameFile = nameReport + "|" + startDay.Split(' ')[0] + "-" + lastDay.Split(' ')[0] + " " + name + " " + DateTime.Now.ToString("yy-MM-dd HH-mm") + @".xlsx";
+                                    string nameFile = nameReport + " " + startDay.Split(' ')[0] + "-" + lastDay.Split(' ')[0] + " " + name + " " + DateTime.Now.ToString("yy-MM-dd HH-mm") + @".xlsx";
 
                                     string illegal = "\"M\"\\a/ry/ h**ad:>> a\\/:*?\"| li*tt|le|| la\"mb.?";
                                     string regexSearch = new string(System.IO.Path.GetInvalidFileNameChars()) + new string(System.IO.Path.GetInvalidPathChars());
