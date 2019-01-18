@@ -223,7 +223,6 @@ namespace PersonViewerSCA2
                                   @"Фамилия Имя Отчество",//1
                                   @"NAV-код",//2
                                   @"Отдел",//11
-                                  @"Должность",                 //39
                                   @"Дата регистрации",//12
                                   @"День недели",                    //32
                                   @"Время прихода ЧЧ:ММ",//22
@@ -237,7 +236,8 @@ namespace PersonViewerSCA2
                                   @"Коммандировка",                 //31
                                   @"Больничный",                    //33
                                   @"Отсутствовал на работе",      //34
-                                  @"Комментарии"                    //38
+                                  @"Комментарии",                    //38
+                                  @"Должность"                 //39
         };
         public readonly string[] arrayHiddenColumnsFIO =
             {
@@ -6825,11 +6825,12 @@ namespace PersonViewerSCA2
                                 {
                                     string nameFile = nameReport + " " + startDay.Split(' ')[0] + "-" + lastDay.Split(' ')[0] + " " + name + " " + DateTime.Now.ToString("yy-MM-dd HH-mm") + @".xlsx";
 
-                                    string illegal = "\"M\"\\a/ry/ h**ad:>> a\\/:*?\"| li*tt|le|| la\"mb.?";
-                                    string regexSearch = new string(System.IO.Path.GetInvalidFileNameChars()) + new string(System.IO.Path.GetInvalidPathChars());
-                                    Regex r = new Regex(string.Format("[{0}]", Regex.Escape(regexSearch)));
-                                    illegal = r.Replace(nameFile, "");
+                                    // string illegal = "\"M\"\\a/ry/ h**ad:>> a\\/:*?\"| li*tt|le|| la\"mb.?";
+                                    //  string regexSearch = new string(System.IO.Path.GetInvalidFileNameChars()) + new string(System.IO.Path.GetInvalidPathChars());
+                                    //  Regex r = new Regex(string.Format("[{0}]", Regex.Escape(regexSearch)));
+                                    // illegal = r.Replace(nameFile, "");
 
+                                    string illegal=  GetSafeFilename(nameFile);
 
                                     logger.Info("сохраняю файл "+ illegal);
                                     filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), illegal);
@@ -6866,6 +6867,11 @@ namespace PersonViewerSCA2
                 default:
                     break;
             }
+        }
+
+        public string GetSafeFilename(string filename)
+        {
+            return string.Join("_", filename.Split(System.IO.Path.GetInvalidFileNameChars()));
         }
 
         private string selectPeriodMonth(bool current = false) //firstDay + "|" + lastDay
