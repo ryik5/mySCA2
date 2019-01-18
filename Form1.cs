@@ -1114,7 +1114,8 @@ namespace PersonViewerSCA2
 
                                         listFIO.Add(record["name"].ToString().Trim() + "|" + record["surname"].ToString().Trim() + "|" + record["patronymic"].ToString().Trim() + "|" + record["id"].ToString().Trim() + "|" +
                                                     record["tabnum"].ToString().Trim() + "|" + sServer1);
-                                        ListFIOTemp.Add(record["name"].ToString().Trim() + " " + record["surname"].ToString().Trim() + " " + record["patronymic"].ToString().Trim() + "|" + record["tabnum"].ToString().Trim());
+
+                                        ListFIOTemp.Add(personFromServer.FIO + "|" + personFromServer.NAV);
                                     }
                                 } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 _ProgressWork1Step(1);
@@ -1212,6 +1213,7 @@ namespace PersonViewerSCA2
                                     row[@"Время ухода ЧЧ:ММ"] = "18:00";
 
                                     dataTablePeopple.Rows.Add(row);
+                                    ListFIOTemp.Add(personFromServer.FIO +  "|" + personFromServer.NAV);
                                 }
                             }
                         }
@@ -1257,7 +1259,7 @@ namespace PersonViewerSCA2
                     var sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
 
-                    foreach (var str in listFIO.ToArray())
+                  /*  foreach (var str in listFIO.ToArray())
                     {
                         if (str != null && str.Length > 1)
                         {
@@ -1270,7 +1272,7 @@ namespace PersonViewerSCA2
                                 try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
-                    }
+                    }*/
                     foreach (string str in ListFIOCombo.ToArray())
                     {
                         if (str != null && str.Length > 1)
