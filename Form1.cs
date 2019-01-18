@@ -168,10 +168,12 @@ namespace PersonViewerSCA2
                                   new DataColumn(@"Коммандировка",typeof(string)),                 //31
                                   new DataColumn(@"День недели",typeof(string)),                 //32
                                   new DataColumn(@"Больничный",typeof(string)),                 //33
-                                  new DataColumn(@"Согласованное отсутствие",typeof(string)),   //34
-                                  new DataColumn(@"Код",typeof(string)),                     //35
-                                  new DataColumn(@"Вышестоящая группа",typeof(string)),//36
-                                  new DataColumn(@"Описание группы",typeof(string))   //37
+                                  new DataColumn(@"Отсутствовал на работе",typeof(string)),     //34
+                                  new DataColumn(@"Код",typeof(string)),                        //35
+                                  new DataColumn(@"Вышестоящая группа",typeof(string)),         //36
+                                  new DataColumn(@"Описание группы",typeof(string)),            //37
+                                  new DataColumn(@"Комментарии",typeof(string))                 //38
+
                 };
         public readonly string[] arrayAllColumnsDataTablePeople =
             {
@@ -209,10 +211,11 @@ namespace PersonViewerSCA2
                                   @"Коммандировка",                 //31
                                   @"День недели",                    //32
                                   @"Больничный",                    //33
-                                  @"Согласованное отсутствие",      //34
+                                  @"Отсутствовал на работе",      //34
                                   @"Код",                           //35
                                   @"Вышестоящая группа",            //36
-                                  @"Описание группы"                //37
+                                  @"Описание группы",                //37
+                                  @"Комментарии"                    //38
         };
         public readonly string[] orderColumnsFinacialReport =
             {
@@ -231,7 +234,9 @@ namespace PersonViewerSCA2
                                   @"Отпуск (отгул)",                 //30
                                   @"Коммандировка",                 //31
                                   @"Больничный",                    //33
-                                  @"Согласованное отсутствие"      //34
+                                  @"Отсутствовал на работе",      //34
+                                  @"Комментарии"                    //38
+
         };
         public readonly string[] arrayHiddenColumnsFIO =
             {
@@ -262,7 +267,8 @@ namespace PersonViewerSCA2
                             @"Коммандировка",                 //31
                             @"День недели",                    //32
                             @"Больничный",                    //33
-                            @"Согласованное отсутствие",      //34
+                            @"Отсутствовал на работе",      //34
+                            @"Комментарии",                    //38
                             @"Код",                           //35
                             @"Вышестоящая группа",            //36
                             @"Описание группы"                //37
@@ -378,6 +384,7 @@ namespace PersonViewerSCA2
 
             //read last saved parameters from db and Registry and set their into variables
             LoadPrevioslySavedParameters();
+
             sServer1 = sServer1Registry.Length > 0 ? sServer1Registry : sServer1DB;
             sServer1UserName = sServer1UserNameRegistry.Length > 0 ? sServer1UserNameRegistry : sServer1UserNameDB;
             sServer1UserPassword = sServer1UserPasswordRegistry.Length > 0 ? sServer1UserPasswordRegistry : sServer1UserPasswordDB;
@@ -436,7 +443,6 @@ namespace PersonViewerSCA2
             dataGridView1.ShowCellToolTips = true;
 
             dtGroup.Columns.AddRange(dcGroup);
-
         }
 
 
@@ -1240,6 +1246,11 @@ namespace PersonViewerSCA2
             await Task.Run(() => ShowDatatableOnDatagridview(dtPeople, arrayHiddenColumnsFIO));
         }
 
+
+
+
+
+        //check dubled function!!!!!!!!
         private void BoldAnualDates() //Excluded Anual Days from the table "PersonTemp" DB
         {
             var oneDay = TimeSpan.FromDays(1);
@@ -1292,11 +1303,6 @@ namespace PersonViewerSCA2
                 case (int)Day.Sunday:
                     monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 8, 24) + oneDay);
                     break;
-                default:
-                    break;
-            }
-            switch ((int)dayBolded.DayOfWeek)
-            {
                 case (int)Day.Saturday:
                     monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 8, 24) + twoDays);
                     break;
@@ -1311,11 +1317,6 @@ namespace PersonViewerSCA2
                 case (int)Day.Sunday:
                     monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 10, 16) + oneDay);
                     break;
-                default:
-                    break;
-            }
-            switch ((int)dayBolded.DayOfWeek)
-            {
                 case (int)Day.Saturday:
                     monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 10, 16) + twoDays);
                     break;
@@ -1330,11 +1331,6 @@ namespace PersonViewerSCA2
                 case (int)Day.Sunday:
                     monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 7, 1) + oneDay);
                     break;
-                default:
-                    break;
-            }
-            switch ((int)dayBolded.DayOfWeek)
-            {
                 case (int)Day.Saturday:
                     monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 7, 1) + twoDays);
                     break;
@@ -1349,11 +1345,6 @@ namespace PersonViewerSCA2
                 case (int)Day.Sunday:
                     monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, monthEaster, dayEaster) + fiftyDays + oneDay);
                     break;
-                default:
-                    break;
-            }
-            switch ((int)dayBolded.DayOfWeek)
-            {
                 case (int)Day.Saturday:
                     monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, monthEaster, dayEaster) + fiftyDays + twoDays);
                     break;
@@ -1373,6 +1364,11 @@ namespace PersonViewerSCA2
             monthCalendar.SelectionEnd = today;
             monthCalendar.Update();
         }
+
+
+
+
+
 
         /*
         private void ExportDatagridToExcel()  //Export to Excel from DataGridView
@@ -1861,7 +1857,7 @@ namespace PersonViewerSCA2
                                   @"Коммандировка",                 //31
                                   @"День недели",                    //32
                                   @"Больничный",                    //33
-                                  @"Согласованное отсутствие",      //34
+                                  @"Отсутствовал на работе",      //34
                                   @"Код",                           //35
                                   @"Вышестоящая группа",            //36
                                   @"Описание группы"                //37
@@ -2280,7 +2276,7 @@ namespace PersonViewerSCA2
                 @"Коммандировка",                 //31
                 @"День недели",  //32
                 @"Больничный",  //33
-                @"Согласованное отсутствие",      //34
+                @"Отсутствовал на работе",      //34
                 @"Код",         //35
                 @"Вышестоящая группа",            //36
                 @"Описание группы"                //37
@@ -2419,6 +2415,8 @@ namespace PersonViewerSCA2
         {
             DataRow rowPerson;
             string stringConnection = "";
+            string query = "";
+
             decimal hourControlStart = person.ControlInHourDecimal;
             decimal minuteControlStart = person.ControlInMinuteDecimal;
             decimal controlStart = ConvertDecimalSeparatedTimeToDecimal(hourControlStart, minuteControlStart);
@@ -2433,7 +2431,7 @@ namespace PersonViewerSCA2
             try { stringSelectedFIO[1] = Regex.Split(person.FIO, "[ ]")[1]; } catch { }
             try { stringSelectedFIO[2] = Regex.Split(person.FIO, "[ ]")[2]; } catch { }
 
-                        stimerPrev = "Получаю данные по \"" + ShortFIO(person.FIO) + "\"";
+            stimerPrev = "Получаю данные по \"" + ShortFIO(person.FIO) + "\"";
             _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по \"" + ShortFIO(person.FIO) + "\"");
 
             try
@@ -2476,7 +2474,8 @@ namespace PersonViewerSCA2
                             {
                                 stringIdCardIntellect = Regex.Split(strRowWithNav, "[|]")[3].Trim();
                                 person.idCard = Convert.ToInt32(stringIdCardIntellect);
-                            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                            }
+                            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                     }
 
                     if (stringIdCardIntellect.Length == 0)
@@ -2492,11 +2491,13 @@ namespace PersonViewerSCA2
                                 {
                                     stringIdCardIntellect = Regex.Split(strRowWithNav, "[|]")[3].Trim();
                                     person.idCard = Convert.ToInt32(stringIdCardIntellect);
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 try
                                 {
                                     personNAVTemp = Regex.Split(strRowWithNav, "[|]")[4].Trim();
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 if (person.NAV.Length < 1 && personNAVTemp.Length > 0)
                                 {
                                     person.NAV = personNAVTemp;
@@ -2506,14 +2507,15 @@ namespace PersonViewerSCA2
                         }
                     }
                 }
-            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            }
+            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
 
             try
             {
-                 stringConnection = @"Data Source=" + sServer1 + @"\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=120";
-                string query = "SELECT param0, param1, objid, CONVERT(varchar, date, 120) AS date, CONVERT(varchar, PROTOCOL.time, 114) AS time FROM protocol " +
-                    " where action like 'ACCESS_IN' AND param1 like '" + stringIdCardIntellect + "' AND date >= '" + startDate + "' AND date <= '" + endDate + "' " +
-                    " ORDER BY date ASC";
+                stringConnection = @"Data Source=" + sServer1 + @"\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=120";
+                query = "SELECT param0, param1, objid, CONVERT(varchar, date, 120) AS date, CONVERT(varchar, PROTOCOL.time, 114) AS time FROM protocol " +
+                   " where action like 'ACCESS_IN' AND param1 like '" + stringIdCardIntellect + "' AND date >= '" + startDate + "' AND date <= '" + endDate + "' " +
+                   " ORDER BY date ASC";
                 string stringDataNew = "";
                 int idCardIntellect = 0;
 
@@ -2541,7 +2543,7 @@ namespace PersonViewerSCA2
                                             hourManaging = Convert.ToDecimal(Regex.Split(record["time"].ToString().Trim(), "[:]")[0]);
                                             minuteManaging = Convert.ToDecimal(Regex.Split(record["time"].ToString().Trim(), "[:]")[1]);
                                             managingHours = ConvertDecimalSeparatedTimeToDecimal(hourManaging, minuteManaging);
-
+                                            person.idCard = Convert.ToInt32(record["param1"].ToString().Trim());
                                             listRegistrations.Add(
                                                 person.FIO + "|" + person.NAV + "|" + record["param1"].ToString().Trim() + "|" + stringDataNew + "|" +
                                                 hourManaging + "|" + minuteManaging + "|" + managingHours.ToString("#.###") + "|" +
@@ -2551,7 +2553,8 @@ namespace PersonViewerSCA2
 
                                             _ProgressWork1Step(1);
                                         }
-                                    } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                    }
+                                    catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 }
                             }
                         }
@@ -2561,9 +2564,10 @@ namespace PersonViewerSCA2
                 stringDataNew = null; query = null; stringConnection = null;
 
                 _ProgressWork1Step(1);
-            } catch (Exception Expt)
+            }
+            catch (Exception Expt)
             { MessageBox.Show(Expt.ToString(), @"Сервер не доступен, или неправильная авторизация", MessageBoxButtons.OK, MessageBoxIcon.Error); }
-                        
+
             string[] cellData;
             string namePoint = "";
             string nameDirection = "";
@@ -2587,7 +2591,8 @@ namespace PersonViewerSCA2
                             else if (namePoint.ToLower().Contains("вход"))
                                 nameDirection = "Вход";
                             break;
-                        } catch { }
+                        }
+                        catch { }
                 }
 
                 rowPerson = dt.NewRow();
@@ -2611,73 +2616,149 @@ namespace PersonViewerSCA2
                 rowPerson[@"Сервер СКД"] = sServer1;
                 rowPerson[@"Имя точки прохода"] = namePoint;
                 rowPerson[@"Направление прохода"] = nameDirection;
-                rowPerson[@"Время прихода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(cellData[7], cellData[8]);
+                rowPerson[@"Время прихода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(person.ControlInHour, person.ControlInMinute);
                 rowPerson[@"Время ухода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(person.ControlOutHour, person.ControlOutMinute);
                 rowPerson[@"Реальное время прихода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(cellData[4], cellData[5]);
-                
+
                 dt.Rows.Add(rowPerson);
             }
             if (listPoints.Count > 0)
             { bLoaded = true; }
 
+
+            DataRow[] dtr;
+            FindWorkDaysInSelected();
+
+            // @"Отсутствовал на работе"      //34
+            // рабочие дни в которые отсутствовал данная персона
+            foreach (string day in workSelectedDays)
+            {
+                dtr = dt.Select(@"[Дата регистрации] = '" + day + "'");
+                if (dtr.Count() == 0)
+                {
+                    rowPerson = dt.NewRow();
+                    rowPerson[@"Фамилия Имя Отчество"] = person.FIO;
+                    rowPerson[@"NAV-код"] = person.NAV;
+                    rowPerson[@"Группа"] = person.GroupPerson;
+                    rowPerson[@"№ пропуска"] = person.idCard;
+                    rowPerson[@"Время прихода,часы"] = person.ControlInHour;
+                    rowPerson[@"Время прихода,минут"] = person.ControlInMinute;
+                    rowPerson[@"Время прихода"] = controlStart;
+                    rowPerson[@"Время ухода,часы"] = person.ControlOutHour;
+                    rowPerson[@"Время ухода,минут"] = person.ControlOutMinute;
+                    rowPerson[@"Время ухода"] = person.ControlOutDecimal;
+                    rowPerson[@"Время регистрации,часы"] = "0";
+                    rowPerson[@"Время регистрации,минут"] = "0";
+                    rowPerson[@"Время регистрации"] = "0";
+                    rowPerson[@"Дата регистрации"] = day;
+                    rowPerson[@"День недели"] = DayOfWeekRussian((DateTime.Parse(day)).DayOfWeek.ToString());
+                    rowPerson[@"Время прихода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(person.ControlInHour, person.ControlInMinute);
+                    rowPerson[@"Время ухода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(person.ControlOutHour, person.ControlOutMinute);
+                    rowPerson[@"Отсутствовал на работе"] = "Да";
+
+                    dt.Rows.Add(rowPerson);
+                }
+            }
+
+            List<OutReasons> resons = new List<OutReasons>();
+            resons.Add(new OutReasons()
+            {
+                _id = 0,
+                _hourly = 1,
+                _name = @"Unknow",
+                _visibleName = @"Неизвестная"
+            });
+
+            List<OutPerson> outPerson = new List<OutPerson>();
+
+            stringConnection = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;pooling = false; convert zero datetime=True;Connect Timeout=60";
+            logger.Info(stringConnection);
+            logger.Info(query);
+            try
+            {
+                using (var sqlConnection = new MySql.Data.MySqlClient.MySqlConnection(stringConnection))
+                {
+                    sqlConnection.Open();
+
+                    query = "Select id,name,hourly,visibled_name FROM out_reasons";
+                    using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
+                    {
+                        using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                if (reader.GetString(@"name") != null && reader.GetString(@"name").Length > 0)
+                                {
+                                    resons.Add(new OutReasons()
+                                    {
+                                        _id = Convert.ToInt32(reader.GetString(@"id")),
+                                        _hourly = Convert.ToInt32(reader.GetString(@"hourly")),
+                                        _name = reader.GetString(@"name"),
+                                        _visibleName = reader.GetString(@"visibled_name")
+                                    });
+                                }
+                            }
+                        }
+                    }
+                    int idReason = 0;
+                    string date = "";
+                    string name = "";
+                    query = "Select * FROM out_users where user_code='" + person.NAV + "' AND reason_date >= '" + startDate.Split(' ')[0] + "' AND reason_date <= '" + endDate.Split(' ')[0] + "' ";
+                    using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
+                    {
+                        using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                if (reader.GetString(@"reason_id") != null && reader.GetString(@"reason_id").Length > 0)
+                                {
+                                    logger.Info(reader.GetString(@"reason_date"));
+                                    try { idReason = Convert.ToInt32(reader.GetString(@"reason_id")); } catch { idReason = 0; }
+                                    try { name = resons.Find((x) => x._id == idReason)._name; } catch { name = ""; }
+                                    try { date = DateTime.Parse(reader.GetString(@"reason_date")).ToString("yyyy-MM-dd"); } catch { date = ""; }
+
+                                    outPerson.Add(new OutPerson()
+                                    {
+                                        _reason_id = idReason,
+                                        _reason_Name = name,
+                                        _nav = reader.GetString(@"user_code"),
+                                        _date = date,
+                                        _from = ConvertStringsTimeToSeconds(reader.GetString(@"from_hour"), reader.GetString(@"from_min")),
+                                        _to = ConvertStringsTimeToSeconds(reader.GetString(@"to_hour"), reader.GetString(@"to_min")),
+                                        _hourly = 0
+                                    });
+
+                                }
+                            }
+                        }
+                    }
+                    sqlConnection.Close();
+                }
+            }
+            catch (Exception expt) { MessageBox.Show(stringConnection + "\n" + expt.ToString()); }
+            logger.Info(" всего записей: " + outPerson.Count);
+
+
+            string infData = "";
+
+            foreach (DataRow dr in dt.Rows) // search whole table
+            {
+                foreach (string day in workSelectedDays)
+                {
+                    if (dr[@"Дата регистрации"].ToString() == day) // if id==2
+                    {
+                        try { infData = outPerson.FindLast((x) => x._date == day)._reason_Name; //} catch { infData = ""; }
+                        //try {
+                                dr[@"Комментарии"] = outPerson.Find((x) => x._date == day)._reason_Name; } catch { dr[@"Комментарии"] = ""; infData = ""; }//change the name
+                    }
+                }
+            }
+
+
             listRegistrations.Clear(); rowPerson = null;
             namePoint = null; nameDirection = null;
             hourControlStart = 0; minuteControlStart = 0;
             stringIdCardIntellect = null; personNAVTemp = null; stringSelectedFIO = new string[1]; cellData = new string[1];
-
-            /* string[] arrayAllColumnsDataTablePeople =
-                            {
-                                  @"Опоздание",                    //28
-                                  @"Ранний уход",                 //29
-                                  @"Отпуск (отгул)",                 //30
-                                  @"Коммандировка",                 //31
-                                  @"День недели",                    //32
-                                  @"Больничный",                    //33
-                                  @"Согласованное отсутствие",      //34
-        };*/
-
-           /*  stringConnection = @"server=" +mailServer + @";User=" +mailServerUserName + @";Password=" +mailServerUserPassword+ @";database=wwwais;pooling = false; convert zero datetime=True;Connect Timeout=60";
-            using (var sqlConnection = new MySql.Data.MySqlClient.MySqlConnection(stringConnection))
-            {
-                sqlConnection.Open();
-                using (var cmd = new MySql.Data.MySqlClient.MySqlCommand("Select * FROM personal", sqlConnection))
-                {
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        foreach (DbDataRecord record in reader)
-                        {
-                            _ProgressWork1Step(1);
-                            try
-                            {
-                                if (record?["tabnum"].ToString().Trim() == person.NAV)
-                                {
-                                    stringIdCardIntellect = record["id"].ToString().Trim();
-                                    person.idCard = Convert.ToInt32(record["id"].ToString().Trim());
-                                    break;
-                                }
-                            }
-                            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
-                        }
-                    }
-                }
-            }*/
-
-            /* // строка подключения к БД
- string connStr = "server =localhost;user=root;database=people;password=0000;";
- // создаём объект для подключения к БД
- MySql.Data.MySqlClient.MySqlConnection conn = new MySql.Data.MySqlClient.MySqlConnection(connStr);
- // устанавливаем соединение с БД
- conn.Open();
- // запрос
- string sql = "SELECT name FROM men WHERE id = 2";
- // объект для выполнения SQL-запроса
- MySql.Data.MySqlClient.MySqlCommand command = new MySql.Data.MySqlClient.MySqlCommand(sql, conn);
- // выполняем запрос и получаем ответ
- string name = command.ExecuteScalar().ToString();
- // выводим ответ в консоль
- Console.WriteLine(name);
- // закрываем соединение с БД
- conn.Close();*/
         }
 
         private string DayOfWeekRussian(string dayEnglish) //return short day of week in Russian
@@ -3594,6 +3675,16 @@ namespace PersonViewerSCA2
             return result;
         }
 
+        private int ConvertStringsTimeToSeconds(string hour, string minute)
+        {
+            int h = 0;
+            int m = 0;
+            try { h = Convert.ToInt32(hour); } catch { }
+            try { m = Convert.ToInt32(minute); } catch { }
+            int result = h * 60 * 60 + m * 60;
+            return result;
+        }
+
         private decimal ConvertStringsTimeToDecimal(string hour, string minute)
         {
             decimal result = TryParseStringToDecimal(hour) + TryParseStringToDecimal(TimeSpan.FromMinutes(TryParseStringToDouble(minute)).TotalHours.ToString());
@@ -4299,7 +4390,7 @@ namespace PersonViewerSCA2
             } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
         }
 
-        private void FindWorkDatesInSelected() //
+        private void FindWorkDaysInSelected() //
         {
             boldeddDates.Clear();
             selectedDates.Clear();
@@ -4348,8 +4439,13 @@ namespace PersonViewerSCA2
 
             //Independence day
             var dayBolded = new DateTime(myYearNow, 8, 24);
+            boldeddDates.Add(dayBolded.ToString("yyyy-MM-dd"));
             switch ((int)dayBolded.DayOfWeek)
             {
+                case (int)Day.Saturday:
+                    myTempDate = new DateTime(myYearNow, 8, 24);
+                    boldeddDates.Add(myTempDate.AddDays(2).ToString("yyyy-MM-dd"));
+                    break;
                 case (int)Day.Sunday:
                     myTempDate = new DateTime(myYearNow, 8, 24);
                     boldeddDates.Add(myTempDate.AddDays(1).ToString("yyyy-MM-dd"));
@@ -4357,48 +4453,55 @@ namespace PersonViewerSCA2
                 default:
                     break;
             }
-            switch ((int)dayBolded.DayOfWeek)
-            {
-                case (int)Day.Saturday:
-                    myTempDate = new DateTime(myYearNow, 8, 24);
-                    boldeddDates.Add(myTempDate.AddDays(2).ToString("yyyy-MM-dd"));
-                    break;
-                default:
-                    break;
-            }
+
 
             //day of Ukraine Force
             dayBolded = new DateTime(myYearNow, 10, 16);
-            switch ((int)dayBolded.DayOfWeek)
-            {
-                case (int)Day.Sunday:
-                    myTempDate = new DateTime(myYearNow, 10, 16);
-                    boldeddDates.Add(myTempDate.AddDays(1).ToString("yyyy-MM-dd"));
-                    break;
-                default:
-                    break;
-            }
+            boldeddDates.Add(dayBolded.ToString("yyyy-MM-dd"));
             switch ((int)dayBolded.DayOfWeek)
             {
                 case (int)Day.Saturday:
                     myTempDate = new DateTime(myYearNow, 10, 16);
                     boldeddDates.Add(myTempDate.AddDays(2).ToString("yyyy-MM-dd"));
+                    break;
+                case (int)Day.Sunday:
+                    myTempDate = new DateTime(myYearNow, 10, 16);
+                    boldeddDates.Add(myTempDate.AddDays(1).ToString("yyyy-MM-dd"));
                     break;
                 default:
                     break;
             }
 
-            //Cristmas day
-            dayBolded = new DateTime(myYearNow, 7, 1);
-            switch ((int)dayBolded.DayOfWeek)
+            //New Year day
+            dayBolded = new DateTime(myYearNow, 1, 1);
+            boldeddDates.Add(dayBolded.ToString("yyyy-MM-dd"));
+            boldeddDates.Add(dayBolded.AddDays(1).ToString("yyyy-MM-dd"));
+           switch ((int)dayBolded.DayOfWeek)
             {
+                case (int)Day.Saturday:
+                    myTempDate = new DateTime(myYearNow, 10, 16);
+                    boldeddDates.Add(myTempDate.AddDays(2).ToString("yyyy-MM-dd"));
+                    break;
                 case (int)Day.Sunday:
-                    myTempDate = new DateTime(myYearNow, 7, 1);
+                    myTempDate = new DateTime(myYearNow, 10, 16);
                     boldeddDates.Add(myTempDate.AddDays(1).ToString("yyyy-MM-dd"));
                     break;
+                default:
+                    break;
+            }
+             
+            //Cristmas day
+            dayBolded = new DateTime(myYearNow, 7, 1);
+            boldeddDates.Add(dayBolded.ToString("yyyy-MM-dd"));
+            switch ((int)dayBolded.DayOfWeek)
+            {
                 case (int)Day.Saturday:
                     myTempDate = new DateTime(myYearNow, 7, 1);
                     boldeddDates.Add(myTempDate.AddDays(2).ToString("yyyy-MM-dd"));
+                    break;
+                case (int)Day.Sunday:
+                    myTempDate = new DateTime(myYearNow, 7, 1);
+                    boldeddDates.Add(myTempDate.AddDays(1).ToString("yyyy-MM-dd"));
                     break;
                 default:
                     break;
@@ -4406,15 +4509,16 @@ namespace PersonViewerSCA2
 
             //Troitsa
             dayBolded = new DateTime(myYearNow, monthEaster, dayEaster) + fiftyDays;
+            boldeddDates.Add(dayBolded.ToString("yyyy-MM-dd"));
             switch ((int)dayBolded.DayOfWeek)
             {
-                case (int)Day.Sunday:
-                    myTempDate = new DateTime(myYearNow, monthEaster, dayEaster);
-                    boldeddDates.Add(myTempDate.AddDays(51).ToString("yyyy-MM-dd"));
-                    break;
                 case (int)Day.Saturday:
                     myTempDate = new DateTime(myYearNow, monthEaster, dayEaster);
                     boldeddDates.Add(myTempDate.AddDays(52).ToString("yyyy-MM-dd"));
+                    break;
+                case (int)Day.Sunday:
+                    myTempDate = new DateTime(myYearNow, monthEaster, dayEaster);
+                    boldeddDates.Add(myTempDate.AddDays(51).ToString("yyyy-MM-dd"));
                     break;
                 default:
                     break;
@@ -4454,14 +4558,14 @@ namespace PersonViewerSCA2
 
         //---- Start. Drawing ---//
 
-        private void VisualItem_Click(object sender, EventArgs e) //FindWorkDatesInSelected() , DrawFullWorkedPeriodRegistration()
+        private void VisualItem_Click(object sender, EventArgs e) //FindWorkDaysInSelected() , DrawFullWorkedPeriodRegistration()
         {
             Person personVisual = new Person();
             if (bLoaded)
             {
                 SelectPersonFromDataGrid(personVisual);
                 dataGridView1.Visible = false;
-                FindWorkDatesInSelected();
+                FindWorkDaysInSelected();
                 CheckBoxesFiltersAll_Enable(false);
 
                 if (_CheckboxCheckedStateReturn(checkBoxReEnter))
@@ -5691,8 +5795,7 @@ namespace PersonViewerSCA2
             string sMySqlServer = _textBoxReturnText(textBoxmysqlServer);
             string sMySqlServerUser = _textBoxReturnText(textBoxmysqlServerUserName);
             string sMySqlServerUserPassword = _textBoxReturnText(textBoxmysqlServerUserPassword);
-
-
+            
             CheckAliveServer(server, user, password);
 
             if (bServer1Exist)
@@ -5706,6 +5809,10 @@ namespace PersonViewerSCA2
                 mailServer = sMailServer;
                 mailServerUserName = sMailUser;
                 mailServerUserPassword = sMailUserPassword;
+
+                mysqlServer = sMySqlServer;
+                 mysqlServerUserName= sMySqlServerUser;
+                 mysqlServerUserPassword = sMySqlServerUserPassword;
 
                 try
                 {
@@ -7086,6 +7193,26 @@ namespace PersonViewerSCA2
         public string _period = "";
         public string _status = "";
     }
+
+    public class OutReasons
+    {
+        public int _id = 0;
+        public string _name = "";
+        public string _visibleName = "";
+        public int _hourly = 0;
+    }
+
+    public class OutPerson
+    {
+        public int _reason_id = 0;
+        public string _reason_Name = "";
+        public string _nav = "";
+        public string _date = "";
+        public int _from = 0;
+        public int _to = 0;
+        public int _hourly = 0;
+    }
+
 
     public class EncryptDecrypt
     {
