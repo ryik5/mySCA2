@@ -1141,8 +1141,10 @@ namespace PersonViewerSCA2
                         }
                     }
                 }
-                //todo import users and group from www.ais
 
+
+
+                //todo import users and group from www.ais
                 stringConnection = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;pooling = false; convert zero datetime=True;Connect Timeout=60";
                 logger.Info(stringConnection);
                 logger.Info(query);
@@ -1150,22 +1152,55 @@ namespace PersonViewerSCA2
                 {
                     sqlConnection.Open();
 
-                    query = "Select id,name,hourly,visibled_name FROM out_reasons";
+                    query = "Select code, family_name,first_name,last_name,departament FROM personal where hidden=0 ";
                     using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
                     {
                         using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
                         {
                             while (reader.Read())
                             {
-                                if (reader.GetString(@"name") != null && reader.GetString(@"name").Length > 0)
+                                if (reader.GetString(@"family_name") != null && reader.GetString(@"family_name").Length > 0)
                                 {
-                                    resons.Add(new OutReasons()
-                                    {
-                                        _id = Convert.ToInt32(reader.GetString(@"id")),
-                                        _hourly = Convert.ToInt32(reader.GetString(@"hourly")),
-                                        _name = reader.GetString(@"name"),
-                                        _visibleName = reader.GetString(@"visibled_name")
-                                    });
+                                    _ProgressWork1Step(1);
+
+                                    row = dataTablePeopple.NewRow();
+
+                                    personFromServer = new Person();
+                                    personFromServer.FIO = record["name"].ToString().Trim() + " " + record["surname"].ToString().Trim() + " " + record["patronymic"].ToString().Trim();
+                                    personFromServer.NAV = record["tabnum"].ToString().Trim();
+                                    personFromServer.idCard = Convert.ToInt32(record["id"].ToString().Trim());
+                                    personFromServer.PositionInDepartment = record["post"].ToString().Trim();
+                                    personFromServer.Department = record["parent_id"].ToString().Trim();
+                                    personFromServer.GroupPerson = record["parent_id"].ToString().Trim();
+
+                                    personFromServer.ControlInHour = _numUpDownReturn(numUpDownHourStart).ToString();
+                                    personFromServer.ControlInHourDecimal = _numUpDownReturn(numUpDownHourStart);
+                                    personFromServer.ControlInMinute = _numUpDownReturn(numUpDownMinuteStart).ToString();
+                                    personFromServer.ControlInMinuteDecimal = _numUpDownReturn(numUpDownMinuteStart);
+                                    personFromServer.ControlInHHMM = ConvertStringsTimeToStringHHMM(personFromServer.ControlInHour, personFromServer.ControlInMinute);
+
+                                    personFromServer.ControlOutHour = _numUpDownReturn(numUpDownHourEnd).ToString();
+                                    personFromServer.ControlOutHourDecimal = _numUpDownReturn(numUpDownHourEnd);
+                                    personFromServer.ControlOutMinute = _numUpDownReturn(numUpDownMinuteEnd).ToString();
+                                    personFromServer.ControlOutMinuteDecimal = _numUpDownReturn(numUpDownMinuteEnd);
+                                    personFromServer.ControlOutHHMM = ConvertStringsTimeToStringHHMM(personFromServer.ControlOutHour, personFromServer.ControlOutMinute);
+
+                                    row[0] = iFIO;
+                                    row[1] = personFromServer.FIO;
+                                    row[2] = personFromServer.NAV;
+                                    row[3] = personFromServer.Department;
+                                    row[4] = personFromServer.ControlInHour;
+                                    row[5] = personFromServer.ControlInMinute;
+                                    row[6] = ConvertStringsTimeToDecimal(personFromServer.ControlInHour, personFromServer.ControlInMinute);
+                                    row[7] = personFromServer.ControlOutHour;
+                                    row[8] = personFromServer.ControlOutMinute;
+                                    row[6] = ConvertStringsTimeToDecimal(personFromServer.ControlOutHour, personFromServer.ControlOutMinute);
+                                    row[22] = ConvertStringsTimeToStringHHMM(personFromServer.ControlInHour, personFromServer.ControlInMinute);
+                                    row[23] = ConvertStringsTimeToStringHHMM(personFromServer.ControlOutHour, personFromServer.ControlOutMinute);
+                                    row[10] = personFromServer.idCard;
+
+                                    dataTablePeopple.Rows.Add(row);
+
                                 }
                             }
                         }
