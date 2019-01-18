@@ -1182,7 +1182,7 @@ namespace PersonViewerSCA2
                                     personFromServer.idCard = 0;
                                     personFromServer.PositionInDepartment = reader.GetString(@"vacancy").Trim();
                                     personFromServer.Department = reader.GetString(@"department").Trim();
-                                    personFromServer.GroupPerson = reader.GetString(@"wwwais").Trim();
+                                    personFromServer.GroupPerson = @"wwwais";
 
                                     personFromServer.ControlInHour = "9";
                                     personFromServer.ControlInHourDecimal = 9;
@@ -1222,7 +1222,6 @@ namespace PersonViewerSCA2
                 row = dtGroup.NewRow();
                 row[2] = "wwwais";
                 row[4] = "wwwais";
-
                 dtGroup.Rows.Add(row);
 
                 _toolStripStatusLabelSetText(StatusLabel2, "Список ФИО успешно получен");
