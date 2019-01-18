@@ -1039,7 +1039,7 @@ namespace PersonViewerSCA2
             DataRow row;
             string stringConnection;
             string query;
-
+            string fio = "";
             List<string> ListFIOTemp = new List<string>();
             listFIO = new List<string>();
             try
@@ -1068,9 +1068,13 @@ namespace PersonViewerSCA2
                                     {
                                         iFIO++;
                                         row = dataTablePeopple.NewRow();
+                                        fio = "";
+                                        try { fio=record["name"].ToString().Trim(); } catch { }
+                                        try { fio += " " + record["surname"].ToString().Trim(); fio = fio.Trim(); } catch { }
+                                        try { fio += " " + record["patronymic"].ToString().Trim(); fio = fio.Trim(); } catch { }
 
                                         personFromServer = new Person();
-                                        personFromServer.FIO = record["name"].ToString().Trim() + " " + record["surname"].ToString().Trim() + " " + record["patronymic"].ToString().Trim();
+                                        personFromServer.FIO = fio;
                                         personFromServer.NAV = record["tabnum"].ToString().Trim();
                                         personFromServer.idCard = Convert.ToInt32(record["id"].ToString().Trim());
                                         personFromServer.PositionInDepartment = record["post"].ToString().Trim();
@@ -1164,14 +1168,18 @@ namespace PersonViewerSCA2
                                     _ProgressWork1Step(1);
 
                                     row = dataTablePeopple.NewRow();
+                                    fio = "";
+                                    try { fio = reader.GetString(@"family_name").Trim(); } catch { }
+                                    try { fio += " " + reader.GetString(@"first_name").Trim(); fio = fio.Trim(); } catch { }
+                                    try { fio += " " + reader.GetString(@"last_name").Trim(); fio = fio.Trim(); } catch { }
 
                                     personFromServer = new Person();
-                                    personFromServer.FIO = record["name"].ToString().Trim() + " " + record["surname"].ToString().Trim() + " " + record["patronymic"].ToString().Trim();
-                                    personFromServer.NAV = record["tabnum"].ToString().Trim();
-                                    personFromServer.idCard = Convert.ToInt32(record["id"].ToString().Trim());
-                                    personFromServer.PositionInDepartment = record["post"].ToString().Trim();
-                                    personFromServer.Department = record["parent_id"].ToString().Trim();
-                                    personFromServer.GroupPerson = record["parent_id"].ToString().Trim();
+                                    personFromServer.FIO =  fio;
+                                    personFromServer.NAV = reader.GetString(@"code").Trim();
+                                    personFromServer.idCard = 0;
+                                    personFromServer.PositionInDepartment = reader.GetString(@"").Trim();
+                                    personFromServer.Department = reader.GetString(@"departament").Trim();
+                                    personFromServer.GroupPerson = reader.GetString(@"departament").Trim();
 
                                     personFromServer.ControlInHour = _numUpDownReturn(numUpDownHourStart).ToString();
                                     personFromServer.ControlInHourDecimal = _numUpDownReturn(numUpDownHourStart);
@@ -2734,15 +2742,13 @@ namespace PersonViewerSCA2
             { bLoaded = true; }
 
 
-            DataRow[] dtr;
-            FindWorkDaysInSelected();
+            FindWorkDaysInSelected(); //построение списка рабочих дней
 
-            // @"Отсутствовал на работе"      //34
             // рабочие дни в которые отсутствовал данная персона
             foreach (string day in workSelectedDays)
             {
-                dtr = dt.Select(@"[Дата регистрации] = '" + day + "'");
-                if (dtr.Count() == 0)
+                //проверка - есть ли не выход на работу в рабочий день
+                if (dt.Select(@"[Дата регистрации] = '" + day + "'").Count() == 0) 
                 {
                     rowPerson = dt.NewRow();
                     rowPerson[@"Фамилия Имя Отчество"] = person.FIO;
@@ -2764,7 +2770,7 @@ namespace PersonViewerSCA2
                     rowPerson[@"Время ухода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(person.ControlOutHour, person.ControlOutMinute);
                     rowPerson[@"Отсутствовал на работе"] = "Да";
 
-                    dt.Rows.Add(rowPerson);
+                    dt.Rows.Add(rowPerson);//добавляем рабочий день в который  сотрудник не выходил на работу
                 }
             }
 
