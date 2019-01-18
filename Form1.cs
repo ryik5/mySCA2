@@ -241,6 +241,7 @@ namespace PersonViewerSCA2
         };
         public readonly string[] arrayHiddenColumnsFIO =
             {
+                            @"№ п/п",//0
                             @"Время прихода,часы",       //4
                             @"Время прихода,минут",      //5
                             @"Время прихода",            //6
@@ -248,7 +249,6 @@ namespace PersonViewerSCA2
                             @"Время ухода,минут",        //8
                             @"Время ухода",              //9
                             @"№ пропуска",               //10
-                            @"Должность",                //39
                             @"Дата регистрации",         //12
                             @"Время регистрации,часы",   //13
                             @"Время регистрации,минут",  //14
@@ -481,7 +481,7 @@ namespace PersonViewerSCA2
                     "MinuteControllingOut TEXT, ControllingOut REAL,  WorkedOut REAL, ServerOfRegistration TEXT, Late TEXT, Early TEXT,  Vacancy TEXT, BusinesTrip TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonGroup' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, GroupPerson TEXT, " +
                     "HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, ControllingHHMM TEXT, HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL, ControllingOUTHHMM TEXT, Late TEXT, Early TEXT,  Vacancy TEXT, BusinesTrip TEXT, " +
-                    "Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('FIO', 'NAV', 'GroupPerson') ON CONFLICT REPLACE);", databasePerson);
+                    "Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('FIO', 'NAV', 'GroupPerson') ON CONFLICT REPLACE);", databasePerson); //Reserv1=department //Reserv2=position
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonGroupDesciption' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, GroupPerson TEXT, GroupPersonDescription TEXT, Late TEXT, Early TEXT,  Vacancy TEXT, BusinesTrip TEXT, Reserv1 TEXT, Reserv2 TEXT, " +
                     "UNIQUE ('GroupPerson') ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'TechnicalInfo' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, PCName TEXT, POName TEXT, POVersion TEXT, LastDateStarted TEXT, Reserv1 TEXT, " +
@@ -1018,9 +1018,9 @@ namespace PersonViewerSCA2
                 //show selected data     
                 //distinct Records                
                 var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(arrayHiddenColumnsFIO).ToArray(); //take distinct data
-                dtPeople = GetDistinctRecords(dtTempIntermediate, namesDistinctColumnsArray);
+                dtPersonTemp = GetDistinctRecords(dtTempIntermediate, namesDistinctColumnsArray);
 
-                await Task.Run(() => ShowDatatableOnDatagridview(dtPeople, arrayHiddenColumnsFIO));
+                await Task.Run(() => ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenColumnsFIO));
 
                 await Task.Run(() => panelViewResize(numberPeopleInLoading));
                 listFioItem.Visible = true;
@@ -1044,25 +1044,29 @@ namespace PersonViewerSCA2
             string fio = "";
             List<string> ListFIOTemp = new List<string>();
             listFIO = new List<string>();
+            List<string> idCardList = new List<string>();
+            List<string> wwwList = new List<string>();
+
             try
             {
                 _comboBoxClr(comboBoxFio);
                 _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю списки персонала с " + sServer1 + ". Ждите окончания процесса...");
                 stimerPrev = "Запрашиваю списки персонала с " + sServer1 + ". Ждите окончания процесса...";
                 stringConnection = "Data Source=" + sServer1 + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=60";
+                logger.Info(stringConnection);
                 using (var sqlConnection = new System.Data.SqlClient.SqlConnection(stringConnection))
                 {
                     sqlConnection.Open();
 
                     //получить список пользователей с сервера
                     query = "SELECT id, name, surname, patronymic, post, tabnum, parent_id FROM OBJ_PERSON ";
+                    logger.Info(query);
                     using (var sqlCommand = new System.Data.SqlClient.SqlCommand(query, sqlConnection))
                     {
                         using (var sqlReader = sqlCommand.ExecuteReader())
                         {
                             foreach (DbDataRecord record in sqlReader)
                             {
-                                _ProgressWork1Step(1);
                                 try
                                 {
                                     string id = record?["id"].ToString();
@@ -1077,7 +1081,7 @@ namespace PersonViewerSCA2
 
                                         personFromServer = new Person();
                                         personFromServer.FIO = fio;
-                                        personFromServer.NAV = record["tabnum"].ToString().Trim();
+                                        personFromServer.NAV = record["tabnum"].ToString().Trim().ToUpper();
                                         personFromServer.idCard = Convert.ToInt32(record["id"].ToString().Trim());
                                         personFromServer.PositionInDepartment = record["post"].ToString().Trim();
                                         personFromServer.Department = record["parent_id"].ToString().Trim();
@@ -1116,22 +1120,24 @@ namespace PersonViewerSCA2
                                                     record["tabnum"].ToString().Trim() + "|" + sServer1);
 
                                         ListFIOTemp.Add(personFromServer.FIO + "|" + personFromServer.NAV);
+                                         idCardList.Add(personFromServer.NAV);
+
+                                        _ProgressWork1Step(1);
                                     }
                                 } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
-                                _ProgressWork1Step(1);
                             }
                         }
                     }
 
                     //получить список департаментов с сервера
                     query = "SELECT id,level_id,name,owner_id,parent_id,region_id,schedule_id  FROM OBJ_DEPARTMENT";
+                    logger.Info(query);
                     using (var sqlCommand = new System.Data.SqlClient.SqlCommand(query, sqlConnection))
                     {
                         using (var sqlReader = sqlCommand.ExecuteReader())
                         {
                             foreach (DbDataRecord record in sqlReader)
                             {
-                                _ProgressWork1Step(1);
                                 try
                                 {
                                     if (record?["name"].ToString().Trim().Length > 0)
@@ -1152,14 +1158,18 @@ namespace PersonViewerSCA2
 
 
                 //todo import users and group from www.ais
+                _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю списки персонала с " + mysqlServer + ". Ждите окончания процесса...");
+                stimerPrev = "Запрашиваю списки персонала с " + mysqlServer + ". Ждите окончания процесса...";
+
                 stringConnection = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;pooling = false; convert zero datetime=True;Connect Timeout=60";
                 logger.Info(stringConnection);
-                logger.Info(query);
                 using (var sqlConnection = new MySql.Data.MySqlClient.MySqlConnection(stringConnection))
                 {
                     sqlConnection.Open();
 
                     query = "Select code, family_name,first_name,last_name,vacancy,department FROM personal where hidden=0 ";
+                    logger.Info(query);
+
                     using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
                     {
                         using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
@@ -1168,7 +1178,6 @@ namespace PersonViewerSCA2
                             {
                                 if (reader.GetString(@"family_name") != null && reader.GetString(@"family_name").Length > 0)
                                 {
-                                    _ProgressWork1Step(1);
                                     iFIO++;
 
                                     row = dataTablePeopple.NewRow();
@@ -1179,7 +1188,7 @@ namespace PersonViewerSCA2
 
                                     personFromServer = new Person();
                                     personFromServer.FIO = fio;
-                                    personFromServer.NAV = reader.GetString(@"code").Trim();
+                                    personFromServer.NAV = reader.GetString(@"code").Trim().ToUpper();
                                     personFromServer.idCard = 0;
                                     personFromServer.PositionInDepartment = reader.GetString(@"vacancy").Trim();
                                     personFromServer.Department = reader.GetString(@"department").Trim();
@@ -1214,6 +1223,9 @@ namespace PersonViewerSCA2
 
                                     dataTablePeopple.Rows.Add(row);
                                     ListFIOTemp.Add(personFromServer.FIO +  "|" + personFromServer.NAV);
+                                    wwwList.Add(personFromServer.NAV);
+
+                                    _ProgressWork1Step(1);
                                 }
                             }
                         }
@@ -1225,6 +1237,26 @@ namespace PersonViewerSCA2
                 row[2] = "wwwais";
                 row[4] = "wwwais";
                 dtGroup.Rows.Add(row);
+
+                logger.Info("clean "+ dataTablePeopple.TableName);
+                //Clean from the result table redudant codes
+                DataRow dr;
+                IEnumerable<string> exceptingCodes = wwwList.Except(idCardList);//Get codes of people wich need to remove                
+                foreach(string exceptCode in exceptingCodes)
+                {
+                    for (int i = dataTablePeopple.Rows.Count - 1; i >= 0; i--)
+                    {
+                        dr = dataTablePeopple.Rows[i];
+                        if (dr[@"NAV-код"].ToString() == exceptCode)
+                        {
+                            dr.Delete();
+                            break;
+                        }
+                    }
+                         _ProgressWork1Step(1);
+               }
+                dataTablePeopple.AcceptChanges();
+
 
                 _toolStripStatusLabelSetText(StatusLabel2, "Список ФИО успешно получен");
                 stimerPrev = "Все списки с ФИО с сервера СКД успешно получены";
@@ -1259,20 +1291,6 @@ namespace PersonViewerSCA2
                     var sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
 
-                  /*  foreach (var str in listFIO.ToArray())
-                    {
-                        if (str != null && str.Length > 1)
-                        {
-                            using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'PersonsLastList' (PersonsList, Reserv1, Reserv2) " +
-                                " VALUES (@PersonsList, @Reserv1, @Reserv2)", sqlConnection))
-                            {
-                                sqlCommand.Parameters.Add("@PersonsList", DbType.String).Value = str;
-                                sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = "";
-                                sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = "";
-                                try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
-                            }
-                        }
-                    }*/
                     foreach (string str in ListFIOCombo.ToArray())
                     {
                         if (str != null && str.Length > 1)
@@ -1837,20 +1855,9 @@ namespace PersonViewerSCA2
                 {
                     if (nameOfLastTableFromDB == "PersonGroup" || nameOfLastTableFromDB == "PersonGroupDesciption")
                     {
-                        int IndexColumn1 = -1;
-                        int IndexColumn2 = -1;
-
-                        for (int i = 0; i < dataGridView1.ColumnCount; i++)
-                        {
-                            if (dataGridView1.Columns[i].HeaderText.ToString() == "GroupPerson" || dataGridView1.Columns[i].HeaderText.ToString() == "Группа")
-                            { IndexColumn1 = i; }
-                            else if (dataGridView1.Columns[i].HeaderText.ToString() == "GroupPersonDescription" || dataGridView1.Columns[i].HeaderText.ToString() == "Описание группа")
-                            { IndexColumn2 = i; }
-                        }
-                        if (IndexColumn1 > -1 || IndexColumn2 > -1)
-                        {
-                            nameFoundGroup = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString();
-                        }
+                        DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
+                        dgSeek.FindValueInCells(dataGridView1, new string[] { @"Группа", @"Описание группы" });
+                        nameFoundGroup = dgSeek.values[0];
                     }
                 }
             } catch { }
@@ -1865,6 +1872,8 @@ namespace PersonViewerSCA2
 
             numberPeopleInLoading = 0;
             DataRow dataRow;
+            string d1 = "", d2 = "", d3 = "9", d4 = "0", d13 = "18", d14 = "0", dprtmnt = "", pstn = ""; 
+            
             using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
             {
                 sqlConnection.Open();
@@ -1873,11 +1882,10 @@ namespace PersonViewerSCA2
                 {
                     using (var sqlReader = sqlCommand.ExecuteReader())
                     {
-                        string d1 = "", d2 = "", d3 = "9", d4 = "0", d13 = "18", d14 = "0";
-
                         foreach (DbDataRecord record in sqlReader)
                         {
-                            try { d1 = record["FIO"].ToString().Trim(); } catch { }
+                            d1 = ""; d2 = ""; d3 = "9"; d4 = "0"; d13 = "18"; d14 = "0"; dprtmnt = ""; pstn = "";
+                            try { d1 = record["FIO"].ToString().Trim(); } catch {  }
 
                             if (record != null && d1.Length > 0)
                             {
@@ -1888,6 +1896,8 @@ namespace PersonViewerSCA2
                                 try { d4 = record["MinuteControlling"].ToString().Trim(); } catch { }
                                 try { d13 = record["HourControllingOut"].ToString().Trim(); } catch { }
                                 try { d14 = record["MinuteControllingOut"].ToString().Trim(); } catch { }
+                                try { dprtmnt = record["Reserv1"].ToString().Trim(); } catch { dprtmnt = nameGroup; }
+                                try { pstn = record["Reserv2"].ToString().Trim(); } catch { pstn = ""; }
                                 //HourControllingOut TEXT, MinuteControllingOut TEXT
                                 //FIO|NAV|H|M
 
@@ -1900,7 +1910,8 @@ namespace PersonViewerSCA2
                                 dataRow[@"Время ухода,часы"] = d13;
                                 dataRow[@"Время ухода,минут"] = d14;
                                 dataRow[@"Время ухода"] = ConvertStringsTimeToDecimal(d13, d14);
-                                dataRow[@"Отдел"] = nameGroup;
+                                dataRow[@"Отдел"] = dprtmnt;
+                                dataRow[@"Должность"] = pstn;
                                 dataRow[@"Время прихода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(d3, d4);
                                 dataRow[@"Время ухода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(d13, d14);
 
@@ -1913,47 +1924,10 @@ namespace PersonViewerSCA2
                 }
             }
 
-            string[] nameHidenColumnsArray =
-            {
-                                  @"№ п/п",//0
-                                  @"Время прихода,часы",//4
-                                  @"Время прихода,минут", //5
-                                  @"Время прихода",//6
-                                  @"Время ухода,часы",//7
-                                  @"Время ухода,минут",//8
-                                  @"Время ухода",//9
-                                  @"№ пропуска", //10
-                                  //@"Отдел",//11
-                                  @"Дата регистрации",//12
-                                  @"Время регистрации,часы",//13
-                                  @"Время регистрации,минут",//14
-                                  @"Время регистрации", //15
-                                  @"Реальное время ухода,часы",//16
-                                  @"Реальное время ухода,минут",//17
-                                  @"Реальное время ухода", //18
-                                  @"Сервер СКД", //19
-                                  @"Имя точки прохода", //20
-                                  @"Направление прохода", //21
-                                  @"Реальное время прихода ЧЧ:ММ",//24
-                                  @"Реальное время ухода ЧЧ:ММ", //25
-                                  @"Реальное отработанное время", //26
-                                  @"Реальное отработанное время ЧЧ:ММ", //27
-                                  @"Опоздание",                    //28
-                                  @"Ранний уход",                 //29
-                                  @"Отпуск (отгул)",                 //30
-                                  @"Коммандировка",                 //31
-                                  @"День недели",                    //32
-                                  @"Больничный",                    //33
-                                  @"Отсутствовал на работе",      //34
-                                  @"Код",                           //35
-                                  @"Вышестоящая группа",            //36
-                                  @"Описание группы"                //37
-                        };
-
-            var namesDistinctCollumnsArray = arrayAllColumnsDataTablePeople.Except(nameHidenColumnsArray).ToArray(); //take distinct data
+            var namesDistinctCollumnsArray = arrayAllColumnsDataTablePeople.Except(arrayHiddenColumnsFIO).ToArray(); //take distinct data
             dtPersonTemp = GetDistinctRecords(dtTemp, namesDistinctCollumnsArray);
 
-            ShowDatatableOnDatagridview(dtPersonTemp, nameHidenColumnsArray);
+            ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenColumnsFIO);
             _MenuItemVisible(DeletePersonFromGroupItem, true);
             nameOfLastTableFromDB = "PersonGroup";
             dtTemp.Dispose();
@@ -2035,7 +2009,7 @@ namespace PersonViewerSCA2
             }
         }
 
-        private void ImportTablePeopleToTableGroupsInLocalDB(string pathToPersonDB, DataTable dtSource) //use listGroups
+        private void ImportTablePeopleToTableGroupsInLocalDB(string pathToPersonDB, DataTable dtSource) //use listGroups /add rezerv1 rezerv2
         {
             using (var connection = new SQLiteConnection($"Data Source={pathToPersonDB};Version=3;"))
             {
@@ -2043,15 +2017,17 @@ namespace PersonViewerSCA2
 
                 //import groups
                 SQLiteCommand commandTransaction = new SQLiteCommand("begin", connection);
-                commandTransaction.ExecuteNonQuery();
-                using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PersonGroup' (FIO, NAV, GroupPerson, HourControlling, MinuteControlling, Controlling, HourControllingOut, MinuteControllingOut, ControllingOut, ControllingHHMM, ControllingOUTHHMM) " +
-                                         "VALUES (@FIO, @NAV, @GroupPerson, @HourControlling, @MinuteControlling, @Controlling, @HourControllingOut, @MinuteControllingOut, @ControllingOut, @ControllingHHMM, @ControllingOUTHHMM)", connection))
+                commandTransaction.ExecuteNonQuery(); 
+                using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PersonGroup' (FIO, NAV, GroupPerson, HourControlling, MinuteControlling, Controlling, HourControllingOut, MinuteControllingOut, ControllingOut, ControllingHHMM, ControllingOUTHHMM, Reserv1, Reserv2) " +
+                                         "VALUES (@FIO, @NAV, @GroupPerson, @HourControlling, @MinuteControlling, @Controlling, @HourControllingOut, @MinuteControllingOut, @ControllingOut, @ControllingHHMM, @ControllingOUTHHMM, @Reserv1, @Reserv2)", connection))
                 {
                     foreach (DataRow row in dtSource.Rows)
                     {
                         command.Parameters.Add("@FIO", DbType.String).Value = row[@"Фамилия Имя Отчество"].ToString(); //row[0]
                         command.Parameters.Add("@NAV", DbType.String).Value = row[@"NAV-код"].ToString();
                         command.Parameters.Add("@GroupPerson", DbType.String).Value = row[@"Группа"].ToString();
+                        command.Parameters.Add("@Reserv1", DbType.String).Value = row[@"Отдел"].ToString(); 
+                        command.Parameters.Add("@Reserv2", DbType.String).Value = row[@"Должность"].ToString();                             
                         command.Parameters.Add("@HourControlling", DbType.String).Value = row[@"Время прихода,часы"].ToString();
                         command.Parameters.Add("@MinuteControlling", DbType.String).Value = row[@"Время прихода,минут"].ToString();
                         command.Parameters.Add("@Controlling", DbType.Decimal).Value = TryParseStringToDecimal(row[@"Время прихода"].ToString());
@@ -2158,6 +2134,7 @@ namespace PersonViewerSCA2
             decimal[] timeOutDecimal = { 18, 0, 18 };
 
             int IndexCurrentRow = _dataGridView1CurrentRowIndex();
+
             int IndexColumn6 = -1;
             int IndexColumn7 = -1;
 
@@ -2958,20 +2935,9 @@ namespace PersonViewerSCA2
             {
                 if (nameOfLastTableFromDB == "PersonGroup")
                 {
-                    int IndexColumn1 = 0;
-                    int IndexColumn2 = 0;
-
-                    for (int i = 0; i < dataGridView1.ColumnCount; i++)
-                    {
-                        if (dataGridView1.Columns[i].HeaderText.Contains("NAV"))
-                            IndexColumn1 = i;
-                        if (dataGridView1.Columns[i].HeaderText == "Группа")
-                            IndexColumn2 = i;
-                    }
-                    if (IndexColumn1 > -1 || IndexColumn2 > -1)
-                    {
-                        foundNavCode = dataGridView1.Rows[indexRow].Cells[IndexColumn1].Value.ToString();
-                    }
+                    DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
+                    dgSeek.FindValueInCells(dataGridView1, new string[] { @"NAV", @"Группа" });
+                    foundNavCode = dgSeek.values[0];
                 }
             } catch { }
             return foundNavCode;
@@ -4332,8 +4298,7 @@ namespace PersonViewerSCA2
             StatusLabel2.Text = @"Все таблицы очищены";
         }
 
-
-
+        
         private void SelectPersonFromDataGrid(Person personSelected)
         {
             decimal[] timeIn = new decimal[4];
@@ -4342,50 +4307,19 @@ namespace PersonViewerSCA2
             try
             {
                 int IndexCurrentRow = _dataGridView1CurrentRowIndex();
+
+                DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
+                dgSeek.FindValueInCells(dataGridView1, new string[] { @"Фамилия Имя Отчество", @"NAV-код", @"Группа", @"Время прихода ЧЧ:ММ", @"Время ухода ЧЧ:ММ" });
+
                 if (IndexCurrentRow > -1)
                 {
-                    int IndexColumn1 = 0;           // индекс 1-й колонки в датагрид
-                    int IndexColumn2 = 0;           // индекс 2-й колонки в датагрид
-                    int IndexColumn5 = 0;           // индекс 5-й колонки в датагрид
-                    int IndexColumn6 = 0;           // индекс 6-й колонки в датагрид
-                    int IndexColumn7 = 0;           // индекс 7-й колонки в датагрид
-
-                    for (int i = 0; i < dataGridView1.ColumnCount; i++)
-                    {
-                        try
-                        {
-                            if (dataGridView1.Columns[i].HeaderText.ToString() == "Фамилия Имя Отчество")
-                            { IndexColumn1 = i; }
-                        } catch { }
-                        try
-                        {
-                            if (dataGridView1.Columns[i].HeaderText.ToString() == "NAV-код")
-                            { IndexColumn2 = i; }
-                        } catch { }
-                        try
-                        {
-                            if (dataGridView1.Columns[i].HeaderText.ToString() == "Группа")
-                            { IndexColumn5 = i; }
-                        } catch { }
-                        try
-                        {
-                            if (dataGridView1.Columns[i].HeaderText.ToString() == "Время прихода ЧЧ:ММ")
-                            { IndexColumn6 = i; }
-                        } catch { }
-                        try
-                        {
-                            if (dataGridView1.Columns[i].HeaderText.ToString() == "Время ухода ЧЧ:ММ")
-                            { IndexColumn7 = i; }
-                        } catch { }
-                    }
-
                     if (nameOfLastTableFromDB == "PersonGroup")
                     {
-                        personSelected.FIO = _dataGridView1CellValue(IndexCurrentRow, IndexColumn1);
-                        personSelected.NAV = _dataGridView1CellValue(IndexCurrentRow, IndexColumn2); //Take the name of selected group
-                        personSelected.GroupPerson = _dataGridView1CellValue(IndexCurrentRow, IndexColumn5); //Take the name of selected group
+                        personSelected.FIO = dgSeek.values[0];
+                        personSelected.NAV = dgSeek.values[1]; //Take the name of selected group
+                        personSelected.GroupPerson = dgSeek.values[2]; //Take the name of selected group
 
-                        personSelected.ControlInHHMM = _dataGridView1CellValue(IndexCurrentRow, IndexColumn6); //Take the name of selected group
+                        personSelected.ControlInHHMM = dgSeek.values[3]; //Take the name of selected group
                         timeIn = ConvertStringTimeHHMMToDecimalArray(personSelected.ControlInHHMM);
                         personSelected.ControlInHour = timeIn[0].ToString();
                         personSelected.ControlInHourDecimal = timeIn[0];
@@ -4393,7 +4327,7 @@ namespace PersonViewerSCA2
                         personSelected.ControlInMinuteDecimal = timeIn[1];
                         personSelected.ControlInDecimal = timeIn[2];
 
-                        personSelected.ControlOutHHMM = _dataGridView1CellValue(IndexCurrentRow, IndexColumn7); //Take the name of selected group
+                        personSelected.ControlOutHHMM = dgSeek.values[4]; //Take the name of selected group
                         timeOut = ConvertStringTimeHHMMToDecimalArray(personSelected.ControlOutHHMM);
                         personSelected.ControlOutHour = timeOut[0].ToString();
                         personSelected.ControlOutHourDecimal = timeOut[0];
@@ -4410,11 +4344,11 @@ namespace PersonViewerSCA2
                     }
                     else if (nameOfLastTableFromDB == "PersonRegistered")
                     {
-                        personSelected.FIO = _dataGridView1CellValue(IndexCurrentRow, IndexColumn1);
-                        personSelected.NAV = _dataGridView1CellValue(IndexCurrentRow, IndexColumn2); //Take the name of selected group
+                        personSelected.FIO = dgSeek.values[0];
+                        personSelected.NAV = dgSeek.values[1]; //Take the name of selected group
                         personSelected.GroupPerson = _textBoxReturnText(textBoxGroup);
 
-                        personSelected.ControlInHHMM = _dataGridView1CellValue(IndexCurrentRow, IndexColumn6); //Take the name of selected group
+                        personSelected.ControlInHHMM = dgSeek.values[3]; //Take the name of selected group
                         timeIn = ConvertStringTimeHHMMToDecimalArray(personSelected.ControlInHHMM);
                         personSelected.ControlInHour = timeIn[0].ToString();
                         personSelected.ControlInHourDecimal = timeIn[0];
@@ -4422,7 +4356,7 @@ namespace PersonViewerSCA2
                         personSelected.ControlInMinuteDecimal = timeIn[1];
                         personSelected.ControlInDecimal = timeIn[2];
 
-                        personSelected.ControlOutHHMM = _dataGridView1CellValue(IndexCurrentRow, IndexColumn7); //Take the name of selected group
+                        personSelected.ControlOutHHMM = dgSeek.values[4]; //Take the name of selected group
                         timeOut = ConvertStringTimeHHMMToDecimalArray(personSelected.ControlOutHHMM);
                         personSelected.ControlOutHour = timeOut[0].ToString();
                         personSelected.ControlOutHourDecimal = timeOut[0];
@@ -6889,7 +6823,16 @@ namespace PersonViewerSCA2
 
                                 if (dtPersonTemp.Rows.Count > 0)
                                 {
-                                    filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), nameReport + "|" + startDay.Split(' ')[0] + "-" + lastDay.Split(' ')[0] + " " + name + " " + DateTime.Now.ToString("yy-MM-dd HH-mm") + @".xlsx");
+                                    string nameFile = nameReport + "|" + startDay.Split(' ')[0] + "-" + lastDay.Split(' ')[0] + " " + name + " " + DateTime.Now.ToString("yy-MM-dd HH-mm") + @".xlsx";
+
+                                    string illegal = "\"M\"\\a/ry/ h**ad:>> a\\/:*?\"| li*tt|le|| la\"mb.?";
+                                    string regexSearch = new string(System.IO.Path.GetInvalidFileNameChars()) + new string(System.IO.Path.GetInvalidPathChars());
+                                    Regex r = new Regex(string.Format("[{0}]", Regex.Escape(regexSearch)));
+                                    illegal = r.Replace(nameFile, "");
+
+
+                                    logger.Info("сохраняю файл "+ illegal);
+                                    filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), illegal);
                                     try { System.IO.File.Delete(filePathExcelReport); } catch (Exception expt)
                                     {
                                         logger.Error("Ошибка удаления файла " + filePathExcelReport + " " + expt.ToString());
@@ -7133,7 +7076,7 @@ namespace PersonViewerSCA2
     {
         public int id;
         public int idCard = 0;
-        public string FIO;
+        public string FIO="";
         public string NAV = "";
         public string Department = "";
         public string PositionInDepartment = "";
