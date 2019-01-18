@@ -1011,8 +1011,6 @@ namespace PersonViewerSCA2
 
                 await Task.Run(() => GetFioFromServers(dtTempIntermediate));
 
-
-
                 await Task.Run(() => ImportTablePeopleToTableGroupsInLocalDB(databasePerson.ToString(), dtTempIntermediate));
 
                 //show selected data     
@@ -1038,8 +1036,10 @@ namespace PersonViewerSCA2
             dataTablePeopple.Clear();
             dtGroup.Clear();
             iFIO = 0;
-
+            DataRow row;
             string stringConnection;
+            string query;
+
             List<string> ListFIOTemp = new List<string>();
             listFIO = new List<string>();
             try
@@ -1052,7 +1052,8 @@ namespace PersonViewerSCA2
                 {
                     sqlConnection.Open();
 
-                    string query = "SELECT id, name, surname, patronymic, post, tabnum, parent_id FROM OBJ_PERSON ";
+                    //получить список пользователей с сервера
+                    query = "SELECT id, name, surname, patronymic, post, tabnum, parent_id FROM OBJ_PERSON ";
                     using (var sqlCommand = new System.Data.SqlClient.SqlCommand(query, sqlConnection))
                     {
                         using (var sqlReader = sqlCommand.ExecuteReader())
@@ -1066,7 +1067,7 @@ namespace PersonViewerSCA2
                                     if (record?["name"].ToString().Trim().Length > 0)
                                     {
                                         iFIO++;
-                                        DataRow row = dataTablePeopple.NewRow();
+                                        row = dataTablePeopple.NewRow();
 
                                         personFromServer = new Person();
                                         personFromServer.FIO = record["name"].ToString().Trim() + " " + record["surname"].ToString().Trim() + " " + record["patronymic"].ToString().Trim();
@@ -1127,7 +1128,7 @@ namespace PersonViewerSCA2
                                 {
                                     if (record?["name"].ToString().Trim().Length > 0)
                                     {
-                                        DataRow row = dtGroup.NewRow();
+                                        row = dtGroup.NewRow();
                                         row[2] = record["id"].ToString().Trim();
                                         row[4] = record["name"].ToString().Trim();
                                         row[3] = record["parent_id"].ToString().Trim();
@@ -1140,6 +1141,76 @@ namespace PersonViewerSCA2
                         }
                     }
                 }
+                //todo import users and group from www.ais
+
+                stringConnection = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;pooling = false; convert zero datetime=True;Connect Timeout=60";
+                logger.Info(stringConnection);
+                logger.Info(query);
+                using (var sqlConnection = new MySql.Data.MySqlClient.MySqlConnection(stringConnection))
+                {
+                    sqlConnection.Open();
+
+                    query = "Select id,name,hourly,visibled_name FROM out_reasons";
+                    using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
+                    {
+                        using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                if (reader.GetString(@"name") != null && reader.GetString(@"name").Length > 0)
+                                {
+                                    resons.Add(new OutReasons()
+                                    {
+                                        _id = Convert.ToInt32(reader.GetString(@"id")),
+                                        _hourly = Convert.ToInt32(reader.GetString(@"hourly")),
+                                        _name = reader.GetString(@"name"),
+                                        _visibleName = reader.GetString(@"visibled_name")
+                                    });
+                                }
+                            }
+                        }
+                    }
+                    int idReason = 0;
+                    string date = "";
+                    string name = "";
+                    query = "Select * FROM out_users where user_code='" + person.NAV + "' AND reason_date >= '" + startDate.Split(' ')[0] + "' AND reason_date <= '" + endDate.Split(' ')[0] + "' ";
+                    using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
+                    {
+                        using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                if (reader.GetString(@"reason_id") != null && reader.GetString(@"reason_id").Length > 0)
+                                {
+                                    logger.Info(reader.GetString(@"reason_date"));
+                                    try { idReason = Convert.ToInt32(reader.GetString(@"reason_id")); } catch { idReason = 0; }
+                                    try { name = resons.Find((x) => x._id == idReason)._name; } catch { name = ""; }
+                                    try { date = DateTime.Parse(reader.GetString(@"reason_date")).ToString("yyyy-MM-dd"); } catch { date = ""; }
+
+                                    outPerson.Add(new OutPerson()
+                                    {
+                                        _reason_id = idReason,
+                                        _reason_Name = name,
+                                        _nav = reader.GetString(@"user_code"),
+                                        _date = date,
+                                        _from = ConvertStringsTimeToSeconds(reader.GetString(@"from_hour"), reader.GetString(@"from_min")),
+                                        _to = ConvertStringsTimeToSeconds(reader.GetString(@"to_hour"), reader.GetString(@"to_min")),
+                                        _hourly = 0
+                                    });
+                                }
+                            }
+                        }
+                    }
+                    sqlConnection.Close();
+                }
+                logger.Info(" всего записей: " + outPerson.Count);
+
+
+
+
+
+
+
 
                 _toolStripStatusLabelSetText(StatusLabel2, "Список ФИО успешно получен");
                 stimerPrev = "Все списки с ФИО с сервера СКД успешно получены";
@@ -1249,7 +1320,9 @@ namespace PersonViewerSCA2
 
 
 
-
+        /// <summary>
+        /// ///////////////////////////////////////////////////////////////
+        /// </summary>
         //check dubled function!!!!!!!!
         private void BoldAnualDates() //Excluded Anual Days from the table "PersonTemp" DB
         {
@@ -2673,73 +2746,67 @@ namespace PersonViewerSCA2
 
             stringConnection = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;pooling = false; convert zero datetime=True;Connect Timeout=60";
             logger.Info(stringConnection);
-            logger.Info(query);
-            try
+            using (var sqlConnection = new MySql.Data.MySqlClient.MySqlConnection(stringConnection))
             {
-                using (var sqlConnection = new MySql.Data.MySqlClient.MySqlConnection(stringConnection))
+                sqlConnection.Open();
+                query = "Select id,name,hourly,visibled_name FROM out_reasons";
+                logger.Info(query);
+
+                using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
                 {
-                    sqlConnection.Open();
-
-                    query = "Select id,name,hourly,visibled_name FROM out_reasons";
-                    using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
+                    using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
                     {
-                        using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
+                        while (reader.Read())
                         {
-                            while (reader.Read())
+                            if (reader.GetString(@"name") != null && reader.GetString(@"name").Length > 0)
                             {
-                                if (reader.GetString(@"name") != null && reader.GetString(@"name").Length > 0)
+                                resons.Add(new OutReasons()
                                 {
-                                    resons.Add(new OutReasons()
-                                    {
-                                        _id = Convert.ToInt32(reader.GetString(@"id")),
-                                        _hourly = Convert.ToInt32(reader.GetString(@"hourly")),
-                                        _name = reader.GetString(@"name"),
-                                        _visibleName = reader.GetString(@"visibled_name")
-                                    });
-                                }
+                                    _id = Convert.ToInt32(reader.GetString(@"id")),
+                                    _hourly = Convert.ToInt32(reader.GetString(@"hourly")),
+                                    _name = reader.GetString(@"name"),
+                                    _visibleName = reader.GetString(@"visibled_name")
+                                });
                             }
                         }
                     }
-                    int idReason = 0;
-                    string date = "";
-                    string name = "";
-                    query = "Select * FROM out_users where user_code='" + person.NAV + "' AND reason_date >= '" + startDate.Split(' ')[0] + "' AND reason_date <= '" + endDate.Split(' ')[0] + "' ";
-                    using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
-                    {
-                        using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                if (reader.GetString(@"reason_id") != null && reader.GetString(@"reason_id").Length > 0)
-                                {
-                                    logger.Info(reader.GetString(@"reason_date"));
-                                    try { idReason = Convert.ToInt32(reader.GetString(@"reason_id")); } catch { idReason = 0; }
-                                    try { name = resons.Find((x) => x._id == idReason)._name; } catch { name = ""; }
-                                    try { date = DateTime.Parse(reader.GetString(@"reason_date")).ToString("yyyy-MM-dd"); } catch { date = ""; }
-
-                                    outPerson.Add(new OutPerson()
-                                    {
-                                        _reason_id = idReason,
-                                        _reason_Name = name,
-                                        _nav = reader.GetString(@"user_code"),
-                                        _date = date,
-                                        _from = ConvertStringsTimeToSeconds(reader.GetString(@"from_hour"), reader.GetString(@"from_min")),
-                                        _to = ConvertStringsTimeToSeconds(reader.GetString(@"to_hour"), reader.GetString(@"to_min")),
-                                        _hourly = 0
-                                    });
-
-                                }
-                            }
-                        }
-                    }
-                    sqlConnection.Close();
                 }
+                int idReason = 0;
+                string date = "";
+                string name = "";
+                query = "Select * FROM out_users where user_code='" + person.NAV + "' AND reason_date >= '" + startDate.Split(' ')[0] + "' AND reason_date <= '" + endDate.Split(' ')[0] + "' ";
+                logger.Info(query);
+                using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
+                {
+                    using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            if (reader.GetString(@"reason_id") != null && reader.GetString(@"reason_id").Length > 0)
+                            {
+                                logger.Info(reader.GetString(@"reason_date"));
+                                try { idReason = Convert.ToInt32(reader.GetString(@"reason_id")); } catch { idReason = 0; }
+                                try { name = resons.Find((x) => x._id == idReason)._name; } catch { name = ""; }
+                                try { date = DateTime.Parse(reader.GetString(@"reason_date")).ToString("yyyy-MM-dd"); } catch { date = ""; }
+
+                                outPerson.Add(new OutPerson()
+                                {
+                                    _reason_id = idReason,
+                                    _reason_Name = name,
+                                    _nav = reader.GetString(@"user_code"),
+                                    _date = date,
+                                    _from = ConvertStringsTimeToSeconds(reader.GetString(@"from_hour"), reader.GetString(@"from_min")),
+                                    _to = ConvertStringsTimeToSeconds(reader.GetString(@"to_hour"), reader.GetString(@"to_min")),
+                                    _hourly = 0
+                                });
+                            }
+                        }
+                    }
+                }
+                sqlConnection.Close();
             }
-            catch (Exception expt) { MessageBox.Show(stringConnection + "\n" + expt.ToString()); }
-            logger.Info(" всего записей: " + outPerson.Count);
+            logger.Info(person.NAV+ " - на сайте всего записей с отсутствиями: " + outPerson.Count);
 
-
-            string infData = "";
 
             foreach (DataRow dr in dt.Rows) // search whole table
             {
@@ -2747,9 +2814,7 @@ namespace PersonViewerSCA2
                 {
                     if (dr[@"Дата регистрации"].ToString() == day) // if id==2
                     {
-                        try { infData = outPerson.FindLast((x) => x._date == day)._reason_Name; //} catch { infData = ""; }
-                        //try {
-                                dr[@"Комментарии"] = outPerson.Find((x) => x._date == day)._reason_Name; } catch { dr[@"Комментарии"] = ""; infData = ""; }//change the name
+                        try { dr[@"Комментарии"] = outPerson.Find((x) => x._date == day)._reason_Name; } catch { }  // dr[@"Комментарии"] = "";
                     }
                 }
             }
