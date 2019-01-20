@@ -1299,21 +1299,6 @@ namespace PersonViewerSCA2
 
                                     try
                                     {
-                                        personFromServer.Shift = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._dayStartShift;
-                                        personFromServer.Comment = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._Comment;
-
-                                        tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoStart;
-                                        personFromServer.ControlInHour = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[0];
-                                        personFromServer.ControlInMinute = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[1];
-                                        personFromServer.ControlInHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
-
-                                        tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoEnd;
-                                        personFromServer.ControlOutHour = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[0];
-                                        personFromServer.ControlOutMinute = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[1];
-                                        personFromServer.ControlOutHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
-
-                                    } catch
-                                    {
                                         if (personFromServer.NAV.StartsWith("S"))
                                         {
                                             try
@@ -1332,8 +1317,26 @@ namespace PersonViewerSCA2
                                                 personFromServer.ControlOutMinute = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[1];
                                                 personFromServer.ControlOutHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
                                             } catch { }
+                                            MessageBox.Show(personFromServer.FIO+ " -S- " + personFromServer.Comment);
                                         }
-                                    }
+                                        else
+                                        {
+                                            personFromServer.Shift = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._dayStartShift;
+                                            personFromServer.Comment = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._Comment;
+
+                                            tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoStart;
+                                            personFromServer.ControlInHour = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[0];
+                                            personFromServer.ControlInMinute = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[1];
+                                            personFromServer.ControlInHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
+
+                                            tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoEnd;
+                                            personFromServer.ControlOutHour = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[0];
+                                            personFromServer.ControlOutMinute = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[1];
+                                            personFromServer.ControlOutHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
+
+                                            MessageBox.Show(personFromServer.FIO + " " + personFromServer.Comment);
+                                        }
+                                    } catch { }
 
                                     row[@"№ п/п"] = iFIO;
                                     row[@"Фамилия Имя Отчество"] = personFromServer.FIO;
