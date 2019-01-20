@@ -1084,6 +1084,7 @@ namespace PersonViewerSCA2
             listFIO = new List<string>();
             List<string> listCodesWithIdCard  = new List<string>(); //NAV-codes people who have idCard
             List<string> listCodesFromWeb = new List<string>();
+          //  List<string> listCodesFromOutResonWeb = new List<string>();
 
             try
             {
@@ -1209,7 +1210,8 @@ namespace PersonViewerSCA2
                 {
                     sqlConnection.Open();
                     
-                    query = "Select * FROM work_time ";
+                    query = "Select code,start_date,mo_start,mo_end,tu_start,tu_end,we_start,we_end,th_start,th_end,fr_start,fr_end, "+
+                                    "sa_start,sa_end,su_start,su_end,comment FROM work_time ORDER by start_date";
                     logger.Info(query);
                     try
                     {
@@ -1227,6 +1229,7 @@ namespace PersonViewerSCA2
                                         {
                                             tmpDate = DateTime.Parse("1980-01-01").ToString("yyyy-MM-dd");
                                         }
+                                    //    listCodesFromOutResonWeb.Add(reader.GetString(@"code"));
                                         peopleShifts.Add(new PeopleShift()
                                         {
                                             _nav = reader.GetString(@"code"),
@@ -1255,13 +1258,8 @@ namespace PersonViewerSCA2
                         }
                     } catch
                     {
-                        MessageBox.Show("err get");
+                        logger.Warn("Can't get data");
                     }
-
-
-
-                    // peopleShifts
-                    //try { dayStartShift = peopleShifts.Find((x) => x._nav == idReason)._name; } catch { name = ""; }
 
 
                     query = "Select code, family_name,first_name,last_name,vacancy,department FROM personal where hidden=0 ";
@@ -1286,9 +1284,9 @@ namespace PersonViewerSCA2
                                     personFromServer = new Person();
                                     personFromServer.FIO = fio;
                                     personFromServer.NAV = reader.GetString(@"code").Trim().ToUpper();
-                                    personFromServer.PositionInDepartment = reader.GetString(@"vacancy").Trim();
-                                    personFromServer.Department = reader.GetString(@"department").Trim();
                                     personFromServer.GroupPerson = @"wwwais";
+                                    personFromServer.Department = reader.GetString(@"department").Trim();
+                                    personFromServer.PositionInDepartment = reader.GetString(@"vacancy").Trim();
 
                                     personFromServer.ControlInHour = "9";
                                     personFromServer.ControlInMinute = "0";
@@ -1299,13 +1297,11 @@ namespace PersonViewerSCA2
                                     personFromServer.ControlOutHHMM = "18:00";
 
                                     try {
-                                        personFromServer.Shift = peopleShifts.Find((x) => x._nav == personFromServer.NAV)._dayStartShift;
-                                        MessageBox.Show("Особый график: " +personFromServer.FIO+" " + personFromServer.Shift);
-                                            } catch {
-                                      //  MessageBox.Show("err "+ personFromServer.NAV);
+                                        personFromServer.Shift = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._dayStartShift;
+                                        personFromServer.Comment = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._Comment;
+                                    } catch {
                                         personFromServer.Shift = "";
                                     }
-
 
                                     row[@"№ п/п"] = iFIO;
                                     row[@"Фамилия Имя Отчество"] = personFromServer.FIO;
@@ -1313,6 +1309,8 @@ namespace PersonViewerSCA2
                                     row[@"Группа"] = personFromServer.GroupPerson;
                                     row[@"Отдел"] = personFromServer.Department;
                                     row[@"Должность"] = personFromServer.PositionInDepartment;
+                                    row[@"График"] = personFromServer.Shift;
+                                    row[@"Комментарии"] = personFromServer.Comment;
                                     row[@"Время прихода,часы"] = personFromServer.ControlInHour;
                                     row[@"Время прихода,минут"] = personFromServer.ControlInMinute;
                                     row[@"Время прихода"] = ConvertStringsTimeToDecimal(personFromServer.ControlInHour, personFromServer.ControlInMinute);
@@ -1343,7 +1341,7 @@ namespace PersonViewerSCA2
                 logger.Info("clean "+ dataTablePeopple.TableName);
                 //Clean from the result table redudant codes
                 DataRow dr;
-                IEnumerable<string> listCodesNoIdCard = listCodesFromWeb.Except(listCodesWithIdCard);//Get codes of people wich need to remove                
+                IEnumerable<string> listCodesNoIdCard = listCodesFromWeb.Except(listCodesWithIdCard);//Get codes of people which need to remove                
                 foreach(string exceptCode in listCodesNoIdCard)
                 {
                     for (int i = dataTablePeopple.Rows.Count - 1; i >= 0; i--)
@@ -1358,6 +1356,11 @@ namespace PersonViewerSCA2
                          _ProgressWork1Step(1);
                }
                 dataTablePeopple.AcceptChanges();
+
+             //   IEnumerable<string> listCodesNoReson = listCodesFromOutResonWeb.Intersect(listCodesWithIdCard);//Get codes of people which has idCard and has an individual shift
+
+                
+
 
 
 
@@ -7286,6 +7289,7 @@ namespace PersonViewerSCA2
         public string namePassPoint = "";
         public string directionPass = "";
         public string Shift = "";
+        public string Comment = "";
     }
 
     public class DataGridViewSeekValuesInSelectedRow
