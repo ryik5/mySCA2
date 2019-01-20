@@ -1220,7 +1220,7 @@ namespace PersonViewerSCA2
                                     peopleShifts.Add(new PeopleShift()
                                     {
                                         _nav = reader.GetString(@"code"),
-                                        _dayStartShift = reader.GetString(@"start_date"),
+                                        _dayStartShift = "",//reader.GetString(@"start_date"),
                                         _MoStart =Convert.ToInt32(reader.GetString(@"mo_start")),
                                         _MoEnd = Convert.ToInt32(reader.GetString(@"mo_end")),
                                         _TuStart = Convert.ToInt32(reader.GetString(@"tu_start")),
