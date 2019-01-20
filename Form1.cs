@@ -1203,8 +1203,8 @@ namespace PersonViewerSCA2
                 _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...");
                 stimerPrev = "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...";
 
-                stringConnection = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;Allow Zero Datetime=true;Connect Timeout=60";
-                    logger.Info(stringConnection);
+                stringConnection = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;Allow Zero Datetime=true;Connect Timeout=60"; //convert zero datetime=True;
+                logger.Info(stringConnection);
                 using (var sqlConnection = new MySql.Data.MySqlClient.MySqlConnection(stringConnection))
                 {
                     sqlConnection.Open();
@@ -1225,7 +1225,7 @@ namespace PersonViewerSCA2
                                         peopleShifts.Add(new PeopleShift()
                                         {
                                             _nav = reader.GetString(@"code"),
-                                            _dayStartShift = reader?.GetString(@"start_date"),
+                                           // _dayStartShift = reader?.GetString(@"start_date"),
                                             _MoStart = Convert.ToInt32(reader.GetString(@"mo_start")),
                                             _MoEnd = Convert.ToInt32(reader.GetString(@"mo_end")),
                                             _TuStart = Convert.ToInt32(reader.GetString(@"tu_start")),
