@@ -1301,7 +1301,10 @@ namespace PersonViewerSCA2
                                     try {
                                         personFromServer.Shift = peopleShifts.Find((x) => x._nav == personFromServer.NAV)._dayStartShift;
                                         MessageBox.Show("Особый график: " +personFromServer.FIO+" " + personFromServer.Shift);
-                                            } catch { MessageBox.Show("err "+ personFromServer.NAV); personFromServer.Shift = ""; }
+                                            } catch {
+                                      //  MessageBox.Show("err "+ personFromServer.NAV);
+                                        personFromServer.Shift = "";
+                                    }
 
 
                                     row[@"№ п/п"] = iFIO;
