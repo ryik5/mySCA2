@@ -1263,7 +1263,7 @@ namespace PersonViewerSCA2
                     }
 
 
-                    query = "Select code, family_name,first_name,last_name,vacancy,department FROM personal where hidden=0 ";
+                    query = "Select code, family_name,first_name,last_name,vacancy,department FROM personal ";// where hidden=0
                     logger.Info(query);
 
                     using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
