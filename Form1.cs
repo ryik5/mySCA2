@@ -1211,15 +1211,16 @@ namespace PersonViewerSCA2
                     
                     query = "Select * FROM work_time ";
                     logger.Info(query);
-                    using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
+                    try
                     {
-                        using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
+
+                        using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
                         {
-                            while (reader.Read())
+                            using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
                             {
-                                if (reader?.GetString(@"code") != null && reader?.GetString(@"code").Length > 0 && reader?.GetString(@"start_date") != null && reader?.GetString(@"start_date").Length > 0)
+                                while (reader.Read())
                                 {
-                                    try
+                                    if (reader?.GetString(@"code") != null && reader?.GetString(@"code").Length > 0 && reader?.GetString(@"start_date") != null && reader?.GetString(@"start_date").Length > 0)
                                     {
                                         peopleShifts.Add(new PeopleShift()
                                         {
@@ -1242,15 +1243,16 @@ namespace PersonViewerSCA2
                                             _Status = "",
                                             _Comment = reader.GetString(@"comment")
                                         });
-                                    } catch {
-                                        MessageBox.Show("err get");
+
+                                        _ProgressWork1Step(1);
                                     }
-                                    _ProgressWork1Step(1);
                                 }
                             }
                         }
+                    } catch
+                    {
+                        MessageBox.Show("err get");
                     }
-
 
 
 
