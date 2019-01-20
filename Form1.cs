@@ -1203,7 +1203,7 @@ namespace PersonViewerSCA2
                 _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...");
                 stimerPrev = "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...";
 
-                stringConnection = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;Allow Zero Datetime=true;Connect Timeout=60"; //convert zero datetime=True;
+                stringConnection = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60"; //Allow Zero Datetime=true;
                 logger.Info(stringConnection);
                 using (var sqlConnection = new MySql.Data.MySqlClient.MySqlConnection(stringConnection))
                 {
