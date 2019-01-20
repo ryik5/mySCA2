@@ -1317,7 +1317,7 @@ namespace PersonViewerSCA2
                                                 personFromServer.ControlOutMinute = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[1];
                                                 personFromServer.ControlOutHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
                                             } catch { }
-                                            MessageBox.Show(personFromServer.FIO+ " -S- " + personFromServer.Comment);
+                                          //  MessageBox.Show(personFromServer.FIO+ " -S- " + personFromServer.Comment);
                                         }
                                         else
                                         {
@@ -1334,7 +1334,7 @@ namespace PersonViewerSCA2
                                             personFromServer.ControlOutMinute = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[1];
                                             personFromServer.ControlOutHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
 
-                                            MessageBox.Show(personFromServer.FIO + " " + personFromServer.Comment);
+                                          //  MessageBox.Show(personFromServer.FIO + " " + personFromServer.Comment);
                                         }
                                     } catch { }
 
