@@ -1357,13 +1357,6 @@ namespace PersonViewerSCA2
                }
                 dataTablePeopple.AcceptChanges();
 
-             //   IEnumerable<string> listCodesNoReson = listCodesFromOutResonWeb.Intersect(listCodesWithIdCard);//Get codes of people which has idCard and has an individual shift
-
-                
-
-
-
-
 
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
@@ -1503,8 +1496,6 @@ namespace PersonViewerSCA2
             dtPersonTemp = GetDistinctRecords(dtPeopleListLoaded, namesDistinctColumnsArray);
 
             await Task.Run(() => ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenColumnsFIO));
-            
-
         }
 
 
@@ -2056,8 +2047,6 @@ namespace PersonViewerSCA2
                                 try { d14 = record["MinuteControllingOut"].ToString().Trim(); } catch { }
                                 try { dprtmnt = record["Reserv1"].ToString().Trim(); } catch { dprtmnt = nameGroup; }
                                 try { pstn = record["Reserv2"].ToString().Trim(); } catch { pstn = ""; }
-                                //HourControllingOut TEXT, MinuteControllingOut TEXT
-                                //FIO|NAV|H|M
 
                                 dataRow[@"Фамилия Имя Отчество"] = d1;
                                 dataRow[@"NAV-код"] = d2;
@@ -3041,21 +3030,20 @@ namespace PersonViewerSCA2
                                 try { d4 = record["MinuteControlling"].ToString().Trim(); } catch { }
                                 try { d13 = record["HourControllingOut"].ToString().Trim(); } catch { }
                                 try { d14 = record["MinuteControllingOut"].ToString().Trim(); } catch { }
-                                //HourControllingOut TEXT, MinuteControllingOut TEXT
-                                //FIO|NAV|H|M
 
-                                dataRow[1] = d1;
-                                dataRow[2] = d2;
-                                dataRow[3] = namePointedGroup;
-                                dataRow[4] = d3;
-                                dataRow[5] = d4;
-                                dataRow[6] = ConvertStringsTimeToDecimal(d3, d4);
-                                dataRow[7] = d13;
-                                dataRow[8] = d14;
-                                dataRow[9] = ConvertStringsTimeToDecimal(d13, d14);
-                                dataRow[11] = namePointedGroup;
-                                dataRow[22] = ConvertStringsTimeToStringHHMM(d3, d4);
-                                dataRow[23] = ConvertStringsTimeToStringHHMM(d13, d14);
+                                dataRow[@"Фамилия Имя Отчество"] = d1;
+                                dataRow[@"NAV-код"] = d2;
+                                dataRow[@"Группа"] = namePointedGroup;
+                                dataRow[@"Время прихода,часы"] = d3;
+                                dataRow[@"Время прихода,минут"] = d4;
+                                dataRow[@"Время прихода"] = ConvertStringsTimeToDecimal(d3, d4);
+                                dataRow[@"Время ухода,часы"] = d13;
+                                dataRow[@"Время ухода,минут"] = d14;
+                                dataRow[@"Время ухода"] = ConvertStringsTimeToDecimal(d13, d14);
+                                dataRow[@"Отдел"] = record["Reserv1"].ToString();
+                                dataRow[@"Должность"] = record["Reserv2"].ToString();
+                                dataRow[@"Время прихода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(d3, d4);
+                                dataRow[@"Время ухода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(d13, d14);
 
                                 dtTarget.Rows.Add(dataRow);
                                 numberPeopleInLoading++;
@@ -6967,6 +6955,7 @@ namespace PersonViewerSCA2
                             foreach (string nameGroup in nameGroups)
                             {
                                 try { System.IO.File.Delete(filePathExcelReport); } catch { }
+
                                 name = nameGroup.Trim();
                                 dtPersonRegistrationsFullList.Clear();
                                 GetRegistrations(name, startDay, lastDay, "sendEmail");//typeReport== only one group
@@ -6983,39 +6972,36 @@ namespace PersonViewerSCA2
                                     {
                                         personCheck = new Person();
 
-                                        personCheck.FIO = row[1].ToString();
-                                        personCheck.NAV = row[2].ToString();
-                                        personCheck.GroupPerson = name;
-                                        personCheck.Department = name;
+                                        personCheck.FIO = row[@"Фамилия Имя Отчество"].ToString();
+                                        personCheck.NAV = row[@"NAV-код"].ToString();
+                                        personCheck.GroupPerson = row[@"Группа"].ToString(); 
+                                        personCheck.Department = row[@"Отдел"].ToString();
+                                        personCheck.PositionInDepartment= row[@"Должность"].ToString();
+                                        personCheck.ControlInHour = row[@"Время прихода,часы"].ToString();
+                                        personCheck.ControlInHourDecimal = TryParseStringToDecimal(row[@"Время прихода,часы"].ToString());
+                                        personCheck.ControlInMinute = row[@"Время прихода,минут"].ToString();
+                                        personCheck.ControlInMinuteDecimal = TryParseStringToDecimal(row[@"Время прихода,минут"].ToString());
+                                        personCheck.ControlInDecimal = TryParseStringToDecimal(row[@"Время прихода"].ToString());
 
-                                        personCheck.ControlInHour = row[4].ToString();
-                                        personCheck.ControlInHourDecimal = TryParseStringToDecimal(row[4].ToString());
-                                        personCheck.ControlInMinute = row[5].ToString();
-                                        personCheck.ControlInMinuteDecimal = TryParseStringToDecimal(row[5].ToString());
-                                        personCheck.ControlInDecimal = TryParseStringToDecimal(row[6].ToString());
+                                        personCheck.ControlOutHHMM = row[@"Время ухода ЧЧ:ММ"].ToString();
+                                        personCheck.ControlInHHMM = row[@"Время прихода ЧЧ:ММ"].ToString();
 
-                                        personCheck.ControlOutHour = row[7].ToString();
-                                        personCheck.ControlOutHourDecimal = TryParseStringToDecimal(row[7].ToString());
-                                        personCheck.ControlOutMinute = row[8].ToString();
-                                        personCheck.ControlOutMinuteDecimal = TryParseStringToDecimal(row[8].ToString());
-                                        personCheck.ControlOutDecimal = TryParseStringToDecimal(row[9].ToString());
+                                        personCheck.ControlOutHour = row[@"Время ухода,часы"].ToString();
+                                        personCheck.ControlOutHourDecimal = TryParseStringToDecimal(row[@"Время ухода,часы"].ToString());
+                                        personCheck.ControlOutMinute = row[@"Время ухода,минут"].ToString();
+                                        personCheck.ControlOutMinuteDecimal = TryParseStringToDecimal(row[@"Время ухода,минут"].ToString());
+                                        personCheck.ControlOutDecimal = TryParseStringToDecimal(row[@"Время ухода"].ToString());
 
                                         FilterDataByNav(personCheck, dtPersonRegistrationsFullList, dtTempIntermediate);
                                     }
                                 }
-
+                                
                                 dtPersonTemp = GetDistinctRecords(dtTempIntermediate, orderColumnsFinacialReport);
                                 dtPersonTemp.SetColumnsOrder(orderColumnsFinacialReport);
 
                                 if (dtPersonTemp.Rows.Count > 0)
                                 {
                                     string nameFile = nameReport + " " + startDay.Split(' ')[0] + "-" + lastDay.Split(' ')[0] + " " + name + " " + DateTime.Now.ToString("yy-MM-dd HH-mm") + @".xlsx";
-
-                                    // string illegal = "\"M\"\\a/ry/ h**ad:>> a\\/:*?\"| li*tt|le|| la\"mb.?";
-                                    //  string regexSearch = new string(System.IO.Path.GetInvalidFileNameChars()) + new string(System.IO.Path.GetInvalidPathChars());
-                                    //  Regex r = new Regex(string.Format("[{0}]", Regex.Escape(regexSearch)));
-                                    // illegal = r.Replace(nameFile, "");
-
                                     string illegal=  GetSafeFilename(nameFile);
 
                                     logger.Info("сохраняю файл "+ illegal);
