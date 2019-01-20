@@ -1201,6 +1201,7 @@ namespace PersonViewerSCA2
                 List<PeopleShift> peopleShifts = new List<PeopleShift>();
                 string dayStartShift = "";
                 string tmpDate;
+                int tmpSeconds = 0;
                 _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...");
                 stimerPrev = "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...";
 
@@ -1300,8 +1301,16 @@ namespace PersonViewerSCA2
                                         personFromServer.Shift = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._dayStartShift;
                                         personFromServer.Comment = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._Comment;
 
-                                        personFromServer.ControlInHHMM = (peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoStart/60/60).ToString();
-                                        MessageBox.Show("fio "+ personFromServer.ControlInHHMM);
+                                        tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoStart;
+                                        personFromServer.ControlInHour = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[0];
+                                        personFromServer.ControlInMinute = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[1];
+                                        personFromServer.ControlInHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
+
+                                        tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoEnd;
+                                        personFromServer.ControlOutHour = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[0];
+                                        personFromServer.ControlOutMinute = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[1];
+                                        personFromServer.ControlOutHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
+
                                     } catch {
                                         personFromServer.Shift = "";
                                     }
@@ -1320,8 +1329,8 @@ namespace PersonViewerSCA2
                                     row[@"Время ухода,часы"] = personFromServer.ControlOutHour;
                                     row[@"Время ухода,минут"] = personFromServer.ControlOutMinute;
                                     row[@"Время ухода"] = ConvertStringsTimeToDecimal(personFromServer.ControlOutHour, personFromServer.ControlOutMinute);
-                                    row[@"Время прихода ЧЧ:ММ"] = "09:00";
-                                    row[@"Время ухода ЧЧ:ММ"] = "18:00";
+                                    row[@"Время прихода ЧЧ:ММ"] = personFromServer.ControlInHHMM;
+                                    row[@"Время ухода ЧЧ:ММ"] = personFromServer.ControlOutHHMM;
 
                                     dataTablePeopple.Rows.Add(row);
 
@@ -3866,6 +3875,27 @@ namespace PersonViewerSCA2
             result = String.Format("{0:d2}:{1:d2}", hour, minute);
             return result;
         }
+
+        private string[] ConvertSecondsTimeToStringHHMMArray(int seconds)
+        {
+            string[] result = new string[3];
+            var ts = TimeSpan.FromSeconds(seconds);
+            result[0] = String.Format("{0:d2}", (int)ts.TotalHours);
+            result[1] = String.Format("{0:d2}", (int)ts.Minutes);
+            result[2] = String.Format("{0:d2}:{1:d2}", (int)ts.TotalHours, (int)ts.Minutes);
+
+            return result;
+        }
+
+        /*
+        string stime1 = "18:40";
+        string stime2 = "19:35";
+        DateTime t1 = DateTime.Parse(stime1);
+        DateTime t2 = DateTime.Parse(stime2);
+        TimeSpan ts = t2 - t1;
+        int minutes = (int)ts.TotalMinutes;
+        int seconds = (int)ts.TotalSeconds;
+        */
 
         private decimal ConvertDecimalSeparatedTimeToDecimal(decimal decimalHour, decimal decimalMinute)
         {
