@@ -1195,12 +1195,10 @@ namespace PersonViewerSCA2
                     }
                 }
 
-                                                          
 
-                //todo import users and group from www.ais
+                // import users and group from www.ais
                 List<PeopleShift> peopleShifts = new List<PeopleShift>();
                 string dayStartShift = "";
-                string tmpDate;
                 int tmpSeconds = 0;
                 _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...");
                 stimerPrev = "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...";
@@ -1216,25 +1214,21 @@ namespace PersonViewerSCA2
                     logger.Info(query);
                     try
                     {
-
                         using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
                         {
                             using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
                             {
                                 while (reader.Read())
                                 {
-                                    if (reader?.GetString(@"code") != null && reader?.GetString(@"code").Length > 0 )
+                                    if (reader?.GetString(@"code") != null && reader?.GetString(@"code").Length > 0)
                                     {
-                                        try {
-                                            tmpDate = DateTime.Parse(reader?.GetMySqlDateTime(@"start_date").ToString()).ToString("yyyy-MM-dd"); } catch
-                                        {
-                                            tmpDate = DateTime.Parse("1980-01-01").ToString("yyyy-MM-dd");
-                                        }
-                                    //    listCodesFromOutResonWeb.Add(reader.GetString(@"code"));
+                                        try { dayStartShift = DateTime.Parse(reader?.GetMySqlDateTime(@"start_date").ToString()).ToString("yyyy-MM-dd"); } catch
+                                        { dayStartShift = DateTime.Parse("1980-01-01").ToString("yyyy-MM-dd"); }
+
                                         peopleShifts.Add(new PeopleShift()
                                         {
                                             _nav = reader.GetString(@"code"),
-                                            _dayStartShift = tmpDate,
+                                            _dayStartShift = dayStartShift,
                                             _MoStart = Convert.ToInt32(reader.GetString(@"mo_start")),
                                             _MoEnd = Convert.ToInt32(reader.GetString(@"mo_end")),
                                             _TuStart = Convert.ToInt32(reader.GetString(@"tu_start")),
@@ -1257,13 +1251,9 @@ namespace PersonViewerSCA2
                                 }
                             }
                         }
-                    } catch
-                    {
-                        logger.Warn("Can't get data");
-                    }
-
-
-                    query = "Select code, family_name,first_name,last_name,vacancy,department FROM personal ";// where hidden=0
+                    } catch { logger.Warn("Can't get data"); }
+                    
+                    query = "Select code, family_name,first_name,last_name,vacancy,department FROM personal"; //where hidden=0
                     logger.Info(query);
 
                     using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
@@ -1299,43 +1289,18 @@ namespace PersonViewerSCA2
 
                                     try
                                     {
-                                        if (personFromServer.NAV.StartsWith("S"))
-                                        {
-                                            try
-                                            {
-                                                personFromServer.NAV = personFromServer.NAV.Replace('S', 'С');
-                                                personFromServer.Shift = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._dayStartShift;
-                                                personFromServer.Comment = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._Comment;
+                                        personFromServer.Shift = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._dayStartShift;
+                                        personFromServer.Comment = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._Comment;
 
-                                                tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoStart;
-                                                personFromServer.ControlInHour = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[0];
-                                                personFromServer.ControlInMinute = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[1];
-                                                personFromServer.ControlInHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
+                                        tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoStart;
+                                        personFromServer.ControlInHour = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[0];
+                                        personFromServer.ControlInMinute = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[1];
+                                        personFromServer.ControlInHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
 
-                                                tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoEnd;
-                                                personFromServer.ControlOutHour = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[0];
-                                                personFromServer.ControlOutMinute = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[1];
-                                                personFromServer.ControlOutHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
-                                            } catch { }
-                                          //  MessageBox.Show(personFromServer.FIO+ " -S- " + personFromServer.Comment);
-                                        }
-                                        else
-                                        {
-                                            personFromServer.Shift = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._dayStartShift;
-                                            personFromServer.Comment = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._Comment;
-
-                                            tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoStart;
-                                            personFromServer.ControlInHour = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[0];
-                                            personFromServer.ControlInMinute = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[1];
-                                            personFromServer.ControlInHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
-
-                                            tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoEnd;
-                                            personFromServer.ControlOutHour = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[0];
-                                            personFromServer.ControlOutMinute = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[1];
-                                            personFromServer.ControlOutHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
-
-                                          //  MessageBox.Show(personFromServer.FIO + " " + personFromServer.Comment);
-                                        }
+                                        tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoEnd;
+                                        personFromServer.ControlOutHour = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[0];
+                                        personFromServer.ControlOutMinute = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[1];
+                                        personFromServer.ControlOutHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
                                     } catch { }
 
                                     row[@"№ п/п"] = iFIO;
@@ -1358,7 +1323,7 @@ namespace PersonViewerSCA2
                                     dataTablePeopple.Rows.Add(row);
 
                                     ListFIOTemp.Add(personFromServer.FIO +  "|" + personFromServer.NAV);
-                                    listCodesFromWeb.Add(personFromServer.NAV);
+                                    listCodesFromWeb.Add(personFromServer.NAV.Replace('S', 'С'));
 
                                     _ProgressWork1Step(1);
                                 }
