@@ -1222,11 +1222,11 @@ namespace PersonViewerSCA2
                                 {
                                     if (reader?.GetString(@"code") != null && reader?.GetString(@"code").Length > 0 )
                                     {
-                                        MessageBox.Show(reader?.GetDateTime(@"start_date").ToString());
+                                        MessageBox.Show(reader?.GetMySqlDateTime(@"start_date").ToString());
                                         peopleShifts.Add(new PeopleShift()
                                         {
                                             _nav = reader.GetString(@"code"),
-                                            _dayStartShift = reader?.GetDateTime(@"start_date").ToString(),
+                                        //    _dayStartShift = reader?.GetDateTime(@"start_date").ToString(),
                                             _MoStart = Convert.ToInt32(reader.GetString(@"mo_start")),
                                             _MoEnd = Convert.ToInt32(reader.GetString(@"mo_end")),
                                             _TuStart = Convert.ToInt32(reader.GetString(@"tu_start")),
