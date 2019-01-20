@@ -1316,19 +1316,22 @@ namespace PersonViewerSCA2
                                     {
                                         if (personFromServer.NAV.StartsWith("S"))
                                         {
-                                            personFromServer.NAV=  personFromServer.NAV.Replace('S', 'С');
-                                            personFromServer.Shift = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._dayStartShift;
-                                            personFromServer.Comment = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._Comment;
+                                            try
+                                            {
+                                                personFromServer.NAV = personFromServer.NAV.Replace('S', 'С');
+                                                personFromServer.Shift = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._dayStartShift;
+                                                personFromServer.Comment = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._Comment;
 
-                                            tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoStart;
-                                            personFromServer.ControlInHour = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[0];
-                                            personFromServer.ControlInMinute = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[1];
-                                            personFromServer.ControlInHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
+                                                tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoStart;
+                                                personFromServer.ControlInHour = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[0];
+                                                personFromServer.ControlInMinute = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[1];
+                                                personFromServer.ControlInHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
 
-                                            tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoEnd;
-                                            personFromServer.ControlOutHour = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[0];
-                                            personFromServer.ControlOutMinute = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[1];
-                                            personFromServer.ControlOutHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
+                                                tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoEnd;
+                                                personFromServer.ControlOutHour = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[0];
+                                                personFromServer.ControlOutMinute = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[1];
+                                                personFromServer.ControlOutHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
+                                            } catch { }
                                         }
                                     }
 
