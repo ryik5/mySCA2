@@ -1299,6 +1299,9 @@ namespace PersonViewerSCA2
                                     try {
                                         personFromServer.Shift = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._dayStartShift;
                                         personFromServer.Comment = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._Comment;
+
+                                        personFromServer.ControlInHHMM = (peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoStart/60/60).ToString();
+                                        MessageBox.Show("fio "+ personFromServer.ControlInHHMM);
                                     } catch {
                                         personFromServer.Shift = "";
                                     }
