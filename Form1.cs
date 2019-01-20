@@ -1217,30 +1217,34 @@ namespace PersonViewerSCA2
                         {
                             while (reader.Read())
                             {
-                                if (reader.GetString(@"code") != null && reader.GetString(@"code").Length > 0 && reader.GetString(@"start_date") != null && reader.GetString(@"start_date").Length > 0)
+                                if (reader?.GetString(@"code") != null && reader?.GetString(@"code").Length > 0 && reader?.GetString(@"start_date") != null && reader?.GetString(@"start_date").Length > 0)
                                 {
-
-                                    peopleShifts.Add(new PeopleShift()
+                                    try
                                     {
-                                        _nav = reader.GetString(@"code"),
-                                        _dayStartShift = reader.GetString(@"start_date"),
-                                        _MoStart =Convert.ToInt32(reader.GetString(@"mo_start")),
-                                        _MoEnd = Convert.ToInt32(reader.GetString(@"mo_end")),
-                                        _TuStart = Convert.ToInt32(reader.GetString(@"tu_start")),
-                                        _TuEnd = Convert.ToInt32(reader.GetString(@"tu_end")),
-                                        _WeStart = Convert.ToInt32(reader.GetString(@"we_start")),
-                                        _WeEnd = Convert.ToInt32(reader.GetString(@"we_end")),
-                                        _ThStart = Convert.ToInt32(reader.GetString(@"th_start")),
-                                        _ThEnd= Convert.ToInt32(reader.GetString(@"th_end")),
-                                        _FrStart = Convert.ToInt32(reader.GetString(@"fr_start")),
-                                        _FrEnd= Convert.ToInt32(reader.GetString(@"fr_end")),
-                                        _SaStart = Convert.ToInt32(reader.GetString(@"sa_start")),
-                                        _SaEnd= Convert.ToInt32(reader.GetString(@"sa_end")),
-                                        _SuStart = Convert.ToInt32(reader.GetString(@"su_start")),
-                                        _SuEnd= Convert.ToInt32(reader.GetString(@"su_end")),
-                                        _Status="",
-                                        _Comment = reader.GetString(@"comment")
-                                    });
+                                        peopleShifts.Add(new PeopleShift()
+                                        {
+                                            _nav = reader.GetString(@"code"),
+                                            _dayStartShift = reader?.GetString(@"start_date"),
+                                            _MoStart = Convert.ToInt32(reader.GetString(@"mo_start")),
+                                            _MoEnd = Convert.ToInt32(reader.GetString(@"mo_end")),
+                                            _TuStart = Convert.ToInt32(reader.GetString(@"tu_start")),
+                                            _TuEnd = Convert.ToInt32(reader.GetString(@"tu_end")),
+                                            _WeStart = Convert.ToInt32(reader.GetString(@"we_start")),
+                                            _WeEnd = Convert.ToInt32(reader.GetString(@"we_end")),
+                                            _ThStart = Convert.ToInt32(reader.GetString(@"th_start")),
+                                            _ThEnd = Convert.ToInt32(reader.GetString(@"th_end")),
+                                            _FrStart = Convert.ToInt32(reader.GetString(@"fr_start")),
+                                            _FrEnd = Convert.ToInt32(reader.GetString(@"fr_end")),
+                                            _SaStart = Convert.ToInt32(reader.GetString(@"sa_start")),
+                                            _SaEnd = Convert.ToInt32(reader.GetString(@"sa_end")),
+                                            _SuStart = Convert.ToInt32(reader.GetString(@"su_start")),
+                                            _SuEnd = Convert.ToInt32(reader.GetString(@"su_end")),
+                                            _Status = "",
+                                            _Comment = reader.GetString(@"comment")
+                                        });
+                                    } catch {
+                                        MessageBox.Show("err get");
+                                    }
                                     _ProgressWork1Step(1);
                                 }
                             }
@@ -1291,7 +1295,7 @@ namespace PersonViewerSCA2
                                     try {
                                         personFromServer.Shift = peopleShifts.Find((x) => x._nav == personFromServer.NAV)._dayStartShift;
                                         MessageBox.Show("Особый график: " +personFromServer.FIO+" " + personFromServer.Shift);
-                                            } catch { personFromServer.Shift = ""; }
+                                            } catch { MessageBox.Show("err"); personFromServer.Shift = ""; }
 
 
                                     row[@"№ п/п"] = iFIO;
