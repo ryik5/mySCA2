@@ -313,6 +313,8 @@ namespace PersonViewerSCA2
         private DataTable dtPersonRegistrationsFullList = new DataTable("PersonRegistrationsFullList");
         private DataTable dtPersonRegistrationsList = new DataTable("PersonRegistrationsList");
         private DataTable dtPeopleGroup = new DataTable("PeopleGroup");
+        private DataTable dtPeopleListLoaded = new DataTable("PeopleLoaded");
+
 
         private DataTable dtGroup = new DataTable("Group");
         private DataColumn[] dcGroup =
@@ -1047,7 +1049,8 @@ namespace PersonViewerSCA2
                 pictureBox1.Visible = false;
 
                 await Task.Run(() => GetFioFromServers(dtTempIntermediate));
-
+                dtPeopleListLoaded?.Clear();
+                dtPeopleListLoaded = dtTempIntermediate.Copy();
                 await Task.Run(() => ImportTablePeopleToTableGroupsInLocalDB(databasePerson.ToString(), dtTempIntermediate));
 
                 //show selected data     
@@ -1206,8 +1209,7 @@ namespace PersonViewerSCA2
                 {
                     sqlConnection.Open();
                     
-                    query = "Select code, start_date, mo_start, mo_end, tu_start, tu_end, we_start, we_end, th_start, th_end, " +
-                        "fr_start, fr_end, sa_start, sa_end, su_start, su_end, comment FROM work_time ";
+                    query = "Select * FROM work_time ";
                     logger.Info(query);
                     using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
                     {
@@ -1217,16 +1219,6 @@ namespace PersonViewerSCA2
                             {
                                 if (reader.GetString(@"code") != null && reader.GetString(@"code").Length > 0 && reader.GetString(@"start_date") != null && reader.GetString(@"start_date").Length > 0)
                                 {
-                                    try { tmp = reader.GetString(@"code"); } catch { MessageBox.Show("1"); }
-                                    try { tmp = reader.GetString(@"start_date"); } catch { MessageBox.Show("2"); }
-                                    try { tmp = reader.GetString(@"mo_start"); } catch { MessageBox.Show("3"); }
-                                    try { tmp = reader.GetString(@"mo_end"); } catch { MessageBox.Show("4"); }
-                                    try { tmp = reader.GetString(@"tu_start"); } catch { MessageBox.Show("5"); }
-                                    try { tmp = reader.GetString(@"tu_end"); } catch { MessageBox.Show("6"); }
-                                    try { tmp = reader.GetString(@"we_start"); } catch { MessageBox.Show("7"); }
-                                    try { tmp = reader.GetString(@"we_end"); } catch { MessageBox.Show("8"); }
-
-
 
                                     peopleShifts.Add(new PeopleShift()
                                     {
@@ -1491,7 +1483,12 @@ namespace PersonViewerSCA2
 
         private async void ListFioReturn()
         {
-            await Task.Run(() => ShowDatatableOnDatagridview(dtPeople, arrayHiddenColumnsFIO));
+            var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(arrayHiddenColumnsFIO).ToArray(); //take distinct data
+            dtPersonTemp = GetDistinctRecords(dtPeopleListLoaded, namesDistinctColumnsArray);
+
+            await Task.Run(() => ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenColumnsFIO));
+            
+
         }
 
 
@@ -2788,8 +2785,7 @@ namespace PersonViewerSCA2
             { MessageBox.Show(Expt.ToString(), @"Сервер не доступен, или неправильная авторизация", MessageBoxButtons.OK, MessageBoxIcon.Error); }
 
 
-
-
+            /*
             //remove
             foreach (var rowData in listRegistrations.ToArray())
             {
@@ -2842,6 +2838,7 @@ namespace PersonViewerSCA2
 
                 dt.Rows.Add(rowPerson);
             }
+            */
             if (listPoints.Count > 0)
             { bLoaded = true; }
 
@@ -2910,6 +2907,7 @@ namespace PersonViewerSCA2
                         }
                     }
                 }
+
                 int idReason = 0;
                 string date = "";
                 string name = "";
@@ -2956,8 +2954,7 @@ namespace PersonViewerSCA2
                     }
                 }
             }
-
-
+            
             listRegistrations.Clear(); rowPerson = null;
             namePoint = null; direction = null;
             hourControlStart = 0; minuteControlStart = 0;
