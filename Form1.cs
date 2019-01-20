@@ -1199,7 +1199,7 @@ namespace PersonViewerSCA2
                 //todo import users and group from www.ais
                 List<PeopleShift> peopleShifts = new List<PeopleShift>();
                 string dayStartShift = "";
-                string tmp;
+                string tmpDate;
                 _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...");
                 stimerPrev = "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...";
 
@@ -1222,12 +1222,15 @@ namespace PersonViewerSCA2
                                 {
                                     if (reader?.GetString(@"code") != null && reader?.GetString(@"code").Length > 0 )
                                     {
-                                        string str = reader?.GetMySqlDateTime(@"start_date").ToString();
-                                        try { MessageBox.Show(DateTime.Parse(str).ToString("yyyy-MM-dd")); } catch { MessageBox.Show("err: "+str); }
+                                        try {
+                                            tmpDate = DateTime.Parse(reader?.GetMySqlDateTime(@"start_date").ToString()).ToString("yyyy-MM-dd"); } catch
+                                        {
+                                            tmpDate = DateTime.Parse("1980-01-01").ToString("yyyy-MM-dd");
+                                        }
                                         peopleShifts.Add(new PeopleShift()
                                         {
                                             _nav = reader.GetString(@"code"),
-                                          //  _dayStartShift = reader?.GetDateTime(@"start_date").ToString(),
+                                            _dayStartShift = tmpDate,
                                             _MoStart = Convert.ToInt32(reader.GetString(@"mo_start")),
                                             _MoEnd = Convert.ToInt32(reader.GetString(@"mo_end")),
                                             _TuStart = Convert.ToInt32(reader.GetString(@"tu_start")),
