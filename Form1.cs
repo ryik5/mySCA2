@@ -1196,7 +1196,7 @@ namespace PersonViewerSCA2
                 //todo import users and group from www.ais
                 List<PeopleShift> peopleShifts = new List<PeopleShift>();
                 string dayStartShift = "";
-
+                string tmp;
                 _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...");
                 stimerPrev = "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...";
 
@@ -1217,10 +1217,21 @@ namespace PersonViewerSCA2
                             {
                                 if (reader.GetString(@"code") != null && reader.GetString(@"code").Length > 0 && reader.GetString(@"start_date") != null && reader.GetString(@"start_date").Length > 0)
                                 {
+                                    try { tmp = reader.GetString(@"code"); } catch { MessageBox.Show("1"); }
+                                    try { tmp = reader.GetString(@"start_date"); } catch { MessageBox.Show("2"); }
+                                    try { tmp = reader.GetString(@"mo_start"); } catch { MessageBox.Show("3"); }
+                                    try { tmp = reader.GetString(@"mo_end"); } catch { MessageBox.Show("4"); }
+                                    try { tmp = reader.GetString(@"tu_start"); } catch { MessageBox.Show("5"); }
+                                    try { tmp = reader.GetString(@"tu_end"); } catch { MessageBox.Show("6"); }
+                                    try { tmp = reader.GetString(@"we_start"); } catch { MessageBox.Show("7"); }
+                                    try { tmp = reader.GetString(@"we_end"); } catch { MessageBox.Show("8"); }
+
+
+
                                     peopleShifts.Add(new PeopleShift()
                                     {
                                         _nav = reader.GetString(@"code"),
-                                        _dayStartShift = "",//reader.GetString(@"start_date"),
+                                        _dayStartShift = reader.GetString(@"start_date"),
                                         _MoStart =Convert.ToInt32(reader.GetString(@"mo_start")),
                                         _MoEnd = Convert.ToInt32(reader.GetString(@"mo_end")),
                                         _TuStart = Convert.ToInt32(reader.GetString(@"tu_start")),
