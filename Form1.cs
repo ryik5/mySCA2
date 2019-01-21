@@ -21,7 +21,7 @@ using System.Security.Cryptography;
 
 namespace PersonViewerSCA2
 {
-    public partial class FormPersonViewerSCA :Form
+    public partial class FormPersonViewerSCA : Form
     {
         private NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
@@ -76,7 +76,7 @@ namespace PersonViewerSCA2
         private string sServer1UserPassword = "";
         private string sServer1UserPasswordRegistry = "";
         private string sServer1UserPasswordDB = "";
-        
+
         private Label labelMailServerName;
         private TextBox textBoxMailServerName;
         private Label labelMailServerUserName;
@@ -108,7 +108,7 @@ namespace PersonViewerSCA2
         private string mysqlServerUserPassword = "";
         private string mysqlServerUserPasswordRegistry = "";
         private string mysqlServerUserPasswordDB = "";
-        
+
         private Color clrRealRegistration = Color.PaleGreen;
         private string sLastSelectedElement = "MainForm";
 
@@ -368,7 +368,7 @@ namespace PersonViewerSCA2
         {
             currentModeAppManual = true;
             _MenuItemTextSet(modeItem, "Сменить на автоматический режим");
-            _menuItemTooltipSet(modeItem, "Включен интеррактивный режим. Все рассылки остановлены.");
+            _menuItemTooltipSet(modeItem, "Включен интерактивный режим. Все рассылки остановлены.");
 
             myFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
             strVersion = myFileVersionInfo.Comments + " ver." + myFileVersionInfo.FileVersion + " " + myFileVersionInfo.LegalCopyright;
@@ -459,7 +459,8 @@ namespace PersonViewerSCA2
                 { StatusLabel2.Text = @"Выбран: " + ShortFIO(sFIO) + @" |  Всего ФИО: " + iFIO; }
                 else if (ShortFIO(sFIO).Length < 3 && iFIO > 0)
                 { StatusLabel2.Text = @"Всего ФИО: " + iFIO; }
-            } catch { StatusLabel2.Text = " Начните работу с кнопки - \"Получить ФИО\""; }
+            }
+            catch { StatusLabel2.Text = " Начните работу с кнопки - \"Получить ФИО\""; }
 
 
             //Prepare Datatables
@@ -622,7 +623,8 @@ namespace PersonViewerSCA2
                                     {
                                         listFIO.Add(record["PersonsList"].ToString().Trim());
                                     }
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
@@ -640,7 +642,8 @@ namespace PersonViewerSCA2
                                         _comboBoxAdd(comboBoxFio, record["ComboList"].ToString().Trim());
                                         iCombo++;
                                     }
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
@@ -658,7 +661,8 @@ namespace PersonViewerSCA2
                                         if (record["PoParameterName"].ToString().Trim() == "clrRealRegistration")
                                             clrRealRegistration = Color.FromName(record["PoParameterValue"].ToString());
                                     }
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
@@ -679,7 +683,7 @@ namespace PersonViewerSCA2
                                             try { sServer1UserNameDB = DecryptBase64ToString(record["Reserv1"].ToString(), btsMess1, btsMess2); } catch { }
                                             try { sServer1UserPasswordDB = DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2); } catch { }
                                         }
-                                       else if (record["EquipmentParameterValue"].ToString().Trim() == "MailServer" && record["EquipmentParameterName"].ToString().Trim() == "MailUser")
+                                        else if (record["EquipmentParameterValue"].ToString().Trim() == "MailServer" && record["EquipmentParameterName"].ToString().Trim() == "MailUser")
                                         {
                                             mailServerDB = record["EquipmentParameterServer"].ToString();
                                             mailServerUserNameDB = record["Reserv1"].ToString();
@@ -692,7 +696,8 @@ namespace PersonViewerSCA2
                                             try { mysqlServerUserPasswordDB = DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2); } catch { }
                                         }
                                     }
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
@@ -730,7 +735,8 @@ namespace PersonViewerSCA2
                 {
                     using (var command = new SQLiteCommand(SqlQuery, connection))
                     { command.ExecuteNonQuery(); }
-                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                }
+                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
             }
             SqlQuery = null;
         }
@@ -831,7 +837,14 @@ namespace PersonViewerSCA2
                 {
                     sqlConnection.Open();
                     using (var sqlCommand = new SQLiteCommand("DROP Table if exists '" + myTable + "';", sqlConnection))
-                    { try { sqlCommand.ExecuteNonQuery(); } catch { } }
+                    {
+                        try
+                        {
+                            sqlCommand.ExecuteNonQuery();
+                            logger.Info("-= Удалена таблица " + myTable + " =-");
+                        }
+                        catch { }
+                    }
                     using (var sqlCommand = new SQLiteCommand("vacuum;", sqlConnection))   //vacuum DB
                     {
                         sqlCommand.ExecuteNonQuery();
@@ -1000,7 +1013,8 @@ namespace PersonViewerSCA2
                         }
                     }
                 }
-            } catch
+            }
+            catch
             { bServer1Exist = false; }
 
             if (bServer1Exist)
@@ -1025,7 +1039,10 @@ namespace PersonViewerSCA2
 
 
         private void GetFio_Click(object sender, EventArgs e)  //GetFIO()
-        { GetFIO(); }
+        {
+            _ProgressBar1Start();
+            GetFIO();
+        }
 
         private async void GetFIO()  // CheckAliveServer()   GetFioFromServers()  ImportTablePeopleToTableGroupsInLocalDB()
         {
@@ -1044,7 +1061,6 @@ namespace PersonViewerSCA2
 
             if (bServer1Exist)
             {
-                _ProgressBar1Start();
                 dataGridView1.Visible = true;
                 pictureBox1.Visible = false;
 
@@ -1062,6 +1078,8 @@ namespace PersonViewerSCA2
 
                 await Task.Run(() => panelViewResize(numberPeopleInLoading));
                 listFioItem.Visible = true;
+                nameOfLastTableFromDB = "ListFIO";
+
             }
             else { GetInfoSetup(); }
 
@@ -1082,9 +1100,9 @@ namespace PersonViewerSCA2
             string fio = "";
             List<string> ListFIOTemp = new List<string>();
             listFIO = new List<string>();
-            List<string> listCodesWithIdCard  = new List<string>(); //NAV-codes people who have idCard
+            List<string> listCodesWithIdCard = new List<string>(); //NAV-codes people who have idCard
             List<string> listCodesFromWeb = new List<string>();
-          //  List<string> listCodesFromOutResonWeb = new List<string>();
+            //  List<string> listCodesFromOutResonWeb = new List<string>();
 
             try
             {
@@ -1163,7 +1181,8 @@ namespace PersonViewerSCA2
 
                                         _ProgressWork1Step(1);
                                     }
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
@@ -1188,13 +1207,13 @@ namespace PersonViewerSCA2
 
                                         dtGroup.Rows.Add(row);
                                     }
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 _ProgressWork1Step(1);
                             }
                         }
                     }
                 }
-
 
                 // import users and group from www.ais
                 List<PeopleShift> peopleShifts = new List<PeopleShift>();
@@ -1208,8 +1227,8 @@ namespace PersonViewerSCA2
                 using (var sqlConnection = new MySql.Data.MySqlClient.MySqlConnection(stringConnection))
                 {
                     sqlConnection.Open();
-                    
-                    query = "Select code,start_date,mo_start,mo_end,tu_start,tu_end,we_start,we_end,th_start,th_end,fr_start,fr_end, "+
+
+                    query = "Select code,start_date,mo_start,mo_end,tu_start,tu_end,we_start,we_end,th_start,th_end,fr_start,fr_end, " +
                                     "sa_start,sa_end,su_start,su_end,comment FROM work_time ORDER by start_date";
                     logger.Info(query);
                     try
@@ -1222,7 +1241,8 @@ namespace PersonViewerSCA2
                                 {
                                     if (reader?.GetString(@"code") != null && reader?.GetString(@"code").Length > 0)
                                     {
-                                        try { dayStartShift = DateTime.Parse(reader?.GetMySqlDateTime(@"start_date").ToString()).ToString("yyyy-MM-dd"); } catch
+                                        try { dayStartShift = DateTime.Parse(reader?.GetMySqlDateTime(@"start_date").ToString()).ToString("yyyy-MM-dd"); }
+                                        catch
                                         { dayStartShift = DateTime.Parse("1980-01-01").ToString("yyyy-MM-dd"); }
 
                                         peopleShifts.Add(new PeopleShift()
@@ -1251,8 +1271,9 @@ namespace PersonViewerSCA2
                                 }
                             }
                         }
-                    } catch { logger.Warn("Can't get data"); }
-                    
+                    }
+                    catch { logger.Warn("Can't get data"); }
+
                     query = "Select code, family_name,first_name,last_name,vacancy,department FROM personal"; //where hidden=0
                     logger.Info(query);
 
@@ -1301,7 +1322,8 @@ namespace PersonViewerSCA2
                                         personFromServer.ControlOutHour = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[0];
                                         personFromServer.ControlOutMinute = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[1];
                                         personFromServer.ControlOutHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
-                                    } catch { }
+                                    }
+                                    catch { }
 
                                     row[@"№ п/п"] = iFIO;
                                     row[@"Фамилия Имя Отчество"] = personFromServer.FIO;
@@ -1322,7 +1344,7 @@ namespace PersonViewerSCA2
 
                                     dataTablePeopple.Rows.Add(row);
 
-                                    ListFIOTemp.Add(personFromServer.FIO +  "|" + personFromServer.NAV);
+                                    ListFIOTemp.Add(personFromServer.FIO + "|" + personFromServer.NAV);
                                     listCodesFromWeb.Add(personFromServer.NAV.Replace('S', 'С'));
 
                                     _ProgressWork1Step(1);
@@ -1338,11 +1360,11 @@ namespace PersonViewerSCA2
                 row[4] = "wwwais";
                 dtGroup.Rows.Add(row);
 
-                logger.Info("clean "+ dataTablePeopple.TableName);
+                logger.Info("clean " + dataTablePeopple.TableName);
                 //Clean from the result table redudant codes
                 DataRow dr;
                 IEnumerable<string> listCodesNoIdCard = listCodesFromWeb.Except(listCodesWithIdCard);//Get codes of people which need to remove                
-                foreach(string exceptCode in listCodesNoIdCard)
+                foreach (string exceptCode in listCodesNoIdCard)
                 {
                     for (int i = dataTablePeopple.Rows.Count - 1; i >= 0; i--)
                     {
@@ -1353,10 +1375,9 @@ namespace PersonViewerSCA2
                             break;
                         }
                     }
-                         _ProgressWork1Step(1);
-               }
+                    _ProgressWork1Step(1);
+                }
                 dataTablePeopple.AcceptChanges();
-
 
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
@@ -1369,9 +1390,9 @@ namespace PersonViewerSCA2
                     {
                         if (shift._nav != null && shift._nav.Length > 0)
                         {
-                            using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'ListOfWorkTimeShifts' (NAV, DayStartShift, MoStart, MoEnd, "+
+                            using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'ListOfWorkTimeShifts' (NAV, DayStartShift, MoStart, MoEnd, " +
                                 "TuStart, TuEnd, WeStart, WeEnd, ThStart, ThEnd, FrStart, FrEnd, SaStart, SaEnd, SuStart, SuEnd, Status, Comment, DayInputed) " +
-                            " VALUES (@NAV, @DayStartShift, @MoStart, @MoEnd, @TuStart, @TuEnd, @WeStart, @WeEnd, @ThStart, @ThEnd, @FrStart, @FrEnd, "+
+                            " VALUES (@NAV, @DayStartShift, @MoStart, @MoEnd, @TuStart, @TuEnd, @WeStart, @WeEnd, @ThStart, @ThEnd, @FrStart, @FrEnd, " +
                             " @SaStart, @SaEnd, @SuStart, @SuEnd, @Status, @Comment, @DayInputed)", sqlConnection))
                             {
                                 sqlCommand.Parameters.Add("@NAV", DbType.String).Value = shift._nav;
@@ -1403,10 +1424,11 @@ namespace PersonViewerSCA2
                     sqlCommand1.Dispose();
                     sqlConnection.Close();
                 }
- 
+
                 _toolStripStatusLabelSetText(StatusLabel2, "Список ФИО успешно получен");
                 stimerPrev = "Все списки с ФИО с сервера СКД успешно получены";
-            } catch (Exception Expt)
+            }
+            catch (Exception Expt)
             {
                 bServer1Exist = false;
                 stimerPrev = "Сервер не доступен или неправильная авторизация";
@@ -1423,7 +1445,7 @@ namespace PersonViewerSCA2
                 foreach (var dr in dtGroup.AsEnumerable())
                 {
                     DeleteDataTableQueryParameters(databasePerson, "PeopleGroup", "GroupPerson", dr[2].ToString(), "", "", "", "");
-                   // DeleteDataTableQueryParameters(databasePerson, "PeopleGroupDesciption", "GroupPerson", dr[2].ToString(), "", "", "", "");
+                    // DeleteDataTableQueryParameters(databasePerson, "PeopleGroupDesciption", "GroupPerson", dr[2].ToString(), "", "", "", "");
                 }
                 foreach (var dr in dtGroup.AsEnumerable())
                 {
@@ -1458,11 +1480,11 @@ namespace PersonViewerSCA2
                     sqlConnection.Close();
                 }
 
-
                 foreach (string str in ListFIOCombo.ToArray())
                 { _comboBoxAdd(comboBoxFio, str); }
                 try
-                { _comboBoxSelectIndex(comboBoxFio, 0); } catch { };
+                { _comboBoxSelectIndex(comboBoxFio, 0); }
+                catch { };
 
                 _toolStripStatusLabelSetText(StatusLabel2, "Получено ФИО - " + iFIO + " ");
                 _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
@@ -1496,6 +1518,7 @@ namespace PersonViewerSCA2
             dtPersonTemp = GetDistinctRecords(dtPeopleListLoaded, namesDistinctColumnsArray);
 
             await Task.Run(() => ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenColumnsFIO));
+            nameOfLastTableFromDB = "ListFIO";
         }
 
 
@@ -1723,19 +1746,24 @@ namespace PersonViewerSCA2
                 {
                     sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Фамилия Имя Отчество")) + 1)]
                     .Interior.Color = Color.DarkSeaGreen;
-                } catch { } //"Фамилия Имя Отчество"
+                }
+                catch { } //"Фамилия Имя Отчество"
 
                 try
                 {
                     sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Опоздание")) + 1)]
                     .Interior.Color = System.Drawing.Color.SandyBrown;
-                } catch { } //"Опоздание"
+                }
+                catch { } //"Опоздание"
 
                 try
                 {
                     sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Ранний уход")) + 1)]
                     .Interior.Color = System.Drawing.Color.SandyBrown;
-                } catch { } //"Ранний уход"
+                }
+                catch { } //"Ранний уход"
+
+                _ProgressWork1Step(1);
 
                 for (int column = 0; column < columnsInTable; column++)
                 {
@@ -1752,6 +1780,7 @@ namespace PersonViewerSCA2
                     sheet.Cells[1, column + 1].Interior.Color = System.Drawing.Color.Silver; //colourize the first row
                     sheet.Columns[column + 1].Font.Size = 8;
                     sheet.Columns[column + 1].Font.Name = "Tahoma";
+                    _ProgressWork1Step(1);
                 }
 
                 //input data and set type of cells - numbers /text
@@ -1768,6 +1797,7 @@ namespace PersonViewerSCA2
                         sheet.Cells[rows, column + 1].Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeRight].LineStyle = Microsoft.Office.Interop.Excel.XlLineStyle.xlContinuous;
                         sheet.Cells[rows, column + 1].Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeRight].Weight = Microsoft.Office.Interop.Excel.XlBorderWeight.xlThin;
                         sheet.Columns[column + 1].AutoFit();
+                        _ProgressWork1Step(1);
                     }
                 }
 
@@ -1787,6 +1817,8 @@ namespace PersonViewerSCA2
                 //Очищаем фильтр
                 sheet.Sort.SortFields.Clear();
 
+                _ProgressWork1Step(1);
+
                 //Autofilter
                 range = sheet.UsedRange; //sheet.Cells.Range["A1", GetExcelColumnName(columnsInTable) + rowsInTable];
                 range.Select();
@@ -1804,6 +1836,8 @@ namespace PersonViewerSCA2
                 workbook.Close(false, System.Reflection.Missing.Value, System.Reflection.Missing.Value);
                 workbooks.Close();
 
+                _ProgressWork1Step(1);
+
                 releaseObject(range);
                 releaseObject(rangeKey);
                 releaseObject(sheet);
@@ -1815,16 +1849,17 @@ namespace PersonViewerSCA2
                 indexColumns = null;
                 nameColumns = null;
                 //
+                _ProgressWork1Step(1);
+
                 stimerPrev = "";
                 _toolStripStatusLabelSetText(StatusLabel2, "Путь к отчету: " + filePath);
                 _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
-            } catch (Exception expt)
+                logger.Info("Отчет сгенерирован " + nameReport + " и сохранен в " + filePath);
+            }
+            catch (Exception expt)
             {
                 logger.Error("ExportDatatableSelectedColumnsToExcel - " + expt.ToString());
             }
-            logger.Info("Отчет сгенерирован " + nameReport + " и сохранен в " + filePath);
-
-            _ProgressBar1Stop();
             sLastSelectedElement = "ExportExcel";
         }
 
@@ -1834,11 +1869,13 @@ namespace PersonViewerSCA2
             {
                 System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
                 obj = null;
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 obj = null;
                 MessageBox.Show("Exception Occured while releasing object of Excel \n" + ex);
-            } finally
+            }
+            finally
             { GC.Collect(); }
         }
 
@@ -1906,7 +1943,8 @@ namespace PersonViewerSCA2
                 textBoxFIO.Text = Regex.Split(sComboboxFIO, "[|]")[0].Trim();
                 textBoxNav.Text = Regex.Split(sComboboxFIO, "[|]")[1].Trim();
                 StatusLabel2.Text = @"Выбран: " + ShortFIO(textBoxFIO.Text) + @" |  Всего ФИО: " + iFIO;
-            } catch { }
+            }
+            catch { }
             if (comboBoxFio.SelectedIndex > -1)
             {
                 QuickLoadDataItem.BackColor = Color.PaleGreen;
@@ -1949,7 +1987,6 @@ namespace PersonViewerSCA2
                 }
                 _toolStripStatusLabelSetText(StatusLabel2, "Группа - \"" + nameGroup + "\" создана");
             }
-
         }
 
         private void ListGroupsItem_Click(object sender, EventArgs e)
@@ -1973,7 +2010,8 @@ namespace PersonViewerSCA2
                 groupBoxTimeStart.BackColor = Color.PaleGreen;
                 groupBoxTimeEnd.BackColor = Color.PaleGreen;
                 groupBoxFilterReport.BackColor = SystemColors.Control;
-            } catch { }
+            }
+            catch { }
 
             DeleteGroupItem.Visible = true;
             dataGridView1.Visible = true;
@@ -2009,7 +2047,8 @@ namespace PersonViewerSCA2
                         nameFoundGroup = dgSeek.values[0];
                     }
                 }
-            } catch { }
+            }
+            catch { }
             return nameFoundGroup;
         }
 
@@ -2021,8 +2060,8 @@ namespace PersonViewerSCA2
 
             numberPeopleInLoading = 0;
             DataRow dataRow;
-            string d1 = "", d2 = "", d3 = "9", d4 = "0", d13 = "18", d14 = "0", dprtmnt = "", pstn = ""; 
-            
+            string d1 = "", d2 = "", d3 = "9", d4 = "0", d13 = "18", d14 = "0", dprtmnt = "", pstn = "";
+
             using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
             {
                 sqlConnection.Open();
@@ -2034,7 +2073,7 @@ namespace PersonViewerSCA2
                         foreach (DbDataRecord record in sqlReader)
                         {
                             d1 = ""; d2 = ""; d3 = "9"; d4 = "0"; d13 = "18"; d14 = "0"; dprtmnt = ""; pstn = "";
-                            try { d1 = record["FIO"].ToString().Trim(); } catch {  }
+                            try { d1 = record["FIO"].ToString().Trim(); } catch { }
 
                             if (record != null && d1.Length > 0)
                             {
@@ -2164,7 +2203,7 @@ namespace PersonViewerSCA2
 
                 //import groups
                 SQLiteCommand commandTransaction = new SQLiteCommand("begin", connection);
-                commandTransaction.ExecuteNonQuery(); 
+                commandTransaction.ExecuteNonQuery();
                 using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, HourControlling, MinuteControlling, Controlling, HourControllingOut, MinuteControllingOut, ControllingOut, ControllingHHMM, ControllingOUTHHMM, Reserv1, Reserv2) " +
                                          "VALUES (@FIO, @NAV, @GroupPerson, @HourControlling, @MinuteControlling, @Controlling, @HourControllingOut, @MinuteControllingOut, @ControllingOut, @ControllingHHMM, @ControllingOUTHHMM, @Reserv1, @Reserv2)", connection))
                 {
@@ -2173,8 +2212,8 @@ namespace PersonViewerSCA2
                         command.Parameters.Add("@FIO", DbType.String).Value = row[@"Фамилия Имя Отчество"].ToString(); //row[0]
                         command.Parameters.Add("@NAV", DbType.String).Value = row[@"NAV-код"].ToString();
                         command.Parameters.Add("@GroupPerson", DbType.String).Value = row[@"Группа"].ToString();
-                        command.Parameters.Add("@Reserv1", DbType.String).Value = row[@"Отдел"].ToString(); 
-                        command.Parameters.Add("@Reserv2", DbType.String).Value = row[@"Должность"].ToString();                             
+                        command.Parameters.Add("@Reserv1", DbType.String).Value = row[@"Отдел"].ToString();
+                        command.Parameters.Add("@Reserv2", DbType.String).Value = row[@"Должность"].ToString();
                         command.Parameters.Add("@HourControlling", DbType.String).Value = row[@"Время прихода,часы"].ToString();
                         command.Parameters.Add("@MinuteControlling", DbType.String).Value = row[@"Время прихода,минут"].ToString();
                         command.Parameters.Add("@Controlling", DbType.Decimal).Value = TryParseStringToDecimal(row[@"Время прихода"].ToString());
@@ -2254,7 +2293,8 @@ namespace PersonViewerSCA2
                             }
                         }
                     }
-                } catch (Exception expt) { MessageBox.Show("Error was happened on " + i + " row\n" + expt.ToString()); }
+                }
+                catch (Exception expt) { MessageBox.Show("Error was happened on " + i + " row\n" + expt.ToString()); }
                 if (i > listMaxLength - 10 || i == 0)
                 {
                     MessageBox.Show("Error was happened on " + i + " row\n You've been chosen the long file!");
@@ -2346,13 +2386,15 @@ namespace PersonViewerSCA2
                     {
                         StatusLabel2.Text = "Отсутствует NAV-код у:" + ShortFIO(textBoxFIO.Text);
                         _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
-                    } catch { }
+                    }
+                    catch { }
                 else if (group.Length == 0 && textBoxNav.Text.Trim().Length > 0)
                     try
                     {
                         StatusLabel2.Text = "Не указана группа, в которую нужно добавить!";
                         _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
-                    } catch { }
+                    }
+                    catch { }
             }
             SeekAndShowMembersOfGroup(group);
 
@@ -2383,7 +2425,8 @@ namespace PersonViewerSCA2
                                 {
                                     if (record != null && record["id"].ToString().Trim().Length > 0)
                                     { listPoints.Add(sServer1 + "|" + record["id"].ToString().Trim() + "|" + record["name"].ToString().Trim()); }
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
@@ -2412,9 +2455,13 @@ namespace PersonViewerSCA2
         }
 
         private async void GetDataItem_Click(object sender, EventArgs e) //GetData()
-        { await Task.Run(() => GetData()); }
+        {
+            string txtGroupBox = _textBoxReturnText(textBoxGroup);
+            string txtFIO = _textBoxReturnText(textBoxFIO);
+            await Task.Run(() => GetData(txtGroupBox, txtFIO));
+        }
 
-        private async void GetData()
+        private async void GetData(string groups, string fio)
         {
             _changeControlBackColor(groupBoxPeriod, SystemColors.Control);
             _changeControlBackColor(groupBoxTimeStart, SystemColors.Control);
@@ -2443,25 +2490,25 @@ namespace PersonViewerSCA2
                 DeleteAllDataInTableQuery(databasePerson, "PersonRegistrationsFullList");
                 GetNamePoints();  //Get names of the points
 
-                if ((nameOfLastTableFromDB == "PeopleGroupDesciption" || nameOfLastTableFromDB == "PeopleGroup") && _textBoxReturnText(textBoxGroup).Length > 0)
+                if ((nameOfLastTableFromDB == "PeopleGroupDesciption" || nameOfLastTableFromDB == "PeopleGroup") && groups.Length > 0)
                 {
-                    _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по группе " + _textBoxReturnText(textBoxGroup));
-                    stimerPrev = "Получаю данные по группе " + _textBoxReturnText(textBoxGroup);
+                    _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по группе " + groups);
+                    stimerPrev = "Получаю данные по группе " + groups;
                 }
                 else
                 {
-                    _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по \"" + ShortFIO(_textBoxReturnText(textBoxFIO)) + "\" ");
-                    stimerPrev = "Получаю данные по \"" + ShortFIO(_textBoxReturnText(textBoxFIO)) + "\"";
+                    _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по \"" + ShortFIO(fio) + "\" ");
+                    stimerPrev = "Получаю данные по \"" + ShortFIO(fio) + "\"";
                     nameOfLastTableFromDB = "PersonRegistrationsList";
                 }
-                
+
                 dtPersonRegistrationsFullList.Clear();
 
-                GetRegistrations(_textBoxReturnText(textBoxGroup), _dateTimePickerStart(), _dateTimePickerEnd(), "");
+                GetRegistrations(groups, _dateTimePickerStart(), _dateTimePickerEnd(), "");
 
                 dtPersonTemp = dtPersonRegistrationsFullList.Copy();
                 dtPersonTempAllColumns = dtPersonRegistrationsFullList.Copy(); //store all columns
-                                
+
                 //show selected data     
                 //distinct Records                
                 var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(nameHidenColumnsArray).ToArray(); //take distinct data
@@ -2520,8 +2567,9 @@ namespace PersonViewerSCA2
 
             if ((nameOfLastTableFromDB == "PeopleGroupDesciption" || nameOfLastTableFromDB == "PeopleGroup" || doPostAction == "sendEmail") && selectedGroup.Length > 0)
             {
-                LoadGroupMembersFromDbToDataTable(dtPeopleGroup, selectedGroup); //result will be in dtPeopleGroup
+                LoadGroupMembersFromDbToDataTable(selectedGroup); //result will be in dtPeopleGroup
 
+                logger.Info("GetRegistrations, DT - " + dtPeopleGroup.TableName + " , всего записей - " + dtPeopleGroup.Rows.Count);
                 foreach (DataRow row in dtPeopleGroup.Rows)
                 {
                     if (row[@"Фамилия Имя Отчество"].ToString().Length > 0 && row[@"Группа"].ToString() == selectedGroup)
@@ -2541,6 +2589,10 @@ namespace PersonViewerSCA2
                         person.FIO = row[@"Фамилия Имя Отчество"].ToString();
                         person.NAV = row[@"NAV-код"].ToString();
                         person.GroupPerson = selectedGroup;
+
+                        person.Department = row[@"Отдел"].ToString();
+                        person.PositionInDepartment = row[@"Должность"].ToString();
+
                         person.ControlInHour = row[@"Время прихода,часы"].ToString();
                         person.ControlInHourDecimal = dControlHourIn;
                         person.ControlInMinute = row[@"Время прихода,минут"].ToString();
@@ -2584,14 +2636,14 @@ namespace PersonViewerSCA2
 
                 GetPersonRegistrationFromServer(dtPersonRegistrationsFullList, person, startDate, endDate);
 
-                nameOfLastTableFromDB = "PersonRegistrationsList";
+                //  nameOfLastTableFromDB = "PersonRegistrationsList";
                 _toolStripStatusLabelSetText(StatusLabel2, "Данные с СКД по \"" + ShortFIO(_textBoxReturnText(textBoxFIO)) + "\" получены!");
             }
 
             person = null;
         }
 
-        private void GetPersonRegistrationFromServer(DataTable dt, Person person, string startDate, string endDate)
+        private void GetPersonRegistrationFromServer(DataTable dtTarget, Person person, string startDate, string endDate)
         {
             DataRow rowPerson;
             string stringConnection = "";
@@ -2610,9 +2662,6 @@ namespace PersonViewerSCA2
             try { stringSelectedFIO[0] = Regex.Split(person.FIO, "[ ]")[0]; } catch { }
             try { stringSelectedFIO[1] = Regex.Split(person.FIO, "[ ]")[1]; } catch { }
             try { stringSelectedFIO[2] = Regex.Split(person.FIO, "[ ]")[2]; } catch { }
-
-            stimerPrev = "Получаю данные по \"" + ShortFIO(person.FIO) + "\"";
-            _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по \"" + ShortFIO(person.FIO) + "\"");
 
             //is looking for a NAV and an idCard
             try
@@ -2652,7 +2701,8 @@ namespace PersonViewerSCA2
                                 stringIdCardIntellect = Regex.Split(strRowWithNav, "[|]")[3].Trim();
                                 person.idCard = Convert.ToInt32(stringIdCardIntellect);
                                 break;
-                            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                            }
+                            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                     }
 
                     if (stringIdCardIntellect.Length == 0)
@@ -2667,11 +2717,13 @@ namespace PersonViewerSCA2
                                 {
                                     stringIdCardIntellect = Regex.Split(strRowWithNav, "[|]")[3].Trim();
                                     person.idCard = Convert.ToInt32(stringIdCardIntellect);
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 try
                                 {
                                     personNAVTemp = Regex.Split(strRowWithNav, "[|]")[4].Trim();
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 if (person.NAV.Length < 1 && personNAVTemp.Length > 0)
                                 {
                                     person.NAV = personNAVTemp;
@@ -2742,10 +2794,11 @@ namespace PersonViewerSCA2
                                                         else if (namePoint.ToLower().Contains("вход"))
                                                             direction = "Вход";
                                                         break;
-                                                    } catch { }
+                                                    }
+                                                    catch { }
                                             }
-                                            
-                                            rowPerson = dt.NewRow();
+
+                                            rowPerson = dtTarget.NewRow();
                                             rowPerson[@"Фамилия Имя Отчество"] = person.FIO;
                                             rowPerson[@"NAV-код"] = person.NAV;
                                             rowPerson[@"Группа"] = person.GroupPerson;
@@ -2770,7 +2823,7 @@ namespace PersonViewerSCA2
                                             rowPerson[@"Время ухода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(person.ControlOutHour, person.ControlOutMinute);
                                             rowPerson[@"Реальное время прихода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(hourManaging.ToString(), minuteManaging.ToString());
 
-                                            dt.Rows.Add(rowPerson);
+                                            dtTarget.Rows.Add(rowPerson);
 
                                             _ProgressWork1Step(1);
                                         }
@@ -2789,61 +2842,6 @@ namespace PersonViewerSCA2
             catch (Exception Expt)
             { MessageBox.Show(Expt.ToString(), @"Сервер не доступен, или неправильная авторизация", MessageBoxButtons.OK, MessageBoxIcon.Error); }
 
-
-            /*
-            //remove
-            foreach (var rowData in listRegistrations.ToArray())
-            {
-                cellData = Regex.Split(rowData, "[|]");
-                namePoint = "";
-                direction = "";
-
-                foreach (var aPointPass in listPoints.ToArray())
-                {
-                    if (aPointPass != null && cellData[10] != null && cellData[11] != null &&
-                        aPointPass.Contains(cellData[10]) && aPointPass.Contains(cellData[11]) &&
-                        aPointPass.Contains("|") && cellData[11].Length ==
-                        Regex.Split(aPointPass, "[|]")[1].Length)
-                        try
-                        {
-                            namePoint = Regex.Split(aPointPass, "[|]")[2];
-                            if (namePoint.ToLower().Contains("выход"))
-                                direction = "Выход";
-                            else if (namePoint.ToLower().Contains("вход"))
-                                direction = "Вход";
-                            break;
-                        }
-                        catch { }
-                }
-
-                rowPerson = dt.NewRow();
-                rowPerson[@"Фамилия Имя Отчество"] = person.FIO;
-                rowPerson[@"NAV-код"] = person.NAV;
-                rowPerson[@"Группа"] = person.GroupPerson;
-                rowPerson[@"№ пропуска"] = cellData[2];
-                rowPerson[@"Время прихода,часы"] = person.ControlInHour;
-                rowPerson[@"Время прихода,минут"] = person.ControlInMinute;
-                rowPerson[@"Время прихода"] = controlStart;
-                rowPerson[@"Время ухода,часы"] = person.ControlOutHour;
-                rowPerson[@"Время ухода,минут"] = person.ControlOutMinute;
-                rowPerson[@"Время ухода"] = person.ControlOutDecimal;
-                //day of registration
-                rowPerson[@"Дата регистрации"] = cellData[3];
-                rowPerson[@"День недели"] = DayOfWeekRussian((DateTime.Parse(cellData[3])).DayOfWeek.ToString());
-                //real data
-                rowPerson[@"Время регистрации,часы"] = cellData[4];
-                rowPerson[@"Время регистрации,минут"] = cellData[5];
-                rowPerson[@"Время регистрации"] = TryParseStringToDecimal(cellData[6]);
-                rowPerson[@"Сервер СКД"] = sServer1;
-                rowPerson[@"Имя точки прохода"] = namePoint;
-                rowPerson[@"Направление прохода"] = direction;
-                rowPerson[@"Время прихода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(person.ControlInHour, person.ControlInMinute);
-                rowPerson[@"Время ухода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(person.ControlOutHour, person.ControlOutMinute);
-                rowPerson[@"Реальное время прихода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(cellData[4], cellData[5]);
-
-                dt.Rows.Add(rowPerson);
-            }
-            */
             if (listPoints.Count > 0)
             { bLoaded = true; }
 
@@ -2854,9 +2852,9 @@ namespace PersonViewerSCA2
             foreach (string day in workSelectedDays)
             {
                 //проверка - есть ли не выход на работу в рабочий день
-                if (dt.Select(@"[Дата регистрации] = '" + day + "'").Count() == 0) 
+                if (dtTarget.Select(@"[Дата регистрации] = '" + day + "'").Count() == 0)
                 {
-                    rowPerson = dt.NewRow();
+                    rowPerson = dtTarget.NewRow();
                     rowPerson[@"Фамилия Имя Отчество"] = person.FIO;
                     rowPerson[@"NAV-код"] = person.NAV;
                     rowPerson[@"Группа"] = person.GroupPerson;
@@ -2876,8 +2874,9 @@ namespace PersonViewerSCA2
                     rowPerson[@"Время ухода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(person.ControlOutHour, person.ControlOutMinute);
                     rowPerson[@"Отсутствовал на работе"] = "Да";
 
-                    dt.Rows.Add(rowPerson);//добавляем рабочий день в который  сотрудник не выходил на работу
+                    dtTarget.Rows.Add(rowPerson);//добавляем рабочий день в который  сотрудник не выходил на работу
                 }
+                _ProgressWork1Step(1);
             }
 
             //look for late and absence of data in www's DB
@@ -2913,6 +2912,8 @@ namespace PersonViewerSCA2
                     }
                 }
 
+                _ProgressWork1Step(1);
+
                 int idReason = 0;
                 string date = "";
                 string name = "";
@@ -2947,19 +2948,22 @@ namespace PersonViewerSCA2
                 }
                 sqlConnection.Close();
             }
-            logger.Info(person.NAV+ " - на сайте всего записей с отсутствиями: " + outPerson.Count);
-            
-            foreach (DataRow dr in dt.Rows) // search whole table
+            logger.Info(person.NAV + " - на сайте всего записей с отсутствиями: " + outPerson.Count);
+            _ProgressWork1Step(1);
+
+            foreach (DataRow dr in dtTarget.Rows) // search whole table
             {
                 foreach (string day in workSelectedDays)
                 {
                     if (dr[@"Дата регистрации"].ToString() == day) // if "Дата регистрации"==day
                     {
-                        try { dr[@"Комментарии"] = outPerson.Find((x) => x._date == day)._reason_Name; } catch {  }  
+                        try { dr[@"Комментарии"] = outPerson.Find((x) => x._date == day)._reason_Name; } catch { }
                     }
                 }
             }
-            
+
+            _ProgressWork1Step(1);
+
             listRegistrations.Clear(); rowPerson = null;
             namePoint = null; direction = null;
             hourControlStart = 0; minuteControlStart = 0;
@@ -3000,12 +3004,12 @@ namespace PersonViewerSCA2
         }
 
         //Get info the selected group from DB and make a few lists with these data
-        private void LoadGroupMembersFromDbToDataTable(DataTable dtTarget, string namePointedGroup) //"Select * FROM PeopleGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
+        private void LoadGroupMembersFromDbToDataTable(string namePointedGroup) // dtPeopleGroup //"Select * FROM PeopleGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
         {
-            dtTarget?.Dispose();
-            dtTarget = dtPeople.Clone();
+            logger.Info("LoadGroupMembersFromDbToDataTable, DT - " + dtPeopleGroup.TableName + ", группа - " + namePointedGroup);
+            dtPeopleGroup?.Dispose();
+            dtPeopleGroup = dtPeople.Clone();
             DataRow dataRow;
-            numberPeopleInLoading = 0;
             using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
             {
                 sqlConnection.Open();
@@ -3019,13 +3023,16 @@ namespace PersonViewerSCA2
                         foreach (DbDataRecord record in sqlReader)
                         {
                             d1 = ""; d2 = ""; d3 = "9"; d4 = "0"; d13 = "18"; d14 = "0";
-                            try { d1 = record["FIO"].ToString().Trim(); } catch { }
-
-                            if (record != null && d1.Length > 1)
+                            try
                             {
-                                dataRow = dtTarget.NewRow();
+                                d1 = record["FIO"].ToString().Trim();
+                                d2 = record["NAV"].ToString().Trim();
+                            }
+                            catch { }
 
-                                try { d2 = record["NAV"].ToString().Trim(); } catch { }
+                            if (record["FIO"] != null && record["NAV"]?.ToString().Length > 0)
+                            {
+                                dataRow = dtPeopleGroup.NewRow();
                                 try { d3 = record["HourControlling"].ToString().Trim(); } catch { }
                                 try { d4 = record["MinuteControlling"].ToString().Trim(); } catch { }
                                 try { d13 = record["HourControllingOut"].ToString().Trim(); } catch { }
@@ -3045,8 +3052,7 @@ namespace PersonViewerSCA2
                                 dataRow[@"Время прихода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(d3, d4);
                                 dataRow[@"Время ухода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(d13, d14);
 
-                                dtTarget.Rows.Add(dataRow);
-                                numberPeopleInLoading++;
+                                dtPeopleGroup.Rows.Add(dataRow);
                             }
                         }
                         d1 = null; d2 = null; d3 = null; d4 = null; d13 = null; d14 = null;
@@ -3054,6 +3060,7 @@ namespace PersonViewerSCA2
                 }
             }
             dataRow = null;
+            logger.Info("LoadGroupMembersFromDbToDataTable, всего записей - " + dtPeopleGroup.TableName + " " + dtPeopleGroup.Rows.Count);
         }
 
         private void DeletePersonFromGroupItem_Click(object sender, EventArgs e) //DeletePersonFromGroup()
@@ -3089,7 +3096,8 @@ namespace PersonViewerSCA2
                     dgSeek.FindValueInCells(dataGridView1, new string[] { @"NAV", @"Группа" });
                     foundNavCode = dgSeek.values[0];
                 }
-            } catch { }
+            }
+            catch { }
             return foundNavCode;
         }
 
@@ -3329,9 +3337,18 @@ namespace PersonViewerSCA2
         private void _comboBoxClr(ComboBox comboBx) //add string into  from other threads
         {
             if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { comboBx.Items.Clear(); }));
+                Invoke(new MethodInvoker(delegate
+                {
+                    comboBx.Items.Clear();
+                    comboBx.SelectedText = "";
+                    comboBx.Text = "";
+                }));
             else
+            {
                 comboBx.Items.Clear();
+                comboBx.SelectedText = "";
+                comboBx.Text = "";
+            }
         }
 
         private void _comboBoxSelectIndex(ComboBox comboBx, int i) //from other threads
@@ -4010,7 +4027,7 @@ namespace PersonViewerSCA2
 
             if ((nameOfLastTableFromDB == "PeopleGroupDesciption" || nameOfLastTableFromDB == "PeopleGroup") && nameGroup.Length > 0)
             {
-                LoadGroupMembersFromDbToDataTable(dtPeopleGroup, nameGroup); //result will be in dtPeopleGroup  //"Select * FROM PeopleGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
+                LoadGroupMembersFromDbToDataTable(nameGroup); //result will be in dtPeopleGroup  //"Select * FROM PeopleGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
 
                 if (_CheckboxCheckedStateReturn(checkBoxReEnter))
                 {
@@ -4056,7 +4073,7 @@ namespace PersonViewerSCA2
                 {
                     FilterDataByNav(personCheck, dtPersonRegistrationsFullList, dtTempIntermediate);
                 }
-                nameOfLastTableFromDB = "PersonRegistrationsList";
+                //  nameOfLastTableFromDB = "PersonRegistrationsList";
             }
 
             string[] arrayHiddenColumns =
@@ -4227,7 +4244,8 @@ namespace PersonViewerSCA2
                 { dataTableForStoring.ImportRow(dr); }
 
                 allWorkedDaysPerson = null;
-            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            }
+            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
 
             stringHourMinuteFirstRegistrationInDay = null; stringHourMinuteLastRegistrationInDay = null; hsDays = null;
             rowDtStoring = null; dtTemp = null; dtAllRegistrationsInSelectedDay = null;
@@ -4353,7 +4371,8 @@ namespace PersonViewerSCA2
 
                 foreach (var row in rows)
                 { row.Delete(); }
-            } catch (Exception expt)
+            }
+            catch (Exception expt)
             { MessageBox.Show(expt.ToString()); }
             dt.AcceptChanges();
             rows = null;
@@ -4385,51 +4404,84 @@ namespace PersonViewerSCA2
 
 
 
-        private void ClearReportItem_Click(object sender, EventArgs e) //ReCreatePersonTables()
-        { ReCreatePersonTables(); }
-
-        private void ReCreatePersonTables() //Clear
+        //----- Clear ---------//
+        private void ClearFilesInApplicationFolders(string maskFiles, string discribeFiles)
         {
+            try
+            {
+                System.IO.FileInfo[] filesPath = new System.IO.DirectoryInfo(System.IO.Path.GetDirectoryName(filePathApplication)).GetFiles(maskFiles, System.IO.SearchOption.AllDirectories);
+                foreach (System.IO.FileInfo file in filesPath)
+                {
+                    if (file.Length == 0) { continue; }
+                    else
+                    {
+                        try
+                        {
+                            System.IO.File.Delete(file.FullName);
+                            logger.Info("Удален файл: \"" + file.FullName + "\"");
+                        }
+                        catch { logger.Warn("Файл не удален: \"" + file.FullName + "\""); }
+                    }
+                }
+            }
+            catch { logger.Warn("Ошибка удаления: " + discribeFiles); }
+
+        }
+
+        private void ClearReportItem_Click(object sender, EventArgs e) //ReCreatePersonTables()
+        { CleaReportsRecreateTables(); }
+
+        private void CleaReportsRecreateTables()
+        {
+            logger.Info("-= Очистика от отчетов =-");
             DeleteTable(databasePerson, "PersonTemp");
             DeleteTable(databasePerson, "PersonRegistrationsList");
             DeleteTable(databasePerson, "PersonRegistrationsFullList");
-            textBoxFIO.Text = "";
-            textBoxGroup.Text = "";
-            textBoxGroupDescription.Text = "";
-            textBoxNav.Text = "";
+
+            ClearFilesInApplicationFolders(@"*.xlsx", "Excel-файлов");
+
+            _textBoxSetText(textBoxFIO, "");
+            _textBoxSetText(textBoxGroup, "");
+            _textBoxSetText(textBoxGroupDescription, "");
+            _textBoxSetText(textBoxNav, "");
+
             GC.Collect();
 
             TryMakeDB();
             UpdateTableOfDB();
-
             ShowDataTableQuery(databasePerson, "PersonRegistrationsFullList");
-            StatusLabel2.Text = @"Временные таблицы удалены";
+            _toolStripStatusLabelSetText(StatusLabel2, @"Временные таблицы удалены");
         }
 
         private void ClearDataItem_Click(object sender, EventArgs e) //ReCreateAllPeopleTables()
-        { ReCreateAllPeopleTables(); }
+        { ClearGotReportsRecreateTables(); }
 
-        private void ReCreateAllPeopleTables()
+        private void ClearGotReportsRecreateTables()
         {
+            logger.Info("-= Очистика от отчетов и полученных данных =-");
             DeleteTable(databasePerson, "PersonRegistrationsFullList");
             DeleteTable(databasePerson, "PersonRegistrationsList");
             DeleteTable(databasePerson, "PersonTemp");
             DeleteTable(databasePerson, "LastTakenPeopleList");
             DeleteTable(databasePerson, "LastTakenPeopleComboList");
 
-            comboBoxFio.Items.Clear();
-            comboBoxFio.SelectedText = "";
-            try { comboBoxFio.Text = ""; } catch { }
-            textBoxFIO.Text = "";
-            textBoxGroup.Text = "";
-            textBoxGroupDescription.Text = "";
-            textBoxNav.Text = "";
+            ClearFilesInApplicationFolders(@"*.xlsx", "Excel-файлов");
+            ClearFilesInApplicationFolders(@"*.log", "логов");
+
+            _textBoxSetText(textBoxFIO, "");
+            _textBoxSetText(textBoxGroup, "");
+            _textBoxSetText(textBoxGroupDescription, "");
+            _textBoxSetText(textBoxNav, "");
+
+            _comboBoxClr(comboBoxFio);
             listFIO.Clear();
+
             GC.Collect();
             iFIO = 0;
-            StatusLabel2.Text = @"База очищена от загруженных данных. Остались только созданные группы";
             TryMakeDB();
             UpdateTableOfDB();
+
+            _toolStripStatusLabelSetText(StatusLabel2, @"База очищена от загруженных данных. Остались только созданные группы");
         }
 
         private void ClearAllItem_Click(object sender, EventArgs e) //ReCreate DB
@@ -4439,6 +4491,8 @@ namespace PersonViewerSCA2
         {
             if (databasePerson.Exists)
             {
+                logger.Info("-= Очистика локальной базы от всех полученных, сгенерированных, сохраненных и введенных данных =-");
+
                 DeleteTable(databasePerson, "PersonRegistrationsFullList");
                 DeleteTable(databasePerson, "PersonRegistrationsList");
                 DeleteTable(databasePerson, "PersonTemp");
@@ -4453,23 +4507,27 @@ namespace PersonViewerSCA2
                 DeleteTable(databasePerson, "LastTakenPeopleList");
                 DeleteTable(databasePerson, "LastTakenPeopleComboList");
                 GC.Collect();
-                comboBoxFio.Items.Clear();
-                comboBoxFio.SelectedText = "";
-                try { comboBoxFio.Text = ""; } catch { }
-                textBoxFIO.Text = "";
-                textBoxGroup.Text = "";
-                textBoxGroupDescription.Text = "";
-                textBoxNav.Text = "";
+
+                ClearFilesInApplicationFolders(@"*.xlsx", "Excel-файлов");
+                ClearFilesInApplicationFolders(@"*.log", "логов");
+
+                _textBoxSetText(textBoxFIO, "");
+                _textBoxSetText(textBoxGroup, "");
+                _textBoxSetText(textBoxGroupDescription, "");
+                _textBoxSetText(textBoxNav, "");
+
+                _comboBoxClr(comboBoxFio);
                 listFIO.Clear();
+
                 iFIO = 0;
                 TryMakeDB();
             }
             else
             { TryMakeDB(); }
-            StatusLabel2.Text = @"Все таблицы очищены";
+            _toolStripStatusLabelSetText(StatusLabel2, @"Все таблицы очищены");
         }
 
-        
+
         private void SelectPersonFromDataGrid(Person personSelected)
         {
             decimal[] timeIn = new decimal[4];
@@ -4541,7 +4599,8 @@ namespace PersonViewerSCA2
                         StatusLabel2.Text = @"Выбран: " + personSelected.FIO + @" |  Всего ФИО: " + iFIO;
                     }
                 }
-            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            }
+            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
 
             if (personSelected.FIO.Length == 0)
             {
@@ -4569,7 +4628,8 @@ namespace PersonViewerSCA2
                 personSelected.ControlOutMinuteDecimal = _numUpDownReturn(numUpDownMinuteEnd);
                 personSelected.ControlOutMinute = personSelected.ControlOutMinuteDecimal.ToString();
                 personSelected.ControlOutHHMM = ConvertStringsTimeToStringHHMM(personSelected.ControlOutHour, personSelected.ControlOutMinute);
-            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            }
+            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
         }
 
         private void FindWorkDaysInSelected() //
@@ -4658,7 +4718,7 @@ namespace PersonViewerSCA2
             dayBolded = new DateTime(myYearNow, 1, 1);
             boldeddDates.Add(dayBolded.ToString("yyyy-MM-dd"));
             boldeddDates.Add(dayBolded.AddDays(1).ToString("yyyy-MM-dd"));
-           switch ((int)dayBolded.DayOfWeek)
+            switch ((int)dayBolded.DayOfWeek)
             {
                 case (int)Day.Saturday:
                     myTempDate = new DateTime(myYearNow, 10, 16);
@@ -4671,7 +4731,7 @@ namespace PersonViewerSCA2
                 default:
                     break;
             }
-             
+
             //Cristmas day
             dayBolded = new DateTime(myYearNow, 7, 1);
             boldeddDates.Add(dayBolded.ToString("yyyy-MM-dd"));
@@ -5046,7 +5106,8 @@ namespace PersonViewerSCA2
                         }
                     }
                 }
-            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            }
+            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
             sLastSelectedElement = "DrawRegistration";
         }
 
@@ -5314,7 +5375,8 @@ namespace PersonViewerSCA2
                 if (panelView != null && panelView.Controls.Count > 1) panelView.Controls.RemoveAt(1);
                 bmp?.Dispose();
                 pictureBox1?.Dispose();
-            } catch { }
+            }
+            catch { }
 
             dataGridView1.Visible = true;
             sLastSelectedElement = "dataGridView";
@@ -5807,7 +5869,7 @@ namespace PersonViewerSCA2
 
             if (label11.Length > 0)
             {
-               labelmysqlServerUserName = new Label
+                labelmysqlServerUserName = new Label
                 {
                     Text = label11,
                     BackColor = Color.PaleGreen,
@@ -5817,7 +5879,7 @@ namespace PersonViewerSCA2
                     TextAlign = ContentAlignment.MiddleLeft,
                     Parent = groupBoxProperties
                 };
-               textBoxmysqlServerUserName = new TextBox
+                textBoxmysqlServerUserName = new TextBox
                 {
                     Text = txtbox11,
                     //PasswordChar = '*',
@@ -5832,7 +5894,7 @@ namespace PersonViewerSCA2
             if (label12.Length > 0)
             {
 
-               labelmysqlServerUserPassword = new Label
+                labelmysqlServerUserPassword = new Label
                 {
                     Text = label12,
                     BackColor = Color.PaleGreen,
@@ -5842,7 +5904,7 @@ namespace PersonViewerSCA2
                     TextAlign = ContentAlignment.MiddleLeft,
                     Parent = groupBoxProperties
                 };
-               textBoxmysqlServerUserPassword = new TextBox
+                textBoxmysqlServerUserPassword = new TextBox
                 {
                     Text = txtboxPassword12,
                     PasswordChar = '*',
@@ -5888,7 +5950,7 @@ namespace PersonViewerSCA2
 
             groupBoxProperties.Visible = true;
         }
-        
+
         private void buttonPropertiesCancel_Click(object sender, EventArgs e)
         {
             string btnName = btnPropertiesSave.Text;
@@ -5926,7 +5988,7 @@ namespace PersonViewerSCA2
             _controlDispose(textBoxmysqlServer);
             _controlDispose(textBoxmysqlServerUserName);
             _controlDispose(textBoxmysqlServerUserPassword);
-            
+
             _controlDispose(listComboLabel);
             _controlDispose(periodComboLabel);
             _controlDispose(labelSettings9);
@@ -5977,7 +6039,7 @@ namespace PersonViewerSCA2
             string sMySqlServer = _textBoxReturnText(textBoxmysqlServer);
             string sMySqlServerUser = _textBoxReturnText(textBoxmysqlServerUserName);
             string sMySqlServerUserPassword = _textBoxReturnText(textBoxmysqlServerUserPassword);
-            
+
             CheckAliveServer(server, user, password);
 
             if (bServer1Exist)
@@ -5993,8 +6055,8 @@ namespace PersonViewerSCA2
                 mailServerUserPassword = sMailUserPassword;
 
                 mysqlServer = sMySqlServer;
-                 mysqlServerUserName= sMySqlServerUser;
-                 mysqlServerUserPassword = sMySqlServerUserPassword;
+                mysqlServerUserName = sMySqlServerUser;
+                mysqlServerUserPassword = sMySqlServerUserPassword;
 
                 try
                 {
@@ -6008,12 +6070,13 @@ namespace PersonViewerSCA2
                         EvUserKey.SetValue("MailUser", mailServerUserName, Microsoft.Win32.RegistryValueKind.String);
                         try { EvUserKey.SetValue("MailUserPassword", EncryptStringToBase64Text(mailServerUserPassword, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
 
-                        EvUserKey.SetValue("MySQLServer",mysqlServer, Microsoft.Win32.RegistryValueKind.String);
+                        EvUserKey.SetValue("MySQLServer", mysqlServer, Microsoft.Win32.RegistryValueKind.String);
                         EvUserKey.SetValue("MySQLUser", mysqlServerUserName, Microsoft.Win32.RegistryValueKind.String);
                         try { EvUserKey.SetValue("MySQLUserPassword", EncryptStringToBase64Text(mysqlServerUserPassword, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
                     }
 
-                } catch { logger.Error("CreateSubKey. Ошибки с доступом на запись в реестр. Данные сохранены не корректно."); }
+                }
+                catch { logger.Error("CreateSubKey. Ошибки с доступом на запись в реестр. Данные сохранены не корректно."); }
 
                 if (databasePerson.Exists)
                 {
@@ -6056,7 +6119,7 @@ namespace PersonViewerSCA2
                             try { sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = EncryptStringToBase64Text(mysqlServerUserPassword, btsMess1, btsMess2); } catch { }
                             try { sqlCommand.ExecuteNonQuery(); } catch { }
                         }
-                        
+
                         sqlCommand1 = new SQLiteCommand("end", sqlConnection);
                         sqlCommand1.ExecuteNonQuery();
                         sqlCommand1.Dispose();
@@ -6085,7 +6148,8 @@ namespace PersonViewerSCA2
                     EvUserKey?.DeleteSubKey("MailUser");
                     EvUserKey?.DeleteSubKey("MailUserPassword");
                 }
-            } catch { MessageBox.Show("Ошибки с доступом у реестру на запись. Данные не удалены."); }
+            }
+            catch { MessageBox.Show("Ошибки с доступом у реестру на запись. Данные не удалены."); }
         }
 
         //--- End. Features of programm ---//
@@ -6273,6 +6337,7 @@ namespace PersonViewerSCA2
 
         private void dataGridView1CellClick()
         {
+            DataGridViewSeekValuesInSelectedRow dgSeek;
             if (dataGridView1.Rows.Count > 0 && dataGridView1.CurrentRow.Index < dataGridView1.Rows.Count)
             {
                 try
@@ -6280,7 +6345,27 @@ namespace PersonViewerSCA2
                     int IndexCurrentRow = _dataGridView1CurrentRowIndex();
                     if (IndexCurrentRow > -1)
                     {
-                        if (nameOfLastTableFromDB == "PeopleGroupDesciption")
+                        dgSeek = new DataGridViewSeekValuesInSelectedRow();
+
+                        if (nameOfLastTableFromDB == "ListFIO")
+                        {
+                            dgSeek.FindValueInCells(dataGridView1, new string[] {
+                             @"Группа",   @"Фамилия Имя Отчество", @"NAV-код",  @"Время прихода ЧЧ:ММ",@"Время ухода ЧЧ:ММ"
+                            });
+
+                            textBoxFIO.Text = dgSeek.values[1];
+                            textBoxNav.Text = dgSeek.values[2];
+                            textBoxGroup.Text = dgSeek.values[0];
+
+                            groupBoxPeriod.BackColor = Color.PaleGreen;
+                            groupBoxFilterReport.BackColor = SystemColors.Control;
+                            StatusLabel2.Text = @"Выбрана группа: " + dgSeek.values[2] + @" |  Всего ФИО: " + iFIO;
+                            if (textBoxFIO.TextLength > 3)
+                            {
+                                comboBoxFio.SelectedIndex = comboBoxFio.FindString(dgSeek.values[0]);
+                            }
+                        }
+                        else if (nameOfLastTableFromDB == "PeopleGroupDesciption")
                         {
                             int IndexColumn1 = 0;           // индекс 1-й колонки в датагрид
                             int IndexColumn2 = 0;           // индекс 2-й колонки в датагрид
@@ -6289,16 +6374,17 @@ namespace PersonViewerSCA2
                             {
                                 switch (dataGridView1.Columns[i].HeaderText)
                                 {
-                                    case "GroupPerson":
+                                    case @"Группа":
                                         IndexColumn1 = i;
                                         break;
-                                    case "GroupPersonDescription":
+                                    case @"Описание группы":
                                         IndexColumn2 = i;
                                         break;
                                     default:
                                         break;
                                 }
                             }
+
                             textBoxGroup.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn1].Value.ToString(); //Take the name of selected group
                             textBoxGroupDescription.Text = dataGridView1.Rows[IndexCurrentRow].Cells[IndexColumn2].Value.ToString(); //Take the name of selected group
                             groupBoxPeriod.BackColor = Color.PaleGreen;
@@ -6308,9 +6394,7 @@ namespace PersonViewerSCA2
                             {
                                 comboBoxFio.SelectedIndex = comboBoxFio.FindString(textBoxFIO.Text);
                             }
-                            nameOfLastTableFromDB = "PeopleGroupDesciption";
                         }
-
                         else if (nameOfLastTableFromDB == "PeopleGroup")
                         {
                             // comboBoxFio.Items.Clear();
@@ -6321,11 +6405,9 @@ namespace PersonViewerSCA2
 
                             for (int i = 0; i < dataGridView1.ColumnCount; i++)
                             {
-                                if (dataGridView1.Columns[i].HeaderText.Trim() == "Фамилия Имя Отчество" ||
-                                        dataGridView1.Columns[i].HeaderText.Trim() == "FIO")
+                                if (dataGridView1.Columns[i].HeaderText.Trim() == "Фамилия Имя Отчество")
                                     IndexColumn1 = i;
-                                if (dataGridView1.Columns[i].HeaderText.Trim() == "NAV-код" ||
-                                        dataGridView1.Columns[i].HeaderText.Trim() == "NAV")
+                                if (dataGridView1.Columns[i].HeaderText.Trim() == "NAV-код")
                                     IndexColumn2 = i;
                                 if (dataGridView1.Columns[i].HeaderText.ToString() == "Время прихода ЧЧ:ММ" ||
                                     dataGridView1.Columns[i].HeaderText.ToString() == "Контрольное время")
@@ -6349,8 +6431,7 @@ namespace PersonViewerSCA2
                             }
                             nameOfLastTableFromDB = "PeopleGroup";
                         }
-
-                        if (nameOfLastTableFromDB == "PersonRegistrationsList")
+                        else if (nameOfLastTableFromDB == "PersonRegistrationsList")
                         {
                             int IndexColumn1 = 0;           // индекс 1-й колонки в датагрид
                             int IndexColumn2 = 1;           // индекс 2-й колонки в датагрид
@@ -6394,7 +6475,8 @@ namespace PersonViewerSCA2
                             }
                         }
                     }
-                } catch (Exception expt)
+                }
+                catch (Exception expt)
                 {
                     MessageBox.Show(expt.ToString());
                 }
@@ -6501,7 +6583,8 @@ namespace PersonViewerSCA2
                     //  ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                     //      "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', Status AS 'Статус'  ", " ORDER BY RecipientEmail asc; ");
                 }
-            } catch
+            }
+            catch
             {
                 try
                 {
@@ -6574,7 +6657,8 @@ namespace PersonViewerSCA2
 
                         StatusLabel2.Text = @"Обновлено время прихода " + ShortFIO(textBoxFIO.Text) + " в группе: " + textBoxGroup.Text;
                     }
-                } catch { }
+                }
+                catch { }
             }
 
             _ProgressBar1Stop();
@@ -6614,9 +6698,11 @@ namespace PersonViewerSCA2
                         {
                             cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
                             cell.ToolTipText = cell.Value.ToString();
-                        } catch { }
+                        }
+                        catch { }
                     }
-                } catch { }
+                }
+                catch { }
             }
             if (nameOfLastTableFromDB == "Mailing" && e.RowIndex > -1 && e.ColumnIndex > -1 && e.Value != null)
             {
@@ -6793,7 +6879,7 @@ namespace PersonViewerSCA2
             {
                 currentModeAppManual = false;
                 currentAction = "sendEmail";
-                _MenuItemTextSet(modeItem, "Сменить режим на интеррактивный");
+                _MenuItemTextSet(modeItem, "Сменить режим на интерактивный");
                 _menuItemTooltipSet(modeItem, "Включен автоматический режим. Выполняются Активные рассылки из БД.");
                 _MenuItemBackColorChange(modeItem, Color.DarkOrange);
 
@@ -6806,10 +6892,10 @@ namespace PersonViewerSCA2
             {
                 currentModeAppManual = true;
                 _MenuItemTextSet(modeItem, "Сменить на автоматический режим");
-                _menuItemTooltipSet(modeItem, "Включен интеррактивный режим. Все рассылки остановлены.");
+                _menuItemTooltipSet(modeItem, "Включен интерактивный режим. Все рассылки остановлены.");
                 _MenuItemBackColorChange(modeItem, SystemColors.Control);
 
-                _toolStripStatusLabelSetText(StatusLabel2, "Интеррактивный режим");
+                _toolStripStatusLabelSetText(StatusLabel2, "Интерактивный режим");
                 _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
                 timer.Dispose();
             }
@@ -6832,12 +6918,15 @@ namespace PersonViewerSCA2
                     sent = false;
                     _toolStripStatusLabelSetText(StatusLabel2, "Режим почтовых рассылок. " + DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
                     _toolStripStatusLabelBackColor(StatusLabel2, Color.LightCyan);
+                    ClearFilesInApplicationFolders(@"*.xlsx", "Excel-файлов");
                 }
             }
         }
 
         private void SelectMailingDoAction() //MailingAction()
         {
+            _ProgressBar1Start();
+
             //предварительно обновить список ФИО и индивидуальные графики
             GetFIO();
 
@@ -6886,7 +6975,8 @@ namespace PersonViewerSCA2
                                         });
                                     }
                                 }
-                            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                            }
+                            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                         }
                     }
                 }
@@ -6905,6 +6995,8 @@ namespace PersonViewerSCA2
 
             sender = null; recipient = null; gproupsReport = null; nameReport = null; descriptionReport = null; period = null; status = null;
             mailingList = null;
+
+            _ProgressBar1Stop();
         }
 
         private void MailingAction(string mainAction, string recipientEmail, string senderEmail, string groupsReport, string nameReport, string description, string period, string status)
@@ -6937,9 +7029,7 @@ namespace PersonViewerSCA2
                             string startDay = selectPeriodMonth().Split('|')[0];
                             string lastDay = selectPeriodMonth().Split('|')[1];
 
-                            //periodComboParameters.Add("Текущая неделя");
                             //periodComboParameters.Add("Текущий месяц");
-                            //periodComboParameters.Add("Предыдущая неделя");
                             //periodComboParameters.Add("Предыдущий месяц");
                             if (period.ToLower().Contains("текущий"))
                             {
@@ -6964,19 +7054,21 @@ namespace PersonViewerSCA2
                                 personCheck = new Person();
                                 dtPersonTemp?.Clear();
 
-                                LoadGroupMembersFromDbToDataTable(dtPeopleGroup, name); //result will be in dtPeopleGroup  //"Select * FROM PeopleGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
+                                LoadGroupMembersFromDbToDataTable(name); //result will be in dtPeopleGroup  //"Select * FROM PeopleGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
 
                                 foreach (DataRow row in dtPeopleGroup.Rows)
                                 {
-                                    if (row[1].ToString().Length > 0 && row[3].ToString() == name)
+                                    if (row[@"Фамилия Имя Отчество"].ToString().Length > 0 && row[@"Группа"].ToString() == name)
                                     {
                                         personCheck = new Person();
 
                                         personCheck.FIO = row[@"Фамилия Имя Отчество"].ToString();
                                         personCheck.NAV = row[@"NAV-код"].ToString();
-                                        personCheck.GroupPerson = row[@"Группа"].ToString(); 
+                                        personCheck.PositionInDepartment = row[@"Должность"].ToString();
+
+                                        personCheck.GroupPerson = row[@"Группа"].ToString();
                                         personCheck.Department = row[@"Отдел"].ToString();
-                                        personCheck.PositionInDepartment= row[@"Должность"].ToString();
+
                                         personCheck.ControlInHour = row[@"Время прихода,часы"].ToString();
                                         personCheck.ControlInHourDecimal = TryParseStringToDecimal(row[@"Время прихода,часы"].ToString());
                                         personCheck.ControlInMinute = row[@"Время прихода,минут"].ToString();
@@ -6995,27 +7087,28 @@ namespace PersonViewerSCA2
                                         FilterDataByNav(personCheck, dtPersonRegistrationsFullList, dtTempIntermediate);
                                     }
                                 }
-                                
+
                                 dtPersonTemp = GetDistinctRecords(dtTempIntermediate, orderColumnsFinacialReport);
                                 dtPersonTemp.SetColumnsOrder(orderColumnsFinacialReport);
 
                                 if (dtPersonTemp.Rows.Count > 0)
                                 {
                                     string nameFile = nameReport + " " + startDay.Split(' ')[0] + "-" + lastDay.Split(' ')[0] + " " + name + " " + DateTime.Now.ToString("yy-MM-dd HH-mm") + @".xlsx";
-                                    string illegal=  GetSafeFilename(nameFile);
+                                    string illegal = GetSafeFilename(nameFile);
 
-                                    logger.Info("сохраняю файл "+ illegal);
+                                    logger.Info("сохраняю файл " + illegal);
                                     filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), illegal);
-                                    try { System.IO.File.Delete(filePathExcelReport); } catch (Exception expt)
+                                    try { System.IO.File.Delete(filePathExcelReport); }
+                                    catch (Exception expt)
                                     {
                                         logger.Error("Ошибка удаления файла " + filePathExcelReport + " " + expt.ToString());
                                     }
                                     ExportDatatableSelectedColumnsToExcel(dtPersonTemp, nameReport, filePathExcelReport);
 
-                                    bodyOfMail = "Отчет \"" + nameReport + "\" " + " по группе \"" + name + "\"" + "\nВыполнен " + DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                                    bodyOfMail = "Отчет \"" + nameReport + "\" " + " по группе \"" + name + "\"" + " сгенерирован: " + DateTime.Now.ToString("yyyy-MM-dd HH:mm");
                                     titleOfbodyMail = "Отчет за период: с " + startDay.Split(' ')[0] + " по " + lastDay.Split(' ')[0];
 
-                                    SendEmailAsync(senderEmail, recipientEmail, titleOfbodyMail, bodyOfMail, filePathExcelReport, Properties.Resources.LogoRYIK);
+                                    SendEmailAsync(senderEmail, recipientEmail, titleOfbodyMail, bodyOfMail, filePathExcelReport, Properties.Resources.LogoRYIK, productName);
                                     _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
                                     _toolStripStatusLabelSetText(StatusLabel2, DateTime.Now.ToString("yyyy-MM-dd HH:mm") + " Отчет " + nameReport + "(" + name + ") подготовлен и отправлен " + recipientEmail);
                                 }
@@ -7062,7 +7155,7 @@ namespace PersonViewerSCA2
             return result;
         }
 
-        private async void SendEmailAsync(string sender, string recipient, string title, string message, string pathToFile, Bitmap myLogo) //Compose and send e-mail
+        private async void SendEmailAsync(string sender, string recipient, string title, string messageBeforePicture, string pathToFile, Bitmap myLogo, string messageAfterPicture) //Compose and send e-mail
         {
             // string startupPath = AppDomain.CurrentDomain.RelativeSearchPath;
             // string path = System.IO.Path.Combine(startupPath, "HtmlTemplates", "NotifyTemplate.html");
@@ -7082,7 +7175,7 @@ namespace PersonViewerSCA2
                     newMail.IsBodyHtml = true;
                     newMail.BodyEncoding = UTF8Encoding.UTF8;
 
-                    newMail.AlternateViews.Add(getEmbeddedImage(title, message, myLogo));
+                    newMail.AlternateViews.Add(getEmbeddedImage(title, messageBeforePicture, myLogo, messageAfterPicture));
                     // отправитель - устанавливаем адрес и отображаемое в письме имя
                     newMail.From = new System.Net.Mail.MailAddress(sender, productName);
                     // кому отправляем
@@ -7101,7 +7194,7 @@ namespace PersonViewerSCA2
             }
         }
 
-        private System.Net.Mail.AlternateView getEmbeddedImage(string title, string message, Bitmap bmp)
+        private System.Net.Mail.AlternateView getEmbeddedImage(string title, string messageBeforePicture, Bitmap bmp, string messageAfterPicture)
         {
             //convert embedded resources into memorystream
             Bitmap b = new Bitmap(bmp);
@@ -7113,7 +7206,7 @@ namespace PersonViewerSCA2
             res.ContentId = Guid.NewGuid().ToString();
 
             // текст письма
-            string htmlBody = @"<p>" + title + @"</p>" + @"<p>" + message + @"</p>" + @"<img src='cid:" + res.ContentId + @"'/>";
+            string htmlBody = @"<p><h3>" + title + @"</h3></p>" + @"<p>" + messageBeforePicture + @"</p>" + @"<img src='cid:" + res.ContentId + @"'/>";
 
             System.Net.Mail.AlternateView alternateView = System.Net.Mail.AlternateView.CreateAlternateViewFromString(htmlBody, null, System.Net.Mime.MediaTypeNames.Text.Html);
             alternateView.LinkedResources.Add(res);
@@ -7254,7 +7347,7 @@ namespace PersonViewerSCA2
     {
         public int id;
         public int idCard = 0;
-        public string FIO="";
+        public string FIO = "";
         public string NAV = "";
         public string Department = "";
         public string PositionInDepartment = "";

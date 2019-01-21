@@ -952,46 +952,46 @@
     <value>Работа с календарем</value>
   </data>
   <data name="SettingsProgrammItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>254, 22</value>
+    <value>357, 22</value>
   </data>
   <data name="SettingsProgrammItem.Text" xml:space="preserve">
     <value>Программы</value>
   </data>
   <data name="modeItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>254, 22</value>
+    <value>357, 22</value>
   </data>
   <data name="modeItem.Text" xml:space="preserve">
     <value>Mode</value>
   </data>
   <data name="ClearReportItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>254, 22</value>
+    <value>357, 22</value>
   </data>
   <data name="ClearReportItem.Text" xml:space="preserve">
-    <value>Очистить таблицы с отчетами</value>
+    <value>Очистить папку програмы от сохраненных отчетов</value>
   </data>
   <data name="ClearReportItem.ToolTipText" xml:space="preserve">
-    <value>Очистить локальную таблицу от всех регистраций персонала</value>
+    <value>Очистить локальную базу с отчетами и все файлы отчетов</value>
   </data>
   <data name="ClearDataItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>254, 22</value>
+    <value>357, 22</value>
   </data>
   <data name="ClearDataItem.Text" xml:space="preserve">
-    <value>Очистить таблицы с данными</value>
+    <value>Очистить таблицы программы от данных</value>
   </data>
   <data name="ClearDataItem.ToolTipText" xml:space="preserve">
     <value>Очистить все таблицы, кроме таблиц с настройками</value>
   </data>
   <data name="ClearAllItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>254, 22</value>
+    <value>357, 22</value>
   </data>
   <data name="ClearAllItem.Text" xml:space="preserve">
-    <value>Удалить все данные и настройки</value>
+    <value>Очистить программу от всех данных и настроек</value>
   </data>
   <data name="ClearAllItem.ToolTipText" xml:space="preserve">
-    <value>Удалить базу данных и все, ранее сохраненные, настройки!</value>
+    <value>Очистика локальной базы от всех полученных, сгенерированных, сохраненных и введенных данных</value>
   </data>
   <data name="TestCryptionItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>254, 22</value>
+    <value>357, 22</value>
   </data>
   <data name="TestCryptionItem.Text" xml:space="preserve">
     <value>TestCryption</value>
@@ -1000,19 +1000,19 @@
     <value>False</value>
   </data>
   <data name="ClearRegistryItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>254, 22</value>
+    <value>357, 22</value>
   </data>
   <data name="ClearRegistryItem.Text" xml:space="preserve">
     <value>Удалить данные из реестра</value>
   </data>
   <data name="mailingItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>254, 22</value>
+    <value>357, 22</value>
   </data>
   <data name="mailingItem.Text" xml:space="preserve">
     <value>Рассылки</value>
   </data>
   <data name="deleteSelectedMailingItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>254, 22</value>
+    <value>357, 22</value>
   </data>
   <data name="deleteSelectedMailingItem.Text" xml:space="preserve">
     <value>Удалить выделенную рассылку</value>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" InitialTargets="EnsureWixToolsetInstalled" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>3.10</ProductVersion>
     <ProjectGuid>edf2dbdd-16fd-48c3-82e4-9e67f09b87c0</ProjectGuid>
@@ -39,7 +39,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\mySCA2\mySCA2.csproj">
-      <Name>mySCA2</Name>
+      <Name>PersonViewerSCA2</Name>
       <Project>{6c84406f-dc6a-4bb4-9716-1b56d6313c43}</Project>
       <Private>True</Private>
       <DoNotHarvest>True</DoNotHarvest>

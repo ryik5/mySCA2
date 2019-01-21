@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-<?define ProductName="PersonRegistration Viewer at SCA" ?>
+<?define ProductName="People Registrations Viewer 2" ?>
 <?define ProductVersion="2.15.1.7" ?>
-<?define Description="Viewer of person's checkpoints registration on SCA" ?>
+<?define Description="Viewer of person's checkpoints registration at SCA" ?>
   <!--?define SolutionName="PersonViewerSCA" ?-->
 <?define Keywords="Installer SCA checkpoint Registration RYIK" ?>
 <?define Manufacturer="RYIK"?>
@@ -76,17 +76,15 @@
                    <RegistryValue Root="HKCU" Key="Software\$(var.Manufacturer)\$(var.SolutionName)" 
                                   Name="ProductComponentx64installed" Type="integer" Value="1" KeyPath="yes" />
                    </Component>
-             </Directory>
-           
- 			     </Directory>
-         
+             </Directory>           
+ 			     </Directory>         
 			   </Directory>
       </Directory> 
       
          <Directory Id="DesktopFolder">
               <Component Id="ApplicationShortcutDesktop" Guid="*">
               <Shortcut Id="ApplicationDesktopShortcut" Name="$(var.ProductName)" 
-                        Description="$(var.Description)" Target="[ProductComponents]PersonSCA.exe" 
+                        Description="$(var.Description)" Target="[ProductComponents]PersonViewerSCA2.exe" 
                 WorkingDirectory="ProductComponents" />
               <RemoveFolder Id="DesktopFolder" On="uninstall" />
               <RegistryValue Root="HKCU" Key="Software\$(var.Manufacturer)\$(var.SolutionName)" 
@@ -98,7 +96,7 @@
            <Directory Id="ApplicationProgramsFolder">
              <Component Id="ShortcutProgramsFolderApp" Guid="*">
                 <Shortcut Id="ShortcutProgramsFolderApp" Name="$(var.ProductName)" 
-                          Description="$(var.Description)" Target="[ProductComponents]PersonSCA.exe" 
+                          Description="$(var.Description)" Target="[ProductComponents]PersonViewerSCA2.exe" 
                WorkingDirectory="ProductComponents" />
                 <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
                 <RegistryValue Root="HKCU" Key="Software\$(var.Manufacturer)\$(var.SolutionName)" 
@@ -108,7 +106,7 @@
              <Directory Id="RYIKProgrammMenuFolder" Name="RYIK">
                <Component Id="ShortcutProgramsFolderAppMenuFolder" Guid="*">
                   <Shortcut Id="ShortcutProgramsFolderAppMenuFolder" Name="$(var.ProductName)" 
-                            Description="$(var.Description)" Target="[ProductComponents]PersonSCA.exe" 
+                            Description="$(var.Description)" Target="[ProductComponents]PersonViewerSCA2.exe" 
                  WorkingDirectory="ProductComponents" />
                   <RemoveFolder Id="RYIKProgrammMenuFolder" On="uninstall" />
                   <RegistryValue Root="HKCU" Key="Software\$(var.Manufacturer)\$(var.SolutionName)" 
@@ -129,25 +127,37 @@
       
       <Directory Id="ProgramFilesFolder">
           <Directory Id="INSTALLDIR" Name="RYIK" LongName="RYIK">
-              <Directory Id="ProxyAls" Name="ProxyAls" LongName="Proxy Analyser 2">
+              <Directory Id="Reports" Name="Reports" LongName="PersonViewer Reports">
               </Directory>
           </Directory>
       </Directory>
       
       <Directory Id="WindowsFolder">
                <Directory Id="MyFolder" Name="MyFolder"/>
-      </Directory>
--->
+      </Directory>-->
+
   
     </Directory>
         
       <ComponentGroup Id="ProductComponents" Directory="ProductComponents">
         <Component Id="ProductComponent" Guid="839D195C-81DD-4159-B1CC-4064EE2187F9" DiskId="1" Location="source">     
           <CreateFolder />
-          <File Id="PersonSCA" Name="PersonSCA.exe" Source="..\bin\Release\PersonSCA.exe" /> 
+          <File Id="PersonViewerSCA2" Name="PersonViewerSCA2.exe" Source="..\bin\Release\PersonViewerSCA2.exe" />
+
+          <File Id="NLog.dll" Name="NLog.dll" Source="..\bin\Release\NLog.dll" />
+          <File Id="NLog.xml" Name="NLog.xml" Source="..\bin\Release\NLog.xml" />
+          <File Id="NLog.config" Name="NLog.config" Source="..\bin\Release\NLog.config" />
+          
+          <File Id="System.Data.SQLite.dll" Name="System.Data.SQLite.dll" Source="..\bin\Release\System.Data.SQLite.dll" />
+          
+          <File Id="MySql.Data.dll" Name="MySql.Data.dll" Source="..\bin\Release\MySql.Data.dll" />
+          <File Id="MySql.Data.xml" Name="MySql.Data.xml" Source="..\bin\Release\MySql.Data.xml" />
+
+
           <RegistryValue Root="HKCU" Key="Software\$(var.Manufacturer)\$(var.SolutionName)" 
                          Name="PersonSCAinstalled" Type="integer" Value="1" KeyPath="yes" />
-          <RemoveFile Id="PersonSCA" Name="PersonSCA.exe" On="uninstall" />   
+          
+          <RemoveFile Id="PersonViewerSCA2" Name="PersonViewerSCA2.exe" On="uninstall" />   
           <RemoveFile Id="RemoveProductComponent" Name="*" On="both" />   
           <RemoveFolder Id="ProductComponents" Directory="ProductComponents" On="both" />        
           <RemoveFolder Id="ProductComponent" On="both" />        
