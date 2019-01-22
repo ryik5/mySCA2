@@ -4142,13 +4142,14 @@ namespace PersonViewerSCA2
                         rowDtStoring[26] = workedHours;                                  // ("Реальное отработанное время", typeof(decimal)), //26
                         rowDtStoring[27] = ConvertDecimalTimeToStringHHMMArray(workedHours)[2];  //("Реальное отработанное время ЧЧ:ММ", typeof(string)), //27
 
-                        if (decimalFirstRegistrationInDay > personNAV.ControlInDecimal) // "Опоздание", typeof(bool)),           //28
-                        { rowDtStoring[28] = "Да"; }
+                        if (decimalFirstRegistrationInDay > personNAV.ControlInDecimal && decimalFirstRegistrationInDay != 0) // "Опоздание", typeof(bool)),           //28
+                        { rowDtStoring[28] = ConvertDecimalTimeToStringHHMM(decimalFirstRegistrationInDay-personNAV.ControlInDecimal); }
                         else { rowDtStoring[28] = ""; }
 
-                        if (decimalLastRegistrationInDay < personNAV.ControlOutDecimal)  // "Ранний уход", typeof(bool)),                 //29
-                        { rowDtStoring[29] = "Да"; }
+                        if (decimalLastRegistrationInDay < personNAV.ControlOutDecimal&& decimalLastRegistrationInDay!=0)  // "Ранний уход", typeof(bool)),                 //29
+                        { rowDtStoring[29] = ConvertDecimalTimeToStringHHMM(personNAV.ControlOutDecimal- decimalLastRegistrationInDay); }
                         else { rowDtStoring[29] = ""; }
+
                         // MessageBox.Show(                            rowDtStoring[15].ToString() + " - " + rowDtStoring[18].ToString() + "\n" +                            rowDtStoring[28].ToString() + "\n" + rowDtStoring[29].ToString());
                         //rowDtStoring[30] = "false";  //("Отпуск (отгул)", typeof(bool)),                 //30
                         //rowDtStoring[31] = "false";  ("Коммандировка", typeof(bool)),                 //31
