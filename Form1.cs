@@ -2683,6 +2683,7 @@ namespace PersonViewerSCA2
                         person.ControlOutMinute = row[@"Время ухода,минут"].ToString();
                         person.ControlOutMinuteDecimal = dControlMinuteOut;
                         person.ControlOutDecimal = ConvertDecimalSeparatedTimeToDecimal(dControlHourOut, dControlMinuteOut);
+
                         person.ControlOutHHMM = ConvertStringsTimeToStringHHMM(row[@"Время ухода,часы"].ToString(), row[@"Время ухода,минут"].ToString());
 
                         GetPersonRegistrationFromServer(dtPersonRegistrationsFullList, person, startDate, endDate);     //Search Registration at checkpoints of the selected person
@@ -2723,10 +2724,16 @@ namespace PersonViewerSCA2
 
         private void GetPersonRegistrationFromServer(DataTable dtTarget, Person person, string startDate, string endDate)
         {
+            int[] startPeriod = _dateTimePickerReturnArray(dateTimePickerStart);
+            int[] endPeriod = _dateTimePickerReturnArray(dateTimePickerEnd);
+            FindWorkDaysInSelected(startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
+            //test only
+            TestAnualDays(startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
+
             DataRow rowPerson;
             string stringConnection = "";
             string query = "";
-
+            HashSet<string> hsDays = new HashSet<string>();
             decimal hourControlStart = person.ControlInHourDecimal;
             decimal minuteControlStart = person.ControlInMinuteDecimal;
             decimal controlStart = ConvertDecimalSeparatedTimeToDecimal(hourControlStart, minuteControlStart);
@@ -2870,6 +2877,7 @@ namespace PersonViewerSCA2
                                                         break;
                                                     } catch { }
                                             }
+                                            hsDays.Add(stringDataNew);
 
                                             rowPerson = dtTarget.NewRow();
                                             rowPerson[@"Фамилия Имя Отчество"] = person.FIO;
@@ -2917,7 +2925,8 @@ namespace PersonViewerSCA2
             { bLoaded = true; }
 
 
-            FindWorkDaysInSelected(); //построение списка рабочих дней
+            
+            //hsDays  - add days when a person was absence
 
             // рабочие дни в которые отсутствовал данная персона
             foreach (string day in workSelectedDays)
@@ -3478,15 +3487,11 @@ namespace PersonViewerSCA2
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
-                    stringDT = dateTimePickerStart.Value.Year.ToString("0000") + "-" +
-                    dateTimePickerStart.Value.Month.ToString("00") +
-                        "-" + dateTimePickerStart.Value.Day.ToString("00") + " 00:00:00";
+                    stringDT = dateTimePickerStart.Value.Year.ToString("0000") + "-" + dateTimePickerStart.Value.Month.ToString("00") + "-" + dateTimePickerStart.Value.Day.ToString("00") + " 00:00:00";
                 }));
             else
             {
-                stringDT = dateTimePickerStart.Value.Year.ToString("0000") + "-" +
-                    dateTimePickerStart.Value.Month.ToString("00") + "-" +
-                    dateTimePickerStart.Value.Day.ToString("00") + " 00:00:00";
+                stringDT = dateTimePickerStart.Value.Year.ToString("0000") + "-" + dateTimePickerStart.Value.Month.ToString("00") + "-" + dateTimePickerStart.Value.Day.ToString("00") + " 00:00:00";
             }
             return stringDT;
         }
@@ -3497,15 +3502,11 @@ namespace PersonViewerSCA2
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
-                    stringDT = dateTimePickerEnd.Value.Year.ToString("0000") + "-" +
-                    dateTimePickerEnd.Value.Month.ToString("00") +
-                        "-" + dateTimePickerEnd.Value.Day.ToString("00") + " 23:59:59";
+                    stringDT = dateTimePickerEnd.Value.Year.ToString("0000") + "-" + dateTimePickerEnd.Value.Month.ToString("00") + "-" + dateTimePickerEnd.Value.Day.ToString("00") + " 23:59:59";
                 }));
             else
             {
-                stringDT = dateTimePickerEnd.Value.Year.ToString("0000") + "-" +
-                    dateTimePickerEnd.Value.Month.ToString("00") + "-" +
-                    dateTimePickerEnd.Value.Day.ToString("00") + " 23:59:59";
+                stringDT = dateTimePickerEnd.Value.Year.ToString("0000") + "-" + dateTimePickerEnd.Value.Month.ToString("00") + "-" + dateTimePickerEnd.Value.Day.ToString("00") + " 23:59:59";
             }
             return stringDT;
         }
@@ -3521,6 +3522,28 @@ namespace PersonViewerSCA2
                 result = dateTimePicker.Value.ToString();
             return result;
         }
+
+        private int[] _dateTimePickerReturnArray(DateTimePicker dateTimePicker) //add string into  from other threads
+        {
+            int[] result = new int[3];
+
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    result[0] = dateTimePicker.Value.Year;
+                    result[1] = dateTimePicker.Value.Month;
+                    result[2] = dateTimePicker.Value.Day;
+                }
+                ));
+            else
+            {
+                result[0] = dateTimePicker.Value.Year;
+                result[1] = dateTimePicker.Value.Month;
+                result[2] = dateTimePicker.Value.Day;
+            }
+            return result;
+        }
+
 
 
         private void _toolStripStatusLabelSetText(ToolStripStatusLabel statusLabel, string s) //add string into  from other threads
@@ -4079,6 +4102,13 @@ namespace PersonViewerSCA2
 
         private void checkBoxCheckStateChanged()
         {
+            int[] startPeriod = _dateTimePickerReturnArray(dateTimePickerStart);
+            int[] endPeriod = _dateTimePickerReturnArray(dateTimePickerEnd);
+            FindWorkDaysInSelected(startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
+
+            //test only
+            TestAnualDays(startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
+
             CheckBoxesFiltersAll_Enable(false);
             _controlVisible(dataGridView1, false);
             _controlVisible(pictureBox1, false);
@@ -4332,8 +4362,16 @@ namespace PersonViewerSCA2
             rowDtStoring = null; dtTemp = null; dtAllRegistrationsInSelectedDay = null;
         }
 
-        private void DeleteAnualDatesFromDataTables(DataTable dt, Person person, int startYear, int startMonth, int startDay, int endYear, int endMonth, int endDay) //Exclude Anual Days from the table "PersonTemp" DB
+
+        /// <summary>
+        /// /Check these functions!!!!!!!!!!!!!!!!
+        /// </summary>
+
+        private void TestAnualDays(int startYear, int startMonth, int startDay, int endYear, int endMonth, int endDay) //Exclude Anual Days from the table "PersonTemp" DB
         {
+            //test
+            List<string> days = new List<string>();
+
             var oneDay = TimeSpan.FromDays(1);
 
             var mySelectedStartDay = new DateTime(startYear, startMonth, startDay);
@@ -4345,18 +4383,20 @@ namespace PersonViewerSCA2
             myMonthCalendar.SelectionRange = new SelectionRange(mySelectedStartDay, mySelectedEndDay);
             myMonthCalendar.FirstDayOfWeek = Day.Monday;
 
-            for (int year = 0; year < 4; year++)
+            for (int year = -1; year < 3; year++)
             {
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear - year, 1, 1));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear - year, 1, 2));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear - year, 3, 8));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear - year, 5, 1));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear - year, 5, 2));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear - year, 5, 9));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear - year, 6, 28));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear - year, 8, 24));    // (plavayuschaya data)
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear - year, 10, 16));   // (plavayuschaya data)
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 1, 1));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 1, 2));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 1, 7));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 3, 8));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 5, 1));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 5, 2));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 5, 9));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 6, 28));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 8, 24));    // (plavayuschaya data)
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 10, 16));   // (plavayuschaya data)
             }
+
 
             // Алгоритм для вычисления католической Пасхи http://snippets.dzone.com/posts/show/765
             int Y = startYear;
@@ -4377,6 +4417,7 @@ namespace PersonViewerSCA2
 
             //Easter - Paskha
             myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, monthEaster, dayEaster) + oneDay);
+
             //Independence day
             DateTime dayBolded = new DateTime(startYear, 8, 24);
             switch ((int)dayBolded.DayOfWeek)
@@ -4384,17 +4425,13 @@ namespace PersonViewerSCA2
                 case (int)Day.Sunday:
                     myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 8, 24) + oneDay);    // (plavayuschaya data)
                     break;
-                default:
-                    break;
-            }
-            switch ((int)dayBolded.DayOfWeek)
-            {
                 case (int)Day.Saturday:
                     myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 8, 24) + oneDay + oneDay);    // (plavayuschaya data)
                     break;
                 default:
                     break;
             }
+
             //day of Ukraine Force
             dayBolded = new DateTime(startYear, 10, 16);
             switch ((int)dayBolded.DayOfWeek)
@@ -4402,11 +4439,113 @@ namespace PersonViewerSCA2
                 case (int)Day.Sunday:
                     myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 10, 16) + oneDay);    // (plavayuschaya data)
                     break;
+                case (int)Day.Saturday:
+                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 10, 16) + oneDay + oneDay);    // (plavayuschaya data)
+                    break;
                 default:
                     break;
             }
+
+            string singleDate = null;
+
+            for (var myDate = myMonthCalendar.SelectionStart; myDate <= myMonthCalendar.SelectionEnd; myDate += oneDay)
+            {
+                if (myDate.DayOfWeek == DayOfWeek.Saturday || myDate.DayOfWeek == DayOfWeek.Sunday)
+                {
+                    singleDate = Regex.Split(myDate.ToString("yyyy-MM-dd"), " ")[0].Trim();
+                    days.Add(singleDate);
+                }
+            }
+            foreach (var myAnualDate in myMonthCalendar.AnnuallyBoldedDates)
+            {
+                for (var myDate = myMonthCalendar.SelectionStart; myDate <= myMonthCalendar.SelectionEnd; myDate += oneDay)
+                {
+                    if (myDate == myAnualDate)
+                    {
+                        singleDate = Regex.Split(myDate.ToString("yyyy-MM-dd"), " ")[0].Trim();
+                        days.Add(singleDate);
+                    }
+                }
+            }
+
+
+            string ddd = "";
+            foreach (string str in days.ToArray())
+                ddd += str + " ";
+            logger.Info("TestAnualDays: " + ddd);
+
+            myMonthCalendar.Dispose();
+        }
+
+        private void DeleteAnualDatesFromDataTables(DataTable dt, Person person, int startYear, int startMonth, int startDay, int endYear, int endMonth, int endDay) //Exclude Anual Days from the table "PersonTemp" DB
+        {
+            var oneDay = TimeSpan.FromDays(1);
+
+            var mySelectedStartDay = new DateTime(startYear, startMonth, startDay);
+            var mySelectedEndDay = new DateTime(endYear, endMonth, endDay);
+            //  int myYearNow = DateTime.Now.Year;
+            var myMonthCalendar = new MonthCalendar();
+
+            myMonthCalendar.MaxSelectionCount = 60;
+            myMonthCalendar.SelectionRange = new SelectionRange(mySelectedStartDay, mySelectedEndDay);
+            myMonthCalendar.FirstDayOfWeek = Day.Monday;
+
+            for (int year = -1; year < 3; year++)
+            {
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 1, 1));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 1, 2));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 1, 7));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 3, 8));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 5, 1));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 5, 2));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 5, 9));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 6, 28));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 8, 24));    // (plavayuschaya data)
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 10, 16));   // (plavayuschaya data)
+            }
+
+
+            // Алгоритм для вычисления католической Пасхи http://snippets.dzone.com/posts/show/765
+            int Y = startYear;
+            int a = Y % 19;
+            int b = Y / 100;
+            int c = Y % 100;
+            int d = b / 4;
+            int e = b % 4;
+            int f = (b + 8) / 25;
+            int g = (b - f + 1) / 3;
+            int h = (19 * a + b - d - g + 15) % 30;
+            int i = c / 4;
+            int k = c % 4;
+            int L = (32 + 2 * e + 2 * i - h - k) % 7;
+            int m = (a + 11 * h + 22 * L) / 451;
+            int monthEaster = (h + L - 7 * m + 114) / 31;
+            int dayEaster = ((h + L - 7 * m + 114) % 31) + 1;
+
+            //Easter - Paskha
+            myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, monthEaster, dayEaster) + oneDay);
+
+            //Independence day
+            DateTime dayBolded = new DateTime(startYear, 8, 24);
             switch ((int)dayBolded.DayOfWeek)
             {
+                case (int)Day.Sunday:
+                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 8, 24) + oneDay);    // (plavayuschaya data)
+                    break;
+                case (int)Day.Saturday:
+                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 8, 24) + oneDay + oneDay);    // (plavayuschaya data)
+                    break;
+                default:
+                    break;
+            }
+
+            //day of Ukraine Force
+            dayBolded = new DateTime(startYear, 10, 16);
+            switch ((int)dayBolded.DayOfWeek)
+            {
+                case (int)Day.Sunday:
+                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 10, 16) + oneDay);    // (plavayuschaya data)
+                    break;
                 case (int)Day.Saturday:
                     myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 10, 16) + oneDay + oneDay);    // (plavayuschaya data)
                     break;
@@ -4436,15 +4575,192 @@ namespace PersonViewerSCA2
                 }
             }
             dt.AcceptChanges();
+
             myMonthCalendar.Dispose();
         }
+
+        private void FindWorkDaysInSelected(int startYear, int startMonth, int startDay, int endYear, int endMonth, int endDay) 
+        {
+            boldeddDates.Clear();
+            selectedDates.Clear();
+            workSelectedDays = new string[1];
+            myBoldedDates = new string[1];
+
+            var oneDay = TimeSpan.FromDays(1);
+            var twoDays = TimeSpan.FromDays(2);
+            var fiftyDays = TimeSpan.FromDays(50);
+
+            var mySelectedStartDay = new DateTime(startYear, startMonth, startDay);
+            var mySelectedEndDay = new DateTime(endYear, endMonth, endDay);
+            DateTime myTempDate;
+            int myYearNow = DateTime.Now.Year;
+
+            monthCalendar.SelectionRange = new SelectionRange(mySelectedStartDay, mySelectedEndDay);
+            monthCalendar.FirstDayOfWeek = Day.Monday;
+
+            for (int year = -1; year < 3; year++)
+            {
+                boldeddDates.Add((myYearNow + year) + "-" + 01 + "-" + 01);
+                boldeddDates.Add((myYearNow + year) + "-" + 01 + "-" + 02);
+                boldeddDates.Add((myYearNow + year) + "-" + 01 + "-" + 07);
+                boldeddDates.Add((myYearNow + year) + "-" + 03 + "-" + 08);
+                boldeddDates.Add((myYearNow + year) + "-" + 05 + "-" + 01);
+                boldeddDates.Add((myYearNow + year) + "-" + 05 + "-" + 02);
+                boldeddDates.Add((myYearNow + year) + "-" + 05 + "-" + 09);
+                boldeddDates.Add((myYearNow + year) + "-" + 06 + "-" + 28);
+                boldeddDates.Add((myYearNow + year) + "-" + 08 + "-" + 24);
+                boldeddDates.Add((myYearNow + year) + "-" + 10 + "-" + 16);
+            }
+
+            // Алгоритм для вычисления католической Пасхи    http://snippets.dzone.com/posts/show/765
+            int Y = myYearNow;
+            int a = Y % 19;
+            int b = Y / 100;
+            int c = Y % 100;
+            int d = b / 4;
+            int e = b % 4;
+            int f = (b + 8) / 25;
+            int g = (b - f + 1) / 3;
+            int h = (19 * a + b - d - g + 15) % 30;
+            int i = c / 4;
+            int k = c % 4;
+            int L = (32 + 2 * e + 2 * i - h - k) % 7;
+            int m = (a + 11 * h + 22 * L) / 451;
+            int monthEaster = (h + L - 7 * m + 114) / 31;
+            int dayEaster = ((h + L - 7 * m + 114) % 31) + 1;
+
+            //Independence day
+            var dayBolded = new DateTime(myYearNow, 8, 24);
+            boldeddDates.Add(dayBolded.ToString("yyyy-MM-dd"));
+            switch ((int)dayBolded.DayOfWeek)
+            {
+                case (int)Day.Saturday:
+                    myTempDate = new DateTime(myYearNow, 8, 24);
+                    boldeddDates.Add(myTempDate.AddDays(2).ToString("yyyy-MM-dd"));
+                    break;
+                case (int)Day.Sunday:
+                    myTempDate = new DateTime(myYearNow, 8, 24);
+                    boldeddDates.Add(myTempDate.AddDays(1).ToString("yyyy-MM-dd"));
+                    break;
+                default:
+                    break;
+            }
+
+
+            //day of Ukraine Force
+            dayBolded = new DateTime(myYearNow, 10, 16);
+            boldeddDates.Add(dayBolded.ToString("yyyy-MM-dd"));
+            switch ((int)dayBolded.DayOfWeek)
+            {
+                case (int)Day.Saturday:
+                    myTempDate = new DateTime(myYearNow, 10, 16);
+                    boldeddDates.Add(myTempDate.AddDays(2).ToString("yyyy-MM-dd"));
+                    break;
+                case (int)Day.Sunday:
+                    myTempDate = new DateTime(myYearNow, 10, 16);
+                    boldeddDates.Add(myTempDate.AddDays(1).ToString("yyyy-MM-dd"));
+                    break;
+                default:
+                    break;
+            }
+
+
+            //New Year day
+            dayBolded = new DateTime(myYearNow, 1, 1);
+            boldeddDates.Add(dayBolded.ToString("yyyy-MM-dd"));
+            boldeddDates.Add(dayBolded.AddDays(1).ToString("yyyy-MM-dd"));
+            switch ((int)dayBolded.DayOfWeek)
+            {
+                case (int)Day.Saturday:
+                    myTempDate = new DateTime(myYearNow, 10, 16);
+                    boldeddDates.Add(myTempDate.AddDays(2).ToString("yyyy-MM-dd"));
+                    break;
+                case (int)Day.Sunday:
+                    myTempDate = new DateTime(myYearNow, 10, 16);
+                    boldeddDates.Add(myTempDate.AddDays(1).ToString("yyyy-MM-dd"));
+                    break;
+                default:
+                    break;
+            }
+
+
+            //Cristmas day
+            dayBolded = new DateTime(myYearNow, 7, 1);
+            boldeddDates.Add(dayBolded.ToString("yyyy-MM-dd"));
+            switch ((int)dayBolded.DayOfWeek)
+            {
+                case (int)Day.Saturday:
+                    myTempDate = new DateTime(myYearNow, 7, 1);
+                    boldeddDates.Add(myTempDate.AddDays(2).ToString("yyyy-MM-dd"));
+                    break;
+                case (int)Day.Sunday:
+                    myTempDate = new DateTime(myYearNow, 7, 1);
+                    boldeddDates.Add(myTempDate.AddDays(1).ToString("yyyy-MM-dd"));
+                    break;
+                default:
+                    break;
+            }
+
+
+            //Troitsa
+            dayBolded = new DateTime(myYearNow, monthEaster, dayEaster) + fiftyDays;
+            boldeddDates.Add(dayBolded.ToString("yyyy-MM-dd"));
+            switch ((int)dayBolded.DayOfWeek)
+            {
+                case (int)Day.Saturday:
+                    myTempDate = new DateTime(myYearNow, monthEaster, dayEaster);
+                    boldeddDates.Add(myTempDate.AddDays(52).ToString("yyyy-MM-dd"));
+                    break;
+                case (int)Day.Sunday:
+                    myTempDate = new DateTime(myYearNow, monthEaster, dayEaster);
+                    boldeddDates.Add(myTempDate.AddDays(51).ToString("yyyy-MM-dd"));
+                    break;
+                default:
+                    break;
+            }
+
+
+            //incorrect for the days less 50 after and before every New Year
+            for (var myDate = mySelectedStartDay; myDate <= mySelectedEndDay; myDate += oneDay)     // Sunday and Saturday
+            {
+                if (myDate.DayOfWeek == DayOfWeek.Saturday || myDate.DayOfWeek == DayOfWeek.Sunday)
+                    boldeddDates.Add(myDate.ToString("yyyy-MM-dd"));
+            }
+            myBoldedDates = boldeddDates.ToArray();
+
+            var aDateTime = mySelectedStartDay;
+            bool bDateBolded = false;
+
+            while (aDateTime <= mySelectedEndDay)
+            {
+                bDateBolded = false;
+                foreach (string strBoldedDate in myBoldedDates)
+                {
+                    if (strBoldedDate.Contains(aDateTime.ToString("yyyy-MM-dd")))
+                    {
+                        bDateBolded = true;
+                        break;
+                    }
+                }
+
+                if (!bDateBolded)
+                { selectedDates.Add(aDateTime.ToString("yyyy-MM-dd")); }
+                aDateTime = aDateTime.AddDays(1);
+            }
+            workSelectedDays = selectedDates.ToArray();
+
+            string ddd = "";
+            foreach (string str in workSelectedDays)
+                ddd += str + " ";
+            logger.Info("FindWorkDaysInSelected: " + ddd);
+        }
+
 
         private void QueryDeleteDataFromDataTable(DataTable dt, string queryFull, string NAVcode) //Delete data from the Table of the DB by NAV (both parameters are string)
         {
             DataRow[] rows = new DataRow[1];
             try
             {
-
                 if (queryFull.Length > 0 && NAVcode.Length > 0)
                 { rows = dt.Select("(" + queryFull + ") AND [NAV-код]='" + NAVcode + "'"); }
                 else if (queryFull.Length > 0)
@@ -4708,170 +5024,6 @@ namespace PersonViewerSCA2
             } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
         }
 
-        private void FindWorkDaysInSelected() //
-        {
-            boldeddDates.Clear();
-            selectedDates.Clear();
-            workSelectedDays = new string[1];
-            myBoldedDates = new string[1];
-
-            var oneDay = TimeSpan.FromDays(1);
-            var twoDays = TimeSpan.FromDays(2);
-            var fiftyDays = TimeSpan.FromDays(50);
-
-            var mySelectedStartDay = new DateTime(dateTimePickerStart.Value.Year, dateTimePickerStart.Value.Month, dateTimePickerStart.Value.Day);
-            var mySelectedEndDay = new DateTime(dateTimePickerEnd.Value.Year, dateTimePickerEnd.Value.Month, dateTimePickerEnd.Value.Day);
-            DateTime myTempDate;
-            int myYearNow = DateTime.Now.Year;
-
-            monthCalendar.SelectionRange = new SelectionRange(mySelectedStartDay, mySelectedEndDay);
-            monthCalendar.FirstDayOfWeek = Day.Monday;
-
-            boldeddDates.Add(myYearNow + "-" + 01 + "-" + 01);
-            boldeddDates.Add(myYearNow + "-" + 01 + "-" + 02);
-            boldeddDates.Add(myYearNow + "-" + 01 + "-" + 07);
-            boldeddDates.Add(myYearNow + "-" + 03 + "-" + 08);
-            boldeddDates.Add(myYearNow + "-" + 05 + "-" + 01);
-            boldeddDates.Add(myYearNow + "-" + 05 + "-" + 02);
-            boldeddDates.Add(myYearNow + "-" + 05 + "-" + 09);
-            boldeddDates.Add(myYearNow + "-" + 06 + "-" + 28);
-            boldeddDates.Add(myYearNow + "-" + 08 + "-" + 24);
-            boldeddDates.Add(myYearNow + "-" + 10 + "-" + 16);
-
-            // Алгоритм для вычисления католической Пасхи    http://snippets.dzone.com/posts/show/765
-            int Y = myYearNow;
-            int a = Y % 19;
-            int b = Y / 100;
-            int c = Y % 100;
-            int d = b / 4;
-            int e = b % 4;
-            int f = (b + 8) / 25;
-            int g = (b - f + 1) / 3;
-            int h = (19 * a + b - d - g + 15) % 30;
-            int i = c / 4;
-            int k = c % 4;
-            int L = (32 + 2 * e + 2 * i - h - k) % 7;
-            int m = (a + 11 * h + 22 * L) / 451;
-            int monthEaster = (h + L - 7 * m + 114) / 31;
-            int dayEaster = ((h + L - 7 * m + 114) % 31) + 1;
-
-            //Independence day
-            var dayBolded = new DateTime(myYearNow, 8, 24);
-            boldeddDates.Add(dayBolded.ToString("yyyy-MM-dd"));
-            switch ((int)dayBolded.DayOfWeek)
-            {
-                case (int)Day.Saturday:
-                    myTempDate = new DateTime(myYearNow, 8, 24);
-                    boldeddDates.Add(myTempDate.AddDays(2).ToString("yyyy-MM-dd"));
-                    break;
-                case (int)Day.Sunday:
-                    myTempDate = new DateTime(myYearNow, 8, 24);
-                    boldeddDates.Add(myTempDate.AddDays(1).ToString("yyyy-MM-dd"));
-                    break;
-                default:
-                    break;
-            }
-
-
-            //day of Ukraine Force
-            dayBolded = new DateTime(myYearNow, 10, 16);
-            boldeddDates.Add(dayBolded.ToString("yyyy-MM-dd"));
-            switch ((int)dayBolded.DayOfWeek)
-            {
-                case (int)Day.Saturday:
-                    myTempDate = new DateTime(myYearNow, 10, 16);
-                    boldeddDates.Add(myTempDate.AddDays(2).ToString("yyyy-MM-dd"));
-                    break;
-                case (int)Day.Sunday:
-                    myTempDate = new DateTime(myYearNow, 10, 16);
-                    boldeddDates.Add(myTempDate.AddDays(1).ToString("yyyy-MM-dd"));
-                    break;
-                default:
-                    break;
-            }
-
-            //New Year day
-            dayBolded = new DateTime(myYearNow, 1, 1);
-            boldeddDates.Add(dayBolded.ToString("yyyy-MM-dd"));
-            boldeddDates.Add(dayBolded.AddDays(1).ToString("yyyy-MM-dd"));
-            switch ((int)dayBolded.DayOfWeek)
-            {
-                case (int)Day.Saturday:
-                    myTempDate = new DateTime(myYearNow, 10, 16);
-                    boldeddDates.Add(myTempDate.AddDays(2).ToString("yyyy-MM-dd"));
-                    break;
-                case (int)Day.Sunday:
-                    myTempDate = new DateTime(myYearNow, 10, 16);
-                    boldeddDates.Add(myTempDate.AddDays(1).ToString("yyyy-MM-dd"));
-                    break;
-                default:
-                    break;
-            }
-
-            //Cristmas day
-            dayBolded = new DateTime(myYearNow, 7, 1);
-            boldeddDates.Add(dayBolded.ToString("yyyy-MM-dd"));
-            switch ((int)dayBolded.DayOfWeek)
-            {
-                case (int)Day.Saturday:
-                    myTempDate = new DateTime(myYearNow, 7, 1);
-                    boldeddDates.Add(myTempDate.AddDays(2).ToString("yyyy-MM-dd"));
-                    break;
-                case (int)Day.Sunday:
-                    myTempDate = new DateTime(myYearNow, 7, 1);
-                    boldeddDates.Add(myTempDate.AddDays(1).ToString("yyyy-MM-dd"));
-                    break;
-                default:
-                    break;
-            }
-
-            //Troitsa
-            dayBolded = new DateTime(myYearNow, monthEaster, dayEaster) + fiftyDays;
-            boldeddDates.Add(dayBolded.ToString("yyyy-MM-dd"));
-            switch ((int)dayBolded.DayOfWeek)
-            {
-                case (int)Day.Saturday:
-                    myTempDate = new DateTime(myYearNow, monthEaster, dayEaster);
-                    boldeddDates.Add(myTempDate.AddDays(52).ToString("yyyy-MM-dd"));
-                    break;
-                case (int)Day.Sunday:
-                    myTempDate = new DateTime(myYearNow, monthEaster, dayEaster);
-                    boldeddDates.Add(myTempDate.AddDays(51).ToString("yyyy-MM-dd"));
-                    break;
-                default:
-                    break;
-            }
-
-            //incorrect for the days less 50 after and before every New Year
-            for (var myDate = mySelectedStartDay; myDate <= mySelectedEndDay; myDate += oneDay)     // Sunday and Saturday
-            {
-                if (myDate.DayOfWeek == DayOfWeek.Saturday || myDate.DayOfWeek == DayOfWeek.Sunday)
-                    boldeddDates.Add(myDate.ToString("yyyy-MM-dd"));
-            }
-            myBoldedDates = boldeddDates.ToArray();
-
-            var aDateTime = mySelectedStartDay;
-            bool bDateBolded = false;
-
-            while (aDateTime <= mySelectedEndDay)
-            {
-                bDateBolded = false;
-                foreach (string strBoldedDate in myBoldedDates)
-                {
-                    if (strBoldedDate.Contains(aDateTime.ToString("yyyy-MM-dd")))
-                    {
-                        bDateBolded = true;
-                        break;
-                    }
-                }
-
-                if (!bDateBolded)
-                { selectedDates.Add(aDateTime.ToString("yyyy-MM-dd")); }
-                aDateTime = aDateTime.AddDays(1);
-            }
-            workSelectedDays = selectedDates.ToArray();
-        }
-
 
 
         //---- Start. Drawing ---//
@@ -4883,7 +5035,7 @@ namespace PersonViewerSCA2
             {
                 SelectPersonFromDataGrid(personVisual);
                 dataGridView1.Visible = false;
-                FindWorkDaysInSelected();
+                //FindWorkDaysInSelected(dateTimePickerStart.Value.Year, dateTimePickerStart.Value.Month, dateTimePickerStart.Value.Day, dateTimePickerEnd.Value.Year, dateTimePickerEnd.Value.Month, dateTimePickerEnd.Value.Day);
                 CheckBoxesFiltersAll_Enable(false);
 
                 if (_CheckboxCheckedStateReturn(checkBoxReEnter))
