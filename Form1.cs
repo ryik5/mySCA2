@@ -11,8 +11,9 @@ using System.Text.RegularExpressions;
 //using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+
 //using NLog;
-//in nuget console - 
+//Project\Control NuGet\console 
 //install-package nlog
 //install-package nlog.config
 
@@ -310,7 +311,6 @@ namespace PersonViewerSCA2
         private DataTable dtPersonTemp = new DataTable("PersonTemp");
         private DataTable dtPersonTempAllColumns = new DataTable("PersonTempAllColumns");
         private DataTable dtPersonRegistrationsFullList = new DataTable("PersonRegistrationsFullList");
-        private DataTable dtPersonRegistrationsList = new DataTable("PersonRegistrationsList");
         private DataTable dtPeopleGroup = new DataTable("PeopleGroup");
         private DataTable dtPeopleListLoaded = new DataTable("PeopleLoaded");
 
@@ -459,7 +459,6 @@ namespace PersonViewerSCA2
             //Clone default column name and structure from 'dtPeople' to other DataTables
             dtPersonTemp = dtPeople.Clone();  //Copy only structure(Name of columns)
             dtPersonRegistrationsFullList = dtPeople.Clone();  //Copy only structure(Name of columns)
-            dtPersonRegistrationsList = dtPeople.Clone();  //Copy only structure(Name of columns)
             dtPeopleGroup = dtPeople.Clone();  //Copy only structure(Name of columns)
 
             dataGridView1.ShowCellToolTips = true;
@@ -490,15 +489,6 @@ namespace PersonViewerSCA2
 
         private void TryMakeDB()
         {
-            ExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonRegistrationsFullList' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, iDCard TEXT, DateRegistered TEXT, " +
-                    "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL," +
-                    " HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL,  WorkedOut REAL, ServerOfRegistration TEXT, Late TEXT, Early TEXT,  Vacancy TEXT, BusinesTrip TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
-            ExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonRegistrationsList' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, iDCard TEXT, DateRegistered TEXT, " +
-                    "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, " +
-                    "HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL,  WorkedOut REAL, ServerOfRegistration TEXT, Late TEXT, Early TEXT,  Vacancy TEXT, BusinesTrip TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
-            ExecuteSql("CREATE TABLE IF NOT EXISTS 'PersonTemp' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, iDCard TEXT, DateRegistered TEXT, " +
-                    "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, HourControllingOut TEXT, " +
-                    "MinuteControllingOut TEXT, ControllingOut REAL,  WorkedOut REAL, ServerOfRegistration TEXT, Late TEXT, Early TEXT,  Vacancy TEXT, BusinesTrip TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'PeopleGroupDesciption' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, GroupPerson TEXT, GroupPersonDescription TEXT, Late TEXT, Early TEXT,  Vacancy TEXT, BusinesTrip TEXT, Reserv1 TEXT, Reserv2 TEXT, " +
                     "UNIQUE ('GroupPerson') ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'PeopleGroup' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, GroupPerson TEXT, " +
@@ -510,13 +500,10 @@ namespace PersonViewerSCA2
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'TechnicalInfo' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, PCName TEXT, POName TEXT, POVersion TEXT, LastDateStarted TEXT, Reserv1 TEXT, " +
                     "Reserv2 TEXT, Reserverd3 TEXT);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'BoldedDates' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, BoldedDate TEXT, NAV TEXT, Groups TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
-            ExecuteSql("CREATE TABLE IF NOT EXISTS 'MySettings' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, MyParameterName TEXT, MyParameterValue TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'ProgramSettings' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, PoParameterName TEXT, PoParameterValue TEXT, Reserv1 TEXT, Reserv2 TEXT, " +
                    "UNIQUE (PoParameterName) ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'EquipmentSettings' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, EquipmentParameterName TEXT, EquipmentParameterValue TEXT, EquipmentParameterServer TEXT," +
                     "Reserv1, Reserv2, UNIQUE ('EquipmentParameterName', 'EquipmentParameterServer') ON CONFLICT REPLACE);", databasePerson);
-            ExecuteSql("CREATE TABLE IF NOT EXISTS 'LastTakenPeopleList' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, PersonsList TEXT, " +
-                    "Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('PersonsList', Reserv1) ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'LastTakenPeopleComboList' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, ComboList TEXT, " +
                     "Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('ComboList', Reserv1) ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'Mailing' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, SenderEmail TEXT, " +
@@ -525,34 +512,17 @@ namespace PersonViewerSCA2
 
         private void UpdateTableOfDB()
         {
-            TryUpdateStructureSqlDB("PersonRegistrationsFullList", "FIO TEXT, NAV TEXT, iDCard TEXT, DateRegistered TEXT, " +
-                    "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL," +
-                    "HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL,  WorkedOut REAL, ServerOfRegistration TEXT, " +
-                    "Late TEXT, Early TEXT,  Vacancy TEXT, BusinesTrip TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
-
-            TryUpdateStructureSqlDB("PersonRegistrationsList", "FIO TEXT, NAV TEXT, iDCard TEXT, DateRegistered TEXT, " +
-                    "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, " +
-                    "HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL,  WorkedOut REAL, ServerOfRegistration TEXT, " +
-                    "Late TEXT, Early TEXT,  Vacancy TEXT, BusinesTrip TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
-
-            TryUpdateStructureSqlDB("PersonTemp", "FIO TEXT, NAV TEXT, iDCard TEXT, DateRegistered TEXT, " +
-                    "HourComming TEXT, MinuteComming TEXT, Comming REAL, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, " +
-                    "HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL,  WorkedOut REAL, ServerOfRegistration TEXT, " +
-                    "Late TEXT, Early TEXT,  Vacancy TEXT, BusinesTrip TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
-
             TryUpdateStructureSqlDB("PeopleGroupDesciption", "GroupPerson TEXT, GroupPersonDescription TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
             TryUpdateStructureSqlDB("PeopleGroup", "FIO TEXT, NAV TEXT, GroupPerson TEXT, HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, " +
-                    "HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL, ControllingHHMM TEXT, ControllingOUTHHMM TEXT, "+
+                    "HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL, ControllingHHMM TEXT, ControllingOUTHHMM TEXT, " +
                     "Shift TEXT, Comment TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
             TryUpdateStructureSqlDB("ListOfWorkTimeShifts", "FIO TEXT, NAV TEXT, DayStartShift TEXT, MoStart REAL,MoEnd REAL, TuStart REAL,TuEnd REAL, WeStart REAL,WeEnd REAL, ThStart REAL,ThEnd REAL, FrStart REAL,FrEnd REAL, " +
                     "SaStart REAL,SaEnd REAL, SuStart REAL,SuEnd REAL, Status Text, Comment TEXT, DayInputed TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
 
             TryUpdateStructureSqlDB("TechnicalInfo", "PCName TEXT, POName TEXT, POVersion TEXT, LastDateStarted TEXT, Reserv1 TEXT, Reserv2 TEXT, Reserverd3 TEXT", databasePerson);
             TryUpdateStructureSqlDB("BoldedDates", "BoldedDate TEXT, NAV TEXT, Groups TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
-            TryUpdateStructureSqlDB("MySettings", "MyParameterName TEXT, MyParameterValue TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
             TryUpdateStructureSqlDB("ProgramSettings", " PoParameterName TEXT, PoParameterValue TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
             TryUpdateStructureSqlDB("EquipmentSettings", "EquipmentParameterName TEXT, EquipmentParameterValue TEXT, EquipmentParameterServer TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
-            TryUpdateStructureSqlDB("LastTakenPeopleList", "PersonsList TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
             TryUpdateStructureSqlDB("LastTakenPeopleComboList", "ComboList TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
             TryUpdateStructureSqlDB("Mailing", "SenderEmail TEXT, RecipientEmail TEXT, GroupsReport TEXT, NameReport TEXT, Description TEXT, DateCreated TEXT, Period TEXT, Status TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
 
@@ -599,24 +569,7 @@ namespace PersonViewerSCA2
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
                     sqlConnection.Open();
-
-                    using (var sqlCommand = new SQLiteCommand("SELECT PersonsList FROM LastTakenPeopleList;", sqlConnection))
-                    {
-                        using (var reader = sqlCommand.ExecuteReader())
-                        {
-                            foreach (DbDataRecord record in reader)
-                            {
-                                try
-                                {
-                                    if (record != null && record["PersonsList"].ToString().Length > 0)
-                                    {
-                                        listFIO.Add(record["PersonsList"].ToString().Trim());
-                                    }
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
-                            }
-                        }
-                    }
-
+                                        
                     using (var sqlCommand = new SQLiteCommand("SELECT ComboList FROM LastTakenPeopleComboList;", sqlConnection))
                     {
                         using (var reader = sqlCommand.ExecuteReader())
@@ -1088,8 +1041,7 @@ namespace PersonViewerSCA2
                                 try
                                 {
                                     sqlCommand.ExecuteNonQuery();
-                                }
-                                catch (Exception expt)
+                                } catch (Exception expt)
                                 {
                                     MessageBox.Show(dr[@"Фамилия Имя Отчество"] + "\n" + dr[@"NAV-код"] + "\n" + expt.ToString());
                                 }
@@ -1166,13 +1118,12 @@ namespace PersonViewerSCA2
                                             _departmentDescription = record["name"].ToString()
                                         });
                                     }
-                                }
-                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 _ProgressWork1Step(1);
                             }
                         }
                     }
-                    
+
                     //список пользователей с SCA сервера
                     query = "SELECT id, name, surname, patronymic, post, tabnum, parent_id FROM OBJ_PERSON ";
                     logger.Info(query);
@@ -1193,12 +1144,12 @@ namespace PersonViewerSCA2
                                         try { fio = record["name"].ToString().Trim(); } catch { }
                                         try { fio += " " + record["surname"].ToString().Trim(); fio = fio.Trim(); } catch { }
                                         try { fio += " " + record["patronymic"].ToString().Trim(); fio = fio.Trim(); } catch { }
-                                        groupName=record["parent_id"].ToString().Trim();
+                                        groupName = record["parent_id"].ToString().Trim();
 
                                         try
                                         {
-                                            depName = peopleDepartments.Find((x) => x._departmentName ==groupName)._departmentDescription; }
-                                        catch(Exception expt) { logger.Warn(expt.Message); }
+                                            depName = peopleDepartments.Find((x) => x._departmentName == groupName)._departmentDescription;
+                                        } catch (Exception expt) { logger.Warn(expt.Message); }
 
                                         personFromServer = new Person();
                                         personFromServer.FIO = fio;
@@ -1290,8 +1241,7 @@ namespace PersonViewerSCA2
                             {
                                 if (reader?.GetString(@"code") != null && reader?.GetString(@"code").Length > 0)
                                 {
-                                    try { dayStartShift = DateTime.Parse(reader?.GetMySqlDateTime(@"start_date").ToString()).ToString("yyyy-MM-dd"); }
-                                    catch
+                                    try { dayStartShift = DateTime.Parse(reader?.GetMySqlDateTime(@"start_date").ToString()).ToString("yyyy-MM-dd"); } catch
                                     { dayStartShift = DateTime.Parse("1980-01-01").ToString("yyyy-MM-dd"); }
 
                                     peopleShifts.Add(new PeopleShift()
@@ -1425,7 +1375,7 @@ namespace PersonViewerSCA2
                     try { peopleShifts.RemoveAll((x) => x._nav == exceptCode); } catch { }
                 }
                 dataTablePeople.AcceptChanges();
-                
+
                 _toolStripStatusLabelSetText(StatusLabel2, "Список ФИО успешно получен");
                 stimerPrev = "Все списки с ФИО с сервера СКД успешно получены";
             } catch (Exception Expt)
@@ -1440,7 +1390,6 @@ namespace PersonViewerSCA2
 
             if (databasePerson.Exists && bServer1Exist)
             {
-                DeleteAllDataInTableQuery(databasePerson, "LastTakenPeopleList");
                 DeleteAllDataInTableQuery(databasePerson, "LastTakenPeopleComboList");
 
                 for (int indDep = 0; indDep < peopleDepartments.Count; indDep++)
@@ -1449,8 +1398,7 @@ namespace PersonViewerSCA2
                     {
                         depName = peopleDepartments[indDep]._departmentName;
                         DeleteDataTableQueryParameters(databasePerson, "PeopleGroup", "GroupPerson", depName, "", "", "", "");
-                    }
-                    catch { }
+                    } catch { }
                 }
 
                 for (int indDep = 0; indDep < peopleDepartments.Count; indDep++)
@@ -1460,10 +1408,9 @@ namespace PersonViewerSCA2
                         depName = peopleDepartments[indDep]._departmentName;
                         depDescr = peopleDepartments[indDep]._departmentDescription;
                         CreateGroupInDB(databasePerson, depName, depDescr);
-                    }
-                    catch { }
+                    } catch { }
                 }
-                                
+
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
                     sqlConnection.Open();
@@ -1523,37 +1470,37 @@ namespace PersonViewerSCA2
                     }
                     sqlCommand1 = new SQLiteCommand("end", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
-/*
-                    sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
-                    foreach (var dr in dataTablePeople.AsEnumerable())
-                    {
-                        if (dr[@"Фамилия Имя Отчество"] != null && dr[@"NAV-код"] != null && dr[@"NAV-код"].ToString().Length > 0)
-                        {
-                            using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Reserv1, Reserv2) " +
-                                    " VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Comment, @Reserv1, @Reserv2)", sqlConnection))
-                            {
-                                sqlCommand.Parameters.Add("@FIO", DbType.String).Value = dr[@"Фамилия Имя Отчество"].ToString();
-                                sqlCommand.Parameters.Add("@NAV", DbType.String).Value = dr[@"NAV-код"].ToString();
-                                sqlCommand.Parameters.Add("@GroupPerson", DbType.String).Value = dr[@"Группа"].ToString();
-                                sqlCommand.Parameters.Add("@ControllingHHMM", DbType.String).Value = dr[@"Время прихода ЧЧ:ММ"].ToString();
-                                sqlCommand.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = dr[@"Время ухода ЧЧ:ММ"].ToString();
-                                sqlCommand.Parameters.Add("@Shift", DbType.String).Value = dr[@"График"].ToString();
-                                sqlCommand.Parameters.Add("@Comment", DbType.String).Value = dr[@"Комментарии"].ToString();
-                                sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = dr[@"Отдел"].ToString();
-                                sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = dr[@"Должность"].ToString();
-                                try {
-                                    sqlCommand.ExecuteNonQuery();
-                                } catch (Exception expt) {
-                                    MessageBox.Show(dr[@"Фамилия Имя Отчество"]+"\n"+ dr[@"NAV-код"] + "\n" + expt.ToString());
-                                }
-                            }
-                        }
-                    }
+                    /*
+                                        sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
+                                        sqlCommand1.ExecuteNonQuery();
+                                        foreach (var dr in dataTablePeople.AsEnumerable())
+                                        {
+                                            if (dr[@"Фамилия Имя Отчество"] != null && dr[@"NAV-код"] != null && dr[@"NAV-код"].ToString().Length > 0)
+                                            {
+                                                using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Reserv1, Reserv2) " +
+                                                        " VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Comment, @Reserv1, @Reserv2)", sqlConnection))
+                                                {
+                                                    sqlCommand.Parameters.Add("@FIO", DbType.String).Value = dr[@"Фамилия Имя Отчество"].ToString();
+                                                    sqlCommand.Parameters.Add("@NAV", DbType.String).Value = dr[@"NAV-код"].ToString();
+                                                    sqlCommand.Parameters.Add("@GroupPerson", DbType.String).Value = dr[@"Группа"].ToString();
+                                                    sqlCommand.Parameters.Add("@ControllingHHMM", DbType.String).Value = dr[@"Время прихода ЧЧ:ММ"].ToString();
+                                                    sqlCommand.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = dr[@"Время ухода ЧЧ:ММ"].ToString();
+                                                    sqlCommand.Parameters.Add("@Shift", DbType.String).Value = dr[@"График"].ToString();
+                                                    sqlCommand.Parameters.Add("@Comment", DbType.String).Value = dr[@"Комментарии"].ToString();
+                                                    sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = dr[@"Отдел"].ToString();
+                                                    sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = dr[@"Должность"].ToString();
+                                                    try {
+                                                        sqlCommand.ExecuteNonQuery();
+                                                    } catch (Exception expt) {
+                                                        MessageBox.Show(dr[@"Фамилия Имя Отчество"]+"\n"+ dr[@"NAV-код"] + "\n" + expt.ToString());
+                                                    }
+                                                }
+                                            }
+                                        }
 
-                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
-                    */
+                                        sqlCommand1 = new SQLiteCommand("end", sqlConnection);
+                                        sqlCommand1.ExecuteNonQuery();
+                                        */
                     sqlCommand1.Dispose();
                     sqlConnection.Close();
                 }
@@ -1561,8 +1508,7 @@ namespace PersonViewerSCA2
                 foreach (string str in ListFIOCombo.ToArray())
                 { _comboBoxAdd(comboBoxFio, str); }
                 try
-                { _comboBoxSelectIndex(comboBoxFio, 0); }
-                catch { };
+                { _comboBoxSelectIndex(comboBoxFio, 0); } catch { };
 
                 _toolStripStatusLabelSetText(StatusLabel2, "Получено ФИО - " + iFIO + " ");
                 _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
@@ -1597,124 +1543,6 @@ namespace PersonViewerSCA2
         }
 
 
-
-        /// <summary>
-        /// ///////////////////////////////////////////////////////////////
-        /// </summary>
-        //check dubled function!!!!!!!!
-        private void BoldAnualDates() //Excluded Anual Days from the table "PersonTemp" DB
-        {
-            var oneDay = TimeSpan.FromDays(1);
-            var twoDays = TimeSpan.FromDays(2);
-            var fiftyDays = TimeSpan.FromDays(50);
-
-            var mySelectedStartDay = new DateTime(dateTimePickerStart.Value.Year, dateTimePickerStart.Value.Month, dateTimePickerStart.Value.Day);
-            var mySelectedEndDay = new DateTime(dateTimePickerEnd.Value.Year, dateTimePickerEnd.Value.Month, dateTimePickerEnd.Value.Day);
-            int myYearNow = DateTime.Now.Year;
-
-            monthCalendar.MaxSelectionCount = 60;
-            monthCalendar.SelectionRange = new SelectionRange(mySelectedStartDay, mySelectedEndDay);
-            monthCalendar.FirstDayOfWeek = Day.Monday;
-
-            //Start of the Block Bolded days
-            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 1, 1));
-            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 1, 2));
-            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 1, 7));
-            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 3, 8));
-            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 5, 1));
-            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 5, 2));
-            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 5, 9));
-            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 6, 28));
-            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 8, 24));    // (plavayuschaya data)
-            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 10, 16));   // (plavayuschaya data)
-
-            // Алгоритм для вычисления католической Пасхи    http://snippets.dzone.com/posts/show/765
-            int Y = myYearNow;
-            int a = Y % 19;
-            int b = Y / 100;
-            int c = Y % 100;
-            int d = b / 4;
-            int e = b % 4;
-            int f = (b + 8) / 25;
-            int g = (b - f + 1) / 3;
-            int h = (19 * a + b - d - g + 15) % 30;
-            int i = c / 4;
-            int k = c % 4;
-            int L = (32 + 2 * e + 2 * i - h - k) % 7;
-            int m = (a + 11 * h + 22 * L) / 451;
-            int monthEaster = (h + L - 7 * m + 114) / 31;
-            int dayEaster = ((h + L - 7 * m + 114) % 31) + 1;
-
-            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, monthEaster, dayEaster) + oneDay);   //Easter - Paskha
-
-            //Independence day
-            DateTime dayBolded = new DateTime(myYearNow, 8, 24);
-            switch ((int)dayBolded.DayOfWeek)
-            {
-                case (int)Day.Sunday:
-                    monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 8, 24) + oneDay);
-                    break;
-                case (int)Day.Saturday:
-                    monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 8, 24) + twoDays);
-                    break;
-                default:
-                    break;
-            }
-
-            //day of Ukraine Force
-            dayBolded = new DateTime(myYearNow, 10, 16);
-            switch ((int)dayBolded.DayOfWeek)
-            {
-                case (int)Day.Sunday:
-                    monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 10, 16) + oneDay);
-                    break;
-                case (int)Day.Saturday:
-                    monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 10, 16) + twoDays);
-                    break;
-                default:
-                    break;
-            }
-
-            //Cristmas day
-            dayBolded = new DateTime(myYearNow, 7, 1);
-            switch ((int)dayBolded.DayOfWeek)
-            {
-                case (int)Day.Sunday:
-                    monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 7, 1) + oneDay);
-                    break;
-                case (int)Day.Saturday:
-                    monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 7, 1) + twoDays);
-                    break;
-                default:
-                    break;
-            }
-
-            //Troitsa
-            dayBolded = new DateTime(myYearNow, monthEaster, dayEaster) + fiftyDays;
-            switch ((int)dayBolded.DayOfWeek)
-            {
-                case (int)Day.Sunday:
-                    monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, monthEaster, dayEaster) + fiftyDays + oneDay);
-                    break;
-                case (int)Day.Saturday:
-                    monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, monthEaster, dayEaster) + fiftyDays + twoDays);
-                    break;
-                default:
-                    break;
-            }
-
-            //incorrect for the days less 50 after and before every New Year
-            for (var myDate = monthCalendar.SelectionStart - fiftyDays - fiftyDays; myDate <= monthCalendar.SelectionEnd + fiftyDays + fiftyDays; myDate += oneDay)     // Sunday and Saturday
-            {
-                if (myDate.DayOfWeek == DayOfWeek.Saturday || myDate.DayOfWeek == DayOfWeek.Sunday)
-                    monthCalendar.AddAnnuallyBoldedDate(myDate);
-            }
-
-            var today = DateTime.Today;
-            monthCalendar.SelectionStart = today;
-            monthCalendar.SelectionEnd = today;
-            monthCalendar.Update();
-        }
 
 
 
@@ -2121,16 +1949,16 @@ namespace PersonViewerSCA2
         private void SeekAndShowMembersOfGroup(string nameGroup)
         {
             dtPeopleListLoaded?.Dispose();
-            dtPeopleListLoaded=dtPeople.Clone();
+            dtPeopleListLoaded = dtPeople.Clone();
             var dtTemp = dtPeople.Clone();
 
             numberPeopleInLoading = 0;
             DataRow dataRow;
             string d1 = "", d2 = "", d3 = "0", dprtmnt = "", pstn = "", shift = "", query = ""; ;
-            decimal[] timeIn= new decimal[] {0,0,0,0 }; decimal[] timeOut = new decimal[] { 0, 0, 0, 0 };
+            decimal[] timeIn = new decimal[] { 0, 0, 0, 0 }; decimal[] timeOut = new decimal[] { 0, 0, 0, 0 };
             query = "Select FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Reserv1, Reserv2 FROM PeopleGroup ";
-            if (nameGroup.Length>0)
-            { query += " where GroupPerson like '" + nameGroup+"'"; }
+            if (nameGroup.Length > 0)
+            { query += " where GroupPerson like '" + nameGroup + "'"; }
             query += ";";
             using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
             {
@@ -2141,26 +1969,30 @@ namespace PersonViewerSCA2
                     {
                         foreach (DbDataRecord record in sqlReader)
                         {
-                            timeIn =new decimal[] { 0, 0, 0, 0 };  timeOut = new decimal[] { 0, 0, 0, 0 };
+                            timeIn = new decimal[] { 0, 0, 0, 0 }; timeOut = new decimal[] { 0, 0, 0, 0 };
                             d1 = "0"; d2 = ""; d3 = "0"; dprtmnt = ""; pstn = ""; shift = "";
                             try { d1 = record["FIO"].ToString().Trim(); } catch { }
 
                             if (record != null && d1.Length > 0)
                             {
-                                try { d2 = record["ControllingHHMM"].ToString();
-                                    timeIn = ConvertStringTimeHHMMToDecimalArray(d2); } catch {  }
+                                try
+                                {
+                                    d2 = record["ControllingHHMM"].ToString();
+                                    timeIn = ConvertStringTimeHHMMToDecimalArray(d2);
+                                } catch { }
 
-                                try { d3 = record["ControllingOUTHHMM"].ToString();
+                                try
+                                {
+                                    d3 = record["ControllingOUTHHMM"].ToString();
                                     timeOut = ConvertStringTimeHHMMToDecimalArray(d3);
                                 } catch { shift = ""; }
 
-                                try { dprtmnt = record["Reserv1"].ToString().Trim(); }
-                                catch
+                                try { dprtmnt = record["Reserv1"].ToString().Trim(); } catch
                                 { dprtmnt = record["GroupPerson"].ToString(); }
 
-                                try { pstn = record["Reserv2"].ToString().Trim(); } catch {  }
+                                try { pstn = record["Reserv2"].ToString().Trim(); } catch { }
                                 try { shift = record["Shift"].ToString().Trim(); } catch { }
-                                                                
+
                                 dataRow = dtTemp.NewRow();
                                 dataRow[@"Фамилия Имя Отчество"] = d1;
                                 dataRow[@"NAV-код"] = record["NAV"].ToString();
@@ -2186,7 +2018,7 @@ namespace PersonViewerSCA2
                                 numberPeopleInLoading++;
                             }
                         }
-                        d1 = null; d2 = null; d3 = null; 
+                        d1 = null; d2 = null; d3 = null;
                     }
                 }
             }
@@ -2563,9 +2395,6 @@ namespace PersonViewerSCA2
             if (bServer1Exist)
             {
                 //Clear work tables
-                DeleteAllDataInTableQuery(databasePerson, "PersonTemp");
-                DeleteAllDataInTableQuery(databasePerson, "PersonRegistrationsList");
-                DeleteAllDataInTableQuery(databasePerson, "PersonRegistrationsFullList");
                 GetNamePoints();  //Get names of the points
 
                 if ((nameOfLastTableFromDB == "PeopleGroupDesciption" || nameOfLastTableFromDB == "PeopleGroup") && groups.Length > 0)
@@ -2715,7 +2544,6 @@ namespace PersonViewerSCA2
 
                 GetPersonRegistrationFromServer(dtPersonRegistrationsFullList, person, startDate, endDate);
 
-                //  nameOfLastTableFromDB = "PersonRegistrationsList";
                 _toolStripStatusLabelSetText(StatusLabel2, "Данные с СКД по \"" + ShortFIO(_textBoxReturnText(textBoxFIO)) + "\" получены!");
             }
 
@@ -2726,14 +2554,12 @@ namespace PersonViewerSCA2
         {
             int[] startPeriod = _dateTimePickerReturnArray(dateTimePickerStart);
             int[] endPeriod = _dateTimePickerReturnArray(dateTimePickerEnd);
-            FindWorkDaysInSelected(startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
-            //test only
-            TestAnualDays(startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
+            SeekAnualDays(dtTarget, person, false, startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
 
             DataRow rowPerson;
             string stringConnection = "";
             string query = "";
-            HashSet<string> hsDays = new HashSet<string>();
+            HashSet<string> personWorkedDays = new HashSet<string>();
             decimal hourControlStart = person.ControlInHourDecimal;
             decimal minuteControlStart = person.ControlInMinuteDecimal;
             decimal controlStart = ConvertDecimalSeparatedTimeToDecimal(hourControlStart, minuteControlStart);
@@ -2877,7 +2703,7 @@ namespace PersonViewerSCA2
                                                         break;
                                                     } catch { }
                                             }
-                                            hsDays.Add(stringDataNew);
+                                            personWorkedDays.Add(stringDataNew);
 
                                             rowPerson = dtTarget.NewRow();
                                             rowPerson[@"Фамилия Имя Отчество"] = person.FIO;
@@ -2924,38 +2750,30 @@ namespace PersonViewerSCA2
             if (listPoints.Count > 0)
             { bLoaded = true; }
 
-
-            
-            //hsDays  - add days when a person was absence
-
             // рабочие дни в которые отсутствовал данная персона
-            foreach (string day in workSelectedDays)
+            foreach (string day in workSelectedDays.Except(personWorkedDays))
             {
-                //проверка - есть ли не выход на работу в рабочий день
-                if (dtTarget.Select(@"[Дата регистрации] = '" + day + "'").Count() == 0)
-                {
-                    rowPerson = dtTarget.NewRow();
-                    rowPerson[@"Фамилия Имя Отчество"] = person.FIO;
-                    rowPerson[@"NAV-код"] = person.NAV;
-                    rowPerson[@"Группа"] = person.GroupPerson;
-                    rowPerson[@"№ пропуска"] = person.idCard;
-                    rowPerson[@"Время прихода,часы"] = person.ControlInHour;
-                    rowPerson[@"Время прихода,минут"] = person.ControlInMinute;
-                    rowPerson[@"Время прихода"] = controlStart;
-                    rowPerson[@"Время ухода,часы"] = person.ControlOutHour;
-                    rowPerson[@"Время ухода,минут"] = person.ControlOutMinute;
-                    rowPerson[@"Время ухода"] = person.ControlOutDecimal;
-                    rowPerson[@"Время регистрации,часы"] = "0";
-                    rowPerson[@"Время регистрации,минут"] = "0";
-                    rowPerson[@"Время регистрации"] = "0";
-                    rowPerson[@"Дата регистрации"] = day;
-                    rowPerson[@"День недели"] = DayOfWeekRussian((DateTime.Parse(day)).DayOfWeek.ToString());
-                    rowPerson[@"Время прихода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(person.ControlInHour, person.ControlInMinute);
-                    rowPerson[@"Время ухода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(person.ControlOutHour, person.ControlOutMinute);
-                    rowPerson[@"Отсутствовал на работе"] = "Да";
+                rowPerson = dtTarget.NewRow();
+                rowPerson[@"Фамилия Имя Отчество"] = person.FIO;
+                rowPerson[@"NAV-код"] = person.NAV;
+                rowPerson[@"Группа"] = person.GroupPerson;
+                rowPerson[@"№ пропуска"] = person.idCard;
+                rowPerson[@"Время прихода,часы"] = person.ControlInHour;
+                rowPerson[@"Время прихода,минут"] = person.ControlInMinute;
+                rowPerson[@"Время прихода"] = controlStart;
+                rowPerson[@"Время ухода,часы"] = person.ControlOutHour;
+                rowPerson[@"Время ухода,минут"] = person.ControlOutMinute;
+                rowPerson[@"Время ухода"] = person.ControlOutDecimal;
+                rowPerson[@"Время регистрации,часы"] = "0";
+                rowPerson[@"Время регистрации,минут"] = "0";
+                rowPerson[@"Время регистрации"] = "0";
+                rowPerson[@"Дата регистрации"] = day;
+                rowPerson[@"День недели"] = DayOfWeekRussian((DateTime.Parse(day)).DayOfWeek.ToString());
+                rowPerson[@"Время прихода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(person.ControlInHour, person.ControlInMinute);
+                rowPerson[@"Время ухода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(person.ControlOutHour, person.ControlOutMinute);
+                rowPerson[@"Отсутствовал на работе"] = "Да";
 
-                    dtTarget.Rows.Add(rowPerson);//добавляем рабочий день в который  сотрудник не выходил на работу
-                }
+                dtTarget.Rows.Add(rowPerson);//добавляем рабочий день в который  сотрудник не выходил на работу
                 _ProgressWork1Step(1);
             }
 
@@ -4104,10 +3922,12 @@ namespace PersonViewerSCA2
         {
             int[] startPeriod = _dateTimePickerReturnArray(dateTimePickerStart);
             int[] endPeriod = _dateTimePickerReturnArray(dateTimePickerEnd);
-            FindWorkDaysInSelected(startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
-
-            //test only
-            TestAnualDays(startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
+            DataTable dtEmpty = new DataTable();
+            Person emptyPerson = new Person();
+            SeekAnualDays(dtEmpty, emptyPerson, false, startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
+            //FindWorkDaysInSelected(startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
+            dtEmpty.Dispose();
+            emptyPerson = null;
 
             CheckBoxesFiltersAll_Enable(false);
             _controlVisible(dataGridView1, false);
@@ -4115,8 +3935,8 @@ namespace PersonViewerSCA2
 
             string nameGroup = _textBoxReturnText(textBoxGroup);
 
-            DataTable dtTempIntermediate = dtPersonRegistrationsFullList.Clone();
-            dtPersonTempAllColumns = dtPersonRegistrationsFullList.Clone();
+            DataTable dtTempIntermediate = dtPeople.Clone();
+            dtPersonTempAllColumns = dtPeople.Clone();
             Person personCheck = new Person();
             personCheck.FIO = _textBoxReturnText(textBoxFIO);
             personCheck.NAV = _textBoxReturnText(textBoxNav);
@@ -4185,7 +4005,6 @@ namespace PersonViewerSCA2
                 {
                     FilterDataByNav(personCheck, dtPersonRegistrationsFullList, dtTempIntermediate);
                 }
-                //  nameOfLastTableFromDB = "PersonRegistrationsList";
             }
 
             string[] arrayHiddenColumns =
@@ -4256,7 +4075,8 @@ namespace PersonViewerSCA2
             return dtUniqRecords;
         }
 
-        private void FilterDataByNav(Person personNAV, DataTable dataTableSource, DataTable dataTableForStoring)    //Copy Data from PersonRegistrationsList into PersonTemp by Filter(NAV and anual dates or minimalTime or dayoff)
+            //Copy Data from dtPersonRegistrationsList into dtPersonTemp by Filter(NAV and anual dates or minimalTime or dayoff)
+        private void FilterDataByNav(Person personNAV, DataTable dataTableSource, DataTable dataTableForStoring)   
         {
             DataRow rowDtStoring;
             DataTable dtTemp = dataTableSource.Clone();
@@ -4344,9 +4164,14 @@ namespace PersonViewerSCA2
 
                 if (_CheckboxCheckedStateReturn(checkBoxWeekend) || currentAction == "sendEmail")//checkBoxWeekend Checking
                 {
-                    DeleteAnualDatesFromDataTables(dtTemp, personNAV,
-                        dateTimePickerStart.Value.Year, dateTimePickerStart.Value.Month, dateTimePickerStart.Value.Day,
-                        dateTimePickerEnd.Value.Year, dateTimePickerEnd.Value.Month, dateTimePickerEnd.Value.Day);
+                    int[] startPeriod = _dateTimePickerReturnArray(dateTimePickerStart);
+                    int[] endPeriod = _dateTimePickerReturnArray(dateTimePickerEnd);
+                    DataTable dtEmpty = new DataTable();
+                    Person emptyPerson = new Person();
+                    SeekAnualDays(dtTemp, personNAV, true, startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
+                    dtEmpty.Dispose();
+                    emptyPerson = null;
+
                 }
 
                 if (_CheckboxCheckedStateReturn(checkBoxTimeViolations)) //checkBoxStartWorkInTime Checking
@@ -4363,254 +4188,158 @@ namespace PersonViewerSCA2
         }
 
 
-        /// <summary>
-        /// /Check these functions!!!!!!!!!!!!!!!!
-        /// </summary>
-
-        private void TestAnualDays(int startYear, int startMonth, int startDay, int endYear, int endMonth, int endDay) //Exclude Anual Days from the table "PersonTemp" DB
+        private void SeekAnualDays(DataTable dt, Person person, bool delRow, int startYear, int startMonth, int startDay, int endYear, int endMonth, int endDay) //Exclude Anual Days from the table "PersonTemp" DB
         {
             //test
-            List<string> days = new List<string>();
-
-            var oneDay = TimeSpan.FromDays(1);
-
-            var mySelectedStartDay = new DateTime(startYear, startMonth, startDay);
-            var mySelectedEndDay = new DateTime(endYear, endMonth, endDay);
-            //  int myYearNow = DateTime.Now.Year;
-            var myMonthCalendar = new MonthCalendar();
-
-            myMonthCalendar.MaxSelectionCount = 60;
-            myMonthCalendar.SelectionRange = new SelectionRange(mySelectedStartDay, mySelectedEndDay);
-            myMonthCalendar.FirstDayOfWeek = Day.Monday;
-
-            for (int year = -1; year < 3; year++)
-            {
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 1, 1));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 1, 2));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 1, 7));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 3, 8));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 5, 1));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 5, 2));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 5, 9));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 6, 28));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 8, 24));    // (plavayuschaya data)
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 10, 16));   // (plavayuschaya data)
-            }
-
-
-            // Алгоритм для вычисления католической Пасхи http://snippets.dzone.com/posts/show/765
-            int Y = startYear;
-            int a = Y % 19;
-            int b = Y / 100;
-            int c = Y % 100;
-            int d = b / 4;
-            int e = b % 4;
-            int f = (b + 8) / 25;
-            int g = (b - f + 1) / 3;
-            int h = (19 * a + b - d - g + 15) % 30;
-            int i = c / 4;
-            int k = c % 4;
-            int L = (32 + 2 * e + 2 * i - h - k) % 7;
-            int m = (a + 11 * h + 22 * L) / 451;
-            int monthEaster = (h + L - 7 * m + 114) / 31;
-            int dayEaster = ((h + L - 7 * m + 114) % 31) + 1;
-
-            //Easter - Paskha
-            myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, monthEaster, dayEaster) + oneDay);
-
-            //Independence day
-            DateTime dayBolded = new DateTime(startYear, 8, 24);
-            switch ((int)dayBolded.DayOfWeek)
-            {
-                case (int)Day.Sunday:
-                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 8, 24) + oneDay);    // (plavayuschaya data)
-                    break;
-                case (int)Day.Saturday:
-                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 8, 24) + oneDay + oneDay);    // (plavayuschaya data)
-                    break;
-                default:
-                    break;
-            }
-
-            //day of Ukraine Force
-            dayBolded = new DateTime(startYear, 10, 16);
-            switch ((int)dayBolded.DayOfWeek)
-            {
-                case (int)Day.Sunday:
-                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 10, 16) + oneDay);    // (plavayuschaya data)
-                    break;
-                case (int)Day.Saturday:
-                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 10, 16) + oneDay + oneDay);    // (plavayuschaya data)
-                    break;
-                default:
-                    break;
-            }
-
-            string singleDate = null;
-
-            for (var myDate = myMonthCalendar.SelectionStart; myDate <= myMonthCalendar.SelectionEnd; myDate += oneDay)
-            {
-                if (myDate.DayOfWeek == DayOfWeek.Saturday || myDate.DayOfWeek == DayOfWeek.Sunday)
-                {
-                    singleDate = Regex.Split(myDate.ToString("yyyy-MM-dd"), " ")[0].Trim();
-                    days.Add(singleDate);
-                }
-            }
-            foreach (var myAnualDate in myMonthCalendar.AnnuallyBoldedDates)
-            {
-                for (var myDate = myMonthCalendar.SelectionStart; myDate <= myMonthCalendar.SelectionEnd; myDate += oneDay)
-                {
-                    if (myDate == myAnualDate)
-                    {
-                        singleDate = Regex.Split(myDate.ToString("yyyy-MM-dd"), " ")[0].Trim();
-                        days.Add(singleDate);
-                    }
-                }
-            }
-
-
-            string ddd = "";
-            foreach (string str in days.ToArray())
-                ddd += str + " ";
-            logger.Info("TestAnualDays: " + ddd);
-
-            myMonthCalendar.Dispose();
-        }
-
-        private void DeleteAnualDatesFromDataTables(DataTable dt, Person person, int startYear, int startMonth, int startDay, int endYear, int endMonth, int endDay) //Exclude Anual Days from the table "PersonTemp" DB
-        {
-            var oneDay = TimeSpan.FromDays(1);
-
-            var mySelectedStartDay = new DateTime(startYear, startMonth, startDay);
-            var mySelectedEndDay = new DateTime(endYear, endMonth, endDay);
-            //  int myYearNow = DateTime.Now.Year;
-            var myMonthCalendar = new MonthCalendar();
-
-            myMonthCalendar.MaxSelectionCount = 60;
-            myMonthCalendar.SelectionRange = new SelectionRange(mySelectedStartDay, mySelectedEndDay);
-            myMonthCalendar.FirstDayOfWeek = Day.Monday;
-
-            for (int year = -1; year < 3; year++)
-            {
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 1, 1));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 1, 2));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 1, 7));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 3, 8));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 5, 1));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 5, 2));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 5, 9));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 6, 28));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 8, 24));    // (plavayuschaya data)
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 10, 16));   // (plavayuschaya data)
-            }
-
-
-            // Алгоритм для вычисления католической Пасхи http://snippets.dzone.com/posts/show/765
-            int Y = startYear;
-            int a = Y % 19;
-            int b = Y / 100;
-            int c = Y % 100;
-            int d = b / 4;
-            int e = b % 4;
-            int f = (b + 8) / 25;
-            int g = (b - f + 1) / 3;
-            int h = (19 * a + b - d - g + 15) % 30;
-            int i = c / 4;
-            int k = c % 4;
-            int L = (32 + 2 * e + 2 * i - h - k) % 7;
-            int m = (a + 11 * h + 22 * L) / 451;
-            int monthEaster = (h + L - 7 * m + 114) / 31;
-            int dayEaster = ((h + L - 7 * m + 114) % 31) + 1;
-
-            //Easter - Paskha
-            myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, monthEaster, dayEaster) + oneDay);
-
-            //Independence day
-            DateTime dayBolded = new DateTime(startYear, 8, 24);
-            switch ((int)dayBolded.DayOfWeek)
-            {
-                case (int)Day.Sunday:
-                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 8, 24) + oneDay);    // (plavayuschaya data)
-                    break;
-                case (int)Day.Saturday:
-                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 8, 24) + oneDay + oneDay);    // (plavayuschaya data)
-                    break;
-                default:
-                    break;
-            }
-
-            //day of Ukraine Force
-            dayBolded = new DateTime(startYear, 10, 16);
-            switch ((int)dayBolded.DayOfWeek)
-            {
-                case (int)Day.Sunday:
-                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 10, 16) + oneDay);    // (plavayuschaya data)
-                    break;
-                case (int)Day.Saturday:
-                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 10, 16) + oneDay + oneDay);    // (plavayuschaya data)
-                    break;
-                default:
-                    break;
-            }
-
-            string singleDate = null;
-
-            for (var myDate = myMonthCalendar.SelectionStart; myDate <= myMonthCalendar.SelectionEnd; myDate += oneDay)
-            {
-                if (myDate.DayOfWeek == DayOfWeek.Saturday || myDate.DayOfWeek == DayOfWeek.Sunday)
-                {
-                    singleDate = Regex.Split(myDate.ToString("yyyy-MM-dd"), " ")[0].Trim();
-                    QueryDeleteDataFromDataTable(dt, "[Дата регистрации]='" + singleDate + "'", person.NAV); // ("Дата регистрации",typeof(string)),//12
-                }
-            }
-            foreach (var myAnualDate in myMonthCalendar.AnnuallyBoldedDates)
-            {
-                for (var myDate = myMonthCalendar.SelectionStart; myDate <= myMonthCalendar.SelectionEnd; myDate += oneDay)
-                {
-                    if (myDate == myAnualDate)
-                    {
-                        singleDate = Regex.Split(myDate.ToString("yyyy-MM-dd"), " ")[0].Trim();
-                        QueryDeleteDataFromDataTable(dt, "[Дата регистрации]='" + singleDate + "'", person.NAV); // ("Дата регистрации",typeof(string)),//12
-                    }
-                }
-            }
-            dt.AcceptChanges();
-
-            myMonthCalendar.Dispose();
-        }
-
-        private void FindWorkDaysInSelected(int startYear, int startMonth, int startDay, int endYear, int endMonth, int endDay) 
-        {
+            List<string> daysBolded = new List<string>();
             boldeddDates.Clear();
             selectedDates.Clear();
             workSelectedDays = new string[1];
             myBoldedDates = new string[1];
 
             var oneDay = TimeSpan.FromDays(1);
-            var twoDays = TimeSpan.FromDays(2);
-            var fiftyDays = TimeSpan.FromDays(50);
 
             var mySelectedStartDay = new DateTime(startYear, startMonth, startDay);
             var mySelectedEndDay = new DateTime(endYear, endMonth, endDay);
-            DateTime myTempDate;
-            int myYearNow = DateTime.Now.Year;
+            //  int myYearNow = DateTime.Now.Year;
+            var myMonthCalendar = new MonthCalendar();
 
-            monthCalendar.SelectionRange = new SelectionRange(mySelectedStartDay, mySelectedEndDay);
-            monthCalendar.FirstDayOfWeek = Day.Monday;
+            myMonthCalendar.MaxSelectionCount = 60;
+            myMonthCalendar.SelectionRange = new SelectionRange(mySelectedStartDay, mySelectedEndDay);
+            myMonthCalendar.FirstDayOfWeek = Day.Monday;
 
             for (int year = -1; year < 3; year++)
             {
-                boldeddDates.Add((myYearNow + year) + "-" + 01 + "-" + 01);
-                boldeddDates.Add((myYearNow + year) + "-" + 01 + "-" + 02);
-                boldeddDates.Add((myYearNow + year) + "-" + 01 + "-" + 07);
-                boldeddDates.Add((myYearNow + year) + "-" + 03 + "-" + 08);
-                boldeddDates.Add((myYearNow + year) + "-" + 05 + "-" + 01);
-                boldeddDates.Add((myYearNow + year) + "-" + 05 + "-" + 02);
-                boldeddDates.Add((myYearNow + year) + "-" + 05 + "-" + 09);
-                boldeddDates.Add((myYearNow + year) + "-" + 06 + "-" + 28);
-                boldeddDates.Add((myYearNow + year) + "-" + 08 + "-" + 24);
-                boldeddDates.Add((myYearNow + year) + "-" + 10 + "-" + 16);
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 1, 1));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 1, 2));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 1, 7));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 3, 8));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 5, 1));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 5, 2));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 5, 9));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 6, 28));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 8, 24));    // (plavayuschaya data)
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 10, 16));   // (plavayuschaya data)
             }
+
+
+            // Алгоритм для вычисления католической Пасхи http://snippets.dzone.com/posts/show/765
+            int Y = startYear;
+            int a = Y % 19;
+            int b = Y / 100;
+            int c = Y % 100;
+            int d = b / 4;
+            int e = b % 4;
+            int f = (b + 8) / 25;
+            int g = (b - f + 1) / 3;
+            int h = (19 * a + b - d - g + 15) % 30;
+            int i = c / 4;
+            int k = c % 4;
+            int L = (32 + 2 * e + 2 * i - h - k) % 7;
+            int m = (a + 11 * h + 22 * L) / 451;
+            int monthEaster = (h + L - 7 * m + 114) / 31;
+            int dayEaster = ((h + L - 7 * m + 114) % 31) + 1;
+
+            //Easter - Paskha
+            myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, monthEaster, dayEaster) + oneDay);
+
+            //Independence day
+            DateTime dayBolded = new DateTime(startYear, 8, 24);
+            switch ((int)dayBolded.DayOfWeek)
+            {
+                case (int)Day.Sunday:
+                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 8, 24) + oneDay);    // (plavayuschaya data)
+                    break;
+                case (int)Day.Saturday:
+                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 8, 24) + oneDay + oneDay);    // (plavayuschaya data)
+                    break;
+                default:
+                    break;
+            }
+
+            //day of Ukraine Force
+            dayBolded = new DateTime(startYear, 10, 16);
+            switch ((int)dayBolded.DayOfWeek)
+            {
+                case (int)Day.Sunday:
+                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 10, 16) + oneDay);    // (plavayuschaya data)
+                    break;
+                case (int)Day.Saturday:
+                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 10, 16) + oneDay + oneDay);    // (plavayuschaya data)
+                    break;
+                default:
+                    break;
+            }
+
+            string singleDate = null;
+
+
+            List<string> daysSelected = new List<string>();
+            for (var myDate = myMonthCalendar.SelectionStart; myDate <= myMonthCalendar.SelectionEnd; myDate += oneDay)
+            {
+                singleDate = Regex.Split(myDate.ToString("yyyy-MM-dd"), " ")[0].Trim();
+                if (myDate.DayOfWeek == DayOfWeek.Saturday || myDate.DayOfWeek == DayOfWeek.Sunday)
+                {
+                    daysBolded.Add(singleDate);
+                    if (delRow)
+                    {
+                        QueryDeleteDataFromDataTable(dt, "[Дата регистрации]='" + singleDate + "'", person.NAV); // ("Дата регистрации",typeof(string)),//12
+                    }
+                }
+                daysSelected.Add(singleDate);
+            }
+            foreach (var myAnualDate in myMonthCalendar.AnnuallyBoldedDates)
+            {
+                for (var myDate = myMonthCalendar.SelectionStart; myDate <= myMonthCalendar.SelectionEnd; myDate += oneDay)
+                {
+                    if (myDate == myAnualDate)
+                    {
+                        singleDate = Regex.Split(myDate.ToString("yyyy-MM-dd"), " ")[0].Trim();
+                        daysBolded.Add(singleDate);
+                        if (delRow)
+                        {
+                            QueryDeleteDataFromDataTable(dt, "[Дата регистрации]='" + singleDate + "'", person.NAV); // ("Дата регистрации",typeof(string)),//12
+                        }
+                    }
+                }
+            }
+            myBoldedDates = daysBolded.ToArray();
+            workSelectedDays = daysSelected.Except(daysBolded).ToArray();
+
+            dt.AcceptChanges();
+            daysBolded = null;
+            myMonthCalendar.Dispose();
+        }
+
+        /// <summary>
+        /// ///////////////////////////////////////////////////////////////
+        /// </summary>
+        //check dubled function!!!!!!!!
+        private void BoldAnualDates() //Excluded Anual Days from the table "PersonTemp" DB
+        {
+            var oneDay = TimeSpan.FromDays(1);
+            var twoDays = TimeSpan.FromDays(2);
+            var fiftyDays = TimeSpan.FromDays(50);
+
+            var mySelectedStartDay = new DateTime(dateTimePickerStart.Value.Year, dateTimePickerStart.Value.Month, dateTimePickerStart.Value.Day);
+            var mySelectedEndDay = new DateTime(dateTimePickerEnd.Value.Year, dateTimePickerEnd.Value.Month, dateTimePickerEnd.Value.Day);
+            int myYearNow = DateTime.Now.Year;
+
+            monthCalendar.MaxSelectionCount = 60;
+            monthCalendar.SelectionRange = new SelectionRange(mySelectedStartDay, mySelectedEndDay);
+            monthCalendar.FirstDayOfWeek = Day.Monday;
+
+            //Start of the Block Bolded days
+            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 1, 1));
+            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 1, 2));
+            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 1, 7));
+            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 3, 8));
+            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 5, 1));
+            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 5, 2));
+            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 5, 9));
+            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 6, 28));
+            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 8, 24));    // (plavayuschaya data)
+            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 10, 16));   // (plavayuschaya data)
 
             // Алгоритм для вычисления католической Пасхи    http://snippets.dzone.com/posts/show/765
             int Y = myYearNow;
@@ -4629,131 +4358,79 @@ namespace PersonViewerSCA2
             int monthEaster = (h + L - 7 * m + 114) / 31;
             int dayEaster = ((h + L - 7 * m + 114) % 31) + 1;
 
+            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, monthEaster, dayEaster) + oneDay);   //Easter - Paskha
+
             //Independence day
-            var dayBolded = new DateTime(myYearNow, 8, 24);
-            boldeddDates.Add(dayBolded.ToString("yyyy-MM-dd"));
+            DateTime dayBolded = new DateTime(myYearNow, 8, 24);
             switch ((int)dayBolded.DayOfWeek)
             {
-                case (int)Day.Saturday:
-                    myTempDate = new DateTime(myYearNow, 8, 24);
-                    boldeddDates.Add(myTempDate.AddDays(2).ToString("yyyy-MM-dd"));
-                    break;
                 case (int)Day.Sunday:
-                    myTempDate = new DateTime(myYearNow, 8, 24);
-                    boldeddDates.Add(myTempDate.AddDays(1).ToString("yyyy-MM-dd"));
+                    monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 8, 24) + oneDay);
+                    break;
+                case (int)Day.Saturday:
+                    monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 8, 24) + twoDays);
                     break;
                 default:
                     break;
             }
-
 
             //day of Ukraine Force
             dayBolded = new DateTime(myYearNow, 10, 16);
-            boldeddDates.Add(dayBolded.ToString("yyyy-MM-dd"));
             switch ((int)dayBolded.DayOfWeek)
             {
-                case (int)Day.Saturday:
-                    myTempDate = new DateTime(myYearNow, 10, 16);
-                    boldeddDates.Add(myTempDate.AddDays(2).ToString("yyyy-MM-dd"));
-                    break;
                 case (int)Day.Sunday:
-                    myTempDate = new DateTime(myYearNow, 10, 16);
-                    boldeddDates.Add(myTempDate.AddDays(1).ToString("yyyy-MM-dd"));
+                    monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 10, 16) + oneDay);
+                    break;
+                case (int)Day.Saturday:
+                    monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 10, 16) + twoDays);
                     break;
                 default:
                     break;
             }
-
-
-            //New Year day
-            dayBolded = new DateTime(myYearNow, 1, 1);
-            boldeddDates.Add(dayBolded.ToString("yyyy-MM-dd"));
-            boldeddDates.Add(dayBolded.AddDays(1).ToString("yyyy-MM-dd"));
-            switch ((int)dayBolded.DayOfWeek)
-            {
-                case (int)Day.Saturday:
-                    myTempDate = new DateTime(myYearNow, 10, 16);
-                    boldeddDates.Add(myTempDate.AddDays(2).ToString("yyyy-MM-dd"));
-                    break;
-                case (int)Day.Sunday:
-                    myTempDate = new DateTime(myYearNow, 10, 16);
-                    boldeddDates.Add(myTempDate.AddDays(1).ToString("yyyy-MM-dd"));
-                    break;
-                default:
-                    break;
-            }
-
 
             //Cristmas day
             dayBolded = new DateTime(myYearNow, 7, 1);
-            boldeddDates.Add(dayBolded.ToString("yyyy-MM-dd"));
             switch ((int)dayBolded.DayOfWeek)
             {
-                case (int)Day.Saturday:
-                    myTempDate = new DateTime(myYearNow, 7, 1);
-                    boldeddDates.Add(myTempDate.AddDays(2).ToString("yyyy-MM-dd"));
-                    break;
                 case (int)Day.Sunday:
-                    myTempDate = new DateTime(myYearNow, 7, 1);
-                    boldeddDates.Add(myTempDate.AddDays(1).ToString("yyyy-MM-dd"));
+                    monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 7, 1) + oneDay);
+                    break;
+                case (int)Day.Saturday:
+                    monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 7, 1) + twoDays);
                     break;
                 default:
                     break;
             }
-
 
             //Troitsa
             dayBolded = new DateTime(myYearNow, monthEaster, dayEaster) + fiftyDays;
-            boldeddDates.Add(dayBolded.ToString("yyyy-MM-dd"));
             switch ((int)dayBolded.DayOfWeek)
             {
-                case (int)Day.Saturday:
-                    myTempDate = new DateTime(myYearNow, monthEaster, dayEaster);
-                    boldeddDates.Add(myTempDate.AddDays(52).ToString("yyyy-MM-dd"));
-                    break;
                 case (int)Day.Sunday:
-                    myTempDate = new DateTime(myYearNow, monthEaster, dayEaster);
-                    boldeddDates.Add(myTempDate.AddDays(51).ToString("yyyy-MM-dd"));
+                    monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, monthEaster, dayEaster) + fiftyDays + oneDay);
+                    break;
+                case (int)Day.Saturday:
+                    monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, monthEaster, dayEaster) + fiftyDays + twoDays);
                     break;
                 default:
                     break;
             }
 
-
             //incorrect for the days less 50 after and before every New Year
-            for (var myDate = mySelectedStartDay; myDate <= mySelectedEndDay; myDate += oneDay)     // Sunday and Saturday
+            for (var myDate = monthCalendar.SelectionStart - fiftyDays - fiftyDays; myDate <= monthCalendar.SelectionEnd + fiftyDays + fiftyDays; myDate += oneDay)     // Sunday and Saturday
             {
                 if (myDate.DayOfWeek == DayOfWeek.Saturday || myDate.DayOfWeek == DayOfWeek.Sunday)
-                    boldeddDates.Add(myDate.ToString("yyyy-MM-dd"));
+                    monthCalendar.AddAnnuallyBoldedDate(myDate);
             }
-            myBoldedDates = boldeddDates.ToArray();
 
-            var aDateTime = mySelectedStartDay;
-            bool bDateBolded = false;
-
-            while (aDateTime <= mySelectedEndDay)
-            {
-                bDateBolded = false;
-                foreach (string strBoldedDate in myBoldedDates)
-                {
-                    if (strBoldedDate.Contains(aDateTime.ToString("yyyy-MM-dd")))
-                    {
-                        bDateBolded = true;
-                        break;
-                    }
-                }
-
-                if (!bDateBolded)
-                { selectedDates.Add(aDateTime.ToString("yyyy-MM-dd")); }
-                aDateTime = aDateTime.AddDays(1);
-            }
-            workSelectedDays = selectedDates.ToArray();
-
-            string ddd = "";
-            foreach (string str in workSelectedDays)
-                ddd += str + " ";
-            logger.Info("FindWorkDaysInSelected: " + ddd);
+            var today = DateTime.Today;
+            monthCalendar.SelectionStart = today;
+            monthCalendar.SelectionEnd = today;
+            monthCalendar.Update();
         }
+
+
+
 
 
         private void QueryDeleteDataFromDataTable(DataTable dt, string queryFull, string NAVcode) //Delete data from the Table of the DB by NAV (both parameters are string)
@@ -4828,9 +4505,6 @@ namespace PersonViewerSCA2
         private void CleaReportsRecreateTables()
         {
             logger.Info("-= Очистика от отчетов =-");
-            DeleteTable(databasePerson, "PersonTemp");
-            DeleteTable(databasePerson, "PersonRegistrationsList");
-            DeleteTable(databasePerson, "PersonRegistrationsFullList");
 
             ClearFilesInApplicationFolders(@"*.xlsx", "Excel-файлов");
 
@@ -4843,7 +4517,6 @@ namespace PersonViewerSCA2
 
             TryMakeDB();
             UpdateTableOfDB();
-            ShowDataTableQuery(databasePerson, "PersonRegistrationsFullList");
             _toolStripStatusLabelSetText(StatusLabel2, @"Временные таблицы удалены");
         }
 
@@ -4853,10 +4526,6 @@ namespace PersonViewerSCA2
         private void ClearGotReportsRecreateTables()
         {
             logger.Info("-= Очистика от отчетов и полученных данных =-");
-            DeleteTable(databasePerson, "PersonRegistrationsFullList");
-            DeleteTable(databasePerson, "PersonRegistrationsList");
-            DeleteTable(databasePerson, "PersonTemp");
-            DeleteTable(databasePerson, "LastTakenPeopleList");
             DeleteTable(databasePerson, "LastTakenPeopleComboList");
 
             ClearFilesInApplicationFolders(@"*.xlsx", "Excel-файлов");
@@ -4887,18 +4556,13 @@ namespace PersonViewerSCA2
             {
                 logger.Info("-= Очистика локальной базы от всех полученных, сгенерированных, сохраненных и введенных данных =-");
 
-                DeleteTable(databasePerson, "PersonRegistrationsFullList");
-                DeleteTable(databasePerson, "PersonRegistrationsList");
-                DeleteTable(databasePerson, "PersonTemp");
                 DeleteTable(databasePerson, "PeopleGroup");
                 DeleteTable(databasePerson, "PeopleGroupDesciption");
                 DeleteTable(databasePerson, "TechnicalInfo");
                 DeleteTable(databasePerson, "BoldedDates");
-                DeleteTable(databasePerson, "MySettings");
                 DeleteTable(databasePerson, "ProgramSettings");
                 DeleteTable(databasePerson, "EquipmentSettings");
                 DeleteTable(databasePerson, "ProgramSettings");
-                DeleteTable(databasePerson, "LastTakenPeopleList");
                 DeleteTable(databasePerson, "LastTakenPeopleComboList");
                 GC.Collect();
 
@@ -7082,10 +6746,6 @@ namespace PersonViewerSCA2
                         {
                             DataTable dtTempIntermediate = dtPeople.Clone();
                             Person personCheck = new Person();
-
-                            DeleteAllDataInTableQuery(databasePerson, "PersonTemp");
-                            DeleteAllDataInTableQuery(databasePerson, "PersonRegistrationsList");
-                            DeleteAllDataInTableQuery(databasePerson, "PersonRegistrationsFullList");
 
                             GetNamePoints();  //Get names of the registration' points
 
