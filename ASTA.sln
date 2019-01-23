@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26730.10
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonViewerSCA2", "PersonViewerSCA2.csproj", "{6C84406F-DC6A-4BB4-9716-1B56D6313C43}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASTA", "ASTA.csproj", "{6C84406F-DC6A-4BB4-9716-1B56D6313C43}"
 EndProject
-Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "SetupSCA", "SCA\SetupSCA.wixproj", "{EDF2DBDD-16FD-48C3-82E4-9E67F09B87C0}"
+Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "SetupASTA", "SCA\SetupASTA.wixproj", "{EDF2DBDD-16FD-48C3-82E4-9E67F09B87C0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // Общие сведения об этой сборке предоставляются следующим набором 
 // атрибутов. Отредактируйте значения этих атрибутов, чтобы изменить
 // общие сведения об этой сборке.
-[assembly: AssemblyTitle("PersonViewerSCA2")]
-[assembly: AssemblyDescription("Анализ времени регистрации пропусков в СКД")]
+[assembly: AssemblyTitle("Analysis of Staff Time Accounting")]
+[assembly: AssemblyDescription("Анализ УРВ персонала")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("©Yuri Ryabchenko")]
-[assembly: AssemblyProduct("PersonViewerSCA2")]
+[assembly: AssemblyProduct("ASTA")]
 [assembly: AssemblyCopyright("©Yuri Ryabchenko 2017-2019")]
 [assembly: AssemblyTrademark("©RYIK")]
 [assembly: AssemblyCulture("")]
@@ -29,5 +29,5 @@ using System.Runtime.InteropServices;
 //   Номер сборки
 //      Редакция
 //
-[assembly: AssemblyVersion("3.2.9.5")]
-[assembly: AssemblyFileVersion("3.2.7.11")]
+[assembly: AssemblyVersion("3.7.9.5")]
+[assembly: AssemblyFileVersion("3.3.7.11")]

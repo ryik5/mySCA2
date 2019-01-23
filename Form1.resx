@@ -3644,10 +3644,10 @@
 </value>
   </data>
   <data name="$this.Text" xml:space="preserve">
-    <value>PersonViewerSCA</value>
+    <value>WinForm</value>
   </data>
   <data name="$this.ToolTip" xml:space="preserve">
-    <value>Анализ данных регистрации персонала в СКД. Developed by Yuri Ryabchenko @2017-2018</value>
+    <value>Developed by Yuri Ryabchenko @2017-2018</value>
   </data>
   <data name="&gt;&gt;toolTip1.Name" xml:space="preserve">
     <value>toolTip1</value>
@@ -3932,7 +3932,7 @@
     <value>System.Windows.Forms.Timer, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;$this.Name" xml:space="preserve">
-    <value>FormPersonViewerSCA</value>
+    <value>WinFormASTA</value>
   </data>
   <data name="&gt;&gt;$this.Type" xml:space="preserve">
     <value>System.Windows.Forms.Form, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>

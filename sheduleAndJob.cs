@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Diagnostics;
 
-namespace PersonViewerSCA2
+namespace ASTA
 {
     /*
     public static class PeriodicTask

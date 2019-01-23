@@ -6,9 +6,9 @@
     <ProductVersion>3.10</ProductVersion>
     <ProjectGuid>edf2dbdd-16fd-48c3-82e4-9e67f09b87c0</ProjectGuid>
     <SchemaVersion>2.0</SchemaVersion>
-    <OutputName>Setup.SCA.b2.1</OutputName>
+    <OutputName>Setup.ASTA.b3.3</OutputName>
     <OutputType>Package</OutputType>
-    <Name>SetupSCA</Name>
+    <Name>SetupASTA</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
@@ -38,8 +38,8 @@
     </WixExtension>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\mySCA2\mySCA2.csproj">
-      <Name>PersonViewerSCA2</Name>
+    <ProjectReference Include="..\..\mySCA2\ASTA.csproj">
+      <Name>ASTA</Name>
       <Project>{6c84406f-dc6a-4bb4-9716-1b56d6313c43}</Project>
       <Private>True</Private>
       <DoNotHarvest>True</DoNotHarvest>

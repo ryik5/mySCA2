@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-<?define ProductName="People Registrations Viewer 2" ?>
+<?define ProductName="Analysis of Staff Time Accounting" ?>
 <?define ProductVersion="2.15.1.7" ?>
-<?define Description="Viewer of person's checkpoints registration at SCA" ?>
-  <!--?define SolutionName="PersonViewerSCA" ?-->
-<?define Keywords="Installer SCA checkpoint Registration RYIK" ?>
-<?define Manufacturer="RYIK"?>
+<?define Description="View and analyse of person's passes registrations" ?>
+  <!--?define SolutionName="ASTA" ?-->
+<?define Keywords="Installer Analysis of Staff Time Accounting" ?>
+<?define Manufacturer="Yuri Ryabchenko"?>
 <?define ProductCode="6C84406F-DC6A-4BB4-9716-1B56D6313C43"?>
 <?define UpgradeCode="68708D7E-5403-4128-B584-549EAD60622C"?>
   
@@ -84,7 +84,7 @@
          <Directory Id="DesktopFolder">
               <Component Id="ApplicationShortcutDesktop" Guid="*">
               <Shortcut Id="ApplicationDesktopShortcut" Name="$(var.ProductName)" 
-                        Description="$(var.Description)" Target="[ProductComponents]PersonViewerSCA2.exe" 
+                        Description="$(var.Description)" Target="[ProductComponents]ASTA.exe" 
                 WorkingDirectory="ProductComponents" />
               <RemoveFolder Id="DesktopFolder" On="uninstall" />
               <RegistryValue Root="HKCU" Key="Software\$(var.Manufacturer)\$(var.SolutionName)" 
@@ -96,7 +96,7 @@
            <Directory Id="ApplicationProgramsFolder">
              <Component Id="ShortcutProgramsFolderApp" Guid="*">
                 <Shortcut Id="ShortcutProgramsFolderApp" Name="$(var.ProductName)" 
-                          Description="$(var.Description)" Target="[ProductComponents]PersonViewerSCA2.exe" 
+                          Description="$(var.Description)" Target="[ProductComponents]ASTA.exe" 
                WorkingDirectory="ProductComponents" />
                 <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
                 <RegistryValue Root="HKCU" Key="Software\$(var.Manufacturer)\$(var.SolutionName)" 
@@ -106,7 +106,7 @@
              <Directory Id="RYIKProgrammMenuFolder" Name="RYIK">
                <Component Id="ShortcutProgramsFolderAppMenuFolder" Guid="*">
                   <Shortcut Id="ShortcutProgramsFolderAppMenuFolder" Name="$(var.ProductName)" 
-                            Description="$(var.Description)" Target="[ProductComponents]PersonViewerSCA2.exe" 
+                            Description="$(var.Description)" Target="[ProductComponents]ASTA.exe" 
                  WorkingDirectory="ProductComponents" />
                   <RemoveFolder Id="RYIKProgrammMenuFolder" On="uninstall" />
                   <RegistryValue Root="HKCU" Key="Software\$(var.Manufacturer)\$(var.SolutionName)" 
@@ -142,7 +142,7 @@
       <ComponentGroup Id="ProductComponents" Directory="ProductComponents">
         <Component Id="ProductComponent" Guid="839D195C-81DD-4159-B1CC-4064EE2187F9" DiskId="1" Location="source">     
           <CreateFolder />
-          <File Id="PersonViewerSCA2" Name="PersonViewerSCA2.exe" Source="..\bin\Release\PersonViewerSCA2.exe" />
+          <File Id="Analysis of Staff Time Accounting" Name="ASTA.exe" Source="..\bin\Release\ASTA.exe" />
 
           <File Id="NLog.dll" Name="NLog.dll" Source="..\bin\Release\NLog.dll" />
           <File Id="NLog.xml" Name="NLog.xml" Source="..\bin\Release\NLog.xml" />
@@ -157,7 +157,7 @@
           <RegistryValue Root="HKCU" Key="Software\$(var.Manufacturer)\$(var.SolutionName)" 
                          Name="PersonSCAinstalled" Type="integer" Value="1" KeyPath="yes" />
           
-          <RemoveFile Id="PersonViewerSCA2" Name="PersonViewerSCA2.exe" On="uninstall" />   
+          <RemoveFile Id="Analysis of Staff Time Accounting" Name="ASTA.exe" On="uninstall" />   
           <RemoveFile Id="RemoveProductComponent" Name="*" On="both" />   
           <RemoveFolder Id="ProductComponents" Directory="ProductComponents" On="both" />        
           <RemoveFolder Id="ProductComponent" On="both" />        
