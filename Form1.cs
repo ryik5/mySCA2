@@ -465,6 +465,8 @@ namespace PersonViewerSCA2
             dataGridView1.ShowCellToolTips = true;
 
             SeekAndShowMembersOfGroup("");
+            if (dtPeopleListLoaded.Rows.Count > 0)
+            { _MenuItemVisible(listFioItem, true); }
         }
 
 
@@ -1103,12 +1105,14 @@ namespace PersonViewerSCA2
 
 
                 await Task.Run(() => panelViewResize(numberPeopleInLoading));
-                listFioItem.Visible = true;
                 nameOfLastTableFromDB = "ListFIO";
             }
             else { GetInfoSetup(); }
 
             _MenuItemEnabled(SettingsMenuItem, true);
+
+            if (dtPeopleListLoaded.Rows.Count > 0)
+            { _MenuItemVisible(listFioItem, true); }
         }
 
         private void GetFioFromServers(DataTable dataTablePeople) //Get the list of registered users
@@ -2632,6 +2636,9 @@ namespace PersonViewerSCA2
             }
             _changeControlBackColor(groupBoxFilterReport, Color.PaleGreen);
             _ProgressBar1Stop();
+
+            if (dtPeopleListLoaded.Rows.Count > 0)
+            { _MenuItemVisible(listFioItem, true); }
         }
 
         private void GetRegistrations(string selectedGroup, string startDate, string endDate, string doPostAction)
@@ -2915,8 +2922,7 @@ namespace PersonViewerSCA2
 
             if (listPoints.Count > 0)
             { bLoaded = true; }
-
-
+            
             FindWorkDaysInSelected(); //построение списка рабочих дней
 
             // рабочие дни в которые отсутствовал данная персона
@@ -3119,8 +3125,11 @@ namespace PersonViewerSCA2
                                 dataRow[@"Время ухода"] = ConvertStringsTimeToDecimal(d13, d14);
                                 dataRow[@"Отдел"] = record["Reserv1"].ToString();
                                 dataRow[@"Должность"] = record["Reserv2"].ToString();
-                                dataRow[@"Время прихода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(d3, d4);
-                                dataRow[@"Время ухода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(d13, d14);
+
+                                dataRow[@"Время прихода ЧЧ:ММ"] = record["ControllingHHMM"].ToString();
+                                dataRow[@"Время ухода ЧЧ:ММ"] = record["ControllingOUTHHMM"].ToString();
+                                dataRow[@"График"] = record["Shift"].ToString();
+                                dataRow[@"Комментарии"] = record["Comment"].ToString();
 
                                 dtPeopleGroup.Rows.Add(dataRow);
                             }
@@ -4246,7 +4255,7 @@ namespace PersonViewerSCA2
 
                 if (_CheckboxCheckedStateReturn(checkBoxReEnter) || currentAction == "sendEmail") //checkBoxReEnter.Checked
                 {
-                    foreach (DataRow dataRowDate in allWorkedDaysPerson) //make the list of worked days
+                    foreach (DataRow dataRowDate in allWorkedDaysPerson) //make the list of worked days by a person
                     { hsDays.Add(dataRowDate[12].ToString()); }
 
                     foreach (var workedDay in hsDays.ToArray())
@@ -4311,6 +4320,7 @@ namespace PersonViewerSCA2
                     foreach (DataRow dr in allWorkedDaysPerson)
                     { dtTemp.ImportRow(dr); }
                 }
+
 
                 if (_CheckboxCheckedStateReturn(checkBoxWeekend) || currentAction == "sendEmail")//checkBoxWeekend Checking
                 {
@@ -4610,7 +4620,7 @@ namespace PersonViewerSCA2
         {
             decimal[] timeIn = new decimal[4];
             decimal[] timeOut = new decimal[4];
-
+            iFIO = dtPeopleListLoaded.Rows.Count;
             try
             {
                 int IndexCurrentRow = _dataGridView1CurrentRowIndex();
@@ -5461,6 +5471,9 @@ namespace PersonViewerSCA2
             _MenuItemVisible(TableModeItem, false);
             _MenuItemVisible(VisualModeItem, true);
             _MenuItemVisible(VisualSelectColorMenuItem, false);
+            if (dtPeopleListLoaded.Rows.Count > 0)
+            { _MenuItemVisible(listFioItem, true); }
+
         }
 
         private void panelView_SizeChanged(object sender, EventArgs e)
@@ -6220,6 +6233,9 @@ namespace PersonViewerSCA2
                     EvUserKey?.DeleteSubKey("MailServer");
                     EvUserKey?.DeleteSubKey("MailUser");
                     EvUserKey?.DeleteSubKey("MailUserPassword");
+                    EvUserKey?.DeleteSubKey("MySQLServer");
+                    EvUserKey?.DeleteSubKey("MySQLUser");
+                    EvUserKey?.DeleteSubKey("MySQLUserPassword");
                 }
             } catch { MessageBox.Show("Ошибки с доступом у реестру на запись. Данные не удалены."); }
         }
@@ -6410,83 +6426,59 @@ namespace PersonViewerSCA2
         private void dataGridView1CellClick()
         {
             DataGridViewSeekValuesInSelectedRow dgSeek;
-            if (dataGridView1.Rows.Count > 0 && dataGridView1.CurrentRow.Index < dataGridView1.Rows.Count)
+
+            try
             {
-                try
+                int IndexCurrentRow = _dataGridView1CurrentRowIndex();
+                if (IndexCurrentRow > -1)
                 {
-                    int IndexCurrentRow = _dataGridView1CurrentRowIndex();
-                    if (IndexCurrentRow > -1)
+                    iFIO = dtPeopleListLoaded.Rows.Count;
+
+                    dgSeek = new DataGridViewSeekValuesInSelectedRow();
+
+                    if (nameOfLastTableFromDB == "PeopleGroupDesciption")
                     {
-                        dgSeek = new DataGridViewSeekValuesInSelectedRow();
-
-                        if (nameOfLastTableFromDB == "ListFIO")
-                        {
-                            dgSeek.FindValueInCells(dataGridView1, new string[] {
-                             @"Группа", @"Фамилия Имя Отчество", @"NAV-код", @"Время прихода ЧЧ:ММ", @"Время ухода ЧЧ:ММ"
-                            });
-
-                            textBoxGroup.Text = dgSeek.values[0];
-                            textBoxFIO.Text = dgSeek.values[1];
-                            textBoxNav.Text = dgSeek.values[2];
-
-                            groupBoxPeriod.BackColor = Color.PaleGreen;
-                            groupBoxFilterReport.BackColor = SystemColors.Control;
-                            StatusLabel2.Text = @"Выбрана группа: " + dgSeek.values[2] + @" |  Всего ФИО: " + iFIO;
-                            if (textBoxFIO.TextLength > 3)
-                            {
-                                comboBoxFio.SelectedIndex = comboBoxFio.FindString(dgSeek.values[0]);
-                            }
-                        }
-                        else if (nameOfLastTableFromDB == "PeopleGroupDesciption")
-                        {
-                            dgSeek.FindValueInCells(dataGridView1, new string[] {
+                        dgSeek.FindValueInCells(dataGridView1, new string[] {
                              @"Группа",   @"Описание группы"
                             });
 
-                            textBoxGroup.Text = dgSeek.values[0]; //Take the name of selected group
-                            textBoxGroupDescription.Text = dgSeek.values[1]; //Take the name of selected group
-                            groupBoxPeriod.BackColor = Color.PaleGreen;
-                            groupBoxFilterReport.BackColor = SystemColors.Control;
-                            StatusLabel2.Text = @"Выбрана группа: " + dgSeek.values[0] + @" |  Всего ФИО: " + iFIO;
-                            if (textBoxFIO.TextLength > 3)
-                            {
-                                comboBoxFio.SelectedIndex = comboBoxFio.FindString(textBoxFIO.Text);
-                            }
-                        }
-                        else if (nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "PersonRegistrationsList")
-                        {
-                            dgSeek.FindValueInCells(dataGridView1, new string[] {
-                             @"Фамилия Имя Отчество", @"NAV-код", @"Время прихода ЧЧ:ММ", @"Время ухода ЧЧ:ММ"
+                        textBoxGroup.Text = dgSeek.values[0]; //Take the name of selected group
+                        textBoxGroupDescription.Text = dgSeek.values[1]; //Take the name of selected group
+                        groupBoxPeriod.BackColor = Color.PaleGreen;
+                        groupBoxFilterReport.BackColor = SystemColors.Control;
+                        StatusLabel2.Text = @"Выбрана группа: " + dgSeek.values[0] + @" |  Всего ФИО: " + iFIO;
+                    }
+                    else if (nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "PersonRegistrationsList" || nameOfLastTableFromDB == "ListFIO")
+                    {
+                        dgSeek.FindValueInCells(dataGridView1, new string[] {
+                             @"Группа", @"Фамилия Имя Отчество", @"NAV-код", @"Время прихода ЧЧ:ММ", @"Время ухода ЧЧ:ММ"
                             });
 
-                            textBoxFIO.Text = dgSeek.values[0];
-                            textBoxNav.Text = dgSeek.values[1]; //Take the name of selected group
-
-                            if (nameOfLastTableFromDB == "PersonRegistrationsList")
-                            { StatusLabel2.Text = @"Выбран: " + dgSeek.values[0] + @" |  Всего ФИО: " + iFIO; }
-                            else { StatusLabel2.Text = @"Выбрана группа: " + textBoxGroup.Text + @" | Курсор на: " + ShortFIO(dgSeek.values[0]); }
-
-                            groupBoxPeriod.BackColor = Color.PaleGreen;
-                            groupBoxTimeStart.BackColor = Color.PaleGreen;
-                            groupBoxTimeEnd.BackColor = Color.PaleGreen;
-                            groupBoxFilterReport.BackColor = SystemColors.Control;
+                        if (dgSeek.values[1].Length > 3)
+                        {
+                            comboBoxFio.SelectedIndex = comboBoxFio.FindString(dgSeek.values[1]);
+                            textBoxGroup.Text = dgSeek.values[0];
+                            StatusLabel2.Text = @"Выбрана группа: " + dgSeek.values[0] +
+                                                @" | Курсор на: " + ShortFIO(dgSeek.values[1]);
                             decimal[] timeIn = ConvertStringTimeHHMMToDecimalArray(dgSeek.values[2]);
                             decimal[] timeOut = ConvertStringTimeHHMMToDecimalArray(dgSeek.values[3]);
                             _numUpDownSet(numUpDownHourStart, timeIn[0]);
                             _numUpDownSet(numUpDownMinuteStart, timeIn[1]);
                             _numUpDownSet(numUpDownHourEnd, timeOut[0]);
                             _numUpDownSet(numUpDownMinuteEnd, timeOut[1]);
-
-                            if (dgSeek.values[0].Length > 3)
-                            {
-                                comboBoxFio.SelectedIndex = comboBoxFio.FindString(dgSeek.values[0]);
-                            }
                         }
+
+                        groupBoxPeriod.BackColor = Color.PaleGreen;
+                        groupBoxTimeStart.BackColor = Color.PaleGreen;
+                        groupBoxTimeEnd.BackColor = Color.PaleGreen;
+                        groupBoxFilterReport.BackColor = SystemColors.Control;
+
                     }
-                } catch (Exception expt)
-                {
-                    MessageBox.Show(expt.ToString());
                 }
+            }
+            catch (Exception expt)
+            {
+                MessageBox.Show(expt.ToString());
             }
         }
 
@@ -6953,6 +6945,8 @@ namespace PersonViewerSCA2
                             string selectedPeriod = startDay.Split(' ')[0] + " - " + lastDay.Split(' ')[0];
                             string bodyOfMail = "";
                             string titleOfbodyMail = "";
+                            List<string> navs = new List<string>();//list for checking data
+
                             foreach (string nameGroup in nameGroups)
                             {
                                 try { System.IO.File.Delete(filePathExcelReport); } catch { }
@@ -6975,6 +6969,7 @@ namespace PersonViewerSCA2
 
                                         personCheck.FIO = row[@"Фамилия Имя Отчество"].ToString();
                                         personCheck.NAV = row[@"NAV-код"].ToString();
+                                        navs.Add(personCheck.NAV);
                                         personCheck.PositionInDepartment = row[@"Должность"].ToString();
 
                                         personCheck.GroupPerson = row[@"Группа"].ToString();
@@ -6999,6 +6994,45 @@ namespace PersonViewerSCA2
                                     }
                                 }
 
+
+                                FindWorkDaysInSelected(); //построение списка рабочих дней
+
+                                // рабочие дни в которые отсутствовал персонал 
+                                DataRow rowPerson;
+                                foreach (string day in workSelectedDays)
+                                {
+                                    foreach (string nav in navs)
+                                    {
+                                        //проверка - есть ли не выход на работу в рабочий день
+                                        if (dtTempIntermediate.Select(@"[Дата регистрации] = '" + day + "' AND " + @"[NAV-код] = '" + nav).Count() == 0)
+                                    {
+                                        rowPerson = dtTempIntermediate.NewRow();
+                                        rowPerson[@"Фамилия Имя Отчество"] = person.FIO;
+                                        rowPerson[@"NAV-код"] = person.NAV;
+                                        rowPerson[@"Группа"] = person.GroupPerson;
+                                        rowPerson[@"№ пропуска"] = person.idCard;
+                                        rowPerson[@"Время прихода,часы"] = person.ControlInHour;
+                                        rowPerson[@"Время прихода,минут"] = person.ControlInMinute;
+                                        rowPerson[@"Время прихода"] = controlStart;
+                                        rowPerson[@"Время ухода,часы"] = person.ControlOutHour;
+                                        rowPerson[@"Время ухода,минут"] = person.ControlOutMinute;
+                                        rowPerson[@"Время ухода"] = person.ControlOutDecimal;
+                                        rowPerson[@"Время регистрации,часы"] = "0";
+                                        rowPerson[@"Время регистрации,минут"] = "0";
+                                        rowPerson[@"Время регистрации"] = "0";
+                                        rowPerson[@"Дата регистрации"] = day;
+                                        rowPerson[@"День недели"] = DayOfWeekRussian((DateTime.Parse(day)).DayOfWeek.ToString());
+                                        rowPerson[@"Время прихода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(person.ControlInHour, person.ControlInMinute);
+                                        rowPerson[@"Время ухода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(person.ControlOutHour, person.ControlOutMinute);
+                                        rowPerson[@"Отсутствовал на работе"] = "Да";
+
+                                        dtTempIntermediate.Rows.Add(rowPerson);//добавляем рабочий день в который  сотрудник не выходил на работу
+                                    }
+                                    _ProgressWork1Step(1);
+                                }
+
+
+
                                 dtPersonTemp = GetDistinctRecords(dtTempIntermediate, orderColumnsFinacialReport);
                                 dtPersonTemp.SetColumnsOrder(orderColumnsFinacialReport);
 
@@ -7009,7 +7043,8 @@ namespace PersonViewerSCA2
 
                                     logger.Info("сохраняю файл " + illegal);
                                     filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), illegal);
-                                    try { System.IO.File.Delete(filePathExcelReport); } catch (Exception expt)
+                                    try { System.IO.File.Delete(filePathExcelReport); }
+                                    catch (Exception expt)
                                     {
                                         logger.Error("Ошибка удаления файла " + filePathExcelReport + " " + expt.ToString());
                                     }
