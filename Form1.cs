@@ -6917,6 +6917,8 @@ namespace ASTA
                                         personCheck.GroupPerson = row[@"Группа"].ToString();
                                         personCheck.Department = row[@"Отдел"].ToString();
 
+                                        //pomenyat HHMM tolko import
+                                        /
                                         personCheck.ControlInHour = row[@"Время прихода,часы"].ToString();
                                         personCheck.ControlInHourDecimal = TryParseStringToDecimal(row[@"Время прихода,часы"].ToString());
                                         personCheck.ControlInMinute = row[@"Время прихода,минут"].ToString();
