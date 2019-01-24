@@ -163,8 +163,8 @@ namespace ASTA
                                   new DataColumn(@"Фактич. время ухода ЧЧ:ММ",typeof(string)), //25
                                   new DataColumn(@"Реальное отработанное время",typeof(decimal)), //26
                                   new DataColumn(@"Отработанное время ЧЧ:ММ",typeof(string)), //27
-                                  new DataColumn(@"Опоздание",typeof(string)),                    //28
-                                  new DataColumn(@"Ранний уход",typeof(string)),                 //29
+                                  new DataColumn(@"Опоздание ЧЧ:ММ",typeof(string)),                    //28
+                                  new DataColumn(@"Ранний уход ЧЧ:ММ",typeof(string)),                 //29
                                   new DataColumn(@"Отпуск (отгул)",typeof(string)),                 //30
                                   new DataColumn(@"Коммандировка",typeof(string)),                 //31
                                   new DataColumn(@"День недели",typeof(string)),                 //32
@@ -207,8 +207,8 @@ namespace ASTA
                                   @"Фактич. время ухода ЧЧ:ММ", //25
                                   @"Реальное отработанное время", //26
                                   @"Отработанное время ЧЧ:ММ", //27
-                                  @"Опоздание",                    //28
-                                  @"Ранний уход",                 //29
+                                  @"Опоздание ЧЧ:ММ",                    //28
+                                  @"Ранний уход ЧЧ:ММ",                 //29
                                   @"Отпуск (отгул)",                 //30
                                   @"Коммандировка",                 //31
                                   @"День недели",                    //32
@@ -233,8 +233,8 @@ namespace ASTA
                                   @"Фактич. время прихода ЧЧ:ММ",//24
                                   @"Фактич. время ухода ЧЧ:ММ", //25
                                   @"Отработанное время ЧЧ:ММ", //27
-                                  @"Опоздание",                    //28
-                                  @"Ранний уход",                 //29
+                                  @"Опоздание ЧЧ:ММ",                    //28
+                                  @"Ранний уход ЧЧ:ММ",                 //29
                                   @"Отпуск (отгул)",                 //30
                                   @"Коммандировка",                 //31
                                   @"Больничный",                    //33
@@ -267,8 +267,8 @@ namespace ASTA
                             @"Фактич. время ухода ЧЧ:ММ", //25
                             @"Реальное отработанное время", //26
                             @"Отработанное время ЧЧ:ММ", //27
-                            @"Опоздание",                   //28
-                            @"Ранний уход",              //29
+                            @"Опоздание ЧЧ:ММ",                   //28
+                            @"Ранний уход ЧЧ:ММ",              //29
                             @"Отпуск (отгул)",           //30
                             @"Коммандировка",                 //31
                             @"День недели",                    //32
@@ -296,8 +296,8 @@ namespace ASTA
                 //@"Учетное время ухода ЧЧ:ММ",       //23
                 @"Реальное отработанное время", //26
                 @"Отработанное время ЧЧ:ММ", //27
-                @"Опоздание",                    //28
-                @"Ранний уход",                 //29
+                @"Опоздание ЧЧ:ММ",                    //28
+                @"Ранний уход ЧЧ:ММ",                 //29
                 @"Отпуск (отгул)",              //30
                 @"Коммандировка",                 //31
                 @"День недели",  //32
@@ -717,10 +717,7 @@ namespace ASTA
         }
 
         //void ShowDataTableQuery(
-        private void ShowDataTableQuery(System.IO.FileInfo databasePerson, string myTable, string mySqlQuery = "SELECT DISTINCT FIO AS 'Фамилия Имя Отчество', NAV AS 'NAV-код', " +
-            " DateRegistered AS 'Дата регистрации', HourComming AS 'Время прихода, часы',  MinuteComming AS 'Время прихода, минуты', ServerOfRegistration AS 'Сервер', " +
-            " HourControlling AS 'Контрольное время, часы', MinuteControlling AS 'Контрольное время, минуты', Reserv1 AS 'Точка прохода', Reserv2 AS 'Направление'",
-            string mySqlWhere = "ORDER BY FIO, DateRegistered, Comming") //Query data from the Table of the DB
+        private void ShowDataTableQuery(System.IO.FileInfo databasePerson, string myTable, string mySqlQuery, string mySqlWhere ) //Query data from the Table of the DB
         {
             DataTable dt = new DataTable();
             if (databasePerson.Exists)
@@ -1049,26 +1046,30 @@ namespace ASTA
                     sqlCommand1.ExecuteNonQuery();
                     foreach (var dr in dtPersonTemp.AsEnumerable())
                     {
-                        if (dr[@"Фамилия Имя Отчество"] != null && dr[@"NAV-код"] != null && dr[@"NAV-код"].ToString().Length > 0)
+                        if (dr[@"Фамилия Имя Отчество"] != null && dr[@"NAV-код"] != null && dr[@"NAV-код"]?.ToString().Length > 0)
                         {
                             using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Reserv1, Reserv2) " +
                                     " VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Comment, @Reserv1, @Reserv2)", sqlConnection))
                             {
                                 sqlCommand.Parameters.Add("@FIO", DbType.String).Value = dr[@"Фамилия Имя Отчество"].ToString();
                                 sqlCommand.Parameters.Add("@NAV", DbType.String).Value = dr[@"NAV-код"].ToString();
+
                                 sqlCommand.Parameters.Add("@GroupPerson", DbType.String).Value = dr[@"Группа"].ToString();
                                 sqlCommand.Parameters.Add("@ControllingHHMM", DbType.String).Value = dr[@"Учетное время прихода ЧЧ:ММ"].ToString();
                                 sqlCommand.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = dr[@"Учетное время ухода ЧЧ:ММ"].ToString();
+
                                 sqlCommand.Parameters.Add("@Shift", DbType.String).Value = dr[@"График"].ToString();
                                 sqlCommand.Parameters.Add("@Comment", DbType.String).Value = dr[@"Комментарии"].ToString();
+
                                 sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = dr[@"Отдел"].ToString();
                                 sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = dr[@"Должность"].ToString();
+
                                 try
                                 {
                                     sqlCommand.ExecuteNonQuery();
                                 } catch (Exception expt)
                                 {
-                                    MessageBox.Show(dr[@"Фамилия Имя Отчество"] + "\n" + dr[@"NAV-код"] + "\n" + expt.ToString());
+                                    logger.Info("GetFIO: ошибка записи в базу: " + dr[@"Фамилия Имя Отчество"] + "\n" + dr[@"NAV-код"] + "\n" + expt.ToString());
                                 }
                             }
                         }
@@ -1323,13 +1324,18 @@ namespace ASTA
 
                                     personFromServer.GroupPerson = groupName;
 
-                                    personFromServer.ControlInHour = "9";
-                                    personFromServer.ControlInMinute = "0";
-                                    personFromServer.ControlInHHMM = "09:00";
+                                    try
+                                    {
+                                        personFromServer.Shift = peopleShifts.FindLast((x) => x._nav == "0")._dayStartShift;
+                                        personFromServer.Comment = peopleShifts.FindLast((x) => x._nav == "0")._Comment;
 
-                                    personFromServer.ControlOutHour = "18";
-                                    personFromServer.ControlOutMinute = "0";
-                                    personFromServer.ControlOutHHMM = "18:00";
+                                        tmpSeconds = peopleShifts.FindLast((x) => x._nav == "0")._MoStart;
+                                        personFromServer.ControlInHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
+
+                                        tmpSeconds = peopleShifts.FindLast((x) => x._nav == "0")._MoEnd;
+                                        personFromServer.ControlOutHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
+                                    }
+                                    catch { }
 
                                     try
                                     {
@@ -1337,13 +1343,9 @@ namespace ASTA
                                         personFromServer.Comment = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._Comment;
 
                                         tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoStart;
-                                        personFromServer.ControlInHour = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[0];
-                                        personFromServer.ControlInMinute = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[1];
                                         personFromServer.ControlInHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
 
                                         tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoEnd;
-                                        personFromServer.ControlOutHour = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[0];
-                                        personFromServer.ControlOutMinute = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[1];
                                         personFromServer.ControlOutHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
                                     } catch { }
 
@@ -1351,17 +1353,14 @@ namespace ASTA
                                     row[@"№ п/п"] = iFIO;
                                     row[@"Фамилия Имя Отчество"] = personFromServer.FIO;
                                     row[@"NAV-код"] = personFromServer.NAV;
+
                                     row[@"Группа"] = personFromServer.GroupPerson;
                                     row[@"Отдел"] = personFromServer.Department;
                                     row[@"Должность"] = personFromServer.PositionInDepartment;
+
                                     row[@"График"] = personFromServer.Shift;
                                     row[@"Комментарии"] = personFromServer.Comment;
-                                    row[@"Время прихода,часы"] = personFromServer.ControlInHour;
-                                    row[@"Время прихода,минут"] = personFromServer.ControlInMinute;
-                                    row[@"Время прихода"] = ConvertStringsTimeToDecimal(personFromServer.ControlInHour, personFromServer.ControlInMinute);
-                                    row[@"Время ухода,часы"] = personFromServer.ControlOutHour;
-                                    row[@"Время ухода,минут"] = personFromServer.ControlOutMinute;
-                                    row[@"Время ухода"] = ConvertStringsTimeToDecimal(personFromServer.ControlOutHour, personFromServer.ControlOutMinute);
+
                                     row[@"Учетное время прихода ЧЧ:ММ"] = personFromServer.ControlInHHMM;
                                     row[@"Учетное время ухода ЧЧ:ММ"] = personFromServer.ControlOutHHMM;
 
@@ -1655,17 +1654,17 @@ namespace ASTA
 
                 try
                 {
-                    sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Опоздание")) + 1)]
+                    sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Опоздание ЧЧ:ММ")) + 1)]
                     .Interior.Color = System.Drawing.Color.SandyBrown;
                 }
-                catch { } //"Опоздание"
+                catch { } //"Опоздание ЧЧ:ММ"
 
                 try
                 {
-                    sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Ранний уход")) + 1)]
+                    sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Ранний уход ЧЧ:ММ")) + 1)]
                     .Interior.Color = System.Drawing.Color.SandyBrown;
                 }
-                catch { } //"Ранний уход"
+                catch { } //"Ранний уход ЧЧ:ММ"
 
                 _ProgressWork1Step(1);
 
@@ -1947,12 +1946,13 @@ namespace ASTA
 
             numberPeopleInLoading = 0;
             DataRow dataRow;
-            string d1 = "", d2 = "", d3 = "0", dprtmnt = "", pstn = "", shift = "", query = ""; ;
-            decimal[] timeIn = new decimal[] { 0, 0, 0, 0 }; decimal[] timeOut = new decimal[] { 0, 0, 0, 0 };
+            string d1 = "", dprtmnt = "", pstn = "", shift = "", query = ""; ;
+
             query = "Select FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Reserv1, Reserv2 FROM PeopleGroup ";
             if (nameGroup.Length > 0)
             { query += " where GroupPerson like '" + nameGroup + "'"; }
             query += ";";
+            logger.Info("SeekAndShowMembersOfGroup: "+ query);
             using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
             {
                 sqlConnection.Open();
@@ -1962,24 +1962,11 @@ namespace ASTA
                     {
                         foreach (DbDataRecord record in sqlReader)
                         {
-                            timeIn = new decimal[] { 0, 0, 0, 0 }; timeOut = new decimal[] { 0, 0, 0, 0 };
-                            d1 = "0"; d2 = ""; d3 = "0"; dprtmnt = ""; pstn = ""; shift = "";
+                            d1 = "0"; dprtmnt = ""; pstn = ""; shift = "";
                             try { d1 = record["FIO"].ToString().Trim(); } catch { }
 
                             if (record != null && d1.Length > 0)
                             {
-                                try
-                                {
-                                    d2 = record[@"ControllingHHMM"].ToString();
-                                    timeIn = ConvertStringTimeHHMMToDecimalArray(d2);
-                                } catch { }
-
-                                try
-                                {
-                                    d3 = record[@"ControllingOUTHHMM"].ToString();
-                                    timeOut = ConvertStringTimeHHMMToDecimalArray(d3);
-                                } catch { }
-
                                 try { dprtmnt = record[@"Reserv1"].ToString().Trim(); } catch
                                 { dprtmnt = record[@"GroupPerson"].ToString(); }
 
@@ -1989,29 +1976,22 @@ namespace ASTA
                                 dataRow = dtTemp.NewRow();
                                 dataRow[@"Фамилия Имя Отчество"] = d1;
                                 dataRow[@"NAV-код"] = record[@"NAV"].ToString();
-                                dataRow[@"Группа"] = record[@"GroupPerson"].ToString();
+
+                                dataRow[@"Группа"] = record[@"GroupPerson"]?.ToString();
                                 dataRow[@"Отдел"] = dprtmnt;
                                 dataRow[@"Должность"] = pstn;
 
-                                dataRow[@"Время прихода,часы"] = timeIn[0];
-                                dataRow[@"Время прихода,минут"] = timeIn[1];
-                                dataRow[@"Время прихода"] = timeIn[2];
+                                dataRow[@"Учетное время прихода ЧЧ:ММ"] = record[@"ControllingHHMM"]?.ToString();
+                                dataRow[@"Учетное время ухода ЧЧ:ММ"] = record[@"ControllingOUTHHMM"]?.ToString();
 
-                                dataRow[@"Время ухода,часы"] = timeOut[0];
-                                dataRow[@"Время ухода,минут"] = timeOut[1];
-                                dataRow[@"Время ухода"] = timeOut[2];
-
-                                dataRow[@"Учетное время прихода ЧЧ:ММ"] = d2;
-                                dataRow[@"Учетное время ухода ЧЧ:ММ"] = d3;
-
-                                dataRow[@"Комментарии"] = record["Comment"].ToString();
-                                dataRow[@"График"] = shift;
+                                dataRow[@"Комментарии"] = record["Comment"]?.ToString();
+                                dataRow[@"График"] = record[@"Shift"]?.ToString();
 
                                 dtTemp.Rows.Add(dataRow);
                                 numberPeopleInLoading++;
                             }
                         }
-                        d1 = null; d2 = null; d3 = null;
+                        d1 = null; 
                     }
                 }
             }
@@ -2026,6 +2006,9 @@ namespace ASTA
                 _MenuItemVisible(DeletePersonFromGroupItem, true);
             }
             nameOfLastTableFromDB = "PeopleGroup";
+
+            query = null;
+            dataRow = null;
             dtTemp.Dispose();
         }
 
@@ -2115,24 +2098,21 @@ namespace ASTA
                 //import groups
                 SQLiteCommand commandTransaction = new SQLiteCommand("begin", connection);
                 commandTransaction.ExecuteNonQuery();
-                using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, HourControlling, MinuteControlling, Controlling, HourControllingOut, MinuteControllingOut, ControllingOut, ControllingHHMM, ControllingOUTHHMM, Reserv1, Reserv2) " +
-                                         "VALUES (@FIO, @NAV, @GroupPerson, @HourControlling, @MinuteControlling, @Controlling, @HourControllingOut, @MinuteControllingOut, @ControllingOut, @ControllingHHMM, @ControllingOUTHHMM, @Reserv1, @Reserv2)", connection))
+                using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Reserv1, Reserv2) " +
+                                         "VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Reserv1, @Reserv2)", connection))
                 {
                     foreach (DataRow row in dtSource.Rows)
                     {
                         command.Parameters.Add("@FIO", DbType.String).Value = row[@"Фамилия Имя Отчество"].ToString(); //row[0]
                         command.Parameters.Add("@NAV", DbType.String).Value = row[@"NAV-код"].ToString();
+
                         command.Parameters.Add("@GroupPerson", DbType.String).Value = row[@"Группа"].ToString();
                         command.Parameters.Add("@Reserv1", DbType.String).Value = row[@"Отдел"].ToString();
                         command.Parameters.Add("@Reserv2", DbType.String).Value = row[@"Должность"].ToString();
-                        command.Parameters.Add("@HourControlling", DbType.String).Value = row[@"Время прихода,часы"].ToString();
-                        command.Parameters.Add("@MinuteControlling", DbType.String).Value = row[@"Время прихода,минут"].ToString();
-                        command.Parameters.Add("@Controlling", DbType.Decimal).Value = TryParseStringToDecimal(row[@"Время прихода"].ToString());
-                        command.Parameters.Add("@HourControllingOut", DbType.String).Value = row[@"Время ухода,часы"].ToString();
-                        command.Parameters.Add("@MinuteControllingOut", DbType.String).Value = row[@"Время ухода,минут"].ToString();
-                        command.Parameters.Add("@ControllingOut", DbType.Decimal).Value = TryParseStringToDecimal(row[@"Время ухода"].ToString());
+
                         command.Parameters.Add("@ControllingHHMM", DbType.String).Value = row[@"Учетное время прихода ЧЧ:ММ"].ToString();
                         command.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = row[@"Учетное время ухода ЧЧ:ММ"].ToString();
+
                         try { command.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                     }
                 }
@@ -2403,8 +2383,9 @@ namespace ASTA
                 }
 
                 dtPersonRegistrationsFullList.Clear();
-
+                logger.Info("GetData: "+ groups);
                 GetRegistrations(groups, _dateTimePickerStart(), _dateTimePickerEnd(), "");
+                logger.Info("GetData: "+ groups+" " + _dateTimePickerStart()+" "+ _dateTimePickerEnd());
 
                 dtPersonTemp = dtPersonRegistrationsFullList.Copy();
                 dtPersonTempAllColumns = dtPersonRegistrationsFullList.Copy(); //store all columns
@@ -2460,11 +2441,6 @@ namespace ASTA
         {
             Person person = new Person();
 
-            decimal dControlHourIn = _numUpDownReturn(numUpDownHourStart);
-            decimal dControlMinuteIn = _numUpDownReturn(numUpDownMinuteStart);
-            decimal dControlHourOut = _numUpDownReturn(numUpDownHourEnd);
-            decimal dControlMinuteOut = _numUpDownReturn(numUpDownMinuteEnd);
-
             if ((nameOfLastTableFromDB == "PeopleGroupDesciption" || nameOfLastTableFromDB == "PeopleGroup" || doPostAction == "sendEmail") && selectedGroup.Length > 0)
             {
                 LoadGroupMembersFromDbToDataTable(selectedGroup); //result will be in dtPeopleGroup
@@ -2481,32 +2457,18 @@ namespace ASTA
                             _textBoxSetText(textBoxNav, row[@"NAV-код"].ToString());   //Select person                  
                         }
 
-                        dControlHourIn = TryParseStringToDecimal(row[@"Время прихода,часы"].ToString());
-                        dControlMinuteIn = TryParseStringToDecimal(row[@"Время прихода,минут"].ToString());
-                        dControlHourOut = TryParseStringToDecimal(row[@"Время ухода,часы"].ToString());
-                        dControlMinuteOut = TryParseStringToDecimal(row[@"Время ухода,минут"].ToString());
-
                         person.FIO = row[@"Фамилия Имя Отчество"].ToString();
                         person.NAV = row[@"NAV-код"].ToString();
-                        person.GroupPerson = selectedGroup;
 
-                        person.Department = row[@"Отдел"].ToString();
-                        person.PositionInDepartment = row[@"Должность"].ToString();
+                        person.GroupPerson = row[@"Группа"].ToString(); 
+                        person.Department = row[@"Отдел"]?.ToString();
+                        person.PositionInDepartment = row[@"Должность"]?.ToString();
 
-                        person.ControlInHour = row[@"Время прихода,часы"].ToString();
-                        person.ControlInHourDecimal = dControlHourIn;
-                        person.ControlInMinute = row[@"Время прихода,минут"].ToString();
-                        person.ControlInMinuteDecimal = dControlMinuteIn;
-                        person.ControlInDecimal = ConvertDecimalSeparatedTimeToDecimal(dControlHourIn, dControlMinuteIn);
-                        person.ControlInHHMM = ConvertStringsTimeToStringHHMM(row[@"Время прихода,часы"].ToString(), row[@"Время прихода,минут"].ToString());
+                        person.ControlInHHMM = row[@"Учетное время прихода ЧЧ:ММ"].ToString();
+                        person.ControlOutHHMM = row[@"Учетное время ухода ЧЧ:ММ"].ToString();
 
-                        person.ControlOutHour = row[@"Время ухода,часы"].ToString();
-                        person.ControlOutHourDecimal = dControlHourOut;
-                        person.ControlOutMinute = row[@"Время ухода,минут"].ToString();
-                        person.ControlOutMinuteDecimal = dControlMinuteOut;
-                        person.ControlOutDecimal = ConvertDecimalSeparatedTimeToDecimal(dControlHourOut, dControlMinuteOut);
-
-                        person.ControlOutHHMM = ConvertStringsTimeToStringHHMM(row[@"Время ухода,часы"].ToString(), row[@"Время ухода,минут"].ToString());
+                        person.Comment = row[@"Комментарии"]?.ToString();
+                        person.Shift = row[@"График"]?.ToString();
 
                         GetPersonRegistrationFromServer(dtPersonRegistrationsFullList, person, startDate, endDate);     //Search Registration at checkpoints of the selected person
                     }
@@ -2519,21 +2481,15 @@ namespace ASTA
                 person = new Person();
                 person.NAV = _textBoxReturnText(textBoxNav);
                 person.FIO = _textBoxReturnText(textBoxFIO);
-                person.GroupPerson = selectedGroup;
+                logger.Info("GetRegistrations "+ person.FIO);
+                person.GroupPerson = "";
+                person.Department = "";
+                person.Shift = "";
+                person.Comment = "";
+                person.PositionInDepartment = "Сотрудник";
 
-                person.ControlInHour = dControlHourIn.ToString();
-                person.ControlInHourDecimal = dControlHourIn;
-                person.ControlInMinute = dControlMinuteIn.ToString();
-                person.ControlInMinuteDecimal = dControlMinuteIn;
-                person.ControlInDecimal = ConvertDecimalSeparatedTimeToDecimal(dControlHourIn, dControlMinuteIn);
-                person.ControlInHHMM = ConvertStringsTimeToStringHHMM(dControlHourIn.ToString(), dControlMinuteIn.ToString());
-
-                person.ControlOutHour = dControlHourOut.ToString();
-                person.ControlOutHourDecimal = dControlHourOut;
-                person.ControlOutMinute = dControlMinuteOut.ToString();
-                person.ControlOutMinuteDecimal = dControlMinuteOut;
-                person.ControlOutDecimal = ConvertDecimalSeparatedTimeToDecimal(dControlHourOut, dControlMinuteOut);
-                person.ControlOutHHMM = ConvertStringsTimeToStringHHMM(dControlHourOut.ToString(), dControlMinuteOut.ToString());
+                person.ControlInHHMM = ConvertStringsTimeToStringHHMM(_numUpDownReturn(numUpDownHourStart).ToString(), _numUpDownReturn(numUpDownMinuteStart).ToString());
+                person.ControlOutHHMM = ConvertStringsTimeToStringHHMM(_numUpDownReturn(numUpDownHourEnd).ToString(), _numUpDownReturn(numUpDownMinuteEnd).ToString());
 
                 GetPersonRegistrationFromServer(dtPersonRegistrationsFullList, person, startDate, endDate);
 
@@ -2545,8 +2501,13 @@ namespace ASTA
 
         private void GetPersonRegistrationFromServer(DataTable dtTarget, Person person, string startDate, string endDate)
         {
-            int[] startPeriod = _dateTimePickerReturnArray(dateTimePickerStart);
-            int[] endPeriod = _dateTimePickerReturnArray(dateTimePickerEnd);
+            // int[] startPeriod = _dateTimePickerReturnArray(dateTimePickerStart);
+            // int[] endPeriod = _dateTimePickerReturnArray(dateTimePickerEnd);
+            logger.Info("GetPersonRegistrationFromServer: " + startDate + " " + endDate);
+
+            int[] startPeriod = ConvertStringDateToIntArray(startDate);
+            int[] endPeriod = ConvertStringDateToIntArray(endDate);
+
             SeekAnualDays(dtTarget, person, false, startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
 
             DataRow rowPerson;
@@ -2668,7 +2629,7 @@ namespace ASTA
                                 {
                                     try
                                     {
-                                        if (record != null && record["param0"].ToString().Trim().Length > 0)
+                                        if (record["param0"] != null && record["param0"]?.ToString().Trim().Length > 0)
                                         {
                                             stringDataNew = Regex.Split(record["date"].ToString().Trim(), "[ ]")[0];
                                             hourManaging = Convert.ToDecimal(Regex.Split(record["time"].ToString().Trim(), "[:]")[0]);
@@ -2699,22 +2660,21 @@ namespace ASTA
                                             personWorkedDays.Add(stringDataNew);
 
                                             rowPerson = dtTarget.NewRow();
-                                            rowPerson[@"Фамилия Имя Отчество"] = person.FIO;
+                                            rowPerson[@"Фамилия Имя Отчество"] = record["param0"]?.ToString().Trim();
                                             rowPerson[@"NAV-код"] = person.NAV;
+
+                                            rowPerson[@"№ пропуска"] = record["param1"]?.ToString().Trim();
                                             rowPerson[@"Группа"] = person.GroupPerson;
-                                            rowPerson[@"№ пропуска"] = record["param1"].ToString().Trim();
-                                            rowPerson[@"Время прихода,часы"] = person.ControlInHour;
-                                            rowPerson[@"Время прихода,минут"] = person.ControlInMinute;
-                                            rowPerson[@"Время прихода"] = controlStart;
-                                            rowPerson[@"Время ухода,часы"] = person.ControlOutHour;
-                                            rowPerson[@"Время ухода,минут"] = person.ControlOutMinute;
-                                            rowPerson[@"Время ухода"] = person.ControlOutDecimal;
+                                            rowPerson[@"Отдел"] = person.Department;
+                                            rowPerson[@"Должность"] = person.PositionInDepartment;
+
+                                            rowPerson[@"Комментарии"] = "";// person.Comment;
+                                            rowPerson[@"График"] = person.Shift;
+
                                             //day of registration
                                             rowPerson[@"Дата регистрации"] = stringDataNew;
                                             rowPerson[@"День недели"] = DayOfWeekRussian(DateTime.Parse(stringDataNew).DayOfWeek.ToString());
                                             //real data
-                                            rowPerson[@"Время регистрации,часы"] = hourManaging.ToString();
-                                            rowPerson[@"Время регистрации,минут"] = minuteManaging.ToString();
                                             rowPerson[@"Время регистрации"] = TryParseStringToDecimal(managingHours.ToString("#.###"));
                                             rowPerson[@"Сервер СКД"] = sServer1;
                                             rowPerson[@"Имя точки прохода"] = namePoint;
@@ -2751,14 +2711,13 @@ namespace ASTA
                 rowPerson[@"NAV-код"] = person.NAV;
                 rowPerson[@"Группа"] = person.GroupPerson;
                 rowPerson[@"№ пропуска"] = person.idCard;
-                rowPerson[@"Время прихода,часы"] = person.ControlInHour;
-                rowPerson[@"Время прихода,минут"] = person.ControlInMinute;
-                rowPerson[@"Время прихода"] = controlStart;
-                rowPerson[@"Время ухода,часы"] = person.ControlOutHour;
-                rowPerson[@"Время ухода,минут"] = person.ControlOutMinute;
-                rowPerson[@"Время ухода"] = person.ControlOutDecimal;
-                rowPerson[@"Время регистрации,часы"] = "0";
-                rowPerson[@"Время регистрации,минут"] = "0";
+
+                rowPerson[@"Отдел"] = person.Department;
+                rowPerson[@"Должность"] = person.PositionInDepartment;
+
+               // rowPerson[@"Комментарии"] = "";// person.Comment;
+                rowPerson[@"График"] = person.Shift;
+
                 rowPerson[@"Время регистрации"] = "0";
                 rowPerson[@"Дата регистрации"] = day;
                 rowPerson[@"День недели"] = DayOfWeekRussian((DateTime.Parse(day)).DayOfWeek.ToString());
@@ -2898,15 +2857,11 @@ namespace ASTA
         private void LoadGroupMembersFromDbToDataTable(string namePointedGroup) // dtPeopleGroup //"Select * FROM PeopleGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
         {
             logger.Info("LoadGroupMembersFromDbToDataTable, DT - " + dtPeopleGroup.TableName + ", группа - " + namePointedGroup);
-            dtPeopleGroup?.Dispose();
+            dtPeopleGroup.Clear();
             dtPeopleGroup = dtPeople.Clone();
             DataRow dataRow;
 
-            decimal[] timeIn = new decimal[] { 0, 0, 0, 0 };
-            decimal[] timeOut = new decimal[] { 0, 0, 0, 0 };
-            string comeIn = "", comeOut = "0";
-
-            string query = "Select * FROM PeopleGroup ";
+            string query = "Select FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Reserv1, Reserv2 FROM PeopleGroup ";
             if (namePointedGroup.Length > 0)
             { query += "where GroupPerson like '" + namePointedGroup + "'; "; }
             else { query += ";"; }
@@ -2926,37 +2881,18 @@ namespace ASTA
                                 {
                                     dataRow = dtPeopleGroup.NewRow();
 
-                                    //decimal[] timeIn = new decimal[] { 0, 0, 0, 0 }; decimal[] timeOut = new decimal[] { 0, 0, 0, 0 };
-                                    //string comeIn = "", comeOut = "0";
-                                 //   timeIn = new decimal[] { 0, 0, 0, 0 }; timeOut = new decimal[] { 0, 0, 0, 0 };
-                                    try
-                                    {
-                                        comeIn = record[@"ControllingHHMM"].ToString();
-                                   //     timeIn = ConvertStringTimeHHMMToDecimalArray(comeIn);
-                                    }
-                                    catch { }
-
-                                    try
-                                    {
-                                        comeOut = record[@"ControllingOUTHHMM"].ToString();
-                                  //      timeOut = ConvertStringTimeHHMMToDecimalArray(comeOut);
-                                    }
-                                    catch { }
-
                                     dataRow[@"Фамилия Имя Отчество"] = record[@"FIO"].ToString();
                                     dataRow[@"NAV-код"] = record[@"NAV"].ToString();
+
                                     dataRow[@"Группа"] = record[@"GroupPerson"].ToString();
                                     dataRow[@"Отдел"] = record[@"Reserv1"].ToString();
                                     dataRow[@"Должность"] = record[@"Reserv2"].ToString();
+
+                                    dataRow[@"Комментарии"] = record[@"Comment"].ToString();
+                                    dataRow[@"График"] = record[@"Shift"].ToString();
+
                                     dataRow[@"Учетное время прихода ЧЧ:ММ"] = record[@"ControllingHHMM"].ToString();
                                     dataRow[@"Учетное время ухода ЧЧ:ММ"] = record[@"ControllingOUTHHMM"].ToString();
-
-                                 //   dataRow[@"Время прихода,часы"] = timeIn[0].ToString();
-                                 ///   dataRow[@"Время прихода,минут"] = timeIn[1].ToString();
-                                  //  dataRow[@"Время прихода"] = timeIn[2];
-                                 //   dataRow[@"Время ухода,часы"] = timeOut[0].ToString();
-                                 //   dataRow[@"Время ухода,минут"] = timeOut[1].ToString();
-                                 //   dataRow[@"Время ухода"] = timeOut[2];
 
                                     dtPeopleGroup.Rows.Add(dataRow);
                                 }
@@ -2966,7 +2902,7 @@ namespace ASTA
                     }
                 }
             }
-            timeIn = null; timeOut = null; comeIn = null; comeOut = null; query = null; dataRow = null;
+            query = null; dataRow = null;
 
             logger.Info("LoadGroupMembersFromDbToDataTable, всего записей - " + dtPeopleGroup.TableName + " " + dtPeopleGroup.Rows.Count);
         }
@@ -3893,6 +3829,27 @@ namespace ASTA
             return result;
         }
 
+        private int[] ConvertStringDateToIntArray(string dateYYYYmmDD) //date YYYY-MM-DD to int array values
+        {
+            int[] result = new int[] { 1970, 1, 1 };
+
+            if (dateYYYYmmDD.Contains('-'))
+            {
+                string[] res = dateYYYYmmDD.Split(' ')[0]?.Trim()?.Split('-');
+                result[0] = Convert.ToInt32(res[0]);
+                result[1] = Convert.ToInt32(res[1]);
+                result[2] = Convert.ToInt32(res[2]);
+            }
+            else if (dateYYYYmmDD.Length == 8)
+            {
+                result[0] = Convert.ToInt32(dateYYYYmmDD.Remove(4));
+                result[1] = Convert.ToInt32((dateYYYYmmDD.Remove(0, 2)).Remove(2));
+                result[2] = Convert.ToInt32(dateYYYYmmDD.Remove(0, 5));
+            }
+
+            return result;
+        }
+
         private string ShortFIO(string s) //Transform from full FIO into Short form FIO
         {
             var stmp = new string[1];
@@ -3936,7 +3893,7 @@ namespace ASTA
             DataTable dtEmpty = new DataTable();
             Person emptyPerson = new Person();
             SeekAnualDays(dtEmpty, emptyPerson, false, startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
-            //FindWorkDaysInSelected(startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
+
             dtEmpty.Dispose();
             emptyPerson = null;
 
@@ -3967,8 +3924,6 @@ namespace ASTA
             personCheck.ControlOutDecimal = ConvertDecimalSeparatedTimeToDecimal(numUpHourEnd, numUpMinuteEnd);
 
             dtPersonTemp?.Clear();
-            decimal[] timeIn = new decimal[] { 0, 0, 0, 0 }; decimal[] timeOut = new decimal[] { 0, 0, 0, 0 };
-            string comeIn = "", comeOut = "0";
 
             if ((nameOfLastTableFromDB == "PeopleGroupDesciption" || nameOfLastTableFromDB == "PeopleGroup") && nameGroup.Length > 0)
             {
@@ -3984,38 +3939,16 @@ namespace ASTA
 
                             personCheck.FIO = row[@"Фамилия Имя Отчество"].ToString();
                             personCheck.NAV = row[@"NAV-код"].ToString();
+
                             personCheck.GroupPerson = row[@"Группа"].ToString();
                             personCheck.Department = row[@"Отдел"].ToString();
                             personCheck.PositionInDepartment = row[@"Должность"].ToString();
 
-                            //decimal[] timeIn = new decimal[] { 0, 0, 0, 0 }; decimal[] timeOut = new decimal[] { 0, 0, 0, 0 };
-                            //string comeIn = "", comeOut = "0";
-                            timeIn = new decimal[] { 0, 0, 0, 0 }; timeOut = new decimal[] { 0, 0, 0, 0 };
-                            try
-                            {
-                                comeIn = row[@"Учетное время прихода ЧЧ:ММ"].ToString();
-                                timeIn = ConvertStringTimeHHMMToDecimalArray(comeIn);
-                            }
-                            catch { }
+                            personCheck.ControlInHHMM=row[@"Учетное время прихода ЧЧ:ММ"].ToString();
+                            personCheck.ControlOutHHMM=row[@"Учетное время ухода ЧЧ:ММ"].ToString();
 
-                            try
-                            {
-                                comeOut = row[@"Учетное время ухода ЧЧ:ММ"].ToString();
-                                timeOut = ConvertStringTimeHHMMToDecimalArray(comeOut);
-                            }
-                            catch { }
-
-                            personCheck.ControlInHour = timeIn[0].ToString();
-                            personCheck.ControlInHourDecimal = timeIn[0];
-                            personCheck.ControlInMinute = timeIn[1].ToString();
-                            personCheck.ControlInMinuteDecimal = timeIn[1];
-                            personCheck.ControlInDecimal = timeIn[2];
-
-                            personCheck.ControlOutHour = timeOut[0].ToString();
-                            personCheck.ControlOutHourDecimal = timeOut[0];
-                            personCheck.ControlOutMinute = timeOut[1].ToString();
-                            personCheck.ControlOutMinuteDecimal = timeOut[1];
-                            personCheck.ControlOutDecimal = timeOut[2];
+                            personCheck.Comment = row[@"Комментарии"].ToString();
+                            personCheck.Shift = row[@"График"].ToString();
 
                             FilterDataByNav(personCheck, dtPersonRegistrationsFullList, dtTempIntermediate);
                         }
@@ -4158,13 +4091,13 @@ namespace ASTA
                         rowDtStoring[26] = workedHours;                                  // ("Реальное отработанное время", typeof(decimal)), //26
                         rowDtStoring[27] = ConvertDecimalTimeToStringHHMMArray(workedHours)[2];  //("Отработанное время ЧЧ:ММ", typeof(string)), //27
 
-                        if (decimalFirstRegistrationInDay > personNAV.ControlInDecimal && decimalFirstRegistrationInDay != 0) // "Опоздание", typeof(bool)),           //28
+                        if (decimalFirstRegistrationInDay > personNAV.ControlInDecimal && decimalFirstRegistrationInDay != 0) // "Опоздание ЧЧ:ММ", typeof(bool)),           //28
                         {
                             rowDtStoring[28] = ConvertDecimalTimeToStringHHMM(decimalFirstRegistrationInDay - personNAV.ControlInDecimal);
                         }
                         else { rowDtStoring[28] = ""; }
 
-                        if (decimalLastRegistrationInDay < personNAV.ControlOutDecimal && decimalLastRegistrationInDay != 0)  // "Ранний уход", typeof(bool)),                 //29
+                        if (decimalLastRegistrationInDay < personNAV.ControlOutDecimal && decimalLastRegistrationInDay != 0)  // "Ранний уход ЧЧ:ММ", typeof(bool)),                 //29
                         {
                             rowDtStoring[29] = ConvertDecimalTimeToStringHHMM(personNAV.ControlOutDecimal - decimalLastRegistrationInDay);
                         }
@@ -4191,7 +4124,7 @@ namespace ASTA
                 }
 
                 if (_CheckboxCheckedStateReturn(checkBoxTimeViolations)) //checkBoxStartWorkInTime Checking
-                { QueryDeleteDataFromDataTable(dtTemp, "[Опоздание]='' AND [Ранний уход]=''", personNAV.NAV); }
+                { QueryDeleteDataFromDataTable(dtTemp, "[Опоздание ЧЧ:ММ]='' AND [Ранний уход ЧЧ:ММ]=''", personNAV.NAV); }
 
                 foreach (DataRow dr in dtTemp.AsEnumerable())
                 { dataTableForStoring.ImportRow(dr); }
@@ -4214,6 +4147,8 @@ namespace ASTA
             myBoldedDates = new string[1];
 
             var oneDay = TimeSpan.FromDays(1);
+            var twoDays = TimeSpan.FromDays(2);
+
 
             var mySelectedStartDay = new DateTime(startYear, startMonth, startDay);
             var mySelectedEndDay = new DateTime(endYear, endMonth, endDay);
@@ -4237,7 +4172,6 @@ namespace ASTA
                 myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 8, 24));    // (plavayuschaya data)
                 myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 10, 16));   // (plavayuschaya data)
             }
-
 
             // Алгоритм для вычисления католической Пасхи http://snippets.dzone.com/posts/show/765
             int Y = startYear;
@@ -4267,7 +4201,7 @@ namespace ASTA
                     myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 8, 24) + oneDay);    // (plavayuschaya data)
                     break;
                 case (int)Day.Saturday:
-                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 8, 24) + oneDay + oneDay);    // (plavayuschaya data)
+                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 8, 24) + twoDays);    // (plavayuschaya data)
                     break;
                 default:
                     break;
@@ -4281,7 +4215,7 @@ namespace ASTA
                     myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 10, 16) + oneDay);    // (plavayuschaya data)
                     break;
                 case (int)Day.Saturday:
-                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 10, 16) + oneDay + oneDay);    // (plavayuschaya data)
+                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 10, 16) + twoDays);    // (plavayuschaya data)
                     break;
                 default:
                     break;
@@ -4293,6 +4227,7 @@ namespace ASTA
             List<string> daysSelected = new List<string>();
             for (var myDate = myMonthCalendar.SelectionStart; myDate <= myMonthCalendar.SelectionEnd; myDate += oneDay)
             {
+                //todo - will do simplify "singleDate"
                 singleDate = Regex.Split(myDate.ToString("yyyy-MM-dd"), " ")[0].Trim();
                 if (myDate.DayOfWeek == DayOfWeek.Saturday || myDate.DayOfWeek == DayOfWeek.Sunday)
                 {
@@ -4310,6 +4245,7 @@ namespace ASTA
                 {
                     if (myDate == myAnualDate)
                     {
+                        //todo - will do simplify "singleDate"
                         singleDate = Regex.Split(myDate.ToString("yyyy-MM-dd"), " ")[0].Trim();
                         daysBolded.Add(singleDate);
                         if (delRow)
@@ -4323,8 +4259,10 @@ namespace ASTA
             workSelectedDays = daysSelected.Except(daysBolded).ToArray();
 
             dt.AcceptChanges();
-            daysBolded = null;
+
             myMonthCalendar.Dispose();
+            daysBolded = null;
+            daysSelected = null;
         }
 
         /// <summary>
@@ -4443,6 +4381,7 @@ namespace ASTA
             monthCalendar.SelectionStart = today;
             monthCalendar.SelectionEnd = today;
             monthCalendar.Update();
+            monthCalendar.Refresh();
         }
 
 
@@ -4777,6 +4716,7 @@ namespace ASTA
 
                 //count max number of events in-out all of selected people (the group or a single person)
                 //It needs to prevent the error "index of scope"
+               // SeekAnualDays();
                 foreach (DataRow row in rowsPersonRegistrationsForDraw)
                 {
                     for (int k = 0; k < workSelectedDays.Length; k++)
@@ -6352,23 +6292,18 @@ namespace ASTA
             string fio = "";
             string nav = "";
             string group = "";
-            string[] timeIn = { "00", "00", "00:00" };
-            string[] timeOut = { "00", "00", "00:00" };
-            decimal[] timeInDecimal = { 0, 0, 0, 0 };
-            decimal[] timeOutDecimal = { 0, 0, 0, 0 };
-
-            int IndexCurrentRow = _dataGridView1CurrentRowIndex();
-            int IndexCurrentColumn = _dataGridView1CurrentColumnIndex();
 
             if (_dataGridView1CurrentRowIndex() > -1)
             {
                 try
                 {
                     DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-                    if (nameOfLastTableFromDB == "PeopleGroup")
+                    if (nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "ListFIO")
                     {
                         dgSeek.FindValueInCells(dataGridView1, new string[] {
-                              @"Фамилия Имя Отчество", @"NAV-код", @"Группа", @"Учетное время прихода ЧЧ:ММ", @"Учетное время ухода ЧЧ:ММ", @"Отдел", @"Должность", @"График"
+                              @"Фамилия Имя Отчество", @"NAV-код", @"Группа",
+                            @"Учетное время прихода ЧЧ:ММ", @"Учетное время ухода ЧЧ:ММ",
+                            @"Отдел", @"Должность", @"График", @"Комментарии"
                             });
 
                         fio = dgSeek.values[0];
@@ -6380,33 +6315,25 @@ namespace ASTA
                         group = dgSeek.values[2];
                         textBoxGroup.Text = group;
 
-                        timeInDecimal = ConvertStringTimeHHMMToDecimalArray(dgSeek.values[3]);
-                        timeOutDecimal = ConvertStringTimeHHMMToDecimalArray(dgSeek.values[4]);
-
-                        timeIn = ConvertDecimalTimeToStringHHMMArray(timeInDecimal[2]);
-                        timeOut = ConvertDecimalTimeToStringHHMMArray(timeOutDecimal[2]);
-
                         using (var connection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                         {
                             connection.Open();
-                            using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, HourControlling, MinuteControlling, Controlling, HourControllingOut, MinuteControllingOut, ControllingOut, ControllingHHMM, ControllingOUTHHMM, Reserv1, Reserv2) " +
-                                                        "VALUES (@FIO, @NAV, @GroupPerson, @HourControlling, @MinuteControlling, @Controlling, @HourControllingOut, @MinuteControllingOut, @ControllingOut, @ControllingHHMM, @ControllingOUTHHMM, @Reserv1, @Reserv2)", connection))
+                            using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Reserv1, Reserv2) " +
+                                                                                        " VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Comment, @Reserv1, @Reserv2)", connection))
                             {
                                 command.Parameters.Add("@FIO", DbType.String).Value = fio;
                                 command.Parameters.Add("@NAV", DbType.String).Value = nav;
+
                                 command.Parameters.Add("@GroupPerson", DbType.String).Value = group;
                                 command.Parameters.Add("@Reserv1", DbType.String).Value = dgSeek.values[5];
                                 command.Parameters.Add("@Reserv2", DbType.String).Value = dgSeek.values[6];
-                                command.Parameters.Add("@HourControlling", DbType.String).Value = timeIn[0];
-                                command.Parameters.Add("@MinuteControlling", DbType.String).Value = timeIn[1];
-                                command.Parameters.Add("@Controlling", DbType.Decimal).Value = timeInDecimal[2];
 
-                                command.Parameters.Add("@HourControllingOut", DbType.String).Value = timeOut[0];
-                                command.Parameters.Add("@MinuteControllingOut", DbType.String).Value = timeOut[1];
-                                command.Parameters.Add("@ControllingOut", DbType.Decimal).Value = timeOutDecimal[2];
+                                command.Parameters.Add("@ControllingHHMM", DbType.String).Value = dgSeek.values[3];
+                                command.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = dgSeek.values[4];
 
-                                command.Parameters.Add("@ControllingHHMM", DbType.String).Value = timeIn[2];
-                                command.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = timeOut[2];
+                                command.Parameters.Add("@Shift", DbType.String).Value = dgSeek.values[7];
+                                command.Parameters.Add("@Comment", DbType.String).Value = dgSeek.values[8];
+
                                 try { command.ExecuteNonQuery(); } catch { }
                             }
                         }
@@ -6421,9 +6348,6 @@ namespace ASTA
                         _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + dgSeek.values[3]);
                         stimerPrev = "";
                         MailingAction("sendEmail", dgSeek.values[0], dgSeek.values[0], dgSeek.values[2], dgSeek.values[3], dgSeek.values[4], dgSeek.values[5], dgSeek.values[6]);
-
-                        //  ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
-                        //      "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', Status AS 'Статус'  ", " ORDER BY RecipientEmail asc; ");
                     }
                 } catch { }
             }
@@ -6547,36 +6471,31 @@ namespace ASTA
 
         private void DeleteCurrentRow()
         {
-            int IndexCurrentRow = _dataGridView1CurrentRowIndex();
+            string group = _textBoxReturnText(textBoxGroup);
 
-            if (IndexCurrentRow > -1)
+            if (_dataGridView1CurrentRowIndex() > -1)
             {
                 switch (nameOfLastTableFromDB)
                 {
                     case "PeopleGroupDesciption":
                         {
-                            string selectedGroup = "";
-                            for (int i = 0; i < dataGridView1.ColumnCount; i++)
-                            {
-                                if (dataGridView1.Columns[i].HeaderText == "GroupPerson" || dataGridView1.Columns[i].HeaderText == "Группа")
-                                {
-                                    selectedGroup = dataGridView1.Rows[IndexCurrentRow].Cells[i].Value.ToString().Trim();
-                                    DeleteDataTableQueryParameters(databasePerson, "PeopleGroup", "GroupPerson", selectedGroup, "", "", "", "");
-                                    DeleteDataTableQueryParameters(databasePerson, "PeopleGroupDesciption", "GroupPerson", selectedGroup, "", "", "", "");
-                                }
-                            }
+                            DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
+                            dgSeek.FindValueInCells(dataGridView1, new string[] { @"Группа" });
+                            
+                            DeleteDataTableQueryParameters(databasePerson, "PeopleGroup", "GroupPerson", dgSeek.values[0], "", "", "", "");
+                            DeleteDataTableQueryParameters(databasePerson, "PeopleGroupDesciption", "GroupPerson", dgSeek.values[0], "", "", "", "");
 
                             PersonOrGroupItem.Text = "Работа с одной персоной";
 
                             ListGroups();
                             MembersGroupItem.Enabled = true;
-                            _toolStripStatusLabelSetText(StatusLabel2, "Удалена группа: " + selectedGroup + "| Всего групп: " + _dataGridView1RowsCount());
+                            _toolStripStatusLabelSetText(StatusLabel2, "Удалена группа: " + dgSeek.values[0] + "| Всего групп: " + _dataGridView1RowsCount());
                             break;
                         }
-                    case "PeopleGroup" when textBoxGroup.Text.Trim().Length > 0:
+                    case "PeopleGroup" when group.Length > 0:
                         {
-                            DeleteDataTableQueryParameters(databasePerson, "PeopleGroup", "GroupPerson", textBoxGroup.Text.Trim(), "", "", "", "");
-                            DeleteDataTableQueryParameters(databasePerson, "PeopleGroupDesciption", "GroupPerson", textBoxGroup.Text.Trim(), "", "", "", "");
+                            DeleteDataTableQueryParameters(databasePerson, "PeopleGroup", "GroupPerson", group, "", "", "", "");
+                            DeleteDataTableQueryParameters(databasePerson, "PeopleGroupDesciption", "GroupPerson", group, "", "", "", "");
                             textBoxGroup.BackColor = Color.White;
                             PersonOrGroupItem.Text = "Работа с одной персоной";
 
@@ -6601,6 +6520,7 @@ namespace ASTA
                         break;
                 }
             }
+            group = null;
         }
 
         //---  End.  DatagridView functions ---//
@@ -6858,6 +6778,7 @@ namespace ASTA
                 case "saveEmail":
                     {
                         MailingSave(recipientEmail, senderEmail, groupsReport, nameReport, description, period, status);
+
                         ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                             "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', Status AS 'Статус' ", " ORDER BY RecipientEmail asc, DateCreated desc; ");
                         break;
@@ -6906,35 +6827,25 @@ namespace ASTA
 
                                 foreach (DataRow row in dtPeopleGroup.Rows)
                                 {
-                                    if (row[@"Фамилия Имя Отчество"].ToString().Length > 0 && row[@"Группа"].ToString() == name)
+                                    if (row[@"Фамилия Имя Отчество"]?.ToString().Length > 0 && row[@"Группа"]?.ToString() == name)
                                     {
                                         personCheck = new Person();
 
                                         personCheck.FIO = row[@"Фамилия Имя Отчество"].ToString();
                                         personCheck.NAV = row[@"NAV-код"].ToString();
-                                        personCheck.PositionInDepartment = row[@"Должность"].ToString();
 
                                         personCheck.GroupPerson = row[@"Группа"].ToString();
                                         personCheck.Department = row[@"Отдел"].ToString();
+                                        personCheck.PositionInDepartment = row[@"Должность"].ToString();
 
-                                        //pomenyat HHMM tolko import
-                                        /
-                                        personCheck.ControlInHour = row[@"Время прихода,часы"].ToString();
-                                        personCheck.ControlInHourDecimal = TryParseStringToDecimal(row[@"Время прихода,часы"].ToString());
-                                        personCheck.ControlInMinute = row[@"Время прихода,минут"].ToString();
-                                        personCheck.ControlInMinuteDecimal = TryParseStringToDecimal(row[@"Время прихода,минут"].ToString());
-                                        personCheck.ControlInDecimal = TryParseStringToDecimal(row[@"Время прихода"].ToString());
-
-                                        personCheck.ControlOutHHMM = row[@"Учетное время ухода ЧЧ:ММ"].ToString();
                                         personCheck.ControlInHHMM = row[@"Учетное время прихода ЧЧ:ММ"].ToString();
+                                        personCheck.ControlOutHHMM = row[@"Учетное время ухода ЧЧ:ММ"].ToString();
 
-                                        personCheck.ControlOutHour = row[@"Время ухода,часы"].ToString();
-                                        personCheck.ControlOutHourDecimal = TryParseStringToDecimal(row[@"Время ухода,часы"].ToString());
-                                        personCheck.ControlOutMinute = row[@"Время ухода,минут"].ToString();
-                                        personCheck.ControlOutMinuteDecimal = TryParseStringToDecimal(row[@"Время ухода,минут"].ToString());
-                                        personCheck.ControlOutDecimal = TryParseStringToDecimal(row[@"Время ухода"].ToString());
+                                        personCheck.Comment = row[@"Комментарии"].ToString();
+                                        personCheck.Shift = row[@"График"].ToString();
 
                                         FilterDataByNav(personCheck, dtPersonRegistrationsFullList, dtTempIntermediate);
+                                        personCheck = null;
                                     }
                                 }
 
