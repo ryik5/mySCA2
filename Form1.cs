@@ -1553,6 +1553,7 @@ namespace ASTA
             DataTable dtExport = viewExport.ToTable();
 
             _toolStripStatusLabelSetText(StatusLabel2, "Записываю в Excel-файл отчет - "+ nameReport);
+            _toolStripStatusLabelSetText(StatusLabel2, "В таблице " + dataTable.TableName+ " столбцов всего - " + dtExport.Columns.Count + ", строк - " + dtExport.Rows.Count);
 
             try
             {
