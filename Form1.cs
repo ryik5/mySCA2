@@ -5742,7 +5742,8 @@ namespace ASTA
             if (btnName == @"Сохранить рассылку")
             {
                 ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
-                    "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', Status AS 'Статус' ", " ORDER BY RecipientEmail asc, DateCreated desc; ");
+                    "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус' ",
+                    " ORDER BY RecipientEmail asc, DateCreated desc; ");
             }
             EnableMainMenuItems(true);
             _controlVisible(panelView, true);
@@ -6450,7 +6451,8 @@ namespace ASTA
                                 "Description", dgSeek.values[4]);
                             _toolStripStatusLabelSetText(StatusLabel2, "Удалена рассылка отчета " + dgSeek.values[2] + "| Всего рассылок: " + _dataGridView1RowsCount());
                             ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
-                                "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', Status AS 'Статус' ", " ORDER BY RecipientEmail asc; ");
+                                "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус' ",
+                                " ORDER BY RecipientEmail asc, DateCreated desc; ");
                             break;
                         }
                     default:
@@ -6816,6 +6818,7 @@ namespace ASTA
 
                                     bodyOfMail = "Отчет \"" + nameReport + "\" " + " по группе \"" + name + "\"";
                                     titleOfbodyMail = "Отчет за период: с " + startDay.Split(' ')[0] + " по " + lastDay.Split(' ')[0];
+                                    _toolStripStatusLabelSetText(StatusLabel2, "Подготавливаю отчет для отправки " + recipientEmail);
 
                                     SendEmailAsync(senderEmail, recipientEmail, titleOfbodyMail, bodyOfMail, filePathExcelReport, Properties.Resources.LogoRYIK, productName);
 
