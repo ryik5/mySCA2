@@ -6882,7 +6882,7 @@ namespace ASTA
                                     dtPersonTemp?.Dispose();
                                     dtPersonTemp = dtPeople.Clone();
 
-                                    // LoadGroupMembersFromDbToDataTable(nameGroup); //result will be in dtPeopleGroup  //"Select * FROM PeopleGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
+                                     LoadGroupMembersFromDbToDataTable(nameGroup); //result will be in dtPeopleGroup  //"Select * FROM PeopleGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
 
                                     foreach (DataRow row in dtPeopleGroup.Rows)
                                     {
