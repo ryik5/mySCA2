@@ -93,6 +93,9 @@ namespace ASTA
         private string mailServerUserPassword = "";
         private string mailServerUserPasswordRegistry = "";
         private string mailServerUserPasswordDB = "";
+        private static string reportStartDay ="";
+        private static string reportLastDay = "";
+        private bool reportExcelReady = false;
 
         private Label labelmysqlServer;
         private TextBox textBoxmysqlServer;
@@ -356,11 +359,12 @@ namespace ASTA
         private void Form1Load()
         {
             logger.Info("");
-            logger.Trace("Test1 trace message");
+            logger.Info("Test Info message");
+            logger.Trace("Test1 Trace message");
             logger.Debug("Test2 Debug message");
-            logger.Warn("Test3 warn message");
-            logger.Error("Test4 error message");
-            logger.Fatal("Test5 fatal message");
+            logger.Warn("Test3 Warn message");
+            logger.Error("Test4 Error message");
+            logger.Fatal("Test5 Fatal message");
             logger.Info("");
 
             currentModeAppManual = true;
@@ -746,14 +750,12 @@ namespace ASTA
             DataTable dt = new DataTable();
             if (databasePerson.Exists)
             {
-                // dtPeople.Clear();
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
                     sqlConnection.Open();
                     using (var sqlDA = new SQLiteDataAdapter(mySqlQuery + " FROM '" + myTable + "' " + mySqlWhere + "; ", sqlConnection))
                     {
                         dt = new DataTable();
-                        //dtPeople 
                         sqlDA.Fill(dt);
                     }
                 }
@@ -1570,13 +1572,14 @@ namespace ASTA
 
         private void ExportDatatableSelectedColumnsToExcel(DataTable dataTable, string nameReport, string filePath)  //Export DataTable to Excel 
         {
+            reportExcelReady = false;
             dataTable.SetColumnsOrder(orderColumnsFinacialReport);
             DataView viewExport = new DataView(dataTable);
             viewExport.Sort = "[Фамилия Имя Отчество], [Дата регистрации] ASC";
             DataTable dtExport = viewExport.ToTable();
 
-            _toolStripStatusLabelSetText(StatusLabel2, "Записываю в Excel-файл отчет - "+ nameReport);
             _toolStripStatusLabelSetText(StatusLabel2, "В таблице " + dataTable.TableName+ " столбцов всего - " + dtExport.Columns.Count + ", строк - " + dtExport.Rows.Count);
+            _toolStripStatusLabelSetText(StatusLabel2, "Записываю в Excel-файл отчет - "+ nameReport);
 
             try
             {
@@ -1706,9 +1709,11 @@ namespace ASTA
                 _toolStripStatusLabelSetText(StatusLabel2, "Путь к отчету: " + filePath);
                 _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
                 logger.Info("Отчет сгенерирован " + nameReport + " и сохранен в " + filePath);
+                reportExcelReady = true;
             }
             catch (Exception expt)
             {
+                _toolStripStatusLabelSetText(StatusLabel2, "Ошибка генерации файла. Проверьте наличие установленного Excel");
                 logger.Error("ExportDatatableSelectedColumnsToExcel - " + expt.ToString());
             }
              viewExport?.Dispose();
@@ -1757,8 +1762,8 @@ namespace ASTA
 
             _ProgressBar1Start();
 
-            _toolStripStatusLabelSetText(StatusLabel2, "Генерирую Excel-файл");
-            stimerPrev = "Наполняю файл данными из текущей таблицы";
+           // _toolStripStatusLabelSetText(StatusLabel2, "Генерирую Excel-файл");
+           // stimerPrev = "Наполняю файл данными из текущей таблицы";
 
 
             filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), "InOutPeople" + @".xlsx");
@@ -2396,10 +2401,11 @@ namespace ASTA
         private void GetRegistrations(string selectedGroup, string startDate, string endDate, string doPostAction)
         {
             Person person = new Person();
-
+            string fio, nav, group, dep, pos, timein, timeout, comment, shift;
             if ((nameOfLastTableFromDB == "PeopleGroupDesciption" || nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "ListFIO" || doPostAction == "sendEmail") && selectedGroup.Length > 0)
             {
-                LoadGroupMembersFromDbToDataTable(selectedGroup); //result will be in dtPeopleGroup
+              //  if (doPostAction != "sendEmail")
+                { LoadGroupMembersFromDbToDataTable(selectedGroup); } //result will be in dtPeopleGroup
 
                 logger.Info("GetRegistrations, DT - " + dtPeopleGroup.TableName + " , всего записей - " + dtPeopleGroup.Rows.Count);
                 foreach (DataRow row in dtPeopleGroup.Rows)
@@ -2413,18 +2419,32 @@ namespace ASTA
                             _textBoxSetText(textBoxNav, row[@"NAV-код"].ToString());   //Select person                  
                         }
 
-                        person.FIO = row[@"Фамилия Имя Отчество"].ToString();
-                        person.NAV = row[@"NAV-код"].ToString();
+                        // string fio, nav, group, dep, pos, timein, timeout, comment, shift;
+                        fio = row[@"Фамилия Имя Отчество"].ToString();
+                        nav = row[@"NAV-код"].ToString();
 
-                        person.GroupPerson = row[@"Группа"].ToString(); 
-                        person.Department = row[@"Отдел"]?.ToString();
-                        person.PositionInDepartment = row[@"Должность"]?.ToString();
+                        group = row[@"Группа"].ToString();
+                        dep = row[@"Отдел"].ToString();
+                        pos = row[@"Должность"].ToString();
 
-                        person.ControlInHHMM = row[@"Учетное время прихода ЧЧ:ММ"].ToString();
-                        person.ControlOutHHMM = row[@"Учетное время ухода ЧЧ:ММ"].ToString();
+                        timein = row[@"Учетное время прихода ЧЧ:ММ"].ToString();
+                        timeout = row[@"Учетное время ухода ЧЧ:ММ"].ToString();
 
-                        person.Comment = row[@"Комментарии"]?.ToString();
-                        person.Shift = row[@"График"]?.ToString();
+                        comment = row[@"Комментарии"].ToString();
+                        shift = row[@"График"].ToString();
+
+                        person.FIO = fio;
+                        person.NAV = nav;
+
+                        person.GroupPerson = group;
+                        person.Department = dep;
+                        person.PositionInDepartment = pos;
+
+                        person.ControlInHHMM = timein;
+                        person.ControlOutHHMM = timeout;
+
+                        person.Comment = comment;
+                        person.Shift = shift;
 
                         GetPersonRegistrationFromServer(dtPersonRegistrationsFullList, person, startDate, endDate);     //Search Registration at checkpoints of the selected person
                     }
@@ -2691,7 +2711,7 @@ namespace ASTA
             {
                 sqlConnection.Open();
                 query = "Select id,name,hourly,visibled_name FROM out_reasons";
-                logger.Info(query);
+                logger.Trace(query);
 
                 using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
                 {
@@ -2807,9 +2827,8 @@ namespace ASTA
         //Get info the selected group from DB and make a few lists with these data
         private void LoadGroupMembersFromDbToDataTable(string namePointedGroup) // dtPeopleGroup //"Select * FROM PeopleGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
         {
-            logger.Info("LoadGroupMembersFromDbToDataTable, DT - " + dtPeopleGroup.TableName + ", группа - " + namePointedGroup);
             dtPeopleGroup.Clear();
-            dtPeopleGroup = dtPeople.Clone();
+          //  dtPeopleGroup = dtPeople.Clone();
             DataRow dataRow;
 
             string query = "Select FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Reserv1, Reserv2 FROM PeopleGroup ";
@@ -2855,7 +2874,7 @@ namespace ASTA
             }
             query = null; dataRow = null;
 
-            logger.Info("LoadGroupMembersFromDbToDataTable, всего записей - " + dtPeopleGroup.TableName + " " + dtPeopleGroup.Rows.Count);
+            logger.Info("LoadGroupMembersFromDbToDataTable, всего записей в dtPeopleGroup " + dtPeopleGroup.Rows.Count+ ", группа - " + namePointedGroup);
         }
 
         private void DeletePersonFromGroupItem_Click(object sender, EventArgs e) //DeletePersonFromGroup()
@@ -3985,6 +4004,7 @@ namespace ASTA
             //Copy Data from dtPersonRegistrationsList into dtPersonTemp by Filter(NAV and anual dates or minimalTime or dayoff)
         private void FilterDataByNav(Person personNAV, DataTable dataTableSource, DataTable dataTableForStoring)   
         {
+            logger.Info("FilterDataByNav: "+personNAV.NAV+ "| dataTableSource: "+ dataTableSource.Rows.Count);
             DataRow rowDtStoring;
             DataTable dtTemp = dataTableSource.Clone();
 
@@ -4063,10 +4083,11 @@ namespace ASTA
 
                 if (_CheckboxCheckedStateReturn(checkBoxWeekend) || currentAction == "sendEmail")//checkBoxWeekend Checking
                 {
-                    int[] startPeriod = _dateTimePickerReturnArray(dateTimePickerStart);
-                    int[] endPeriod = _dateTimePickerReturnArray(dateTimePickerEnd);
+                    int[] startPeriod = ConvertStringDateToIntArray (reportStartDay);
+                    int[] endPeriod = ConvertStringDateToIntArray(reportLastDay);
                     DataTable dtEmpty = new DataTable();
                     Person emptyPerson = new Person();
+
                     SeekAnualDays(dtTemp, personNAV, true, startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
                     dtEmpty.Dispose();
                     emptyPerson = null;
@@ -6425,11 +6446,14 @@ namespace ASTA
                         _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + dgSeek.values[3]);
                         stimerPrev = "";
 
+                        logger.Info("DoMainAction: UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToString() + "' WHERE RecipientEmail='" + dgSeek.values[0]                        + "' AND NameReport='" + dgSeek.values[3] + "' AND GroupsReport ='" + dgSeek.values[2] + "';");
                         ExecuteSql("UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToString() + "' WHERE RecipientEmail='" + dgSeek.values[0]
                         + "' AND NameReport='" + dgSeek.values[3] + "' AND GroupsReport ='" + dgSeek.values[2] + "';", databasePerson);
 
+                        logger.Info("DoMainAction, "+ "sendEmail:" + "|" + dgSeek.values[0] + "|" + dgSeek.values[1] + "|" + dgSeek.values[2] + "|" + dgSeek.values[3] + "|" + dgSeek.values[4] + "|" + dgSeek.values[5] +"|"+ dgSeek.values[6]);
                         MailingAction("sendEmail", dgSeek.values[0], dgSeek.values[1], dgSeek.values[2], dgSeek.values[3], dgSeek.values[4], dgSeek.values[5], dgSeek.values[6]);
 
+                        logger.Info("DoMainAction, ShowDataTableQuery: ");
                         ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                         "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус' ",
                         " ORDER BY RecipientEmail asc, DateCreated desc; ");
@@ -6612,8 +6636,7 @@ namespace ASTA
             else
             { currentModeAppManual = true; }
         }
-
-
+        
         private async void ExecuteAutoMode(bool manualMode) //InitScheduleTask()
         {
             await Task.Run(() => InitScheduleTask(manualMode));
@@ -6678,6 +6701,7 @@ namespace ASTA
             _ProgressBar1Start();
 
             //предварительно обновить список ФИО и индивидуальные графики
+            // commented only for test period!!!
             GetFIO();
 
             string sender = "";
@@ -6739,9 +6763,12 @@ namespace ASTA
                 _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + mailng._nameReport);
                 stimerPrev = "";
 
+                logger.Info("UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToString() + "' WHERE RecipientEmail='" + mailng._recipient
+                + "' AND NameReport='" + mailng._nameReport + "' AND GroupsReport ='" + mailng._groupsReport + "';");
                 ExecuteSql("UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToString() + "' WHERE RecipientEmail='" + mailng._recipient
                 + "' AND NameReport='" + mailng._nameReport + "' AND GroupsReport ='" + mailng._groupsReport + "';", databasePerson);
 
+                logger.Info("sendEmail" + "|" + mailng._recipient + "|" + mailng._sender + "|" + mailng._groupsReport + "|" + mailng._nameReport + "|" + mailng._descriptionReport + "|" + mailng._period+"|"+ mailng._status);
                 MailingAction("sendEmail", mailng._recipient, mailng._sender, mailng._groupsReport, mailng._nameReport, mailng._descriptionReport, mailng._period, mailng._status);
 
                 ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
@@ -6757,6 +6784,8 @@ namespace ASTA
 
         private void MailingAction(string mainAction, string recipientEmail, string senderEmail, string groupsReport, string nameReport, string description, string period, string status)
         {
+            _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
+
             switch (mainAction)
             {
                 case "saveEmail":
@@ -6776,104 +6805,137 @@ namespace ASTA
                         if (bServer1Exist)
                         {
                             DataTable dtTempIntermediate = dtPeople.Clone();
-                            Person personCheck = new Person();
+                            Person person = new Person();
+                            string fio, nav, group, dep, pos, timein, timeout, comment, shift;
 
                             GetNamePoints();  //Get names of the registration' points
 
-                            string startDay = selectPeriodMonth().Split('|')[0];
-                            string lastDay = selectPeriodMonth().Split('|')[1];
+                            logger.Info("MailingAction, sendEmail: "+ selectPeriodMonth());
+                             reportStartDay = selectPeriodMonth().Split('|')[0];
+                             reportLastDay = selectPeriodMonth().Split('|')[1];
 
                             //periodComboParameters.Add("Текущий месяц");
                             //periodComboParameters.Add("Предыдущий месяц");
-                            if (period.ToLower().Contains("текущий"))
+                            if (period.ToLower().Contains("текущий")|| period.ToLower().Contains("текущая") )
                             {
-                                startDay = selectPeriodMonth().Split('|')[0];
-                                lastDay = selectPeriodMonth().Split('|')[1];
+                                reportStartDay = selectPeriodMonth(true).Split('|')[0];
+                                reportLastDay = selectPeriodMonth(true).Split('|')[1];
                             }
+                            logger.Info("MailingAction, startDay, lastDay: " + reportStartDay + " " + reportLastDay);
 
-                            string[] nameGroups = groupsReport.Split('+');
-                            string name = "";
-                            string selectedPeriod = startDay.Split(' ')[0] + " - " + lastDay.Split(' ')[0];
+                            string nameGroup = "";
+                            string selectedPeriod = reportStartDay.Split(' ')[0] + " - " + reportLastDay.Split(' ')[0];
                             string bodyOfMail = "";
                             string titleOfbodyMail = "";
-                            foreach (string nameGroup in nameGroups)
+                            string []groups = groupsReport.Split('+');
+
+                            foreach (string name in groups)
                             {
                                 try { System.IO.File.Delete(filePathExcelReport); } catch { }
 
-                                name = nameGroup.Trim();
-                                dtPersonRegistrationsFullList.Clear();
-                                GetRegistrations(name, startDay, lastDay, "sendEmail");//typeReport== only one group
-
-                                dtTempIntermediate = dtPeople.Clone();
-                                personCheck = new Person();
-                                dtPersonTemp?.Clear();
-
-                                LoadGroupMembersFromDbToDataTable(name); //result will be in dtPeopleGroup  //"Select * FROM PeopleGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
-
-                                foreach (DataRow row in dtPeopleGroup.Rows)
+                                nameGroup = name.Trim();
+                                if (nameGroup.Length > 0)
                                 {
-                                    if (row[@"Фамилия Имя Отчество"]?.ToString().Length > 0 && row[@"Группа"]?.ToString() == name)
+                                    dtPersonRegistrationsFullList.Clear();
+                                    GetRegistrations(name, reportStartDay, reportLastDay, "sendEmail");//typeReport== only one group
+                                    logger.Info("sendEmail:"+"dtPeopleGroup.Rows.Count - " + dtPeopleGroup.Rows.Count);
+                                    logger.Info("sendEmail:" + "dtPersonRegistrationsFullList.Rows.Count - " + dtPersonRegistrationsFullList.Rows.Count);
+
+                                    dtTempIntermediate?.Dispose();
+                                    dtTempIntermediate = dtPeople.Clone();
+
+                                    person = new Person();
+
+                                    dtPersonTemp?.Dispose();
+                                    dtPersonTemp = dtPeople.Clone();
+                                    
+                                   // LoadGroupMembersFromDbToDataTable(nameGroup); //result will be in dtPeopleGroup  //"Select * FROM PeopleGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
+
+                                    foreach (DataRow row in dtPeopleGroup.Rows)
                                     {
-                                        personCheck = new Person();
+                                        if (row[@"Фамилия Имя Отчество"]?.ToString().Length > 0 && row[@"Группа"]?.ToString() == nameGroup)
+                                        {
+                                            person = new Person();
 
-                                        personCheck.FIO = row[@"Фамилия Имя Отчество"].ToString();
-                                        personCheck.NAV = row[@"NAV-код"].ToString();
+                                            fio = row[@"Фамилия Имя Отчество"].ToString();
+                                            nav = row[@"NAV-код"].ToString();
 
-                                        personCheck.GroupPerson = row[@"Группа"].ToString();
-                                        personCheck.Department = row[@"Отдел"].ToString();
-                                        personCheck.PositionInDepartment = row[@"Должность"].ToString();
+                                            group = row[@"Группа"].ToString();
+                                            dep = row[@"Отдел"].ToString();
+                                            pos = row[@"Должность"].ToString();
 
-                                        personCheck.ControlInHHMM = row[@"Учетное время прихода ЧЧ:ММ"].ToString();
-                                        personCheck.ControlOutHHMM = row[@"Учетное время ухода ЧЧ:ММ"].ToString();
+                                            timein = row[@"Учетное время прихода ЧЧ:ММ"].ToString();
+                                            timeout = row[@"Учетное время ухода ЧЧ:ММ"].ToString();
 
-                                        personCheck.Comment = row[@"Комментарии"].ToString();
-                                        personCheck.Shift = row[@"График"].ToString();
+                                            comment = row[@"Комментарии"].ToString();
+                                            shift = row[@"График"].ToString();
 
-                                        FilterDataByNav(personCheck, dtPersonRegistrationsFullList, dtTempIntermediate);
-                                        personCheck = null;
+                                            person.FIO = fio;
+                                            person.NAV = nav;
+
+                                            person.GroupPerson = group;
+                                            person.Department = dep;
+                                            person.PositionInDepartment = pos;
+
+                                            person.ControlInHHMM = timein;
+                                            person.ControlOutHHMM = timeout;
+
+                                            person.Comment = comment;
+                                            person.Shift = shift;
+
+                                            FilterDataByNav(person, dtPersonRegistrationsFullList, dtTempIntermediate);
+                                        }
                                     }
-                                }
+                                    person = null;
+                                    logger.Info("dtTempIntermediate: "+ dtTempIntermediate.Rows.Count);
+                                    dtPersonTemp = GetDistinctRecords(dtTempIntermediate, orderColumnsFinacialReport);
+                                    dtPersonTemp.SetColumnsOrder(orderColumnsFinacialReport);
+                                    logger.Info("dtPersonTemp: " + dtPersonTemp.Rows.Count);
 
-                                dtPersonTemp = GetDistinctRecords(dtTempIntermediate, orderColumnsFinacialReport);
-                                dtPersonTemp.SetColumnsOrder(orderColumnsFinacialReport);
-
-                                if (dtPersonTemp.Rows.Count > 0)
-                                {
-                                    string nameFile = nameReport + " " + startDay.Split(' ')[0] + "-" + lastDay.Split(' ')[0] + " " + name + " " + DateTime.Now.ToString("yy-MM-dd HH-mm") + @".xlsx";
-                                    string illegal = GetSafeFilename(nameFile);
-
-                                    filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), illegal);
-                                    try { System.IO.File.Delete(filePathExcelReport); } catch (Exception expt)
+                                    if (dtPersonTemp.Rows.Count > 0)
                                     {
-                                        logger.Error("Ошибка удаления файла " + filePathExcelReport + " " + expt.ToString());
+                                        string nameFile = (nameReport + " " + reportStartDay.Split(' ')[0] + "-" + reportLastDay.Split(' ')[0] + " " + name + " от " + DateTime.Now.ToString("yy-MM-dd HH-mm"));
+                                        string illegal = GetSafeFilename(nameFile) + @".xlsx";
+
+                                        filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), illegal);
+                                        try { System.IO.File.Delete(filePathExcelReport); }
+                                        catch (Exception expt)
+                                        { logger.Error("Ошибка удаления файла " + filePathExcelReport + " " + expt.ToString()); }
+
+                                        logger.Info("сохраняю файл: " + filePathExcelReport);
+                                        ExportDatatableSelectedColumnsToExcel(dtPersonTemp, nameReport, filePathExcelReport);
+
+                                        if (reportExcelReady)
+                                        {
+                                            bodyOfMail = "Отчет \"" + nameReport + "\" " + " по группе \"" + nameGroup + "\"";
+                                            titleOfbodyMail = "Отчет за период: с " + reportStartDay.Split(' ')[0] + " по " + reportLastDay.Split(' ')[0];
+                                            _toolStripStatusLabelSetText(StatusLabel2, "Подготавливаю отчет для отправки " + recipientEmail);
+
+                                            SendEmailAsync(senderEmail, recipientEmail, titleOfbodyMail, bodyOfMail, filePathExcelReport, Properties.Resources.LogoRYIK, productName);
+
+                                            _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
+                                            _toolStripStatusLabelSetText(StatusLabel2, DateTime.Now.ToString("yyyy-MM-dd HH:mm") + " Отчет " + nameReport + "(" + name + ") подготовлен и отправлен " + recipientEmail);
+                                        }
+                                        else
+                                        {
+                                            _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
+                                            _toolStripStatusLabelSetText(StatusLabel2, DateTime.Now.ToString("yyyy-MM-dd HH:mm") + " Ошибка создания отчета: " + nameReport + "(" + name + ")");
+                                        }
                                     }
-
-                                    logger.Info("сохраняю файл " + illegal);
-                                    ExportDatatableSelectedColumnsToExcel(dtPersonTemp, nameReport, filePathExcelReport);
-
-                                    bodyOfMail = "Отчет \"" + nameReport + "\" " + " по группе \"" + name + "\"";
-                                    titleOfbodyMail = "Отчет за период: с " + startDay.Split(' ')[0] + " по " + lastDay.Split(' ')[0];
-                                    _toolStripStatusLabelSetText(StatusLabel2, "Подготавливаю отчет для отправки " + recipientEmail);
-
-                                    SendEmailAsync(senderEmail, recipientEmail, titleOfbodyMail, bodyOfMail, filePathExcelReport, Properties.Resources.LogoRYIK, productName);
-
-                                   _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
-                                    _toolStripStatusLabelSetText(StatusLabel2, DateTime.Now.ToString("yyyy-MM-dd HH:mm") + " Отчет " + nameReport + "(" + name + ") подготовлен и отправлен " + recipientEmail);
+                                    else
+                                    {
+                                        _toolStripStatusLabelSetText(StatusLabel2, "Ошибка получения данных по отчету " + nameReport);
+                                        _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
+                                    }
+                                    //destroy temporary variables
+                                    person = null;
                                 }
-                                else
-                                {
-                                    _toolStripStatusLabelSetText(StatusLabel2, "Ошибка получения данных по отчету " + nameReport);
-                                    _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
-                                }
-                                //destroy temporary variables
-                                personCheck = null;
-                                dtPersonTemp?.Dispose();
-                                dtTempIntermediate?.Dispose();
                             }
                             //destroy temporary variables
-                            personCheck = null; dtTempIntermediate.Dispose();
-                            startDay = null; lastDay = null; selectedPeriod = null;
-                            bodyOfMail = null; titleOfbodyMail = null; nameGroups = null; name = null;
+                            dtTempIntermediate?.Dispose();
+                            dtPersonTemp?.Clear();
+                            selectedPeriod = null;
+                            bodyOfMail = null; titleOfbodyMail = null; nameGroup = null;
                         }
                         break;
                     }
