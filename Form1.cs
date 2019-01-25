@@ -27,8 +27,12 @@ namespace ASTA
         private NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         private System.Diagnostics.FileVersionInfo myFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
+        private string  guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения
+        private string  pcname = Environment.MachineName + "|" + Environment.OSVersion;
+        private string poname ="" ;
+        private string poversion = "";
         private string productName = "";
-        private string myRegKey = @"SOFTWARE\RYIK\ASTA";
+        private readonly string myRegKey = @"SOFTWARE\RYIK\ASTA";
         private string currentAction = "";
         private bool currentModeAppManual = true;
 
@@ -544,14 +548,14 @@ namespace ASTA
 
         private void SetTechInfoIntoDB() //Write into DB Technical Info
         {
-            string guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения
-            string pcname = Environment.MachineName + "|" + Environment.OSVersion;
-            string poname = myFileVersionInfo.FileName + "|" + myFileVersionInfo.ProductName;
-            string poversion = myFileVersionInfo.FileVersion;
-            string LastDateStarted = dateTimePickerEnd.Value.ToString();
-            string Reserv1 = Environment.UserName;
-            string Reserv2 = Environment.WorkingSet.ToString();
-
+             guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения
+             pcname = Environment.MachineName + "|" + Environment.OSVersion;
+             poname = myFileVersionInfo.FileName + "|" + myFileVersionInfo.ProductName;
+             poversion = myFileVersionInfo.FileVersion;
+            string LastDateStarted = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+            string Reserv1 ="Current user: " + Environment.UserName;
+            string Reserv2 ="RAM: "+ Environment.WorkingSet.ToString();
+            
             if (databasePerson.Exists)
             {
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
@@ -619,8 +623,7 @@ namespace ASTA
                             }
                         }
                     }
-
-
+                    
                     using (var sqlCommand = new SQLiteCommand("SELECT PoParameterName, PoParameterValue  FROM ProgramSettings;", sqlConnection))
                     {
                         using (var reader = sqlCommand.ExecuteReader())
@@ -1023,14 +1026,12 @@ namespace ASTA
 
         private void GetFio_Click(object sender, EventArgs e)  //GetFIO()
         {
-            _ProgressBar1Start();
-
             GetFIO();
-
         }
 
         private async void GetFIO()  // CheckAliveServer()   GetFioFromServers()  ImportTablePeopleToTableGroupsInLocalDB()
         {
+            _ProgressBar1Start();
             CheckBoxesFiltersAll_CheckedState(false);
             CheckBoxesFiltersAll_Enable(false);
             _MenuItemEnabled(QuickLoadDataItem, false);
@@ -6911,6 +6912,12 @@ namespace ASTA
                                             titleOfbodyMail = "Отчет за период: с " + reportStartDay.Split(' ')[0] + " по " + reportLastDay.Split(' ')[0];
                                             _toolStripStatusLabelSetText(StatusLabel2, "Подготавливаю отчет для отправки " + recipientEmail);
 
+                                            guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения
+                                            pcname = Environment.MachineName + "|" + Environment.OSVersion;
+                                            poname = myFileVersionInfo.FileName + "|" + myFileVersionInfo.ProductName;
+                                            poversion = myFileVersionInfo.FileVersion;
+
+
                                             SendEmailAsync(senderEmail, recipientEmail, titleOfbodyMail, bodyOfMail, filePathExcelReport, Properties.Resources.LogoRYIK, productName);
 
                                             _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
@@ -6994,12 +7001,19 @@ namespace ASTA
             System.Net.Mail.LinkedResource res = new System.Net.Mail.LinkedResource(logo, "image/jpeg");
             res.ContentId = Guid.NewGuid().ToString();
 
+            pcname = Environment.MachineName + "(" + Environment.OSVersion + ")";
+            poname = myFileVersionInfo.FileName + "|" + myFileVersionInfo.ProductName;
+            poversion = myFileVersionInfo.FileVersion;
+
             // текст письма
             string htmlBody =
                 @"<p><font size='4' color='black' face='Arial'>" + title + @"</font></p>" +
                 @"<p><h4>" + messageBeforePicture + @"</h4></p>" +
                 @"<hr><img src='cid:" + res.ContentId + @"'/>" +
-                @"<hr><p><h5>Отчет сгенерирован ПО <font size='2' color='blue' face='Arial'>" + messageAfterPicture + @"</font> автоматически <font size='2' color='red' face='Arial'>" + DateTime.Now.ToString("yyyy-MM-dd в HH:mm")+ @"</font></h5></p>";
+                @"<hr><p><h5>Отчет сгенерирован на "+ pcname+
+                @" с использованием ПО - <font size='2' color='blue' face='Arial'>" + 
+                messageAfterPicture + @"</font> "+ myFileVersionInfo.ProductName + @" в автоматическом режиме <font size='2' color='red' face='Arial'>" + 
+                DateTime.Now.ToString("yyyy-MM-dd в HH:mm")+ @"</font></h5></p>";
 
             System.Net.Mail.AlternateView alternateView = System.Net.Mail.AlternateView.CreateAlternateViewFromString(htmlBody, null, System.Net.Mime.MediaTypeNames.Text.Html);
             alternateView.LinkedResources.Add(res);
