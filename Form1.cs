@@ -6298,7 +6298,6 @@ namespace ASTA
                     DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
                     if (nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "ListFIO")
                     {
-
                         dgSeek.FindValueInCells(dataGridView1, new string[] {
                             @"Фамилия Имя Отчество", @"NAV-код", @"Группа",
                             @"Учетное время прихода ЧЧ:ММ", @"Учетное время ухода ЧЧ:ММ",
@@ -6361,7 +6360,7 @@ namespace ASTA
                         ExecuteSql("UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToString() + "' WHERE RecipientEmail='" + dgSeek.values[0]
                         + "' AND NameReport='" + dgSeek.values[3] + "' AND GroupsReport ='" + dgSeek.values[2] + "';", databasePerson);
 
-                        MailingAction("sendEmail", dgSeek.values[0], dgSeek.values[0], dgSeek.values[2], dgSeek.values[3], dgSeek.values[4], dgSeek.values[5], dgSeek.values[6]);
+                      //  MailingAction("sendEmail", dgSeek.values[0], dgSeek.values[0], dgSeek.values[2], dgSeek.values[3], dgSeek.values[4], dgSeek.values[5], dgSeek.values[6]);
 
                         ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                             "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус' ",
