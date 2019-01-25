@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Analysis of Staff Time Accounting")]
 [assembly: AssemblyDescription("Анализ УРВ персонала")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("©Yuri Ryabchenko")]
+[assembly: AssemblyCompany("@Yuri Ryabchenko")]
 [assembly: AssemblyProduct("ASTA")]
 [assembly: AssemblyCopyright("©Yuri Ryabchenko 2017-2019")]
 [assembly: AssemblyTrademark("©RYIK")]

@@ -22,14 +22,14 @@ using System.Security.Cryptography;
 
 namespace ASTA
 {
-    public partial class WinFormASTA :Form
+    public partial class WinFormASTA : Form
     {
         private NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         private System.Diagnostics.FileVersionInfo myFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
-        private string  guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения
-        private string  pcname = Environment.MachineName + "|" + Environment.OSVersion;
-        private string poname ="" ;
+        private string guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения
+        private string pcname = Environment.MachineName + "|" + Environment.OSVersion;
+        private string poname = "";
         private string poversion = "";
         private string productName = "";
         private readonly string myRegKey = @"SOFTWARE\RYIK\ASTA";
@@ -97,7 +97,7 @@ namespace ASTA
         private string mailServerUserPassword = "";
         private string mailServerUserPasswordRegistry = "";
         private string mailServerUserPasswordDB = "";
-        private static string reportStartDay ="";
+        private static string reportStartDay = "";
         private static string reportLastDay = "";
         private bool reportExcelReady = false;
 
@@ -465,7 +465,7 @@ namespace ASTA
             //Prepare DataTables
             dtPeople.Columns.AddRange(dcPeople);
             dtPeople.DefaultView.Sort = "[Группа], [Фамилия Имя Отчество], [Дата регистрации], [Время регистрации], [Фактич. время прихода ЧЧ:ММ], [Фактич. время ухода ЧЧ:ММ] ASC";
-            
+
             //Clone default column name and structure from 'dtPeople' to other DataTables
             dtPersonTemp = dtPeople.Clone();  //Copy only structure(Name of columns)
             dtPersonRegistrationsFullList = dtPeople.Clone();  //Copy only structure(Name of columns)
@@ -548,14 +548,14 @@ namespace ASTA
 
         private void SetTechInfoIntoDB() //Write into DB Technical Info
         {
-             guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения
-             pcname = Environment.MachineName + "|" + Environment.OSVersion;
-             poname = myFileVersionInfo.FileName + "|" + myFileVersionInfo.ProductName;
-             poversion = myFileVersionInfo.FileVersion;
+            guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения
+            pcname = Environment.MachineName + "|" + Environment.OSVersion;
+            poname = myFileVersionInfo.FileName + "|" + myFileVersionInfo.ProductName;
+            poversion = myFileVersionInfo.FileVersion;
             string LastDateStarted = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
-            string Reserv1 ="Current user: " + Environment.UserName;
-            string Reserv2 ="RAM: "+ Environment.WorkingSet.ToString();
-            
+            string Reserv1 = "Current user: " + Environment.UserName;
+            string Reserv2 = "RAM: " + Environment.WorkingSet.ToString();
+
             if (databasePerson.Exists)
             {
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
@@ -575,7 +575,7 @@ namespace ASTA
                     }
                 }
             }
-            guid = null; pcname = null; poname = null; poversion = null; LastDateStarted = null; Reserv1 = null; Reserv2 = null;
+            LastDateStarted = null; Reserv1 = null; Reserv2 = null;
         }
 
         private void LoadPrevioslySavedParameters()   //Select Previous Data from DB and write it into the combobox and Parameters
@@ -623,7 +623,7 @@ namespace ASTA
                             }
                         }
                     }
-                    
+
                     using (var sqlCommand = new SQLiteCommand("SELECT PoParameterName, PoParameterValue  FROM ProgramSettings;", sqlConnection))
                     {
                         using (var reader = sqlCommand.ExecuteReader())
@@ -729,7 +729,8 @@ namespace ASTA
                 {
                     using (var command = new SQLiteCommand(SqlQuery, connection))
                     { command.ExecuteNonQuery(); }
-                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                }
+                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
             }
             SqlQuery = null;
         }
@@ -748,7 +749,7 @@ namespace ASTA
         }
 
         //void ShowDataTableQuery(
-        private void ShowDataTableQuery(System.IO.FileInfo databasePerson, string myTable, string mySqlQuery, string mySqlWhere ) //Query data from the Table of the DB
+        private void ShowDataTableQuery(System.IO.FileInfo databasePerson, string myTable, string mySqlQuery, string mySqlWhere) //Query data from the Table of the DB
         {
             DataTable dt = new DataTable();
             if (databasePerson.Exists)
@@ -830,7 +831,8 @@ namespace ASTA
                         {
                             sqlCommand.ExecuteNonQuery();
                             logger.Info("-= Удалена таблица " + myTable + " =-");
-                        } catch { }
+                        }
+                        catch { }
                     }
                     using (var sqlCommand = new SQLiteCommand("vacuum;", sqlConnection))   //vacuum DB
                     {
@@ -1000,7 +1002,8 @@ namespace ASTA
                         }
                     }
                 }
-            } catch
+            }
+            catch
             { bServer1Exist = false; }
 
             if (bServer1Exist)
@@ -1104,7 +1107,7 @@ namespace ASTA
             List<string> listCodesWithIdCard = new List<string>(); //NAV-codes people who have idCard
 
             // import users and group from www.ais
-         //   List<string> listCodesFromWeb = new List<string>();
+            //   List<string> listCodesFromWeb = new List<string>();
             List<PeopleShift> peopleShifts = new List<PeopleShift>();
             List<PeopleDepartment> peopleDepartments = new List<PeopleDepartment>();
 
@@ -1304,7 +1307,7 @@ namespace ASTA
 
                                     personFromServer = new Person();
                                     personFromServer.FIO = fio;
-                                    nav= reader.GetString(@"code").Trim().ToUpper().Replace('C', 'S');
+                                    nav = reader.GetString(@"code").Trim().ToUpper().Replace('C', 'S');
                                     personFromServer.NAV = nav;
 
                                     personFromServer.Department = reader.GetString(@"department").Trim();
@@ -1343,12 +1346,12 @@ namespace ASTA
 
                                     row[@"Учетное время прихода ЧЧ:ММ"] = personFromServer.ControlInHHMM;
                                     row[@"Учетное время ухода ЧЧ:ММ"] = personFromServer.ControlOutHHMM;
-                                    
+
                                     ListFIOTemp.Add(personFromServer.FIO + "|" + personFromServer.NAV);
 
                                     if (listCodesWithIdCard.IndexOf(nav) != -1)
                                     {
-                                       // listCodesFromWeb.Add(nav);
+                                        // listCodesFromWeb.Add(nav);
                                         dataTablePeople.Rows.Add(row);
                                     }
 
@@ -1531,7 +1534,7 @@ namespace ASTA
             SeekAndShowMembersOfGroup("");
             nameOfLastTableFromDB = "ListFIO";
         }
-        
+
         /*
         private void ExportDatagridToExcel()  //Export to Excel from DataGridView
         {
@@ -1579,8 +1582,8 @@ namespace ASTA
             viewExport.Sort = "[Фамилия Имя Отчество], [Дата регистрации] ASC";
             DataTable dtExport = viewExport.ToTable();
 
-            _toolStripStatusLabelSetText(StatusLabel2, "В таблице " + dataTable.TableName+ " столбцов всего - " + dtExport.Columns.Count + ", строк - " + dtExport.Rows.Count);
-            _toolStripStatusLabelSetText(StatusLabel2, "Записываю в Excel-файл отчет - "+ nameReport);
+            _toolStripStatusLabelSetText(StatusLabel2, "В таблице " + dataTable.TableName + " столбцов всего - " + dtExport.Columns.Count + ", строк - " + dtExport.Rows.Count);
+            _toolStripStatusLabelSetText(StatusLabel2, "Записываю в Excel-файл отчет - " + nameReport);
 
             try
             {
@@ -1717,8 +1720,8 @@ namespace ASTA
                 _toolStripStatusLabelSetText(StatusLabel2, "Ошибка генерации файла. Проверьте наличие установленного Excel");
                 logger.Error("ExportDatatableSelectedColumnsToExcel - " + expt.ToString());
             }
-             viewExport?.Dispose();
-             dtExport?.Dispose();
+            viewExport?.Dispose();
+            dtExport?.Dispose();
 
             sLastSelectedElement = "ExportExcel";
         }
@@ -1729,11 +1732,13 @@ namespace ASTA
             {
                 System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
                 obj = null;
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 obj = null;
                 MessageBox.Show("Exception Occured while releasing object of Excel \n" + ex);
-            } finally
+            }
+            finally
             { GC.Collect(); }
         }
 
@@ -1763,8 +1768,8 @@ namespace ASTA
 
             _ProgressBar1Start();
 
-           // _toolStripStatusLabelSetText(StatusLabel2, "Генерирую Excel-файл");
-           // stimerPrev = "Наполняю файл данными из текущей таблицы";
+            // _toolStripStatusLabelSetText(StatusLabel2, "Генерирую Excel-файл");
+            // stimerPrev = "Наполняю файл данными из текущей таблицы";
 
 
             filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), "InOutPeople" + @".xlsx");
@@ -1800,7 +1805,8 @@ namespace ASTA
                 textBoxFIO.Text = Regex.Split(sComboboxFIO, "[|]")[0].Trim();
                 textBoxNav.Text = Regex.Split(sComboboxFIO, "[|]")[1].Trim();
                 StatusLabel2.Text = @"Выбран: " + ShortFIO(textBoxFIO.Text) + @" |  Всего ФИО: " + iFIO;
-            } catch { }
+            }
+            catch { }
             if (comboBoxFio.SelectedIndex > -1)
             {
                 QuickLoadDataItem.BackColor = Color.PaleGreen;
@@ -1858,17 +1864,18 @@ namespace ASTA
             try
             {
                 DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-                dgSeek.FindValueInCells(dataGridView1, new string[] { @"Группа" , @"Описание группы"});
+                dgSeek.FindValueInCells(dataGridView1, new string[] { @"Группа", @"Описание группы" });
                 textBoxGroup.Text = dgSeek.values[0];
                 textBoxGroupDescription.Text = dgSeek.values[1];
-                StatusLabel2.Text = @"Выбрана группа: " + dgSeek.values[0]+"(" + dgSeek.values[1] + ")" + @" |  Всего групп: " + _dataGridView1RowsCount();
+                StatusLabel2.Text = @"Выбрана группа: " + dgSeek.values[0] + "(" + dgSeek.values[1] + ")" + @" |  Всего групп: " + _dataGridView1RowsCount();
 
                 QuickLoadDataItem.BackColor = Color.PaleGreen;
                 groupBoxPeriod.BackColor = Color.PaleGreen;
                 groupBoxTimeStart.BackColor = Color.PaleGreen;
                 groupBoxTimeEnd.BackColor = Color.PaleGreen;
                 groupBoxFilterReport.BackColor = SystemColors.Control;
-            } catch { }
+            }
+            catch { }
 
             DeleteGroupItem.Visible = true;
             dataGridView1.Visible = true;
@@ -2146,7 +2153,8 @@ namespace ASTA
                             }
                         }
                     }
-                } catch (Exception expt) { MessageBox.Show("Error was happened on " + i + " row\n" + expt.ToString()); }
+                }
+                catch (Exception expt) { MessageBox.Show("Error was happened on " + i + " row\n" + expt.ToString()); }
                 if (i > listMaxLength - 10 || i == 0)
                 {
                     MessageBox.Show("Error was happened on " + i + " row\n You've been chosen the long file!");
@@ -2232,13 +2240,15 @@ namespace ASTA
                         {
                             StatusLabel2.Text = "Отсутствует NAV-код у:" + ShortFIO(textBoxFIO.Text);
                             _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
-                        } catch { }
+                        }
+                        catch { }
                     else if (group.Length == 0 && textBoxNav.Text.Trim().Length > 0)
                         try
                         {
                             StatusLabel2.Text = "Не указана группа, в которую нужно добавить!";
                             _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
-                        } catch { }
+                        }
+                        catch { }
                 }
             }
             SeekAndShowMembersOfGroup(group);
@@ -2271,7 +2281,8 @@ namespace ASTA
                                 {
                                     if (record != null && record["id"].ToString().Trim().Length > 0)
                                     { listPoints.Add(sServer1 + "|" + record["id"].ToString().Trim() + "|" + record["name"].ToString().Trim()); }
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
@@ -2345,9 +2356,9 @@ namespace ASTA
                 }
 
                 dtPersonRegistrationsFullList.Clear();
-                logger.Info("GetData: "+ groups);
+                logger.Info("GetData: " + groups);
                 GetRegistrations(groups, _dateTimePickerStart(), _dateTimePickerEnd(), "");
-                logger.Info("GetData: "+ groups+" " + _dateTimePickerStart()+" "+ _dateTimePickerEnd());
+                logger.Info("GetData: " + groups + " " + _dateTimePickerStart() + " " + _dateTimePickerEnd());
 
                 dtPersonTemp = dtPersonRegistrationsFullList.Copy();
                 dtPersonTempAllColumns = dtPersonRegistrationsFullList.Copy(); //store all columns
@@ -2405,7 +2416,7 @@ namespace ASTA
             string fio, nav, group, dep, pos, timein, timeout, comment, shift;
             if ((nameOfLastTableFromDB == "PeopleGroupDesciption" || nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "ListFIO" || doPostAction == "sendEmail") && selectedGroup.Length > 0)
             {
-              //  if (doPostAction != "sendEmail")
+                //  if (doPostAction != "sendEmail")
                 { LoadGroupMembersFromDbToDataTable(selectedGroup); } //result will be in dtPeopleGroup
 
                 logger.Info("GetRegistrations, DT - " + dtPeopleGroup.TableName + " , всего записей - " + dtPeopleGroup.Rows.Count);
@@ -2458,7 +2469,7 @@ namespace ASTA
                 person = new Person();
                 person.NAV = _textBoxReturnText(textBoxNav);
                 person.FIO = _textBoxReturnText(textBoxFIO);
-                logger.Info("GetRegistrations "+ person.FIO);
+                logger.Info("GetRegistrations " + person.FIO);
                 person.GroupPerson = "";
                 person.Department = "";
                 person.Shift = "";
@@ -2539,7 +2550,8 @@ namespace ASTA
                                 stringIdCardIntellect = Regex.Split(strRowWithNav, "[|]")[3].Trim();
                                 person.idCard = Convert.ToInt32(stringIdCardIntellect);
                                 break;
-                            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                            }
+                            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                     }
 
                     if (stringIdCardIntellect.Length == 0)
@@ -2554,11 +2566,13 @@ namespace ASTA
                                 {
                                     stringIdCardIntellect = Regex.Split(strRowWithNav, "[|]")[3].Trim();
                                     person.idCard = Convert.ToInt32(stringIdCardIntellect);
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 try
                                 {
                                     personNAVTemp = Regex.Split(strRowWithNav, "[|]")[4].Trim();
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 if (person.NAV.Length < 1 && personNAVTemp.Length > 0)
                                 {
                                     person.NAV = personNAVTemp;
@@ -2568,8 +2582,9 @@ namespace ASTA
                         }
                     }
                 }
-            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
-            
+            }
+            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+
             string[] cellData;
             string namePoint = "";
             string direction = "";
@@ -2627,7 +2642,8 @@ namespace ASTA
                                                         else if (namePoint.ToLower().Contains("вход"))
                                                             direction = "Вход";
                                                         break;
-                                                    } catch { }
+                                                    }
+                                                    catch { }
                                             }
                                             personWorkedDays.Add(stringDataNew);
 
@@ -2640,7 +2656,7 @@ namespace ASTA
                                             rowPerson[@"Отдел"] = person.Department;
                                             rowPerson[@"Должность"] = person.PositionInDepartment;
 
-                                            rowPerson[@"Комментарии"] =  person.Comment;
+                                            rowPerson[@"Комментарии"] = person.Comment;
                                             rowPerson[@"График"] = person.Shift;
 
                                             //day of registration
@@ -2659,7 +2675,8 @@ namespace ASTA
 
                                             _ProgressWork1Step(1);
                                         }
-                                    } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                    }
+                                    catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 }
                             }
                         }
@@ -2669,7 +2686,8 @@ namespace ASTA
                 stringDataNew = null; query = null; stringConnection = null;
 
                 _ProgressWork1Step(1);
-            } catch (Exception Expt)
+            }
+            catch (Exception Expt)
             { MessageBox.Show(Expt.ToString(), @"Сервер не доступен, или неправильная авторизация", MessageBoxButtons.OK, MessageBoxIcon.Error); }
 
             if (listPoints.Count > 0)
@@ -2687,7 +2705,7 @@ namespace ASTA
                 rowPerson[@"Отдел"] = person.Department;
                 rowPerson[@"Должность"] = person.PositionInDepartment;
 
-               // rowPerson[@"Комментарии"] = "";// person.Comment;
+                // rowPerson[@"Комментарии"] = "";// person.Comment;
                 rowPerson[@"График"] = person.Shift;
 
                 rowPerson[@"Время регистрации"] = "0";
@@ -2829,7 +2847,7 @@ namespace ASTA
         private void LoadGroupMembersFromDbToDataTable(string namePointedGroup) // dtPeopleGroup //"Select * FROM PeopleGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
         {
             dtPeopleGroup.Clear();
-          //  dtPeopleGroup = dtPeople.Clone();
+            //  dtPeopleGroup = dtPeople.Clone();
             DataRow dataRow;
 
             string query = "Select FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Reserv1, Reserv2 FROM PeopleGroup ";
@@ -2875,7 +2893,7 @@ namespace ASTA
             }
             query = null; dataRow = null;
 
-            logger.Info("LoadGroupMembersFromDbToDataTable, всего записей в dtPeopleGroup " + dtPeopleGroup.Rows.Count+ ", группа - " + namePointedGroup);
+            logger.Info("LoadGroupMembersFromDbToDataTable, всего записей в dtPeopleGroup " + dtPeopleGroup.Rows.Count + ", группа - " + namePointedGroup);
         }
 
         private void DeletePersonFromGroupItem_Click(object sender, EventArgs e) //DeletePersonFromGroup()
@@ -2890,7 +2908,7 @@ namespace ASTA
             if (indexCurrentRow > -1)
             {
                 DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-                dgSeek.FindValueInCells(dataGridView1, new string[] { @"Группа" , @"NAV-код" });
+                dgSeek.FindValueInCells(dataGridView1, new string[] { @"Группа", @"NAV-код" });
                 DeleteDataTableQueryNAV(databasePerson, "PeopleGroup", "NAV", dgSeek.values[1], "GroupPerson", dgSeek.values[0]);
                 SeekAndShowMembersOfGroup(dgSeek.values[0]);
             }
@@ -3079,7 +3097,7 @@ namespace ASTA
 
         private void _dataGridViewSource(DataTable dt)
         {
-            
+
             if (InvokeRequired)
             {
                 Invoke(new MethodInvoker(delegate
@@ -3913,8 +3931,8 @@ namespace ASTA
                             personCheck.Department = row[@"Отдел"].ToString();
                             personCheck.PositionInDepartment = row[@"Должность"].ToString();
 
-                            personCheck.ControlInHHMM=row[@"Учетное время прихода ЧЧ:ММ"].ToString();
-                            personCheck.ControlOutHHMM=row[@"Учетное время ухода ЧЧ:ММ"].ToString();
+                            personCheck.ControlInHHMM = row[@"Учетное время прихода ЧЧ:ММ"].ToString();
+                            personCheck.ControlOutHHMM = row[@"Учетное время ухода ЧЧ:ММ"].ToString();
 
                             personCheck.Comment = row[@"Комментарии"].ToString();
                             personCheck.Shift = row[@"График"].ToString();
@@ -4002,10 +4020,10 @@ namespace ASTA
             return dtUniqRecords;
         }
 
-            //Copy Data from dtPersonRegistrationsList into dtPersonTemp by Filter(NAV and anual dates or minimalTime or dayoff)
-        private void FilterDataByNav(Person personNAV, DataTable dataTableSource, DataTable dataTableForStoring)   
+        //Copy Data from dtPersonRegistrationsList into dtPersonTemp by Filter(NAV and anual dates or minimalTime or dayoff)
+        private void FilterDataByNav(Person personNAV, DataTable dataTableSource, DataTable dataTableForStoring)
         {
-            logger.Info("FilterDataByNav: "+personNAV.NAV+ "| dataTableSource: "+ dataTableSource.Rows.Count);
+            logger.Info("FilterDataByNav: " + personNAV.NAV + "| dataTableSource: " + dataTableSource.Rows.Count);
             DataRow rowDtStoring;
             DataTable dtTemp = dataTableSource.Clone();
 
@@ -4084,7 +4102,7 @@ namespace ASTA
 
                 if (_CheckboxCheckedStateReturn(checkBoxWeekend) || currentAction == "sendEmail")//checkBoxWeekend Checking
                 {
-                    int[] startPeriod = ConvertStringDateToIntArray (reportStartDay);
+                    int[] startPeriod = ConvertStringDateToIntArray(reportStartDay);
                     int[] endPeriod = ConvertStringDateToIntArray(reportLastDay);
                     DataTable dtEmpty = new DataTable();
                     Person emptyPerson = new Person();
@@ -4101,7 +4119,8 @@ namespace ASTA
                 { dataTableForStoring.ImportRow(dr); }
 
                 allWorkedDaysPerson = null;
-            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            }
+            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
 
             stringHourMinuteFirstRegistrationInDay = null; stringHourMinuteLastRegistrationInDay = null; hsDays = null;
             rowDtStoring = null; dtTemp = null; dtAllRegistrationsInSelectedDay = null;
@@ -4371,7 +4390,8 @@ namespace ASTA
 
                 foreach (var row in rows)
                 { row.Delete(); }
-            } catch (Exception expt)
+            }
+            catch (Exception expt)
             { MessageBox.Show(expt.ToString()); }
             dt.AcceptChanges();
             rows = null;
@@ -4418,10 +4438,12 @@ namespace ASTA
                         {
                             System.IO.File.Delete(file.FullName);
                             logger.Info("Удален файл: \"" + file.FullName + "\"");
-                        } catch { logger.Warn("Файл не удален: \"" + file.FullName + "\""); }
+                        }
+                        catch { logger.Warn("Файл не удален: \"" + file.FullName + "\""); }
                     }
                 }
-            } catch { logger.Warn("Ошибка удаления: " + discribeFiles); }
+            }
+            catch { logger.Warn("Ошибка удаления: " + discribeFiles); }
 
         }
 
@@ -4594,7 +4616,8 @@ namespace ASTA
                         StatusLabel2.Text = @"Выбран: " + personSelected.FIO + @" |  Всего ФИО: " + iFIO;
                     }
                 }
-            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            }
+            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
 
             if (personSelected.FIO.Length == 0)
             {
@@ -4622,7 +4645,8 @@ namespace ASTA
                 personSelected.ControlOutMinuteDecimal = _numUpDownReturn(numUpDownMinuteEnd);
                 personSelected.ControlOutMinute = personSelected.ControlOutMinuteDecimal.ToString();
                 personSelected.ControlOutHHMM = ConvertStringsTimeToStringHHMM(personSelected.ControlOutHour, personSelected.ControlOutMinute);
-            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            }
+            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
         }
 
 
@@ -4698,7 +4722,7 @@ namespace ASTA
 
                 //count max number of events in-out all of selected people (the group or a single person)
                 //It needs to prevent the error "index of scope"
-               // SeekAnualDays();
+                // SeekAnualDays();
                 foreach (DataRow row in rowsPersonRegistrationsForDraw)
                 {
                     for (int k = 0; k < workSelectedDays.Length; k++)
@@ -4936,7 +4960,8 @@ namespace ASTA
                         }
                     }
                 }
-            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            }
+            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
             sLastSelectedElement = "DrawRegistration";
         }
 
@@ -5204,7 +5229,8 @@ namespace ASTA
                 if (panelView != null && panelView.Controls.Count > 1) panelView.Controls.RemoveAt(1);
                 bmp?.Dispose();
                 pictureBox1?.Dispose();
-            } catch { }
+            }
+            catch { }
 
             dataGridView1.Visible = true;
             sLastSelectedElement = "dataGridView";
@@ -5408,7 +5434,7 @@ namespace ASTA
                         sqlCommand.Parameters.Add("@Period", DbType.String).Value = period;
                         sqlCommand.Parameters.Add("@Status", DbType.String).Value = status;
                         sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = localDate;
-                        sqlCommand.Parameters.Add("@SendingLastDate", DbType.String).Value = SendingDate;                        
+                        sqlCommand.Parameters.Add("@SendingLastDate", DbType.String).Value = SendingDate;
 
                         try { sqlCommand.ExecuteNonQuery(); } catch { }
                     }
@@ -5848,7 +5874,7 @@ namespace ASTA
 
                 MailingSave(recipientEmail, senderEmail, report, nameReport, description, period, status, DateTime.Now.ToString(), "");
                 ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
-                    "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус' ", 
+                    "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус' ",
                     " ORDER BY RecipientEmail asc, DateCreated desc; ");
             }
 
@@ -5995,7 +6021,8 @@ namespace ASTA
                     EvUserKey?.DeleteSubKey("MySQLUserPassword");
                     EvUserKey?.DeleteSubKey("ModeApp");
                 }
-            } catch { MessageBox.Show("Ошибки с доступом у реестру на запись. Данные не удалены."); }
+            }
+            catch { MessageBox.Show("Ошибки с доступом у реестру на запись. Данные не удалены."); }
         }
 
         //--- End. Features of programm ---//
@@ -6187,7 +6214,7 @@ namespace ASTA
             if (dataGridView1.Rows.Count > 0 && dataGridView1.CurrentRow.Index < dataGridView1.Rows.Count)
             {
                 decimal[] timeIn = new decimal[4];
-                decimal[] timeOut = new decimal[4] ;
+                decimal[] timeOut = new decimal[4];
 
                 try
                 {
@@ -6232,19 +6259,20 @@ namespace ASTA
                             try
                             {
                                 timeIn = ConvertStringTimeHHMMToDecimalArray(dgSeek.values[3]);
-                                 timeOut = ConvertStringTimeHHMMToDecimalArray(dgSeek.values[4]);
+                                timeOut = ConvertStringTimeHHMMToDecimalArray(dgSeek.values[4]);
                                 _numUpDownSet(numUpDownHourStart, timeIn[0]);
                                 _numUpDownSet(numUpDownMinuteStart, timeIn[1]);
                                 _numUpDownSet(numUpDownHourEnd, timeOut[0]);
                                 _numUpDownSet(numUpDownMinuteEnd, timeOut[1]);
                             }
-                            catch { logger.Warn("dataGridView1CellClick:"+ timeIn[0]); }
+                            catch { logger.Warn("dataGridView1CellClick:" + timeIn[0]); }
 
-                             if (dgSeek.values[1].Length > 3)
+                            if (dgSeek.values[1].Length > 3)
                             { comboBoxFio.SelectedIndex = comboBoxFio.FindString(dgSeek.values[1]); }
                         }
                     }
-                } catch (Exception expt)
+                }
+                catch (Exception expt)
                 {
                     MessageBox.Show(expt.ToString());
                 }
@@ -6378,9 +6406,11 @@ namespace ASTA
                         {
                             cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
                             cell.ToolTipText = cell.Value.ToString();
-                        } catch { }
+                        }
+                        catch { }
                     }
-                } catch { }
+                }
+                catch { }
             }
             if (nameOfLastTableFromDB == "Mailing" && e.RowIndex > -1 && e.ColumnIndex > -1 && e.Value != null)
             {
@@ -6447,11 +6477,11 @@ namespace ASTA
                         _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + dgSeek.values[3]);
                         stimerPrev = "";
 
-                        logger.Info("DoMainAction: UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToString() + "' WHERE RecipientEmail='" + dgSeek.values[0]                        + "' AND NameReport='" + dgSeek.values[3] + "' AND GroupsReport ='" + dgSeek.values[2] + "';");
+                        logger.Info("DoMainAction: UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToString() + "' WHERE RecipientEmail='" + dgSeek.values[0] + "' AND NameReport='" + dgSeek.values[3] + "' AND GroupsReport ='" + dgSeek.values[2] + "';");
                         ExecuteSql("UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToString() + "' WHERE RecipientEmail='" + dgSeek.values[0]
                         + "' AND NameReport='" + dgSeek.values[3] + "' AND GroupsReport ='" + dgSeek.values[2] + "';", databasePerson);
 
-                        logger.Info("DoMainAction, "+ "sendEmail:" + "|" + dgSeek.values[0] + "|" + dgSeek.values[1] + "|" + dgSeek.values[2] + "|" + dgSeek.values[3] + "|" + dgSeek.values[4] + "|" + dgSeek.values[5] +"|"+ dgSeek.values[6]);
+                        logger.Info("DoMainAction, " + "sendEmail:" + "|" + dgSeek.values[0] + "|" + dgSeek.values[1] + "|" + dgSeek.values[2] + "|" + dgSeek.values[3] + "|" + dgSeek.values[4] + "|" + dgSeek.values[5] + "|" + dgSeek.values[6]);
                         MailingAction("sendEmail", dgSeek.values[0], dgSeek.values[1], dgSeek.values[2], dgSeek.values[3], dgSeek.values[4], dgSeek.values[5], dgSeek.values[6]);
 
                         logger.Info("DoMainAction, ShowDataTableQuery: ");
@@ -6482,7 +6512,7 @@ namespace ASTA
                         {
                             DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
                             dgSeek.FindValueInCells(dataGridView1, new string[] { @"Группа" });
-                            
+
                             DeleteDataTableQueryParameters(databasePerson, "PeopleGroup", "GroupPerson", dgSeek.values[0], "", "", "", "");
                             DeleteDataTableQueryParameters(databasePerson, "PeopleGroupDesciption", "GroupPerson", dgSeek.values[0], "", "", "", "");
 
@@ -6596,11 +6626,11 @@ namespace ASTA
                     using (Microsoft.Win32.RegistryKey EvUserKey =
                          Microsoft.Win32.Registry.CurrentUser.CreateSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run\"))
                     {
-                        EvUserKey.SetValue(productName,"\""+ Application.ExecutablePath+ "\"");
+                        EvUserKey.SetValue(productName, "\"" + Application.ExecutablePath + "\"");
                         logger.Info("Save AutoRun App in Registry. Данные в реестре сохранены");
                     }
                 }
-                catch(Exception expt) { logger.Warn("Save ModeApp,AutoRun in Registry. Последний режим работы не сохранен. " + expt); }
+                catch (Exception expt) { logger.Warn("Save ModeApp,AutoRun in Registry. Последний режим работы не сохранен. " + expt); }
                 ExecuteAutoMode(true);
             }
             else
@@ -6628,7 +6658,7 @@ namespace ASTA
                     }
                 }
                 catch (Exception expt) { logger.Warn("Delete ModeApp from Registry. Ошибка удаления ключа. " + expt); }
-            ExecuteAutoMode(false);
+                ExecuteAutoMode(false);
             }
 
             //trigger mode
@@ -6637,12 +6667,12 @@ namespace ASTA
             else
             { currentModeAppManual = true; }
         }
-        
+
         private async void ExecuteAutoMode(bool manualMode) //InitScheduleTask()
         {
             await Task.Run(() => InitScheduleTask(manualMode));
         }
-        
+
         public void InitScheduleTask(bool manualMode) //ScheduleTask()
         {
             long interval = 1 * 60 * 1000; //1 minute
@@ -6680,6 +6710,7 @@ namespace ASTA
             lock (synclock)
             {
                 DateTime dd = DateTime.Now;
+                //todo change  when it will have been worked OK
                 if (dd.Hour == 3 && dd.Minute == 5 && sent == false) //do something at Hour 3 and 5 minute //dd.Day == 1 && 
                 {
                     _toolStripStatusLabelSetText(StatusLabel2, "Ведется работа по подготовке отчетов " + DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
@@ -6750,7 +6781,8 @@ namespace ASTA
                                         });
                                     }
                                 }
-                            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                            }
+                            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                         }
                     }
                 }
@@ -6769,7 +6801,7 @@ namespace ASTA
                 ExecuteSql("UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToString() + "' WHERE RecipientEmail='" + mailng._recipient
                 + "' AND NameReport='" + mailng._nameReport + "' AND GroupsReport ='" + mailng._groupsReport + "';", databasePerson);
 
-                logger.Info("sendEmail" + "|" + mailng._recipient + "|" + mailng._sender + "|" + mailng._groupsReport + "|" + mailng._nameReport + "|" + mailng._descriptionReport + "|" + mailng._period+"|"+ mailng._status);
+                logger.Info("sendEmail" + "|" + mailng._recipient + "|" + mailng._sender + "|" + mailng._groupsReport + "|" + mailng._nameReport + "|" + mailng._descriptionReport + "|" + mailng._period + "|" + mailng._status);
                 MailingAction("sendEmail", mailng._recipient, mailng._sender, mailng._groupsReport, mailng._nameReport, mailng._descriptionReport, mailng._period, mailng._status);
 
                 ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
@@ -6791,7 +6823,7 @@ namespace ASTA
             {
                 case "saveEmail":
                     {
-                        MailingSave(recipientEmail, senderEmail, groupsReport, nameReport, description, period, status, DateTime.Now.ToString(),"");
+                        MailingSave(recipientEmail, senderEmail, groupsReport, nameReport, description, period, status, DateTime.Now.ToString(), "");
 
                         ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                             "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус' ",
@@ -6811,13 +6843,13 @@ namespace ASTA
 
                             GetNamePoints();  //Get names of the registration' points
 
-                            logger.Info("MailingAction, sendEmail: "+ selectPeriodMonth());
-                             reportStartDay = selectPeriodMonth().Split('|')[0];
-                             reportLastDay = selectPeriodMonth().Split('|')[1];
+                            logger.Info("MailingAction, sendEmail: " + selectPeriodMonth());
+                            reportStartDay = selectPeriodMonth().Split('|')[0];
+                            reportLastDay = selectPeriodMonth().Split('|')[1];
 
                             //periodComboParameters.Add("Текущий месяц");
                             //periodComboParameters.Add("Предыдущий месяц");
-                            if (period.ToLower().Contains("текущий")|| period.ToLower().Contains("текущая") )
+                            if (period.ToLower().Contains("текущий") || period.ToLower().Contains("текущая"))
                             {
                                 reportStartDay = selectPeriodMonth(true).Split('|')[0];
                                 reportLastDay = selectPeriodMonth(true).Split('|')[1];
@@ -6828,7 +6860,7 @@ namespace ASTA
                             string selectedPeriod = reportStartDay.Split(' ')[0] + " - " + reportLastDay.Split(' ')[0];
                             string bodyOfMail = "";
                             string titleOfbodyMail = "";
-                            string []groups = groupsReport.Split('+');
+                            string[] groups = groupsReport.Split('+');
 
                             foreach (string name in groups)
                             {
@@ -6839,7 +6871,7 @@ namespace ASTA
                                 {
                                     dtPersonRegistrationsFullList.Clear();
                                     GetRegistrations(name, reportStartDay, reportLastDay, "sendEmail");//typeReport== only one group
-                                    logger.Info("sendEmail:"+"dtPeopleGroup.Rows.Count - " + dtPeopleGroup.Rows.Count);
+                                    logger.Info("sendEmail:" + "dtPeopleGroup.Rows.Count - " + dtPeopleGroup.Rows.Count);
                                     logger.Info("sendEmail:" + "dtPersonRegistrationsFullList.Rows.Count - " + dtPersonRegistrationsFullList.Rows.Count);
 
                                     dtTempIntermediate?.Dispose();
@@ -6849,8 +6881,8 @@ namespace ASTA
 
                                     dtPersonTemp?.Dispose();
                                     dtPersonTemp = dtPeople.Clone();
-                                    
-                                   // LoadGroupMembersFromDbToDataTable(nameGroup); //result will be in dtPeopleGroup  //"Select * FROM PeopleGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
+
+                                    // LoadGroupMembersFromDbToDataTable(nameGroup); //result will be in dtPeopleGroup  //"Select * FROM PeopleGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
 
                                     foreach (DataRow row in dtPeopleGroup.Rows)
                                     {
@@ -6888,7 +6920,7 @@ namespace ASTA
                                         }
                                     }
                                     person = null;
-                                    logger.Info("dtTempIntermediate: "+ dtTempIntermediate.Rows.Count);
+                                    logger.Info("dtTempIntermediate: " + dtTempIntermediate.Rows.Count);
                                     dtPersonTemp = GetDistinctRecords(dtTempIntermediate, orderColumnsFinacialReport);
                                     dtPersonTemp.SetColumnsOrder(orderColumnsFinacialReport);
                                     logger.Info("dtPersonTemp: " + dtPersonTemp.Rows.Count);
@@ -6911,12 +6943,6 @@ namespace ASTA
                                             bodyOfMail = "Отчет \"" + nameReport + "\" " + " по группе \"" + nameGroup + "\"";
                                             titleOfbodyMail = "Отчет за период: с " + reportStartDay.Split(' ')[0] + " по " + reportLastDay.Split(' ')[0];
                                             _toolStripStatusLabelSetText(StatusLabel2, "Подготавливаю отчет для отправки " + recipientEmail);
-
-                                            guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения
-                                            pcname = Environment.MachineName + "|" + Environment.OSVersion;
-                                            poname = myFileVersionInfo.FileName + "|" + myFileVersionInfo.ProductName;
-                                            poversion = myFileVersionInfo.FileVersion;
-
 
                                             SendEmailAsync(senderEmail, recipientEmail, titleOfbodyMail, bodyOfMail, filePathExcelReport, Properties.Resources.LogoRYIK, productName);
 
@@ -6960,7 +6986,7 @@ namespace ASTA
             // адрес smtp-сервера и порт, с которого будем отправлять письмо
             using (System.Net.Mail.SmtpClient smtpClient = new System.Net.Mail.SmtpClient(mailServer, 587))
             {
-                smtpClient.EnableSsl = true;
+                smtpClient.EnableSsl = false; // I get error with "true"
                 smtpClient.DeliveryMethod = System.Net.Mail.SmtpDeliveryMethod.Network;
                 smtpClient.UseDefaultCredentials = false;
                 smtpClient.Timeout = 50000;
@@ -7001,19 +7027,15 @@ namespace ASTA
             System.Net.Mail.LinkedResource res = new System.Net.Mail.LinkedResource(logo, "image/jpeg");
             res.ContentId = Guid.NewGuid().ToString();
 
-            pcname = Environment.MachineName + "(" + Environment.OSVersion + ")";
-            poname = myFileVersionInfo.FileName + "|" + myFileVersionInfo.ProductName;
-            poversion = myFileVersionInfo.FileVersion;
-
             // текст письма
             string htmlBody =
                 @"<p><font size='4' color='black' face='Arial'>" + title + @"</font></p>" +
                 @"<p><h4>" + messageBeforePicture + @"</h4></p>" +
                 @"<hr><img src='cid:" + res.ContentId + @"'/>" +
-                @"<hr><p><h5>Отчет сгенерирован на "+ pcname+
-                @" с использованием ПО - <font size='2' color='blue' face='Arial'>" + 
-                messageAfterPicture + @"</font> "+ myFileVersionInfo.ProductName + @" в автоматическом режиме <font size='2' color='red' face='Arial'>" + 
-                DateTime.Now.ToString("yyyy-MM-dd в HH:mm")+ @"</font></h5></p>";
+                @"<hr><p><h5>Отчет сгенерирован на " + pcname +
+                @" с использованием ПО - <font size='2' color='blue' face='Arial'>" +
+                myFileVersionInfo.ProductName + " " + myFileVersionInfo.FileVersion + @"</font> " + @" в автоматическом режиме <font size='2' color='red' face='Arial'>" +
+                DateTime.Now.ToString("yyyy-MM-dd в HH:mm") + @"</font></h5></p>";
 
             System.Net.Mail.AlternateView alternateView = System.Net.Mail.AlternateView.CreateAlternateViewFromString(htmlBody, null, System.Net.Mime.MediaTypeNames.Text.Html);
             alternateView.LinkedResources.Add(res);

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
 <?define ProductName="Analysis of Staff Time Accounting" ?>
-<?define ProductVersion="2.15.1.7" ?>
-<?define Description="View and analyse of person's passes registrations" ?>
-  <!--?define SolutionName="ASTA" ?-->
+<?define ProductVersion="3.5.1.7" ?>
+<?define Description="View and analyse of people' passes registrations" ?>
+  <?define SolutionName="ASTA" ?>
 <?define Keywords="Installer Analysis of Staff Time Accounting" ?>
-<?define Manufacturer="Yuri Ryabchenko"?>
+<?define Manufacturer="RYIK"?>
 <?define ProductCode="6C84406F-DC6A-4BB4-9716-1B56D6313C43"?>
 <?define UpgradeCode="68708D7E-5403-4128-B584-549EAD60622C"?>
   
@@ -16,7 +16,7 @@
              Comments="$(var.Description)" Keywords="$(var.Keywords)" ShortNames="yes" />
       
       <Media Id="1" Cabinet="product.cab" EmbedCab="yes" CompressionLevel="high" />
-      <Icon Id="ApplicationIcon" SourceFile="..\bin\Release\ryik.ico" />
+      <Icon Id="ApplicationIcon" SourceFile="..\ryik.ico" />
       <Property Id="ARPPRODUCTICON" Value="ApplicationIcon" />
       <Property Id='ARPNOREPAIR' Value='1'/>
 
@@ -142,7 +142,7 @@
       <ComponentGroup Id="ProductComponents" Directory="ProductComponents">
         <Component Id="ProductComponent" Guid="839D195C-81DD-4159-B1CC-4064EE2187F9" DiskId="1" Location="source">     
           <CreateFolder />
-          <File Id="Analysis of Staff Time Accounting" Name="ASTA.exe" Source="..\bin\Release\ASTA.exe" />
+          <File Id="ASTA" Name="ASTA.exe" Source="..\bin\Release\ASTA.exe" />
 
           <File Id="NLog.dll" Name="NLog.dll" Source="..\bin\Release\NLog.dll" />
           <File Id="NLog.xml" Name="NLog.xml" Source="..\bin\Release\NLog.xml" />
@@ -155,9 +155,9 @@
 
 
           <RegistryValue Root="HKCU" Key="Software\$(var.Manufacturer)\$(var.SolutionName)" 
-                         Name="PersonSCAinstalled" Type="integer" Value="1" KeyPath="yes" />
+                         Name="ASTAinstalled" Type="integer" Value="1" KeyPath="yes" />
           
-          <RemoveFile Id="Analysis of Staff Time Accounting" Name="ASTA.exe" On="uninstall" />   
+          <RemoveFile Id="ASTA" Name="ASTA.exe" On="uninstall" />   
           <RemoveFile Id="RemoveProductComponent" Name="*" On="both" />   
           <RemoveFolder Id="ProductComponents" Directory="ProductComponents" On="both" />        
           <RemoveFolder Id="ProductComponent" On="both" />        
