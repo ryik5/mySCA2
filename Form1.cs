@@ -6357,9 +6357,13 @@ namespace ASTA
                         _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + dgSeek.values[3]);
                         stimerPrev = "";
 
-                        ExecuteSql("UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToString() + "' WHERE RecipientEmail='" + dgSeek.values[0]
-                        + "' AND NameReport='" + dgSeek.values[3] + "' AND GroupsReport ='" + dgSeek.values[2] + "';", databasePerson);
+                        //todo 
+                        //edit and update mailing
 
+                     //   ExecuteSql("UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToString() + "' WHERE RecipientEmail='" + dgSeek.values[0]
+                      //  + "' AND NameReport='" + dgSeek.values[3] + "' AND GroupsReport ='" + dgSeek.values[2] + "';", databasePerson);
+
+                        
                       //  MailingAction("sendEmail", dgSeek.values[0], dgSeek.values[0], dgSeek.values[2], dgSeek.values[3], dgSeek.values[4], dgSeek.values[5], dgSeek.values[6]);
 
                         ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
