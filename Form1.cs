@@ -485,7 +485,8 @@ namespace ASTA
                 "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус' ",
                 " ORDER BY RecipientEmail asc, DateCreated desc; ");
 
-                ExecuteAutoMode(true);
+                nameOfLastTableFromDB = "Mailing";
+                    ExecuteAutoMode(true);
             }
         }
 
@@ -602,7 +603,7 @@ namespace ASTA
                             {
                                 try
                                 {
-                                    if (record["ComboList"] != null && record["ComboList"].ToString().Length > 0)
+                                    if (record["ComboList"] != null && record["ComboList"]?.ToString().Length > 0)
                                     {
                                         _comboBoxAdd(comboBoxFio, record["ComboList"].ToString().Trim());
                                         iCombo++;
@@ -621,7 +622,7 @@ namespace ASTA
                             {
                                 try
                                 {
-                                    if (record["FIO"] != null && record["FIO"].ToString().Length > 0)
+                                    if (record["FIO"] != null && record["FIO"]?.ToString().Length > 0)
                                     { numberOfFio++; }
                                 }
                                 catch { logger.Info("SELECT FIO FROM PeopleGroup - error"); }
@@ -639,7 +640,7 @@ namespace ASTA
                                 {
                                     if (record != null && record.ToString().Length > 0)
                                     {
-                                        if (record["PoParameterName"].ToString().Trim() == "clrRealRegistration")
+                                        if (record["PoParameterName"]?.ToString()?.Trim() == "clrRealRegistration")
                                             clrRealRegistration = Color.FromName(record["PoParameterValue"].ToString());
                                     }
                                 }
@@ -656,24 +657,24 @@ namespace ASTA
                             {
                                 try
                                 {
-                                    if (record != null && record["EquipmentParameterValue"].ToString().Length > 0)
+                                    if (record["EquipmentParameterValue"]?.ToString().Length > 0)
                                     {
-                                        if (record["EquipmentParameterValue"].ToString().Trim() == "SKDServer" && record["EquipmentParameterName"].ToString().Trim() == "SKDUser")
+                                        if (record["EquipmentParameterValue"]?.ToString().Trim() == "SKDServer" && record["EquipmentParameterName"]?.ToString().Trim() == "SKDUser")
                                         {
-                                            sServer1DB = record["EquipmentParameterServer"].ToString();
+                                            sServer1DB = record["EquipmentParameterServer"]?.ToString();
                                             try { sServer1UserNameDB = DecryptBase64ToString(record["Reserv1"].ToString(), btsMess1, btsMess2); } catch { }
                                             try { sServer1UserPasswordDB = DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2); } catch { }
                                         }
-                                        else if (record["EquipmentParameterValue"].ToString().Trim() == "MailServer" && record["EquipmentParameterName"].ToString().Trim() == "MailUser")
+                                        else if (record["EquipmentParameterValue"]?.ToString().Trim() == "MailServer" && record["EquipmentParameterName"]?.ToString().Trim() == "MailUser")
                                         {
-                                            mailServerDB = record["EquipmentParameterServer"].ToString();
-                                            mailServerUserNameDB = record["Reserv1"].ToString();
+                                            mailServerDB = record["EquipmentParameterServer"]?.ToString();
+                                            mailServerUserNameDB = record["Reserv1"]?.ToString();
                                             try { mailServerUserPasswordDB = DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2); } catch { }
                                         }
-                                        else if (record["EquipmentParameterValue"].ToString().Trim() == "MySQLServer" && record["EquipmentParameterName"].ToString().Trim() == "MySQLUser")
+                                        else if (record["EquipmentParameterValue"]?.ToString().Trim() == "MySQLServer" && record["EquipmentParameterName"]?.ToString().Trim() == "MySQLUser")
                                         {
-                                            mysqlServerDB = record["EquipmentParameterServer"].ToString();
-                                            mysqlServerUserNameDB = record["Reserv1"].ToString();
+                                            mysqlServerDB = record["EquipmentParameterServer"]?.ToString();
+                                            mysqlServerUserNameDB = record["Reserv1"]?.ToString();
                                             try { mysqlServerUserPasswordDB = DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2); } catch { }
                                         }
                                     }
@@ -2216,16 +2217,14 @@ namespace ASTA
                         timeIn = ConvertDecimalTimeToStringHHMMArray(timeInDecimal[2]);
                         timeOut = ConvertDecimalTimeToStringHHMMArray(timeOutDecimal[2]);
 
-                        using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, Controlling, ControllingOut, ControllingHHMM, ControllingOUTHHMM, Reserv1, Reserv2) " +
-                                                    "VALUES (@FIO, @NAV, @GroupPerson, @Controlling, @ControllingOut, @ControllingHHMM, @ControllingOUTHHMM, @Reserv1, @Reserv2)", connection))
+                        using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Reserv1, Reserv2) " +
+                                                    "VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Reserv1, @Reserv2)", connection))
                         {
                             command.Parameters.Add("@FIO", DbType.String).Value = fio;
                             command.Parameters.Add("@NAV", DbType.String).Value = nav;
                             command.Parameters.Add("@GroupPerson", DbType.String).Value = group;
                             command.Parameters.Add("@Reserv1", DbType.String).Value = dgSeek.values[2];
                             command.Parameters.Add("@Reserv2", DbType.String).Value = dgSeek.values[3];
-                            command.Parameters.Add("@Controlling", DbType.Decimal).Value = timeInDecimal[2];
-                            command.Parameters.Add("@ControllingOut", DbType.Decimal).Value = timeOutDecimal[2];
 
                             command.Parameters.Add("@ControllingHHMM", DbType.String).Value = timeIn[2];
                             command.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = timeOut[2];
@@ -2421,28 +2420,28 @@ namespace ASTA
                 logger.Info("GetRegistrations, DT - " + dtPeopleGroup.TableName + " , всего записей - " + dtPeopleGroup.Rows.Count);
                 foreach (DataRow row in dtPeopleGroup.Rows)
                 {
-                    if (row[@"Фамилия Имя Отчество"].ToString().Length > 0 && row[@"Группа"].ToString() == selectedGroup)
+                    if (row[@"Фамилия Имя Отчество"]?.ToString().Length > 0 && row[@"Группа"]?.ToString() == selectedGroup)
                     {
                         person = new Person();
                         if (!(doPostAction == "sendEmail"))
                         {
-                            _textBoxSetText(textBoxFIO, row[@"Фамилия Имя Отчество"].ToString());   //иммитируем выбор данных
-                            _textBoxSetText(textBoxNav, row[@"NAV-код"].ToString());   //Select person                  
+                            _textBoxSetText(textBoxFIO, row[@"Фамилия Имя Отчество"]?.ToString());   //иммитируем выбор данных
+                            _textBoxSetText(textBoxNav, row[@"NAV-код"]?.ToString());   //Select person                  
                         }
 
                         // string fio, nav, group, dep, pos, timein, timeout, comment, shift;
-                        fio = row[@"Фамилия Имя Отчество"].ToString();
-                        nav = row[@"NAV-код"].ToString();
+                        fio = row[@"Фамилия Имя Отчество"]?.ToString();
+                        nav = row[@"NAV-код"]?.ToString();
 
-                        group = row[@"Группа"].ToString();
-                        dep = row[@"Отдел"].ToString();
-                        pos = row[@"Должность"].ToString();
+                        group = row[@"Группа"]?.ToString();
+                        dep = row[@"Отдел"]?.ToString();
+                        pos = row[@"Должность"]?.ToString();
 
-                        timein = row[@"Учетное время прихода ЧЧ:ММ"].ToString();
-                        timeout = row[@"Учетное время ухода ЧЧ:ММ"].ToString();
+                        timein = row[@"Учетное время прихода ЧЧ:ММ"]?.ToString();
+                        timeout = row[@"Учетное время ухода ЧЧ:ММ"]?.ToString();
 
-                        comment = row[@"Комментарии"].ToString();
-                        shift = row[@"График"].ToString();
+                        comment = row[@"Комментарии"]?.ToString();
+                        shift = row[@"График"]?.ToString();
 
                         person.FIO = fio;
                         person.NAV = nav;
@@ -2453,6 +2452,9 @@ namespace ASTA
 
                         person.ControlInHHMM = timein;
                         person.ControlOutHHMM = timeout;
+
+                        person.ControlInDecimal = ConvertStringTimeHHMMToDecimalArray(timein)[2];
+                        person.ControlOutDecimal = ConvertStringTimeHHMMToDecimalArray(timeout)[2];
 
                         person.Comment = comment;
                         person.Shift = shift;
@@ -5788,6 +5790,7 @@ namespace ASTA
                 ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                     "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус' ",
                     " ORDER BY RecipientEmail asc, DateCreated desc; ");
+                nameOfLastTableFromDB = "Mailing";
             }
             EnableMainMenuItems(true);
             _controlVisible(panelView, true);
@@ -5849,6 +5852,7 @@ namespace ASTA
                 ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                     "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус' ",
                     " ORDER BY RecipientEmail asc, DateCreated desc; ");
+                nameOfLastTableFromDB = "Mailing";
             }
 
             DisposeTemporaryControls();
@@ -6342,6 +6346,7 @@ namespace ASTA
                         ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                             "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус' ",
                             " ORDER BY RecipientEmail asc, DateCreated desc; ");
+                        nameOfLastTableFromDB = "Mailing";
                     }
                 }
                 catch { }
@@ -6366,12 +6371,12 @@ namespace ASTA
                         cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
                         cell.ToolTipText = cell.Value.ToString();
                     }
-                    else if ((e.ColumnIndex == this.dataGridView1.Columns["Контрольное время"].Index || e.ColumnIndex == this.dataGridView1.Columns["Учетное время прихода ЧЧ:ММ"].Index) && e.Value != null)
+                    else if (( e.ColumnIndex == this.dataGridView1.Columns["Учетное время прихода ЧЧ:ММ"].Index) && e.Value != null)
                     {
                         cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
                         cell.ToolTipText = "Для установки нового значения нажмите F2,\nвнесите новое значение,\nа затем нажмите Enter";
                     }
-                    else if ((e.ColumnIndex == this.dataGridView1.Columns["Уход с работы"].Index || e.ColumnIndex == this.dataGridView1.Columns["Учетное время ухода ЧЧ:ММ"].Index) && e.Value != null)
+                    else if (( e.ColumnIndex == this.dataGridView1.Columns["Учетное время ухода ЧЧ:ММ"].Index) && e.Value != null)
                     {
                         cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
                         cell.ToolTipText = "Для установки нового значения нажмите F2,\nвнесите новое значение,\nа затем нажмите Enter";
@@ -6464,7 +6469,7 @@ namespace ASTA
                         ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                         "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус' ",
                         " ORDER BY RecipientEmail asc, DateCreated desc; ");
-                        break;
+                        nameOfLastTableFromDB = "Mailing"; break;
                     }
                 default:
                     break;
@@ -6522,7 +6527,7 @@ namespace ASTA
                             ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                                 "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус' ",
                                 " ORDER BY RecipientEmail asc, DateCreated desc; ");
-                            break;
+                            nameOfLastTableFromDB = "Mailing"; break;
                         }
                     default:
                         break;
@@ -6651,7 +6656,7 @@ namespace ASTA
 
         public void InitScheduleTask(bool manualMode) //ScheduleTask()
         {
-            long interval = 1 * 60 * 1000; //1 minute
+            long interval = 4 * 60 * 1000; //1 minute
             if (manualMode)
             {
                 _MenuItemTextSet(modeItem, "Сменить режим на интерактивный");
@@ -6783,6 +6788,7 @@ namespace ASTA
                 ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                 "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус' ",
                 " ORDER BY RecipientEmail asc, DateCreated desc; ");
+                nameOfLastTableFromDB = "Mailing";
             }
 
             sender = null; recipient = null; gproupsReport = null; nameReport = null; descriptionReport = null; period = null; status = null;
@@ -6804,6 +6810,7 @@ namespace ASTA
                         ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                             "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус' ",
                             " ORDER BY RecipientEmail asc, DateCreated desc; ");
+                        nameOfLastTableFromDB = "Mailing";
                         break;
                     }
                 case "sendEmail":
@@ -6888,6 +6895,9 @@ namespace ASTA
 
                                             person.ControlInHHMM = timein;
                                             person.ControlOutHHMM = timeout;
+
+                                            person.ControlInDecimal = ConvertStringTimeHHMMToDecimalArray(timein)[2];
+                                            person.ControlOutDecimal = ConvertStringTimeHHMMToDecimalArray(timeout)[2];
 
                                             person.Comment = comment;
                                             person.Shift = shift;
