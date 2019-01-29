@@ -2837,8 +2837,7 @@ namespace ASTA
                 nav = dr[@"NAV-код"]?.ToString();
                 foreach (string day in workSelectedDays)
                 {
-                    //   nav = outPerson.Find((x) => x._date == day)._nav;
-                    try { dr[@"Комментарии"] = outPerson.Find((x) => x._date == day&&x._nav == nav)._reason_Name; } catch { }
+                    try { dr[@"Комментарии"] = outPerson.Find((x) => x._date == day && x._nav == nav)._reason_Name; } catch { }
                 }
             }
 
