@@ -2725,6 +2725,7 @@ namespace ASTA
             // рабочие дни в которые отсутствовал данная персона
             foreach (string day in workSelectedDays.Except(personWorkedDays))
             {
+                /исправить ФИО в
                 rowPerson = dtTarget.NewRow();
                 rowPerson[@"Фамилия Имя Отчество"] = person.FIO;
                 rowPerson[@"NAV-код"] = person.NAV;
@@ -2747,6 +2748,7 @@ namespace ASTA
                 dtTarget.Rows.Add(rowPerson);//добавляем рабочий день в который  сотрудник не выходил на работу
                 _ProgressWork1Step(1);
             }
+
 
             //look for late and absence of data in www's DB
             List<OutReasons> resons = new List<OutReasons>();
