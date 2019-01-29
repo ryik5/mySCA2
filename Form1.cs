@@ -1115,7 +1115,8 @@ namespace ASTA
             // import users and group from www.ais
             //   List<string> listCodesFromWeb = new List<string>();
             List<PeopleShift> peopleShifts = new List<PeopleShift>();
-            List<PeopleDepartment> peopleDepartments = new List<PeopleDepartment>();
+            List<PeopleDepartment> departments = new List<PeopleDepartment>();
+            List<PeopleDepartment> groups = new List<PeopleDepartment>();
 
             try
             {
@@ -1124,11 +1125,13 @@ namespace ASTA
                 stimerPrev = "Запрашиваю списки персонала с " + sServer1 + ". Ждите окончания процесса...";
                 stringConnection = "Data Source=" + sServer1 + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=60";
                 logger.Info(stringConnection);
+
+                // import users and group from SCA server
                 using (var sqlConnection = new System.Data.SqlClient.SqlConnection(stringConnection))
                 {
                     sqlConnection.Open();
 
-                    //список департаментов с SCA сервера
+                    //import group from SCA server
                     query = "SELECT id,level_id,name,owner_id,parent_id,region_id,schedule_id  FROM OBJ_DEPARTMENT";
                     logger.Info(query);
                     using (var sqlCommand = new System.Data.SqlClient.SqlCommand(query, sqlConnection))
@@ -1141,7 +1144,7 @@ namespace ASTA
                                 {
                                     if (record?["name"].ToString().Trim().Length > 0)
                                     {
-                                        peopleDepartments.Add(new PeopleDepartment()
+                                        groups.Add(new PeopleDepartment()
                                         {
                                             _parent_id = record["parent_id"].ToString(),
                                             _departmentName = record["id"].ToString(),
@@ -1155,7 +1158,7 @@ namespace ASTA
                         }
                     }
 
-                    //список пользователей с SCA сервера
+                    //import users from с SCA server
                     query = "SELECT id, name, surname, patronymic, post, tabnum, parent_id FROM OBJ_PERSON ";
                     logger.Info(query);
                     using (var sqlCommand = new System.Data.SqlClient.SqlCommand(query, sqlConnection))
@@ -1179,7 +1182,7 @@ namespace ASTA
                                         nav = record["tabnum"].ToString().ToUpper().Trim();
                                         try
                                         {
-                                            depName = peopleDepartments.Find((x) => x._departmentName == groupName)._departmentDescription;
+                                            depName = groups.Find((x) => x._departmentName == groupName)._departmentDescription;
                                         }
                                         catch (Exception expt) { logger.Warn(expt.Message); }
 
@@ -1219,8 +1222,7 @@ namespace ASTA
                 stimerPrev = "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...";
 
                 groupName = "web"; //People imported from web DB
-
-                peopleDepartments.Add(new PeopleDepartment()
+                groups.Add(new PeopleDepartment()
                 {
                     _parent_id = mysqlServer,
                     _departmentName = groupName,
@@ -1233,6 +1235,29 @@ namespace ASTA
                 {
                     sqlConnection.Open();
 
+                    // import departments from web DB
+                    query = "SELECT id, parent_id, name, stat, boss_code, head_code FROM dep_struct ORDER by id";
+                    logger.Info(query);
+                    using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
+                    {
+                        using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                if (reader?.GetString(@"name") != null && reader?.GetString(@"name")?.Length > 0)
+                                {
+                                    departments.Add(new PeopleDepartment()
+                                    {
+                                        _id= reader?.GetString(@"id"),
+                                        _departmentName= reader?.GetString(@"name")
+                                    });
+                                    _ProgressWork1Step(1);
+                                }
+                            }
+                        }
+                    }
+                    
+                    // import individual shifts of people from web DB
                     query = "Select code,start_date,mo_start,mo_end,tu_start,tu_end,we_start,we_end,th_start,th_end,fr_start,fr_end, " +
                                     "sa_start,sa_end,su_start,su_end,comment FROM work_time ORDER by start_date";
                     logger.Info(query);
@@ -1288,11 +1313,7 @@ namespace ASTA
                     }
                     catch { }
 
-
-                    timeStart = ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourStart), _numUpDownReturn(numUpDownMinuteStart));
-                    timeEnd = ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourEnd), _numUpDownReturn(numUpDownMinuteEnd));
-
-
+                    // import people from web DB
                     query = "Select code, family_name,first_name,last_name,vacancy,department FROM personal"; //where hidden=0
                     logger.Info(query);
                     using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
@@ -1316,9 +1337,9 @@ namespace ASTA
                                     nav = reader.GetString(@"code").Trim().ToUpper().Replace('C', 'S');
                                     personFromServer.NAV = nav;
 
-                                    personFromServer.Department = reader.GetString(@"department").Trim();
+                                    depName = departments.FindLast((x) => x._id == reader.GetString(@"department").Trim())?._departmentName;
+                                    personFromServer.Department = depName?? reader?.GetString(@"department")?.Trim();
                                     personFromServer.PositionInDepartment = reader.GetString(@"vacancy").Trim();
-
                                     personFromServer.GroupPerson = groupName;
 
                                     personFromServer.Shift = dayStartShift_;
@@ -1344,6 +1365,7 @@ namespace ASTA
                                     row[@"NAV-код"] = personFromServer.NAV;
 
                                     row[@"Группа"] = personFromServer.GroupPerson;
+
                                     row[@"Отдел"] = personFromServer.Department;
                                     row[@"Должность"] = personFromServer.PositionInDepartment;
 
@@ -1386,22 +1408,22 @@ namespace ASTA
             {
                 DeleteAllDataInTableQuery(databasePerson, "LastTakenPeopleComboList");
 
-                for (int indDep = 0; indDep < peopleDepartments.Count; indDep++)
+                for (int indDep = 0; indDep < groups.Count; indDep++)
                 {
                     try
                     {
-                        depName = peopleDepartments[indDep]._departmentName;
+                        depName = groups[indDep]._departmentName;
                         DeleteDataTableQueryParameters(databasePerson, "PeopleGroup", "GroupPerson", depName, "", "", "", "");
                     }
                     catch { }
                 }
 
-                for (int indDep = 0; indDep < peopleDepartments.Count; indDep++)
+                for (int indDep = 0; indDep < groups.Count; indDep++)
                 {
                     try
                     {
-                        depName = peopleDepartments[indDep]._departmentName;
-                        depDescr = peopleDepartments[indDep]._departmentDescription;
+                        depName = groups[indDep]._departmentName;
+                        depDescr = groups[indDep]._departmentDescription;
                         CreateGroupInDB(databasePerson, depName, depDescr);
                     }
                     catch { }
@@ -7335,6 +7357,8 @@ namespace ASTA
         public string _departmentName;
         public string _departmentDescription;
         public string _parent_id;
+        public string _id;
+
     }
 
     public class EncryptDecrypt
