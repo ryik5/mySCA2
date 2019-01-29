@@ -2684,7 +2684,6 @@ namespace ASTA
                                             rowPerson[@"Отдел"] = person.Department;
                                             rowPerson[@"Должность"] = person.PositionInDepartment;
 
-                                            // rowPerson[@"Комментарии"] = person.Comment;
                                             rowPerson[@"График"] = person.Shift;
 
                                             //day of registration
@@ -2734,7 +2733,6 @@ namespace ASTA
                 rowPerson[@"Отдел"] = person.Department;
                 rowPerson[@"Должность"] = person.PositionInDepartment;
 
-                // rowPerson[@"Комментарии"] = "";// person.Comment;
                 rowPerson[@"График"] = person.Shift;
 
                 rowPerson[@"Время регистрации"] = "0";
@@ -2840,7 +2838,7 @@ namespace ASTA
                 foreach (string day in workSelectedDays)
                 {
                     //   nav = outPerson.Find((x) => x._date == day)._nav;
-                    try { dr[@"Комментарии"] = outPerson.FindAll((x) => x._date == day).Find((x) => x._nav == nav)._reason_Name; } catch { }
+                    try { dr[@"Комментарии"] = outPerson.Find((x) => x._date == day&&x._nav == nav)._reason_Name; } catch { }
                 }
             }
 
