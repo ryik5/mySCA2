@@ -2725,7 +2725,6 @@ namespace ASTA
             // рабочие дни в которые отсутствовал данная персона
             foreach (string day in workSelectedDays.Except(personWorkedDays))
             {
-                /исправить ФИО в
                 rowPerson = dtTarget.NewRow();
                 rowPerson[@"Фамилия Имя Отчество"] = person.FIO;
                 rowPerson[@"NAV-код"] = person.NAV;
@@ -2749,6 +2748,19 @@ namespace ASTA
                 _ProgressWork1Step(1);
             }
 
+            foreach(var row in dtTarget.AsEnumerable())
+            {
+                if (row[@"NAV-код"]?.ToString()== person.NAV)
+                {
+                    row[@"Фамилия Имя Отчество"] = person.FIO;
+                    row[@"NAV-код"] = person.NAV;
+                    row[@"Группа"] = person.GroupPerson;
+                    row[@"№ пропуска"] = person.idCard;
+                    row[@"Отдел"] = person.Department;
+                    row[@"Должность"] = person.PositionInDepartment;
+                    row[@"График"] = person.Shift;
+                }
+            }
 
             //look for late and absence of data in www's DB
             List<OutReasons> resons = new List<OutReasons>();
