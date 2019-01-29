@@ -1213,7 +1213,6 @@ namespace ASTA
                             }
                         }
                     }
-
                 }
 
                 // import users and group from web DB
@@ -1302,8 +1301,8 @@ namespace ASTA
 
                     try
                     {
-                        dayStartShift_ = peopleShifts.FindLast((x) => x._nav == "0")._dayStartShift;
-                        comment_ = "Общий график";
+                        dayStartShift_ = "Общий график с "+ peopleShifts.FindLast((x) => x._nav == "0")._dayStartShift;
+                       // comment_ = "Общий график";
 
                         tmpSeconds = peopleShifts.FindLast((x) => x._nav == "0")._MoStart;
                         timeStart_ = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
@@ -1343,14 +1342,14 @@ namespace ASTA
                                     personFromServer.GroupPerson = groupName;
 
                                     personFromServer.Shift = dayStartShift_;
-                                    personFromServer.Comment = comment_;
+                                  //  personFromServer.Comment = comment_;
                                     personFromServer.ControlInHHMM = timeStart_;
                                     personFromServer.ControlOutHHMM = timeEnd_;
 
                                     try
                                     {
-                                        personFromServer.Shift = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._dayStartShift;
-                                        personFromServer.Comment = "Индивидуальный график";
+                                        personFromServer.Shift = "Индивидуальный график с "+ peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._dayStartShift;
+                                       // personFromServer.Comment = "Индивидуальный график";
 
                                         tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoStart;
                                         personFromServer.ControlInHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
@@ -1370,7 +1369,7 @@ namespace ASTA
                                     row[@"Должность"] = personFromServer.PositionInDepartment;
 
                                     row[@"График"] = personFromServer.Shift;
-                                    row[@"Комментарии"] = personFromServer.Comment;
+                                  //  row[@"Комментарии"] = personFromServer.Comment;
 
                                     row[@"Учетное время прихода ЧЧ:ММ"] = personFromServer.ControlInHHMM;
                                     row[@"Учетное время ухода ЧЧ:ММ"] = personFromServer.ControlOutHHMM;
@@ -1495,8 +1494,8 @@ namespace ASTA
                     {
                         if (dr[@"Фамилия Имя Отчество"] != null && dr[@"NAV-код"] != null && dr[@"NAV-код"].ToString().Length > 0)
                         {
-                            using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Reserv1, Reserv2) " +
-                                    " VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Comment, @Reserv1, @Reserv2)", sqlConnection))
+                            using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Reserv1, Reserv2) " +
+                                    " VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Reserv1, @Reserv2)", sqlConnection))
                             {
                                 sqlCommand.Parameters.Add("@FIO", DbType.String).Value = dr[@"Фамилия Имя Отчество"].ToString();
                                 sqlCommand.Parameters.Add("@NAV", DbType.String).Value = dr[@"NAV-код"].ToString();
@@ -1504,7 +1503,7 @@ namespace ASTA
                                 sqlCommand.Parameters.Add("@ControllingHHMM", DbType.String).Value = dr[@"Учетное время прихода ЧЧ:ММ"].ToString();
                                 sqlCommand.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = dr[@"Учетное время ухода ЧЧ:ММ"].ToString();
                                 sqlCommand.Parameters.Add("@Shift", DbType.String).Value = dr[@"График"].ToString();
-                                sqlCommand.Parameters.Add("@Comment", DbType.String).Value = dr[@"Комментарии"].ToString();
+                               // sqlCommand.Parameters.Add("@Comment", DbType.String).Value = dr[@"Комментарии"].ToString();
                                 sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = dr[@"Отдел"].ToString();
                                 sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = dr[@"Должность"].ToString();
                                 try
@@ -1513,7 +1512,7 @@ namespace ASTA
                                 }
                                 catch (Exception expt)
                                 {
-                                    MessageBox.Show(dr[@"Фамилия Имя Отчество"] + "\n" + dr[@"NAV-код"] + "\n" + expt.ToString());
+                                    logger.Warn("ошибка записи в локальную базу PeopleGroup - " + dr[@"Фамилия Имя Отчество"] + "\n" + dr[@"NAV-код"] + "\n" + expt.ToString());
                                 }
                             }
                         }
@@ -2368,6 +2367,11 @@ namespace ASTA
                     _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по группе " + groups);
                     stimerPrev = "Получаю данные по группе " + groups;
                 }
+                else if(nameOfLastTableFromDB == "Mailing")
+                {
+                    _toolStripStatusLabelSetText(StatusLabel2, "Загружаю данные по группе " + groups);
+                    stimerPrev = "Загружаю регистрации с СКД сервера";
+                }
                 else
                 {
                     _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по \"" + ShortFIO(fio) + "\" ");
@@ -2377,6 +2381,10 @@ namespace ASTA
 
                 dtPersonRegistrationsFullList.Clear();
                 logger.Info("GetData: " + groups);
+
+                reportStartDay= _dateTimePickerStart().Split(' ')[0];
+                reportLastDay = _dateTimePickerEnd().Split(' ')[0];
+                
                 GetRegistrations(groups, _dateTimePickerStart(), _dateTimePickerEnd(), "");
                 logger.Info("GetData: " + groups + " " + _dateTimePickerStart() + " " + _dateTimePickerEnd());
 
@@ -2434,7 +2442,8 @@ namespace ASTA
         {
             Person person = new Person();
             string fio, nav, group, dep, pos, timein, timeout, comment, shift;
-            if ((nameOfLastTableFromDB == "PeopleGroupDesciption" || nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "ListFIO" || doPostAction == "sendEmail") && selectedGroup.Length > 0)
+            if ((nameOfLastTableFromDB == "PeopleGroupDesciption" || nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "Mailing"||
+                nameOfLastTableFromDB == "ListFIO" || doPostAction == "sendEmail") && selectedGroup.Length > 0)
             {
                 //  if (doPostAction != "sendEmail")
                 { LoadGroupMembersFromDbToDataTable(selectedGroup); } //result will be in dtPeopleGroup
@@ -2459,6 +2468,8 @@ namespace ASTA
                         dep = row[@"Отдел"]?.ToString();
                         pos = row[@"Должность"]?.ToString();
 
+                        //todo
+                        //import all of day's shift for the current person
                         timein = row[@"Учетное время прихода ЧЧ:ММ"]?.ToString();
                         timeout = row[@"Учетное время ухода ЧЧ:ММ"]?.ToString();
 
@@ -2673,7 +2684,7 @@ namespace ASTA
                                             rowPerson[@"Отдел"] = person.Department;
                                             rowPerson[@"Должность"] = person.PositionInDepartment;
 
-                                           // rowPerson[@"Комментарии"] = person.Comment;
+                                            // rowPerson[@"Комментарии"] = person.Comment;
                                             rowPerson[@"График"] = person.Shift;
 
                                             //day of registration
@@ -2769,7 +2780,6 @@ namespace ASTA
                         }
                     }
                 }
-
                 _ProgressWork1Step(1);
 
                 int idReason = 0;
@@ -2809,14 +2819,14 @@ namespace ASTA
             logger.Info(person.NAV + " - на сайте всего записей с отсутствиями: " + outPerson.Count);
             _ProgressWork1Step(1);
 
+            string nav = "";
             foreach (DataRow dr in dtTarget.Rows) // search whole table
             {
+                nav = dr[@"NAV-код"]?.ToString();
                 foreach (string day in workSelectedDays)
                 {
-                    if (dr[@"Дата регистрации"].ToString() == day) // if "Дата регистрации"==day
-                    {
-                        try { dr[@"Комментарии"] = outPerson.Find((x) => x._date == day)._reason_Name; } catch { }
-                    }
+                    //   nav = outPerson.Find((x) => x._date == day)._nav;
+                    try { dr[@"Комментарии"] = outPerson.FindAll((x) => x._date == day).Find((x) => x._nav == nav)._reason_Name; } catch { }
                 }
             }
 
@@ -3047,829 +3057,6 @@ namespace ASTA
                 }
             }
         }
-
-
-
-        //Start of Block. Access to Controls from other threads
-
-        private int _dataGridView1ColumnCount() //add string into  from other threads
-        {
-            int iDgv = 0;
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { try { iDgv = dataGridView1.ColumnCount; } catch { iDgv = 0; } }));
-            else
-                try { iDgv = dataGridView1.ColumnCount; } catch { iDgv = 0; }
-            return iDgv;
-        }
-
-        private int _dataGridView1RowsCount() //add string into  from other threads
-        {
-            int iDgv = 0;
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { try { iDgv = dataGridView1.Rows.Count; } catch { iDgv = 0; } }));
-            else
-                try { iDgv = dataGridView1.Rows.Count; } catch { iDgv = 0; }
-            return iDgv;
-        }
-
-        private string _dataGridView1ColumnHeaderText(int i) //add string into  from other threads
-        {
-            string sDgv = "";
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { try { sDgv = dataGridView1.Columns[i].HeaderText; } catch { sDgv = ""; } }));
-            else
-                try { sDgv = dataGridView1.Columns[i].HeaderText; } catch { sDgv = ""; }
-            return sDgv;
-        }
-
-        private string _dataGridView1CellValue(int iRow, int iCells) //from other threads
-        {
-            string sDgv = "";
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { try { sDgv = dataGridView1.Rows[iRow].Cells[iCells].Value.ToString(); } catch { sDgv = ""; } }));
-            else
-                try { sDgv = dataGridView1.Rows[iRow].Cells[iCells].Value.ToString(); } catch { sDgv = ""; }
-            return sDgv;
-        }
-
-        private int _dataGridView1CurrentRowIndex() //add string into  from other threads
-        {
-            int iDgv = -1;
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { try { iDgv = dataGridView1.CurrentRow.Index; } catch { iDgv = -1; } }));
-            else
-                try { iDgv = dataGridView1.CurrentRow.Index; } catch { iDgv = -1; }
-            return iDgv;
-        }
-
-        private int _dataGridView1CurrentColumnIndex() //add string into  from other threads
-        {
-            int iDgv = -1;
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { try { iDgv = dataGridView1.CurrentCell.ColumnIndex; } catch { iDgv = -1; } }));
-            else
-                try { iDgv = dataGridView1.CurrentCell.ColumnIndex; } catch { iDgv = -1; }
-            return iDgv;
-        }
-
-        private void _dataGridViewSource(DataTable dt)
-        {
-
-            if (InvokeRequired)
-            {
-                Invoke(new MethodInvoker(delegate
-                {
-                    if (dt != null && dt.Rows.Count > 0)
-                    { dataGridView1.DataSource = dt; }
-                    else
-                    {
-                        dataGridView1.Rows.Clear();
-                        dataGridView1.Columns.Clear();
-                        System.Collections.ArrayList Empty = new System.Collections.ArrayList();
-                        dataGridView1.DataSource = Empty;
-                        dataGridView1.Refresh();
-                    }
-                }));
-            }
-            else
-            {
-                if (dt != null && dt.Rows.Count > 0)
-                { dataGridView1.DataSource = dt; }
-                else
-                {
-                    dataGridView1.Rows.Clear();
-                    dataGridView1.Columns.Clear();
-                    System.Collections.ArrayList Empty = new System.Collections.ArrayList();
-                    dataGridView1.DataSource = Empty;
-                    dataGridView1.Refresh();
-                }
-            }
-        }
-
-
-        private string _textBoxReturnText(TextBox txtBox) //add string into  from other threads
-        {
-            string tBox = "";
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { tBox = txtBox.Text.ToString().Trim(); }));
-            else
-                tBox = txtBox.Text.ToString().Trim();
-            return tBox;
-        }
-
-        private void _textBoxSetText(TextBox txtBox, string s) //add string into  from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { txtBox.Text = s.Trim(); }));
-            else
-                txtBox.Text = s.Trim();
-        }
-
-        private void _comboBoxAdd(ComboBox comboBx, string s) //add string into  from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { comboBx.Items.Add(s); }));
-            else
-                comboBx.Items.Add(s);
-        }
-
-        private void _comboBoxClr(ComboBox comboBx) //add string into  from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    comboBx.Items.Clear();
-                    comboBx.SelectedText = "";
-                    comboBx.Text = "";
-                }));
-            else
-            {
-                comboBx.Items.Clear();
-                comboBx.SelectedText = "";
-                comboBx.Text = "";
-            }
-        }
-
-        private void _comboBoxSelectIndex(ComboBox comboBx, int i) //from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { comboBx.SelectedIndex = i; }));
-            else
-                comboBx.SelectedIndex = i;
-        }
-
-        private string _comboBoxReturnSelected(ComboBox comboBox) //from other threads
-        {
-            string result = "";
-            if (InvokeRequired)
-            {
-                Invoke(new MethodInvoker(delegate
-                {
-                    result = comboBox.SelectedIndex == -1
-                     ? comboBox.Text.Trim()
-                         : comboBox.SelectedItem.ToString();
-                }));
-            }
-            else
-            {
-                result = comboBox.SelectedIndex == -1
-                               ? comboBox.Text.Trim()
-                                   : comboBox.SelectedItem.ToString();
-            }
-            return result;
-        }
-
-
-        private void _numUpDownSet(NumericUpDown numericUpDown, decimal i) //add string into comboBoxTargedPC from other threads
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new MethodInvoker(delegate { try { numericUpDown.Value = i; } catch { numUpDownHourStart.Value = 9; } }));
-            }
-            else
-            {
-                try { numericUpDown.Value = i; } catch { numericUpDown.Value = 9; }
-            }
-        }
-
-        private decimal _numUpDownReturn(NumericUpDown numericUpDown)
-        {
-            decimal iCombo = 0;
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { iCombo = numericUpDown.Value; }));
-            else
-                iCombo = numericUpDown.Value;
-            return iCombo;
-        }
-
-        private string _dateTimePickerStart() //add string into  from other threads
-        {
-            string stringDT = "";
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    stringDT = dateTimePickerStart.Value.Year.ToString("0000") + "-" + dateTimePickerStart.Value.Month.ToString("00") + "-" + dateTimePickerStart.Value.Day.ToString("00") + " 00:00:00";
-                }));
-            else
-            {
-                stringDT = dateTimePickerStart.Value.Year.ToString("0000") + "-" + dateTimePickerStart.Value.Month.ToString("00") + "-" + dateTimePickerStart.Value.Day.ToString("00") + " 00:00:00";
-            }
-            return stringDT;
-        }
-
-        private string _dateTimePickerEnd() //add string into  from other threads
-        {
-            string stringDT = "";
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    stringDT = dateTimePickerEnd.Value.Year.ToString("0000") + "-" + dateTimePickerEnd.Value.Month.ToString("00") + "-" + dateTimePickerEnd.Value.Day.ToString("00") + " 23:59:59";
-                }));
-            else
-            {
-                stringDT = dateTimePickerEnd.Value.Year.ToString("0000") + "-" + dateTimePickerEnd.Value.Month.ToString("00") + "-" + dateTimePickerEnd.Value.Day.ToString("00") + " 23:59:59";
-            }
-            return stringDT;
-        }
-
-        private string _dateTimePickerReturn(DateTimePicker dateTimePicker) //add string into  from other threads
-        {
-            string result = "";
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                { result = dateTimePicker.Value.ToString(); }
-                ));
-            else
-                result = dateTimePicker.Value.ToString();
-            return result;
-        }
-
-        private int[] _dateTimePickerReturnArray(DateTimePicker dateTimePicker) //add string into  from other threads
-        {
-            int[] result = new int[3];
-
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    result[0] = dateTimePicker.Value.Year;
-                    result[1] = dateTimePicker.Value.Month;
-                    result[2] = dateTimePicker.Value.Day;
-                }
-                ));
-            else
-            {
-                result[0] = dateTimePicker.Value.Year;
-                result[1] = dateTimePicker.Value.Month;
-                result[2] = dateTimePicker.Value.Day;
-            }
-            return result;
-        }
-
-
-
-        private void _toolStripStatusLabelSetText(ToolStripStatusLabel statusLabel, string s) //add string into  from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    StatusLabel2.Text = s;
-                }));
-            else
-            {
-                StatusLabel2.Text = s;
-            }
-            logger.Info(s);
-        }
-
-        private void _toolStripStatusLabelForeColor(ToolStripStatusLabel statusLabel, Color s)
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { statusLabel.ForeColor = s; }));
-            else
-                statusLabel.ForeColor = s;
-        }
-
-        private void _toolStripStatusLabelBackColor(ToolStripStatusLabel statusLabel, Color s) //add string into  from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { StatusLabel2.BackColor = s; }));
-            else
-                StatusLabel2.BackColor = s;
-        }
-
-
-        private void _MenuItemBackColorChange(ToolStripMenuItem tMenuItem, Color colorMenu) //add string into  from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { tMenuItem.BackColor = colorMenu; }));
-            else
-                tMenuItem.BackColor = colorMenu; ;
-        }
-
-        private void _MenuItemEnabled(ToolStripMenuItem tMenuItem, bool bEnabled) //add string into  from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { tMenuItem.Enabled = bEnabled; }));
-            else
-                tMenuItem.Enabled = bEnabled;
-        }
-
-        private void _MenuItemVisible(ToolStripMenuItem tMenuItem, bool bEnabled) //add string into  from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { tMenuItem.Visible = bEnabled; }));
-            else
-                tMenuItem.Visible = bEnabled;
-        }
-
-
-        private void _CheckboxCheckedSet(CheckBox checkBox, bool checkboxChecked) //add string into  from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { checkBox.Checked = checkboxChecked; }));
-            else
-                checkBox.Checked = checkboxChecked;
-        }
-
-        private bool _CheckboxCheckedStateReturn(CheckBox checkBox) //add string into  from other threads
-        {
-            bool checkBoxChecked = false;
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    checkBoxChecked = checkBox.Checked ? true : false;
-                }));
-            else
-            {
-                checkBoxChecked = checkBox.Checked ? true : false;
-            }
-            return checkBoxChecked;
-        }
-
-
-        private void _panelResume(Panel panel) //access from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    panelView.ResumeLayout();
-                }));
-            else
-            {
-                panelView.ResumeLayout();
-            }
-        }
-
-        private void _panelSetAutoSizeMode(Panel panel, AutoSizeMode state) //access from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    panel.AutoSizeMode = state;
-                }));
-            else
-            {
-                panel.AutoSizeMode = state;
-            }
-        }
-
-        private void _panelSetAutoScroll(Panel panel, bool state) //access from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    panel.AutoScroll = state;
-                }));
-            else
-            {
-                panel.AutoScroll = state;
-            }
-        }
-
-        private void _panelSetAnchor(Panel panel, AnchorStyles anchorStyles) //access from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    panel.Anchor = anchorStyles;
-                }));
-            else
-            {
-                panel.Anchor = anchorStyles;
-            }
-        }
-
-        private void _panelSetHeight(Panel panel, int height) //access from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    panel.Height = height;
-                }));
-            else
-            {
-                panel.Height = height;
-            }
-        }
-
-        private int _panelParentHeightReturn(Panel panel) //access from other threads
-        {
-            int height = 0;
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    height = panelView.Parent.Height;
-                }));
-            else
-            {
-                height = panelView.Parent.Height;
-            }
-            return height;
-        }
-
-        private int _panelHeightReturn(Panel panel) //access from other threads
-        {
-            int height = 0;
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    height = panelView.Height;
-                }));
-            else
-            {
-                height = panelView.Height;
-            }
-            return height;
-        }
-
-        private int _panelWidthReturn(Panel panel) //access from other threads
-        {
-            int width = 0;
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    width = panelView.Width;
-                }));
-            else
-            {
-                width = panelView.Width;
-            }
-            return width;
-        }
-
-        private int _panelControlsCountReturn(Panel panel) //access from other threads
-        {
-            int count = 0;
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    count = panelView.Controls.Count;
-                }));
-            else
-            {
-                count = panelView.Controls.Count;
-            }
-            return count;
-        }
-
-        private void _RefreshPictureBox(PictureBox picBox, Bitmap picImage) // не работает
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    picBox.Image = RefreshBitmap(picImage, _panelWidthReturn(panelView) - 2, _panelHeightReturn(panelView) - 2); //сжатая картина
-                    picBox.Refresh();
-                }));
-            else
-            {
-                picBox.Image = RefreshBitmap(picImage, _panelWidthReturn(panelView) - 2, _panelHeightReturn(panelView) - 2); //сжатая картина
-                picBox.Refresh();
-            }
-        }
-
-
-        private void _MenuItemTextSet(ToolStripMenuItem menuItem, string newTextControl) //access from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    menuItem.Text = newTextControl;
-                }));
-            else
-            {
-                menuItem.Text = newTextControl;
-            }
-        }
-
-        private void _menuItemTooltipSet(ToolStripMenuItem menuItem, string newTooltip) //access from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    menuItem.ToolTipText = newTooltip;
-                }));
-            else
-            {
-                menuItem.ToolTipText = newTooltip;
-            }
-        }
-
-        private void _controlVisible(Control control, bool state) //access from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    control.Visible = state;
-                }));
-            else
-            {
-                control.Visible = state;
-            }
-        }
-
-        private void _controlEnable(Control control, bool state) //access from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    control.Enabled = state;
-                }));
-            else
-            {
-                control.Enabled = state;
-            }
-        }
-
-        private void _controlDispose(Control control) //access from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    control?.Dispose();
-                }));
-            else
-            {
-                control?.Dispose();
-            }
-        }
-
-        private void _changeControlBackColor(Control control, Color color) //add string into  from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { control.BackColor = color; }));
-            else
-                control.BackColor = color; ;
-        }
-
-
-        private string stimerPrev = "";
-        private string stimerCurr = "Ждите!";
-
-        private void timer1_Tick(object sender, EventArgs e) //Change a Color of the Font on Status by the Timer
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    if (StatusLabel2.ForeColor == Color.DarkBlue)
-                    { StatusLabel2.ForeColor = Color.DarkRed; StatusLabel2.Text = stimerCurr; }
-                    else { StatusLabel2.ForeColor = Color.DarkBlue; StatusLabel2.Text = stimerPrev; }
-                }));
-            else
-            {
-                if (StatusLabel2.ForeColor == Color.DarkBlue)
-                { StatusLabel2.ForeColor = Color.DarkRed; StatusLabel2.Text = stimerCurr; }
-                else { StatusLabel2.ForeColor = Color.DarkBlue; StatusLabel2.Text = stimerPrev; }
-            }
-        }
-
-        private void _ProgressWork1Step(int step) //add into progressBar Value 2 from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    if (ProgressBar1.Value > 99)
-                    { ProgressBar1.Value = 0; }
-                    ProgressBar1.Maximum = 100;
-                    ProgressBar1.Value += step;
-                }));
-            else
-            {
-                if (ProgressBar1.Value > 99)
-                { ProgressBar1.Value = 0; }
-                ProgressBar1.Maximum = 100;
-                ProgressBar1.Value += step;
-            }
-        }
-
-        private void _ProgressBar1Start() //Set progressBar Value into 0 from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    timer1.Enabled = true;
-                    ProgressBar1.Value = 0;
-                    timer1.Enabled = true;
-                }));
-            else
-            {
-                timer1.Enabled = true;
-                ProgressBar1.Value = 0;
-            }
-        }
-
-        private void _ProgressBar1Stop() //Set progressBar Value into 100 from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    timer1.Stop();
-                    ProgressBar1.Value = 100;
-                    StatusLabel1.ForeColor = Color.Black;
-                }));
-            else
-            {
-                timer1.Stop();
-                ProgressBar1.Value = 100;
-                StatusLabel1.ForeColor = Color.Black;
-            }
-        }
-
-        //---- End. Access to Controls from other threads ----//
-
-
-
-        //---- Start. Convertors of data types ----//
-
-        private double TryParseStringToDouble(string str)  //string -> decimal. if error it will return 0
-        {
-            double result = 0;
-            try { result = double.Parse(str); } catch { }
-            return result;
-        }
-
-        private decimal TryParseStringToDecimal(string str)  //string -> decimal. if error it will return 0
-        {
-            decimal result = 0;
-            try { result = decimal.Parse(str); } catch { result = 0; }
-            return result;
-        }
-
-        private int TryParseStringToInt(string str)  //string -> decimal. if error it will return 0
-        {
-            int result = 0;
-            try { result = int.Parse(str); } catch { }
-            return result;
-        }
-
-        /*
-        string stime1 = "18:40";
-        string stime2 = "19:35";
-        DateTime t1 = DateTime.Parse(stime1);
-        DateTime t2 = DateTime.Parse(stime2);
-        TimeSpan ts = t2 - t1;
-        int minutes = (int)ts.TotalMinutes;
-        int seconds = (int)ts.TotalSeconds;
-        */
-
-        private decimal ConvertDecimalSeparatedTimeToDecimal(decimal decimalHour, decimal decimalMinute)
-        {
-            decimal result = decimalHour + TryParseStringToDecimal(TimeSpan.FromMinutes((double)decimalMinute).TotalHours.ToString());
-            return result;
-        }
-
-        private decimal ConvertStringsTimeToDecimal(string hour, string minute)
-        {
-            decimal result = TryParseStringToDecimal(hour) + TryParseStringToDecimal(TimeSpan.FromMinutes(TryParseStringToDouble(minute)).TotalHours.ToString());
-            return result;
-        }
-
-        private string[] ConvertDecimalTimeToStringHHMMArray(decimal decimalTime)
-        {
-            string[] result = new string[3];
-            int hour = (int)(decimalTime);
-            int minute = Convert.ToInt32(60 * (decimalTime - hour));
-
-            result[0] = string.Format("{0:d2}", hour);
-            result[1] = string.Format("{0:d2}", minute);
-            result[2] = string.Format("{0:d2}:{1:d2}", hour, minute);
-            return result;
-        }
-
-        private string ConvertDecimalTimeToStringHHMM(decimal hours, decimal minutes)
-        {
-            string result = string.Format("{0:d2}:{1:d2}", (int)hours, (int)minutes);
-            return result;
-        }
-
-
-
-        private string ConvertDecimalTimeToStringHHMM(decimal decimalTime)
-        {
-            string result;
-            int hour = (int)(decimalTime);
-            int minute = Convert.ToInt32(60 * (decimalTime - hour));
-            result = string.Format("{0:d2}:{1:d2}", hour, minute);
-            return result;
-        }
-
-        private string[] ConvertSecondsTimeToStringHHMMArray(int seconds)
-        {
-            string[] result = new string[3];
-            var ts = TimeSpan.FromSeconds(seconds);
-            result[0] = String.Format("{0:d2}", (int)ts.TotalHours);
-            result[1] = String.Format("{0:d2}", (int)ts.Minutes);
-            result[2] = String.Format("{0:d2}:{1:d2}", (int)ts.TotalHours, (int)ts.Minutes);
-
-            return result;
-        }
-
-        private string ConvertStringsTimeToStringHHMM(string hour, string minute)
-        {
-            int h = 9;
-            int m = 0;
-            try { h = Convert.ToInt32(hour); } catch { }
-            try { m = Convert.ToInt32(minute); } catch { }
-            string result = String.Format("{0:d2}:{1:d2}", h, m);
-            return result;
-        }
-
-        private int ConvertStringsTimeToSeconds(string hour, string minute)
-        {
-            int h = 0;
-            int m = 0;
-            try { h = Convert.ToInt32(hour); } catch { }
-            try { m = Convert.ToInt32(minute); } catch { }
-            int result = h * 60 * 60 + m * 60;
-            return result;
-        }
-
-        private decimal[] ConvertStringTimeHHMMToDecimalArray(string timeInHHMM) //time HH:MM converted to decimal value
-        {
-            decimal[] result = new decimal[4];
-            string hour = "0";
-            string minute = "0";
-
-            if (timeInHHMM.Contains(':'))
-            {
-                string[] time = timeInHHMM.Split(':');
-                hour = time[0];
-                minute = time[1];
-            }
-            else
-            {
-                hour = timeInHHMM;
-            }
-
-            result[0] = TryParseStringToDecimal(hour);                              // hour in decimal          22
-            result[1] = TryParseStringToDecimal(minute);                            // Minute in decimal        15
-            result[2] = ConvertDecimalSeparatedTimeToDecimal(result[0], result[1]); // hours in decimal         22.25
-            result[3] = 60 * result[0] + result[1];                                    // minutes in decimal       1335
-
-            return result;
-        }
-
-        private string[] ConvertStringTimeHHMMToStringArray(string timeInHHMM) //time HH:MM converted to decimal value
-        {
-            string[] result = new string[4];
-            decimal h = 0;
-            decimal m = 0;
-
-            if (timeInHHMM.Contains(':'))
-            {
-                string[] time = timeInHHMM.Split(':');
-                h = TryParseStringToDecimal(time[0]);
-                m = TryParseStringToDecimal(time[1]);
-            }
-            else
-            {
-                h = TryParseStringToDecimal(timeInHHMM);
-                m = 0;
-            }
-
-            result[0] = String.Format("{0:d2}", h);                             // only hours        22
-            result[1] = String.Format("{0:d2}", m);                             // only minutes        25
-            result[2] = String.Format("{0:d2}:{1:d2}", h, m);                   // normalyze to     22:25
-
-            return result;
-        }
-
-        private int[] ConvertStringDateToIntArray(string dateYYYYmmDD) //date YYYY-MM-DD to int array values
-        {
-            int[] result = new int[] { 1970, 1, 1 };
-
-            if (dateYYYYmmDD.Contains('-'))
-            {
-                string[] res = dateYYYYmmDD.Split(' ')[0]?.Trim()?.Split('-');
-                result[0] = Convert.ToInt32(res[0]);
-                result[1] = Convert.ToInt32(res[1]);
-                result[2] = Convert.ToInt32(res[2]);
-            }
-            else if (dateYYYYmmDD.Length == 8)
-            {
-                result[0] = Convert.ToInt32(dateYYYYmmDD.Remove(4));
-                result[1] = Convert.ToInt32((dateYYYYmmDD.Remove(0, 2)).Remove(2));
-                result[2] = Convert.ToInt32(dateYYYYmmDD.Remove(0, 5));
-            }
-
-            return result;
-        }
-
-        private string ShortFIO(string s) //Transform from full FIO into Short form FIO
-        {
-            var stmp = new string[1];
-            try { stmp = Regex.Split(s, "[ ]"); } catch { }
-            var sFullNameOnly = "";
-            try { sFullNameOnly = stmp[0]; } catch { }
-            try { sFullNameOnly += " " + stmp[1].Substring(0, 1) + @"."; } catch { }
-            try { sFullNameOnly += " " + stmp[2].Substring(0, 1) + @"."; } catch { }
-            stmp = new string[1];
-            return sFullNameOnly;
-        }
-
-        //---- End. Convertors of data types ----//
-
-
-
 
         public void CheckBoxesFiltersAll_CheckedState(bool state)
         {
@@ -7175,6 +6362,827 @@ namespace ASTA
         }
 
         //---  End. Block Encryption-Decryption ---//  
+
+
+
+
+        //Start of Block. Access to Controls from other threads
+
+        private int _dataGridView1ColumnCount() //add string into  from other threads
+        {
+            int iDgv = 0;
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { try { iDgv = dataGridView1.ColumnCount; } catch { iDgv = 0; } }));
+            else
+                try { iDgv = dataGridView1.ColumnCount; } catch { iDgv = 0; }
+            return iDgv;
+        }
+
+        private int _dataGridView1RowsCount() //add string into  from other threads
+        {
+            int iDgv = 0;
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { try { iDgv = dataGridView1.Rows.Count; } catch { iDgv = 0; } }));
+            else
+                try { iDgv = dataGridView1.Rows.Count; } catch { iDgv = 0; }
+            return iDgv;
+        }
+
+        private string _dataGridView1ColumnHeaderText(int i) //add string into  from other threads
+        {
+            string sDgv = "";
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { try { sDgv = dataGridView1.Columns[i].HeaderText; } catch { sDgv = ""; } }));
+            else
+                try { sDgv = dataGridView1.Columns[i].HeaderText; } catch { sDgv = ""; }
+            return sDgv;
+        }
+
+        private string _dataGridView1CellValue(int iRow, int iCells) //from other threads
+        {
+            string sDgv = "";
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { try { sDgv = dataGridView1.Rows[iRow].Cells[iCells].Value.ToString(); } catch { sDgv = ""; } }));
+            else
+                try { sDgv = dataGridView1.Rows[iRow].Cells[iCells].Value.ToString(); } catch { sDgv = ""; }
+            return sDgv;
+        }
+
+        private int _dataGridView1CurrentRowIndex() //add string into  from other threads
+        {
+            int iDgv = -1;
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { try { iDgv = dataGridView1.CurrentRow.Index; } catch { iDgv = -1; } }));
+            else
+                try { iDgv = dataGridView1.CurrentRow.Index; } catch { iDgv = -1; }
+            return iDgv;
+        }
+
+        private int _dataGridView1CurrentColumnIndex() //add string into  from other threads
+        {
+            int iDgv = -1;
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { try { iDgv = dataGridView1.CurrentCell.ColumnIndex; } catch { iDgv = -1; } }));
+            else
+                try { iDgv = dataGridView1.CurrentCell.ColumnIndex; } catch { iDgv = -1; }
+            return iDgv;
+        }
+
+        private void _dataGridViewSource(DataTable dt)
+        {
+
+            if (InvokeRequired)
+            {
+                Invoke(new MethodInvoker(delegate
+                {
+                    if (dt != null && dt.Rows.Count > 0)
+                    { dataGridView1.DataSource = dt; }
+                    else
+                    {
+                        dataGridView1.Rows.Clear();
+                        dataGridView1.Columns.Clear();
+                        System.Collections.ArrayList Empty = new System.Collections.ArrayList();
+                        dataGridView1.DataSource = Empty;
+                        dataGridView1.Refresh();
+                    }
+                }));
+            }
+            else
+            {
+                if (dt != null && dt.Rows.Count > 0)
+                { dataGridView1.DataSource = dt; }
+                else
+                {
+                    dataGridView1.Rows.Clear();
+                    dataGridView1.Columns.Clear();
+                    System.Collections.ArrayList Empty = new System.Collections.ArrayList();
+                    dataGridView1.DataSource = Empty;
+                    dataGridView1.Refresh();
+                }
+            }
+        }
+
+
+        private string _textBoxReturnText(TextBox txtBox) //add string into  from other threads
+        {
+            string tBox = "";
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { tBox = txtBox.Text.ToString().Trim(); }));
+            else
+                tBox = txtBox.Text.ToString().Trim();
+            return tBox;
+        }
+
+        private void _textBoxSetText(TextBox txtBox, string s) //add string into  from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { txtBox.Text = s.Trim(); }));
+            else
+                txtBox.Text = s.Trim();
+        }
+
+        private void _comboBoxAdd(ComboBox comboBx, string s) //add string into  from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { comboBx.Items.Add(s); }));
+            else
+                comboBx.Items.Add(s);
+        }
+
+        private void _comboBoxClr(ComboBox comboBx) //add string into  from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    comboBx.Items.Clear();
+                    comboBx.SelectedText = "";
+                    comboBx.Text = "";
+                }));
+            else
+            {
+                comboBx.Items.Clear();
+                comboBx.SelectedText = "";
+                comboBx.Text = "";
+            }
+        }
+
+        private void _comboBoxSelectIndex(ComboBox comboBx, int i) //from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { comboBx.SelectedIndex = i; }));
+            else
+                comboBx.SelectedIndex = i;
+        }
+
+        private string _comboBoxReturnSelected(ComboBox comboBox) //from other threads
+        {
+            string result = "";
+            if (InvokeRequired)
+            {
+                Invoke(new MethodInvoker(delegate
+                {
+                    result = comboBox.SelectedIndex == -1
+                     ? comboBox.Text.Trim()
+                         : comboBox.SelectedItem.ToString();
+                }));
+            }
+            else
+            {
+                result = comboBox.SelectedIndex == -1
+                               ? comboBox.Text.Trim()
+                                   : comboBox.SelectedItem.ToString();
+            }
+            return result;
+        }
+
+
+        private void _numUpDownSet(NumericUpDown numericUpDown, decimal i) //add string into comboBoxTargedPC from other threads
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new MethodInvoker(delegate { try { numericUpDown.Value = i; } catch { numUpDownHourStart.Value = 9; } }));
+            }
+            else
+            {
+                try { numericUpDown.Value = i; } catch { numericUpDown.Value = 9; }
+            }
+        }
+
+        private decimal _numUpDownReturn(NumericUpDown numericUpDown)
+        {
+            decimal iCombo = 0;
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { iCombo = numericUpDown.Value; }));
+            else
+                iCombo = numericUpDown.Value;
+            return iCombo;
+        }
+
+        private string _dateTimePickerStart() //add string into  from other threads
+        {
+            string stringDT = "";
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    stringDT = dateTimePickerStart.Value.Year.ToString("0000") + "-" + dateTimePickerStart.Value.Month.ToString("00") + "-" + dateTimePickerStart.Value.Day.ToString("00") + " 00:00:00";
+                }));
+            else
+            {
+                stringDT = dateTimePickerStart.Value.Year.ToString("0000") + "-" + dateTimePickerStart.Value.Month.ToString("00") + "-" + dateTimePickerStart.Value.Day.ToString("00") + " 00:00:00";
+            }
+            return stringDT;
+        }
+
+        private string _dateTimePickerEnd() //add string into  from other threads
+        {
+            string stringDT = "";
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    stringDT = dateTimePickerEnd.Value.Year.ToString("0000") + "-" + dateTimePickerEnd.Value.Month.ToString("00") + "-" + dateTimePickerEnd.Value.Day.ToString("00") + " 23:59:59";
+                }));
+            else
+            {
+                stringDT = dateTimePickerEnd.Value.Year.ToString("0000") + "-" + dateTimePickerEnd.Value.Month.ToString("00") + "-" + dateTimePickerEnd.Value.Day.ToString("00") + " 23:59:59";
+            }
+            return stringDT;
+        }
+
+        private string _dateTimePickerReturn(DateTimePicker dateTimePicker) //add string into  from other threads
+        {
+            string result = "";
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                { result = dateTimePicker.Value.ToString(); }
+                ));
+            else
+                result = dateTimePicker.Value.ToString();
+            return result;
+        }
+
+        private int[] _dateTimePickerReturnArray(DateTimePicker dateTimePicker) //add string into  from other threads
+        {
+            int[] result = new int[3];
+
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    result[0] = dateTimePicker.Value.Year;
+                    result[1] = dateTimePicker.Value.Month;
+                    result[2] = dateTimePicker.Value.Day;
+                }
+                ));
+            else
+            {
+                result[0] = dateTimePicker.Value.Year;
+                result[1] = dateTimePicker.Value.Month;
+                result[2] = dateTimePicker.Value.Day;
+            }
+            return result;
+        }
+
+
+
+        private void _toolStripStatusLabelSetText(ToolStripStatusLabel statusLabel, string s) //add string into  from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    StatusLabel2.Text = s;
+                }));
+            else
+            {
+                StatusLabel2.Text = s;
+            }
+            logger.Info(s);
+        }
+
+        private void _toolStripStatusLabelForeColor(ToolStripStatusLabel statusLabel, Color s)
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { statusLabel.ForeColor = s; }));
+            else
+                statusLabel.ForeColor = s;
+        }
+
+        private void _toolStripStatusLabelBackColor(ToolStripStatusLabel statusLabel, Color s) //add string into  from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { StatusLabel2.BackColor = s; }));
+            else
+                StatusLabel2.BackColor = s;
+        }
+
+
+        private void _MenuItemBackColorChange(ToolStripMenuItem tMenuItem, Color colorMenu) //add string into  from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { tMenuItem.BackColor = colorMenu; }));
+            else
+                tMenuItem.BackColor = colorMenu; ;
+        }
+
+        private void _MenuItemEnabled(ToolStripMenuItem tMenuItem, bool bEnabled) //add string into  from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { tMenuItem.Enabled = bEnabled; }));
+            else
+                tMenuItem.Enabled = bEnabled;
+        }
+
+        private void _MenuItemVisible(ToolStripMenuItem tMenuItem, bool bEnabled) //add string into  from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { tMenuItem.Visible = bEnabled; }));
+            else
+                tMenuItem.Visible = bEnabled;
+        }
+
+
+        private void _CheckboxCheckedSet(CheckBox checkBox, bool checkboxChecked) //add string into  from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { checkBox.Checked = checkboxChecked; }));
+            else
+                checkBox.Checked = checkboxChecked;
+        }
+
+        private bool _CheckboxCheckedStateReturn(CheckBox checkBox) //add string into  from other threads
+        {
+            bool checkBoxChecked = false;
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    checkBoxChecked = checkBox.Checked ? true : false;
+                }));
+            else
+            {
+                checkBoxChecked = checkBox.Checked ? true : false;
+            }
+            return checkBoxChecked;
+        }
+
+
+        private void _panelResume(Panel panel) //access from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    panelView.ResumeLayout();
+                }));
+            else
+            {
+                panelView.ResumeLayout();
+            }
+        }
+
+        private void _panelSetAutoSizeMode(Panel panel, AutoSizeMode state) //access from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    panel.AutoSizeMode = state;
+                }));
+            else
+            {
+                panel.AutoSizeMode = state;
+            }
+        }
+
+        private void _panelSetAutoScroll(Panel panel, bool state) //access from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    panel.AutoScroll = state;
+                }));
+            else
+            {
+                panel.AutoScroll = state;
+            }
+        }
+
+        private void _panelSetAnchor(Panel panel, AnchorStyles anchorStyles) //access from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    panel.Anchor = anchorStyles;
+                }));
+            else
+            {
+                panel.Anchor = anchorStyles;
+            }
+        }
+
+        private void _panelSetHeight(Panel panel, int height) //access from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    panel.Height = height;
+                }));
+            else
+            {
+                panel.Height = height;
+            }
+        }
+
+        private int _panelParentHeightReturn(Panel panel) //access from other threads
+        {
+            int height = 0;
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    height = panelView.Parent.Height;
+                }));
+            else
+            {
+                height = panelView.Parent.Height;
+            }
+            return height;
+        }
+
+        private int _panelHeightReturn(Panel panel) //access from other threads
+        {
+            int height = 0;
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    height = panelView.Height;
+                }));
+            else
+            {
+                height = panelView.Height;
+            }
+            return height;
+        }
+
+        private int _panelWidthReturn(Panel panel) //access from other threads
+        {
+            int width = 0;
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    width = panelView.Width;
+                }));
+            else
+            {
+                width = panelView.Width;
+            }
+            return width;
+        }
+
+        private int _panelControlsCountReturn(Panel panel) //access from other threads
+        {
+            int count = 0;
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    count = panelView.Controls.Count;
+                }));
+            else
+            {
+                count = panelView.Controls.Count;
+            }
+            return count;
+        }
+
+        private void _RefreshPictureBox(PictureBox picBox, Bitmap picImage) // не работает
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    picBox.Image = RefreshBitmap(picImage, _panelWidthReturn(panelView) - 2, _panelHeightReturn(panelView) - 2); //сжатая картина
+                    picBox.Refresh();
+                }));
+            else
+            {
+                picBox.Image = RefreshBitmap(picImage, _panelWidthReturn(panelView) - 2, _panelHeightReturn(panelView) - 2); //сжатая картина
+                picBox.Refresh();
+            }
+        }
+
+
+        private void _MenuItemTextSet(ToolStripMenuItem menuItem, string newTextControl) //access from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    menuItem.Text = newTextControl;
+                }));
+            else
+            {
+                menuItem.Text = newTextControl;
+            }
+        }
+
+        private void _menuItemTooltipSet(ToolStripMenuItem menuItem, string newTooltip) //access from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    menuItem.ToolTipText = newTooltip;
+                }));
+            else
+            {
+                menuItem.ToolTipText = newTooltip;
+            }
+        }
+
+        private void _controlVisible(Control control, bool state) //access from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    control.Visible = state;
+                }));
+            else
+            {
+                control.Visible = state;
+            }
+        }
+
+        private void _controlEnable(Control control, bool state) //access from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    control.Enabled = state;
+                }));
+            else
+            {
+                control.Enabled = state;
+            }
+        }
+
+        private void _controlDispose(Control control) //access from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    control?.Dispose();
+                }));
+            else
+            {
+                control?.Dispose();
+            }
+        }
+
+        private void _changeControlBackColor(Control control, Color color) //add string into  from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { control.BackColor = color; }));
+            else
+                control.BackColor = color; ;
+        }
+
+
+        private string stimerPrev = "";
+        private string stimerCurr = "Ждите!";
+
+        private void timer1_Tick(object sender, EventArgs e) //Change a Color of the Font on Status by the Timer
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    if (StatusLabel2.ForeColor == Color.DarkBlue)
+                    { StatusLabel2.ForeColor = Color.DarkRed; StatusLabel2.Text = stimerCurr; }
+                    else { StatusLabel2.ForeColor = Color.DarkBlue; StatusLabel2.Text = stimerPrev; }
+                }));
+            else
+            {
+                if (StatusLabel2.ForeColor == Color.DarkBlue)
+                { StatusLabel2.ForeColor = Color.DarkRed; StatusLabel2.Text = stimerCurr; }
+                else { StatusLabel2.ForeColor = Color.DarkBlue; StatusLabel2.Text = stimerPrev; }
+            }
+        }
+
+        private void _ProgressWork1Step(int step) //add into progressBar Value 2 from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    if (ProgressBar1.Value > 99)
+                    { ProgressBar1.Value = 0; }
+                    ProgressBar1.Maximum = 100;
+                    ProgressBar1.Value += step;
+                }));
+            else
+            {
+                if (ProgressBar1.Value > 99)
+                { ProgressBar1.Value = 0; }
+                ProgressBar1.Maximum = 100;
+                ProgressBar1.Value += step;
+            }
+        }
+
+        private void _ProgressBar1Start() //Set progressBar Value into 0 from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    timer1.Enabled = true;
+                    ProgressBar1.Value = 0;
+                    timer1.Enabled = true;
+                }));
+            else
+            {
+                timer1.Enabled = true;
+                ProgressBar1.Value = 0;
+            }
+        }
+
+        private void _ProgressBar1Stop() //Set progressBar Value into 100 from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    timer1.Stop();
+                    ProgressBar1.Value = 100;
+                    StatusLabel1.ForeColor = Color.Black;
+                }));
+            else
+            {
+                timer1.Stop();
+                ProgressBar1.Value = 100;
+                StatusLabel1.ForeColor = Color.Black;
+            }
+        }
+
+        //---- End. Access to Controls from other threads ----//
+
+
+
+        //---- Start. Convertors of data types ----//
+
+        private double TryParseStringToDouble(string str)  //string -> decimal. if error it will return 0
+        {
+            double result = 0;
+            try { result = double.Parse(str); } catch { }
+            return result;
+        }
+
+        private decimal TryParseStringToDecimal(string str)  //string -> decimal. if error it will return 0
+        {
+            decimal result = 0;
+            try { result = decimal.Parse(str); } catch { result = 0; }
+            return result;
+        }
+
+        private int TryParseStringToInt(string str)  //string -> decimal. if error it will return 0
+        {
+            int result = 0;
+            try { result = int.Parse(str); } catch { }
+            return result;
+        }
+
+        /*
+        string stime1 = "18:40";
+        string stime2 = "19:35";
+        DateTime t1 = DateTime.Parse(stime1);
+        DateTime t2 = DateTime.Parse(stime2);
+        TimeSpan ts = t2 - t1;
+        int minutes = (int)ts.TotalMinutes;
+        int seconds = (int)ts.TotalSeconds;
+        */
+
+        private decimal ConvertDecimalSeparatedTimeToDecimal(decimal decimalHour, decimal decimalMinute)
+        {
+            decimal result = decimalHour + TryParseStringToDecimal(TimeSpan.FromMinutes((double)decimalMinute).TotalHours.ToString());
+            return result;
+        }
+
+        private decimal ConvertStringsTimeToDecimal(string hour, string minute)
+        {
+            decimal result = TryParseStringToDecimal(hour) + TryParseStringToDecimal(TimeSpan.FromMinutes(TryParseStringToDouble(minute)).TotalHours.ToString());
+            return result;
+        }
+
+        private string[] ConvertDecimalTimeToStringHHMMArray(decimal decimalTime)
+        {
+            string[] result = new string[3];
+            int hour = (int)(decimalTime);
+            int minute = Convert.ToInt32(60 * (decimalTime - hour));
+
+            result[0] = string.Format("{0:d2}", hour);
+            result[1] = string.Format("{0:d2}", minute);
+            result[2] = string.Format("{0:d2}:{1:d2}", hour, minute);
+            return result;
+        }
+
+        private string ConvertDecimalTimeToStringHHMM(decimal hours, decimal minutes)
+        {
+            string result = string.Format("{0:d2}:{1:d2}", (int)hours, (int)minutes);
+            return result;
+        }
+
+
+
+        private string ConvertDecimalTimeToStringHHMM(decimal decimalTime)
+        {
+            string result;
+            int hour = (int)(decimalTime);
+            int minute = Convert.ToInt32(60 * (decimalTime - hour));
+            result = string.Format("{0:d2}:{1:d2}", hour, minute);
+            return result;
+        }
+
+        private string[] ConvertSecondsTimeToStringHHMMArray(int seconds)
+        {
+            string[] result = new string[3];
+            var ts = TimeSpan.FromSeconds(seconds);
+            result[0] = String.Format("{0:d2}", (int)ts.TotalHours);
+            result[1] = String.Format("{0:d2}", (int)ts.Minutes);
+            result[2] = String.Format("{0:d2}:{1:d2}", (int)ts.TotalHours, (int)ts.Minutes);
+
+            return result;
+        }
+
+        private string ConvertStringsTimeToStringHHMM(string hour, string minute)
+        {
+            int h = 9;
+            int m = 0;
+            try { h = Convert.ToInt32(hour); } catch { }
+            try { m = Convert.ToInt32(minute); } catch { }
+            string result = String.Format("{0:d2}:{1:d2}", h, m);
+            return result;
+        }
+
+        private int ConvertStringsTimeToSeconds(string hour, string minute)
+        {
+            int h = 0;
+            int m = 0;
+            try { h = Convert.ToInt32(hour); } catch { }
+            try { m = Convert.ToInt32(minute); } catch { }
+            int result = h * 60 * 60 + m * 60;
+            return result;
+        }
+
+        private decimal[] ConvertStringTimeHHMMToDecimalArray(string timeInHHMM) //time HH:MM converted to decimal value
+        {
+            decimal[] result = new decimal[4];
+            string hour = "0";
+            string minute = "0";
+
+            if (timeInHHMM.Contains(':'))
+            {
+                string[] time = timeInHHMM.Split(':');
+                hour = time[0];
+                minute = time[1];
+            }
+            else
+            {
+                hour = timeInHHMM;
+            }
+
+            result[0] = TryParseStringToDecimal(hour);                              // hour in decimal          22
+            result[1] = TryParseStringToDecimal(minute);                            // Minute in decimal        15
+            result[2] = ConvertDecimalSeparatedTimeToDecimal(result[0], result[1]); // hours in decimal         22.25
+            result[3] = 60 * result[0] + result[1];                                    // minutes in decimal       1335
+
+            return result;
+        }
+
+        private string[] ConvertStringTimeHHMMToStringArray(string timeInHHMM) //time HH:MM converted to decimal value
+        {
+            string[] result = new string[4];
+            decimal h = 0;
+            decimal m = 0;
+
+            if (timeInHHMM.Contains(':'))
+            {
+                string[] time = timeInHHMM.Split(':');
+                h = TryParseStringToDecimal(time[0]);
+                m = TryParseStringToDecimal(time[1]);
+            }
+            else
+            {
+                h = TryParseStringToDecimal(timeInHHMM);
+                m = 0;
+            }
+
+            result[0] = String.Format("{0:d2}", h);                             // only hours        22
+            result[1] = String.Format("{0:d2}", m);                             // only minutes        25
+            result[2] = String.Format("{0:d2}:{1:d2}", h, m);                   // normalyze to     22:25
+
+            return result;
+        }
+
+        private int[] ConvertStringDateToIntArray(string dateYYYYmmDD) //date YYYY-MM-DD to int array values
+        {
+            int[] result = new int[] { 1970, 1, 1 };
+
+            if (dateYYYYmmDD.Contains('-'))
+            {
+                string[] res = dateYYYYmmDD.Split(' ')[0]?.Trim()?.Split('-');
+                result[0] = Convert.ToInt32(res[0]);
+                result[1] = Convert.ToInt32(res[1]);
+                result[2] = Convert.ToInt32(res[2]);
+            }
+            else if (dateYYYYmmDD.Length == 8)
+            {
+                result[0] = Convert.ToInt32(dateYYYYmmDD.Remove(4));
+                result[1] = Convert.ToInt32((dateYYYYmmDD.Remove(0, 2)).Remove(2));
+                result[2] = Convert.ToInt32(dateYYYYmmDD.Remove(0, 5));
+            }
+
+            return result;
+        }
+
+        private string ShortFIO(string s) //Transform from full FIO into Short form FIO
+        {
+            var stmp = new string[1];
+            try { stmp = Regex.Split(s, "[ ]"); } catch { }
+            var sFullNameOnly = "";
+            try { sFullNameOnly = stmp[0]; } catch { }
+            try { sFullNameOnly += " " + stmp[1].Substring(0, 1) + @"."; } catch { }
+            try { sFullNameOnly += " " + stmp[2].Substring(0, 1) + @"."; } catch { }
+            stmp = new string[1];
+            return sFullNameOnly;
+        }
+
+        //---- End. Convertors of data types ----//
 
 
 
