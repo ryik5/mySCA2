@@ -2837,7 +2837,11 @@ namespace ASTA
                 nav = dr[@"NAV-код"]?.ToString();
                 foreach (string day in workSelectedDays)
                 {
-                    try { dr[@"Комментарии"] = outPerson.Find((x) => x._date == day && x._nav == nav)._reason_Name; } catch { }
+                    if (dr[@"Дата регистрации"].ToString() == day)
+                    {
+                        try { dr[@"Комментарии"] = outPerson.Find((x) => x._date == day && x._nav == nav)._reason_Name; } catch { }
+                        break;
+                    }
                 }
             }
 
@@ -5876,7 +5880,7 @@ namespace ASTA
 
         public void InitScheduleTask(bool manualMode) //ScheduleTask()
         {
-            long interval = 4 * 60 * 1000; //1 minute
+            long interval = 1 * 60 * 1000; //1 minute
             if (manualMode)
             {
                 _MenuItemTextSet(modeItem, "Сменить режим на интерактивный");
