@@ -2195,11 +2195,8 @@ namespace ASTA
 
         private void AddPersonToGroup() //Add the selected person into the named group
         {
-            SelectFioAndNavFromCombobox();
-
             string group = _textBoxReturnText(textBoxGroup);
-            string fio = _textBoxReturnText(textBoxFIO);
-            string nav = _textBoxReturnText(textBoxNav);
+            string groupDescription = _textBoxReturnText(textBoxGroupDescription);
             string[] timeIn = { "00", "00", "00:00" };
             string[] timeOut = { "00", "00", "00:00" };
             decimal[] timeInDecimal = { 0, 0, 0, 0 };
@@ -2207,11 +2204,13 @@ namespace ASTA
 
             if (_dataGridView1CurrentRowIndex() > -1)
             {
-                DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-                dgSeek.FindValueInCells(dataGridView1, new string[] { @"Учетное время прихода ЧЧ:ММ", @"Учетное время ухода ЧЧ:ММ", @"Отдел", @"Должность" });
+                    DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
+                dgSeek.FindValueInCells(dataGridView1, new string[] {
+                 @"Фамилия Имя Отчество", @"NAV-код", @"Отдел", @"Должность", @"Учетное время прихода ЧЧ:ММ", @"Учетное время ухода ЧЧ:ММ"
+                            });
 
-                timeInDecimal = ConvertStringTimeHHMMToDecimalArray(dgSeek.values[0]);
-                timeOutDecimal = ConvertStringTimeHHMMToDecimalArray(dgSeek.values[1]);
+                timeInDecimal = ConvertStringTimeHHMMToDecimalArray(dgSeek.values[4]);
+                timeOutDecimal = ConvertStringTimeHHMMToDecimalArray(dgSeek.values[5]);
 
                 timeIn = ConvertDecimalTimeToStringHHMMArray(timeInDecimal[2]);
                 timeOut = ConvertDecimalTimeToStringHHMMArray(timeOutDecimal[2]);
@@ -2225,15 +2224,15 @@ namespace ASTA
                                                 "VALUES (@GroupPerson, @GroupPersonDescription )", connection))
                         {
                             command.Parameters.Add("@GroupPerson", DbType.String).Value = group;
-                            command.Parameters.Add("@GroupPersonDescription", DbType.String).Value = textBoxGroupDescription.Text.Trim();
+                            command.Parameters.Add("@GroupPersonDescription", DbType.String).Value = groupDescription;
                             try { command.ExecuteNonQuery(); } catch { }
                         }
                     }
 
                     if (group.Length > 0 && textBoxNav.Text.Trim().Length > 0)
                     {
-                        timeInDecimal = ConvertStringTimeHHMMToDecimalArray(dgSeek.values[3]);
-                        timeOutDecimal = ConvertStringTimeHHMMToDecimalArray(dgSeek.values[4]);
+                        timeInDecimal = ConvertStringTimeHHMMToDecimalArray(dgSeek.values[4]);
+                        timeOutDecimal = ConvertStringTimeHHMMToDecimalArray(dgSeek.values[5]);
 
                         timeIn = ConvertDecimalTimeToStringHHMMArray(timeInDecimal[2]);
                         timeOut = ConvertDecimalTimeToStringHHMMArray(timeOutDecimal[2]);
@@ -2241,8 +2240,8 @@ namespace ASTA
                         using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Reserv1, Reserv2) " +
                                                     "VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Reserv1, @Reserv2)", connection))
                         {
-                            command.Parameters.Add("@FIO", DbType.String).Value = fio;
-                            command.Parameters.Add("@NAV", DbType.String).Value = nav;
+                            command.Parameters.Add("@FIO", DbType.String).Value = dgSeek.values[0];
+                            command.Parameters.Add("@NAV", DbType.String).Value = dgSeek.values[1];
                             command.Parameters.Add("@GroupPerson", DbType.String).Value = group;
                             command.Parameters.Add("@Reserv1", DbType.String).Value = dgSeek.values[2];
                             command.Parameters.Add("@Reserv2", DbType.String).Value = dgSeek.values[3];
@@ -2251,17 +2250,17 @@ namespace ASTA
                             command.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = timeOut[2];
                             try { command.ExecuteNonQuery(); } catch { }
                         }
-                        StatusLabel2.Text = "\"" + ShortFIO(textBoxFIO.Text) + "\"" + " добавлен в группу \"" + group + "\"";
+                        StatusLabel2.Text = "\"" + ShortFIO(dgSeek.values[0]) + "\"" + " добавлен в группу \"" + group + "\"";
                         _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
                     }
-                    else if (group.Length > 0 && textBoxNav.Text.Trim().Length == 0)
+                    else if (group.Length > 0 && dgSeek.values[1].Length == 0)
                         try
                         {
                             StatusLabel2.Text = "Отсутствует NAV-код у:" + ShortFIO(textBoxFIO.Text);
                             _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
                         }
                         catch { }
-                    else if (group.Length == 0 && textBoxNav.Text.Trim().Length > 0)
+                    else if (group.Length == 0 && dgSeek.values[1].Length > 0)
                         try
                         {
                             StatusLabel2.Text = "Не указана группа, в которую нужно добавить!";
@@ -5401,6 +5400,7 @@ namespace ASTA
         }
 
         //--- End. Behaviour Controls ---//
+
 
 
 
