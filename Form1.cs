@@ -2745,20 +2745,6 @@ namespace ASTA
                 _ProgressWork1Step(1);
             }
 
-            foreach(var row in dtTarget.AsEnumerable())
-            {
-                if (row[@"NAV-код"]?.ToString()== person.NAV)
-                {
-                    row[@"Фамилия Имя Отчество"] = person.FIO;
-                    row[@"NAV-код"] = person.NAV;
-                    row[@"Группа"] = person.GroupPerson;
-                    row[@"№ пропуска"] = person.idCard;
-                    row[@"Отдел"] = person.Department;
-                    row[@"Должность"] = person.PositionInDepartment;
-                    row[@"График"] = person.Shift;
-                }
-            }
-
             //look for late and absence of data in www's DB
             List<OutReasons> resons = new List<OutReasons>();
             List<OutPerson> outPerson = new List<OutPerson>();
@@ -2831,6 +2817,20 @@ namespace ASTA
             _ProgressWork1Step(1);
 
             string nav = "";
+            foreach (var row in dtTarget.AsEnumerable())
+            {
+                if (row[@"NAV-код"]?.ToString() == person.NAV)
+                {
+                    row[@"Фамилия Имя Отчество"] = person.FIO;
+                    row[@"NAV-код"] = person.NAV;
+                    row[@"Группа"] = person.GroupPerson;
+                    row[@"№ пропуска"] = person.idCard;
+                    row[@"Отдел"] = person.Department;
+                    row[@"Должность"] = person.PositionInDepartment;
+                    row[@"График"] = person.Shift;
+                }
+            }
+            
             foreach (DataRow dr in dtTarget.Rows) // search whole table
             {
                 nav = dr[@"NAV-код"]?.ToString();
@@ -2838,7 +2838,10 @@ namespace ASTA
                 {
                     if (dr[@"Дата регистрации"].ToString() == day)
                     {
-                        try { dr[@"Комментарии"] = outPerson.Find((x) => x._date == day && x._nav == nav)._reason_Name; } catch { }
+                        try {
+                            //set Comments
+                            dr[@"Комментарии"] = outPerson.Find((x) => x._date == day && x._nav == nav)._reason_Name;
+                        } catch { }
                         break;
                     }
                 }
