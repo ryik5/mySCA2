@@ -1332,7 +1332,7 @@ namespace ASTA
                                     try { fio += " " + reader.GetString(@"last_name").Trim(); fio = fio.Trim(); } catch { }
 
                                     personFromServer = new Person();
-                                    personFromServer.FIO = fio;
+                                    personFromServer.FIO = fio.Replace("&acute;", "'");
                                     nav = reader.GetString(@"code").Trim().ToUpper().Replace('C', 'S');
                                     personFromServer.NAV = nav;
 
