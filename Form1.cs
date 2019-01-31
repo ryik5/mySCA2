@@ -1306,16 +1306,17 @@ namespace ASTA
 
                     try
                     {
-                        dayStartShift_ = "Общий график с " + peopleShifts.FindLast((x) => x._nav == "0")._dayStartShift;
+                        dayStartShift = peopleShifts.FindLast((x) => x._nav == "0")._dayStartShift;
+                        dayStartShift_ = "Общий график с " + dayStartShift;
 
-                        tmpSeconds = peopleShifts.FindLast((x) => x._nav == "0" && x._dayStartShift == dayStartShift_)._MoStart;
+                        tmpSeconds = peopleShifts.FindLast((x) => x._nav == "0" && x._dayStartShift == dayStartShift)._MoStart;
                         timeStart_ = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
 
-                        tmpSeconds = peopleShifts.FindLast((x) => x._nav == "0" && x._dayStartShift == dayStartShift_)._MoEnd;
+                        tmpSeconds = peopleShifts.FindLast((x) => x._nav == "0" && x._dayStartShift == dayStartShift)._MoEnd;
                         timeEnd_ = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
 
                         //test only
-                        logger.Info("Общий график с "+ dayStartShift_ + " "+ nav);
+                        logger.Info("Общий график с "+ dayStartShift + " "+ nav);
                     } catch { }
 
                     // import people from web DB
@@ -1350,7 +1351,8 @@ namespace ASTA
 
                                     try
                                     {
-                                        personFromServer.Shift = "Индивидуальный график с " + peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._dayStartShift;
+                                        dayStartShift = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._dayStartShift;
+                                        personFromServer.Shift = "Индивидуальный график с " + dayStartShift;
 
                                         tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoStart;
                                         personFromServer.ControlInHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
@@ -1360,7 +1362,7 @@ namespace ASTA
 
                                         personFromServer.Comment= peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._Comment;
 
-                                        logger.Info("Индивидуальный график с " + dayStartShift_ + " " + personFromServer.NAV + " "+ personFromServer.Comment);
+                                        logger.Info("Индивидуальный график с " + dayStartShift + " " + personFromServer.NAV + " "+ personFromServer.Comment);
                                     } catch { }
 
                                     row[@"№ п/п"] = iFIO;
