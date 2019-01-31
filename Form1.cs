@@ -1316,7 +1316,7 @@ namespace ASTA
                         timeEnd_ = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
 
                         //test only
-                        logger.Info("Общий график с "+ dayStartShift + " "+ nav);
+                        logger.Info("Общий график с "+ dayStartShift );
                     } catch { }
 
                     // import people from web DB
