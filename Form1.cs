@@ -1380,7 +1380,7 @@ namespace ASTA
 
                                     ListFIOTemp.Add(personFromServer.FIO + "|" + personFromServer.NAV);
 
-                                    if (listCodesWithIdCard.IndexOf(nav) != -1)
+                                    if (listCodesWithIdCard.IndexOf(personFromServer.NAV) != -1)
                                     {
                                         dataTablePeople.Rows.Add(row);
                                     }
@@ -2047,13 +2047,11 @@ namespace ASTA
                             checkHourS = cell[5];
                             if (TryParseStringToDecimal(checkHourS) == 0)
                             { checkHourS = numUpHourStart.ToString(); }
-                           // row[@"Время прихода"] = ConvertStringsTimeToDecimal(checkHourS, cell[4]);
                             row[@"Учетное время прихода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(checkHourS, cell[6]);
 
                             checkHourE = cell[7];
                             if (TryParseStringToDecimal(checkHourE) == 0)
                             { checkHourE = numUpDownHourEnd.ToString(); }
-                           // row[@"Время ухода"] = ConvertStringsTimeToDecimal(checkHourE, cell[6]);
                             row[@"Учетное время ухода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(checkHourE, cell[8]);
 
                             dt.Rows.Add(row);
@@ -2063,9 +2061,7 @@ namespace ASTA
                 }
             }
             else
-            {
-                MessageBox.Show("выбранный файл пустой, или \nне подходит для импорта.");
-            }
+            { MessageBox.Show("выбранный файл пустой, или \nне подходит для импорта."); }
         }
 
         private void ImportTablePeopleToTableGroupsInLocalDB(string pathToPersonDB, DataTable dtSource) //use listGroups /add reserv1 reserv2
