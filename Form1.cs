@@ -1329,7 +1329,7 @@ namespace ASTA
                                     row = dataTablePeople.NewRow();
                                     iFIO++;
 
-                                    fio = (((reader.GetString(@"family_name")?.Trim() + " ").Trim() + reader.GetString(@"first_name")?.Trim())?.Trim() + " " + reader.GetString(@"last_name").Trim())?.Trim();
+                                    fio = (reader.GetString(@"family_name")?.Trim() + " " + reader.GetString(@"first_name")?.Trim() + " " + reader.GetString(@"last_name")?.Trim()).Replace(@"  ",@" ");
 
                                     personFromServer = new Person();
                                     personFromServer.FIO = fio.Replace("&acute;", "'");
