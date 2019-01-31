@@ -2588,7 +2588,7 @@ namespace ASTA
                                 {
                                     try
                                     {
-                                        if (record["param0"] != null && record["param0"]?.ToString().Trim().Length > 0)
+                                        if (record["param0"]?.ToString()?.Trim()?.Length > 0)
                                         {
                                             stringDataNew = Regex.Split(record["date"].ToString().Trim(), "[ ]")[0];
                                             hourManaging = Convert.ToDecimal(Regex.Split(record["time"].ToString().Trim(), "[:]")[0]);
@@ -2619,10 +2619,10 @@ namespace ASTA
                                             personWorkedDays.Add(stringDataNew);
 
                                             rowPerson = dtTarget.NewRow();
-                                            rowPerson[@"Фамилия Имя Отчество"] = record["param0"]?.ToString().Trim();
+                                            rowPerson[@"Фамилия Имя Отчество"] = record["param0"]?.ToString()?.Trim();
                                             rowPerson[@"NAV-код"] = person.NAV;
 
-                                            rowPerson[@"№ пропуска"] = record["param1"]?.ToString().Trim();
+                                            rowPerson[@"№ пропуска"] = record["param1"]?.ToString()?.Trim();
                                             rowPerson[@"Группа"] = person.GroupPerson;
                                             rowPerson[@"Отдел"] = person.Department;
                                             rowPerson[@"Должность"] = person.PositionInDepartment;
@@ -2656,13 +2656,12 @@ namespace ASTA
                 _ProgressWork1Step(1);
             } catch (Exception Expt)
             { MessageBox.Show(Expt.ToString(), @"Сервер не доступен, или неправильная авторизация", MessageBoxButtons.OK, MessageBoxIcon.Error); }
-
-            if (listPoints.Count > 0)
-            { bLoaded = true; }
+            logger.Info("3.1");
 
             // рабочие дни в которые отсутствовал данная персона
             foreach (string day in workSelectedDays.Except(personWorkedDays))
             {
+                logger.Info("3.2");
                 rowPerson = dtTarget.NewRow();
                 rowPerson[@"Фамилия Имя Отчество"] = person.FIO;
                 rowPerson[@"NAV-код"] = person.NAV;
@@ -2681,9 +2680,11 @@ namespace ASTA
                 rowPerson[@"Учетное время ухода ЧЧ:ММ"] = person.ControlOutHHMM;
                 rowPerson[@"Отсутствовал на работе"] = "Да";
 
+                logger.Info("3.3");
                 dtTarget.Rows.Add(rowPerson);//добавляем рабочий день в который  сотрудник не выходил на работу
                 _ProgressWork1Step(1);
             }
+            logger.Info("3.4");
 
             //look for late and absence of data in www's DB
             outResons = new List<OutReasons>();
@@ -2938,7 +2939,7 @@ namespace ASTA
             FunctionMenuItem.Enabled = true;
             GroupsMenuItem.Enabled = true;
 
-            if (bLoaded && _dataGridView1RowsCount() > 0)
+            if ( _dataGridView1RowsCount() > 0)
             {
                 _controlEnable(checkBoxReEnter, true);
                 _MenuItemEnabled(VisualModeItem, true);
@@ -3801,8 +3802,6 @@ namespace ASTA
         private void VisualItem_Click(object sender, EventArgs e) //FindWorkDaysInSelected() , DrawFullWorkedPeriodRegistration()
         {
             Person personVisual = new Person();
-            if (bLoaded)
-            {
                 SelectPersonFromDataGrid(personVisual);
                 dataGridView1.Visible = false;
                 //FindWorkDaysInSelected(dateTimePickerStart.Value.Year, dateTimePickerStart.Value.Month, dateTimePickerStart.Value.Day, dateTimePickerEnd.Value.Year, dateTimePickerEnd.Value.Month, dateTimePickerEnd.Value.Day);
@@ -3815,10 +3814,7 @@ namespace ASTA
                 _MenuItemVisible(TableModeItem, true);
                 _MenuItemVisible(VisualModeItem, false);
                 _MenuItemVisible(TableExportToExcelItem, false);
-            }
-            else
-            { MessageBox.Show("Таблица с данными пустая.\nНе загружены данные для визуализации!"); }
-        }
+         }
 
         private int numberPeopleInLoading = 1;
         private void DrawRegistration(Person personDraw)  // Visualisation of registration
