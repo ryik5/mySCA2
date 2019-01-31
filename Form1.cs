@@ -2777,7 +2777,10 @@ namespace ASTA
                 {
                     if (dr[@"Дата регистрации"].ToString() == day)
                     {
-                        dr[@"Комментарии"] = outPerson.Find((x) => x._date == day && x._nav == nav)?._reason_id;
+                        try
+                        {
+                            dr[@"Комментарии"] = outPerson.Find((x) => x._date == day && x._nav == nav)?._reason_id;
+                        } catch { }
                         break;
                     }
                 }
