@@ -479,19 +479,21 @@ namespace ASTA
 
             logger.Info(productName + " полностью загружена....");
 
+
             if (currentModeAppManual)
             {
+            nameOfLastTableFromDB = "ListFIO";
                 SeekAndShowMembersOfGroup("");
             }
             else
             {
+                nameOfLastTableFromDB = "Mailing";
                 logger.Info(productName + " включен автоматический режим....");
 
                 ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                 "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус' ",
                 " ORDER BY RecipientEmail asc, DateCreated desc; ");
 
-                nameOfLastTableFromDB = "Mailing";
                 ExecuteAutoMode(true);
             }
         }
@@ -1552,8 +1554,8 @@ namespace ASTA
 
         private void listFioItem_Click(object sender, EventArgs e) //ListFioReturn()
         {
-            SeekAndShowMembersOfGroup("");
             nameOfLastTableFromDB = "ListFIO";
+            SeekAndShowMembersOfGroup("");
         }
 
 
@@ -1942,21 +1944,19 @@ namespace ASTA
                     {
                         foreach (DbDataRecord record in sqlReader)
                         {
-                           dprtmnt = ""; pstn = ""; shift = "";
+                            dprtmnt = ""; pstn = ""; shift = "";
 
-                            if (record["FIO"]?.ToString()?.Trim()?.Length > 0)
+                            if (record["FIO"]?.ToString()?.Length > 0 && record["NAV"]?.ToString()?.Length > 0)
                             {
-                                try { dprtmnt = record[@"Reserv1"].ToString().Trim(); } catch { dprtmnt = record[@"GroupPerson"]?.ToString(); }
-                                try { pstn = record[@"Reserv2"].ToString().Trim(); } catch { }
-                                try { shift = record[@"Shift"].ToString().Trim(); } catch { }
+                                try { dprtmnt = record[@"Reserv1"].ToString(); } catch { dprtmnt = record[@"GroupPerson"]?.ToString(); }
 
                                 dataRow = dtTemp.NewRow();
-                                dataRow[@"Фамилия Имя Отчество"] = record["FIO"]?.ToString()?.Trim()?.Length;
-                                dataRow[@"NAV-код"] = record[@"NAV"]?.ToString();
+                                dataRow[@"Фамилия Имя Отчество"] = record["FIO"].ToString();
+                                dataRow[@"NAV-код"] = record[@"NAV"].ToString();
 
                                 dataRow[@"Группа"] = record[@"GroupPerson"]?.ToString();
                                 dataRow[@"Отдел"] = dprtmnt;
-                                dataRow[@"Должность"] = pstn;
+                                dataRow[@"Должность"] = record[@"Reserv2"]?.ToString();
 
                                 dataRow[@"Учетное время прихода ЧЧ:ММ"] = record[@"ControllingHHMM"]?.ToString();
                                 dataRow[@"Учетное время ухода ЧЧ:ММ"] = record[@"ControllingOUTHHMM"]?.ToString();
@@ -2036,7 +2036,6 @@ namespace ASTA
                             row[@"Группа"] = cell[2];
                             row[@"Отдел"] = cell[3];
                             row[@"Должность"] = cell[4];
-
 
                             listGroups.Add(cell[2]);
 
