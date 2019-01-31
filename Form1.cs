@@ -20,7 +20,7 @@ using System.Security.Cryptography;
 
 namespace ASTA
 {
-    public partial class WinFormASTA : Form
+    public partial class WinFormASTA :Form
     {
         private NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
@@ -319,7 +319,7 @@ namespace ASTA
                 @"Отгул",                      //41
 
         };
-       private static List<OutReasons> outResons = new List<OutReasons>();
+        private static List<OutReasons> outResons = new List<OutReasons>();
 
         private DataTable dtPersonTemp = new DataTable("PersonTemp");
         private DataTable dtPersonTempAllColumns = new DataTable("PersonTempAllColumns");
@@ -492,7 +492,7 @@ namespace ASTA
                 " ORDER BY RecipientEmail asc, DateCreated desc; ");
 
                 nameOfLastTableFromDB = "Mailing";
-                    ExecuteAutoMode(true);
+                ExecuteAutoMode(true);
             }
         }
 
@@ -561,8 +561,8 @@ namespace ASTA
         private void SetTechInfoIntoDB() //Write into DB Technical Info
         {
             guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения
-            pcname = Environment.MachineName + "(" + Environment.OSVersion+")";
-            poname = myFileVersionInfo.FileName + "(" + myFileVersionInfo.ProductName+")";
+            pcname = Environment.MachineName + "(" + Environment.OSVersion + ")";
+            poname = myFileVersionInfo.FileName + "(" + myFileVersionInfo.ProductName + ")";
             poversion = myFileVersionInfo.FileVersion;
             string LastDateStarted = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
             string Reserv1 = "Current user: " + Environment.UserName;
@@ -609,13 +609,12 @@ namespace ASTA
                             {
                                 try
                                 {
-                                    if (record["ComboList"] != null && record["ComboList"]?.ToString().Length > 0)
+                                    if (record["ComboList"]?.ToString()?.Length > 0)
                                     {
                                         _comboBoxAdd(comboBoxFio, record["ComboList"].ToString().Trim());
                                         iCombo++;
                                     }
-                                }
-                                catch (Exception expt) { logger.Info(expt.ToString()); }
+                                } catch (Exception expt) { logger.Info(expt.ToString()); }
                             }
                         }
                     }
@@ -628,10 +627,9 @@ namespace ASTA
                             {
                                 try
                                 {
-                                    if (record["FIO"] != null && record["FIO"]?.ToString().Length > 0)
+                                    if (record["FIO"]?.ToString()?.Length > 0)
                                     { numberOfFio++; }
-                                }
-                                catch { logger.Info("SELECT FIO FROM PeopleGroup - error"); }
+                                } catch { logger.Info("SELECT FIO FROM PeopleGroup - error"); }
                             }
                         }
                     }
@@ -644,13 +642,12 @@ namespace ASTA
                             {
                                 try
                                 {
-                                    if (record != null && record.ToString().Length > 0)
+                                    if (record["PoParameterName"]?.ToString()?.Length > 0)
                                     {
                                         if (record["PoParameterName"]?.ToString()?.Trim() == "clrRealRegistration")
                                             clrRealRegistration = Color.FromName(record["PoParameterValue"].ToString());
                                     }
-                                }
-                                catch (Exception expt) { logger.Info(expt.ToString()); }
+                                } catch (Exception expt) { logger.Info(expt.ToString()); }
                             }
                         }
                     }
@@ -663,29 +660,39 @@ namespace ASTA
                             {
                                 try
                                 {
-                                    if (record["EquipmentParameterValue"]?.ToString().Length > 0)
+                                    if (record["EquipmentParameterValue"]?.ToString()?.Length > 0)
                                     {
-                                        if (record["EquipmentParameterValue"]?.ToString().Trim() == "SKDServer" && record["EquipmentParameterName"]?.ToString().Trim() == "SKDUser")
+                                        if (record["EquipmentParameterValue"]?.ToString()?.Trim() == "SKDServer" && record["EquipmentParameterName"]?.ToString()?.Trim() == "SKDUser")
                                         {
                                             sServer1DB = record["EquipmentParameterServer"]?.ToString();
-                                            try { sServer1UserNameDB = DecryptBase64ToString(record["Reserv1"].ToString(), btsMess1, btsMess2); } catch { }
-                                            try { sServer1UserPasswordDB = DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2); } catch { }
+
+                                            //todo - check to need try
+                                            if (record["Reserv1"]?.ToString()?.Length > 0)
+                                                try { sServer1UserNameDB = DecryptBase64ToString(record["Reserv1"].ToString(), btsMess1, btsMess2); } catch { }
+                                            //todo - check to need try
+                                            if (record["Reserv2"]?.ToString()?.Length > 0)
+                                                try { sServer1UserPasswordDB = DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2); } catch { }
                                         }
-                                        else if (record["EquipmentParameterValue"]?.ToString().Trim() == "MailServer" && record["EquipmentParameterName"]?.ToString().Trim() == "MailUser")
+                                        else if (record["EquipmentParameterValue"]?.ToString()?.Trim() == "MailServer" && record["EquipmentParameterName"]?.ToString()?.Trim() == "MailUser")
                                         {
                                             mailServerDB = record["EquipmentParameterServer"]?.ToString();
                                             mailServerUserNameDB = record["Reserv1"]?.ToString();
-                                            try { mailServerUserPasswordDB = DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2); } catch { }
+
+                                            //todo - check to need try
+                                            if (record["Reserv2"]?.ToString()?.Length > 0)
+                                                try { mailServerUserPasswordDB = DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2); } catch { }
                                         }
-                                        else if (record["EquipmentParameterValue"]?.ToString().Trim() == "MySQLServer" && record["EquipmentParameterName"]?.ToString().Trim() == "MySQLUser")
+                                        else if (record["EquipmentParameterValue"]?.ToString()?.Trim() == "MySQLServer" && record["EquipmentParameterName"]?.ToString()?.Trim() == "MySQLUser")
                                         {
                                             mysqlServerDB = record["EquipmentParameterServer"]?.ToString();
                                             mysqlServerUserNameDB = record["Reserv1"]?.ToString();
-                                            try { mysqlServerUserPasswordDB = DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2); } catch { }
+
+                                            //todo - check to need try
+                                            if (record["Reserv2"]?.ToString()?.Length > 0)
+                                                try { mysqlServerUserPasswordDB = DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2); } catch { }
                                         }
                                     }
-                                }
-                                catch (Exception expt) { logger.Info(expt.ToString()); }
+                                } catch (Exception expt) { logger.Info(expt.ToString()); }
                             }
                         }
                     }
@@ -741,8 +748,7 @@ namespace ASTA
                 {
                     using (var command = new SQLiteCommand(SqlQuery, connection))
                     { command.ExecuteNonQuery(); }
-                }
-                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
             }
             SqlQuery = null;
         }
@@ -843,8 +849,7 @@ namespace ASTA
                         {
                             sqlCommand.ExecuteNonQuery();
                             logger.Info("-= Удалена таблица " + myTable + " =-");
-                        }
-                        catch { }
+                        } catch { }
                     }
                     using (var sqlCommand = new SQLiteCommand("vacuum;", sqlConnection))   //vacuum DB
                     {
@@ -1014,8 +1019,7 @@ namespace ASTA
                         }
                     }
                 }
-            }
-            catch
+            } catch
             { bServer1Exist = false; }
 
             if (bServer1Exist)
@@ -1092,8 +1096,6 @@ namespace ASTA
         private void GetFioFromServers(DataTable dataTablePeople) //Get the list of registered users
         {
             Person personFromServer = new Person();
-            //  dataTablePeople.Dispose();
-            //  dtGroup.Dispose();
             dataTablePeople.Clear();
             iFIO = 0;
             DataRow row;
@@ -1110,7 +1112,6 @@ namespace ASTA
 
             string timeStart_ = ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourStart), _numUpDownReturn(numUpDownMinuteStart));
             string timeEnd_ = ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourEnd), _numUpDownReturn(numUpDownMinuteEnd));
-            string comment_ = "";
             string dayStartShift_ = "";
 
             string nav = "";
@@ -1157,8 +1158,7 @@ namespace ASTA
                                             _departmentDescription = record["name"].ToString()
                                         });
                                     }
-                                }
-                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 _ProgressWork1Step(1);
                             }
                         }
@@ -1181,6 +1181,8 @@ namespace ASTA
                                         iFIO++;
                                         row = dataTablePeople.NewRow();
                                         fio = "";
+                                        //todo
+                                        //simplify - record["name"]?.ToString()?.Trim()
                                         try { fio = record["name"].ToString().Trim(); } catch { }
                                         try { fio += " " + record["surname"].ToString().Trim(); fio = fio.Trim(); } catch { }
                                         try { fio += " " + record["patronymic"].ToString().Trim(); fio = fio.Trim(); } catch { }
@@ -1188,9 +1190,8 @@ namespace ASTA
                                         nav = record["tabnum"].ToString().ToUpper().Trim();
                                         try
                                         {
-                                            depName = groups.Find((x) => x._departmentName == groupName)._departmentDescription;
-                                        }
-                                        catch (Exception expt) { logger.Warn(expt.Message); }
+                                            depName = groups.Find((x) => x._departmentName == groupName)?._departmentDescription;
+                                        } catch (Exception expt) { logger.Warn(expt.Message); }
 
                                         row[@"№ п/п"] = iFIO;
                                         row[@"№ пропуска"] = Convert.ToInt32(record["id"].ToString().Trim());
@@ -1214,8 +1215,7 @@ namespace ASTA
 
                                         _ProgressWork1Step(1);
                                     }
-                                }
-                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
@@ -1253,15 +1253,15 @@ namespace ASTA
                                 {
                                     departments.Add(new PeopleDepartment()
                                     {
-                                        _id= reader?.GetString(@"id"),
-                                        _departmentName= reader?.GetString(@"name")
+                                        _id = reader?.GetString(@"id"),
+                                        _departmentName = reader?.GetString(@"name")
                                     });
                                     _ProgressWork1Step(1);
                                 }
                             }
                         }
                     }
-                    
+
                     // import individual shifts of people from web DB
                     query = "Select code,start_date,mo_start,mo_end,tu_start,tu_end,we_start,we_end,th_start,th_end,fr_start,fr_end, " +
                                     "sa_start,sa_end,su_start,su_end,comment FROM work_time ORDER by start_date";
@@ -1274,13 +1274,12 @@ namespace ASTA
                             {
                                 if (reader?.GetString(@"code") != null && reader?.GetString(@"code").Length > 0)
                                 {
-                                    try { dayStartShift = DateTime.Parse(reader?.GetMySqlDateTime(@"start_date").ToString()).ToString("yyyy-MM-dd"); }
-                                    catch
+                                    try { dayStartShift = DateTime.Parse(reader?.GetMySqlDateTime(@"start_date").ToString()).ToString("yyyy-MM-dd"); } catch
                                     { dayStartShift = DateTime.Parse("1980-01-01").ToString("yyyy-MM-dd"); }
 
                                     peopleShifts.Add(new PeopleShift()
                                     {
-                                        _nav = reader.GetString(@"code").Replace('C', 'S'),
+                                        _nav = reader.GetString(@"code")?.Replace('C', 'S'),
                                         _dayStartShift = dayStartShift,
                                         _MoStart = Convert.ToInt32(reader.GetString(@"mo_start")),
                                         _MoEnd = Convert.ToInt32(reader.GetString(@"mo_end")),
@@ -1307,16 +1306,14 @@ namespace ASTA
 
                     try
                     {
-                        dayStartShift_ = "Общий график с "+ peopleShifts.FindLast((x) => x._nav == "0")._dayStartShift;
-                       // comment_ = "Общий график";
+                        dayStartShift_ = "Общий график с " + peopleShifts.FindLast((x) => x._nav == "0")._dayStartShift;
 
                         tmpSeconds = peopleShifts.FindLast((x) => x._nav == "0")._MoStart;
                         timeStart_ = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
 
                         tmpSeconds = peopleShifts.FindLast((x) => x._nav == "0")._MoEnd;
                         timeEnd_ = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
-                    }
-                    catch { }
+                    } catch { }
 
                     // import people from web DB
                     query = "Select code, family_name,first_name,last_name,vacancy,department FROM personal"; //where hidden=0
@@ -1343,27 +1340,25 @@ namespace ASTA
                                     personFromServer.NAV = nav;
 
                                     depName = departments.FindLast((x) => x._id == reader.GetString(@"department").Trim())?._departmentName;
-                                    personFromServer.Department = depName?? reader?.GetString(@"department")?.Trim();
-                                    personFromServer.PositionInDepartment = reader.GetString(@"vacancy").Trim();
+                                    personFromServer.Department = depName ?? reader?.GetString(@"department")?.Trim();
+                                    personFromServer.PositionInDepartment = reader.GetString(@"vacancy")?.Trim();
                                     personFromServer.GroupPerson = groupName;
 
                                     personFromServer.Shift = dayStartShift_;
-                                  //  personFromServer.Comment = comment_;
+
                                     personFromServer.ControlInHHMM = timeStart_;
                                     personFromServer.ControlOutHHMM = timeEnd_;
 
                                     try
                                     {
-                                        personFromServer.Shift = "Индивидуальный график с "+ peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._dayStartShift;
-                                       // personFromServer.Comment = "Индивидуальный график";
+                                        personFromServer.Shift = "Индивидуальный график с " + peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._dayStartShift;
 
                                         tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoStart;
                                         personFromServer.ControlInHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
 
                                         tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoEnd;
                                         personFromServer.ControlOutHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
-                                    }
-                                    catch { }
+                                    } catch { }
 
                                     row[@"№ п/п"] = iFIO;
                                     row[@"Фамилия Имя Отчество"] = personFromServer.FIO;
@@ -1375,7 +1370,6 @@ namespace ASTA
                                     row[@"Должность"] = personFromServer.PositionInDepartment;
 
                                     row[@"График"] = personFromServer.Shift;
-                                  //  row[@"Комментарии"] = personFromServer.Comment;
 
                                     row[@"Учетное время прихода ЧЧ:ММ"] = personFromServer.ControlInHHMM;
                                     row[@"Учетное время ухода ЧЧ:ММ"] = personFromServer.ControlOutHHMM;
@@ -1398,8 +1392,7 @@ namespace ASTA
 
                 _toolStripStatusLabelSetText(StatusLabel2, "Список ФИО успешно получен");
                 stimerPrev = "Все списки с ФИО с сервера СКД успешно получены";
-            }
-            catch (Exception Expt)
+            } catch (Exception Expt)
             {
                 bServer1Exist = false;
                 stimerPrev = "Сервер не доступен или неправильная авторизация";
@@ -1417,21 +1410,19 @@ namespace ASTA
                 {
                     try
                     {
-                        depName = groups[indDep]._departmentName;
+                        depName = groups[indDep]?._departmentName;
                         DeleteDataTableQueryParameters(databasePerson, "PeopleGroup", "GroupPerson", depName, "", "", "", "");
-                    }
-                    catch { }
+                    } catch { }
                 }
 
                 for (int indDep = 0; indDep < groups.Count; indDep++)
                 {
                     try
                     {
-                        depName = groups[indDep]._departmentName;
-                        depDescr = groups[indDep]._departmentDescription;
+                        depName = groups[indDep]?._departmentName;
+                        depDescr = groups[indDep]?._departmentDescription;
                         CreateGroupInDB(databasePerson, depName, depDescr);
-                    }
-                    catch { }
+                    } catch { }
                 }
 
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
@@ -1509,14 +1500,13 @@ namespace ASTA
                                 sqlCommand.Parameters.Add("@ControllingHHMM", DbType.String).Value = dr[@"Учетное время прихода ЧЧ:ММ"].ToString();
                                 sqlCommand.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = dr[@"Учетное время ухода ЧЧ:ММ"].ToString();
                                 sqlCommand.Parameters.Add("@Shift", DbType.String).Value = dr[@"График"].ToString();
-                               // sqlCommand.Parameters.Add("@Comment", DbType.String).Value = dr[@"Комментарии"].ToString();
+                                // sqlCommand.Parameters.Add("@Comment", DbType.String).Value = dr[@"Комментарии"].ToString();
                                 sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = dr[@"Отдел"].ToString();
                                 sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = dr[@"Должность"].ToString();
                                 try
                                 {
                                     sqlCommand.ExecuteNonQuery();
-                                }
-                                catch (Exception expt)
+                                } catch (Exception expt)
                                 {
                                     logger.Warn("ошибка записи в локальную базу PeopleGroup - " + dr[@"Фамилия Имя Отчество"] + "\n" + dr[@"NAV-код"] + "\n" + expt.ToString());
                                 }
@@ -1534,8 +1524,7 @@ namespace ASTA
                 foreach (string str in ListFIOCombo.ToArray())
                 { _comboBoxAdd(comboBoxFio, str); }
                 try
-                { _comboBoxSelectIndex(comboBoxFio, 0); }
-                catch { };
+                { _comboBoxSelectIndex(comboBoxFio, 0); } catch { };
 
                 _toolStripStatusLabelSetText(StatusLabel2, "Получено ФИО - " + iFIO + " ");
                 _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
@@ -1654,22 +1643,19 @@ namespace ASTA
                 {
                     sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Фамилия Имя Отчество")) + 1)]
                     .Interior.Color = Color.DarkSeaGreen;
-                }
-                catch { } //"Фамилия Имя Отчество"
+                } catch { } //"Фамилия Имя Отчество"
 
                 try
                 {
                     sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Опоздание ЧЧ:ММ")) + 1)]
                     .Interior.Color = Color.SandyBrown;
-                }
-                catch { } //"Опоздание ЧЧ:ММ"
+                } catch { } //"Опоздание ЧЧ:ММ"
 
                 try
                 {
                     sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Ранний уход ЧЧ:ММ")) + 1)]
                     .Interior.Color = Color.SandyBrown;
-                }
-                catch { } //"Ранний уход ЧЧ:ММ"
+                } catch { } //"Ранний уход ЧЧ:ММ"
 
                 _ProgressWork1Step(1);
 
@@ -1747,8 +1733,7 @@ namespace ASTA
                 _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
                 logger.Info("Отчет сгенерирован " + nameReport + " и сохранен в " + filePath);
                 reportExcelReady = true;
-            }
-            catch (Exception expt)
+            } catch (Exception expt)
             {
                 _toolStripStatusLabelSetText(StatusLabel2, "Ошибка генерации файла. Проверьте наличие установленного Excel");
                 logger.Error("ExportDatatableSelectedColumnsToExcel - " + expt.ToString());
@@ -1765,13 +1750,11 @@ namespace ASTA
             {
                 System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
                 obj = null;
-            }
-            catch (Exception ex)
+            } catch (Exception ex)
             {
                 obj = null;
                 MessageBox.Show("Exception Occured while releasing object of Excel \n" + ex);
-            }
-            finally
+            } finally
             { GC.Collect(); }
         }
 
@@ -1838,8 +1821,7 @@ namespace ASTA
                 textBoxFIO.Text = Regex.Split(sComboboxFIO, "[|]")[0].Trim();
                 textBoxNav.Text = Regex.Split(sComboboxFIO, "[|]")[1].Trim();
                 StatusLabel2.Text = @"Выбран: " + ShortFIO(textBoxFIO.Text) + @" |  Всего ФИО: " + iFIO;
-            }
-            catch { }
+            } catch { }
             if (comboBoxFio.SelectedIndex > -1)
             {
                 QuickLoadDataItem.BackColor = Color.PaleGreen;
@@ -1907,8 +1889,7 @@ namespace ASTA
                 groupBoxTimeStart.BackColor = Color.PaleGreen;
                 groupBoxTimeEnd.BackColor = Color.PaleGreen;
                 groupBoxFilterReport.BackColor = SystemColors.Control;
-            }
-            catch { }
+            } catch { }
 
             DeleteGroupItem.Visible = true;
             dataGridView1.Visible = true;
@@ -2105,8 +2086,7 @@ namespace ASTA
                             sqlCommand.Parameters.Add("@Comment", DbType.String).Value = dr[@"Комментарии"].ToString();
 
                             try
-                            { sqlCommand.ExecuteNonQuery(); }
-                            catch (Exception expt)
+                            { sqlCommand.ExecuteNonQuery(); } catch (Exception expt)
                             {
                                 logger.Info("GetFIO: ошибка записи в базу: " + dr[@"Фамилия Имя Отчество"] + "\n" + dr[@"NAV-код"] + "\n" + expt.ToString());
                             }
@@ -2182,8 +2162,7 @@ namespace ASTA
                             }
                         }
                     }
-                }
-                catch (Exception expt) { MessageBox.Show("Error was happened on " + i + " row\n" + expt.ToString()); }
+                } catch (Exception expt) { MessageBox.Show("Error was happened on " + i + " row\n" + expt.ToString()); }
                 if (i > listMaxLength - 10 || i == 0)
                 {
                     MessageBox.Show("Error was happened on " + i + " row\n You've been chosen the long file!");
@@ -2206,7 +2185,7 @@ namespace ASTA
 
             if (_dataGridView1CurrentRowIndex() > -1)
             {
-                    DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
+                DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
                 dgSeek.FindValueInCells(dataGridView1, new string[] {
                  @"Фамилия Имя Отчество", @"NAV-код", @"Отдел", @"Должность", @"Учетное время прихода ЧЧ:ММ", @"Учетное время ухода ЧЧ:ММ"
                             });
@@ -2260,15 +2239,13 @@ namespace ASTA
                         {
                             StatusLabel2.Text = "Отсутствует NAV-код у:" + ShortFIO(textBoxFIO.Text);
                             _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
-                        }
-                        catch { }
+                        } catch { }
                     else if (group.Length == 0 && dgSeek.values[1].Length > 0)
                         try
                         {
                             StatusLabel2.Text = "Не указана группа, в которую нужно добавить!";
                             _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
-                        }
-                        catch { }
+                        } catch { }
                 }
             }
             SeekAndShowMembersOfGroup(group);
@@ -2301,8 +2278,7 @@ namespace ASTA
                                 {
                                     if (record != null && record["id"].ToString().Trim().Length > 0)
                                     { listPoints.Add(sServer1 + "|" + record["id"].ToString().Trim() + "|" + record["name"].ToString().Trim()); }
-                                }
-                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
@@ -2368,7 +2344,7 @@ namespace ASTA
                     _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по группе " + groups);
                     stimerPrev = "Получаю данные по группе " + groups;
                 }
-                else if(nameOfLastTableFromDB == "Mailing")
+                else if (nameOfLastTableFromDB == "Mailing")
                 {
                     _toolStripStatusLabelSetText(StatusLabel2, "Загружаю данные по группе " + groups);
                     stimerPrev = "Загружаю регистрации с СКД сервера";
@@ -2383,9 +2359,9 @@ namespace ASTA
                 dtPersonRegistrationsFullList.Clear();
                 logger.Info("GetData: " + groups);
 
-                reportStartDay= _dateTimePickerStart().Split(' ')[0];
+                reportStartDay = _dateTimePickerStart().Split(' ')[0];
                 reportLastDay = _dateTimePickerEnd().Split(' ')[0];
-                
+
                 GetRegistrations(groups, _dateTimePickerStart(), _dateTimePickerEnd(), "");
                 logger.Info("GetData: " + groups + " " + _dateTimePickerStart() + " " + _dateTimePickerEnd());
 
@@ -2443,7 +2419,7 @@ namespace ASTA
         {
             Person person = new Person();
             string fio, nav, group, dep, pos, timein, timeout, comment, shift;
-            if ((nameOfLastTableFromDB == "PeopleGroupDesciption" || nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "Mailing"||
+            if ((nameOfLastTableFromDB == "PeopleGroupDesciption" || nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "Mailing" ||
                 nameOfLastTableFromDB == "ListFIO" || doPostAction == "sendEmail") && selectedGroup.Length > 0)
             {
                 //  if (doPostAction != "sendEmail")
@@ -2579,8 +2555,7 @@ namespace ASTA
                                 stringIdCardIntellect = Regex.Split(strRowWithNav, "[|]")[3].Trim();
                                 person.idCard = Convert.ToInt32(stringIdCardIntellect);
                                 break;
-                            }
-                            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                     }
 
                     if (stringIdCardIntellect.Length == 0)
@@ -2595,13 +2570,11 @@ namespace ASTA
                                 {
                                     stringIdCardIntellect = Regex.Split(strRowWithNav, "[|]")[3].Trim();
                                     person.idCard = Convert.ToInt32(stringIdCardIntellect);
-                                }
-                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 try
                                 {
                                     personNAVTemp = Regex.Split(strRowWithNav, "[|]")[4].Trim();
-                                }
-                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 if (person.NAV.Length < 1 && personNAVTemp.Length > 0)
                                 {
                                     person.NAV = personNAVTemp;
@@ -2611,8 +2584,7 @@ namespace ASTA
                         }
                     }
                 }
-            }
-            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
 
             string[] cellData;
             string namePoint = "";
@@ -2671,8 +2643,7 @@ namespace ASTA
                                                         else if (namePoint.ToLower().Contains("вход"))
                                                             direction = "Вход";
                                                         break;
-                                                    }
-                                                    catch { }
+                                                    } catch { }
                                             }
                                             personWorkedDays.Add(stringDataNew);
 
@@ -2702,8 +2673,7 @@ namespace ASTA
 
                                             _ProgressWork1Step(1);
                                         }
-                                    }
-                                    catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                    } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 }
                             }
                         }
@@ -2713,8 +2683,7 @@ namespace ASTA
                 stringDataNew = null; query = null; stringConnection = null;
 
                 _ProgressWork1Step(1);
-            }
-            catch (Exception Expt)
+            } catch (Exception Expt)
             { MessageBox.Show(Expt.ToString(), @"Сервер не доступен, или неправильная авторизация", MessageBoxButtons.OK, MessageBoxIcon.Error); }
 
             if (listPoints.Count > 0)
@@ -2747,7 +2716,7 @@ namespace ASTA
 
             //look for late and absence of data in www's DB
             outResons = new List<OutReasons>();
-            
+
             List<OutPerson> outPerson = new List<OutPerson>();
             outResons.Add(new OutReasons() { _id = "0", _hourly = 1, _name = @"Unknow", _visibleName = @"Неизвестная" });
 
@@ -2793,7 +2762,7 @@ namespace ASTA
                             if (reader.GetString(@"reason_id") != null && reader.GetString(@"reason_id").Length > 0)
                             {
                                 logger.Info(reader.GetString(@"reason_date"));
-                                 resonId = outResons.Find((x) => x._id == reader?.GetString(@"reason_id"))?._id; 
+                                resonId = outResons.Find((x) => x._id == reader?.GetString(@"reason_id"))?._id;
                                 try { date = DateTime.Parse(reader.GetString(@"reason_date")).ToString("yyyy-MM-dd"); } catch { date = ""; }
 
                                 outPerson.Add(new OutPerson()
@@ -2828,7 +2797,7 @@ namespace ASTA
                     row[@"График"] = person.Shift;
                 }
             }
-            
+
             foreach (DataRow dr in dtTarget.Rows) // search whole table
             {
                 nav = dr[@"NAV-код"]?.ToString();
@@ -2836,9 +2805,11 @@ namespace ASTA
                 {
                     if (dr[@"Дата регистрации"].ToString() == day)
                     {
-                        try {
+                        // todo - remove try and check
+                        try
+                        {
                             //set Comments
-                            dr[@"Комментарии"] = outPerson.Find((x) => x._date == day && x._nav == nav)._reason_id;
+                            dr[@"Комментарии"] = outPerson.Find((x) => x._date == day && x._nav == nav)?._reason_id;
                         } catch { }
                         break;
                     }
@@ -2927,8 +2898,7 @@ namespace ASTA
 
                                     dtPeopleGroup.Rows.Add(dataRow);
                                 }
-                            }
-                            catch { }
+                            } catch { }
                         }
                     }
                 }
@@ -3166,7 +3136,7 @@ namespace ASTA
 
             //store all columns
             dtPersonTempAllColumns = dtTempIntermediate.Copy();
-            
+
             //show selected data     
             //distinct Records        
             var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(nameHidenColumnsArray).ToArray(); //take distinct data
@@ -3224,7 +3194,7 @@ namespace ASTA
             string[] stringHourMinuteLastRegistrationInDay = new string[2];
             decimal workedHours = 0;
             string dayOfWeek = "";
-            string exceptReason ="";
+            string exceptReason = "";
 
             try
             {
@@ -3242,7 +3212,7 @@ namespace ASTA
                         //Select only one row with selected NAV for the selected workedDay
 
                         rowDtStoring = dtAllRegistrationsInSelectedDay.Select("[Дата регистрации] = '" + workedDay + "'").First();
-                        dayOfWeek= DayOfWeekRussian(DateTime.Parse(workedDay).DayOfWeek.ToString());
+                        dayOfWeek = DayOfWeekRussian(DateTime.Parse(workedDay).DayOfWeek.ToString());
                         rowDtStoring[@"День недели"] = dayOfWeek;
 
                         //find first registration within the during selected workedDay
@@ -3281,8 +3251,6 @@ namespace ASTA
 
 
                         exceptReason = rowDtStoring[@"Комментарии"].ToString();
-                        // try { idReason = Convert.ToInt32(reader.GetString(@"reason_id")); } catch { idReason = 0; }
-                        // try { name = resons.Find((x) => x._id == idReason)._name; } catch { name = ""; }
 
                         rowDtStoring[@"Комментарии"] = outResons.Find((x) => x._id == exceptReason)?._visibleName;
 
@@ -3293,7 +3261,7 @@ namespace ASTA
                             case "11":
                             case "12":
                             case "18":
-                                rowDtStoring[@"Отпуск"] =outResons.Find((x) => x._id == exceptReason)?._visibleName;
+                                rowDtStoring[@"Отпуск"] = outResons.Find((x) => x._id == exceptReason)?._visibleName;
                                 break;
                             case "3":
                             case "21":
@@ -3310,12 +3278,12 @@ namespace ASTA
 
 
                         /*
-                                                @"Отпуск",                 //30
-                                                          @"Командировка",                 //31
-                                                          @"Больничный",                    //33
-                                                          @"Комментарии",                    //38
-                                                          @"Отгул"                      //41
-                                                          */
+                            @"Отпуск",                 //30
+                            @"Командировка",                 //31
+                            @"Больничный",                    //33
+                            @"Комментарии",                    //38
+                            @"Отгул"                      //41
+                            */
 
                         dtTemp.ImportRow(rowDtStoring);
                     }
@@ -3345,8 +3313,7 @@ namespace ASTA
                 { dataTableForStoring.ImportRow(dr); }
 
                 allWorkedDaysPerson = null;
-            }
-            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
 
             stringHourMinuteFirstRegistrationInDay = null; stringHourMinuteLastRegistrationInDay = null; hsDays = null;
             rowDtStoring = null; dtTemp = null; dtAllRegistrationsInSelectedDay = null;
@@ -3488,7 +3455,7 @@ namespace ASTA
             daysBolded = null;
             daysSelected = null;
         }
-        
+
         private void BoldAnualDates() //Excluded Anual Days from the table "PersonTemp" DB
         {
             var oneDay = TimeSpan.FromDays(1);
@@ -3620,8 +3587,7 @@ namespace ASTA
 
                 foreach (var row in rows)
                 { row.Delete(); }
-            }
-            catch (Exception expt)
+            } catch (Exception expt)
             { MessageBox.Show(expt.ToString()); }
             dt.AcceptChanges();
             rows = null;
@@ -3668,12 +3634,10 @@ namespace ASTA
                         {
                             System.IO.File.Delete(file.FullName);
                             logger.Info("Удален файл: \"" + file.FullName + "\"");
-                        }
-                        catch { logger.Warn("Файл не удален: \"" + file.FullName + "\""); }
+                        } catch { logger.Warn("Файл не удален: \"" + file.FullName + "\""); }
                     }
                 }
-            }
-            catch { logger.Warn("Ошибка удаления: " + discribeFiles); }
+            } catch { logger.Warn("Ошибка удаления: " + discribeFiles); }
 
         }
 
@@ -3836,8 +3800,7 @@ namespace ASTA
                         StatusLabel2.Text = @"Выбран: " + personSelected.FIO + @" |  Всего ФИО: " + iFIO;
                     }
                 }
-            }
-            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
 
             if (personSelected.FIO.Length == 0)
             {
@@ -3854,10 +3817,9 @@ namespace ASTA
                 personSelected.NAV = _textBoxReturnText(textBoxNav);
                 personSelected.GroupPerson = _textBoxReturnText(textBoxGroup);
 
-                personSelected.ControlInHHMM =ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourStart), _numUpDownReturn(numUpDownMinuteStart));
+                personSelected.ControlInHHMM = ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourStart), _numUpDownReturn(numUpDownMinuteStart));
                 personSelected.ControlOutHHMM = ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourEnd), _numUpDownReturn(numUpDownMinuteEnd));
-            }
-            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
         }
 
 
@@ -4171,8 +4133,7 @@ namespace ASTA
                         }
                     }
                 }
-            }
-            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
             sLastSelectedElement = "DrawRegistration";
         }
 
@@ -4440,8 +4401,7 @@ namespace ASTA
                 if (panelView != null && panelView.Controls.Count > 1) panelView.Controls.RemoveAt(1);
                 bmp?.Dispose();
                 pictureBox1?.Dispose();
-            }
-            catch { }
+            } catch { }
 
             dataGridView1.Visible = true;
             sLastSelectedElement = "dataGridView";
@@ -5157,8 +5117,7 @@ namespace ASTA
 
                         logger.Info("Данные в реестре сохранены");
                     }
-                }
-                catch { logger.Error("CreateSubKey. Ошибки с доступом на запись в реестр. Данные сохранены не корректно."); }
+                } catch { logger.Error("CreateSubKey. Ошибки с доступом на запись в реестр. Данные сохранены не корректно."); }
 
                 if (databasePerson.Exists)
                 {
@@ -5234,8 +5193,7 @@ namespace ASTA
                     EvUserKey?.DeleteSubKey("MySQLUserPassword");
                     EvUserKey?.DeleteSubKey("ModeApp");
                 }
-            }
-            catch { MessageBox.Show("Ошибки с доступом у реестру на запись. Данные не удалены."); }
+            } catch { MessageBox.Show("Ошибки с доступом у реестру на запись. Данные не удалены."); }
         }
 
         //--- End. Features of programm ---//
@@ -5478,15 +5436,13 @@ namespace ASTA
                                 _numUpDownSet(numUpDownMinuteStart, timeIn[1]);
                                 _numUpDownSet(numUpDownHourEnd, timeOut[0]);
                                 _numUpDownSet(numUpDownMinuteEnd, timeOut[1]);
-                            }
-                            catch { logger.Warn("dataGridView1CellClick:" + timeIn[0]); }
+                            } catch { logger.Warn("dataGridView1CellClick:" + timeIn[0]); }
 
                             if (dgSeek.values[1].Length > 3)
                             { comboBoxFio.SelectedIndex = comboBoxFio.FindString(dgSeek.values[1]); }
                         }
                     }
-                }
-                catch (Exception expt)
+                } catch (Exception expt)
                 {
                     MessageBox.Show(expt.ToString());
                 }
@@ -5574,19 +5530,18 @@ namespace ASTA
                         //todo 
                         //edit and update mailing
 
-                     //   ExecuteSql("UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToString() + "' WHERE RecipientEmail='" + dgSeek.values[0]
-                      //  + "' AND NameReport='" + dgSeek.values[3] + "' AND GroupsReport ='" + dgSeek.values[2] + "';", databasePerson);
+                        //   ExecuteSql("UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToString() + "' WHERE RecipientEmail='" + dgSeek.values[0]
+                        //  + "' AND NameReport='" + dgSeek.values[3] + "' AND GroupsReport ='" + dgSeek.values[2] + "';", databasePerson);
 
-                        
-                      //  MailingAction("sendEmail", dgSeek.values[0], dgSeek.values[0], dgSeek.values[2], dgSeek.values[3], dgSeek.values[4], dgSeek.values[5], dgSeek.values[6]);
+
+                        //  MailingAction("sendEmail", dgSeek.values[0], dgSeek.values[0], dgSeek.values[2], dgSeek.values[3], dgSeek.values[4], dgSeek.values[5], dgSeek.values[6]);
 
                         ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                             "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус' ",
                             " ORDER BY RecipientEmail asc, DateCreated desc; ");
                         nameOfLastTableFromDB = "Mailing";
                     }
-                }
-                catch { }
+                } catch { }
             }
         }
 
@@ -5608,12 +5563,12 @@ namespace ASTA
                         cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
                         cell.ToolTipText = cell.Value.ToString();
                     }
-                    else if (( e.ColumnIndex == this.dataGridView1.Columns["Учетное время прихода ЧЧ:ММ"].Index) && e.Value != null)
+                    else if ((e.ColumnIndex == this.dataGridView1.Columns["Учетное время прихода ЧЧ:ММ"].Index) && e.Value != null)
                     {
                         cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
                         cell.ToolTipText = "Для установки нового значения нажмите F2,\nвнесите новое значение,\nа затем нажмите Enter";
                     }
-                    else if (( e.ColumnIndex == this.dataGridView1.Columns["Учетное время ухода ЧЧ:ММ"].Index) && e.Value != null)
+                    else if ((e.ColumnIndex == this.dataGridView1.Columns["Учетное время ухода ЧЧ:ММ"].Index) && e.Value != null)
                     {
                         cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
                         cell.ToolTipText = "Для установки нового значения нажмите F2,\nвнесите новое значение,\nа затем нажмите Enter";
@@ -5624,11 +5579,9 @@ namespace ASTA
                         {
                             cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
                             cell.ToolTipText = cell.Value.ToString();
-                        }
-                        catch { }
+                        } catch { }
                     }
-                }
-                catch { }
+                } catch { }
             }
             if (nameOfLastTableFromDB == "Mailing" && e.RowIndex > -1 && e.ColumnIndex > -1 && e.Value != null)
             {
@@ -5847,8 +5800,7 @@ namespace ASTA
                         EvUserKey.SetValue(productName, "\"" + Application.ExecutablePath + "\"");
                         logger.Info("Save AutoRun App in Registry. Данные в реестре сохранены");
                     }
-                }
-                catch (Exception expt) { logger.Warn("Save ModeApp,AutoRun in Registry. Последний режим работы не сохранен. " + expt); }
+                } catch (Exception expt) { logger.Warn("Save ModeApp,AutoRun in Registry. Последний режим работы не сохранен. " + expt); }
                 ExecuteAutoMode(true);
             }
             else
@@ -5874,8 +5826,7 @@ namespace ASTA
                         EvUserKey.DeleteValue(productName);
                         logger.Info("Delete AutoRun App from Registry. Ключ удален");
                     }
-                }
-                catch (Exception expt) { logger.Warn("Delete ModeApp from Registry. Ошибка удаления ключа. " + expt); }
+                } catch (Exception expt) { logger.Warn("Delete ModeApp from Registry. Ошибка удаления ключа. " + expt); }
                 ExecuteAutoMode(false);
             }
 
@@ -5998,8 +5949,7 @@ namespace ASTA
                                         });
                                     }
                                 }
-                            }
-                            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                         }
                     }
                 }
@@ -6101,7 +6051,7 @@ namespace ASTA
                                     dtPersonTemp?.Dispose();
                                     dtPersonTemp = dtPeople.Clone();
 
-                                     LoadGroupMembersFromDbToDataTable(nameGroup); //result will be in dtPeopleGroup  //"Select * FROM PeopleGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
+                                    LoadGroupMembersFromDbToDataTable(nameGroup); //result will be in dtPeopleGroup  //"Select * FROM PeopleGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
 
                                     foreach (DataRow row in dtPeopleGroup.Rows)
                                     {
@@ -6153,8 +6103,7 @@ namespace ASTA
                                         string illegal = GetSafeFilename(nameFile) + @".xlsx";
 
                                         filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), illegal);
-                                        try { System.IO.File.Delete(filePathExcelReport); }
-                                        catch (Exception expt)
+                                        try { System.IO.File.Delete(filePathExcelReport); } catch (Exception expt)
                                         { logger.Error("Ошибка удаления файла " + filePathExcelReport + " " + expt.ToString()); }
 
                                         logger.Info("сохраняю файл: " + filePathExcelReport);
@@ -7215,5 +7164,5 @@ namespace ASTA
 
     }
 
-    
+
 }
