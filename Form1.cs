@@ -2370,7 +2370,7 @@ namespace ASTA
                 reportLastDay = _dateTimePickerEnd().Split(' ')[0];
 
                 GetRegistrations(groups, _dateTimePickerStart(), _dateTimePickerEnd(), "");
-                logger.Info("GetData: " + groups + " " + _dateTimePickerStart() + " " + _dateTimePickerEnd());
+                logger.Trace("GetData: " + groups + " " + _dateTimePickerStart() + " " + _dateTimePickerEnd());
 
                 dtPersonTemp = dtPersonRegistrationsFullList.Copy();
                 dtPersonTempAllColumns = dtPersonRegistrationsFullList.Copy(); //store all columns
@@ -2482,7 +2482,6 @@ namespace ASTA
                 person = new Person();
                 person.NAV = _textBoxReturnText(textBoxNav);
                 person.FIO = _textBoxReturnText(textBoxFIO);
-                logger.Info("GetRegistrations " + person.FIO);
                 person.GroupPerson = "";
                 person.Department = "";
                 person.Shift = "";
@@ -2491,6 +2490,8 @@ namespace ASTA
 
                 person.ControlInHHMM = ConvertStringsTimeToStringHHMM(_numUpDownReturn(numUpDownHourStart).ToString(), _numUpDownReturn(numUpDownMinuteStart).ToString());
                 person.ControlOutHHMM = ConvertStringsTimeToStringHHMM(_numUpDownReturn(numUpDownHourEnd).ToString(), _numUpDownReturn(numUpDownMinuteEnd).ToString());
+
+                logger.Info("GetRegistrations " + person.FIO);
 
                 GetPersonRegistrationFromServer(dtPersonRegistrationsFullList, person, startDate, endDate);
 
@@ -2507,7 +2508,6 @@ namespace ASTA
             logger.Info("GetPersonRegistrationFromServer, person - " + person.NAV);
 
             SeekAnualDays(dtTarget, person, false, startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
-            logger.Info("1");
             DataRow rowPerson;
             string stringConnection = "";
             string query = "";
@@ -2556,7 +2556,6 @@ namespace ASTA
                     }
                 }
             } catch (Exception expt) { logger.Warn("GetPersonRegistrationFromServer " + expt.ToString()); }
-            logger.Info("2");
             string[] cellData;
             string namePoint = "";
             string direction = "";
@@ -2652,16 +2651,13 @@ namespace ASTA
                 }
 
                 stringDataNew = null; query = null; stringConnection = null;
-                logger.Info("3");
                 _ProgressWork1Step(1);
             } catch (Exception Expt)
             { MessageBox.Show(Expt.ToString(), @"Сервер не доступен, или неправильная авторизация", MessageBoxButtons.OK, MessageBoxIcon.Error); }
-            logger.Info("3.1");
 
             // рабочие дни в которые отсутствовал данная персона
             foreach (string day in workSelectedDays.Except(personWorkedDays))
             {
-                logger.Info("3.2");
                 rowPerson = dtTarget.NewRow();
                 rowPerson[@"Фамилия Имя Отчество"] = person.FIO;
                 rowPerson[@"NAV-код"] = person.NAV;
@@ -2673,22 +2669,19 @@ namespace ASTA
 
                 rowPerson[@"График"] = person.Shift;
 
-                rowPerson[@"Время регистрации"] = "0";
+                rowPerson[@"Время регистрации"] = "0"; //must be "0"!!!!
                 rowPerson[@"Дата регистрации"] = day;
                 rowPerson[@"День недели"] = DayOfWeekRussian((DateTime.Parse(day)).DayOfWeek.ToString());
                 rowPerson[@"Учетное время прихода ЧЧ:ММ"] = person.ControlInHHMM;
                 rowPerson[@"Учетное время ухода ЧЧ:ММ"] = person.ControlOutHHMM;
                 rowPerson[@"Отсутствовал на работе"] = "Да";
 
-                logger.Info("3.3");
                 dtTarget.Rows.Add(rowPerson);//добавляем рабочий день в который  сотрудник не выходил на работу
                 _ProgressWork1Step(1);
             }
-            logger.Info("3.4");
 
             //look for late and absence of data in www's DB
             outResons = new List<OutReasons>();
-            logger.Info("4");
             List<OutPerson> outPerson = new List<OutPerson>();
             outResons.Add(new OutReasons() { _id = "0", _hourly = 1, _name = @"Unknow", _visibleName = @"Неизвестная" });
 
@@ -2754,7 +2747,6 @@ namespace ASTA
             }
             logger.Info(person.NAV + " - на сайте всего записей с отсутствиями: " + outPerson.Count);
             _ProgressWork1Step(1);
-            logger.Info("5");
             string nav = "";
             foreach (var row in dtTarget.AsEnumerable())
             {
