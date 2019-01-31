@@ -1426,7 +1426,8 @@ namespace ASTA
                 //todo
                 //get list fio from peoplegroup
                 //Remove dublicat and output Result into combobox1
-                IEnumerable<string> ListFIOCombo = ListFIOTemp.Distinct();
+                //IEnumerable<string> ListFIOCombo = ListFIOTemp.Distinct();
+                List<string> ListFIOCombo = new List<string>();
 
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
@@ -1470,28 +1471,10 @@ namespace ASTA
                     sqlCommand1 = new SQLiteCommand("end", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
 
-                    sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
-                    foreach (string str in ListFIOCombo.ToArray())
-                    {
-                        if (str != null && str.Length > 1)
-                        {
-                            using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'LastTakenPeopleComboList' (ComboList, Reserv1, Reserv2) " +
-                            " VALUES (@ComboList, @Reserv1, @Reserv2)", sqlConnection))
-                            {
-                                sqlCommand.Parameters.Add("@ComboList", DbType.String).Value = str;
-                                sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = "";
-                                sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = "";
-                                try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
-                            }
-                        }
-                    }
-                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
 
                     sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
-                    foreach (var dr in dataTablePeople.AsEnumerable())
+                    foreach (var dr in dataTablePeople.AsEnumerable().Distinct())
                     {
                         if (dr[@"Фамилия Имя Отчество"] != null && dr[@"NAV-код"] != null && dr[@"NAV-код"].ToString().Length > 0)
                         {
@@ -1514,10 +1497,30 @@ namespace ASTA
                                 {
                                     logger.Warn("ошибка записи в локальную базу PeopleGroup - " + dr[@"Фамилия Имя Отчество"] + "\n" + dr[@"NAV-код"] + "\n" + expt.ToString());
                                 }
+                                ListFIOCombo.Add(dr[@"Фамилия Имя Отчество"].ToString()+"|"+ dr[@"NAV-код"].ToString());
                             }
                         }
                     }
 
+                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
+                    sqlCommand1.ExecuteNonQuery();
+
+                    sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
+                    sqlCommand1.ExecuteNonQuery();
+                    foreach (string str in ListFIOCombo.ToArray())
+                    {
+                        if (str != null && str.Length > 1)
+                        {
+                            using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'LastTakenPeopleComboList' (ComboList, Reserv1, Reserv2) " +
+                            " VALUES (@ComboList, @Reserv1, @Reserv2)", sqlConnection))
+                            {
+                                sqlCommand.Parameters.Add("@ComboList", DbType.String).Value = str;
+                                sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = "";
+                                sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = "";
+                                try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                            }
+                        }
+                    }
                     sqlCommand1 = new SQLiteCommand("end", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
 
