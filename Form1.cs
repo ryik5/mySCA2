@@ -2,23 +2,21 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-//using System.Data.SqlClient;
 using System.Data.SQLite;
 using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-//using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+// for Crypography
+using System.Security.Cryptography;
 
 //using NLog;
 //Project\Control NuGet\console 
 //install-package nlog
 //install-package nlog.config
 
-// for Crypography
-using System.Security.Cryptography;
 
 namespace ASTA
 {
@@ -26,22 +24,25 @@ namespace ASTA
     {
         private NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
+        private readonly string myRegKey = @"SOFTWARE\RYIK\ASTA";
+        private readonly System.IO.FileInfo databasePerson = new System.IO.FileInfo(@".\main.db");
+        private readonly byte[] btsMess1 = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
+        private readonly byte[] btsMess2 = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
+        private string nameOfLastTableFromDB = "PersonRegistrationsList";
+
+        private string currentAction = "";
+        private bool currentModeAppManual = true;
         private System.Diagnostics.FileVersionInfo myFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
         private string guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения
         private string pcname = Environment.MachineName + "|" + Environment.OSVersion;
         private string poname = "";
         private string poversion = "";
         private string productName = "";
-        private readonly string myRegKey = @"SOFTWARE\RYIK\ASTA";
-        private string currentAction = "";
-        private bool currentModeAppManual = true;
-
         private string strVersion;
+
         private ContextMenu contextMenu1;
         private bool buttonAboutForm;
 
-        private readonly System.IO.FileInfo databasePerson = new System.IO.FileInfo(@".\main.db");
-        private string nameOfLastTableFromDB = "PersonRegistrationsList";
         private bool bLoaded = false;
         private int iCounterLine = 0;
         private List<string> listFIO = new List<string>(); // List of FIO and identity of data
@@ -55,7 +56,7 @@ namespace ASTA
         private decimal numUpHourEnd = 18;
         private decimal numUpMinuteEnd = 0;
 
-        //Visual of registration
+        //Shows visual of registration
         private PictureBox pictureBox1 = new PictureBox();
         private Bitmap bmp = new Bitmap(1, 1);
 
@@ -63,8 +64,11 @@ namespace ASTA
         private string[] myBoldedDates;
         private List<string> boldeddDates = new List<string>();
         private string[] workSelectedDays;
+        private static string reportStartDay = "";
+        private static string reportLastDay = "";
+        private bool reportExcelReady = false;
 
-        //Page of "Settings of Programm"
+        //Page of "Settings' Programm"
         private bool bServer1Exist = false;
         private Label labelServer1;
         private TextBox textBoxServer1;
@@ -82,6 +86,7 @@ namespace ASTA
         private string sServer1UserPasswordRegistry = "";
         private string sServer1UserPasswordDB = "";
 
+        //Page of Mailing
         private Label labelMailServerName;
         private TextBox textBoxMailServerName;
         private Label labelMailServerUserName;
@@ -97,9 +102,6 @@ namespace ASTA
         private string mailServerUserPassword = "";
         private string mailServerUserPasswordRegistry = "";
         private string mailServerUserPasswordDB = "";
-        private static string reportStartDay = "";
-        private static string reportLastDay = "";
-        private bool reportExcelReady = false;
 
         private Label labelmysqlServer;
         private TextBox textBoxmysqlServer;
@@ -117,11 +119,6 @@ namespace ASTA
         private string mysqlServerUserPasswordRegistry = "";
         private string mysqlServerUserPasswordDB = "";
 
-        private Color clrRealRegistration = Color.PaleGreen;
-        private string sLastSelectedElement = "MainForm";
-
-        //Settings of Programm
-
         private Label listComboLabel;
         private ComboBox listCombo = new ComboBox();
 
@@ -131,9 +128,8 @@ namespace ASTA
         private Label labelSettings9;
         private ComboBox comboSettings9 = new ComboBox();
 
-
-        private readonly byte[] btsMess1 = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
-        private readonly byte[] btsMess2 = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
+        private Color clrRealRegistration = Color.PaleGreen;
+        private string sLastSelectedElement = "MainForm";
 
         private OpenFileDialog openFileDialog1 = new OpenFileDialog();
         private List<string> listGroups = new List<string>();
@@ -172,8 +168,9 @@ namespace ASTA
                                   new DataColumn(@"Отработанное время ЧЧ:ММ",typeof(string)), //27
                                   new DataColumn(@"Опоздание ЧЧ:ММ",typeof(string)),                    //28
                                   new DataColumn(@"Ранний уход ЧЧ:ММ",typeof(string)),                 //29
-                                  new DataColumn(@"Отпуск (отгул)",typeof(string)),                 //30
-                                  new DataColumn(@"Коммандировка",typeof(string)),                 //31
+                                  new DataColumn(@"Отпуск",typeof(string)),                 //30
+                                  //new DataColumn(@"Отпуск (отгул)",typeof(string)),                 //30
+                                  new DataColumn(@"Командировка",typeof(string)),                 //31
                                   new DataColumn(@"День недели",typeof(string)),                 //32
                                   new DataColumn(@"Больничный",typeof(string)),                 //33
                                   new DataColumn(@"Отсутствовал на работе",typeof(string)),     //34
@@ -182,7 +179,8 @@ namespace ASTA
                                   new DataColumn(@"Описание группы",typeof(string)),            //37
                                   new DataColumn(@"Комментарии",typeof(string)),                 //38
                                   new DataColumn(@"Должность",typeof(string)),                 //39
-                                  new DataColumn(@"График",typeof(string))                 //40
+                                  new DataColumn(@"График",typeof(string)),                 //40
+                                  new DataColumn(@"Отгул",typeof(string))                 //41
                 };
         public readonly string[] arrayAllColumnsDataTablePeople =
             {
@@ -216,8 +214,8 @@ namespace ASTA
                                   @"Отработанное время ЧЧ:ММ", //27
                                   @"Опоздание ЧЧ:ММ",                    //28
                                   @"Ранний уход ЧЧ:ММ",                 //29
-                                  @"Отпуск (отгул)",                 //30
-                                  @"Коммандировка",                 //31
+                                  @"Отпуск",                 //30
+                                  @"Командировка",                 //31
                                   @"День недели",                    //32
                                   @"Больничный",                    //33
                                   @"Отсутствовал на работе",      //34
@@ -226,7 +224,8 @@ namespace ASTA
                                   @"Описание группы",                //37
                                   @"Комментарии",                    //38
                                   @"Должность",                    //39
-                                  @"График"                    //40
+                                  @"График",                    //40
+                                  @"Отгул"                      //41
         };
         public readonly string[] orderColumnsFinacialReport =
             {
@@ -242,11 +241,12 @@ namespace ASTA
                                   @"Отработанное время ЧЧ:ММ", //27
                                   @"Опоздание ЧЧ:ММ",                    //28
                                   @"Ранний уход ЧЧ:ММ",                 //29
-                                  @"Отпуск (отгул)",                 //30
-                                  @"Коммандировка",                 //31
+                                  @"Отпуск",                 //30
+                                  @"Отгул",                      //41
+                                  @"Командировка",                 //31
                                   @"Больничный",                    //33
-                                  @"Отсутствовал на работе",      //34
                                   @"Комментарии",                    //38
+                                  @"Отсутствовал на работе",      //34
                                   @"Должность",                    //39
                                   @"График"                    //40
         };
@@ -276,15 +276,16 @@ namespace ASTA
                             @"Отработанное время ЧЧ:ММ", //27
                             @"Опоздание ЧЧ:ММ",                   //28
                             @"Ранний уход ЧЧ:ММ",              //29
-                            @"Отпуск (отгул)",           //30
-                            @"Коммандировка",                 //31
+                            @"Отпуск",           //30
+                            @"Командировка",                 //31
                             @"День недели",                    //32
                             @"Больничный",                    //33
                             @"Отсутствовал на работе",      //34
                             @"Код",                           //35
                             @"Вышестоящая группа",            //36
-                            @"Описание группы"                //37
-         };
+                            @"Описание группы",                //37
+                            @"Отгул"                      //41
+        };
         public readonly string[] nameHidenColumnsArray =
             {
                 @"№ п/п",//0
@@ -305,15 +306,17 @@ namespace ASTA
                 @"Отработанное время ЧЧ:ММ", //27
                 @"Опоздание ЧЧ:ММ",                    //28
                 @"Ранний уход ЧЧ:ММ",                 //29
-                @"Отпуск (отгул)",              //30
-                @"Коммандировка",                 //31
+                @"Отпуск",              //30
+                @"Командировка",                 //31
                 @"День недели",  //32
                 @"Больничный",  //33
                 @"Отсутствовал на работе",      //34
                 @"Код",         //35
                 @"Вышестоящая группа",            //36
-                @"Описание группы"                //37
-            };
+                @"Описание группы",                //37
+                @"Отгул"                      //41
+        };
+       private static List<OutReasons> outResons = new List<OutReasons>();
 
         private DataTable dtPersonTemp = new DataTable("PersonTemp");
         private DataTable dtPersonTempAllColumns = new DataTable("PersonTempAllColumns");
@@ -2048,16 +2051,12 @@ namespace ASTA
                             checkHourS = cell[3];
                             if (TryParseStringToDecimal(checkHourS) == 0)
                             { checkHourS = numUpHourStart.ToString(); }
-                            row[@"Время прихода,часы"] = checkHourS;
-                            row[@"Время прихода,минут"] = cell[4];
                             row[@"Время прихода"] = ConvertStringsTimeToDecimal(checkHourS, cell[4]);
                             row[@"Учетное время прихода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(checkHourS, cell[4]);
 
                             checkHourE = cell[5];
                             if (TryParseStringToDecimal(checkHourE) == 0)
                             { checkHourE = numUpDownHourEnd.ToString(); }
-                            row[@"Время ухода,часы"] = checkHourE;
-                            row[@"Время ухода,минут"] = cell[6];
                             row[@"Время ухода"] = ConvertStringsTimeToDecimal(checkHourE, cell[6]);
                             row[@"Учетное время ухода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(checkHourE, cell[6]);
 
@@ -2520,10 +2519,10 @@ namespace ASTA
             person = null;
         }
 
-        private void GetPersonRegistrationFromServer(DataTable dtTarget, Person person, string startDate, string endDate)
+        private void GetPersonRegistrationFromServer(DataTable dtTarget, Person person, string startDay, string endDay)
         {
-            int[] startPeriod = ConvertStringDateToIntArray(startDate);
-            int[] endPeriod = ConvertStringDateToIntArray(endDate);
+            int[] startPeriod = ConvertStringDateToIntArray(startDay);
+            int[] endPeriod = ConvertStringDateToIntArray(endDay);
 
             SeekAnualDays(dtTarget, person, false, startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
 
@@ -2620,7 +2619,7 @@ namespace ASTA
             {
                 stringConnection = @"Data Source=" + sServer1 + @"\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=120";
                 query = "SELECT param0, param1, objid, CONVERT(varchar, date, 120) AS date, CONVERT(varchar, PROTOCOL.time, 114) AS time FROM protocol " +
-                   " where action like 'ACCESS_IN' AND param1 like '" + stringIdCardIntellect + "' AND date >= '" + startDate + "' AND date <= '" + endDate + "' " +
+                   " where action like 'ACCESS_IN' AND param1 like '" + stringIdCardIntellect + "' AND date >= '" + startDay + "' AND date <= '" + endDay + "' " +
                    " ORDER BY date ASC";
                 string stringDataNew = "";
                 int idCardIntellect = 0;
@@ -2685,10 +2684,8 @@ namespace ASTA
 
                                             rowPerson[@"График"] = person.Shift;
 
-                                            //day of registration
+                                            //day of registration //real data
                                             rowPerson[@"Дата регистрации"] = stringDataNew;
-                                            //rowPerson[@"День недели"] = DayOfWeekRussian(DateTime.Parse(stringDataNew).DayOfWeek.ToString());
-                                            //real data
                                             rowPerson[@"Время регистрации"] = TryParseStringToDecimal(managingHours.ToString("#.###"));
                                             rowPerson[@"Сервер СКД"] = sServer1;
                                             rowPerson[@"Имя точки прохода"] = namePoint;
@@ -2746,9 +2743,10 @@ namespace ASTA
             }
 
             //look for late and absence of data in www's DB
-            List<OutReasons> resons = new List<OutReasons>();
+            outResons = new List<OutReasons>();
+            
             List<OutPerson> outPerson = new List<OutPerson>();
-            resons.Add(new OutReasons() { _id = 0, _hourly = 1, _name = @"Unknow", _visibleName = @"Неизвестная" });
+            outResons.Add(new OutReasons() { _id = "0", _hourly = 1, _name = @"Unknow", _visibleName = @"Неизвестная" });
 
             stringConnection = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;pooling = false; convert zero datetime=True;Connect Timeout=60";
             logger.Info(stringConnection);
@@ -2766,9 +2764,9 @@ namespace ASTA
                         {
                             if (reader.GetString(@"name") != null && reader.GetString(@"name").Length > 0)
                             {
-                                resons.Add(new OutReasons()
+                                outResons.Add(new OutReasons()
                                 {
-                                    _id = Convert.ToInt32(reader.GetString(@"id")),
+                                    _id = reader.GetString(@"id"),
                                     _hourly = Convert.ToInt32(reader.GetString(@"hourly")),
                                     _name = reader.GetString(@"name"),
                                     _visibleName = reader.GetString(@"visibled_name")
@@ -2779,10 +2777,9 @@ namespace ASTA
                 }
                 _ProgressWork1Step(1);
 
-                int idReason = 0;
                 string date = "";
-                string name = "";
-                query = "Select * FROM out_users where user_code='" + person.NAV + "' AND reason_date >= '" + startDate.Split(' ')[0] + "' AND reason_date <= '" + endDate.Split(' ')[0] + "' ";
+                string resonId = "";
+                query = "Select * FROM out_users where user_code='" + person.NAV + "' AND reason_date >= '" + startDay.Split(' ')[0] + "' AND reason_date <= '" + endDay.Split(' ')[0] + "' ";
                 logger.Info(query);
                 using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
                 {
@@ -2793,14 +2790,12 @@ namespace ASTA
                             if (reader.GetString(@"reason_id") != null && reader.GetString(@"reason_id").Length > 0)
                             {
                                 logger.Info(reader.GetString(@"reason_date"));
-                                try { idReason = Convert.ToInt32(reader.GetString(@"reason_id")); } catch { idReason = 0; }
-                                try { name = resons.Find((x) => x._id == idReason)._name; } catch { name = ""; }
+                                 resonId = outResons.Find((x) => x._id == reader?.GetString(@"reason_id"))?._id; 
                                 try { date = DateTime.Parse(reader.GetString(@"reason_date")).ToString("yyyy-MM-dd"); } catch { date = ""; }
 
                                 outPerson.Add(new OutPerson()
                                 {
-                                    _reason_id = idReason,
-                                    _reason_Name = name,
+                                    _reason_id = resonId,
                                     _nav = reader.GetString(@"user_code").ToUpper().Replace('C', 'S'),
                                     _date = date,
                                     _from = ConvertStringsTimeToSeconds(reader.GetString(@"from_hour"), reader.GetString(@"from_min")),
@@ -2840,7 +2835,7 @@ namespace ASTA
                     {
                         try {
                             //set Comments
-                            dr[@"Комментарии"] = outPerson.Find((x) => x._date == day && x._nav == nav)._reason_Name;
+                            dr[@"Комментарии"] = outPerson.Find((x) => x._date == day && x._nav == nav)._reason_id;
                         } catch { }
                         break;
                     }
@@ -3151,7 +3146,6 @@ namespace ASTA
 
                             personCheck.Comment = row[@"Комментарии"].ToString();
                             personCheck.Shift = row[@"График"].ToString();
-
                             FilterDataByNav(personCheck, dtPersonRegistrationsFullList, dtTempIntermediate);
                         }
                     }
@@ -3194,11 +3188,12 @@ namespace ASTA
 
             //store all columns
             dtPersonTempAllColumns = dtTempIntermediate.Copy();
+            
             //show selected data     
-            //distinct Records         
-
+            //distinct Records        
             var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(arrayHiddenColumns).ToArray(); //take distinct data
             dtPersonTemp = GetDistinctRecords(dtTempIntermediate, namesDistinctColumnsArray);
+
             ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenColumns);
 
             panelViewResize(numberPeopleInLoading);
@@ -3236,9 +3231,9 @@ namespace ASTA
         }
 
         //Copy Data from dtPersonRegistrationsList into dtPersonTemp by Filter(NAV and anual dates or minimalTime or dayoff)
-        private void FilterDataByNav(Person personNAV, DataTable dataTableSource, DataTable dataTableForStoring)
+        private void FilterDataByNav(Person person, DataTable dataTableSource, DataTable dataTableForStoring)
         {
-            logger.Info("FilterDataByNav: " + personNAV.NAV + "| dataTableSource: " + dataTableSource.Rows.Count);
+            logger.Info("FilterDataByNav: " + person.NAV + "| dataTableSource: " + dataTableSource.Rows.Count);
             DataRow rowDtStoring;
             DataTable dtTemp = dataTableSource.Clone();
 
@@ -3251,15 +3246,16 @@ namespace ASTA
             string[] stringHourMinuteLastRegistrationInDay = new string[2];
             decimal workedHours = 0;
             string dayOfWeek = "";
+            string exceptReason ="";
 
             try
             {
-                var allWorkedDaysPerson = dataTableSource.Select("[NAV-код] = '" + personNAV.NAV + "'");
+                var allWorkedDaysPerson = dataTableSource.Select("[NAV-код] = '" + person.NAV + "'");
 
                 if (_CheckboxCheckedStateReturn(checkBoxReEnter) || currentAction == "sendEmail") //checkBoxReEnter.Checked
                 {
                     foreach (DataRow dataRowDate in allWorkedDaysPerson) //make the list of worked days
-                    { hsDays.Add(dataRowDate[12].ToString()); }
+                    { hsDays.Add(dataRowDate[@"Дата регистрации"].ToString()); }
 
                     foreach (var workedDay in hsDays.ToArray())
                     {
@@ -3271,7 +3267,6 @@ namespace ASTA
                         dayOfWeek= DayOfWeekRussian(DateTime.Parse(workedDay).DayOfWeek.ToString());
                         rowDtStoring[@"День недели"] = dayOfWeek;
 
-
                         //find first registration within the during selected workedDay
                         decimalFirstRegistrationInDay = Convert.ToDecimal(dtAllRegistrationsInSelectedDay.Compute("MIN([Время регистрации])", string.Empty));
 
@@ -3280,36 +3275,69 @@ namespace ASTA
 
                         //take and convert a real time coming into a string timearray
                         stringHourMinuteFirstRegistrationInDay = ConvertDecimalTimeToStringHHMMArray(decimalFirstRegistrationInDay);
-                        rowDtStoring[15] = decimalFirstRegistrationInDay;              //("Время регистрации", typeof(decimal)), //15
-                        rowDtStoring[13] = stringHourMinuteFirstRegistrationInDay[0];  //("Время регистрации,часы",typeof(string)),//13
-                        rowDtStoring[14] = stringHourMinuteFirstRegistrationInDay[1];  //("Время регистрации,минут", typeof(string)),//14
-                        rowDtStoring[24] = stringHourMinuteFirstRegistrationInDay[2];  //("Фактич. время прихода ЧЧ:ММ", typeof(string)),//24
+                        rowDtStoring[@"Время регистрации"] = decimalFirstRegistrationInDay;              //("Время регистрации", typeof(decimal)), //15
+                        rowDtStoring[@"Фактич. время прихода ЧЧ:ММ"] = stringHourMinuteFirstRegistrationInDay[2];  //("Фактич. время прихода ЧЧ:ММ", typeof(string)),//24
 
                         stringHourMinuteLastRegistrationInDay = ConvertDecimalTimeToStringHHMMArray(decimalLastRegistrationInDay);
-                        rowDtStoring[18] = decimalLastRegistrationInDay;                 //("Реальное время ухода", typeof(decimal)), //18
-                        rowDtStoring[16] = stringHourMinuteLastRegistrationInDay[0];     //("Реальное время ухода,часы", typeof(string)),//16
-                        rowDtStoring[17] = stringHourMinuteLastRegistrationInDay[1];     //("Реальное время ухода,минут", typeof(string)),//17
-                        rowDtStoring[25] = stringHourMinuteLastRegistrationInDay[2];     //("Фактич. время ухода ЧЧ:ММ", typeof(string)), //25
+                        rowDtStoring[@"Реальное время ухода"] = decimalLastRegistrationInDay;                 //("Реальное время ухода", typeof(decimal)), //18
+                        rowDtStoring[@"Фактич. время ухода ЧЧ:ММ"] = stringHourMinuteLastRegistrationInDay[2];     //("Фактич. время ухода ЧЧ:ММ", typeof(string)), //25
 
-                        // dayOfWeek
                         //worked out times
                         workedHours = decimalLastRegistrationInDay - decimalFirstRegistrationInDay;
-                        rowDtStoring[26] = workedHours;                                  // ("Реальное отработанное время", typeof(decimal)), //26
-                        rowDtStoring[27] = ConvertDecimalTimeToStringHHMMArray(workedHours)[2];  //("Отработанное время ЧЧ:ММ", typeof(string)), //27
+                        rowDtStoring[@"Реальное отработанное время"] = workedHours;                                  // ("Реальное отработанное время", typeof(decimal)), //26
+                        rowDtStoring[@"Отработанное время ЧЧ:ММ"] = ConvertDecimalTimeToStringHHMMArray(workedHours)[2];  //("Отработанное время ЧЧ:ММ", typeof(string)), //27
 
                         //todo 
                         //will calculate if day of week different
-                        if (decimalFirstRegistrationInDay > personNAV.ControlInDecimal && decimalFirstRegistrationInDay != 0) // "Опоздание ЧЧ:ММ", typeof(bool)),           //28
+                        if (decimalFirstRegistrationInDay > person.ControlInDecimal && decimalFirstRegistrationInDay != 0) // "Опоздание ЧЧ:ММ", typeof(bool)),           //28
                         {
-                            rowDtStoring[28] = ConvertDecimalTimeToStringHHMM(decimalFirstRegistrationInDay - personNAV.ControlInDecimal);
+                            rowDtStoring[@"Опоздание ЧЧ:ММ"] = ConvertDecimalTimeToStringHHMM(decimalFirstRegistrationInDay - person.ControlInDecimal);
                         }
-                        else { rowDtStoring[28] = ""; }
+                        else { rowDtStoring[@"Опоздание ЧЧ:ММ"] = ""; }
 
-                        if (decimalLastRegistrationInDay < personNAV.ControlOutDecimal && decimalLastRegistrationInDay != 0)  // "Ранний уход ЧЧ:ММ", typeof(bool)),                 //29
+                        if (decimalLastRegistrationInDay < person.ControlOutDecimal && decimalLastRegistrationInDay != 0)  // "Ранний уход ЧЧ:ММ", typeof(bool)),                 //29
                         {
-                            rowDtStoring[29] = ConvertDecimalTimeToStringHHMM(personNAV.ControlOutDecimal - decimalLastRegistrationInDay);
+                            rowDtStoring[@"Ранний уход ЧЧ:ММ"] = ConvertDecimalTimeToStringHHMM(person.ControlOutDecimal - decimalLastRegistrationInDay);
                         }
-                        else { rowDtStoring[29] = ""; }
+                        else { rowDtStoring[@"Ранний уход ЧЧ:ММ"] = ""; }
+
+
+                        exceptReason = rowDtStoring[@"Комментарии"].ToString();
+                        // try { idReason = Convert.ToInt32(reader.GetString(@"reason_id")); } catch { idReason = 0; }
+                        // try { name = resons.Find((x) => x._id == idReason)._name; } catch { name = ""; }
+
+                        rowDtStoring[@"Комментарии"] = outResons.Find((x) => x._id == exceptReason)?._visibleName;
+
+                        switch (exceptReason)
+                        {
+                            case "2":
+                            case "10":
+                            case "11":
+                            case "12":
+                            case "18":
+                                rowDtStoring[@"Отпуск"] =outResons.Find((x) => x._id == exceptReason)?._visibleName;
+                                break;
+                            case "3":
+                            case "21":
+                                rowDtStoring[@"Больничный"] = outResons.Find((x) => x._id == exceptReason)?._visibleName;
+                                break;
+                            case "1":
+                            case "9":
+                            case "20":
+                                rowDtStoring[@"Отгул"] = outResons.Find((x) => x._id == exceptReason)?._visibleName;
+                                break;
+                            default:
+                                break;
+                        }
+
+
+                        /*
+                                                @"Отпуск",                 //30
+                                                          @"Командировка",                 //31
+                                                          @"Больничный",                    //33
+                                                          @"Комментарии",                    //38
+                                                          @"Отгул"                      //41
+                                                          */
 
                         dtTemp.ImportRow(rowDtStoring);
                     }
@@ -3327,13 +3355,13 @@ namespace ASTA
                     DataTable dtEmpty = new DataTable();
                     Person emptyPerson = new Person();
 
-                    SeekAnualDays(dtTemp, personNAV, true, startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
+                    SeekAnualDays(dtTemp, person, true, startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
                     dtEmpty.Dispose();
                     emptyPerson = null;
                 }
 
                 if (_CheckboxCheckedStateReturn(checkBoxTimeViolations)) //checkBoxStartWorkInTime Checking
-                { QueryDeleteDataFromDataTable(dtTemp, "[Опоздание ЧЧ:ММ]='' AND [Ранний уход ЧЧ:ММ]=''", personNAV.NAV); }
+                { QueryDeleteDataFromDataTable(dtTemp, "[Опоздание ЧЧ:ММ]='' AND [Ранний уход ЧЧ:ММ]=''", person.NAV); }
 
                 foreach (DataRow dr in dtTemp.AsEnumerable())
                 { dataTableForStoring.ImportRow(dr); }
@@ -3346,6 +3374,14 @@ namespace ASTA
             rowDtStoring = null; dtTemp = null; dtAllRegistrationsInSelectedDay = null;
         }
 
+
+
+
+
+        /// <summary>
+        /// ///////////////////////////////////////////////////////////////
+        /// </summary>
+        //check dubled function!!!!!!!!
 
         private void SeekAnualDays(DataTable dt, Person person, bool delRow, int startYear, int startMonth, int startDay, int endYear, int endMonth, int endDay) //Exclude Anual Days from the table "PersonTemp" DB
         {
@@ -3474,11 +3510,7 @@ namespace ASTA
             daysBolded = null;
             daysSelected = null;
         }
-
-        /// <summary>
-        /// ///////////////////////////////////////////////////////////////
-        /// </summary>
-        //check dubled function!!!!!!!!
+        
         private void BoldAnualDates() //Excluded Anual Days from the table "PersonTemp" DB
         {
             var oneDay = TimeSpan.FromDays(1);
@@ -3916,7 +3948,7 @@ namespace ASTA
                 //select and count unique NAV-codes - the number of selected people
                 HashSet<string> hsNAV = new HashSet<string>(); //unique NAV-codes
                 foreach (DataRow row in rowsPersonRegistrationsForDraw)
-                { hsNAV.Add(row["NAV-код"].ToString()); }
+                { hsNAV.Add(row[@"NAV-код"].ToString()); }
                 string[] arrayNAVs = hsNAV.ToArray(); //unique NAV-codes
                 int countNAVs = arrayNAVs.Count(); //the number of selected people
                 numberPeopleInLoading = countNAVs;
@@ -3928,7 +3960,7 @@ namespace ASTA
                 {
                     for (int k = 0; k < workSelectedDays.Length; k++)
                     {
-                        if (workSelectedDays[k].Length == 10 && row["Дата регистрации"].ToString().Contains(workSelectedDays[k]))  //если приход пришел в рабочий день - считаем
+                        if (workSelectedDays[k].Length == 10 && row[@"Дата регистрации"].ToString().Contains(workSelectedDays[k]))  //если приход пришел в рабочий день - считаем
                         { iLenghtRect++; }
                     }
                 }
@@ -3993,17 +4025,17 @@ namespace ASTA
                         {
                             foreach (DataRow row in rowsPersonRegistrationsForDraw)
                             {
-                                nav = row["NAV-код"].ToString();
-                                dayRegistration = row["Дата регистрации"].ToString();
+                                nav = row[@"NAV-код"].ToString();
+                                dayRegistration = row[@"Дата регистрации"].ToString();
 
                                 if (singleNav.Contains(nav) && dayRegistration.Contains(workDay))
                                 {
-                                    fio = row["Фамилия Имя Отчество"].ToString();
-                                    minutesIn = (int)ConvertStringTimeHHMMToDecimalArray(row["Учетное время прихода ЧЧ:ММ"].ToString())[3];
-                                    minutesInFact = (int)ConvertStringTimeHHMMToDecimalArray(row["Фактич. время прихода ЧЧ:ММ"].ToString())[3];
-                                    minutesOut = (int)ConvertStringTimeHHMMToDecimalArray(row["Учетное время ухода ЧЧ:ММ"].ToString())[3];
-                                    minutesOutFact = (int)ConvertStringTimeHHMMToDecimalArray(row["Фактич. время ухода ЧЧ:ММ"].ToString())[3];
-                                    directionPass = row["Направление прохода"].ToString().ToLower();
+                                    fio = row[@"Фамилия Имя Отчество"].ToString();
+                                    minutesIn = (int)ConvertStringTimeHHMMToDecimalArray(row[@"Учетное время прихода ЧЧ:ММ"].ToString())[3];
+                                    minutesInFact = (int)ConvertStringTimeHHMMToDecimalArray(row[@"Фактич. время прихода ЧЧ:ММ"].ToString())[3];
+                                    minutesOut = (int)ConvertStringTimeHHMMToDecimalArray(row[@"Учетное время ухода ЧЧ:ММ"].ToString())[3];
+                                    minutesOutFact = (int)ConvertStringTimeHHMMToDecimalArray(row[@"Фактич. время ухода ЧЧ:ММ"].ToString())[3];
+                                    directionPass = row[@"Направление прохода"].ToString().ToLower();
 
                                     //pass by a point
                                     rectsRealMark[numberRectangle_rectsRealMark] = new Rectangle(
@@ -4198,7 +4230,7 @@ namespace ASTA
             //select and count unique NAV-codes - the number of selected people
             HashSet<string> hsNAV = new HashSet<string>(); //unique NAV-codes
             foreach (DataRow row in rowsPersonRegistrationsForDraw)
-            { hsNAV.Add(row["NAV-код"].ToString()); }
+            { hsNAV.Add(row[@"NAV-код"].ToString()); }
             string[] arrayNAVs = hsNAV.ToArray(); //unique NAV-codes
             int countNAVs = arrayNAVs.Count(); //the number of selected people
             numberPeopleInLoading = countNAVs;
@@ -4209,7 +4241,7 @@ namespace ASTA
             {
                 for (int k = 0; k < workSelectedDays.Length; k++)
                 {
-                    if (workSelectedDays[k].Length == 10 && row["Дата регистрации"].ToString().Contains(workSelectedDays[k]))  //если приход пришел в рабочий день - считаем
+                    if (workSelectedDays[k].Length == 10 && row[@"Дата регистрации"].ToString().Contains(workSelectedDays[k]))  //если приход пришел в рабочий день - считаем
                     { iLenghtRect++; }
                 }
             }
@@ -4271,17 +4303,17 @@ namespace ASTA
                     {
                         foreach (DataRow row in rowsPersonRegistrationsForDraw)
                         {
-                            nav = row["NAV-код"].ToString();
-                            dayRegistration = row["Дата регистрации"].ToString();
+                            nav = row[@"NAV-код"].ToString();
+                            dayRegistration = row[@"Дата регистрации"].ToString();
 
                             if (singleNav.Contains(nav) && dayRegistration.Contains(workDay))
                             {
-                                fio = row["Фамилия Имя Отчество"].ToString();
-                                minutesIn = (int)ConvertStringTimeHHMMToDecimalArray(row["Учетное время прихода ЧЧ:ММ"].ToString())[3];
-                                minutesInFact = (int)ConvertStringTimeHHMMToDecimalArray(row["Фактич. время прихода ЧЧ:ММ"].ToString())[3];
-                                minutesOut = (int)ConvertStringTimeHHMMToDecimalArray(row["Учетное время ухода ЧЧ:ММ"].ToString())[3];
-                                minutesOutFact = (int)ConvertStringTimeHHMMToDecimalArray(row["Фактич. время ухода ЧЧ:ММ"].ToString())[3];
-                                directionPass = row["Направление прохода"].ToString().ToLower();
+                                fio = row[@"Фамилия Имя Отчество"].ToString();
+                                minutesIn = (int)ConvertStringTimeHHMMToDecimalArray(row[@"Учетное время прихода ЧЧ:ММ"].ToString())[3];
+                                minutesInFact = (int)ConvertStringTimeHHMMToDecimalArray(row[@"Фактич. время прихода ЧЧ:ММ"].ToString())[3];
+                                minutesOut = (int)ConvertStringTimeHHMMToDecimalArray(row[@"Учетное время ухода ЧЧ:ММ"].ToString())[3];
+                                minutesOutFact = (int)ConvertStringTimeHHMMToDecimalArray(row[@"Фактич. время ухода ЧЧ:ММ"].ToString())[3];
+                                directionPass = row[@"Направление прохода"].ToString().ToLower();
 
                                 //pass by a point
                                 rectsRealMark[numberRectangle_rectsRealMark] = new Rectangle(
@@ -5685,11 +5717,11 @@ namespace ASTA
                         _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + dgSeek.values[3]);
                         stimerPrev = "";
 
-                        logger.Info("DoMainAction: UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToString() + "' WHERE RecipientEmail='" + dgSeek.values[0] + "' AND NameReport='" + dgSeek.values[3] + "' AND GroupsReport ='" + dgSeek.values[2] + "';");
-                        ExecuteSql("UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToString() + "' WHERE RecipientEmail='" + dgSeek.values[0]
+                        logger.Info("DoMainAction: UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToString("yyyy-MM-dd HH:mm") + "' WHERE RecipientEmail='" + dgSeek.values[0] + "' AND NameReport='" + dgSeek.values[3] + "' AND GroupsReport ='" + dgSeek.values[2] + "';");
+                        ExecuteSql("UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToString("yyyy-MM-dd HH:mm") + "' WHERE RecipientEmail='" + dgSeek.values[0]
                         + "' AND NameReport='" + dgSeek.values[3] + "' AND GroupsReport ='" + dgSeek.values[2] + "';", databasePerson);
 
-                        logger.Info("DoMainAction, " + "sendEmail:" + "|" + dgSeek.values[0] + "|" + dgSeek.values[1] + "|" + dgSeek.values[2] + "|" + dgSeek.values[3] + "|" + dgSeek.values[4] + "|" + dgSeek.values[5] + "|" + dgSeek.values[6]);
+                        logger.Info("DoMainAction, sendEmail: " + dgSeek.values[0] + "|" + dgSeek.values[1] + "|" + dgSeek.values[2] + "|" + dgSeek.values[3] + "|" + dgSeek.values[4] + "|" + dgSeek.values[5] + "|" + dgSeek.values[6]);
                         MailingAction("sendEmail", dgSeek.values[0], dgSeek.values[1], dgSeek.values[2], dgSeek.values[3], dgSeek.values[4], dgSeek.values[5], dgSeek.values[6]);
 
                         logger.Info("DoMainAction, ShowDataTableQuery: ");
@@ -5918,8 +5950,7 @@ namespace ASTA
             lock (synclock)
             {
                 DateTime dd = DateTime.Now;
-                //todo change  when it will have been worked OK
-                if (dd.Hour == 3 && dd.Minute == 5 && sent == false) //do something at Hour 3 and 5 minute //dd.Day == 1 && 
+                if (dd.Day == 1 && dd.Hour == 2 && dd.Minute == 5 && sent == false) //do something at Hour 3 and 5 minute //dd.Day == 1 && 
                 {
                     _toolStripStatusLabelSetText(StatusLabel2, "Ведется работа по подготовке отчетов " + DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
                     _toolStripStatusLabelBackColor(StatusLabel2, Color.LightPink);
@@ -7206,302 +7237,5 @@ namespace ASTA
 
     }
 
-    public class Person
-    {
-        public int id;
-        public int idCard = 0;
-        public string FIO = "";
-        public string NAV = "";
-        public string Department = "";
-        public string PositionInDepartment = "";
-
-        public string GroupPerson = "Office";
-        public decimal ControlInDecimal = 9;
-        public decimal ControlOutDecimal = 18;
-        public string ControlInHHMM = "09:00";
-        public string ControlOutHHMM = "18:00";
-
-        public string RealInHHMM = "09:00";
-        public string RealOutHHMM = "18:00";
-
-        public string RealWorkedDayHoursHHMM = "09:00";
-        public string RealDate = "";
-        public string RealDayOfWeek = "";
-
-        public bool Late = false;
-        public bool Early = false;
-
-        public string serverSKD = "";
-        public string namePassPoint = "";
-        public string directionPass = "";
-        public string Shift = "";
-        public string Comment = "";
-    }
-
-    public class DataGridViewSeekValuesInSelectedRow
-    {
-        public string[] values = new string[10];
-        public bool correctData { get; set; }
-
-        public void FindValueInCells(DataGridView DGV, params string[] columnsName)
-        {
-            int IndexCurrentRow = DGV.CurrentRow.Index > -1 ? DGV.CurrentRow.Index : -1;
-            correctData = IndexCurrentRow > -1 ? true : false;
-
-            if (correctData)
-            {
-                for (int i = 0; i < DGV.ColumnCount; i++)
-                {
-                    if (DGV.Columns[i].HeaderText == columnsName[0])
-                    {
-                        values[0] = DGV.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                    else if (columnsName.Length > 1 && DGV.Columns[i].HeaderText == columnsName[1])
-                    {
-                        values[1] = DGV.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                    else if (columnsName.Length > 2 && DGV.Columns[i].HeaderText == columnsName[2])
-                    {
-                        values[2] = DGV.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                    else if (columnsName.Length > 3 && DGV.Columns[i].HeaderText == columnsName[3])
-                    {
-                        values[3] = DGV.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                    else if (columnsName.Length > 4 && DGV.Columns[i].HeaderText == columnsName[4])
-                    {
-                        values[4] = DGV.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                    else if (columnsName.Length > 5 && DGV.Columns[i].HeaderText == columnsName[5])
-                    {
-                        values[5] = DGV.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                    else if (columnsName.Length > 6 && DGV.Columns[i].HeaderText == columnsName[6])
-                    {
-                        values[6] = DGV.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                    else if (columnsName.Length > 7 && DGV.Columns[i].HeaderText == columnsName[7])
-                    {
-                        values[7] = DGV.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                    else if (columnsName.Length > 8 && DGV.Columns[i].HeaderText == columnsName[8])
-                    {
-                        values[8] = DGV.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                    else if (columnsName.Length > 9 && DGV.Columns[i].HeaderText == columnsName[9])
-                    {
-                        values[9] = DGV.Rows[IndexCurrentRow].Cells[i].Value.ToString();
-                    }
-                }
-            }
-
-        }
-    }
-
-    public static class DataTableExtensions
-    {
-        public static void SetColumnsOrder(this DataTable table, params string[] columnNames)
-        {
-            List<string> listColNames = columnNames.ToList();
-
-            //Remove invalid column names.
-            foreach (string colName in columnNames)
-            {
-                if (!table.Columns.Contains(colName))
-                {
-                    listColNames.Remove(colName);
-                }
-            }
-
-            int columnIndex = 0;
-            foreach (var columnName in listColNames)
-            {
-                table.Columns[columnName].SetOrdinal(columnIndex);
-                columnIndex++;
-            }
-        }
-    }
-
-    public class MailingStructure
-    {
-        public string _sender = "";
-        public string _recipient = "";
-        public string _groupsReport = "";
-        public string _nameReport = "";
-        public string _descriptionReport = "";
-        public string _period = "";
-        public string _status = "";
-    }
-
-    public class OutReasons
-    {
-        public int _id = 0;
-        public string _name = "";
-        public string _visibleName = "";
-        public int _hourly = 0;
-    }
-
-    public class OutPerson
-    {
-        public int _reason_id = 0;
-        public string _reason_Name = "";
-        public string _nav = "";
-        public string _date = "";
-        public int _from = 0;
-        public int _to = 0;
-        public int _hourly = 0;
-    }
-
-    public class PeopleShift
-    {
-        public string _fio;
-        public string _nav;
-        public string _dayStartShift;
-        public int _MoStart;
-        public int _MoEnd;
-        public int _TuStart;
-        public int _TuEnd;
-        public int _WeStart;
-        public int _WeEnd;
-        public int _ThStart;
-        public int _ThEnd;
-        public int _FrStart;
-        public int _FrEnd;
-        public int _SaStart;
-        public int _SaEnd;
-        public int _SuStart;
-        public int _SuEnd;
-        public string _Status;
-        public string _Comment;
-        public string _DayInputed;
-        public string _Reserv1;
-        public string _Reserv2;
-    }
-
-    public class PeopleDepartment
-    {
-        public string _departmentName;
-        public string _departmentDescription;
-        public string _parent_id;
-        public string _id;
-
-    }
-
-    public class EncryptDecrypt
-    {
-        /*
-            string plainText = "Hello, World!";            
-            string TestKey = "gFlMfLZu4unBGfBh9weIuLwlcXHSa59vxyUQWM3yh1M=";
-            string TestIV = "rRNgGypocle9VG9bth6kxg==";
-
-            var ed = new EncDec(TestKey, TestIV);
-            var cypherText = ed.Encrypt(plainText);  //4U8SPwju5aH9pHwmiYd1jQ==
-            var plainText2 = ed.Decrypt(cypherText); //4U8SPwju5aH9pHwmiYd1jQ==
-*/
-        private byte[] key;
-        private byte[] IV;
-
-        public void EncDec(string keyText, string ivText)
-        {
-            key = Convert.FromBase64String(keyText);
-            IV = Convert.FromBase64String(ivText);
-        }
-
-        public void EncDecKeys(byte[] key, byte[] IV)
-        {
-            this.key = key;
-            this.IV = IV;
-        }
-
-        public string Encrypt(string plainText)
-        {
-            var bytes = EncryptStringToBytes(plainText, key, IV);
-            return Convert.ToBase64String(bytes);
-        }
-
-        private static byte[] EncryptStringToBytes(string plainText, byte[] Key, byte[] IV)
-        {
-            // Check arguments. 
-            if (plainText == null || plainText.Length <= 0)
-                throw new ArgumentNullException("plainText");
-            if (Key == null || Key.Length <= 0)
-                throw new ArgumentNullException("Key");
-            if (IV == null || IV.Length <= 0)
-                throw new ArgumentNullException("IV");
-            byte[] encrypted;
-            // Create an RijndaelManaged object 
-            // with the specified key and IV. 
-            using (RijndaelManaged rijAlg = new RijndaelManaged())
-            {
-                rijAlg.Key = Key;
-                rijAlg.IV = IV;
-
-                // Create a decrytor to perform the stream transform.
-                ICryptoTransform encryptor = rijAlg.CreateEncryptor(rijAlg.Key, rijAlg.IV);
-
-                // Create the streams used for encryption. 
-                using (System.IO.MemoryStream msEncrypt = new System.IO.MemoryStream())
-                {
-                    using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
-                    {
-                        using (System.IO.StreamWriter swEncrypt = new System.IO.StreamWriter(csEncrypt))
-                        {
-                            swEncrypt.Write(plainText);  //Write all data to the stream.
-                        }
-                        encrypted = msEncrypt.ToArray();
-                    }
-                }
-            }
-
-            // Return the encrypted bytes from the memory stream. 
-            return encrypted;
-        }
-
-        public string Decrypt(string cipherText)
-        {
-            var bytes = Convert.FromBase64String(cipherText);
-            return DecryptStringFromBytes(bytes, key, IV);
-        }
-
-        private static string DecryptStringFromBytes(byte[] cipherText, byte[] Key, byte[] IV)
-        {
-            // Check arguments. 
-            if (cipherText == null || cipherText.Length <= 0)
-                throw new ArgumentNullException("cipherText");
-            if (Key == null || Key.Length <= 0)
-                throw new ArgumentNullException("Key");
-            if (IV == null || IV.Length <= 0)
-                throw new ArgumentNullException("IV");
-
-            // Declare the string used to hold  the decrypted text. 
-            string plaintext = null;
-
-            // Create an RijndaelManaged object with the specified key and IV. 
-            using (RijndaelManaged rijAlg = new RijndaelManaged())
-            {
-                rijAlg.Key = Key;
-                rijAlg.IV = IV;
-
-                // Create a decrytor to perform the stream transform.
-                ICryptoTransform decryptor = rijAlg.CreateDecryptor(rijAlg.Key, rijAlg.IV);
-
-                // Create the streams used for decryption. 
-                using (System.IO.MemoryStream msDecrypt = new System.IO.MemoryStream(cipherText))
-                {
-                    using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
-                    {
-                        using (System.IO.StreamReader srDecrypt = new System.IO.StreamReader(csDecrypt))
-                        {
-
-                            // Read the decrypted bytes from the decrypting stream 
-                            // and place them in a string.
-                            plaintext = srDecrypt.ReadToEnd();
-                        }
-                    }
-                }
-            }
-
-            return plaintext;
-        }
-    }
+    
 }
