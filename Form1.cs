@@ -2673,7 +2673,7 @@ namespace ASTA
 
                 rowPerson[@"График"] = person.Shift;
 
-                rowPerson[@"Время регистрации"] = "00:00";
+                rowPerson[@"Время регистрации"] = "0";
                 rowPerson[@"Дата регистрации"] = day;
                 rowPerson[@"День недели"] = DayOfWeekRussian((DateTime.Parse(day)).DayOfWeek.ToString());
                 rowPerson[@"Учетное время прихода ЧЧ:ММ"] = person.ControlInHHMM;
