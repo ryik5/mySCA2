@@ -301,7 +301,9 @@ namespace ASTA
                 @"Реальное время ухода,часы",//16
                 @"Реальное время ухода,минут",//17
                 @"Реальное время ухода", //18
-                //@"Учетное время ухода ЧЧ:ММ",       //23
+                @"Сервер СКД", //19
+                @"Имя точки прохода", //20
+                @"Направление прохода", //21
                 @"Реальное отработанное время", //26
                 @"Отработанное время ЧЧ:ММ", //27
                 @"Опоздание ЧЧ:ММ",                    //28
@@ -314,7 +316,8 @@ namespace ASTA
                 @"Код",         //35
                 @"Вышестоящая группа",            //36
                 @"Описание группы",                //37
-                @"Отгул"                      //41
+                @"Отгул",                      //41
+
         };
        private static List<OutReasons> outResons = new List<OutReasons>();
 
@@ -3161,40 +3164,15 @@ namespace ASTA
                 { FilterDataByNav(personCheck, dtPersonRegistrationsFullList, dtTempIntermediate); }
             }
 
-            string[] arrayHiddenColumns =
-            {
-                @"№ п/п",//0
-                @"Время прихода,часы",//4
-                @"Время прихода,минут", //5
-                @"Время прихода",//6
-                @"Время ухода,часы",//7
-                @"Время ухода,минут",//8
-                @"Время ухода",//9
-                @"№ пропуска", //10
-                @"Время регистрации,часы",//13
-                @"Время регистрации,минут",//14
-                @"Время регистрации", //15
-                @"Реальное время ухода,часы",//16
-                @"Реальное время ухода,минут",//17
-                @"Реальное время ухода", //18
-                @"Сервер СКД", //19
-                @"Имя точки прохода", //20
-                @"Направление прохода", //21
-                @"Реальное отработанное время", //26
-                @"Код",         //35
-                @"Вышестоящая группа",            //36
-                @"Описание группы"                //37            
-            };
-
             //store all columns
             dtPersonTempAllColumns = dtTempIntermediate.Copy();
             
             //show selected data     
             //distinct Records        
-            var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(arrayHiddenColumns).ToArray(); //take distinct data
+            var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(nameHidenColumnsArray).ToArray(); //take distinct data
             dtPersonTemp = GetDistinctRecords(dtTempIntermediate, namesDistinctColumnsArray);
 
-            ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenColumns);
+            ShowDatatableOnDatagridview(dtPersonTemp, nameHidenColumnsArray);
 
             panelViewResize(numberPeopleInLoading);
             _controlVisible(dataGridView1, true);
