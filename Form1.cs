@@ -2507,7 +2507,7 @@ namespace ASTA
             logger.Info("GetPersonRegistrationFromServer, person - " + person.NAV);
 
             SeekAnualDays(dtTarget, person, false, startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
-
+            logger.Info("1");
             DataRow rowPerson;
             string stringConnection = "";
             string query = "";
@@ -2556,7 +2556,7 @@ namespace ASTA
                     }
                 }
             } catch (Exception expt) { logger.Warn("GetPersonRegistrationFromServer " + expt.ToString()); }
-
+            logger.Info("2");
             string[] cellData;
             string namePoint = "";
             string direction = "";
@@ -2652,7 +2652,7 @@ namespace ASTA
                 }
 
                 stringDataNew = null; query = null; stringConnection = null;
-
+                logger.Info("3");
                 _ProgressWork1Step(1);
             } catch (Exception Expt)
             { MessageBox.Show(Expt.ToString(), @"Сервер не доступен, или неправильная авторизация", MessageBoxButtons.OK, MessageBoxIcon.Error); }
@@ -2687,7 +2687,7 @@ namespace ASTA
 
             //look for late and absence of data in www's DB
             outResons = new List<OutReasons>();
-
+            logger.Info("4");
             List<OutPerson> outPerson = new List<OutPerson>();
             outResons.Add(new OutReasons() { _id = "0", _hourly = 1, _name = @"Unknow", _visibleName = @"Неизвестная" });
 
@@ -2753,7 +2753,7 @@ namespace ASTA
             }
             logger.Info(person.NAV + " - на сайте всего записей с отсутствиями: " + outPerson.Count);
             _ProgressWork1Step(1);
-
+            logger.Info("5");
             string nav = "";
             foreach (var row in dtTarget.AsEnumerable())
             {
