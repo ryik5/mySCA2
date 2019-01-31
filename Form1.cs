@@ -1507,7 +1507,7 @@ namespace ASTA
 
                     sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
-                    foreach (string str in ListFIOCombo.ToArray())
+                    foreach (string str in ListFIOCombo.Distinct().ToArray())
                     {
                         if (str != null && str.Length > 1)
                         {
@@ -1528,12 +1528,12 @@ namespace ASTA
                     sqlConnection.Close();
                 }
 
-                foreach (string str in ListFIOCombo.ToArray())
+                foreach (string str in ListFIOCombo.Distinct().ToArray())
                 { _comboBoxAdd(comboBoxFio, str); }
                 try
                 { _comboBoxSelectIndex(comboBoxFio, 0); } catch { };
 
-                _toolStripStatusLabelSetText(StatusLabel2, "Получено ФИО - " + iFIO + " ");
+                _toolStripStatusLabelSetText(StatusLabel2, "Получено ФИО - " + ListFIOCombo.Distinct().ToArray().Length + " ");
                 _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
                 _MenuItemEnabled(QuickLoadDataItem, true);
                 ListFIOCombo = null;
