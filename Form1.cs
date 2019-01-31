@@ -1272,14 +1272,14 @@ namespace ASTA
                         {
                             while (reader.Read())
                             {
-                                if (reader?.GetString(@"code") != null && reader?.GetString(@"code").Length > 0)
+                                if (reader.GetString(@"code")?.Length > 0)
                                 {
-                                    try { dayStartShift = DateTime.Parse(reader?.GetMySqlDateTime(@"start_date").ToString()).ToString("yyyy-MM-dd"); } catch
+                                    try { dayStartShift = DateTime.Parse(reader.GetMySqlDateTime(@"start_date").ToString()).ToString("yyyy-MM-dd"); } catch
                                     { dayStartShift = DateTime.Parse("1980-01-01").ToString("yyyy-MM-dd"); }
 
                                     peopleShifts.Add(new PeopleShift()
                                     {
-                                        _nav = reader.GetString(@"code")?.Replace('C', 'S'),
+                                        _nav = reader.GetString(@"code").Replace('C', 'S'),
                                         _dayStartShift = dayStartShift,
                                         _MoStart = Convert.ToInt32(reader.GetString(@"mo_start")),
                                         _MoEnd = Convert.ToInt32(reader.GetString(@"mo_end")),
@@ -1324,7 +1324,7 @@ namespace ASTA
                         {
                             while (reader.Read())
                             {
-                                if (reader.GetString(@"family_name") != null && reader.GetString(@"family_name").Length > 0)
+                                if (reader.GetString(@"family_name")?.Length > 0)
                                 {
                                     row = dataTablePeople.NewRow();
                                     iFIO++;
@@ -1340,7 +1340,7 @@ namespace ASTA
                                     personFromServer.NAV = nav;
 
                                     depName = departments.FindLast((x) => x._id == reader.GetString(@"department").Trim())?._departmentName;
-                                    personFromServer.Department = depName ?? reader?.GetString(@"department")?.Trim();
+                                    personFromServer.Department = depName ?? reader.GetString(@"department")?.Trim();
                                     personFromServer.PositionInDepartment = reader.GetString(@"vacancy")?.Trim();
                                     personFromServer.GroupPerson = groupName;
 
