@@ -1324,7 +1324,7 @@ namespace ASTA
                         {
                             while (reader.Read())
                             {
-                                if (reader.GetString(@"family_name") != null && reader.GetString(@"family_name").Length > 0)
+                                if (reader?.GetString(@"family_name")?.Length > 0)
                                 {
                                     row = dataTablePeople.NewRow();
                                     iFIO++;
