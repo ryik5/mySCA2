@@ -482,7 +482,7 @@ namespace ASTA
 
             if (currentModeAppManual)
             {
-                nameOfLastTableFromDB = "ListFIO";
+            nameOfLastTableFromDB = "ListFIO";
                 SeekAndShowMembersOfGroup("");
             }
             else
@@ -1181,9 +1181,7 @@ namespace ASTA
                                     {
                                         iFIO++;
                                         row = dataTablePeople.NewRow();
-                                        fio = record["name"]?.ToString()?.Trim();
-                                        fio += " " + record["surname"]?.ToString()?.Trim();
-                                        fio += " " + record["patronymic"]?.ToString()?.Trim();
+                                        fio = (record["name"]?.ToString()?.Trim() + " " + record["surname"]?.ToString()?.Trim() + " " + record["patronymic"]?.ToString()?.Trim()).Replace(@"  ",@" ");
                                         groupName = record["parent_id"]?.ToString()?.Trim();
                                         nav = record["tabnum"]?.ToString()?.Trim()?.ToUpper();
                                         try
@@ -1205,8 +1203,8 @@ namespace ASTA
 
                                         dataTablePeople.Rows.Add(row);
 
-                                        listFIO.Add(record["name"].ToString().Trim() + "|" + record["surname"].ToString().Trim() + "|" + record["patronymic"].ToString().Trim() + "|" + record["id"].ToString().Trim() + "|" +
-                                                    record["tabnum"].ToString().Trim() + "|" + sServer1);
+                                        listFIO.Add(record["name"]?.ToString()?.Trim() + "|" + record["surname"]?.ToString()?.Trim() + "|" + record["patronymic"]?.ToString()?.Trim() + "|" +
+                                            record["id"]?.ToString()?.Trim() + "|" + record["tabnum"]?.ToString()?.Trim() + "|" + sServer1);
 
                                         ListFIOTemp.Add(personFromServer.FIO + "|" + personFromServer.NAV);
                                         listCodesWithIdCard.Add(nav);
@@ -1314,7 +1312,7 @@ namespace ASTA
                         timeEnd_ = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
 
                         //test only
-                        logger.Info("Общий график с " + dayStartShift);
+                        logger.Info("Общий график с "+ dayStartShift );
                     } catch { }
 
                     // import people from web DB
@@ -1347,7 +1345,7 @@ namespace ASTA
                                     personFromServer.ControlInHHMM = timeStart_;
                                     personFromServer.ControlOutHHMM = timeEnd_;
 
-                                    dayStartShift = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._dayStartShift;
+                                        dayStartShift = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._dayStartShift;
                                     if (dayStartShift?.Length > 0)
                                     {
                                         personFromServer.Shift = "Индивидуальный график с " + dayStartShift;
@@ -1379,7 +1377,7 @@ namespace ASTA
 
                                     if (listCodesWithIdCard.IndexOf(personFromServer.NAV) != -1)
                                     {
-                                        ListFIOTemp.Add(personFromServer.FIO + "|" + personFromServer.NAV);
+                                    ListFIOTemp.Add(personFromServer.FIO + "|" + personFromServer.NAV);
                                         dataTablePeople.Rows.Add(row);
                                     }
 
@@ -3229,7 +3227,7 @@ namespace ASTA
                             case "12":
                             case "18":
                                 rowDtStoring[@"Отпуск"] = outResons.Find((x) => x._id == exceptReason)?._visibleName;
-                                break;
+                                    break;
                             case "3":
                             case "21":
                                 rowDtStoring[@"Больничный"] = outResons.Find((x) => x._id == exceptReason)?._visibleName;
