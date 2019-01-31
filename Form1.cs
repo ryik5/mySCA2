@@ -482,7 +482,7 @@ namespace ASTA
 
             if (currentModeAppManual)
             {
-            nameOfLastTableFromDB = "ListFIO";
+                nameOfLastTableFromDB = "ListFIO";
                 SeekAndShowMembersOfGroup("");
             }
             else
@@ -1181,9 +1181,9 @@ namespace ASTA
                                     {
                                         iFIO++;
                                         row = dataTablePeople.NewRow();
-                                        fio =   record["name"]?.ToString()?.Trim(); 
-                                        fio += " " + record["surname"]?.ToString()?.Trim();  
-                                        fio += " " + record["patronymic"]?.ToString()?.Trim(); 
+                                        fio = record["name"]?.ToString()?.Trim();
+                                        fio += " " + record["surname"]?.ToString()?.Trim();
+                                        fio += " " + record["patronymic"]?.ToString()?.Trim();
                                         groupName = record["parent_id"]?.ToString()?.Trim();
                                         nav = record["tabnum"]?.ToString()?.Trim()?.ToUpper();
                                         try
@@ -1314,7 +1314,7 @@ namespace ASTA
                         timeEnd_ = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
 
                         //test only
-                        logger.Info("Общий график с "+ dayStartShift );
+                        logger.Info("Общий график с " + dayStartShift);
                     } catch { }
 
                     // import people from web DB
@@ -1347,7 +1347,7 @@ namespace ASTA
                                     personFromServer.ControlInHHMM = timeStart_;
                                     personFromServer.ControlOutHHMM = timeEnd_;
 
-                                        dayStartShift = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._dayStartShift;
+                                    dayStartShift = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._dayStartShift;
                                     if (dayStartShift?.Length > 0)
                                     {
                                         personFromServer.Shift = "Индивидуальный график с " + dayStartShift;
@@ -1376,10 +1376,10 @@ namespace ASTA
                                     row[@"Учетное время прихода ЧЧ:ММ"] = personFromServer.ControlInHHMM;
                                     row[@"Учетное время ухода ЧЧ:ММ"] = personFromServer.ControlOutHHMM;
 
-                                    ListFIOTemp.Add(personFromServer.FIO + "|" + personFromServer.NAV);
 
                                     if (listCodesWithIdCard.IndexOf(personFromServer.NAV) != -1)
                                     {
+                                        ListFIOTemp.Add(personFromServer.FIO + "|" + personFromServer.NAV);
                                         dataTablePeople.Rows.Add(row);
                                     }
 
@@ -1928,7 +1928,7 @@ namespace ASTA
 
             numberPeopleInLoading = 0;
             DataRow dataRow;
-            string dprtmnt = "", pstn = "", shift = "", query = ""; ;
+            string dprtmnt = "", query = ""; ;
 
             query = "Select FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Reserv1, Reserv2 FROM PeopleGroup ";
             if (nameGroup.Length > 0)
@@ -1944,8 +1944,6 @@ namespace ASTA
                     {
                         foreach (DbDataRecord record in sqlReader)
                         {
-                            dprtmnt = ""; pstn = ""; shift = "";
-
                             if (record["FIO"]?.ToString()?.Length > 0 && record["NAV"]?.ToString()?.Length > 0)
                             {
                                 try { dprtmnt = record[@"Reserv1"].ToString(); } catch { dprtmnt = record[@"GroupPerson"]?.ToString(); }
@@ -3231,7 +3229,7 @@ namespace ASTA
                             case "12":
                             case "18":
                                 rowDtStoring[@"Отпуск"] = outResons.Find((x) => x._id == exceptReason)?._visibleName;
-                                    break;
+                                break;
                             case "3":
                             case "21":
                                 rowDtStoring[@"Больничный"] = outResons.Find((x) => x._id == exceptReason)?._visibleName;
@@ -7131,10 +7129,5 @@ namespace ASTA
         }
 
         //---- End. Convertors of data types ----//
-
-
-
     }
-
-
 }
