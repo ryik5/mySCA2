@@ -1116,7 +1116,7 @@ namespace ASTA
 
             string nav = "";
             List<string> ListFIOTemp = new List<string>();
-            listFIO = new List<string>();
+            listFIO?.Clear();
             List<string> listCodesWithIdCard = new List<string>(); //NAV-codes people who have idCard
 
             // import users and group from www.ais
@@ -1175,19 +1175,15 @@ namespace ASTA
                             {
                                 try
                                 {
-                                    string id = record?["id"].ToString();
-                                    if (record?["name"].ToString().Trim().Length > 0)
+                                    if (record["name"]?.ToString()?.Trim()?.Length > 0)
                                     {
                                         iFIO++;
                                         row = dataTablePeople.NewRow();
-                                        fio = "";
-                                        //todo
-                                        //simplify - record["name"]?.ToString()?.Trim()
-                                        try { fio = record["name"].ToString().Trim(); } catch { }
-                                        try { fio += " " + record["surname"].ToString().Trim(); fio = fio.Trim(); } catch { }
-                                        try { fio += " " + record["patronymic"].ToString().Trim(); fio = fio.Trim(); } catch { }
-                                        groupName = record["parent_id"].ToString().Trim();
-                                        nav = record["tabnum"].ToString().ToUpper().Trim();
+                                        fio =   record["name"]?.ToString()?.Trim(); 
+                                        fio += " " + record["surname"]?.ToString()?.Trim();  
+                                        fio += " " + record["patronymic"]?.ToString()?.Trim(); 
+                                        groupName = record["parent_id"]?.ToString()?.Trim();
+                                        nav = record["tabnum"]?.ToString()?.Trim()?.ToUpper();
                                         try
                                         {
                                             depName = groups.Find((x) => x._departmentName == groupName)?._departmentDescription;
@@ -2566,7 +2562,7 @@ namespace ASTA
                             } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                     }
 
-                    if (stringIdCardIntellect.Length == 0)
+                  /*  if (stringIdCardIntellect.Length == 0)
                     {
                         foreach (var strRowWithNav in listFIO.ToArray())
                         {
@@ -2590,7 +2586,7 @@ namespace ASTA
                                 }
                             }
                         }
-                    }
+                    }*/
                 }
             } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
 
@@ -3696,7 +3692,6 @@ namespace ASTA
             _textBoxSetText(textBoxNav, "");
 
             _comboBoxClr(comboBoxFio);
-            listFIO.Clear();
 
             GC.Collect();
             iFIO = 0;
@@ -3737,7 +3732,6 @@ namespace ASTA
                 _textBoxSetText(textBoxNav, "");
 
                 _comboBoxClr(comboBoxFio);
-                listFIO.Clear();
 
                 iFIO = 0;
                 TryMakeDB();
