@@ -2513,13 +2513,7 @@ namespace ASTA
             string stringConnection = "";
             string query = "";
             HashSet<string> personWorkedDays = new HashSet<string>();
-
             string stringIdCardIntellect = "";
-            string personNAVTemp = "";
-            string[] stringSelectedFIO = { "", "", "" };
-            try { stringSelectedFIO[0] = Regex.Split(person.FIO, "[ ]")[0]; } catch { }
-            try { stringSelectedFIO[1] = Regex.Split(person.FIO, "[ ]")[1]; } catch { }
-            try { stringSelectedFIO[2] = Regex.Split(person.FIO, "[ ]")[2]; } catch { }
 
             //is looking for a NAV and an idCard
             try
@@ -2561,32 +2555,6 @@ namespace ASTA
                                 break;
                             } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                     }
-
-                  /*  if (stringIdCardIntellect.Length == 0)
-                    {
-                        foreach (var strRowWithNav in listFIO.ToArray())
-                        {
-                            if (strRowWithNav.ToLower().Contains(stringSelectedFIO[0].ToLower().Trim()) &&
-                                strRowWithNav.ToLower().Contains(stringSelectedFIO[1].ToLower().Trim()) &&
-                                strRowWithNav.ToLower().Contains(stringSelectedFIO[2].ToLower().Trim()))
-                            {
-                                try
-                                {
-                                    stringIdCardIntellect = Regex.Split(strRowWithNav, "[|]")[3].Trim();
-                                    person.idCard = Convert.ToInt32(stringIdCardIntellect);
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
-                                try
-                                {
-                                    personNAVTemp = Regex.Split(strRowWithNav, "[|]")[4].Trim();
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
-                                if (person.NAV.Length < 1 && personNAVTemp.Length > 0)
-                                {
-                                    person.NAV = personNAVTemp;
-                                    _ProgressWork1Step(1); break;
-                                }
-                            }
-                        }
-                    }*/
                 }
             } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
 
@@ -2662,7 +2630,7 @@ namespace ASTA
 
                                             rowPerson[@"График"] = person.Shift;
 
-                                            //day of registration //real data
+                                            //day of registration. real data
                                             rowPerson[@"Дата регистрации"] = stringDataNew;
                                             rowPerson[@"Время регистрации"] = TryParseStringToDecimal(managingHours.ToString("#.###"));
                                             rowPerson[@"Сервер СКД"] = sServer1;
@@ -2707,7 +2675,7 @@ namespace ASTA
 
                 rowPerson[@"График"] = person.Shift;
 
-                rowPerson[@"Время регистрации"] = "0";
+                rowPerson[@"Время регистрации"] = "00:00";
                 rowPerson[@"Дата регистрации"] = day;
                 rowPerson[@"День недели"] = DayOfWeekRussian((DateTime.Parse(day)).DayOfWeek.ToString());
                 rowPerson[@"Учетное время прихода ЧЧ:ММ"] = person.ControlInHHMM;
@@ -2809,12 +2777,7 @@ namespace ASTA
                 {
                     if (dr[@"Дата регистрации"].ToString() == day)
                     {
-                        // todo - remove try and check
-                        try
-                        {
-                            //set Comments
-                            dr[@"Комментарии"] = outPerson.Find((x) => x._date == day && x._nav == nav)?._reason_id;
-                        } catch { }
+                        dr[@"Комментарии"] = outPerson.Find((x) => x._date == day && x._nav == nav)?._reason_id;
                         break;
                     }
                 }
@@ -2824,7 +2787,7 @@ namespace ASTA
 
             listRegistrations.Clear(); rowPerson = null;
             namePoint = null; direction = null;
-            stringIdCardIntellect = null; personNAVTemp = null; stringSelectedFIO = new string[1]; cellData = new string[1];
+            stringIdCardIntellect = null; cellData = new string[1];
         }
 
         private string DayOfWeekRussian(string dayEnglish) //return a day of week as the same short name in Russian 
