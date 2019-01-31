@@ -1349,9 +1349,9 @@ namespace ASTA
                                     personFromServer.ControlInHHMM = timeStart_;
                                     personFromServer.ControlOutHHMM = timeEnd_;
 
-                                    try
-                                    {
                                         dayStartShift = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._dayStartShift;
+                                    if (dayStartShift?.Length > 0)
+                                    {
                                         personFromServer.Shift = "Индивидуальный график с " + dayStartShift;
 
                                         tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoStart;
@@ -1360,11 +1360,10 @@ namespace ASTA
                                         tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoEnd;
                                         personFromServer.ControlOutHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
 
-                                        personFromServer.Comment= peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._Comment;
+                                        personFromServer.Comment = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._Comment;
 
-                                        logger.Info("Индивидуальный график с " + dayStartShift + " " + personFromServer.NAV + " "+ personFromServer.Comment);
-                                    } catch { }
-
+                                        logger.Info("Индивидуальный график с " + dayStartShift + " " + personFromServer.NAV + " " + personFromServer.Comment);
+                                    }
                                     row[@"№ п/п"] = iFIO;
                                     row[@"Фамилия Имя Отчество"] = personFromServer.FIO;
                                     row[@"NAV-код"] = personFromServer.NAV;
