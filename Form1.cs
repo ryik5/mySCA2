@@ -1308,11 +1308,14 @@ namespace ASTA
                     {
                         dayStartShift_ = "Общий график с " + peopleShifts.FindLast((x) => x._nav == "0")._dayStartShift;
 
-                        tmpSeconds = peopleShifts.FindLast((x) => x._nav == "0")._MoStart;
+                        tmpSeconds = peopleShifts.FindLast((x) => x._nav == "0" && x._dayStartShift == dayStartShift_)._MoStart;
                         timeStart_ = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
 
-                        tmpSeconds = peopleShifts.FindLast((x) => x._nav == "0")._MoEnd;
+                        tmpSeconds = peopleShifts.FindLast((x) => x._nav == "0" && x._dayStartShift == dayStartShift_)._MoEnd;
                         timeEnd_ = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
+
+                        //test only
+                        logger.Info("Общий график с "+ dayStartShift_ + " "+ nav);
                     } catch { }
 
                     // import people from web DB
@@ -1329,15 +1332,11 @@ namespace ASTA
                                     row = dataTablePeople.NewRow();
                                     iFIO++;
 
-                                    fio = "";
-                                    try { fio = reader.GetString(@"family_name").Trim(); } catch { }
-                                    try { fio += " " + reader.GetString(@"first_name").Trim(); fio = fio.Trim(); } catch { }
-                                    try { fio += " " + reader.GetString(@"last_name").Trim(); fio = fio.Trim(); } catch { }
+                                    fio = (((reader.GetString(@"family_name")?.Trim() + " ").Trim() + reader.GetString(@"first_name")?.Trim())?.Trim() + " " + reader.GetString(@"last_name").Trim())?.Trim();
 
                                     personFromServer = new Person();
                                     personFromServer.FIO = fio.Replace("&acute;", "'");
-                                    nav = reader.GetString(@"code").Trim().ToUpper().Replace('C', 'S');
-                                    personFromServer.NAV = nav;
+                                    personFromServer.NAV = reader.GetString(@"code").Trim().ToUpper().Replace('C', 'S');
 
                                     depName = departments.FindLast((x) => x._id == reader.GetString(@"department").Trim())?._departmentName;
                                     personFromServer.Department = depName ?? reader.GetString(@"department")?.Trim();
@@ -1358,6 +1357,10 @@ namespace ASTA
 
                                         tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoEnd;
                                         personFromServer.ControlOutHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
+
+                                        personFromServer.Comment= peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._Comment;
+
+                                        logger.Info("Индивидуальный график с " + dayStartShift_ + " " + personFromServer.NAV + " "+ personFromServer.Comment);
                                     } catch { }
 
                                     row[@"№ п/п"] = iFIO;
@@ -1378,7 +1381,6 @@ namespace ASTA
 
                                     if (listCodesWithIdCard.IndexOf(nav) != -1)
                                     {
-                                        // listCodesFromWeb.Add(nav);
                                         dataTablePeople.Rows.Add(row);
                                     }
 
@@ -1556,6 +1558,12 @@ namespace ASTA
             SeekAndShowMembersOfGroup("");
             nameOfLastTableFromDB = "ListFIO";
         }
+
+
+
+        /// <summary>
+        /// ///////////////////////Export to Excel///////////////////
+        /// </summary>
 
         /*
         private void ExportDatagridToExcel()  //Export to Excel from DataGridView
@@ -1801,6 +1809,8 @@ namespace ASTA
             _ProgressBar1Stop();
         }
 
+
+
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         { SelectFioAndNavFromCombobox(); }
 
@@ -1919,7 +1929,7 @@ namespace ASTA
 
             numberPeopleInLoading = 0;
             DataRow dataRow;
-            string d1 = "", dprtmnt = "", pstn = "", shift = "", query = ""; ;
+            string dprtmnt = "", pstn = "", shift = "", query = ""; ;
 
             query = "Select FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Reserv1, Reserv2 FROM PeopleGroup ";
             if (nameGroup.Length > 0)
@@ -1935,17 +1945,16 @@ namespace ASTA
                     {
                         foreach (DbDataRecord record in sqlReader)
                         {
-                            d1 = "0"; dprtmnt = ""; pstn = ""; shift = "";
-                            try { d1 = record["FIO"].ToString().Trim(); } catch { }
+                           dprtmnt = ""; pstn = ""; shift = "";
 
-                            if (record != null && d1.Length > 0)
+                            if (record["FIO"]?.ToString()?.Trim()?.Length > 0)
                             {
                                 try { dprtmnt = record[@"Reserv1"].ToString().Trim(); } catch { dprtmnt = record[@"GroupPerson"]?.ToString(); }
                                 try { pstn = record[@"Reserv2"].ToString().Trim(); } catch { }
                                 try { shift = record[@"Shift"].ToString().Trim(); } catch { }
 
                                 dataRow = dtTemp.NewRow();
-                                dataRow[@"Фамилия Имя Отчество"] = d1;
+                                dataRow[@"Фамилия Имя Отчество"] = record["FIO"]?.ToString()?.Trim()?.Length;
                                 dataRow[@"NAV-код"] = record[@"NAV"]?.ToString();
 
                                 dataRow[@"Группа"] = record[@"GroupPerson"]?.ToString();
@@ -1962,7 +1971,6 @@ namespace ASTA
                                 numberPeopleInLoading++;
                             }
                         }
-                        d1 = null;
                     }
                 }
             }
@@ -2002,7 +2010,7 @@ namespace ASTA
             string checkHourE;
 
             string getThreeRows = "";
-            getThreeRows = "Маска:\nФИО\tNAV-код\tГруппа\tВремя прихода,часы\tВремя прихода,минуты\tВремя ухода,часы\tВремя ухода,минуты\n\nДанные:\n";
+            getThreeRows = "Маска:\nФИО\tNAV-код\tГруппа\tОтдел\tДолжность\tВремя прихода,часы\tВремя прихода,минуты\tВремя ухода,часы\tВремя ухода,минуты\n\nДанные:\n";
             if (listRows.Count > 0)
             {
                 getThreeRows += listRows.ElementAt(0) + "\n";
@@ -2029,20 +2037,23 @@ namespace ASTA
                             row[@"Фамилия Имя Отчество"] = cell[0];
                             row[@"NAV-код"] = cell[1];
                             row[@"Группа"] = cell[2];
-                            row[@"Отдел"] = cell[2];
+                            row[@"Отдел"] = cell[3];
+                            row[@"Должность"] = cell[4];
+
+
                             listGroups.Add(cell[2]);
 
-                            checkHourS = cell[3];
+                            checkHourS = cell[5];
                             if (TryParseStringToDecimal(checkHourS) == 0)
                             { checkHourS = numUpHourStart.ToString(); }
-                            row[@"Время прихода"] = ConvertStringsTimeToDecimal(checkHourS, cell[4]);
-                            row[@"Учетное время прихода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(checkHourS, cell[4]);
+                           // row[@"Время прихода"] = ConvertStringsTimeToDecimal(checkHourS, cell[4]);
+                            row[@"Учетное время прихода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(checkHourS, cell[6]);
 
-                            checkHourE = cell[5];
+                            checkHourE = cell[7];
                             if (TryParseStringToDecimal(checkHourE) == 0)
                             { checkHourE = numUpDownHourEnd.ToString(); }
-                            row[@"Время ухода"] = ConvertStringsTimeToDecimal(checkHourE, cell[6]);
-                            row[@"Учетное время ухода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(checkHourE, cell[6]);
+                           // row[@"Время ухода"] = ConvertStringsTimeToDecimal(checkHourE, cell[6]);
+                            row[@"Учетное время ухода ЧЧ:ММ"] = ConvertStringsTimeToStringHHMM(checkHourE, cell[8]);
 
                             dt.Rows.Add(row);
                             row = dt.NewRow();
@@ -2067,23 +2078,23 @@ namespace ASTA
                 commandTransaction.ExecuteNonQuery();
                 foreach (var dr in dtSource.AsEnumerable())
                 {
-                    if (dr[@"Фамилия Имя Отчество"] != null && dr[@"NAV-код"] != null && dr[@"NAV-код"]?.ToString().Length > 0)
+                    if (dr[@"Фамилия Имя Отчество"]?.ToString()?.Length > 0 && dr[@"NAV-код"]?.ToString()?.Length > 0)
                     {
                         using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Reserv1, Reserv2) " +
                                 " VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Comment, @Reserv1, @Reserv2)", sqlConnection))
                         {
-                            sqlCommand.Parameters.Add("@FIO", DbType.String).Value = dr[@"Фамилия Имя Отчество"].ToString();
-                            sqlCommand.Parameters.Add("@NAV", DbType.String).Value = dr[@"NAV-код"].ToString();
+                            sqlCommand.Parameters.Add("@FIO", DbType.String).Value = dr[@"Фамилия Имя Отчество"]?.ToString();
+                            sqlCommand.Parameters.Add("@NAV", DbType.String).Value = dr[@"NAV-код"]?.ToString();
 
-                            sqlCommand.Parameters.Add("@GroupPerson", DbType.String).Value = dr[@"Группа"].ToString();
-                            sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = dr[@"Отдел"].ToString();
-                            sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = dr[@"Должность"].ToString();
+                            sqlCommand.Parameters.Add("@GroupPerson", DbType.String).Value = dr[@"Группа"]?.ToString();
+                            sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = dr[@"Отдел"]?.ToString();
+                            sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = dr[@"Должность"]?.ToString();
 
-                            sqlCommand.Parameters.Add("@ControllingHHMM", DbType.String).Value = dr[@"Учетное время прихода ЧЧ:ММ"].ToString();
-                            sqlCommand.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = dr[@"Учетное время ухода ЧЧ:ММ"].ToString();
+                            sqlCommand.Parameters.Add("@ControllingHHMM", DbType.String).Value = dr[@"Учетное время прихода ЧЧ:ММ"]?.ToString();
+                            sqlCommand.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = dr[@"Учетное время ухода ЧЧ:ММ"]?.ToString();
 
-                            sqlCommand.Parameters.Add("@Shift", DbType.String).Value = dr[@"График"].ToString();
-                            sqlCommand.Parameters.Add("@Comment", DbType.String).Value = dr[@"Комментарии"].ToString();
+                            sqlCommand.Parameters.Add("@Shift", DbType.String).Value = dr[@"График"]?.ToString();
+                            sqlCommand.Parameters.Add("@Comment", DbType.String).Value = dr[@"Комментарии"]?.ToString();
 
                             try
                             { sqlCommand.ExecuteNonQuery(); } catch (Exception expt)
