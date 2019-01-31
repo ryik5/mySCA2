@@ -3262,10 +3262,11 @@ namespace ASTA
                             case "12":
                             case "18":
                                 rowDtStoring[@"Отпуск"] = outResons.Find((x) => x._id == exceptReason)?._visibleName;
-                                break;
+                                    break;
                             case "3":
                             case "21":
                                 rowDtStoring[@"Больничный"] = outResons.Find((x) => x._id == exceptReason)?._visibleName;
+                                rowDtStoring[@"Комментарии"] = "";
                                 break;
                             case "1":
                             case "9":
@@ -3274,6 +3275,7 @@ namespace ASTA
                                 break;
                             case "4":
                                 rowDtStoring[@"Командировка"] = outResons.Find((x) => x._id == exceptReason)?._visibleName;
+                                rowDtStoring[@"Комментарии"] = "";
                                 break;
                             default:
                                 break;
