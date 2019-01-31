@@ -2504,6 +2504,7 @@ namespace ASTA
         {
             int[] startPeriod = ConvertStringDateToIntArray(startDay);
             int[] endPeriod = ConvertStringDateToIntArray(endDay);
+            logger.Info("GetPersonRegistrationFromServer, person - " + person.NAV);
 
             SeekAnualDays(dtTarget, person, false, startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
 
@@ -2551,10 +2552,10 @@ namespace ASTA
                                 stringIdCardIntellect = Regex.Split(strRowWithNav, "[|]")[3].Trim();
                                 person.idCard = Convert.ToInt32(stringIdCardIntellect);
                                 break;
-                            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                            } catch (Exception expt) { logger.Warn("GetPersonRegistrationFromServer " + expt.ToString()); }
                     }
                 }
-            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            } catch (Exception expt) { logger.Warn("GetPersonRegistrationFromServer " + expt.ToString()); }
 
             string[] cellData;
             string namePoint = "";
@@ -2643,7 +2644,7 @@ namespace ASTA
 
                                             _ProgressWork1Step(1);
                                         }
-                                    } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                    } catch (Exception expt) { logger.Warn("GetPersonRegistrationFromServer " + expt.ToString()); }
                                 }
                             }
                         }
