@@ -2432,14 +2432,9 @@ namespace ASTA
                 logger.Info("GetRegistrations, DT - " + dtPeopleGroup.TableName + " , всего записей - " + dtPeopleGroup.Rows.Count);
                 foreach (DataRow row in dtPeopleGroup.Rows)
                 {
-                    if (row[@"Фамилия Имя Отчество"]?.ToString().Length > 0 && row[@"Группа"]?.ToString() == selectedGroup)
+                    if (row[@"Фамилия Имя Отчество"]?.ToString()?.Length > 0 && row[@"Группа"]?.ToString() == selectedGroup)
                     {
                         person = new Person();
-                        if (!(doPostAction == "sendEmail"))
-                        {
-                            _textBoxSetText(textBoxFIO, row[@"Фамилия Имя Отчество"]?.ToString());   //иммитируем выбор данных
-                            _textBoxSetText(textBoxNav, row[@"NAV-код"]?.ToString());   //Select person                  
-                        }
 
                         // string fio, nav, group, dep, pos, timein, timeout, comment, shift;
                         fio = row[@"Фамилия Имя Отчество"]?.ToString();
