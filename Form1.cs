@@ -9,6 +9,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows;
+
 // for Crypography
 using System.Security.Cryptography;
 
@@ -19,7 +21,7 @@ using System.Security.Cryptography;
 
 
 namespace ASTA
-{
+{   
     public partial class WinFormASTA :Form
     {
         private NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
@@ -43,7 +45,6 @@ namespace ASTA
         private ContextMenu contextMenu1;
         private bool buttonAboutForm;
 
-        private bool bLoaded = false;
         private int iCounterLine = 0;
         private List<string> listFIO = new List<string>(); // List of FIO and identity of data
         private List<string> listPoints = new List<string>(); // List of all Points of SCA
@@ -319,15 +320,14 @@ namespace ASTA
                 @"Отгул",                      //41
 
         };
-        private static List<OutReasons> outResons = new List<OutReasons>();
-       private static List<OutPerson> outPerson = new List<OutPerson>();
+        private  List<OutReasons> outResons = new List<OutReasons>();
+       private  List<OutPerson> outPerson = new List<OutPerson>();
 
         private DataTable dtPersonTemp = new DataTable("PersonTemp");
         private DataTable dtPersonTempAllColumns = new DataTable("PersonTempAllColumns");
         private DataTable dtPersonRegistrationsFullList = new DataTable("PersonRegistrationsFullList");
         private DataTable dtPeopleGroup = new DataTable("PeopleGroup");
         private DataTable dtPeopleListLoaded = new DataTable("PeopleLoaded");
-
 
         //Color of Person's Control elements which depend on the selected MenuItem  
         private Color labelGroupCurrentBackColor;
@@ -339,34 +339,14 @@ namespace ASTA
         private Color textBoxNavCurrentBackColor;
 
 
+
         public WinFormASTA()
         { InitializeComponent(); }
 
         private void Form1_Load(object sender, EventArgs e)
-        {
-            logger.Info("");
-            logger.Info("-------------------------------");
-            logger.Info("");
-            logger.Info("");
-            logger.Info("-= Загрузка ПО =-");
-            logger.Info("");
+        { Form1Load(); }
 
-            bool existed;
-            // получаем GIUD приложения
-            string guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString();
-            System.Threading.Mutex mutexObj = new System.Threading.Mutex(true, guid, out existed);
-
-            if (existed)
-            { Form1Load(); }
-            else
-            {
-                logger.Warn("-=  Запущена вторая копия программы. Завершение работы.  =-");
-                ApplicationExit(); //Bolck other this app to run
-                System.Threading.Thread.Sleep(200);
-                return;
-            }
-        }
-
+       
         private void Form1Load()
         {
             logger.Info("");
@@ -377,6 +357,7 @@ namespace ASTA
             logger.Error("Test4 Error message");
             logger.Fatal("Test5 Fatal message");
             logger.Info("");
+
 
             currentModeAppManual = true;
             _MenuItemTextSet(modeItem, "Сменить на автоматический режим");
@@ -598,6 +579,9 @@ namespace ASTA
             string modeApp = "";
             int iCombo = 0;
             int numberOfFio = 0;
+
+          //  numberOfFio = CountRowInTableDB("PeopleGroup");
+
             if (databasePerson.Exists)
             {
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
@@ -622,17 +606,14 @@ namespace ASTA
                         }
                     }
 
-                    using (var sqlCommand = new SQLiteCommand("SELECT FIO FROM PeopleGroup;", sqlConnection))
+                    using (var sqlCommand = new SQLiteCommand("SELECT id FROM PeopleGroup;", sqlConnection))
                     {
                         using (var reader = sqlCommand.ExecuteReader())
                         {
                             foreach (DbDataRecord record in reader)
                             {
-                                try
-                                {
-                                    if (record["FIO"]?.ToString()?.Length > 0)
-                                    { numberOfFio++; }
-                                } catch { logger.Info("SELECT FIO FROM PeopleGroup - error"); }
+                                if (record["id"]?.ToString()?.Length > 0)
+                                    numberOfFio++;
                             }
                         }
                     }
@@ -738,8 +719,6 @@ namespace ASTA
             { _MenuItemVisible(listFioItem, true); }
         }
 
-
-
         private void ExecuteSql(string SqlQuery, System.IO.FileInfo FileDB) //Prepare DB and execute of SQL Query
         {
             if (!System.IO.File.Exists(databasePerson.FullName))
@@ -806,37 +785,6 @@ namespace ASTA
         }
 
 
-        private void CopyWholeDataFromOneTableIntoAnother(System.IO.FileInfo databasePerson, string myTableInto, string myTableFrom) //Copy into Table from other Table
-        {
-            DeleteAllDataInTableQuery(databasePerson, myTableInto);
-
-            if (databasePerson.Exists)
-            {
-                using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
-                {
-                    sqlConnection.Open();
-                    using (var sqlCommand = new SQLiteCommand("INSERT INTO " + myTableInto + " Select * FROM " + myTableFrom, sqlConnection))
-                    { try { sqlCommand.ExecuteNonQuery(); } catch { } }
-                }
-            }
-            myTableInto = null; myTableFrom = null;
-        }
-
-        private void CopyDataOneNavUserIntoAnotherTable(System.IO.FileInfo databasePerson, string myTableInto, string myTableFrom, string myNAV) //Copy into Table from other Table
-        {
-            DeleteAllDataInTableQuery(databasePerson, myTableInto);
-
-            if (databasePerson.Exists)
-            {
-                using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
-                {
-                    sqlConnection.Open();
-                    using (var sqlCommand = new SQLiteCommand("INSERT INTO " + myTableInto + " Select * FROM " + myTableFrom + " where NAV like '" + myNAV + "'", sqlConnection))
-                    { try { sqlCommand.ExecuteNonQuery(); } catch { } }
-                }
-            }
-            myTableFrom = null; myTableInto = null; myNAV = null;
-        }
 
 
         private void DeleteTable(System.IO.FileInfo databasePerson, string myTable) //Delete All data from the selected Table of the DB (both parameters are string)
@@ -857,10 +805,8 @@ namespace ASTA
                     using (var sqlCommand = new SQLiteCommand("vacuum;", sqlConnection))   //vacuum DB
                     {
                         sqlCommand.ExecuteNonQuery();
-                        sqlCommand.Dispose();
                     }
                     sqlConnection.Close();
-                    sqlConnection.Dispose();
                 }
                 GC.Collect();
             }
@@ -955,7 +901,8 @@ namespace ASTA
             myTable = null; mySqlParameter1 = null; mySqlData1 = null; mySqlParameter2 = null; mySqlData2 = null; mySqlNav = null;
         }
 
-        private void DeleteDataTableQueryParameters(System.IO.FileInfo databasePerson, string myTable, string mySqlParameter1, string mySqlData1, string mySqlParameter2, string mySqlData2, string mySqlParameter3, string mySqlData3) //Delete data from the Table of the DB by NAV (both parameters are string)
+        private void DeleteDataTableQueryParameters(System.IO.FileInfo databasePerson, string myTable, string mySqlParameter1, string mySqlData1, 
+            string mySqlParameter2, string mySqlData2, string mySqlParameter3, string mySqlData3, string mySqlParameter4="", string mySqlData4="") //Delete data from the Table of the DB by NAV (both parameters are string)
         {
             if (databasePerson.Exists)
             {
@@ -963,7 +910,19 @@ namespace ASTA
                 {
                     sqlConnection.Open();
 
-                    if (mySqlParameter1.Length > 0 && mySqlParameter2.Length > 0 && mySqlParameter3.Length > 0)
+                    if (mySqlParameter1.Length > 0 && mySqlParameter2.Length > 0 && mySqlParameter3.Length > 0 && mySqlParameter4.Length > 0)
+                    {
+                        using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where " + mySqlParameter1 + "= @" + mySqlParameter1 + " AND " + mySqlParameter2 + "= @" + mySqlParameter2 + " AND " + mySqlParameter3 + "= @" + mySqlParameter3 + " AND " + mySqlParameter4 + "= @" + mySqlParameter4 + ";", sqlConnection))
+                        {
+                            sqlCommand.Parameters.Add("@" + mySqlParameter1, DbType.String).Value = mySqlData1;
+                            sqlCommand.Parameters.Add("@" + mySqlParameter2, DbType.String).Value = mySqlData2;
+                            sqlCommand.Parameters.Add("@" + mySqlParameter3, DbType.String).Value = mySqlData3;
+                            sqlCommand.Parameters.Add("@" + mySqlParameter4, DbType.String).Value = mySqlData4;
+
+                            try { sqlCommand.ExecuteNonQuery(); } catch { }
+                        }
+                    }
+                    else if (mySqlParameter1.Length > 0 && mySqlParameter2.Length > 0 && mySqlParameter3.Length > 0)
                     {
                         using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where " + mySqlParameter1 + "= @" + mySqlParameter1 + " AND " + mySqlParameter2 + "= @" + mySqlParameter2 + " AND " + mySqlParameter3 + "= @" + mySqlParameter3 + ";", sqlConnection))
                         {
@@ -999,6 +958,9 @@ namespace ASTA
             }
             myTable = null; mySqlParameter1 = null; mySqlData1 = null;
         }
+
+
+
 
         private void CheckAliveServer(string serverName, string userName, string userPasswords) //Get the list of registered users
         {
@@ -2427,9 +2389,8 @@ namespace ASTA
         private void GetRegistrations(string selectedGroup, string startDate, string endDate, string doPostAction)
         {
             Person person = new Person();
-            string fio, nav, group, dep, pos, timein, timeout, comment, shift;
 
-            //look for late and absence of data in www's DB
+            //look for late and excepted people during selected period in www's DB
             outResons = new List<OutReasons>();
             outPerson = new List<OutPerson>();
             outResons.Add(new OutReasons() { _id = "0", _hourly = 1, _name = @"Unknow", _visibleName = @"Неизвестная" });
@@ -2475,13 +2436,13 @@ namespace ASTA
                         {
                             if (reader.GetString(@"reason_id")?.Length > 0)
                             {
-                                resonId = outResons.Find((x) => x._id == reader?.GetString(@"reason_id"))?._id;
+                                resonId = outResons.Find((x) => x._id == reader.GetString(@"reason_id"))?._id;
                                 try { date = DateTime.Parse(reader.GetString(@"reason_date")).ToString("yyyy-MM-dd"); } catch { date = ""; }
 
                                 outPerson.Add(new OutPerson()
                                 {
                                     _reason_id = resonId,
-                                    _nav = reader.GetString(@"user_code").ToUpper().Replace('C', 'S'),
+                                    _nav = reader.GetString(@"user_code")?.ToUpper()?.Replace('C', 'S'),
                                     _date = date,
                                     _from = ConvertStringsTimeToSeconds(reader.GetString(@"from_hour"), reader.GetString(@"from_min")),
                                     _to = ConvertStringsTimeToSeconds(reader.GetString(@"to_hour"), reader.GetString(@"to_min")),
@@ -2510,37 +2471,21 @@ namespace ASTA
                     {
                         person = new Person();
 
-                        // string fio, nav, group, dep, pos, timein, timeout, comment, shift;
-                        fio = row[@"Фамилия Имя Отчество"]?.ToString();
-                        nav = row[@"NAV-код"]?.ToString();
+                        person.FIO = row[@"Фамилия Имя Отчество"].ToString(); 
+                        person.NAV = row[@"NAV-код"]?.ToString();
 
-                        group = row[@"Группа"]?.ToString();
-                        dep = row[@"Отдел"]?.ToString();
-                        pos = row[@"Должность"]?.ToString();
+                        person.GroupPerson = row[@"Группа"]?.ToString(); 
+                        person.Department = row[@"Отдел"]?.ToString(); 
+                        person.PositionInDepartment = row[@"Должность"]?.ToString(); 
 
-                        //todo
-                        //import all of day's shift for the current person
-                        timein = row[@"Учетное время прихода ЧЧ:ММ"]?.ToString();
-                        timeout = row[@"Учетное время ухода ЧЧ:ММ"]?.ToString();
+                        person.ControlInHHMM = row[@"Учетное время прихода ЧЧ:ММ"]?.ToString();
+                        person.ControlOutHHMM = row[@"Учетное время ухода ЧЧ:ММ"]?.ToString();
 
-                        comment = row[@"Комментарии"]?.ToString();
-                        shift = row[@"График"]?.ToString();
+                        person.ControlInDecimal = ConvertStringTimeHHMMToDecimalArray(person.ControlInHHMM)[2];
+                        person.ControlOutDecimal = ConvertStringTimeHHMMToDecimalArray(person.ControlOutHHMM)[2];
 
-                        person.FIO = fio;
-                        person.NAV = nav;
-
-                        person.GroupPerson = group;
-                        person.Department = dep;
-                        person.PositionInDepartment = pos;
-
-                        person.ControlInHHMM = timein;
-                        person.ControlOutHHMM = timeout;
-
-                        person.ControlInDecimal = ConvertStringTimeHHMMToDecimalArray(timein)[2];
-                        person.ControlOutDecimal = ConvertStringTimeHHMMToDecimalArray(timeout)[2];
-
-                        person.Comment = comment;
-                        person.Shift = shift;
+                        person.Comment = row[@"Комментарии"]?.ToString(); 
+                        person.Shift = row[@"График"]?.ToString();
 
                         GetPersonRegistrationFromServer(dtPersonRegistrationsFullList, person, startDate, endDate);     //Search Registration at checkpoints of the selected person
                     }
@@ -2576,7 +2521,7 @@ namespace ASTA
         {
             int[] startPeriod = ConvertStringDateToIntArray(startDay);
             int[] endPeriod = ConvertStringDateToIntArray(endDay);
-            logger.Info("GetPersonRegistrationFromServer, person - " + person.NAV);
+            logger.Trace("GetPersonRegistrationFromServer, person - " + person.NAV);
 
             SeekAnualDays(dtTarget, person, false, startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
             DataRow rowPerson;
@@ -2750,10 +2695,11 @@ namespace ASTA
                 dtTarget.Rows.Add(rowPerson);//добавляем рабочий день в который  сотрудник не выходил на работу
                 _ProgressWork1Step(1);
             }
-           
-            foreach (var row in dtTarget.AsEnumerable())
+            dtTarget.AcceptChanges();
+
+            foreach (DataRow row in dtTarget.Rows)
             {
-                if (row[@"NAV-код"]?.ToString() == person.NAV)
+                if (row[@"NAV-код"].ToString() == person.NAV)
                 {
                     row[@"Фамилия Имя Отчество"] = person.FIO;
                     row[@"Группа"] = person.GroupPerson;
@@ -2763,21 +2709,24 @@ namespace ASTA
                     row[@"График"] = person.Shift;
                 }
             }
+            dtTarget.AcceptChanges();
 
-            foreach (DataRow dr in dtTarget.Rows) // search whole table
+            foreach (DataRow row in dtTarget.Rows) // search whole table
             {
                 foreach (string day in workSelectedDays)
                 {
-                    if (dr[@"Дата регистрации"].ToString() == day)
+                    if (row[@"Дата регистрации"].ToString() == day&& row[@"NAV-код"].ToString() == person.NAV)
                     {
                         try
                         {
-                            dr[@"Комментарии"] = outPerson.Find((x) => x._date == day && x._nav == person.NAV)?._reason_id;
+                            row[@"Комментарии"] = outPerson.Find((x) => x._date == day && x._nav == person.NAV)._reason_id;
+                            logger.Info("GetPersonRegistrationFromServer, outPerson "+ person.NAV + ", outReason - "+ row[@"Комментарии"].ToString());
                         } catch { }
                         break;
                     }
                 }
             }
+            dtTarget.AcceptChanges();
 
             _ProgressWork1Step(1);
 
@@ -3026,6 +2975,7 @@ namespace ASTA
         { await Task.Run(() => checkBoxCheckStateChanged()); }
         
         
+
         private void checkBoxCheckStateChanged()
         {
             int[] startPeriod = _dateTimePickerReturnArray(dateTimePickerStart);
@@ -3105,12 +3055,7 @@ namespace ASTA
             //distinct Records        
             var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(nameHidenColumnsArray).ToArray(); //take distinct data
             dtPersonTemp = GetDistinctRecords(dtTempIntermediate, namesDistinctColumnsArray);
-
-            ShowDatatableOnDatagridview(dtPersonTemp, nameHidenColumnsArray);
-
-            panelViewResize(numberPeopleInLoading);
-            _controlVisible(dataGridView1, true);
-
+                        
             //change enabling of checkboxes
             if (_CheckboxCheckedStateReturn(checkBoxReEnter))// if (checkBoxReEnter.Checked)
             {
@@ -3131,6 +3076,9 @@ namespace ASTA
                 _controlEnable(checkBoxCelebrate, false);
             }
 
+            ShowDatatableOnDatagridview(dtPersonTemp, nameHidenColumnsArray);
+            panelViewResize(numberPeopleInLoading);
+            _controlVisible(dataGridView1, true);
             dtTempIntermediate = null;
             _controlEnable(checkBoxReEnter, true);
         }
@@ -3145,7 +3093,7 @@ namespace ASTA
         //Copy Data from dtPersonRegistrationsList into dtPersonTemp by Filter(NAV and anual dates or minimalTime or dayoff)
         private void FilterDataByNav(Person person, DataTable dataTableSource, DataTable dataTableForStoring)
         {
-            logger.Info("FilterDataByNav: " + person.NAV + "| dataTableSource: " + dataTableSource.Rows.Count);
+            logger.Trace("FilterDataByNav: " + person.NAV + "| dataTableSource: " + dataTableSource.Rows.Count);
             DataRow rowDtStoring;
             DataTable dtTemp = dataTableSource.Clone();
 
@@ -5575,9 +5523,15 @@ namespace ASTA
                         }
                     }
                     ContextMenu mRightClick = new ContextMenu();
-                    mRightClick.MenuItems.Add(new MenuItem("Удалить рассылку: " + mailing, DeleteCurrentRow));
-                    mRightClick.MenuItems.Add(new MenuItem("Выполнить рассылку: " + mailing, DoMainAction));
+                    mRightClick.MenuItems.Add(new MenuItem(@"Удалить рассылку:   " + mailing, DeleteCurrentRow));
+                    mRightClick.MenuItems.Add(new MenuItem(@"Выполнить рассылку:   " + mailing, DoMainAction));
 
+                    mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
+                }
+                else if ((nameOfLastTableFromDB == "PeopleGroup") && currentMouseOverRow > -1)
+                {
+                    ContextMenu mRightClick = new ContextMenu();
+                    mRightClick.MenuItems.Add(new MenuItem(@"Удалить сотрудника из данной группы", DeleteCurrentRow));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
             }
@@ -5652,34 +5606,71 @@ namespace ASTA
                             PersonOrGroupItem.Text = "Работа с одной персоной";
 
                             ListGroups();
-                            MembersGroupItem.Enabled = true;
                             _toolStripStatusLabelSetText(StatusLabel2, "Удалена группа: " + dgSeek.values[0] + "| Всего групп: " + _dataGridView1RowsCount());
+                            MembersGroupItem.Enabled = true;
                             break;
                         }
                     case "PeopleGroup" when group.Length > 0:
                         {
-                            DeleteDataTableQueryParameters(databasePerson, "PeopleGroup", "GroupPerson", group, "", "", "", "");
-                            DeleteDataTableQueryParameters(databasePerson, "PeopleGroupDesciption", "GroupPerson", group, "", "", "", "");
+                            DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
+                            dgSeek.FindValueInCells(dataGridView1, new string[] {
+                            @"NAV-код", @"Группа"
+                            });
+                            
+
+                            int countRows =  0;
+                            if (databasePerson.Exists)
+                            {
+                                using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+                                {
+                                    sqlConnection.Open();
+                                   using (var sqlCommand = new SQLiteCommand("SELECT id FROM PeopleGroup;", sqlConnection))
+                                    {
+                                        using (var reader = sqlCommand.ExecuteReader())
+                                        {
+                                            foreach (DbDataRecord record in reader)
+                                            {
+                                                if (record[0]?.ToString()?.Length > 0)
+                                                    countRows++;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            DeleteDataTableQueryParameters(databasePerson, "PeopleGroup", "GroupPerson", dgSeek.values[1], "NAV", dgSeek.values[0], "", "");
+
+                            if (countRows == 1)
+                            {
+                                DeleteDataTableQueryParameters(databasePerson, "PeopleGroupDesciption", "GroupPerson", dgSeek.values[1], "", "", "", "");
+                                SeekAndShowMembersOfGroup("");
+                            }
+                            else
+                            { SeekAndShowMembersOfGroup(group); }
+
                             textBoxGroup.BackColor = Color.White;
                             PersonOrGroupItem.Text = "Работа с одной персоной";
 
                             MembersGroupItem.Enabled = true;
-                            ListGroups();
                             break;
                         }
                     case "Mailing":
                         {
                             DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-                            dgSeek.FindValueInCells(dataGridView1, new string[] { @"Получатель", @"Отправитель", @"Отчет по группам", @"Наименование", @"Описание", @"Период", @"Статус" });
+                            dgSeek.FindValueInCells(dataGridView1, new string[] { @"Получатель",  @"Отчет по группам", @"Наименование", @"Описание", @"Период", @"Статус" });
                             DeleteDataTableQueryParameters(databasePerson, "Mailing",
-                                "GroupsReport", dgSeek.values[2],
-                                "NameReport", dgSeek.values[3],
-                                "Description", dgSeek.values[4]);
-                            _toolStripStatusLabelSetText(StatusLabel2, "Удалена рассылка отчета " + dgSeek.values[2] + "| Всего рассылок: " + _dataGridView1RowsCount());
+                                "GroupsReport", dgSeek.values[1],
+                                "NameReport", dgSeek.values[2],
+                                "Description", dgSeek.values[3],
+                                "Period", dgSeek.values[4]);
+
                             ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                                 "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус' ",
                                 " ORDER BY RecipientEmail asc, DateCreated desc; ");
-                            nameOfLastTableFromDB = "Mailing"; break;
+
+                            _toolStripStatusLabelSetText(StatusLabel2, "Удалена рассылка отчета " + dgSeek.values[1] + "| Всего рассылок: " + _dataGridView1RowsCount());
+                            nameOfLastTableFromDB = "Mailing";
+                            break;
                         }
                     default:
                         break;
