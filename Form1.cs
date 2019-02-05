@@ -1596,8 +1596,14 @@ namespace ASTA
 
 
                 //Entire columns
-                //colourize of columns
-                sheet.Columns[columnsInTable].Interior.Color = Color.Silver;  // последняя колонка
+                //colourize background of column
+                //the last column
+                sheet.Columns[columnsInTable].Interior.Color = Microsoft.Office.Interop.Excel.XlRgbColor.rgbSilver;  // последняя колонка
+
+                //other ways to colourize background:
+                //sheet.Columns[columnsInTable].Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Silver);
+                // or 
+                //sheet.Columns[columnsInTable].Interior.Color = System.Drawing.Color.Silver;
 
                 //"Фамилия Имя Отчество"
                 sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Фамилия Имя Отчество")) + 1)]
@@ -1632,32 +1638,28 @@ namespace ASTA
                     rangeColumnC.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
                 catch (Exception expt) { logger.Warn("Отпуск - " + expt.ToString()); }
-
-
+                
                 try
                 {
                     Microsoft.Office.Interop.Excel.Range rangeColumnD = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Отгул (отпуск за свой счет)")) + 1)];
                     rangeColumnD.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
                 catch (Exception expt) { logger.Warn("Отгул - " + expt.ToString()); }
-
-
+                
                 try
                 {
                     Microsoft.Office.Interop.Excel.Range rangeColumnE = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Больничный")) + 1)];
                     rangeColumnE.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
                 catch (Exception expt) { logger.Warn("Больничный - " + expt.ToString()); }
-
-
+                
                 try
                 {
                     Microsoft.Office.Interop.Excel.Range rangeColumnF = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Отсутствовал на работе")) + 1)];
                     rangeColumnF.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
                 catch (Exception expt) { logger.Warn("Отсутствовал - " + expt.ToString()); }
-
-
+                
 
                 //first row
                 Microsoft.Office.Interop.Excel.Range rangeColumnName = sheet.Range["A1", GetExcelColumnName(columnsInTable) + 1];
@@ -1684,6 +1686,14 @@ namespace ASTA
                     }
                 }
                 _ProgressWork1Step(1);
+
+                //colourize parts of text in the selected cell by different colors
+                /*
+                Microsoft.Office.Interop.Excel.Range rng = (Microsoft.Office.Interop.Excel.Range)workSheet.Cells[1, (i + 1)];
+                rng.Value = "Green Red";
+                rng.Characters[1, 5].Font.Color = Color.Green;
+                rng.Characters[7, 9].Font.Color = Color.Red;
+                */
 
                 //get the using range           
                 Microsoft.Office.Interop.Excel.Range range = sheet.UsedRange;
