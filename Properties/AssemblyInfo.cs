@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Analysis of Staff Time Accounting")]
 [assembly: AssemblyDescription("Анализ УРВ персонала")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("@Yuri Ryabchenko")]
+[assembly: AssemblyCompany("Yuri Ryabchenko")]
 [assembly: AssemblyProduct("ASTA")]
 [assembly: AssemblyCopyright("©Yuri Ryabchenko 2017-2019")]
 [assembly: AssemblyTrademark("©RYIK")]
@@ -29,5 +29,5 @@ using System.Runtime.InteropServices;
 //   Номер сборки
 //      Редакция
 //
-[assembly: AssemblyVersion("3.7.9.5")]
-[assembly: AssemblyFileVersion("3.7.7.11")]
+[assembly: AssemblyVersion("3.7.11.5")]
+[assembly: AssemblyFileVersion("3.5.9.30")]

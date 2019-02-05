@@ -133,6 +133,7 @@ namespace ASTA
         public string _descriptionReport = "";
         public string _period = "";
         public string _status = "";
+        public string _typeReport = "";
     }
 
     public class OutReasons
