@@ -1529,6 +1529,27 @@ namespace ASTA
         }
 
 
+        private async void Export_Click(object sender, EventArgs e)
+        {
+            _ProgressBar1Start();
+            _MenuItemEnabled(FunctionMenuItem, false);
+            _MenuItemEnabled(SettingsMenuItem, false);
+            _MenuItemEnabled(AnualDatesMenuItem, false);
+            _MenuItemEnabled(GroupsMenuItem, false);
+            _controlEnable(dataGridView1, false);
+
+
+            filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), "InOut_"+ DateTimeToYYYYMMDD()+  @".xlsx");
+            await Task.Run(() => ExportDatatableSelectedColumnsToExcel(dtPersonTemp, "InOutPeople", filePathExcelReport));
+
+            _MenuItemEnabled(FunctionMenuItem, true);
+            _MenuItemEnabled(SettingsMenuItem, true);
+            _MenuItemEnabled(AnualDatesMenuItem, true);
+            _MenuItemEnabled(GroupsMenuItem, true);
+            _controlEnable(dataGridView1, true);
+            _ProgressBar1Stop();
+        }
+
         private string filePathApplication = Application.ExecutablePath;
         private string filePathExcelReport;
 
@@ -1540,7 +1561,7 @@ namespace ASTA
             viewExport.Sort = "[Фамилия Имя Отчество], [Дата регистрации] ASC";
             DataTable dtExport = viewExport.ToTable();
 
-            logger.Info("В таблице " + dataTable.TableName + " столбцов всего - " + dtExport.Columns.Count + ", строк - " + dtExport.Rows.Count);
+            logger.Trace("В таблице " + dataTable.TableName + " столбцов всего - " + dtExport.Columns.Count + ", строк - " + dtExport.Rows.Count);
             _toolStripStatusLabelSetText(StatusLabel2, "Записываю в Excel-файл отчет - " + nameReport);
 
             try
@@ -1590,33 +1611,52 @@ namespace ASTA
                     sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Опоздание ЧЧ:ММ")) + 1)]
                    .Font.Color = Color.Red;
                     //.Font.Color = ColorTranslator.ToOle(Color.Red);
+                    //arranges text in the center of the column
+                    Microsoft.Office.Interop.Excel.Range rangeColumnA = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Опоздание ЧЧ:ММ")) + 1)];
+                    rangeColumnA.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
 
                     //"Ранний уход ЧЧ:ММ"
                     sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Ранний уход ЧЧ:ММ")) + 1)]
                     .Interior.Color = Color.SandyBrown;
                     sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Ранний уход ЧЧ:ММ")) + 1)]
                    .Font.Color = Color.Red;
+                    //arranges text in the center of the column
+                    Microsoft.Office.Interop.Excel.Range rangeColumnB = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Ранний уход ЧЧ:ММ")) + 1)];
+                    rangeColumnB.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
-                catch (Exception expt) { logger.Error("нарушения - " + expt.ToString()); }
+                catch (Exception expt) { logger.Warn("нарушения - " + expt.ToString()); }
 
-                //arrange in the center a few columns
-                Microsoft.Office.Interop.Excel.Range rangeColumnA = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Опоздание ЧЧ:ММ")) + 1)];
-                rangeColumnA.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
+                try
+                {
+                    Microsoft.Office.Interop.Excel.Range rangeColumnC = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Отпуск")) + 1)];
+                    rangeColumnC.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
+                }
+                catch (Exception expt) { logger.Warn("Отпуск - " + expt.ToString()); }
 
-                Microsoft.Office.Interop.Excel.Range rangeColumnB = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Ранний уход ЧЧ:ММ")) + 1)];
-                rangeColumnB.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
 
-                Microsoft.Office.Interop.Excel.Range rangeColumnC = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Отпуск")) + 1)];
-                rangeColumnC.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
+                try
+                {
+                    Microsoft.Office.Interop.Excel.Range rangeColumnD = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Отгул (отпуск за свой счет)")) + 1)];
+                    rangeColumnD.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
+                }
+                catch (Exception expt) { logger.Warn("Отгул - " + expt.ToString()); }
 
-                Microsoft.Office.Interop.Excel.Range rangeColumnD = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Отгул (отпуск за свой счет)")) + 1)];
-                rangeColumnD.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
 
-                Microsoft.Office.Interop.Excel.Range rangeColumnE = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Больничный")) + 1)];
-                rangeColumnE.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
+                try
+                {
+                    Microsoft.Office.Interop.Excel.Range rangeColumnE = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Больничный")) + 1)];
+                    rangeColumnE.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
+                }
+                catch (Exception expt) { logger.Warn("Больничный - " + expt.ToString()); }
 
-                Microsoft.Office.Interop.Excel.Range rangeColumnF = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Отсутствовал на работе")) + 1)];
-                rangeColumnF.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
+
+                try
+                {
+                    Microsoft.Office.Interop.Excel.Range rangeColumnF = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Отсутствовал на работе")) + 1)];
+                    rangeColumnF.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
+                }
+                catch (Exception expt) { logger.Warn("Отсутствовал - " + expt.ToString()); }
+
 
 
                 //first row
@@ -1629,17 +1669,17 @@ namespace ASTA
                 for (int column = 0; column < columnsInTable; column++)
                 {
                     sheet.Cells[1, column + 1].Value = nameColumns[column];
+                    sheet.Columns[column + 1].NumberFormat = "@"; // set format data of cells - text
                 }
                 _ProgressWork1Step(1);
 
                 //next rows
-                //input data and set format data of cells - text
+                //input data
                 foreach (DataRow row in dtExport.Rows)
                 {
                     rows++;
                     for (int column = 0; column < columnsInTable; column++)
                     {
-                        sheet.Columns[column + 1].NumberFormat = "@";
                         sheet.Cells[rows, column + 1].Value = row[indexColumns[column]];
                     }
                 }
@@ -1691,13 +1731,12 @@ namespace ASTA
                 //clear temporary objects
                 releaseObject(range);
                 releaseObject(rangeColumnName);
-
-                releaseObject(rangeColumnA);
-                releaseObject(rangeColumnB);
-                releaseObject(rangeColumnC);
-                releaseObject(rangeColumnD);
-                releaseObject(rangeColumnE);
-                releaseObject(rangeColumnF);
+                //   releaseObject(rangeColumnA);
+                //   releaseObject(rangeColumnB);
+                //   releaseObject(rangeColumnC);
+                //    releaseObject(rangeColumnD);
+                //    releaseObject(rangeColumnE);
+                //    releaseObject(rangeColumnF);
 
                 releaseObject(sheet);
                 releaseObject(workbook);
@@ -1753,33 +1792,6 @@ namespace ASTA
             else
                 result = null;
             return result;
-        }
-
-        private async void Export_Click(object sender, EventArgs e)
-        {
-            _MenuItemEnabled(FunctionMenuItem, false);
-            _MenuItemEnabled(SettingsMenuItem, false);
-            _MenuItemEnabled(AnualDatesMenuItem, false);
-            _MenuItemEnabled(GroupsMenuItem, false);
-            _controlEnable(dataGridView1, false);
-
-            _ProgressBar1Start();
-
-            // _toolStripStatusLabelSetText(StatusLabel2, "Генерирую Excel-файл");
-            // stimerPrev = "Наполняю файл данными из текущей таблицы";
-
-
-            filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), "InOutPeople" + @".xlsx");
-
-            await Task.Run(() => ExportDatatableSelectedColumnsToExcel(dtPersonTemp, "InOutPeople", filePathExcelReport));
-            //            await Task.Run(() => ExportDatagridToExcel());
-
-            _MenuItemEnabled(FunctionMenuItem, true);
-            _MenuItemEnabled(SettingsMenuItem, true);
-            _MenuItemEnabled(AnualDatesMenuItem, true);
-            _MenuItemEnabled(GroupsMenuItem, true);
-            _controlEnable(dataGridView1, true);
-            _ProgressBar1Stop();
         }
 
 
@@ -2979,8 +2991,6 @@ namespace ASTA
         private async void checkBox_CheckStateChanged(object sender, EventArgs e)
         { await Task.Run(() => checkBoxCheckStateChanged()); }
 
-
-
         private void checkBoxCheckStateChanged()
         {
             int[] startPeriod = _dateTimePickerReturnArray(dateTimePickerStart);
@@ -3169,6 +3179,11 @@ namespace ASTA
                             { rowDtStoring[@"Ранний уход ЧЧ:ММ"] = "1"; }
                         }
 
+
+                        if (rowDtStoring[@"Отсутствовал на работе"].ToString() == "1" && typeReport == "Полный")  // "Ранний уход ЧЧ:ММ", typeof(bool)),                 //29
+                        {
+                            rowDtStoring[@"Отсутствовал на работе"] = "Да";
+                        }
 
                         exceptReason = rowDtStoring[@"Комментарии (командировка, на выезде, согласованное отсутствие…….)"].ToString();
 
