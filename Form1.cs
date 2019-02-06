@@ -478,7 +478,7 @@ namespace ASTA
                 nameOfLastTableFromDB = "Mailing";
                 logger.Info(productName + " включен автоматический режим....");
 
-                ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
+                ShowDataTableQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                     "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', " +
                     "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', TypeReport AS 'Тип отчета',  DayReport AS 'День отправки'",
                     " ORDER BY RecipientEmail asc, DateCreated desc; ");
@@ -4561,20 +4561,20 @@ namespace ASTA
             listComboParameters.Add("Все");
 
             SettingsView(
-                    "Отправитель", mailServerUserName, @"Отправитель рассылки в виде: Name@Domain.Subdomain",
+                    "", "", "",
                     "Получатель рассылки", "", @"Получатель рассылки в виде: Name@Domain.Subdomain",
-                    "", "", "Неиспользуемое поле",
-                    "Наименование", "", @"Краткое наименование рассылки",
-                    "Описание", "", "Краткое описание рассылки",
-                    "", "", "Неиспользуемое поле",
-                    "Отчет", listComboParameters, "Выполнить отчет по группам",
+                    "", "", "",
+                    "Имя", "", @"Краткое наименование рассылки",
+                    "Описание", "", "Понятное описание рассылки",
+                    "", "", "",
+                    "Группы", listComboParameters, "Выполнять подготовку и отправку отчетов по каждой выбранной группе сотрудников",
                     "Период", periodComboParameters, "Выбрать, за какой период делать отчет",
                     "Статус", listComboParameters9, "Статус рассылки",
                     "", "", "",
                     "", "", "",
                     "", "", "",
                     "Вариант отчета", listComboParameters15, "Вариант отображения данных в отчете",
-                    "День", "", "День, в который выполнять подготовку и отправку данного отчета"
+                    "День подготовки отчета", "", "День, в который выполнять подготовку и отправку данного отчета"
                     );
         }
 
@@ -5047,7 +5047,7 @@ namespace ASTA
 
             if (btnName == @"Сохранить рассылку")
             {
-                ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
+                ShowDataTableQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                     "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', " +
                     "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', TypeReport AS 'Тип отчета',  DayReport AS 'День отправки'",
                     " ORDER BY RecipientEmail asc, DateCreated desc; ");
@@ -5120,7 +5120,7 @@ namespace ASTA
                 if (recipientEmail.Length > 5 && nameReport.Length > 0)
                 { MailingSave(recipientEmail, senderEmail, report, nameReport, description, period, status, DateTimeToYYYYMMDDHHMM(), "", typeReport, dayReport); }
 
-                ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
+                ShowDataTableQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                     "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', " +
                     "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', TypeReport AS 'Тип отчета',  DayReport AS 'День отправки'",
                     " ORDER BY RecipientEmail asc, DateCreated desc; ");
@@ -5619,8 +5619,8 @@ namespace ASTA
                     }
                     else if (nameOfLastTableFromDB == "Mailing")
                     {
-                        dgSeek.FindValueInCells(dataGridView1, new string[] { @"Получатель", @"Отправитель", @"Отчет по группам", @"Наименование", @"Описание", @"Период", @"Статус" });
-                        _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + dgSeek.values[3]);
+                        dgSeek.FindValueInCells(dataGridView1, new string[] { @"Получатель", @"Отчет по группам", @"Наименование", @"Описание", @"Период", @"Статус" });
+                        _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + dgSeek.values[2]);
                         stimerPrev = "";
 
                         //todo 
@@ -5632,7 +5632,7 @@ namespace ASTA
 
                         //  MailingAction("sendEmail", dgSeek.values[0], dgSeek.values[0], dgSeek.values[2], dgSeek.values[3], dgSeek.values[4], dgSeek.values[5], dgSeek.values[6]);
 
-                        ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
+                        ShowDataTableQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                             "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', " +
                             "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', TypeReport AS 'Тип отчета',  DayReport AS 'День отправки'",
                             " ORDER BY RecipientEmail asc, DateCreated desc; ");
@@ -5747,22 +5747,22 @@ namespace ASTA
                         currentAction = "sendEmail";
 
                         DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-                        dgSeek.FindValueInCells(dataGridView1, new string[] { @"Получатель", @"Отправитель", @"Отчет по группам", @"Наименование", @"Описание", @"Период", @"Статус", @"Тип отчета", @"День отправки" });
-                        _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + dgSeek.values[3]);
+                        dgSeek.FindValueInCells(dataGridView1, new string[] { @"Получатель", @"Отчет по группам", @"Наименование", @"Описание", @"Период", @"Статус", @"Тип отчета", @"День отправки" });
+                        _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + dgSeek.values[2]);
                         stimerPrev = "";
 
-                        logger.Info("DoMainAction: UPDATE 'Mailing' SET SendingLastDate='" + DateTimeToYYYYMMDDHHMM() + "' WHERE RecipientEmail='" + dgSeek.values[0] + "' AND NameReport='" + dgSeek.values[3] + "' AND GroupsReport ='" + dgSeek.values[2] + "';");
+                        logger.Info("DoMainAction: UPDATE 'Mailing' SET SendingLastDate='" + DateTimeToYYYYMMDDHHMM() + "' WHERE RecipientEmail='" + dgSeek.values[0] + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1] + "';");
                         ExecuteSql("UPDATE 'Mailing' SET SendingLastDate='" + DateTimeToYYYYMMDDHHMM() + "' WHERE RecipientEmail='" + dgSeek.values[0]
-                        + "' AND NameReport='" + dgSeek.values[3] + "' AND GroupsReport ='" + dgSeek.values[2] + "';", databasePerson);
+                        + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1] + "';", databasePerson);
 
                         logger.Info("DoMainAction, sendEmail: " + 
                             dgSeek.values[0] + "|" + dgSeek.values[1] + "|" + dgSeek.values[2] + "|" + 
                             dgSeek.values[3] + "|" + dgSeek.values[4] + "|" + dgSeek.values[5] + "|" + 
-                            dgSeek.values[6] + "|" + dgSeek.values[7] + "|" + dgSeek.values[8]);
-                        MailingAction("sendEmail", mailServerUserName, dgSeek.values[1], dgSeek.values[2], dgSeek.values[3], dgSeek.values[4], dgSeek.values[5], dgSeek.values[6], dgSeek.values[7], dgSeek.values[8]);
+                            dgSeek.values[6] + "|" + dgSeek.values[7] );
+                        MailingAction("sendEmail", dgSeek.values[0], mailServerUserName, dgSeek.values[1], dgSeek.values[2], dgSeek.values[3], dgSeek.values[4], dgSeek.values[5], dgSeek.values[6], dgSeek.values[7]);
 
                         logger.Trace("DoMainAction, ShowDataTableQuery: ");
-                        ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
+                        ShowDataTableQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                             "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', " +
                             "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', TypeReport AS 'Тип отчета',  DayReport AS 'День отправки'",
                             " ORDER BY RecipientEmail asc, DateCreated desc; ");
@@ -5811,8 +5811,7 @@ namespace ASTA
                         dgSeek.FindValueInCells(dataGridView1, new string[] {
                             @"NAV-код", @"Группа"
                             });
-
-
+                        
                         DeleteDataTableQueryParameters(databasePerson, "PeopleGroup", "GroupPerson", dgSeek.values[1], "NAV", dgSeek.values[0], "", "");
 
                         if (indexCurrentRow > 2)
@@ -5826,9 +5825,7 @@ namespace ASTA
                             nameOfLastTableFromDB = "PeopleGroupDesciption";
                             PersonOrGroupItem.Text = "Работа с одной персоной";
                         }
-                        
-                        
-
+                                                
                         textBoxGroup.BackColor = Color.White;
                         PersonOrGroupItem.Text = "Работа с одной персоной";
 
@@ -5845,7 +5842,7 @@ namespace ASTA
                             "Description", dgSeek.values[3],
                             "Period", dgSeek.values[4]);
 
-                        ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
+                        ShowDataTableQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                             "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', " +
                             "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', TypeReport AS 'Тип отчета',  DayReport AS 'День отправки'",
                             " ORDER BY RecipientEmail asc, DateCreated desc; ");
@@ -5903,8 +5900,6 @@ namespace ASTA
              }, null, timeToGo, System.Threading.Timeout.InfiniteTimeSpan);
         }
         */
-
-        //todo записать режим в реестр
 
         private void ModeAppItem_Click(object sender, EventArgs e)  //ModeApp()
         { SwitchAppMode(); }
@@ -6118,7 +6113,7 @@ namespace ASTA
                 }
             }
 
-            ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
+            ShowDataTableQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                 "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', " +
                 "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', TypeReport AS 'Тип отчета',  DayReport AS 'День отправки'",
                 " ORDER BY RecipientEmail asc, DateCreated desc; ");
@@ -6138,7 +6133,7 @@ namespace ASTA
                     {
                         MailingSave(mailServerUserName, senderEmail, groupsReport, nameReport, description, period, status, DateTimeToYYYYMMDDHHMM(), "", typeReport, dayReport);
 
-                        ShowDataTableQuery(databasePerson, "Mailing", "SELECT SenderEmail AS 'Отправитель', RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
+                        ShowDataTableQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
                             "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', " +
                             "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', TypeReport AS 'Тип отчета',  DayReport AS 'День отправки'",
                             " ORDER BY RecipientEmail asc, DateCreated desc; ");
@@ -6181,8 +6176,7 @@ namespace ASTA
 
                             dtEmpty.Dispose();
                             emptyPerson = null;
-
-
+                            
                             logger.Info("MailingAction, startDay-lastDay: " + reportStartDay + " " + reportLastDay);
 
                             string nameGroup = "";
@@ -6191,15 +6185,16 @@ namespace ASTA
                             string titleOfbodyMail = "";
                             string[] groups = groupsReport.Split('+');
 
-                            foreach (string name in groups)
+                            foreach (string groupName in groups)
                             {
+
                                 try { System.IO.File.Delete(filePathExcelReport); } catch { }
 
-                                nameGroup = name.Trim();
+                                nameGroup = groupName.Trim();
                                 if (nameGroup.Length > 0)
                                 {
                                     dtPersonRegistrationsFullList.Clear();
-                                    GetRegistrations(name, reportStartDay, reportLastDay, "sendEmail");//typeReport== only one group
+                                    GetRegistrations(groupName, reportStartDay, reportLastDay, "sendEmail");//typeReport== only one group
                                     logger.Trace("sendEmail: dtPeopleGroup.Rows.Count - " + dtPeopleGroup.Rows.Count+
                                         "| dtPersonRegistrationsFullList.Rows.Count - " + dtPersonRegistrationsFullList.Rows.Count);
 
@@ -6245,7 +6240,7 @@ namespace ASTA
 
                                     if (dtPersonTemp.Rows.Count > 0)
                                     {
-                                        string nameFile = nameReport + " " + reportStartDay.Split(' ')[0] + "-" + reportLastDay.Split(' ')[0] + " " + name + " от " + DateTimeToYYYYMMDDHHMM();
+                                        string nameFile = nameReport + " " + reportStartDay.Split(' ')[0] + "-" + reportLastDay.Split(' ')[0] + " " + groupName + " от " + DateTimeToYYYYMMDDHHMM();
                                         string illegal = GetSafeFilename(nameFile) + @".xlsx";
 
                                         filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), illegal);
@@ -6264,12 +6259,12 @@ namespace ASTA
                                             SendEmailAsync(senderEmail, recipientEmail, titleOfbodyMail, bodyOfMail, filePathExcelReport, Properties.Resources.LogoRYIK, productName);
 
                                             _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
-                                            _toolStripStatusLabelSetText(StatusLabel2, DateTimeToYYYYMMDDHHMM() + " Отчет " + nameReport + "(" + name + ") подготовлен и отправлен " + recipientEmail);
+                                            _toolStripStatusLabelSetText(StatusLabel2, DateTimeToYYYYMMDDHHMM() + " Отчет " + nameReport + "(" + groupName + ") подготовлен и отправлен " + recipientEmail);
                                         }
                                         else
                                         {
                                             _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
-                                            _toolStripStatusLabelSetText(StatusLabel2, DateTimeToYYYYMMDDHHMM() + " Ошибка создания отчета: " + nameReport + "(" + name + ")");
+                                            _toolStripStatusLabelSetText(StatusLabel2, DateTimeToYYYYMMDDHHMM() + " Ошибка создания отчета: " + nameReport + "(" + groupName + ")");
                                         }
                                     }
                                     else
