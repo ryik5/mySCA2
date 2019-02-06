@@ -174,6 +174,9 @@
   <data name="&gt;&gt;comboBoxFio.ZOrder" xml:space="preserve">
     <value>15</value>
   </data>
+  <data name="numUpDownHourStart.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Right</value>
+  </data>
   <data name="numUpDownHourStart.Location" type="System.Drawing.Point, System.Drawing">
     <value>41, 18</value>
   </data>
@@ -200,6 +203,9 @@
   </data>
   <data name="&gt;&gt;numUpDownHourStart.ZOrder" xml:space="preserve">
     <value>0</value>
+  </data>
+  <data name="numUpDownMinuteStart.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Right</value>
   </data>
   <data name="numUpDownMinuteStart.Location" type="System.Drawing.Point, System.Drawing">
     <value>144, 19</value>
@@ -426,6 +432,9 @@
   <data name="&gt;&gt;statusStrip.ZOrder" xml:space="preserve">
     <value>2</value>
   </data>
+  <data name="dateTimePickerStart.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Right</value>
+  </data>
   <data name="dateTimePickerStart.Location" type="System.Drawing.Point, System.Drawing">
     <value>18, 19</value>
   </data>
@@ -449,6 +458,9 @@
   </data>
   <data name="&gt;&gt;dateTimePickerStart.ZOrder" xml:space="preserve">
     <value>1</value>
+  </data>
+  <data name="dateTimePickerEnd.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Right</value>
   </data>
   <data name="dateTimePickerEnd.Location" type="System.Drawing.Point, System.Drawing">
     <value>20, 52</value>
@@ -524,6 +536,9 @@
   </data>
   <data name="&gt;&gt;textBoxNav.ZOrder" xml:space="preserve">
     <value>7</value>
+  </data>
+  <data name="textBoxGroupDescription.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Left, Right</value>
   </data>
   <data name="textBoxGroupDescription.Location" type="System.Drawing.Point, System.Drawing">
     <value>685, 29</value>
@@ -609,6 +624,9 @@
   <data name="groupBoxPeriod.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
   </data>
+  <data name="labelInfoStart.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Right</value>
+  </data>
   <data name="labelInfoStart.Location" type="System.Drawing.Point, System.Drawing">
     <value>-6, 24</value>
   </data>
@@ -638,6 +656,9 @@
   </data>
   <data name="&gt;&gt;labelInfoStart.ZOrder" xml:space="preserve">
     <value>2</value>
+  </data>
+  <data name="labelInfoEnd.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Right</value>
   </data>
   <data name="labelInfoEnd.Location" type="System.Drawing.Point, System.Drawing">
     <value>-3, 52</value>
@@ -696,6 +717,9 @@
   <data name="&gt;&gt;groupBoxPeriod.ZOrder" xml:space="preserve">
     <value>12</value>
   </data>
+  <data name="numUpDownHourEnd.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Right</value>
+  </data>
   <data name="numUpDownHourEnd.Location" type="System.Drawing.Point, System.Drawing">
     <value>41, 18</value>
   </data>
@@ -722,6 +746,9 @@
   </data>
   <data name="&gt;&gt;numUpDownHourEnd.ZOrder" xml:space="preserve">
     <value>0</value>
+  </data>
+  <data name="numUpDownMinuteEnd.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Right</value>
   </data>
   <data name="numUpDownMinuteEnd.Location" type="System.Drawing.Point, System.Drawing">
     <value>144, 19</value>
@@ -2180,6 +2207,9 @@
   <metadata name="timer1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>329, 17</value>
   </metadata>
+  <data name="labelHourStart.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Right</value>
+  </data>
   <data name="labelHourStart.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
@@ -2212,6 +2242,9 @@
   </data>
   <data name="&gt;&gt;labelHourStart.ZOrder" xml:space="preserve">
     <value>1</value>
+  </data>
+  <data name="labelMinuteStart.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Right</value>
   </data>
   <data name="labelMinuteStart.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
@@ -2438,6 +2471,9 @@
   <data name="groupBoxTimeEnd.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
   </data>
+  <data name="labelHourEnd.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Right</value>
+  </data>
   <data name="labelHourEnd.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
@@ -2473,6 +2509,9 @@
   </data>
   <data name="&gt;&gt;labelHourEnd.ZOrder" xml:space="preserve">
     <value>1</value>
+  </data>
+  <data name="labelMinuteEnd.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Right</value>
   </data>
   <data name="labelMinuteEnd.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>

@@ -8,6 +8,37 @@ using System.Windows.Forms;
 namespace ASTA
 {
 
+    /*
+
+     using in a method:
+     {
+     DataTable dt = DbSqlJob.GetTable();
+
+     var category_Data = dt.AsEnumerable()
+         .GroupBy(row => row.Field<string>("Категория"))
+         .Select(cat => new {
+             Category_Name = cat.Key,
+             Category_Count = cat.Count()
+         });
+     }
+
+     public static class DbSqlJob
+ {
+     private static string DB_PATH = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "testbase.mdf");
+     private static string CONNECT_STRING = string.Format(
+                           @"Data Source=.\SQLEXPRESS;AttachDbFilename={0};" +
+                           "Integrated Security=True;Connect Timeout=30;User Instance=True", DB_PATH);
+     public static DataTable GetTable()
+     {
+         DataTable dt = new DataTable();
+         using (System.Data.SqlClient.SqlDataAdapter adapter = new System.Data.SqlClient.SqlDataAdapter("SELECT * FROM Table_1", CONNECT_STRING))
+         {
+             adapter.Fill(dt);
+         }
+         return dt;
+     }
+ }*/
+
     public class Person
     {
         public int id;
@@ -124,6 +155,19 @@ namespace ASTA
         }
     }
 
+    public static class DateTimeExtensions
+    {
+        public static DateTime LastDayOfMonth(this DateTime date)
+        {
+            return new DateTime(date.Year, date.Month, 1).AddMonths(1).AddDays(-1);
+        }
+
+        public static DateTime FirstDayOfMonth(this DateTime date)
+        {
+            return new DateTime(date.Year, date.Month, 1);
+        }
+    }
+
     public class MailingStructure
     {
         public string _sender = "";
@@ -134,6 +178,7 @@ namespace ASTA
         public string _period = "";
         public string _status = "";
         public string _typeReport = "";
+        public string _dayReport = "";
     }
 
     public class OutReasons
@@ -178,6 +223,12 @@ namespace ASTA
         public string _DayInputed;
         public string _Reserv1;
         public string _Reserv2;
+    }
+
+    struct AmountMembersOfGroup
+    {
+        public int _amountMembers;
+        public string _groupName;
     }
 
     public class PeopleDepartment

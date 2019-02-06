@@ -322,14 +322,14 @@
             // 
             // labelInfoStart
             // 
-            this.labelInfoStart.BackColor = System.Drawing.Color.Transparent;
             resources.ApplyResources(this.labelInfoStart, "labelInfoStart");
+            this.labelInfoStart.BackColor = System.Drawing.Color.Transparent;
             this.labelInfoStart.Name = "labelInfoStart";
             // 
             // labelInfoEnd
             // 
-            this.labelInfoEnd.BackColor = System.Drawing.Color.Transparent;
             resources.ApplyResources(this.labelInfoEnd, "labelInfoEnd");
+            this.labelInfoEnd.BackColor = System.Drawing.Color.Transparent;
             this.labelInfoEnd.Name = "labelInfoEnd";
             // 
             // numUpDownHourEnd
