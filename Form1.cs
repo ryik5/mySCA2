@@ -4507,7 +4507,7 @@ namespace ASTA
                 MessageBoxDefaultButton.Button1);
         }
 
-        private void MakeFormMailing(object sender, EventArgs e) //MailingItem()
+        private void PrepareForMakingFormMailing(object sender, EventArgs e) //MailingItem()
         {
             nameOfLastTableFromDB = "Mailing";
             _MenuItemEnabled(SettingsMenuItem, false);
@@ -4519,10 +4519,10 @@ namespace ASTA
 
             btnPropertiesSave.Text = "Сохранить рассылку";
 
-            MailingItem();
+            MakeFormMailing();
         }
 
-        private void MailingItem()
+        private void MakeFormMailing()
         {
             List<string> listComboParameters = new List<string>();
 
@@ -5135,6 +5135,19 @@ namespace ASTA
             _controlVisible(panelView, true);
         }
 
+        private void MakeCloneMailing()
+        {
+            DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
+            dgSeek.FindValueInCells(dataGridView1, new string[] { @"Получатель", @"Отчет по группам", @"Наименование", @"Описание", @"Период", @"Статус", @"Тип отчета", @"День отправки" });
+
+            { SaveMailing(dgSeek.values[0], mailServerUserName, dgSeek.values[1], dgSeek.values[2] + " clone", dgSeek.values[3], dgSeek.values[4], dgSeek.values[5], DateTimeToYYYYMMDDHHMM(), "", dgSeek.values[6], dgSeek.values[7]); }
+
+            ShowDataTableQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
+                "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', " +
+                "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', TypeReport AS 'Тип отчета',  DayReport AS 'День отправки'",
+                " ORDER BY RecipientEmail asc, DateCreated desc; ");
+        }
+
         private void SaveProperties() //Save Parameters into Registry and variables
         {
             string server = _textBoxReturnText(textBoxServer1);
@@ -5713,7 +5726,7 @@ namespace ASTA
             }
         }
 
-        //Show help to Edit on some columns DataGridView
+         //Show help to Edit on some columns DataGridView
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
             DataGridViewCell cell;
@@ -5783,7 +5796,8 @@ namespace ASTA
                     ContextMenu mRightClick = new ContextMenu();
                     mRightClick.MenuItems.Add(new MenuItem(@"Удалить рассылку:   " + mailing, DeleteCurrentRow));
                     mRightClick.MenuItems.Add(new MenuItem(@"Выполнить рассылку:   " + mailing, DoMainAction));
-                    mRightClick.MenuItems.Add(new MenuItem(@"Создать рассылку.", MakeFormMailing));
+                    mRightClick.MenuItems.Add(new MenuItem(@"Создать рассылку", PrepareForMakingFormMailing));
+                    mRightClick.MenuItems.Add(new MenuItem(@"Клонировать рассылку:   " + mailing, MakeCloneMailing));
 
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
@@ -5795,6 +5809,9 @@ namespace ASTA
                 }
             }
         }
+
+        private void MakeCloneMailing(object sender, EventArgs e) //MakeCloneMailing()
+        { MakeCloneMailing(); }
 
         private void DoMainAction(object sender, EventArgs e) //DoMainAction()
         { DoMainAction(); }
