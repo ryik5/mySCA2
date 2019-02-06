@@ -622,7 +622,7 @@
             // 
             this.mailingItem.Name = "mailingItem";
             resources.ApplyResources(this.mailingItem, "mailingItem");
-            this.mailingItem.Click += new System.EventHandler(this.MailingItem_Click);
+            this.mailingItem.Click += new System.EventHandler(this.MakeFormMailing);
             // 
             // deleteSelectedMailingItem
             // 
