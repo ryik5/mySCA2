@@ -240,6 +240,81 @@
   <data name="groupBoxFilterReport.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
   </data>
+  <data name="&gt;&gt;checkBoxReEnter.Name" xml:space="preserve">
+    <value>checkBoxReEnter</value>
+  </data>
+  <data name="&gt;&gt;checkBoxReEnter.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;checkBoxReEnter.Parent" xml:space="preserve">
+    <value>groupBoxFilterReport</value>
+  </data>
+  <data name="&gt;&gt;checkBoxReEnter.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;checkBoxTimeViolations.Name" xml:space="preserve">
+    <value>checkBoxTimeViolations</value>
+  </data>
+  <data name="&gt;&gt;checkBoxTimeViolations.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;checkBoxTimeViolations.Parent" xml:space="preserve">
+    <value>groupBoxFilterReport</value>
+  </data>
+  <data name="&gt;&gt;checkBoxTimeViolations.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;checkBoxCelebrate.Name" xml:space="preserve">
+    <value>checkBoxCelebrate</value>
+  </data>
+  <data name="&gt;&gt;checkBoxCelebrate.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;checkBoxCelebrate.Parent" xml:space="preserve">
+    <value>groupBoxFilterReport</value>
+  </data>
+  <data name="&gt;&gt;checkBoxCelebrate.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="&gt;&gt;checkBoxWeekend.Name" xml:space="preserve">
+    <value>checkBoxWeekend</value>
+  </data>
+  <data name="&gt;&gt;checkBoxWeekend.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;checkBoxWeekend.Parent" xml:space="preserve">
+    <value>groupBoxFilterReport</value>
+  </data>
+  <data name="&gt;&gt;checkBoxWeekend.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="groupBoxFilterReport.Location" type="System.Drawing.Point, System.Drawing">
+    <value>633, 264</value>
+  </data>
+  <data name="groupBoxFilterReport.Size" type="System.Drawing.Size, System.Drawing">
+    <value>227, 127</value>
+  </data>
+  <data name="groupBoxFilterReport.TabIndex" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="groupBoxFilterReport.Text" xml:space="preserve">
+    <value>Фильтр отчета:</value>
+  </data>
+  <data name="groupBoxFilterReport.ToolTip" xml:space="preserve">
+    <value>Убрать из отчета отмеченные пункты</value>
+  </data>
+  <data name="&gt;&gt;groupBoxFilterReport.Name" xml:space="preserve">
+    <value>groupBoxFilterReport</value>
+  </data>
+  <data name="&gt;&gt;groupBoxFilterReport.Type" xml:space="preserve">
+    <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;groupBoxFilterReport.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;groupBoxFilterReport.ZOrder" xml:space="preserve">
+    <value>11</value>
+  </data>
   <data name="checkBoxReEnter.AutoSize" type="System.Boolean, mscorlib">
     <value>True</value>
   </data>
@@ -359,33 +434,6 @@
   </data>
   <data name="&gt;&gt;checkBoxWeekend.ZOrder" xml:space="preserve">
     <value>3</value>
-  </data>
-  <data name="groupBoxFilterReport.Location" type="System.Drawing.Point, System.Drawing">
-    <value>633, 264</value>
-  </data>
-  <data name="groupBoxFilterReport.Size" type="System.Drawing.Size, System.Drawing">
-    <value>227, 127</value>
-  </data>
-  <data name="groupBoxFilterReport.TabIndex" type="System.Int32, mscorlib">
-    <value>3</value>
-  </data>
-  <data name="groupBoxFilterReport.Text" xml:space="preserve">
-    <value>Фильтр отчета:</value>
-  </data>
-  <data name="groupBoxFilterReport.ToolTip" xml:space="preserve">
-    <value>Убрать из отчета отмеченные пункты</value>
-  </data>
-  <data name="&gt;&gt;groupBoxFilterReport.Name" xml:space="preserve">
-    <value>groupBoxFilterReport</value>
-  </data>
-  <data name="&gt;&gt;groupBoxFilterReport.Type" xml:space="preserve">
-    <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;groupBoxFilterReport.Parent" xml:space="preserve">
-    <value>$this</value>
-  </data>
-  <data name="&gt;&gt;groupBoxFilterReport.ZOrder" xml:space="preserve">
-    <value>11</value>
   </data>
   <metadata name="statusStrip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>220, 17</value>
@@ -807,6 +855,117 @@
   <metadata name="menuStrip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>503, 17</value>
   </metadata>
+  <data name="FunctionMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>64, 20</value>
+  </data>
+  <data name="FunctionMenuItem.Text" xml:space="preserve">
+    <value>Главное</value>
+  </data>
+  <data name="GroupsMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>61, 20</value>
+  </data>
+  <data name="GroupsMenuItem.Text" xml:space="preserve">
+    <value>Группы</value>
+  </data>
+  <data name="GroupsMenuItem.ToolTipText" xml:space="preserve">
+    <value>Работа только с группами для персон с NAV-кодами</value>
+  </data>
+  <data name="SettingsProgrammItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>357, 22</value>
+  </data>
+  <data name="SettingsProgrammItem.Text" xml:space="preserve">
+    <value>Настройки программы</value>
+  </data>
+  <data name="MailingItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>357, 22</value>
+  </data>
+  <data name="MailingItem.Text" xml:space="preserve">
+    <value>E-mail рассылки</value>
+  </data>
+  <data name="EnterEditAnualItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>357, 22</value>
+  </data>
+  <data name="EnterEditAnualItem.Text" xml:space="preserve">
+    <value>Войти в режим редактирования праздников</value>
+  </data>
+  <data name="AddAnualDateItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>357, 22</value>
+  </data>
+  <data name="AddAnualDateItem.Text" xml:space="preserve">
+    <value>Добавить праздничный день</value>
+  </data>
+  <data name="AddAnualDateItem.ToolTipText" xml:space="preserve">
+    <value>Добавить выделенный день как праздничный</value>
+  </data>
+  <data name="DeleteAnualDateItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>357, 22</value>
+  </data>
+  <data name="DeleteAnualDateItem.Text" xml:space="preserve">
+    <value>Удалить праздничный день</value>
+  </data>
+  <data name="DeleteAnualDateItem.ToolTipText" xml:space="preserve">
+    <value>Удалить выделенный из набора праздничных дней</value>
+  </data>
+  <data name="modeItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>357, 22</value>
+  </data>
+  <data name="modeItem.Text" xml:space="preserve">
+    <value>Mode</value>
+  </data>
+  <data name="ClearReportItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>357, 22</value>
+  </data>
+  <data name="ClearReportItem.Text" xml:space="preserve">
+    <value>Очистить папку програмы от сохраненных отчетов</value>
+  </data>
+  <data name="ClearReportItem.ToolTipText" xml:space="preserve">
+    <value>Очистить локальную базу с отчетами и все файлы отчетов</value>
+  </data>
+  <data name="ClearDataItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>357, 22</value>
+  </data>
+  <data name="ClearDataItem.Text" xml:space="preserve">
+    <value>Очистить таблицы программы от данных</value>
+  </data>
+  <data name="ClearDataItem.ToolTipText" xml:space="preserve">
+    <value>Очистить все таблицы, кроме таблиц с настройками</value>
+  </data>
+  <data name="ClearRegistryItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>357, 22</value>
+  </data>
+  <data name="ClearRegistryItem.Text" xml:space="preserve">
+    <value>Удалить данные из реестра</value>
+  </data>
+  <data name="ClearAllItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>357, 22</value>
+  </data>
+  <data name="ClearAllItem.Text" xml:space="preserve">
+    <value>Очистить программу от всех данных и настроек</value>
+  </data>
+  <data name="ClearAllItem.ToolTipText" xml:space="preserve">
+    <value>Очистика локальной базы от всех полученных, сгенерированных, сохраненных и введенных данных</value>
+  </data>
+  <data name="TestCryptionItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>357, 22</value>
+  </data>
+  <data name="TestCryptionItem.Text" xml:space="preserve">
+    <value>TestCryption</value>
+  </data>
+  <data name="TestCryptionItem.Visible" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="SettingsMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>79, 20</value>
+  </data>
+  <data name="SettingsMenuItem.Text" xml:space="preserve">
+    <value>Настройки</value>
+  </data>
+  <data name="HelpMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>68, 20</value>
+  </data>
+  <data name="HelpMenuItem.Text" xml:space="preserve">
+    <value>Помощь</value>
+  </data>
   <data name="menuStrip.Location" type="System.Drawing.Point, System.Drawing">
     <value>0, 0</value>
   </data>
@@ -831,12 +990,6 @@
   <data name="&gt;&gt;menuStrip.ZOrder" xml:space="preserve">
     <value>14</value>
   </data>
-  <data name="FunctionMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>64, 20</value>
-  </data>
-  <data name="FunctionMenuItem.Text" xml:space="preserve">
-    <value>Главное</value>
-  </data>
   <data name="GetFioItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>226, 22</value>
   </data>
@@ -855,10 +1008,10 @@
   <data name="listFioItem.ToolTipText" xml:space="preserve">
     <value>Список ВИО, загруженный с сервера</value>
   </data>
-  <data name="QuickLoadDataItem.Size" type="System.Drawing.Size, System.Drawing">
+  <data name="LoadDataItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>226, 22</value>
   </data>
-  <data name="QuickLoadDataItem.Text" xml:space="preserve">
+  <data name="LoadDataItem.Text" xml:space="preserve">
     <value>Загрузка данных</value>
   </data>
   <data name="TableExportToExcelItem.Size" type="System.Drawing.Size, System.Drawing">
@@ -920,15 +1073,6 @@
   </data>
   <data name="ExitItem.Text" xml:space="preserve">
     <value>Выход</value>
-  </data>
-  <data name="GroupsMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>61, 20</value>
-  </data>
-  <data name="GroupsMenuItem.Text" xml:space="preserve">
-    <value>Группы</value>
-  </data>
-  <data name="GroupsMenuItem.ToolTipText" xml:space="preserve">
-    <value>Работа только с группами для персон с NAV-кодами</value>
   </data>
   <data name="PersonOrGroupItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>341, 22</value>
@@ -995,117 +1139,6 @@
   </data>
   <data name="importPeopleInLocalDBToolStripMenuItem.Text" xml:space="preserve">
     <value>Импорт персонала и групп из текстового файла</value>
-  </data>
-  <data name="AnualDatesMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>79, 20</value>
-  </data>
-  <data name="AnualDatesMenuItem.Text" xml:space="preserve">
-    <value>Праздники</value>
-  </data>
-  <data name="AnualDatesMenuItem.ToolTipText" xml:space="preserve">
-    <value>Работа с календарем</value>
-  </data>
-  <data name="EnterEditAnualItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>316, 22</value>
-  </data>
-  <data name="EnterEditAnualItem.Text" xml:space="preserve">
-    <value>Войти в режим редактирования праздников</value>
-  </data>
-  <data name="AddAnualDateItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>316, 22</value>
-  </data>
-  <data name="AddAnualDateItem.Text" xml:space="preserve">
-    <value>Добавить праздничный день</value>
-  </data>
-  <data name="AddAnualDateItem.ToolTipText" xml:space="preserve">
-    <value>Добавить выделенный день как праздничный</value>
-  </data>
-  <data name="DeleteAnualDateItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>316, 22</value>
-  </data>
-  <data name="DeleteAnualDateItem.Text" xml:space="preserve">
-    <value>Удалить праздничный день</value>
-  </data>
-  <data name="DeleteAnualDateItem.ToolTipText" xml:space="preserve">
-    <value>Удалить выделенный из набора праздничных дней</value>
-  </data>
-  <data name="SettingsMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>79, 20</value>
-  </data>
-  <data name="SettingsMenuItem.Text" xml:space="preserve">
-    <value>Настройки</value>
-  </data>
-  <data name="SettingsProgrammItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
-  </data>
-  <data name="SettingsProgrammItem.Text" xml:space="preserve">
-    <value>Программы</value>
-  </data>
-  <data name="modeItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
-  </data>
-  <data name="modeItem.Text" xml:space="preserve">
-    <value>Mode</value>
-  </data>
-  <data name="ClearReportItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
-  </data>
-  <data name="ClearReportItem.Text" xml:space="preserve">
-    <value>Очистить папку програмы от сохраненных отчетов</value>
-  </data>
-  <data name="ClearReportItem.ToolTipText" xml:space="preserve">
-    <value>Очистить локальную базу с отчетами и все файлы отчетов</value>
-  </data>
-  <data name="ClearDataItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
-  </data>
-  <data name="ClearDataItem.Text" xml:space="preserve">
-    <value>Очистить таблицы программы от данных</value>
-  </data>
-  <data name="ClearDataItem.ToolTipText" xml:space="preserve">
-    <value>Очистить все таблицы, кроме таблиц с настройками</value>
-  </data>
-  <data name="ClearAllItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
-  </data>
-  <data name="ClearAllItem.Text" xml:space="preserve">
-    <value>Очистить программу от всех данных и настроек</value>
-  </data>
-  <data name="ClearAllItem.ToolTipText" xml:space="preserve">
-    <value>Очистика локальной базы от всех полученных, сгенерированных, сохраненных и введенных данных</value>
-  </data>
-  <data name="TestCryptionItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
-  </data>
-  <data name="TestCryptionItem.Text" xml:space="preserve">
-    <value>TestCryption</value>
-  </data>
-  <data name="TestCryptionItem.Visible" type="System.Boolean, mscorlib">
-    <value>False</value>
-  </data>
-  <data name="ClearRegistryItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
-  </data>
-  <data name="ClearRegistryItem.Text" xml:space="preserve">
-    <value>Удалить данные из реестра</value>
-  </data>
-  <data name="mailingItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
-  </data>
-  <data name="mailingItem.Text" xml:space="preserve">
-    <value>Рассылки</value>
-  </data>
-  <data name="deleteSelectedMailingItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
-  </data>
-  <data name="deleteSelectedMailingItem.Text" xml:space="preserve">
-    <value>Удалить выделенную рассылку</value>
-  </data>
-  <data name="HelpMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>68, 20</value>
-  </data>
-  <data name="HelpMenuItem.Text" xml:space="preserve">
-    <value>Помощь</value>
   </data>
   <data name="HelpAboutItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>211, 22</value>
@@ -2522,6 +2555,54 @@
   <data name="groupBoxTimeEnd.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
   </data>
+  <data name="&gt;&gt;labelHourEnd.Name" xml:space="preserve">
+    <value>labelHourEnd</value>
+  </data>
+  <data name="&gt;&gt;labelHourEnd.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelHourEnd.Parent" xml:space="preserve">
+    <value>groupBoxTimeEnd</value>
+  </data>
+  <data name="&gt;&gt;labelHourEnd.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;labelMinuteEnd.Name" xml:space="preserve">
+    <value>labelMinuteEnd</value>
+  </data>
+  <data name="&gt;&gt;labelMinuteEnd.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;labelMinuteEnd.Parent" xml:space="preserve">
+    <value>groupBoxTimeEnd</value>
+  </data>
+  <data name="&gt;&gt;labelMinuteEnd.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="groupBoxTimeEnd.Location" type="System.Drawing.Point, System.Drawing">
+    <value>633, 206</value>
+  </data>
+  <data name="groupBoxTimeEnd.Size" type="System.Drawing.Size, System.Drawing">
+    <value>226, 52</value>
+  </data>
+  <data name="groupBoxTimeEnd.TabIndex" type="System.Int32, mscorlib">
+    <value>36</value>
+  </data>
+  <data name="groupBoxTimeEnd.Text" xml:space="preserve">
+    <value>Конец рабочего дня:</value>
+  </data>
+  <data name="&gt;&gt;groupBoxTimeEnd.Name" xml:space="preserve">
+    <value>groupBoxTimeEnd</value>
+  </data>
+  <data name="&gt;&gt;groupBoxTimeEnd.Type" xml:space="preserve">
+    <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;groupBoxTimeEnd.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;groupBoxTimeEnd.ZOrder" xml:space="preserve">
+    <value>10</value>
+  </data>
   <data name="labelHourEnd.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
   </data>
@@ -2599,30 +2680,6 @@
   </data>
   <data name="&gt;&gt;labelMinuteEnd.ZOrder" xml:space="preserve">
     <value>3</value>
-  </data>
-  <data name="groupBoxTimeEnd.Location" type="System.Drawing.Point, System.Drawing">
-    <value>633, 206</value>
-  </data>
-  <data name="groupBoxTimeEnd.Size" type="System.Drawing.Size, System.Drawing">
-    <value>226, 52</value>
-  </data>
-  <data name="groupBoxTimeEnd.TabIndex" type="System.Int32, mscorlib">
-    <value>36</value>
-  </data>
-  <data name="groupBoxTimeEnd.Text" xml:space="preserve">
-    <value>Конец рабочего дня:</value>
-  </data>
-  <data name="&gt;&gt;groupBoxTimeEnd.Name" xml:space="preserve">
-    <value>groupBoxTimeEnd</value>
-  </data>
-  <data name="&gt;&gt;groupBoxTimeEnd.Type" xml:space="preserve">
-    <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;groupBoxTimeEnd.Parent" xml:space="preserve">
-    <value>$this</value>
-  </data>
-  <data name="&gt;&gt;groupBoxTimeEnd.ZOrder" xml:space="preserve">
-    <value>10</value>
   </data>
   <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
@@ -3781,10 +3838,10 @@
   <data name="&gt;&gt;listFioItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;QuickLoadDataItem.Name" xml:space="preserve">
-    <value>QuickLoadDataItem</value>
+  <data name="&gt;&gt;LoadDataItem.Name" xml:space="preserve">
+    <value>LoadDataItem</value>
   </data>
-  <data name="&gt;&gt;QuickLoadDataItem.Type" xml:space="preserve">
+  <data name="&gt;&gt;LoadDataItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;TableExportToExcelItem.Name" xml:space="preserve">
@@ -3901,30 +3958,6 @@
   <data name="&gt;&gt;importPeopleInLocalDBToolStripMenuItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;AnualDatesMenuItem.Name" xml:space="preserve">
-    <value>AnualDatesMenuItem</value>
-  </data>
-  <data name="&gt;&gt;AnualDatesMenuItem.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;EnterEditAnualItem.Name" xml:space="preserve">
-    <value>EnterEditAnualItem</value>
-  </data>
-  <data name="&gt;&gt;EnterEditAnualItem.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;AddAnualDateItem.Name" xml:space="preserve">
-    <value>AddAnualDateItem</value>
-  </data>
-  <data name="&gt;&gt;AddAnualDateItem.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;DeleteAnualDateItem.Name" xml:space="preserve">
-    <value>DeleteAnualDateItem</value>
-  </data>
-  <data name="&gt;&gt;DeleteAnualDateItem.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
   <data name="&gt;&gt;SettingsMenuItem.Name" xml:space="preserve">
     <value>SettingsMenuItem</value>
   </data>
@@ -3935,6 +3968,12 @@
     <value>SettingsProgrammItem</value>
   </data>
   <data name="&gt;&gt;SettingsProgrammItem.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;MailingItem.Name" xml:space="preserve">
+    <value>MailingItem</value>
+  </data>
+  <data name="&gt;&gt;MailingItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;modeItem.Name" xml:space="preserve">
@@ -3955,6 +3994,12 @@
   <data name="&gt;&gt;ClearDataItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="&gt;&gt;ClearRegistryItem.Name" xml:space="preserve">
+    <value>ClearRegistryItem</value>
+  </data>
+  <data name="&gt;&gt;ClearRegistryItem.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="&gt;&gt;ClearAllItem.Name" xml:space="preserve">
     <value>ClearAllItem</value>
   </data>
@@ -3967,22 +4012,22 @@
   <data name="&gt;&gt;TestCryptionItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;ClearRegistryItem.Name" xml:space="preserve">
-    <value>ClearRegistryItem</value>
+  <data name="&gt;&gt;EnterEditAnualItem.Name" xml:space="preserve">
+    <value>EnterEditAnualItem</value>
   </data>
-  <data name="&gt;&gt;ClearRegistryItem.Type" xml:space="preserve">
+  <data name="&gt;&gt;EnterEditAnualItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;mailingItem.Name" xml:space="preserve">
-    <value>mailingItem</value>
+  <data name="&gt;&gt;AddAnualDateItem.Name" xml:space="preserve">
+    <value>AddAnualDateItem</value>
   </data>
-  <data name="&gt;&gt;mailingItem.Type" xml:space="preserve">
+  <data name="&gt;&gt;AddAnualDateItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;deleteSelectedMailingItem.Name" xml:space="preserve">
-    <value>deleteSelectedMailingItem</value>
+  <data name="&gt;&gt;DeleteAnualDateItem.Name" xml:space="preserve">
+    <value>DeleteAnualDateItem</value>
   </data>
-  <data name="&gt;&gt;deleteSelectedMailingItem.Type" xml:space="preserve">
+  <data name="&gt;&gt;DeleteAnualDateItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;HelpMenuItem.Name" xml:space="preserve">

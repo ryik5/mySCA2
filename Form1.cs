@@ -509,7 +509,7 @@ namespace ASTA
 
         private void TryMakeDB()
         {
-            ExecuteSql("CREATE TABLE IF NOT EXISTS 'PeopleGroupDesciption' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, GroupPerson TEXT, GroupPersonDescription TEXT, Late TEXT, Early TEXT,  Vacancy TEXT, BusinesTrip TEXT, Reserv1 TEXT, Reserv2 TEXT, " +
+            ExecuteSql("CREATE TABLE IF NOT EXISTS 'PeopleGroupDesciption' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, GroupPerson TEXT, GroupPersonDescription TEXT, Reserv1 TEXT, Reserv2 TEXT, " +
                     "UNIQUE ('GroupPerson') ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'PeopleGroup' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, GroupPerson TEXT, " +
                     "HourControlling TEXT, MinuteControlling TEXT, Controlling REAL, ControllingHHMM TEXT, HourControllingOut TEXT, MinuteControllingOut TEXT, ControllingOut REAL, ControllingOUTHHMM TEXT, " +
@@ -518,8 +518,8 @@ namespace ASTA
                     "MoStart REAL,MoEnd REAL, TuStart REAL,TuEnd REAL, WeStart REAL,WeEnd REAL, ThStart REAL,ThEnd REAL, FrStart REAL,FrEnd REAL, " +
                     "SaStart REAL,SaEnd REAL, SuStart REAL,SuEnd REAL, Status Text, Comment TEXT, DayInputed TEXT, Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('NAV', 'DayStartShift') ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'TechnicalInfo' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, PCName TEXT, POName TEXT, POVersion TEXT, LastDateStarted TEXT, Reserv1 TEXT, " +
-                    "Reserv2 TEXT, Reserverd3 TEXT);", databasePerson);
-            ExecuteSql("CREATE TABLE IF NOT EXISTS 'BoldedDates' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, BoldedDate TEXT, NAV TEXT, Groups TEXT, Reserv1 TEXT, Reserv2 TEXT);", databasePerson);
+                    "Reserv2 TEXT, Reserv3 TEXT);", databasePerson);
+            ExecuteSql("CREATE TABLE IF NOT EXISTS 'BoldedDates' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, DayBolded TEXT, NAV TEXT, DayType TEXT, DayDesciption TEXT, DateCreated TEXT);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'ProgramSettings' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, PoParameterName TEXT, PoParameterValue TEXT, Reserv1 TEXT, Reserv2 TEXT, " +
                    "UNIQUE (PoParameterName) ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'EquipmentSettings' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, EquipmentParameterName TEXT, EquipmentParameterValue TEXT, EquipmentParameterServer TEXT," +
@@ -539,13 +539,12 @@ namespace ASTA
             TryUpdateStructureSqlDB("ListOfWorkTimeShifts", "FIO TEXT, NAV TEXT, DayStartShift TEXT, MoStart REAL,MoEnd REAL, TuStart REAL,TuEnd REAL, WeStart REAL,WeEnd REAL, ThStart REAL,ThEnd REAL, FrStart REAL,FrEnd REAL, " +
                     "SaStart REAL,SaEnd REAL, SuStart REAL,SuEnd REAL, Status Text, Comment TEXT, DayInputed TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
 
-            TryUpdateStructureSqlDB("TechnicalInfo", "PCName TEXT, POName TEXT, POVersion TEXT, LastDateStarted TEXT, Reserv1 TEXT, Reserv2 TEXT, Reserverd3 TEXT", databasePerson);
-            TryUpdateStructureSqlDB("BoldedDates", "BoldedDate TEXT, NAV TEXT, Groups TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
+            TryUpdateStructureSqlDB("TechnicalInfo", "PCName TEXT, POName TEXT, POVersion TEXT, LastDateStarted TEXT, Reserv1 TEXT, Reserv2 TEXT, Reserv3 TEXT", databasePerson);
+            TryUpdateStructureSqlDB("BoldedDates", "DayBolded TEXT, NAV TEXT, DayType TEXT, DayDesciption TEXT, DateCreated TEXT", databasePerson);
             TryUpdateStructureSqlDB("ProgramSettings", " PoParameterName TEXT, PoParameterValue TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
             TryUpdateStructureSqlDB("EquipmentSettings", "EquipmentParameterName TEXT, EquipmentParameterValue TEXT, EquipmentParameterServer TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
             TryUpdateStructureSqlDB("LastTakenPeopleComboList", "ComboList TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
             TryUpdateStructureSqlDB("Mailing", "SenderEmail TEXT, RecipientEmail TEXT, GroupsReport TEXT, NameReport TEXT, Description TEXT, DateCreated TEXT, Period TEXT, Status TEXT, SendingLastDate TEXT,TypeReport TEXT, DayReport TEXT", databasePerson);
-
         }
 
         private void SetTechInfoIntoDB() //Write into DB Technical Info
@@ -563,8 +562,8 @@ namespace ASTA
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
                     sqlConnection.Open();
-                    using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'TechnicalInfo' (PCName, POName, POVersion, LastDateStarted, Reserv1, Reserv2, Reserverd3) " +
-                        " VALUES (@PCName, @POName, @POVersion, @LastDateStarted, @Reserv1, @Reserv2, @Reserverd3)", sqlConnection))
+                    using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'TechnicalInfo' (PCName, POName, POVersion, LastDateStarted, Reserv1, Reserv2, Reserv3) " +
+                        " VALUES (@PCName, @POName, @POVersion, @LastDateStarted, @Reserv1, @Reserv2, @Reserv3)", sqlConnection))
                     {
                         sqlCommand.Parameters.Add("@PCName", DbType.String).Value = pcname;
                         sqlCommand.Parameters.Add("@POName", DbType.String).Value = poname;
@@ -572,7 +571,7 @@ namespace ASTA
                         sqlCommand.Parameters.Add("@LastDateStarted", DbType.String).Value = LastDateStarted;
                         sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = Reserv1;
                         sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = Reserv2;
-                        sqlCommand.Parameters.Add("@Reserverd3", DbType.String).Value = guid;
+                        sqlCommand.Parameters.Add("@Reserv3", DbType.String).Value = guid;
                         try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                     }
                 }
@@ -607,7 +606,8 @@ namespace ASTA
                                         _comboBoxAdd(comboBoxFio, record["ComboList"].ToString().Trim());
                                         iCombo++;
                                     }
-                                } catch (Exception expt) { logger.Info(expt.ToString()); }
+                                }
+                                catch (Exception expt) { logger.Info(expt.ToString()); }
                             }
                         }
                     }
@@ -637,7 +637,8 @@ namespace ASTA
                                         if (record["PoParameterName"]?.ToString()?.Trim() == "clrRealRegistration")
                                             clrRealRegistration = Color.FromName(record["PoParameterValue"].ToString());
                                     }
-                                } catch (Exception expt) { logger.Info(expt.ToString()); }
+                                }
+                                catch (Exception expt) { logger.Info(expt.ToString()); }
                             }
                         }
                     }
@@ -682,7 +683,8 @@ namespace ASTA
                                                 try { mysqlServerUserPasswordDB = DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2); } catch { }
                                         }
                                     }
-                                } catch (Exception expt) { logger.Info(expt.ToString()); }
+                                }
+                                catch (Exception expt) { logger.Info(expt.ToString()); }
                             }
                         }
                     }
@@ -736,7 +738,8 @@ namespace ASTA
                 {
                     using (var command = new SQLiteCommand(SqlQuery, connection))
                     { command.ExecuteNonQuery(); }
-                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                }
+                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
             }
             SqlQuery = null;
         }
@@ -770,7 +773,9 @@ namespace ASTA
                     }
                 }
             }
+
             _dataGridViewSource(dt);
+
             iCounterLine = _dataGridView1RowsCount();
             sLastSelectedElement = "dataGridView";
         }
@@ -806,7 +811,8 @@ namespace ASTA
                         {
                             sqlCommand.ExecuteNonQuery();
                             logger.Info("-= Удалена таблица " + myTable + " =-");
-                        } catch { }
+                        }
+                        catch { }
                     }
                     using (var sqlCommand = new SQLiteCommand("vacuum;", sqlConnection))   //vacuum DB
                     {
@@ -836,41 +842,41 @@ namespace ASTA
             }
             myTable = null;
         }
-
-        private void DeleteDataTableQueryNAV(System.IO.FileInfo databasePerson, string myTable,
-            string mySqlParameter1 = "", string mySqlData1 = "",
-            string mySqlParameter2 = "", string mySqlData2 = "") //Delete data from the Table of the DB by NAV (both parameters are string)
-        {
-            if (databasePerson.Exists)
-            {
-                using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+        /*
+                private void DeleteDataTableQueryNAV(System.IO.FileInfo databasePerson, string myTable,
+                    string mySqlParameter1 = "", string mySqlData1 = "",
+                    string mySqlParameter2 = "", string mySqlData2 = "") //Delete data from the Table of the DB by NAV (both parameters are string)
                 {
-                    sqlConnection.Open();
-                    if (mySqlParameter1.Trim().Length > 0 && mySqlParameter2.Trim().Length == 0)
+                    if (databasePerson.Exists)
                     {
-                        using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where NAV like '" + _textBoxReturnText(textBoxNav) + "' AND " + mySqlParameter1 + "= @" + mySqlParameter1 + ";", sqlConnection))
+                        using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                         {
-                            sqlCommand.Parameters.Add("@" + mySqlParameter1, DbType.String).Value = mySqlData1;
-                            try { sqlCommand.ExecuteNonQuery(); } catch { }
+                            sqlConnection.Open();
+                            if (mySqlParameter1.Trim().Length > 0 && mySqlParameter2.Trim().Length == 0)
+                            {
+                                using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where NAV like '" + _textBoxReturnText(textBoxNav) + "' AND " + mySqlParameter1 + "= @" + mySqlParameter1 + ";", sqlConnection))
+                                {
+                                    sqlCommand.Parameters.Add("@" + mySqlParameter1, DbType.String).Value = mySqlData1;
+                                    try { sqlCommand.ExecuteNonQuery(); } catch { }
+                                }
+                            }
+                            if (mySqlParameter1.Trim().Length > 0 && mySqlParameter2.Trim().Length > 0)
+                            {
+                                using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where NAV like '" + _textBoxReturnText(textBoxNav) + "' AND " + mySqlParameter1 + "= @" + mySqlParameter1 +
+                                    " AND " + mySqlParameter2 + "= @" + mySqlParameter2 + ";", sqlConnection))
+                                {
+                                    sqlCommand.Parameters.Add("@" + mySqlParameter1, DbType.String).Value = mySqlData1;
+                                    sqlCommand.Parameters.Add("@" + mySqlParameter2, DbType.String).Value = mySqlData2;
+                                    try { sqlCommand.ExecuteNonQuery(); } catch { }
+                                }
+                            }
+                            //vacuum DB
+                            using (var sqlCommand = new SQLiteCommand("vacuum;", sqlConnection))
+                            { try { sqlCommand.ExecuteNonQuery(); } catch { } }
                         }
                     }
-                    if (mySqlParameter1.Trim().Length > 0 && mySqlParameter2.Trim().Length > 0)
-                    {
-                        using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where NAV like '" + _textBoxReturnText(textBoxNav) + "' AND " + mySqlParameter1 + "= @" + mySqlParameter1 +
-                            " AND " + mySqlParameter2 + "= @" + mySqlParameter2 + ";", sqlConnection))
-                        {
-                            sqlCommand.Parameters.Add("@" + mySqlParameter1, DbType.String).Value = mySqlData1;
-                            sqlCommand.Parameters.Add("@" + mySqlParameter2, DbType.String).Value = mySqlData2;
-                            try { sqlCommand.ExecuteNonQuery(); } catch { }
-                        }
-                    }
-                    //vacuum DB
-                    using (var sqlCommand = new SQLiteCommand("vacuum;", sqlConnection))
-                    { try { sqlCommand.ExecuteNonQuery(); } catch { } }
-                }
-            }
-            myTable = null; mySqlParameter1 = null; mySqlData1 = null; mySqlParameter2 = null; mySqlData2 = null;
-        }
+                    myTable = null; mySqlParameter1 = null; mySqlData1 = null; mySqlParameter2 = null; mySqlData2 = null;
+                }*/
 
         private void DeleteDataTableQuery(System.IO.FileInfo databasePerson, string myTable, string mySqlNav,
         string mySqlParameter1 = "", string mySqlData1 = "",
@@ -990,7 +996,8 @@ namespace ASTA
                         }
                     }
                 }
-            } catch
+            }
+            catch
             { bServer1Exist = false; }
 
             if (bServer1Exist)
@@ -1005,7 +1012,7 @@ namespace ASTA
                 _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
                 stimerPrev = serverName + " не доступен или неправильная авторизация";
 
-                _MenuItemEnabled(QuickLoadDataItem, false);
+                _MenuItemEnabled(LoadDataItem, false);
                 CheckBoxesFiltersAll_Enable(false);
                 _MenuItemEnabled(VisualModeItem, false);
             }
@@ -1024,10 +1031,9 @@ namespace ASTA
             _ProgressBar1Start();
             CheckBoxesFiltersAll_CheckedState(false);
             CheckBoxesFiltersAll_Enable(false);
-            _MenuItemEnabled(QuickLoadDataItem, false);
+            _MenuItemEnabled(LoadDataItem, false);
             _MenuItemEnabled(FunctionMenuItem, false);
             _MenuItemEnabled(SettingsMenuItem, false);
-            _MenuItemEnabled(AnualDatesMenuItem, false);
             _MenuItemEnabled(GroupsMenuItem, false);
             _MenuItemEnabled(GetFioItem, false);
 
@@ -1189,7 +1195,8 @@ namespace ASTA
                                             _departmentDescription = record["name"].ToString()
                                         });
                                     }
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 _ProgressWork1Step(1);
                             }
                         }
@@ -1216,7 +1223,8 @@ namespace ASTA
                                         try
                                         {
                                             depName = groups.Find((x) => x._departmentName == groupName)?._departmentDescription;
-                                        } catch (Exception expt) { logger.Warn(expt.Message); }
+                                        }
+                                        catch (Exception expt) { logger.Warn(expt.Message); }
 
                                         row[@"№ п/п"] = iFIO;
                                         row[@"№ пропуска"] = Convert.ToInt32(record["id"].ToString().Trim());
@@ -1240,7 +1248,8 @@ namespace ASTA
 
                                         _ProgressWork1Step(1);
                                     }
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
@@ -1299,7 +1308,8 @@ namespace ASTA
                             {
                                 if (reader.GetString(@"code")?.Length > 0)
                                 {
-                                    try { dayStartShift = DateTimeToYYYYMMDD(reader.GetMySqlDateTime(@"start_date").ToString()); } catch
+                                    try { dayStartShift = DateTimeToYYYYMMDD(reader.GetMySqlDateTime(@"start_date").ToString()); }
+                                    catch
                                     { dayStartShift = DateTimeToYYYYMMDD("1980-01-01"); }
 
                                     peopleShifts.Add(new PeopleShift()
@@ -1342,7 +1352,8 @@ namespace ASTA
 
                         //test only
                         logger.Info("Общий график с " + dayStartShift);
-                    } catch { }
+                    }
+                    catch { }
 
                     // import people from web DB
                     query = "Select code, family_name,first_name,last_name,vacancy,department FROM personal"; //where hidden=0
@@ -1420,7 +1431,8 @@ namespace ASTA
 
                 _toolStripStatusLabelSetText(StatusLabel2, "Список ФИО успешно получен");
                 stimerPrev = "Все списки с ФИО с сервера СКД успешно получены";
-            } catch (Exception Expt)
+            }
+            catch (Exception Expt)
             {
                 bServer1Exist = false;
                 stimerPrev = "Сервер не доступен или неправильная авторизация";
@@ -1438,7 +1450,8 @@ namespace ASTA
                     {
                         depName = groups[indDep]?._departmentName;
                         DeleteDataTableQueryParameters(databasePerson, "PeopleGroup", "GroupPerson", depName, "", "", "", "");
-                    } catch { }
+                    }
+                    catch { }
                 }
 
                 for (int indDep = 0; indDep < groups.Count; indDep++)
@@ -1448,7 +1461,8 @@ namespace ASTA
                         depName = groups[indDep]?._departmentName;
                         depDescr = groups[indDep]?._departmentDescription;
                         CreateGroupInDB(databasePerson, depName, depDescr);
-                    } catch { }
+                    }
+                    catch { }
                 }
 
 
@@ -1523,7 +1537,8 @@ namespace ASTA
                                 try
                                 {
                                     sqlCommand.ExecuteNonQuery();
-                                } catch (Exception expt)
+                                }
+                                catch (Exception expt)
                                 {
                                     logger.Warn("ошибка записи в локальную базу PeopleGroup - " + dr[@"Фамилия Имя Отчество"] + "\n" + dr[@"NAV-код"] + "\n" + expt.ToString());
                                 }
@@ -1561,11 +1576,12 @@ namespace ASTA
                 foreach (string str in ListFIOCombo.Distinct().ToArray())
                 { _comboBoxAdd(comboBoxFio, str); }
                 try
-                { _comboBoxSelectIndex(comboBoxFio, 0); } catch { };
+                { _comboBoxSelectIndex(comboBoxFio, 0); }
+                catch { };
 
                 _toolStripStatusLabelSetText(StatusLabel2, "Получено ФИО - " + ListFIOCombo.Distinct().ToArray().Length + " ");
                 _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
-                _MenuItemEnabled(QuickLoadDataItem, true);
+                _MenuItemEnabled(LoadDataItem, true);
                 ListFIOCombo = null;
             }
 
@@ -1578,13 +1594,12 @@ namespace ASTA
             {
                 _toolStripStatusLabelSetText(StatusLabel2, "Ошибка доступа к БД СКД-сервера");
                 _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
-                _MenuItemEnabled(QuickLoadDataItem, false);
+                _MenuItemEnabled(LoadDataItem, false);
                 MessageBox.Show("Проверьте правильность написания серверов,\nимя и пароль sa-администратора,\nа а также доступность серверов и их баз!");
             }
             _MenuItemEnabled(GetFioItem, true);
             _MenuItemEnabled(FunctionMenuItem, true);
             _MenuItemEnabled(SettingsMenuItem, true);
-            _MenuItemEnabled(AnualDatesMenuItem, true);
             _MenuItemEnabled(GroupsMenuItem, true);
         }
 
@@ -1600,7 +1615,6 @@ namespace ASTA
             _ProgressBar1Start();
             _MenuItemEnabled(FunctionMenuItem, false);
             _MenuItemEnabled(SettingsMenuItem, false);
-            _MenuItemEnabled(AnualDatesMenuItem, false);
             _MenuItemEnabled(GroupsMenuItem, false);
             _controlEnable(dataGridView1, false);
 
@@ -1610,7 +1624,6 @@ namespace ASTA
 
             _MenuItemEnabled(FunctionMenuItem, true);
             _MenuItemEnabled(SettingsMenuItem, true);
-            _MenuItemEnabled(AnualDatesMenuItem, true);
             _MenuItemEnabled(GroupsMenuItem, true);
             _controlEnable(dataGridView1, true);
             _ProgressBar1Stop();
@@ -1846,11 +1859,13 @@ namespace ASTA
             {
                 System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
                 obj = null;
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 obj = null;
                 MessageBox.Show("Exception Occured while releasing object of Excel \n" + ex);
-            } finally
+            }
+            finally
             { GC.Collect(); }
         }
 
@@ -1892,10 +1907,11 @@ namespace ASTA
                 textBoxFIO.Text = Regex.Split(sComboboxFIO, "[|]")[0].Trim();
                 textBoxNav.Text = Regex.Split(sComboboxFIO, "[|]")[1].Trim();
                 StatusLabel2.Text = @"Выбран: " + ShortFIO(textBoxFIO.Text) + @" |  Всего ФИО: " + iFIO;
-            } catch { }
+            }
+            catch { }
             if (comboBoxFio.SelectedIndex > -1)
             {
-                QuickLoadDataItem.BackColor = Color.PaleGreen;
+                LoadDataItem.BackColor = Color.PaleGreen;
                 groupBoxPeriod.BackColor = Color.PaleGreen;
                 groupBoxTimeStart.BackColor = Color.PaleGreen;
                 groupBoxTimeEnd.BackColor = Color.PaleGreen;
@@ -1957,12 +1973,13 @@ namespace ASTA
                 textBoxGroupDescription.Text = dgSeek.values[1];
                 StatusLabel2.Text = @"Выбрана группа: " + dgSeek.values[0] + "(" + dgSeek.values[1] + ")" + @" |  Всего групп: " + _dataGridView1RowsCount();
 
-                QuickLoadDataItem.BackColor = Color.PaleGreen;
+                LoadDataItem.BackColor = Color.PaleGreen;
                 groupBoxPeriod.BackColor = Color.PaleGreen;
                 groupBoxTimeStart.BackColor = Color.PaleGreen;
                 groupBoxTimeEnd.BackColor = Color.PaleGreen;
                 groupBoxFilterReport.BackColor = SystemColors.Control;
-            } catch { }
+            }
+            catch { }
 
             DeleteGroupItem.Visible = true;
             dataGridView1.Visible = true;
@@ -2151,7 +2168,8 @@ namespace ASTA
                             sqlCommand.Parameters.Add("@Comment", DbType.String).Value = dr[@"Комментарии (командировка, на выезде, согласованное отсутствие…….)"]?.ToString();
 
                             try
-                            { sqlCommand.ExecuteNonQuery(); } catch (Exception expt)
+                            { sqlCommand.ExecuteNonQuery(); }
+                            catch (Exception expt)
                             {
                                 logger.Info("GetFIO: ошибка записи в базу: " + dr[@"Фамилия Имя Отчество"] + "\n" + dr[@"NAV-код"] + "\n" + expt.ToString());
                             }
@@ -2227,7 +2245,8 @@ namespace ASTA
                             }
                         }
                     }
-                } catch (Exception expt) { MessageBox.Show("Error was happened on " + i + " row\n" + expt.ToString()); }
+                }
+                catch (Exception expt) { MessageBox.Show("Error was happened on " + i + " row\n" + expt.ToString()); }
                 if (i > listMaxLength - 10 || i == 0)
                 {
                     MessageBox.Show("Error was happened on " + i + " row\n You've been chosen the long file!");
@@ -2309,13 +2328,15 @@ namespace ASTA
                         {
                             StatusLabel2.Text = "Отсутствует NAV-код у:" + ShortFIO(textBoxFIO.Text);
                             _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
-                        } catch { }
+                        }
+                        catch { }
                     else if (group.Length == 0 && dgSeek.values[1].Length > 0)
                         try
                         {
                             StatusLabel2.Text = "Не указана группа, в которую нужно добавить!";
                             _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
-                        } catch { }
+                        }
+                        catch { }
                 }
             }
             SeekAndShowMembersOfGroup(group);
@@ -2348,7 +2369,8 @@ namespace ASTA
                                 {
                                     if (record != null && record["id"].ToString().Trim().Length > 0)
                                     { listPoints.Add(sServer1 + "|" + record["id"].ToString().Trim() + "|" + record["name"].ToString().Trim()); }
-                                } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                }
+                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
@@ -2388,12 +2410,11 @@ namespace ASTA
             _changeControlBackColor(groupBoxPeriod, SystemColors.Control);
             _changeControlBackColor(groupBoxTimeStart, SystemColors.Control);
             _changeControlBackColor(groupBoxTimeEnd, SystemColors.Control);
-            _MenuItemBackColorChange(QuickLoadDataItem, SystemColors.Control);
+            _MenuItemBackColorChange(LoadDataItem, SystemColors.Control);
 
-            _MenuItemEnabled(QuickLoadDataItem, false);
+            _MenuItemEnabled(LoadDataItem, false);
             _MenuItemEnabled(FunctionMenuItem, false);
             _MenuItemEnabled(SettingsMenuItem, false);
-            _MenuItemEnabled(AnualDatesMenuItem, false);
             _MenuItemEnabled(GroupsMenuItem, false);
             CheckBoxesFiltersAll_Enable(false);
 
@@ -2447,13 +2468,12 @@ namespace ASTA
                 stimerPrev = "";
 
                 _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
-                _MenuItemBackColorChange(QuickLoadDataItem, SystemColors.Control);
+                _MenuItemBackColorChange(LoadDataItem, SystemColors.Control);
                 _MenuItemBackColorChange(TableExportToExcelItem, Color.PaleGreen);
 
-                _MenuItemEnabled(QuickLoadDataItem, true);
+                _MenuItemEnabled(LoadDataItem, true);
                 _MenuItemEnabled(FunctionMenuItem, true);
                 _MenuItemEnabled(SettingsMenuItem, true);
-                _MenuItemEnabled(AnualDatesMenuItem, true);
                 _MenuItemEnabled(GroupsMenuItem, true);
                 _MenuItemEnabled(VisualModeItem, true);
                 _MenuItemEnabled(VisualSelectColorMenuItem, true);
@@ -2668,10 +2688,12 @@ namespace ASTA
                                 stringIdCardIntellect = Regex.Split(strRowWithNav, "[|]")[3].Trim();
                                 person.idCard = Convert.ToInt32(stringIdCardIntellect);
                                 break;
-                            } catch (Exception expt) { logger.Warn("GetPersonRegistrationFromServer " + expt.ToString()); }
+                            }
+                            catch (Exception expt) { logger.Warn("GetPersonRegistrationFromServer " + expt.ToString()); }
                     }
                 }
-            } catch (Exception expt) { logger.Warn("GetPersonRegistrationFromServer " + expt.ToString()); }
+            }
+            catch (Exception expt) { logger.Warn("GetPersonRegistrationFromServer " + expt.ToString()); }
             string[] cellData;
             string namePoint = "";
             string direction = "";
@@ -2729,7 +2751,8 @@ namespace ASTA
                                                         else if (namePoint.ToLower().Contains("вход"))
                                                             direction = "Вход";
                                                         break;
-                                                    } catch { }
+                                                    }
+                                                    catch { }
                                             }
                                             personWorkedDays.Add(stringDataNew);
 
@@ -2759,7 +2782,8 @@ namespace ASTA
 
                                             _ProgressWork1Step(1);
                                         }
-                                    } catch (Exception expt) { logger.Warn("GetPersonRegistrationFromServer " + expt.ToString()); }
+                                    }
+                                    catch (Exception expt) { logger.Warn("GetPersonRegistrationFromServer " + expt.ToString()); }
                                 }
                             }
                         }
@@ -2768,7 +2792,8 @@ namespace ASTA
 
                 stringDataNew = null; query = null; stringConnection = null;
                 _ProgressWork1Step(1);
-            } catch (Exception Expt)
+            }
+            catch (Exception Expt)
             { MessageBox.Show(Expt.ToString(), @"Сервер не доступен, или неправильная авторизация", MessageBoxButtons.OK, MessageBoxIcon.Error); }
 
             // рабочие дни в которые отсутствовал данная персона
@@ -2821,7 +2846,8 @@ namespace ASTA
                         {
                             row[@"Комментарии (командировка, на выезде, согласованное отсутствие…….)"] = outPerson.Find((x) => x._date == day && x._nav == person.NAV)._reason_id;
                             logger.Info("GetPersonRegistrationFromServer, outPerson " + person.NAV + ", outReason - " + row[@"Комментарии (командировка, на выезде, согласованное отсутствие…….)"].ToString());
-                        } catch { }
+                        }
+                        catch { }
                         break;
                     }
                 }
@@ -2910,7 +2936,8 @@ namespace ASTA
 
                                     dtPeopleGroup.Rows.Add(dataRow);
                                 }
-                            } catch { }
+                            }
+                            catch { }
                         }
                     }
                 }
@@ -2940,73 +2967,103 @@ namespace ASTA
 
         private void EnterEditAnual()
         {
-            dataGridView1.Visible = false;
-            panelView.Visible = false;
-            FunctionMenuItem.Enabled = false;
-            GroupsMenuItem.Enabled = false;
-            _MenuItemEnabled(VisualModeItem, false);
-            SettingsMenuItem.Enabled = false;
-            QuickLoadDataItem.Enabled = false;
-            CheckBoxesFiltersAll_Enable(false);
-            comboBoxFio.Enabled = false;
+            ShowDataTableQuery(databasePerson, "BoldedDates",
+                "SELECT DayBolded AS 'Праздничный (выходной) день', DayType AS 'Тип выходного дня', " +
+                "NAV AS 'Персонально(NAV) или для всех(0)', DayDesciption AS 'Описание', DateCreated AS 'Дата добавления'",
+                " ORDER BY DayBolded desc, NAV asc; ");
 
-            _ProgressBar1Start();
-            StatusLabel2.Text = @"Режим работы с праздниками и выходными";
+            _MenuItemEnabled(FunctionMenuItem, false);
+            _MenuItemEnabled(GroupsMenuItem, false);
+
+            _MenuItemEnabled(SettingsProgrammItem, false);
+            _MenuItemEnabled(MailingItem, false);
+
+            _MenuItemEnabled(AddAnualDateItem, true);
+            _MenuItemEnabled(DeleteAnualDateItem, true);
+
+            CheckBoxesFiltersAll_Visible(false);
+
+            comboBoxFio.Items.Add("");
+            comboBoxFio.SelectedIndex = 0;
+
+            toolTip1.SetToolTip(textBoxGroup, "Тип дня - 'Выходной' или 'Рабочий'");
+            toolTip1.SetToolTip(textBoxGroupDescription, "Описание дня");
+            labelGroup.Text = "Тип";
+            textBoxGroup.Text = "";
 
             StatusLabel2.ForeColor = Color.Crimson;
-            AddAnualDateItem.Enabled = true;
-            DeleteAnualDateItem.Enabled = true;
             EnterEditAnualItem.Text = @"Выйти из режим редактирования";
+            _toolStripStatusLabelSetText(StatusLabel2, @"'Режим работы с праздниками и выходными'");
+            nameOfLastTableFromDB = "BoldedDates";
         }
 
         private void ExitEditAnual()
         {
-            panelView.Visible = true;
-            dataGridView1.Visible = true;
+            comboBoxFio.Items.RemoveAt(comboBoxFio.FindStringExact(""));
+            if (comboBoxFio.Items.Count > 0)
+                comboBoxFio.SelectedIndex = 0;
 
-            FunctionMenuItem.Enabled = true;
-            GroupsMenuItem.Enabled = true;
+            _MenuItemEnabled(FunctionMenuItem, true);
+            _MenuItemEnabled(GroupsMenuItem, true);
 
-            if (_dataGridView1RowsCount() > 0)
-            {
-                _controlEnable(checkBoxReEnter, true);
-                _MenuItemEnabled(VisualModeItem, true);
-            }
+            _MenuItemEnabled(SettingsProgrammItem, true);
+            _MenuItemEnabled(MailingItem, true);
 
-            SettingsMenuItem.Enabled = true;
-            QuickLoadDataItem.Enabled = true;
+            _MenuItemEnabled(AddAnualDateItem, false);
+            _MenuItemEnabled(DeleteAnualDateItem, false);
 
-            comboBoxFio.Enabled = true;
+            CheckBoxesFiltersAll_Visible(true);
 
-            AddAnualDateItem.Enabled = false;
-            DeleteAnualDateItem.Enabled = false;
             EnterEditAnualItem.Text = @"Войти в режим редактирования праздников";
-            _ProgressBar1Stop();
+            toolTip1.SetToolTip(textBoxGroup, "Создать группу");
+            toolTip1.SetToolTip(textBoxGroupDescription, "Изменить описание группы");
+            labelGroup.Text = "Группа";
+            textBoxGroup.Text = "";
+
             StatusLabel2.ForeColor = Color.Black;
-            StatusLabel2.Text = "Начните работу с кнопки - \"Получить ФИО\"";
+            _toolStripStatusLabelSetText(StatusLabel2, @"Завершен 'Режим работы с праздниками и выходными'");
+
+            nameOfLastTableFromDB = "ListFIO";
+            SeekAndShowMembersOfGroup("");
         }
 
         private void AddAnualDateItem_Click(object sender, EventArgs e) //AddAnualDate()
-        { AddAnualDate(); }
+        {
+            AddAnualDate();
+            ShowDataTableQuery(databasePerson, "BoldedDates", "SELECT DayBolded AS 'Праздничный (выходной) день', DayType AS 'Тип выходного дня', " +
+            "NAV AS 'Персонально(NAV) или для всех(0)', DayDesciption AS 'Описание', DateCreated AS 'Дата добавления'",
+            " ORDER BY DayBolded desc, NAV asc; ");
+        }
 
         private void AddAnualDate()
         {
             monthCalendar.AddAnnuallyBoldedDate(monthCalendar.SelectionStart);
             monthCalendar.UpdateBoldedDates();
 
+            string dayType = "";
+            if (textBoxGroup?.Text?.Trim()?.Length == 0 || textBoxGroup?.Text?.ToLower()?.Trim() == "выходной")
+            { dayType = "Выходной"; }
+            else { dayType = "Рабочий"; }
+
+            string nav = "";
+            if (textBoxNav?.Text?.Trim()?.Length != 6)
+            { nav = "0"; }
+            else { nav = textBoxNav.Text.Trim(); }
+
             if (databasePerson.Exists)
             {
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
                     sqlConnection.Open();
-                    using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'BoldedDates' (BoldedDate, NAV, Groups, Reserv1, Reserv2) " +
-                        " VALUES (@BoldedDate, @NAV, @Groups, @Reserv1, @Reserv2)", sqlConnection))
+
+                    using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'BoldedDates' (DayBolded, NAV, DayType, DayDesciption, DateCreated) " +
+                        " VALUES (@BoldedDate, @NAV, @DayType, @DayDesciption, @DateCreated)", sqlConnection))
                     {
-                        sqlCommand.Parameters.Add("@BoldedDate", DbType.String).Value = monthCalendar.SelectionStart.ToString();
-                        sqlCommand.Parameters.Add("@NAV", DbType.String).Value = textBoxNav.Text;
-                        sqlCommand.Parameters.Add("@Groups", DbType.String).Value = textBoxGroup.Text;
-                        sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = "Add";
-                        sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = "";
+                        sqlCommand.Parameters.Add("@BoldedDate", DbType.String).Value = monthCalendar.SelectionStart.ToString("yyyy-MM-dd");
+                        sqlCommand.Parameters.Add("@NAV", DbType.String).Value = nav;
+                        sqlCommand.Parameters.Add("@DayType", DbType.String).Value = dayType;
+                        sqlCommand.Parameters.Add("@DayDesciption", DbType.String).Value = textBoxGroupDescription.Text.Trim();
+                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTimeToYYYYMMDD();
                         try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                     }
                 }
@@ -3018,27 +3075,16 @@ namespace ASTA
 
         private void DeleteAnualDay()
         {
-            monthCalendar.RemoveBoldedDate(monthCalendar.SelectionStart);
-            monthCalendar.RemoveAnnuallyBoldedDate(monthCalendar.SelectionStart);
-            monthCalendar.UpdateBoldedDates();
+            DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
+            dgSeek.FindValueInCells(dataGridView1, new string[] {
+                @"Праздничный (выходной) день", @"Тип выходного дня", @"Персонально(NAV) или для всех(0)", @"Дата добавления" });
 
-            if (databasePerson.Exists)
-            {
-                using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
-                {
-                    sqlConnection.Open();
-                    using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'BoldedDates' (BoldedDate, NAV, Groups, Reserv1, Reserv2) " +
-                        " VALUES (@BoldedDate, @NAV, @Groups, @Reserv1, @Reserv2)", sqlConnection))
-                    {
-                        sqlCommand.Parameters.Add("@BoldedDate", DbType.String).Value = monthCalendar.SelectionStart.ToString();
-                        sqlCommand.Parameters.Add("@NAV", DbType.String).Value = textBoxNav.Text;
-                        sqlCommand.Parameters.Add("@Groups", DbType.String).Value = textBoxGroup.Text;
-                        sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = "Delete";
-                        sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = "";
-                        try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
-                    }
-                }
-            }
+            DeleteDataTableQueryParameters(databasePerson, "BoldedDates",
+                "DayBolded", dgSeek.values[0], "DayType", dgSeek.values[1], "NAV", dgSeek.values[2], "DateCreated", dgSeek.values[3]);
+
+            ShowDataTableQuery(databasePerson, "BoldedDates", "SELECT DayBolded AS 'Праздничный (выходной) день', DayType AS 'Тип выходного дня', " +
+            "NAV AS 'Персонально(NAV) или для всех(0)', DayDesciption AS 'Описание', DateCreated AS 'Дата добавления'",
+            " ORDER BY DayBolded desc, NAV asc; ");
         }
 
         public void CheckBoxesFiltersAll_CheckedState(bool state)
@@ -3055,6 +3101,14 @@ namespace ASTA
             _controlEnable(checkBoxReEnter, state);
             _controlEnable(checkBoxCelebrate, state);
             _controlEnable(checkBoxWeekend, state);
+        }
+
+        public void CheckBoxesFiltersAll_Visible(bool state)
+        {
+            _controlVisible(checkBoxTimeViolations, state);
+            _controlVisible(checkBoxReEnter, state);
+            _controlVisible(checkBoxCelebrate, state);
+            _controlVisible(checkBoxWeekend, state);
         }
 
         private async void checkBox_CheckStateChanged(object sender, EventArgs e)
@@ -3147,7 +3201,7 @@ namespace ASTA
                 _controlEnable(checkBoxCelebrate, true);
 
                 if (_CheckboxCheckedStateReturn(checkBoxTimeViolations))  // if (checkBoxStartWorkInTime.Checked)
-                { _MenuItemBackColorChange(QuickLoadDataItem, SystemColors.Control); }
+                { _MenuItemBackColorChange(LoadDataItem, SystemColors.Control); }
             }
             else if (!_CheckboxCheckedStateReturn(checkBoxReEnter))
             {
@@ -3323,7 +3377,8 @@ namespace ASTA
                 { dataTableForStoring.ImportRow(dr); }
 
                 allWorkedDaysPerson = null;
-            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            }
+            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
 
             stringHourMinuteFirstRegistrationInDay = null; stringHourMinuteLastRegistrationInDay = null; hsDays = null;
             rowDtStoring = null; dtTemp = null; dtAllRegistrationsInSelectedDay = null;
@@ -3337,6 +3392,32 @@ namespace ASTA
         /// ///////////////////////////////////////////////////////////////
         /// </summary>
         //check dubled function!!!!!!!!
+
+        private List<string> ReturnBoldedDaysFromDB(string nav, string dayType)
+        {
+            List<string> boldedDays = new List<string>();
+
+            using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = new SQLiteCommand(
+                    "SELECT DayBolded FROM BoldedDates WHERE (NAV LIKE '" + nav + "' OR  NAV LIKE '0') AND DayType LIKE '" + dayType + "';", sqlConnection))
+                {
+                    using (var sqlReader = sqlCommand.ExecuteReader())
+                    {
+                        foreach (DbDataRecord record in sqlReader)
+                        {
+                            if (record["DayBolded"]?.ToString()?.Length > 0)
+                            {
+                                boldedDays.Add(record["DayBolded"].ToString());
+                            }
+                        }
+                    }
+                }
+                sqlConnection.Close();
+            }
+            return boldedDays;
+        }
 
         private void SeekAnualDays(DataTable dt, Person person, bool delRow, int startYear, int startMonth, int startDay, int endYear, int endMonth, int endDay) //Exclude Anual Days from the table "PersonTemp" DB
         {
@@ -3394,6 +3475,9 @@ namespace ASTA
             //Easter - Paskha
             myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, monthEaster, dayEaster) + oneDay);
 
+            foreach (string dayAdditional in ReturnBoldedDaysFromDB(person.NAV, @"Выходной")) // or - Рабочий
+            { myMonthCalendar.AddAnnuallyBoldedDate(DateTime.Parse(dayAdditional)); }
+
             //Independence day
             DateTime dayBolded = new DateTime(startYear, 8, 24);
             switch ((int)dayBolded.DayOfWeek)
@@ -3424,6 +3508,9 @@ namespace ASTA
 
             string singleDate = null;
 
+            //Remove additional works days from the bolded days 
+            foreach (string dayAdditional in ReturnBoldedDaysFromDB(person.NAV, @"Рабочий"))
+            { myMonthCalendar.RemoveAnnuallyBoldedDate(DateTime.Parse(dayAdditional)); }
 
             List<string> daysSelected = new List<string>();
             for (var myDate = myMonthCalendar.SelectionStart; myDate <= myMonthCalendar.SelectionEnd; myDate += oneDay)
@@ -3511,6 +3598,9 @@ namespace ASTA
 
             monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, monthEaster, dayEaster) + oneDay);   //Easter - Paskha
 
+            foreach (string dayAdditional in ReturnBoldedDaysFromDB("0", @"Выходной")) // or - Рабочий
+            { monthCalendar.AddAnnuallyBoldedDate(DateTime.Parse(dayAdditional)); }
+
             //Independence day
             DateTime dayBolded = new DateTime(myYearNow, 8, 24);
             switch ((int)dayBolded.DayOfWeek)
@@ -3567,6 +3657,9 @@ namespace ASTA
                     break;
             }
 
+            foreach (string dayAdditional in ReturnBoldedDaysFromDB("0", @"Рабочий"))
+            { monthCalendar.RemoveAnnuallyBoldedDate(DateTime.Parse(dayAdditional)); }
+
             //incorrect for the days less 50 after and before every New Year
             for (var myDate = monthCalendar.SelectionStart - fiftyDays - fiftyDays; myDate <= monthCalendar.SelectionEnd + fiftyDays + fiftyDays; myDate += oneDay)     // Sunday and Saturday
             {
@@ -3597,35 +3690,36 @@ namespace ASTA
 
                 foreach (var row in rows)
                 { row.Delete(); }
-            } catch (Exception expt)
+            }
+            catch (Exception expt)
             { MessageBox.Show(expt.ToString()); }
             dt.AcceptChanges();
             rows = null;
         }
 
-        private void DeleteDataTableQueryLess(System.IO.FileInfo databasePerson, string myTable,
-            string mySqlParameter2 = "", decimal mySqlData2 = 9) //Delete data from the Table of the DB (both parameters are string)
-        {
-            if (databasePerson.Exists)
-            {
-                using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
-                {
-                    sqlConnection.Open();
-                    if (mySqlParameter2.Trim().Length > 0)
-                    {
-                        using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where NAV like '" + _textBoxReturnText(textBoxNav) + "' AND " + mySqlParameter2 + " < @" + mySqlParameter2 + ";", sqlConnection))
-                        {
-                            sqlCommand.Parameters.Add("@" + mySqlParameter2, DbType.Decimal).Value = mySqlData2;
-                            try { sqlCommand.ExecuteNonQuery(); } catch { }
-                        }
-                    }
-                    //vacuum DB
-                    using (var sqlCommand = new SQLiteCommand("vacuum;", sqlConnection))
-                    { try { sqlCommand.ExecuteNonQuery(); } catch { } }
-                }
-            }
-            mySqlParameter2 = null;
-        }
+        /* private void DeleteDataTableQueryLess(System.IO.FileInfo databasePerson, string myTable,
+             string mySqlParameter2 = "", decimal mySqlData2 = 9) //Delete data from the Table of the DB (both parameters are string)
+         {
+             if (databasePerson.Exists)
+             {
+                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+                 {
+                     sqlConnection.Open();
+                     if (mySqlParameter2.Trim().Length > 0)
+                     {
+                         using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where NAV like '" + _textBoxReturnText(textBoxNav) + "' AND " + mySqlParameter2 + " < @" + mySqlParameter2 + ";", sqlConnection))
+                         {
+                             sqlCommand.Parameters.Add("@" + mySqlParameter2, DbType.Decimal).Value = mySqlData2;
+                             try { sqlCommand.ExecuteNonQuery(); } catch { }
+                         }
+                     }
+                     //vacuum DB
+                     using (var sqlCommand = new SQLiteCommand("vacuum;", sqlConnection))
+                     { try { sqlCommand.ExecuteNonQuery(); } catch { } }
+                 }
+             }
+             mySqlParameter2 = null;
+         }*/
 
 
 
@@ -3644,10 +3738,12 @@ namespace ASTA
                         {
                             System.IO.File.Delete(file.FullName);
                             logger.Info("Удален файл: \"" + file.FullName + "\"");
-                        } catch { logger.Warn("Файл не удален: \"" + file.FullName + "\""); }
+                        }
+                        catch { logger.Warn("Файл не удален: \"" + file.FullName + "\""); }
                     }
                 }
-            } catch { logger.Warn("Ошибка удаления: " + discribeFiles); }
+            }
+            catch { logger.Warn("Ошибка удаления: " + discribeFiles); }
 
         }
 
@@ -3808,7 +3904,8 @@ namespace ASTA
                         StatusLabel2.Text = @"Выбран: " + personSelected.FIO + @" |  Всего ФИО: " + iFIO;
                     }
                 }
-            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            }
+            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
 
             if (personSelected.FIO.Length == 0)
             {
@@ -3827,7 +3924,8 @@ namespace ASTA
 
                 personSelected.ControlInHHMM = ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourStart), _numUpDownReturn(numUpDownMinuteStart));
                 personSelected.ControlOutHHMM = ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourEnd), _numUpDownReturn(numUpDownMinuteEnd));
-            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            }
+            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
         }
 
 
@@ -4136,8 +4234,8 @@ namespace ASTA
                         }
                     }
                 }
-            } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
-            sLastSelectedElement = "DrawRegistration";
+            }
+            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
         }
 
         private void DrawFullWorkedPeriodRegistration(Person personDraw)  // Draw the whole period registration
@@ -4385,7 +4483,6 @@ namespace ASTA
                     }
                 }
             }
-            sLastSelectedElement = "DrawFullWorkedPeriodRegistration";
         }
 
         private Bitmap RefreshBitmap(Bitmap b, int nWidth, int nHeight)
@@ -4404,7 +4501,8 @@ namespace ASTA
                 if (panelView != null && panelView.Controls.Count > 1) panelView.Controls.RemoveAt(1);
                 bmp?.Dispose();
                 pictureBox1?.Dispose();
-            } catch { }
+            }
+            catch { }
 
             dataGridView1.Visible = true;
             sLastSelectedElement = "dataGridView";
@@ -4513,7 +4611,6 @@ namespace ASTA
             _MenuItemEnabled(SettingsMenuItem, false);
             _MenuItemEnabled(FunctionMenuItem, false);
             _MenuItemEnabled(GroupsMenuItem, false);
-            _MenuItemEnabled(AnualDatesMenuItem, false);
             CheckBoxesFiltersAll_Enable(false);
             _controlVisible(panelView, false);
 
@@ -5198,7 +5295,8 @@ namespace ASTA
 
                         logger.Info("Данные в реестре сохранены");
                     }
-                } catch { logger.Error("CreateSubKey. Ошибки с доступом на запись в реестр. Данные сохранены не корректно."); }
+                }
+                catch { logger.Error("CreateSubKey. Ошибки с доступом на запись в реестр. Данные сохранены не корректно."); }
 
                 if (databasePerson.Exists)
                 {
@@ -5274,7 +5372,8 @@ namespace ASTA
                     EvUserKey?.DeleteSubKey("MySQLUserPassword");
                     EvUserKey?.DeleteSubKey("ModeApp");
                 }
-            } catch { MessageBox.Show("Ошибки с доступом у реестру на запись. Данные не удалены."); }
+            }
+            catch { MessageBox.Show("Ошибки с доступом у реестру на запись. Данные не удалены."); }
         }
 
         //--- End. Features of programm ---//
@@ -5344,7 +5443,6 @@ namespace ASTA
             _MenuItemEnabled(SettingsMenuItem, enabled);
             _MenuItemEnabled(FunctionMenuItem, enabled);
             _MenuItemEnabled(GroupsMenuItem, enabled);
-            _MenuItemEnabled(AnualDatesMenuItem, enabled);
 
             CheckBoxesFiltersAll_Enable(enabled);
         }
@@ -5454,8 +5552,8 @@ namespace ASTA
 
         private void dateTimePickerStart_CloseUp(object sender, EventArgs e)
         {
-            QuickLoadDataItem.Enabled = true;
-            QuickLoadDataItem.BackColor = Color.PaleGreen;
+            LoadDataItem.Enabled = true;
+            LoadDataItem.BackColor = Color.PaleGreen;
             dateTimePickerEnd.MinDate = DateTime.Parse(dateTimePickerStart.Value.Year + "-" + dateTimePickerStart.Value.Month + "-" + dateTimePickerStart.Value.Day);
         }
 
@@ -5495,67 +5593,76 @@ namespace ASTA
         private void dataGridView1CellClick()
         {
             DataGridViewSeekValuesInSelectedRow dgSeek;
-            if (dataGridView1.Rows.Count > 0 && dataGridView1.CurrentRow.Index < dataGridView1.Rows.Count)
+
+            int IndexCurrentRow = _dataGridView1CurrentRowIndex();
+
+            if (0 < dataGridView1.Rows.Count && IndexCurrentRow < dataGridView1.Rows.Count)
             {
                 decimal[] timeIn = new decimal[4];
                 decimal[] timeOut = new decimal[4];
 
                 try
                 {
-                    int IndexCurrentRow = _dataGridView1CurrentRowIndex();
-                    if (IndexCurrentRow > -1)
-                    {
-                        dgSeek = new DataGridViewSeekValuesInSelectedRow();
+                    dgSeek = new DataGridViewSeekValuesInSelectedRow();
 
-                        if (nameOfLastTableFromDB == "PeopleGroupDesciption")
-                        {
-                            dgSeek.FindValueInCells(dataGridView1, new string[] {
+                    if (nameOfLastTableFromDB == "BoldedDates")
+                    {
+
+                        //    ShowDataTableQuery(databasePerson, "BoldedDates", "SELECT DayBolded AS 'Праздничный (выходной) день', DayType AS 'Тип выходного дня', " +
+                        //   "NAV AS 'Персонально(NAV) или для всех(0)', DayDesciption AS 'Описание', DateCreated AS 'Дата добавления'",
+                        //    " ORDER BY DayBolded desc, NAV asc; ");
+
+                    }
+                    else if (nameOfLastTableFromDB == "PeopleGroupDesciption")
+                    {
+                        dgSeek.FindValueInCells(dataGridView1, new string[] {
                              @"Группа",   @"Описание группы"
                             });
 
-                            textBoxGroup.Text = dgSeek.values[0]; //Take the name of selected group
-                            textBoxGroupDescription.Text = dgSeek.values[1]; //Take the name of selected group
-                            groupBoxPeriod.BackColor = Color.PaleGreen;
-                            groupBoxFilterReport.BackColor = SystemColors.Control;
-                            StatusLabel2.Text = @"Выбрана группа: " + dgSeek.values[0] + @" |  Всего ФИО: " + iFIO;
-                            if (textBoxFIO.TextLength > 3)
-                            {
-                                comboBoxFio.SelectedIndex = comboBoxFio.FindString(textBoxFIO.Text);
-                            }
-                        }
-                        else if (nameOfLastTableFromDB == "ListFIO" || nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "PersonRegistrationsList")
+                        textBoxGroup.Text = dgSeek.values[0]; //Take the name of selected group
+                        textBoxGroupDescription.Text = dgSeek.values[1]; //Take the name of selected group
+                        groupBoxPeriod.BackColor = Color.PaleGreen;
+                        groupBoxFilterReport.BackColor = SystemColors.Control;
+                        StatusLabel2.Text = @"Выбрана группа: " + dgSeek.values[0] + @" |  Всего ФИО: " + iFIO;
+                        if (textBoxFIO.TextLength > 3)
                         {
-                            dgSeek.FindValueInCells(dataGridView1, new string[] {
+                            comboBoxFio.SelectedIndex = comboBoxFio.FindString(textBoxFIO.Text);
+                        }
+                    }
+                    else if (nameOfLastTableFromDB == "ListFIO" || nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "PersonRegistrationsList")
+                    {
+                        dgSeek.FindValueInCells(dataGridView1, new string[] {
                                 @"Группа", @"Фамилия Имя Отчество", @"NAV-код",
                                 @"Учетное время прихода ЧЧ:ММ", @"Учетное время ухода ЧЧ:ММ"
                             });
 
-                            textBoxGroup.Text = dgSeek.values[0];
-                            textBoxFIO.Text = dgSeek.values[1];
-                            textBoxNav.Text = dgSeek.values[2];
+                        textBoxGroup.Text = dgSeek.values[0];
+                        textBoxFIO.Text = dgSeek.values[1];
+                        textBoxNav.Text = dgSeek.values[2];
 
-                            StatusLabel2.Text = @"Выбрана группа: " + dgSeek.values[0] +
-                                @" |Курсор на: " + ShortFIO(dgSeek.values[1]) + @" |Всего ФИО: " + iFIO;
+                        StatusLabel2.Text = @"Выбрана группа: " + dgSeek.values[0] +
+                            @" |Курсор на: " + ShortFIO(dgSeek.values[1]) + @" |Всего ФИО: " + iFIO;
 
-                            groupBoxPeriod.BackColor = Color.PaleGreen;
-                            groupBoxTimeStart.BackColor = Color.PaleGreen;
-                            groupBoxTimeEnd.BackColor = Color.PaleGreen;
-                            groupBoxFilterReport.BackColor = SystemColors.Control;
-                            try
-                            {
-                                timeIn = ConvertStringTimeHHMMToDecimalArray(dgSeek.values[3]);
-                                timeOut = ConvertStringTimeHHMMToDecimalArray(dgSeek.values[4]);
-                                _numUpDownSet(numUpDownHourStart, timeIn[0]);
-                                _numUpDownSet(numUpDownMinuteStart, timeIn[1]);
-                                _numUpDownSet(numUpDownHourEnd, timeOut[0]);
-                                _numUpDownSet(numUpDownMinuteEnd, timeOut[1]);
-                            } catch { logger.Warn("dataGridView1CellClick:" + timeIn[0]); }
-
-                            if (dgSeek.values[1].Length > 3)
-                            { comboBoxFio.SelectedIndex = comboBoxFio.FindString(dgSeek.values[1]); }
+                        groupBoxPeriod.BackColor = Color.PaleGreen;
+                        groupBoxTimeStart.BackColor = Color.PaleGreen;
+                        groupBoxTimeEnd.BackColor = Color.PaleGreen;
+                        groupBoxFilterReport.BackColor = SystemColors.Control;
+                        try
+                        {
+                            timeIn = ConvertStringTimeHHMMToDecimalArray(dgSeek.values[3]);
+                            timeOut = ConvertStringTimeHHMMToDecimalArray(dgSeek.values[4]);
+                            _numUpDownSet(numUpDownHourStart, timeIn[0]);
+                            _numUpDownSet(numUpDownMinuteStart, timeIn[1]);
+                            _numUpDownSet(numUpDownHourEnd, timeOut[0]);
+                            _numUpDownSet(numUpDownMinuteEnd, timeOut[1]);
                         }
+                        catch { logger.Warn("dataGridView1CellClick:" + timeIn[0]); }
+
+                        if (dgSeek.values[1].Length > 3)
+                        { comboBoxFio.SelectedIndex = comboBoxFio.FindString(dgSeek.values[1]); }
                     }
-                } catch (Exception expt)
+                }
+                catch (Exception expt)
                 {
                     MessageBox.Show(expt.ToString());
                 }
@@ -5726,7 +5833,7 @@ namespace ASTA
             }
         }
 
-         //Show help to Edit on some columns DataGridView
+        //Show help to Edit on some columns DataGridView
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
             DataGridViewCell cell;
@@ -5760,9 +5867,11 @@ namespace ASTA
                         {
                             cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
                             cell.ToolTipText = cell.Value.ToString();
-                        } catch { }
+                        }
+                        catch { }
                     }
-                } catch { }
+                }
+                catch { }
             }
             if (nameOfLastTableFromDB == "Mailing" && e.RowIndex > -1 && e.ColumnIndex > -1 && e.Value != null)
             {
@@ -5777,9 +5886,12 @@ namespace ASTA
             if (e.Button == MouseButtons.Right)
             {
                 int currentMouseOverRow = dataGridView1.HitTest(e.X, e.Y).RowIndex;
+
+                ContextMenu mRightClick = new ContextMenu();
+                DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
+
                 if ((nameOfLastTableFromDB == "PeopleGroupDesciption") && currentMouseOverRow > -1)
                 {
-                    ContextMenu mRightClick = new ContextMenu();
                     mRightClick.MenuItems.Add(new MenuItem("Удалить выделенную группу", DeleteCurrentRow));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
@@ -5793,18 +5905,39 @@ namespace ASTA
                             mailing = dataGridView1.Rows[currentMouseOverRow].Cells[i].Value.ToString();
                         }
                     }
-                    ContextMenu mRightClick = new ContextMenu();
                     mRightClick.MenuItems.Add(new MenuItem(@"Удалить рассылку:   " + mailing, DeleteCurrentRow));
                     mRightClick.MenuItems.Add(new MenuItem(@"Выполнить рассылку:   " + mailing, DoMainAction));
                     mRightClick.MenuItems.Add(new MenuItem(@"Создать рассылку", PrepareForMakingFormMailing));
                     mRightClick.MenuItems.Add(new MenuItem(@"Клонировать рассылку:   " + mailing, MakeCloneMailing));
-
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
                 else if ((nameOfLastTableFromDB == "PeopleGroup") && currentMouseOverRow > -1)
                 {
-                    ContextMenu mRightClick = new ContextMenu();
                     mRightClick.MenuItems.Add(new MenuItem(@"Удалить сотрудника из данной группы", DeleteCurrentRow));
+                    mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
+                }
+                else if (nameOfLastTableFromDB == "BoldedDates" && currentMouseOverRow > -1)
+                {
+                    dgSeek.FindValueInCells(dataGridView1, new string[] {
+                        @"Праздничный (выходной) день", @"Персонально(NAV) или для всех(0)", @"Тип выходного дня" });
+
+                    string dayType = "";
+                    if (textBoxGroup?.Text?.Trim()?.Length == 0 || textBoxGroup?.Text?.ToLower()?.Trim() == "выходной")
+                    { dayType = "Выходной"; }
+                    else { dayType = "Рабочий"; }
+
+                    string nav = "";
+                    if (textBoxNav?.Text?.Trim()?.Length != 6)
+                    { nav = "для всех"; }
+                    else { nav = textBoxNav.Text.Trim(); }
+
+                    string navD = "";
+                    if (dgSeek.values[1]?.Length != 6)
+                    { navD = "всех"; }
+                    else { navD = dgSeek.values[1]; }
+
+                    mRightClick.MenuItems.Add(new MenuItem(@"Удалить из сохранненых '" + dgSeek.values[2] + @"'  '" + dgSeek.values[0] + @"' для " + navD, DeleteAnualDateItem_Click));
+                    mRightClick.MenuItems.Add(new MenuItem(@"Сохранить для " + nav + @" как '" + dayType + @"' " + monthCalendar.SelectionStart.ToString("yyyy-MM-dd"), AddAnualDateItem_Click));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
             }
@@ -6018,7 +6151,8 @@ namespace ASTA
                         EvUserKey.SetValue(productName, "\"" + Application.ExecutablePath + "\"");
                         logger.Info("Save AutoRun App in Registry. Данные в реестре сохранены");
                     }
-                } catch (Exception expt) { logger.Warn("Save ModeApp,AutoRun in Registry. Последний режим работы не сохранен. " + expt); }
+                }
+                catch (Exception expt) { logger.Warn("Save ModeApp,AutoRun in Registry. Последний режим работы не сохранен. " + expt); }
                 ExecuteAutoMode(true);
             }
             else
@@ -6044,7 +6178,8 @@ namespace ASTA
                         EvUserKey.DeleteValue(productName);
                         logger.Info("Delete AutoRun App from Registry. Ключ удален");
                     }
-                } catch (Exception expt) { logger.Warn("Delete ModeApp from Registry. Ошибка удаления ключа. " + expt); }
+                }
+                catch (Exception expt) { logger.Warn("Delete ModeApp from Registry. Ошибка удаления ключа. " + expt); }
                 ExecuteAutoMode(false);
             }
 
@@ -6333,7 +6468,8 @@ namespace ASTA
                                         string illegal = GetSafeFilename(nameFile) + @".xlsx";
 
                                         filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), illegal);
-                                        try { System.IO.File.Delete(filePathExcelReport); } catch (Exception expt)
+                                        try { System.IO.File.Delete(filePathExcelReport); }
+                                        catch (Exception expt)
                                         { logger.Error("Ошибка удаления файла " + filePathExcelReport + " " + expt.ToString()); }
 
                                         logger.Info("сохраняю файл: " + filePathExcelReport);
@@ -6618,8 +6754,14 @@ namespace ASTA
         {
             string sDgv = "";
             if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { try {
-                        sDgv = dataGridView1.Rows[dataGridView1.CurrentRow.Index].Cells[dataGridView1.CurrentCell.ColumnIndex]?.Value?.ToString()?.Trim(); } catch { sDgv = ""; } }));
+                Invoke(new MethodInvoker(delegate
+                {
+                    try
+                    {
+                        sDgv = dataGridView1.Rows[dataGridView1.CurrentRow.Index].Cells[dataGridView1.CurrentCell.ColumnIndex]?.Value?.ToString()?.Trim();
+                    }
+                    catch { sDgv = ""; }
+                }));
             else
                 try { sDgv = dataGridView1.Rows[dataGridView1.CurrentRow.Index].Cells[dataGridView1.CurrentCell.ColumnIndex]?.Value?.ToString()?.Trim(); } catch { sDgv = ""; }
             return sDgv;
@@ -6647,34 +6789,29 @@ namespace ASTA
 
         private void _dataGridViewSource(DataTable dt)
         {
-
             if (InvokeRequired)
             {
                 Invoke(new MethodInvoker(delegate
                 {
-                    if (dt != null && dt.Rows.Count > 0)
+                    if (dt?.Columns?.Count > 0 && dt?.Rows?.Count > 0)
                     { dataGridView1.DataSource = dt; }
                     else
                     {
-                        dataGridView1.Rows.Clear();
-                        dataGridView1.Columns.Clear();
                         System.Collections.ArrayList Empty = new System.Collections.ArrayList();
                         dataGridView1.DataSource = Empty;
-                        dataGridView1.Refresh();
+                        dataGridView1?.Refresh();
                     }
                 }));
             }
             else
             {
-                if (dt != null && dt.Rows.Count > 0)
+                if (dt?.Columns?.Count > 0 && dt?.Rows?.Count > 0)
                 { dataGridView1.DataSource = dt; }
                 else
                 {
-                    dataGridView1.Rows.Clear();
-                    dataGridView1.Columns.Clear();
                     System.Collections.ArrayList Empty = new System.Collections.ArrayList();
                     dataGridView1.DataSource = Empty;
-                    dataGridView1.Refresh();
+                    dataGridView1?.Refresh();
                 }
             }
         }

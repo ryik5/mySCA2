@@ -62,7 +62,7 @@
             this.FunctionMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.GetFioItem = new System.Windows.Forms.ToolStripMenuItem();
             this.listFioItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.QuickLoadDataItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.LoadDataItem = new System.Windows.Forms.ToolStripMenuItem();
             this.TableExportToExcelItem = new System.Windows.Forms.ToolStripMenuItem();
             this.TableModeItem = new System.Windows.Forms.ToolStripMenuItem();
             this.VisualModeItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -82,20 +82,18 @@
             this.DeleteGroupItem = new System.Windows.Forms.ToolStripMenuItem();
             this.DeletePersonFromGroupItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importPeopleInLocalDBToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.AnualDatesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.EnterEditAnualItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.AddAnualDateItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.DeleteAnualDateItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SettingsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SettingsProgrammItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.MailingItem = new System.Windows.Forms.ToolStripMenuItem();
             this.modeItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ClearReportItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ClearDataItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ClearRegistryItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ClearAllItem = new System.Windows.Forms.ToolStripMenuItem();
             this.TestCryptionItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.ClearRegistryItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.mailingItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.deleteSelectedMailingItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.EnterEditAnualItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.AddAnualDateItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.DeleteAnualDateItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpAboutItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SetupItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -362,7 +360,6 @@
             this.menuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.FunctionMenuItem,
             this.GroupsMenuItem,
-            this.AnualDatesMenuItem,
             this.SettingsMenuItem,
             this.HelpMenuItem});
             resources.ApplyResources(this.menuStrip, "menuStrip");
@@ -373,7 +370,7 @@
             this.FunctionMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.GetFioItem,
             this.listFioItem,
-            this.QuickLoadDataItem,
+            this.LoadDataItem,
             this.TableExportToExcelItem,
             this.TableModeItem,
             this.VisualModeItem,
@@ -394,11 +391,11 @@
             resources.ApplyResources(this.listFioItem, "listFioItem");
             this.listFioItem.Click += new System.EventHandler(this.listFioItem_Click);
             // 
-            // QuickLoadDataItem
+            // LoadDataItem
             // 
-            this.QuickLoadDataItem.Name = "QuickLoadDataItem";
-            resources.ApplyResources(this.QuickLoadDataItem, "QuickLoadDataItem");
-            this.QuickLoadDataItem.Click += new System.EventHandler(this.GetDataItem_Click);
+            this.LoadDataItem.Name = "LoadDataItem";
+            resources.ApplyResources(this.LoadDataItem, "LoadDataItem");
+            this.LoadDataItem.Click += new System.EventHandler(this.GetDataItem_Click);
             // 
             // TableExportToExcelItem
             // 
@@ -533,45 +530,20 @@
             resources.ApplyResources(this.importPeopleInLocalDBToolStripMenuItem, "importPeopleInLocalDBToolStripMenuItem");
             this.importPeopleInLocalDBToolStripMenuItem.Click += new System.EventHandler(this.importPeopleInLocalDBToolStripMenuItem_Click);
             // 
-            // AnualDatesMenuItem
-            // 
-            this.AnualDatesMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.EnterEditAnualItem,
-            this.AddAnualDateItem,
-            this.DeleteAnualDateItem});
-            this.AnualDatesMenuItem.Name = "AnualDatesMenuItem";
-            resources.ApplyResources(this.AnualDatesMenuItem, "AnualDatesMenuItem");
-            // 
-            // EnterEditAnualItem
-            // 
-            this.EnterEditAnualItem.Name = "EnterEditAnualItem";
-            resources.ApplyResources(this.EnterEditAnualItem, "EnterEditAnualItem");
-            this.EnterEditAnualItem.Click += new System.EventHandler(this.EnterEditAnualItem_Click);
-            // 
-            // AddAnualDateItem
-            // 
-            this.AddAnualDateItem.Name = "AddAnualDateItem";
-            resources.ApplyResources(this.AddAnualDateItem, "AddAnualDateItem");
-            this.AddAnualDateItem.Click += new System.EventHandler(this.AddAnualDateItem_Click);
-            // 
-            // DeleteAnualDateItem
-            // 
-            this.DeleteAnualDateItem.Name = "DeleteAnualDateItem";
-            resources.ApplyResources(this.DeleteAnualDateItem, "DeleteAnualDateItem");
-            this.DeleteAnualDateItem.Click += new System.EventHandler(this.DeleteAnualDateItem_Click);
-            // 
             // SettingsMenuItem
             // 
             this.SettingsMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.SettingsProgrammItem,
+            this.MailingItem,
+            this.EnterEditAnualItem,
+            this.AddAnualDateItem,
+            this.DeleteAnualDateItem,
             this.modeItem,
             this.ClearReportItem,
             this.ClearDataItem,
-            this.ClearAllItem,
-            this.TestCryptionItem,
             this.ClearRegistryItem,
-            this.mailingItem,
-            this.deleteSelectedMailingItem});
+            this.ClearAllItem,
+            this.TestCryptionItem});
             this.SettingsMenuItem.Name = "SettingsMenuItem";
             resources.ApplyResources(this.SettingsMenuItem, "SettingsMenuItem");
             // 
@@ -580,6 +552,12 @@
             this.SettingsProgrammItem.Name = "SettingsProgrammItem";
             resources.ApplyResources(this.SettingsProgrammItem, "SettingsProgrammItem");
             this.SettingsProgrammItem.Click += new System.EventHandler(this.SettingsProgrammItem_Click);
+            // 
+            // MailingItem
+            // 
+            this.MailingItem.Name = "MailingItem";
+            resources.ApplyResources(this.MailingItem, "MailingItem");
+            this.MailingItem.Click += new System.EventHandler(this.PrepareForMakingFormMailing);
             // 
             // modeItem
             // 
@@ -599,6 +577,12 @@
             resources.ApplyResources(this.ClearDataItem, "ClearDataItem");
             this.ClearDataItem.Click += new System.EventHandler(this.ClearDataItem_Click);
             // 
+            // ClearRegistryItem
+            // 
+            this.ClearRegistryItem.Name = "ClearRegistryItem";
+            resources.ApplyResources(this.ClearRegistryItem, "ClearRegistryItem");
+            this.ClearRegistryItem.Click += new System.EventHandler(this.ClearRegistryItem_Click);
+            // 
             // ClearAllItem
             // 
             this.ClearAllItem.BackColor = System.Drawing.Color.SandyBrown;
@@ -612,23 +596,23 @@
             resources.ApplyResources(this.TestCryptionItem, "TestCryptionItem");
             this.TestCryptionItem.Click += new System.EventHandler(this.TestCryptionItem_Click);
             // 
-            // ClearRegistryItem
+            // EnterEditAnualItem
             // 
-            this.ClearRegistryItem.Name = "ClearRegistryItem";
-            resources.ApplyResources(this.ClearRegistryItem, "ClearRegistryItem");
-            this.ClearRegistryItem.Click += new System.EventHandler(this.ClearRegistryItem_Click);
+            this.EnterEditAnualItem.Name = "EnterEditAnualItem";
+            resources.ApplyResources(this.EnterEditAnualItem, "EnterEditAnualItem");
+            this.EnterEditAnualItem.Click += new System.EventHandler(this.EnterEditAnualItem_Click);
             // 
-            // mailingItem
+            // AddAnualDateItem
             // 
-            this.mailingItem.Name = "mailingItem";
-            resources.ApplyResources(this.mailingItem, "mailingItem");
-            this.mailingItem.Click += new System.EventHandler(this.PrepareForMakingFormMailing);
+            this.AddAnualDateItem.Name = "AddAnualDateItem";
+            resources.ApplyResources(this.AddAnualDateItem, "AddAnualDateItem");
+            this.AddAnualDateItem.Click += new System.EventHandler(this.AddAnualDateItem_Click);
             // 
-            // deleteSelectedMailingItem
+            // DeleteAnualDateItem
             // 
-            this.deleteSelectedMailingItem.Name = "deleteSelectedMailingItem";
-            resources.ApplyResources(this.deleteSelectedMailingItem, "deleteSelectedMailingItem");
-            this.deleteSelectedMailingItem.Click += new System.EventHandler(this.DeleteCurrentRow);
+            this.DeleteAnualDateItem.Name = "DeleteAnualDateItem";
+            resources.ApplyResources(this.DeleteAnualDateItem, "DeleteAnualDateItem");
+            this.DeleteAnualDateItem.Click += new System.EventHandler(this.DeleteAnualDateItem_Click);
             // 
             // HelpMenuItem
             // 
@@ -841,7 +825,6 @@
         private System.Windows.Forms.ToolStripMenuItem HelpMenuItem;
         private System.Windows.Forms.ToolStripMenuItem HelpAboutItem;
         private System.Windows.Forms.ToolStripMenuItem HelpSystemItem;
-        private System.Windows.Forms.ToolStripMenuItem AnualDatesMenuItem;
         private System.Windows.Forms.ToolStripMenuItem EnterEditAnualItem;
         private System.Windows.Forms.ToolStripMenuItem AddAnualDateItem;
         private System.Windows.Forms.ToolStripMenuItem DeleteAnualDateItem;
@@ -859,7 +842,7 @@
         private System.Windows.Forms.Button btnPropertiesChangingCancel;
         private System.Windows.Forms.ToolStripMenuItem PersonOrGroupItem;
         private System.Windows.Forms.ToolStripMenuItem SetupItem;
-        private System.Windows.Forms.ToolStripMenuItem QuickLoadDataItem;
+        private System.Windows.Forms.ToolStripMenuItem LoadDataItem;
         private System.Windows.Forms.ToolStripMenuItem TableExportToExcelItem;
         private System.Windows.Forms.ToolStripMenuItem VisualModeItem;
         private System.Windows.Forms.ToolStripMenuItem VisualSelectColorMenuItem;
@@ -877,8 +860,7 @@
         private System.Windows.Forms.NumericUpDown numUpDownMinuteEnd;
         private System.Windows.Forms.Label labelMinuteEnd;
         private System.Windows.Forms.ToolStripMenuItem listFioItem;
-        private System.Windows.Forms.ToolStripMenuItem mailingItem;
-        private System.Windows.Forms.ToolStripMenuItem deleteSelectedMailingItem;
+        private System.Windows.Forms.ToolStripMenuItem MailingItem;
         private System.Windows.Forms.ToolStripMenuItem modeItem;
     }
 }
