@@ -6232,20 +6232,24 @@ namespace ASTA
             lock (synclock)
             {
                 DateTime dd = DateTime.Now;
-                if (dd.Hour == 2 && dd.Minute == 5 && sent == false) //do something at Hour 2 and 5 minute //dd.Day == 1 && 
+                if (dd.Hour == 2 && dd.Minute == 1 && sent == false) //do something at Hour 2 and 5 minute //dd.Day == 1 && 
                 {
                     _toolStripStatusLabelSetText(StatusLabel2, "Ведется работа по подготовке отчетов " + DateTimeToYYYYMMDDHHMM());
                     _toolStripStatusLabelBackColor(StatusLabel2, Color.LightPink);
                     SelectMailingDoAction();
                     sent = true;
                 }
-                else if (dd.Minute != 5)
+                else if (dd.Minute != 1)
                 {
                     sent = false;
+                }
+
+                if (dd.Hour == 7 && dd.Minute == 1)
+                {
                     _toolStripStatusLabelSetText(StatusLabel2, "Режим почтовых рассылок. " + DateTimeToYYYYMMDDHHMM());
                     _toolStripStatusLabelBackColor(StatusLabel2, Color.LightCyan);
                     ClearFilesInApplicationFolders(@"*.xlsx", "Excel-файлов");
-                }
+                }                
             }
         }
 
