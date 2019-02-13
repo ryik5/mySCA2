@@ -2962,11 +2962,13 @@ namespace ASTA
             if (EditAnualDaysItem.Text.Contains(@"Выходные(рабочие) дни"))
             {
                 AddAnualDateItem.Font= new Font(this.Font, FontStyle.Bold);
+               EditAnualDaysItem.Font = new Font(this.Font, FontStyle.Bold);
                 EnterEditAnual();
             }
             else if (EditAnualDaysItem.Text.Contains(@"Завершить редактирование"))
             {
                 ExitEditAnual();
+                EditAnualDaysItem.Font = new Font(this.Font, FontStyle.Regular);
                 AddAnualDateItem.Font = new Font(this.Font, FontStyle.Regular);
             }
         }
@@ -5605,11 +5607,9 @@ namespace ASTA
 
                     if (nameOfLastTableFromDB == "BoldedDates")
                     {
-
                         //    ShowDataTableQuery(databasePerson, "BoldedDates", "SELECT DayBolded AS 'Праздничный (выходной) день', DayType AS 'Тип выходного дня', " +
                         //   "NAV AS 'Персонально(NAV) или для всех(0)', DayDesciption AS 'Описание', DateCreated AS 'Дата добавления'",
                         //    " ORDER BY DayBolded desc, NAV asc; ");
-
                     }
                     else if (nameOfLastTableFromDB == "PeopleGroupDesciption")
                     {
@@ -5926,6 +5926,9 @@ namespace ASTA
                 if ((nameOfLastTableFromDB == "PeopleGroupDesciption") && currentMouseOverRow > -1)
                 {
                     mRightClick.MenuItems.Add(new MenuItem("Удалить выделенную группу", DeleteCurrentRow));
+                    mRightClick.MenuItems.Add(new MenuItem("Загрузка данных регистрации персонала", GetDataItem_Click));
+                    mRightClick.MenuItems.Add(new MenuItem("Загрузить данные регистрациий за текущий месяц отправить отчет", DoReportAndEmail));
+
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
                 else if ((nameOfLastTableFromDB == "Mailing") && currentMouseOverRow > -1)
@@ -5976,13 +5979,28 @@ namespace ASTA
             }
         }
 
+       private void DoReportAndEmail(object sender, EventArgs e)
+        { DoReportAndEmail(); }
+
+        private void DoReportAndEmail()
+        {
+            DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
+            dgSeek.FindValueInCells(dataGridView1, new string[] { @"Группа", @"Описание группы"});
+
+            _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет по группе" + dgSeek.values[0]);
+            logger.Trace("DoReportAndEmail, sendEmail: " + mailServerUserName + "|" + dgSeek.values[0]);
+
+            MailingAction("sendEmail", mailServerUserName, mailServerUserName, dgSeek.values[0], dgSeek.values[0], "Test", "Текущий месяц", "Активная", "Полный", DateTimeToYYYYMMDDHHMM());
+            _ProgressBar1Stop();
+        }
+
         private void MakeCloneMailing(object sender, EventArgs e) //MakeCloneMailing()
         { MakeCloneMailing(); }
 
         private void DoMainAction(object sender, EventArgs e) //DoMainAction()
         { DoMainAction(); }
 
-        private void DoMainAction()
+         private void DoMainAction()
         {
             _ProgressBar1Start();
 
@@ -6448,7 +6466,6 @@ namespace ASTA
 
                             foreach (string groupName in groups)
                             {
-
                                 try { System.IO.File.Delete(filePathExcelReport); } catch { }
 
                                 nameGroup = groupName.Trim();
