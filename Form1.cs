@@ -366,7 +366,7 @@ namespace ASTA
 
 
             currentModeAppManual = true;
-            _MenuItemTextSet(modeItem, "Сменить на автоматический режим");
+            _MenuItemTextSet(modeItem, "Включить режим автоматических e-mail рассылок");
             _menuItemTooltipSet(modeItem, "Включен интерактивный режим. Все рассылки остановлены.");
 
             myFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
@@ -384,10 +384,10 @@ namespace ASTA
             this.Text = myFileVersionInfo.Comments;
 
             logger.Info("Настраиваю интерфейс....");
-            CheckForIllegalCrossThreadCalls = false;
-            AddAnualDateItem.Enabled = false;
-            DeleteAnualDateItem.Enabled = false;
-            EnterEditAnualItem.Enabled = true;
+
+            EditAnualDaysItem.Text = @"Выходные(рабочие) дни";
+            EditAnualDaysItem.ToolTipText = @"Войти в режим добавления/удаления праздничных дней";
+            _MenuItemEnabled(AddAnualDateItem, false);
 
             MembersGroupItem.Enabled = false;
             AddPersonToGroupItem.Enabled = false;
@@ -2959,10 +2959,16 @@ namespace ASTA
 
         private void EnterEditAnualItem_Click(object sender, EventArgs e) //Select - EnterEditAnual() or ExitEditAnual()
         {
-            if (EnterEditAnualItem.Text.Contains(@"Войти в режим редактирования праздников"))
-            { EnterEditAnual(); }
-            else if (EnterEditAnualItem.Text.Contains(@"Выйти из режим редактирования"))
-            { ExitEditAnual(); }
+            if (EditAnualDaysItem.Text.Contains(@"Выходные(рабочие) дни"))
+            {
+                AddAnualDateItem.Font= new Font(this.Font, FontStyle.Bold);
+                EnterEditAnual();
+            }
+            else if (EditAnualDaysItem.Text.Contains(@"Завершить редактирование"))
+            {
+                ExitEditAnual();
+                AddAnualDateItem.Font = new Font(this.Font, FontStyle.Regular);
+            }
         }
 
         private void EnterEditAnual()
@@ -2974,13 +2980,7 @@ namespace ASTA
 
             _MenuItemEnabled(FunctionMenuItem, false);
             _MenuItemEnabled(GroupsMenuItem, false);
-
-            _MenuItemEnabled(SettingsProgrammItem, false);
-            _MenuItemEnabled(MailingItem, false);
-
             _MenuItemEnabled(AddAnualDateItem, true);
-            _MenuItemEnabled(DeleteAnualDateItem, true);
-
             CheckBoxesFiltersAll_Visible(false);
 
             comboBoxFio.Items.Add("");
@@ -2992,29 +2992,27 @@ namespace ASTA
             textBoxGroup.Text = "";
 
             StatusLabel2.ForeColor = Color.Crimson;
-            EnterEditAnualItem.Text = @"Выйти из режим редактирования";
-            _toolStripStatusLabelSetText(StatusLabel2, @"'Режим работы с праздниками и выходными'");
+            EditAnualDaysItem.Text = @"Завершить редактирование";
+            EditAnualDaysItem.ToolTipText = @"Выйти из режима редактирования рабочих и выходных дней";
+            _toolStripStatusLabelSetText(StatusLabel2, @"Режим редактирования рабочих и выходных дней");
             nameOfLastTableFromDB = "BoldedDates";
         }
 
         private void ExitEditAnual()
         {
-            comboBoxFio.Items.RemoveAt(comboBoxFio.FindStringExact(""));
+            comboBoxFio.Items?.RemoveAt(comboBoxFio.FindStringExact(""));
             if (comboBoxFio.Items.Count > 0)
-                comboBoxFio.SelectedIndex = 0;
+            { comboBoxFio.SelectedIndex = 0; }
 
             _MenuItemEnabled(FunctionMenuItem, true);
             _MenuItemEnabled(GroupsMenuItem, true);
-
-            _MenuItemEnabled(SettingsProgrammItem, true);
-            _MenuItemEnabled(MailingItem, true);
-
             _MenuItemEnabled(AddAnualDateItem, false);
-            _MenuItemEnabled(DeleteAnualDateItem, false);
 
             CheckBoxesFiltersAll_Visible(true);
 
-            EnterEditAnualItem.Text = @"Войти в режим редактирования праздников";
+            EditAnualDaysItem.Text = @"Выходные(рабочие) дни";
+            EditAnualDaysItem.ToolTipText = @"Войти в режим добавления/удаления праздничных дней";
+
             toolTip1.SetToolTip(textBoxGroup, "Создать группу");
             toolTip1.SetToolTip(textBoxGroupDescription, "Изменить описание группы");
             labelGroup.Text = "Группа";
@@ -5686,7 +5684,42 @@ namespace ASTA
                 try
                 {
                     DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-                    if (nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "ListFIO")
+                    if (nameOfLastTableFromDB == "BoldedDates")
+                    {
+                        dgSeek.FindValueInCells(dataGridView1, new string[] {
+                        @"Праздничный (выходной) день", @"Персонально(NAV) или для всех(0)", @"Тип выходного дня" });
+
+                        string dayType = "";
+                        if (textBoxGroup?.Text?.Trim()?.Length == 0 || textBoxGroup?.Text?.ToLower()?.Trim() == "выходной")
+                        { dayType = "Выходной"; }
+                        else { dayType = "Рабочий"; }
+
+                        if (textBoxNav?.Text?.Trim()?.Length != 6)
+                        { nav = "для всех"; }
+                        else { nav = textBoxNav.Text.Trim(); }
+
+                        string navD = "";
+                        if (dgSeek.values[1]?.Length != 6)
+                        { navD = "всех"; }
+                        else { navD = dgSeek.values[1]; }
+
+                        using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+                        {
+                            sqlConnection.Open();
+
+                            using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'BoldedDates' (DayBolded, NAV, DayType, DayDesciption, DateCreated) " +
+                                " VALUES (@BoldedDate, @NAV, @DayType, @DayDesciption, @DateCreated)", sqlConnection))
+                            {
+                                sqlCommand.Parameters.Add("@BoldedDate", DbType.String).Value = monthCalendar.SelectionStart.ToString("yyyy-MM-dd");
+                                sqlCommand.Parameters.Add("@NAV", DbType.String).Value = nav;
+                                sqlCommand.Parameters.Add("@DayType", DbType.String).Value = dayType;
+                                sqlCommand.Parameters.Add("@DayDesciption", DbType.String).Value = textBoxGroupDescription.Text.Trim();
+                                sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTimeToYYYYMMDD();
+                                try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                            }
+                        }
+                    }
+                   else if (nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "ListFIO")
                     {
                         dgSeek.FindValueInCells(dataGridView1, new string[] {
                             @"Фамилия Имя Отчество", @"NAV-код", @"Группа",
@@ -5748,7 +5781,7 @@ namespace ASTA
 
                         int currRow = _dataGridView1CurrentRowIndex();
                         string currColumn = _dataGridView1ColumnHeaderText(_dataGridView1CurrentColumnIndex());
-                        string currCell = _dataGridView1CellValue();
+                        string currCellValue = _dataGridView1CellValue();
                         string editedCell = "";
 
                         switch (currColumn)
@@ -5764,7 +5797,7 @@ namespace ASTA
                                 break;
 
                             case "Тип отчета":
-                                if (currCell == "Полный") { editedCell = "Полный"; }
+                                if (currCellValue == "Полный") { editedCell = "Полный"; }
                                 else { editedCell = "Упрощенный"; }
 
                                 ExecuteSql("UPDATE 'Mailing' SET TypeReport='" + editedCell + "' WHERE RecipientEmail='" + dgSeek.values[0]
@@ -5772,7 +5805,7 @@ namespace ASTA
                                 break;
 
                             case "Статус":
-                                if (currCell == "Активная") { editedCell = "Активная"; }
+                                if (currCellValue == "Активная") { editedCell = "Активная"; }
                                 else { editedCell = "Неактивная"; }
 
                                 ExecuteSql("UPDATE 'Mailing' SET Status='" + editedCell + "' WHERE RecipientEmail='" + dgSeek.values[0]
@@ -5780,7 +5813,7 @@ namespace ASTA
                                 break;
 
                             case "Период":
-                                if (currCell == "Текущий месяц") { editedCell = "Текущий месяц"; }
+                                if (currCellValue == "Текущий месяц") { editedCell = "Текущий месяц"; }
                                 else { editedCell = "Предыдущий месяц"; }
 
                                 ExecuteSql("UPDATE 'Mailing' SET Period='" + editedCell + "' WHERE RecipientEmail='" + dgSeek.values[0]
@@ -5788,23 +5821,23 @@ namespace ASTA
                                 break;
 
                             case "Описание":
-                                editedCell = currCell;
+                                editedCell = currCellValue;
 
                                 ExecuteSql("UPDATE 'Mailing' SET Description='" + editedCell + "' WHERE RecipientEmail='" + dgSeek.values[0]
                                   + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1] + "';", databasePerson);
                                 break;
 
                             case "Отчет по группам":
-                                editedCell = currCell;
+                                editedCell = currCellValue;
 
                                 ExecuteSql("UPDATE 'Mailing' SET GroupsReport ='" + editedCell + "' WHERE RecipientEmail='" + dgSeek.values[0]
                                   + "' AND NameReport='" + dgSeek.values[2] + "' AND Description ='" + dgSeek.values[3] + "';", databasePerson);
                                 break;
 
                             case "Получатель":
-                                if (currCell.Contains('@') && currCell.Contains('.'))
+                                if (currCellValue.Contains('@') && currCellValue.Contains('.'))
                                 {
-                                    editedCell = currCell;
+                                    editedCell = currCellValue;
 
                                     ExecuteSql("UPDATE 'Mailing' SET RecipientEmail ='" + editedCell + "' WHERE Description='" + dgSeek.values[3]
                                       + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1] + "';", databasePerson);
@@ -5812,10 +5845,10 @@ namespace ASTA
                                 break;
 
                             case "Наименование":
-                                editedCell = currCell;
+                                editedCell = currCellValue;
 
                                 ExecuteSql("UPDATE 'Mailing' SET NameReport ='" + editedCell + "' WHERE RecipientEmail='" + dgSeek.values[0]
-                                  + "' AND  Description='" + dgSeek.values[3] + "' AND GroupsReport ='" + dgSeek.values[1] + "';", databasePerson);
+                                  + "' AND  Description='" + dgSeek.values[3] + "' AND GroupsReport ='" + dgSeek.values[1] + "' AND Period ='" + dgSeek.values[4] + "';", databasePerson);
                                 break;
 
                             default:
@@ -6130,11 +6163,11 @@ namespace ASTA
         {
             if (currentModeAppManual)
             {
-                _MenuItemTextSet(modeItem, "Сменить режим на интерактивный");
+                _MenuItemTextSet(modeItem, "Выключить режим e-mail рассылок");
                 _menuItemTooltipSet(modeItem, "Включен автоматический режим. Выполняются Активные рассылки из БД.");
                 _MenuItemBackColorChange(modeItem, Color.DarkOrange);
 
-                _toolStripStatusLabelSetText(StatusLabel2, "Включен режим авторассылки отчетов");
+                _toolStripStatusLabelSetText(StatusLabel2, "Включен режим рассылки отчетов по почте");
                 _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
 
                 try
@@ -6157,7 +6190,7 @@ namespace ASTA
             }
             else
             {
-                _MenuItemTextSet(modeItem, "Сменить на автоматический режим");
+                _MenuItemTextSet(modeItem, "Включить режим автоматических e-mail рассылок");
                 _menuItemTooltipSet(modeItem, "Включен интерактивный режим. Все рассылки остановлены.");
                 _MenuItemBackColorChange(modeItem, SystemColors.Control);
 
@@ -6200,7 +6233,7 @@ namespace ASTA
             long interval = 1 * 60 * 1000; //1 minute
             if (manualMode)
             {
-                _MenuItemTextSet(modeItem, "Сменить режим на интерактивный");
+                _MenuItemTextSet(modeItem, "Выключить режим e-mail рассылок");
                 _menuItemTooltipSet(modeItem, "Включен автоматический режим. Выполняются Активные рассылки из БД.");
                 _MenuItemBackColorChange(modeItem, Color.DarkOrange);
 
@@ -6212,7 +6245,7 @@ namespace ASTA
             }
             else
             {
-                _MenuItemTextSet(modeItem, "Сменить на автоматический режим");
+                _MenuItemTextSet(modeItem, "Включить режим автоматических e-mail рассылок");
                 _menuItemTooltipSet(modeItem, "Включен интерактивный режим. Все рассылки остановлены.");
                 _MenuItemBackColorChange(modeItem, SystemColors.Control);
 

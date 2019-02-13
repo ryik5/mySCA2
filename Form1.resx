@@ -882,10 +882,10 @@
   <data name="MailingItem.Text" xml:space="preserve">
     <value>E-mail рассылки</value>
   </data>
-  <data name="EnterEditAnualItem.Size" type="System.Drawing.Size, System.Drawing">
+  <data name="EditAnualDaysItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>357, 22</value>
   </data>
-  <data name="EnterEditAnualItem.Text" xml:space="preserve">
+  <data name="EditAnualDaysItem.Text" xml:space="preserve">
     <value>Войти в режим редактирования праздников</value>
   </data>
   <data name="AddAnualDateItem.Size" type="System.Drawing.Size, System.Drawing">
@@ -896,15 +896,6 @@
   </data>
   <data name="AddAnualDateItem.ToolTipText" xml:space="preserve">
     <value>Добавить выделенный день как праздничный</value>
-  </data>
-  <data name="DeleteAnualDateItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
-  </data>
-  <data name="DeleteAnualDateItem.Text" xml:space="preserve">
-    <value>Удалить праздничный день</value>
-  </data>
-  <data name="DeleteAnualDateItem.ToolTipText" xml:space="preserve">
-    <value>Удалить выделенный из набора праздничных дней</value>
   </data>
   <data name="modeItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>357, 22</value>
@@ -3976,6 +3967,18 @@
   <data name="&gt;&gt;MailingItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="&gt;&gt;EditAnualDaysItem.Name" xml:space="preserve">
+    <value>EditAnualDaysItem</value>
+  </data>
+  <data name="&gt;&gt;EditAnualDaysItem.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AddAnualDateItem.Name" xml:space="preserve">
+    <value>AddAnualDateItem</value>
+  </data>
+  <data name="&gt;&gt;AddAnualDateItem.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="&gt;&gt;modeItem.Name" xml:space="preserve">
     <value>modeItem</value>
   </data>
@@ -4010,24 +4013,6 @@
     <value>TestCryptionItem</value>
   </data>
   <data name="&gt;&gt;TestCryptionItem.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;EnterEditAnualItem.Name" xml:space="preserve">
-    <value>EnterEditAnualItem</value>
-  </data>
-  <data name="&gt;&gt;EnterEditAnualItem.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;AddAnualDateItem.Name" xml:space="preserve">
-    <value>AddAnualDateItem</value>
-  </data>
-  <data name="&gt;&gt;AddAnualDateItem.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;DeleteAnualDateItem.Name" xml:space="preserve">
-    <value>DeleteAnualDateItem</value>
-  </data>
-  <data name="&gt;&gt;DeleteAnualDateItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;HelpMenuItem.Name" xml:space="preserve">

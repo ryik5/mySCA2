@@ -29,9 +29,9 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(WinFormASTA));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.comboBoxFio = new System.Windows.Forms.ComboBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
@@ -85,15 +85,14 @@
             this.SettingsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SettingsProgrammItem = new System.Windows.Forms.ToolStripMenuItem();
             this.MailingItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.EditAnualDaysItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.AddAnualDateItem = new System.Windows.Forms.ToolStripMenuItem();
             this.modeItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ClearReportItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ClearDataItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ClearRegistryItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ClearAllItem = new System.Windows.Forms.ToolStripMenuItem();
             this.TestCryptionItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.EnterEditAnualItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.AddAnualDateItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.DeleteAnualDateItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpAboutItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SetupItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -130,20 +129,20 @@
             // dataGridView1
             // 
             this.dataGridView1.AllowUserToOrderColumns = true;
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
-            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.Color.SteelBlue;
-            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle7.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
+            dataGridViewCellStyle7.SelectionForeColor = System.Drawing.Color.SteelBlue;
+            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle7;
             resources.ApplyResources(this.dataGridView1, "dataGridView1");
             this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dataGridView1.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedHeaders;
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            dataGridViewCellStyle4.ForeColor = System.Drawing.Color.Black;
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.Color.LightBlue;
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.Color.DarkSlateGray;
-            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle8.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle8.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle8.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            dataGridViewCellStyle8.ForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyle8.SelectionBackColor = System.Drawing.Color.LightBlue;
+            dataGridViewCellStyle8.SelectionForeColor = System.Drawing.Color.DarkSlateGray;
+            dataGridViewCellStyle8.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle8;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnF2;
             this.dataGridView1.Name = "dataGridView1";
@@ -535,9 +534,8 @@
             this.SettingsMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.SettingsProgrammItem,
             this.MailingItem,
-            this.EnterEditAnualItem,
+            this.EditAnualDaysItem,
             this.AddAnualDateItem,
-            this.DeleteAnualDateItem,
             this.modeItem,
             this.ClearReportItem,
             this.ClearDataItem,
@@ -558,6 +556,18 @@
             this.MailingItem.Name = "MailingItem";
             resources.ApplyResources(this.MailingItem, "MailingItem");
             this.MailingItem.Click += new System.EventHandler(this.PrepareForMakingFormMailing);
+            // 
+            // EditAnualDaysItem
+            // 
+            this.EditAnualDaysItem.Name = "EditAnualDaysItem";
+            resources.ApplyResources(this.EditAnualDaysItem, "EditAnualDaysItem");
+            this.EditAnualDaysItem.Click += new System.EventHandler(this.EnterEditAnualItem_Click);
+            // 
+            // AddAnualDateItem
+            // 
+            this.AddAnualDateItem.Name = "AddAnualDateItem";
+            resources.ApplyResources(this.AddAnualDateItem, "AddAnualDateItem");
+            this.AddAnualDateItem.Click += new System.EventHandler(this.AddAnualDateItem_Click);
             // 
             // modeItem
             // 
@@ -595,24 +605,6 @@
             this.TestCryptionItem.Name = "TestCryptionItem";
             resources.ApplyResources(this.TestCryptionItem, "TestCryptionItem");
             this.TestCryptionItem.Click += new System.EventHandler(this.TestCryptionItem_Click);
-            // 
-            // EnterEditAnualItem
-            // 
-            this.EnterEditAnualItem.Name = "EnterEditAnualItem";
-            resources.ApplyResources(this.EnterEditAnualItem, "EnterEditAnualItem");
-            this.EnterEditAnualItem.Click += new System.EventHandler(this.EnterEditAnualItem_Click);
-            // 
-            // AddAnualDateItem
-            // 
-            this.AddAnualDateItem.Name = "AddAnualDateItem";
-            resources.ApplyResources(this.AddAnualDateItem, "AddAnualDateItem");
-            this.AddAnualDateItem.Click += new System.EventHandler(this.AddAnualDateItem_Click);
-            // 
-            // DeleteAnualDateItem
-            // 
-            this.DeleteAnualDateItem.Name = "DeleteAnualDateItem";
-            resources.ApplyResources(this.DeleteAnualDateItem, "DeleteAnualDateItem");
-            this.DeleteAnualDateItem.Click += new System.EventHandler(this.DeleteAnualDateItem_Click);
             // 
             // HelpMenuItem
             // 
@@ -825,9 +817,8 @@
         private System.Windows.Forms.ToolStripMenuItem HelpMenuItem;
         private System.Windows.Forms.ToolStripMenuItem HelpAboutItem;
         private System.Windows.Forms.ToolStripMenuItem HelpSystemItem;
-        private System.Windows.Forms.ToolStripMenuItem EnterEditAnualItem;
+        private System.Windows.Forms.ToolStripMenuItem EditAnualDaysItem;
         private System.Windows.Forms.ToolStripMenuItem AddAnualDateItem;
-        private System.Windows.Forms.ToolStripMenuItem DeleteAnualDateItem;
         private System.Windows.Forms.ToolStripMenuItem SettingsMenuItem;
         private System.Windows.Forms.ToolStripMenuItem SettingsProgrammItem;
         private System.Windows.Forms.ToolStripMenuItem DeletePersonFromGroupItem;
