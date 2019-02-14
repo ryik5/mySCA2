@@ -1436,15 +1436,6 @@ namespace ASTA
                     } catch { }
                 }
 
-                for (int indDep = 0; indDep < groups.Count; indDep++)
-                {
-                    depName = groups[indDep]?._departmentName;
-                    depDescr = groups[indDep]?._departmentDescription;
-                    CreateGroupInDB(databasePerson, depName, depDescr);
-                }
-                
-                /
-
                 string recipientEmail = _textBoxReturnText(textBoxServer1UserName);
                 string senderEmail = mailServerUserName;
                 if (mailServerUserName.Length == 0)
@@ -1455,11 +1446,29 @@ namespace ASTA
                 string period = _comboBoxReturnSelected(periodCombo);
                 string status = _comboBoxReturnSelected(comboSettings9);
                 string typeReport = _comboBoxReturnSelected(comboSettings15);
-                string dayReport = _textBoxReturnText(textBoxSettings16);
+                string dayReport = "28";
 
-                if (recipientEmail.Length > 5 && nameReport.Length > 0)
-                { SaveMailing(recipientEmail, senderEmail, report, nameReport, description, period, status, DateTimeToYYYYMMDDHHMM(), "", typeReport, dayReport); }
+                for (int indDep = 0; indDep < groups.Count; indDep++)
+                {
+                    string recipientEmail = _textBoxReturnText(textBoxServer1UserName);
+                    string senderEmail = mailServerUserName;
+                    if (mailServerUserName.Length == 0)
+                    { senderEmail = _textBoxReturnText(textBoxServer1); }
+                    string nameReport = _textBoxReturnText(textBoxMailServerName);
+                    string description = _textBoxReturnText(textBoxMailServerUserName);
+                    string report = _comboBoxReturnSelected(listCombo);
+                    string period = _comboBoxReturnSelected(periodCombo);
+                    string status = _comboBoxReturnSelected(comboSettings9);
+                    string typeReport = _comboBoxReturnSelected(comboSettings15);
+                    string dayReport = _textBoxReturnText(textBoxSettings16);
 
+                    depName = groups[indDep]?._departmentName;
+                    depDescr = groups[indDep]?._departmentDescription;
+                    CreateGroupInDB(databasePerson, depName, depDescr);
+                    if (recipientEmail.Length > 5 && nameReport.Length > 0)
+                    { SaveMailing(recipientEmail, senderEmail, report, nameReport, description, period, status, DateTimeToYYYYMMDDHHMM(), "", typeReport, dayReport); }
+                }
+                
 
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
