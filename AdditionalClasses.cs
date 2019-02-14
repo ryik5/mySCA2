@@ -46,6 +46,7 @@ namespace ASTA
         public string FIO = "";
         public string NAV = "";
         public string Department = "";
+        public string DepartmentId = "";
         public string PositionInDepartment = "";
 
         public string GroupPerson = "Office";
@@ -233,11 +234,11 @@ namespace ASTA
 
     public class PeopleDepartment
     {
+        public string _departmentBossCode;
         public string _departmentName;
         public string _departmentDescription;
         public string _parent_id;
         public string _id;
-
     }
 
     public class EncryptDecrypt

@@ -29,9 +29,9 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(WinFormASTA));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.comboBoxFio = new System.Windows.Forms.ComboBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
@@ -61,8 +61,11 @@
             this.menuStrip = new System.Windows.Forms.MenuStrip();
             this.FunctionMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.GetFioItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.Separator8 = new System.Windows.Forms.ToolStripSeparator();
             this.listFioItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.Separator9 = new System.Windows.Forms.ToolStripSeparator();
             this.LoadDataItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.Separator10 = new System.Windows.Forms.ToolStripSeparator();
             this.TableExportToExcelItem = new System.Windows.Forms.ToolStripMenuItem();
             this.TableModeItem = new System.Windows.Forms.ToolStripMenuItem();
             this.VisualModeItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -72,32 +75,39 @@
             this.RedItem = new System.Windows.Forms.ToolStripMenuItem();
             this.YellowItem = new System.Windows.Forms.ToolStripMenuItem();
             this.GreenItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.Separator11 = new System.Windows.Forms.ToolStripSeparator();
             this.ExitItem = new System.Windows.Forms.ToolStripMenuItem();
             this.GroupsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.PersonOrGroupItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.CreateGroupItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.AddPersonToGroupItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.Separator4 = new System.Windows.Forms.ToolStripSeparator();
             this.ListGroupsItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.CreateGroupItem = new System.Windows.Forms.ToolStripMenuItem();
             this.MembersGroupItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.AddPersonToGroupItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.Separator5 = new System.Windows.Forms.ToolStripSeparator();
             this.DeleteGroupItem = new System.Windows.Forms.ToolStripMenuItem();
             this.DeletePersonFromGroupItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.importPeopleInLocalDBToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.Separator6 = new System.Windows.Forms.ToolStripSeparator();
+            this.ImportPeopleInLocalDBItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SettingsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SettingsProgrammItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.Separator1 = new System.Windows.Forms.ToolStripSeparator();
             this.MailingItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ModeItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.Separator2 = new System.Windows.Forms.ToolStripSeparator();
             this.EditAnualDaysItem = new System.Windows.Forms.ToolStripMenuItem();
             this.AddAnualDateItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.modeItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.Separator3 = new System.Windows.Forms.ToolStripSeparator();
             this.ClearReportItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ClearDataItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ClearRegistryItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ClearAllItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.Separator7 = new System.Windows.Forms.ToolStripSeparator();
             this.TestCryptionItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpAboutItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SetupItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpSystemItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.labelHourStart = new System.Windows.Forms.Label();
             this.labelMinuteStart = new System.Windows.Forms.Label();
@@ -129,20 +139,20 @@
             // dataGridView1
             // 
             this.dataGridView1.AllowUserToOrderColumns = true;
-            dataGridViewCellStyle7.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
-            dataGridViewCellStyle7.SelectionForeColor = System.Drawing.Color.SteelBlue;
-            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle7;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.Color.SteelBlue;
+            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
             resources.ApplyResources(this.dataGridView1, "dataGridView1");
             this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dataGridView1.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedHeaders;
-            dataGridViewCellStyle8.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle8.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle8.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            dataGridViewCellStyle8.ForeColor = System.Drawing.Color.Black;
-            dataGridViewCellStyle8.SelectionBackColor = System.Drawing.Color.LightBlue;
-            dataGridViewCellStyle8.SelectionForeColor = System.Drawing.Color.DarkSlateGray;
-            dataGridViewCellStyle8.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle8;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            dataGridViewCellStyle2.ForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.LightBlue;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.DarkSlateGray;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnF2;
             this.dataGridView1.Name = "dataGridView1";
@@ -368,12 +378,16 @@
             // 
             this.FunctionMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.GetFioItem,
+            this.Separator8,
             this.listFioItem,
+            this.Separator9,
             this.LoadDataItem,
+            this.Separator10,
             this.TableExportToExcelItem,
             this.TableModeItem,
             this.VisualModeItem,
             this.VisualSelectColorMenuItem,
+            this.Separator11,
             this.ExitItem});
             this.FunctionMenuItem.Name = "FunctionMenuItem";
             resources.ApplyResources(this.FunctionMenuItem, "FunctionMenuItem");
@@ -384,17 +398,32 @@
             resources.ApplyResources(this.GetFioItem, "GetFioItem");
             this.GetFioItem.Click += new System.EventHandler(this.GetFio_Click);
             // 
+            // Separator8
+            // 
+            this.Separator8.Name = "Separator8";
+            resources.ApplyResources(this.Separator8, "Separator8");
+            // 
             // listFioItem
             // 
             this.listFioItem.Name = "listFioItem";
             resources.ApplyResources(this.listFioItem, "listFioItem");
             this.listFioItem.Click += new System.EventHandler(this.listFioItem_Click);
             // 
+            // Separator9
+            // 
+            this.Separator9.Name = "Separator9";
+            resources.ApplyResources(this.Separator9, "Separator9");
+            // 
             // LoadDataItem
             // 
             this.LoadDataItem.Name = "LoadDataItem";
             resources.ApplyResources(this.LoadDataItem, "LoadDataItem");
             this.LoadDataItem.Click += new System.EventHandler(this.GetDataItem_Click);
+            // 
+            // Separator10
+            // 
+            this.Separator10.Name = "Separator10";
+            resources.ApplyResources(this.Separator10, "Separator10");
             // 
             // TableExportToExcelItem
             // 
@@ -455,6 +484,11 @@
             resources.ApplyResources(this.GreenItem, "GreenItem");
             this.GreenItem.Click += new System.EventHandler(this.GreenItem_Click);
             // 
+            // Separator11
+            // 
+            this.Separator11.Name = "Separator11";
+            resources.ApplyResources(this.Separator11, "Separator11");
+            // 
             // ExitItem
             // 
             this.ExitItem.Name = "ExitItem";
@@ -465,13 +499,16 @@
             // 
             this.GroupsMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.PersonOrGroupItem,
-            this.CreateGroupItem,
-            this.AddPersonToGroupItem,
+            this.Separator4,
             this.ListGroupsItem,
+            this.CreateGroupItem,
             this.MembersGroupItem,
+            this.AddPersonToGroupItem,
+            this.Separator5,
             this.DeleteGroupItem,
             this.DeletePersonFromGroupItem,
-            this.importPeopleInLocalDBToolStripMenuItem});
+            this.Separator6,
+            this.ImportPeopleInLocalDBItem});
             this.GroupsMenuItem.Name = "GroupsMenuItem";
             resources.ApplyResources(this.GroupsMenuItem, "GroupsMenuItem");
             // 
@@ -483,6 +520,17 @@
             this.PersonOrGroupItem.MouseEnter += new System.EventHandler(this.PersonOrGroupItem_MouseEnter);
             this.PersonOrGroupItem.MouseLeave += new System.EventHandler(this.PersonOrGroupItem_MouseLeave);
             // 
+            // Separator4
+            // 
+            this.Separator4.Name = "Separator4";
+            resources.ApplyResources(this.Separator4, "Separator4");
+            // 
+            // ListGroupsItem
+            // 
+            this.ListGroupsItem.Name = "ListGroupsItem";
+            resources.ApplyResources(this.ListGroupsItem, "ListGroupsItem");
+            this.ListGroupsItem.Click += new System.EventHandler(this.ListGroupsItem_Click);
+            // 
             // CreateGroupItem
             // 
             this.CreateGroupItem.Name = "CreateGroupItem";
@@ -490,6 +538,12 @@
             this.CreateGroupItem.Click += new System.EventHandler(this.CreateGroupItem_Click);
             this.CreateGroupItem.MouseEnter += new System.EventHandler(this.CreateGroupItem_MouseHover);
             this.CreateGroupItem.MouseLeave += new System.EventHandler(this.CreateGroupItem_MouseLeave);
+            // 
+            // MembersGroupItem
+            // 
+            this.MembersGroupItem.Name = "MembersGroupItem";
+            resources.ApplyResources(this.MembersGroupItem, "MembersGroupItem");
+            this.MembersGroupItem.Click += new System.EventHandler(this.MembersGroupItem_Click);
             // 
             // AddPersonToGroupItem
             // 
@@ -499,17 +553,10 @@
             this.AddPersonToGroupItem.MouseEnter += new System.EventHandler(this.CreateGroupItem_MouseHover);
             this.AddPersonToGroupItem.MouseLeave += new System.EventHandler(this.CreateGroupItem_MouseLeave);
             // 
-            // ListGroupsItem
+            // Separator5
             // 
-            this.ListGroupsItem.Name = "ListGroupsItem";
-            resources.ApplyResources(this.ListGroupsItem, "ListGroupsItem");
-            this.ListGroupsItem.Click += new System.EventHandler(this.ListGroupsItem_Click);
-            // 
-            // MembersGroupItem
-            // 
-            this.MembersGroupItem.Name = "MembersGroupItem";
-            resources.ApplyResources(this.MembersGroupItem, "MembersGroupItem");
-            this.MembersGroupItem.Click += new System.EventHandler(this.MembersGroupItem_Click);
+            this.Separator5.Name = "Separator5";
+            resources.ApplyResources(this.Separator5, "Separator5");
             // 
             // DeleteGroupItem
             // 
@@ -523,24 +570,33 @@
             resources.ApplyResources(this.DeletePersonFromGroupItem, "DeletePersonFromGroupItem");
             this.DeletePersonFromGroupItem.Click += new System.EventHandler(this.DeletePersonFromGroupItem_Click);
             // 
-            // importPeopleInLocalDBToolStripMenuItem
+            // Separator6
             // 
-            this.importPeopleInLocalDBToolStripMenuItem.Name = "importPeopleInLocalDBToolStripMenuItem";
-            resources.ApplyResources(this.importPeopleInLocalDBToolStripMenuItem, "importPeopleInLocalDBToolStripMenuItem");
-            this.importPeopleInLocalDBToolStripMenuItem.Click += new System.EventHandler(this.importPeopleInLocalDBToolStripMenuItem_Click);
+            this.Separator6.Name = "Separator6";
+            resources.ApplyResources(this.Separator6, "Separator6");
+            // 
+            // ImportPeopleInLocalDBItem
+            // 
+            this.ImportPeopleInLocalDBItem.Name = "ImportPeopleInLocalDBItem";
+            resources.ApplyResources(this.ImportPeopleInLocalDBItem, "ImportPeopleInLocalDBItem");
+            this.ImportPeopleInLocalDBItem.Click += new System.EventHandler(this.importPeopleInLocalDBToolStripMenuItem_Click);
             // 
             // SettingsMenuItem
             // 
             this.SettingsMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.SettingsProgrammItem,
+            this.Separator1,
             this.MailingItem,
+            this.ModeItem,
+            this.Separator2,
             this.EditAnualDaysItem,
             this.AddAnualDateItem,
-            this.modeItem,
+            this.Separator3,
             this.ClearReportItem,
             this.ClearDataItem,
             this.ClearRegistryItem,
             this.ClearAllItem,
+            this.Separator7,
             this.TestCryptionItem});
             this.SettingsMenuItem.Name = "SettingsMenuItem";
             resources.ApplyResources(this.SettingsMenuItem, "SettingsMenuItem");
@@ -551,11 +607,27 @@
             resources.ApplyResources(this.SettingsProgrammItem, "SettingsProgrammItem");
             this.SettingsProgrammItem.Click += new System.EventHandler(this.SettingsProgrammItem_Click);
             // 
+            // Separator1
+            // 
+            this.Separator1.Name = "Separator1";
+            resources.ApplyResources(this.Separator1, "Separator1");
+            // 
             // MailingItem
             // 
             this.MailingItem.Name = "MailingItem";
             resources.ApplyResources(this.MailingItem, "MailingItem");
             this.MailingItem.Click += new System.EventHandler(this.PrepareForMakingFormMailing);
+            // 
+            // ModeItem
+            // 
+            this.ModeItem.Name = "ModeItem";
+            resources.ApplyResources(this.ModeItem, "ModeItem");
+            this.ModeItem.Click += new System.EventHandler(this.ModeAppItem_Click);
+            // 
+            // Separator2
+            // 
+            this.Separator2.Name = "Separator2";
+            resources.ApplyResources(this.Separator2, "Separator2");
             // 
             // EditAnualDaysItem
             // 
@@ -569,11 +641,10 @@
             resources.ApplyResources(this.AddAnualDateItem, "AddAnualDateItem");
             this.AddAnualDateItem.Click += new System.EventHandler(this.AddAnualDateItem_Click);
             // 
-            // modeItem
+            // Separator3
             // 
-            this.modeItem.Name = "modeItem";
-            resources.ApplyResources(this.modeItem, "modeItem");
-            this.modeItem.Click += new System.EventHandler(this.ModeAppItem_Click);
+            this.Separator3.Name = "Separator3";
+            resources.ApplyResources(this.Separator3, "Separator3");
             // 
             // ClearReportItem
             // 
@@ -599,6 +670,11 @@
             this.ClearAllItem.Name = "ClearAllItem";
             resources.ApplyResources(this.ClearAllItem, "ClearAllItem");
             this.ClearAllItem.Click += new System.EventHandler(this.ClearAllItem_Click);
+            // 
+            // Separator7
+            // 
+            this.Separator7.Name = "Separator7";
+            resources.ApplyResources(this.Separator7, "Separator7");
             // 
             // TestCryptionItem
             // 
@@ -632,11 +708,6 @@
             this.HelpSystemItem.Name = "HelpSystemItem";
             resources.ApplyResources(this.HelpSystemItem, "HelpSystemItem");
             this.HelpSystemItem.Click += new System.EventHandler(this.infoItem_Click);
-            // 
-            // notifyIcon1
-            // 
-            this.notifyIcon1.BalloonTipIcon = System.Windows.Forms.ToolTipIcon.Info;
-            resources.ApplyResources(this.notifyIcon1, "notifyIcon1");
             // 
             // timer1
             // 
@@ -777,7 +848,6 @@
         private System.Windows.Forms.DataGridView dataGridView1;
         private System.Windows.Forms.ComboBox comboBoxFio;
         private System.Windows.Forms.ToolTip toolTip1;
-        private System.Windows.Forms.NotifyIcon notifyIcon1;
         private System.Windows.Forms.StatusStrip statusStrip;
         private System.Windows.Forms.ToolStripStatusLabel StatusLabel1;
         private System.Windows.Forms.Timer timer1;
@@ -843,7 +913,7 @@
         private System.Windows.Forms.ToolStripMenuItem RedItem;
         private System.Windows.Forms.ToolStripMenuItem YellowItem;
         private System.Windows.Forms.ToolStripMenuItem GreenItem;
-        private System.Windows.Forms.ToolStripMenuItem importPeopleInLocalDBToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ImportPeopleInLocalDBItem;
         private System.Windows.Forms.ToolStripMenuItem ClearRegistryItem;
         private System.Windows.Forms.GroupBox groupBoxTimeEnd;
         private System.Windows.Forms.NumericUpDown numUpDownHourEnd;
@@ -852,7 +922,18 @@
         private System.Windows.Forms.Label labelMinuteEnd;
         private System.Windows.Forms.ToolStripMenuItem listFioItem;
         private System.Windows.Forms.ToolStripMenuItem MailingItem;
-        private System.Windows.Forms.ToolStripMenuItem modeItem;
+        private System.Windows.Forms.ToolStripMenuItem ModeItem;
+        private System.Windows.Forms.ToolStripSeparator Separator4;
+        private System.Windows.Forms.ToolStripSeparator Separator5;
+        private System.Windows.Forms.ToolStripSeparator Separator6;
+        private System.Windows.Forms.ToolStripSeparator Separator1;
+        private System.Windows.Forms.ToolStripSeparator Separator2;
+        private System.Windows.Forms.ToolStripSeparator Separator3;
+        private System.Windows.Forms.ToolStripSeparator Separator7;
+        private System.Windows.Forms.ToolStripSeparator Separator8;
+        private System.Windows.Forms.ToolStripSeparator Separator9;
+        private System.Windows.Forms.ToolStripSeparator Separator10;
+        private System.Windows.Forms.ToolStripSeparator Separator11;
     }
 }
 

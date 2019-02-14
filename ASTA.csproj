@@ -62,13 +62,7 @@
     <RootNamespace>ASTA</RootNamespace>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>Resources\RYIK.ico</ApplicationIcon>
-  </PropertyGroup>
-  <PropertyGroup>
     <ManifestCertificateThumbprint>FE3540C25E6C0F0A67BAE7A60281490D072236D5</ManifestCertificateThumbprint>
-  </PropertyGroup>
-  <PropertyGroup>
-    <ManifestKeyFile>mySKD_TemporaryKey.pfx</ManifestKeyFile>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateManifests>false</GenerateManifests>
@@ -103,11 +97,15 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup />
+  <PropertyGroup />
+  <PropertyGroup>
+    <StartupObject>ASTA.Program</StartupObject>
+  </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ASTA.Program</StartupObject>
+    <ApplicationIcon>Resources\RYIK.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
