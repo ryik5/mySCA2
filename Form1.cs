@@ -1332,9 +1332,7 @@ namespace ASTA
                                     personFromServer = new Person();
                                     personFromServer.FIO = fio.Replace("&acute;", "'");
                                     personFromServer.NAV = reader.GetString(@"code").Trim().ToUpper().Replace('C', 'S');
-
-                                    @"Отдел (id)"
-                                   /
+                                    personFromServer.DepartmentId = reader.GetString(@"department")?.Trim();
                                     depName = departments.FindLast((x) => x._id == reader.GetString(@"department").Trim())?._departmentName;
                                     personFromServer.Department = depName ?? reader.GetString(@"department")?.Trim();
                                     personFromServer.PositionInDepartment = reader.GetString(@"vacancy")?.Trim();
@@ -1367,14 +1365,14 @@ namespace ASTA
                                     row[@"Группа"] = personFromServer.GroupPerson;
 
                                     row[@"Отдел"] = personFromServer.Department;
+                                    row[@"Отдел (id)"] = personFromServer.DepartmentId;
                                     row[@"Должность"] = personFromServer.PositionInDepartment;
 
                                     row[@"График"] = personFromServer.Shift;
 
                                     row[@"Учетное время прихода ЧЧ:ММ"] = personFromServer.ControlInHHMM;
                                     row[@"Учетное время ухода ЧЧ:ММ"] = personFromServer.ControlOutHHMM;
-
-
+                                    
                                     if (listCodesWithIdCard.IndexOf(personFromServer.NAV) != -1)
                                     {
                                         ListFIOTemp.Add(personFromServer.FIO + "|" + personFromServer.NAV);
@@ -1480,8 +1478,8 @@ namespace ASTA
                     {
                         if (dr[@"Фамилия Имя Отчество"] != null && dr[@"NAV-код"] != null && dr[@"NAV-код"].ToString().Length > 0)
                         {
-                            using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Reserv1, Reserv2) " +
-                                    " VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Reserv1, @Reserv2)", sqlConnection))
+                            using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Reserv1, Reserv2, DepartmentId) " +
+                                    " VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Reserv1, @Reserv2, @DepartmentId)", sqlConnection))
                             {
                                 sqlCommand.Parameters.Add("@FIO", DbType.String).Value = dr[@"Фамилия Имя Отчество"].ToString();
                                 sqlCommand.Parameters.Add("@NAV", DbType.String).Value = dr[@"NAV-код"].ToString();
@@ -1491,9 +1489,9 @@ namespace ASTA
                                 sqlCommand.Parameters.Add("@Shift", DbType.String).Value = dr[@"График"].ToString();
                                 // sqlCommand.Parameters.Add("@Comment", DbType.String).Value = dr[@"Комментарии (командировка, на выезде, согласованное отсутствие…….)"].ToString();
                                 sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = dr[@"Отдел"].ToString();
+                                sqlCommand.Parameters.Add("@DepartmentId", DbType.String).Value = dr[@"Отдел (id)"].ToString();
                                 sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = dr[@"Должность"].ToString();
-                                ,DepartmentId
-                                     @"Отдел (id)"
+                                    
                                 try
                                 {
                                     sqlCommand.ExecuteNonQuery();
@@ -2054,9 +2052,9 @@ namespace ASTA
 
                                 dataRow[@"Группа"] = record[@"GroupPerson"]?.ToString();
                                 dataRow[@"Отдел"] = dprtmnt;
+                                dataRow[@"Отдел (id)"] = record[@"DepartmentId"]?.ToString();
                                 dataRow[@"Должность"] = record[@"Reserv2"]?.ToString();
-                                , DepartmentId
-                                     @"Отдел (id)"
+                                     
                                 dataRow[@"Учетное время прихода ЧЧ:ММ"] = record[@"ControllingHHMM"]?.ToString();
                                 dataRow[@"Учетное время ухода ЧЧ:ММ"] = record[@"ControllingOUTHHMM"]?.ToString();
 
@@ -2132,8 +2130,10 @@ namespace ASTA
                         {
                             row[@"Фамилия Имя Отчество"] = cell[0];
                             row[@"NAV-код"] = cell[1];
+
                             row[@"Группа"] = cell[2];
                             row[@"Отдел"] = cell[3];
+                            row[@"Отдел (id)"] = "";
                             row[@"Должность"] = cell[4];
 
                             listGroups.Add(cell[2]);
@@ -2171,8 +2171,8 @@ namespace ASTA
                 {
                     if (dr[@"Фамилия Имя Отчество"]?.ToString()?.Length > 0 && dr[@"NAV-код"]?.ToString()?.Length > 0)
                     {
-                        using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Reserv1, Reserv2) " +
-                                " VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Comment, @Reserv1, @Reserv2)", sqlConnection))
+                        using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Reserv1, Reserv2, DepartmentId) " +
+                                " VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Comment, @Reserv1, @Reserv2, @DepartmentId)", sqlConnection))
                         {
                             sqlCommand.Parameters.Add("@FIO", DbType.String).Value = dr[@"Фамилия Имя Отчество"]?.ToString();
                             sqlCommand.Parameters.Add("@NAV", DbType.String).Value = dr[@"NAV-код"]?.ToString();
