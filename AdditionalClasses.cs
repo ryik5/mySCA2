@@ -47,6 +47,8 @@ namespace ASTA
         public string NAV = "";
         public string Department = "";
         public string DepartmentId = "";
+        public string DepartmentBossCode = "";
+
         public string PositionInDepartment = "";
 
         public string GroupPerson = "Office";
@@ -234,6 +236,7 @@ namespace ASTA
 
     public class PeopleDepartment
     {
+        public string _departmentBossEmail;
         public string _departmentBossCode;
         public string _departmentName;
         public string _departmentDescription;

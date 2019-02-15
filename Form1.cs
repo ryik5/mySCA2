@@ -189,7 +189,8 @@ namespace ASTA
                                   new DataColumn(@"Должность",typeof(string)),                 //39
                                   new DataColumn(@"График",typeof(string)),                 //40
                                   new DataColumn(@"Отгул (отпуск за свой счет)",typeof(string)),                 //41
-                                  new DataColumn(@"Отдел (id)",typeof(string)) //42
+                                  new DataColumn(@"Отдел (id)",typeof(string)), //42
+                                  new DataColumn(@"Руководитель (код)",typeof(string)) //43
                 };
         public readonly string[] arrayAllColumnsDataTablePeople =
             {
@@ -235,15 +236,15 @@ namespace ASTA
                                   @"Должность",                    //39
                                   @"График",                    //40
                                   @"Отгул (отпуск за свой счет)",   //41
-                                  @"Отдел (id)"                     //42
-
+                                  @"Отдел (id)",                     //42
+                                  @"Руководитель (код)"                     //43
         };
         public readonly string[] orderColumnsFinacialReport =
             {
                                   @"Фамилия Имя Отчество",//1
                                   @"NAV-код",//2
                                   @"Отдел",//11
-                                  @"Отдел (id)",                     //42
+                                 // @"Отдел (id)",                     //42
                                   @"Дата регистрации",//12
                                   @"День недели",                    //32
                                   @"Учетное время прихода ЧЧ:ММ",//22
@@ -296,7 +297,9 @@ namespace ASTA
                             @"Код",                           //35
                             @"Вышестоящая группа",            //36
                             @"Описание группы",                //37
-                            @"Отгул (отпуск за свой счет)"                      //41
+                            @"Отгул (отпуск за свой счет)",   //41
+                            @"Отдел (id)",                     //42
+                            @"Руководитель (код)"                     //43
         };
         public readonly string[] nameHidenColumnsArray =
             {
@@ -328,8 +331,9 @@ namespace ASTA
                 @"Код",         //35
                 @"Вышестоящая группа",            //36
                 @"Описание группы",                //37
-                @"Отгул (отпуск за свой счет)",                      //41
-
+                @"Отгул (отпуск за свой счет)",   //41
+                @"Отдел (id)",                     //42
+                @"Руководитель (код)"                     //43
         };
         private List<OutReasons> outResons = new List<OutReasons>();
         private List<OutPerson> outPerson = new List<OutPerson>();
@@ -1262,6 +1266,28 @@ namespace ASTA
                         }
                     }
 
+                    // import code and email from web DB
+                    query = "SELECT code, email, name FROM users ORDER code";
+                    logger.Trace(query);
+                    using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
+                    {
+                        using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                if (reader?.GetString(@"code")?.Length > 0 && reader?.GetString(@"email")?.Contains('@'))
+                                {
+                                    departments.Add(new PeopleDepartment()
+                                    {
+                                        _departmentBossEmail = reader?.GetString(@"email"),
+                                        _departmentBossCode = reader?.GetString(@"code")
+                                    });
+                                    _ProgressWork1Step(1);
+                                }
+                            }
+                        }
+                    }
+
                     // import individual shifts of people from web DB
                     query = "Select code,start_date,mo_start,mo_end,tu_start,tu_end,we_start,we_end,th_start,th_end,fr_start,fr_end, " +
                                     "sa_start,sa_end,su_start,su_end,comment FROM work_time ORDER by start_date";
@@ -1344,6 +1370,7 @@ namespace ASTA
 
                                     depName = departments.FindLast((x) => x._id == personFromServer.DepartmentId)?._departmentName;
                                     personFromServer.Department = depName ?? personFromServer.DepartmentId;
+                                    personFromServer.DepartmentBossCode = reader.GetString(@"boss_id")?.Trim();
                                     personFromServer.PositionInDepartment = reader.GetString(@"vacancy")?.Trim();
                                     personFromServer.GroupPerson = groupName;
 
@@ -1376,6 +1403,7 @@ namespace ASTA
                                     row[@"Отдел"] = personFromServer.Department;                                  
                                     row[@"Отдел (id)"] = personFromServer.DepartmentId;
                                     row[@"Должность"] = personFromServer.PositionInDepartment;
+                                    row[@"Руководитель (код)"] = personFromServer.DepartmentBossCode;
 
                                     row[@"График"] = personFromServer.Shift;
 
@@ -1418,7 +1446,8 @@ namespace ASTA
                     {
                         _parent_id = "idCollection",
                         _departmentName = "@" + idDep,
-                        _departmentDescription = dr[@"Отдел"]?.ToString()
+                        _departmentDescription = dr[@"Отдел"]?.ToString(),
+                        _departmentBossCode = dr[@"Руководитель (код)"]?.ToString()
                     });
                 }
             }
@@ -1436,37 +1465,32 @@ namespace ASTA
                     } catch { }
                 }
 
-                string recipientEmail = _textBoxReturnText(textBoxServer1UserName);
+                string recipientEmail = "";
                 string senderEmail = mailServerUserName;
                 if (mailServerUserName.Length == 0)
                 { senderEmail = _textBoxReturnText(textBoxServer1); }
                 string nameReport = _textBoxReturnText(textBoxMailServerName);
                 string description = _textBoxReturnText(textBoxMailServerUserName);
-                string report = _comboBoxReturnSelected(listCombo);
-                string period = _comboBoxReturnSelected(periodCombo);
-                string status = _comboBoxReturnSelected(comboSettings9);
-                string typeReport = _comboBoxReturnSelected(comboSettings15);
+                string reportGroup = _comboBoxReturnSelected(listCombo);
+                string period = "Текущий месяц";
+                string status = "Активная";
+                string typeReport = "Полный";
                 string dayReport = "28";
 
                 for (int indDep = 0; indDep < groups.Count; indDep++)
                 {
-                    string recipientEmail = _textBoxReturnText(textBoxServer1UserName);
-                    string senderEmail = mailServerUserName;
-                    if (mailServerUserName.Length == 0)
-                    { senderEmail = _textBoxReturnText(textBoxServer1); }
-                    string nameReport = _textBoxReturnText(textBoxMailServerName);
-                    string description = _textBoxReturnText(textBoxMailServerUserName);
-                    string report = _comboBoxReturnSelected(listCombo);
-                    string period = _comboBoxReturnSelected(periodCombo);
-                    string status = _comboBoxReturnSelected(comboSettings9);
-                    string typeReport = _comboBoxReturnSelected(comboSettings15);
-                    string dayReport = _textBoxReturnText(textBoxSettings16);
+                    recipientEmail = "";
 
                     depName = groups[indDep]?._departmentName;
                     depDescr = groups[indDep]?._departmentDescription;
                     CreateGroupInDB(databasePerson, depName, depDescr);
-                    if (recipientEmail.Length > 5 && nameReport.Length > 0)
-                    { SaveMailing(recipientEmail, senderEmail, report, nameReport, description, period, status, DateTimeToYYYYMMDDHHMM(), "", typeReport, dayReport); }
+                    /
+                    nameReport = depName;
+                    description = depDescr;
+                    reportGroup = depName;
+
+                    if (depName.StartsWith("@") && recipientEmail?.Length > 0 && recipientEmail.Contains('@') && recipientEmail.Contains('.'))
+                    { SaveMailing(recipientEmail, senderEmail, reportGroup, nameReport, description, period, status, DateTimeToYYYYMMDDHHMM(), "", typeReport, dayReport); }
                 }
                 
 
@@ -4737,7 +4761,8 @@ namespace ASTA
                     );
         }
 
-        private void SaveMailing(string recipientEmail, string senderEmail, string groupsReport, string nameReport, string description, string period, string status, string date, string SendingDate, string typeReport, string dayReport)
+        private void SaveMailing(string recipientEmail, string senderEmail, string groupsReport, string nameReport, string descriptionReport, 
+            string periodPreparing, string status, string dateCreatingMailing, string SendingDate, string typeReport, string daySendingReport)
         {
             bool recipientValid = false;
             bool senderValid = false;
@@ -4766,13 +4791,13 @@ namespace ASTA
                         sqlCommand.Parameters.Add("@RecipientEmail", DbType.String).Value = recipientEmail;
                         sqlCommand.Parameters.Add("@GroupsReport", DbType.String).Value = groupsReport;
                         sqlCommand.Parameters.Add("@NameReport", DbType.String).Value = nameReport;
-                        sqlCommand.Parameters.Add("@Description", DbType.String).Value = description;
-                        sqlCommand.Parameters.Add("@Period", DbType.String).Value = period;
+                        sqlCommand.Parameters.Add("@Description", DbType.String).Value = descriptionReport;
+                        sqlCommand.Parameters.Add("@Period", DbType.String).Value = periodPreparing;
                         sqlCommand.Parameters.Add("@Status", DbType.String).Value = status;
-                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = date;
+                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = dateCreatingMailing;
                         sqlCommand.Parameters.Add("@SendingLastDate", DbType.String).Value = SendingDate;
                         sqlCommand.Parameters.Add("@TypeReport", DbType.String).Value = typeReport;
-                        sqlCommand.Parameters.Add("@DayReport", DbType.String).Value = dayReport;
+                        sqlCommand.Parameters.Add("@DayReport", DbType.String).Value = daySendingReport;
 
                         try { sqlCommand.ExecuteNonQuery(); } catch { }
                     }
