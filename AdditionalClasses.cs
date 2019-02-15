@@ -234,6 +234,13 @@ namespace ASTA
         public string _groupName;
     }
 
+    public class Department
+    {
+        public string _departmentBossEmail;
+        public string _departmentName;
+        public string _departmentDescription;
+    }
+
     public class PeopleDepartment
     {
         public string _departmentBossEmail;
