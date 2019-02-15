@@ -390,7 +390,7 @@ namespace ASTA
             notifyIcon.Icon = this.Icon;
             notifyIcon.Visible = true;
             notifyIcon.BalloonTipText = @"Developed by ©Yuri Ryabchenko";
-            notifyIcon.ShowBalloonTip (500);
+            notifyIcon.ShowBalloonTip(500);
 
             contextMenu = new ContextMenu();  //Context Menu on notify Icon
             notifyIcon.ContextMenu = contextMenu;
@@ -817,7 +817,7 @@ namespace ASTA
             sLastSelectedElement = "dataGridView";
         }
 
-        
+
 
         private void DeleteTable(System.IO.FileInfo databasePerson, string myTable) //Delete All data from the selected Table of the DB (both parameters are string)
         {
@@ -863,7 +863,7 @@ namespace ASTA
             }
             myTable = null;
         }
- 
+
         private void DeleteDataTableQuery(System.IO.FileInfo databasePerson, string myTable, string mySqlNav,
         string mySqlParameter1 = "", string mySqlData1 = "",
             string mySqlParameter2 = "", string mySqlData2 = "") //Delete data from the Table of the DB by NAV (both parameters are string)
@@ -907,6 +907,8 @@ namespace ASTA
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
                     sqlConnection.Open();
+                    var sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
+                    sqlCommand1.ExecuteNonQuery();
 
                     if (mySqlParameter1.Length > 0 && mySqlParameter2.Length > 0 && mySqlParameter3.Length > 0 && mySqlParameter4.Length > 0)
                     {
@@ -949,14 +951,13 @@ namespace ASTA
                             try { sqlCommand.ExecuteNonQuery(); } catch { }
                         }
                     }
-                    using (var sqlCommand = new SQLiteCommand("vacuum;", sqlConnection))   //vacuum DB
-                    { try { sqlCommand.ExecuteNonQuery(); } catch { } }
-                    sqlConnection.Close();
+                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
+                    sqlCommand1.ExecuteNonQuery();
                 }
             }
             myTable = null; mySqlParameter1 = null; mySqlData1 = null;
         }
-               
+
         private void CheckAliveIntellectServer(string serverName, string userName, string userPasswords) //Get the list of registered users
         {
             bServer1Exist = false;
@@ -1026,7 +1027,7 @@ namespace ASTA
 
         private void GetFIO()  // CheckAliveIntellectServer()   GetFioFromServers()  ImportTablePeopleToTableGroupsInLocalDB()
         {
-             CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword);
+            CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword);
 
             if (bServer1Exist)
             {
@@ -1036,19 +1037,19 @@ namespace ASTA
                 dtPeopleListLoaded?.Clear();
                 dtPeopleListLoaded = dtTempIntermediate.Copy();
 
-                 ImportTablePeopleToTableGroupsInLocalDB(databasePerson.ToString(), dtTempIntermediate);
+                ImportTablePeopleToTableGroupsInLocalDB(databasePerson.ToString(), dtTempIntermediate);
 
                 //show selected data     
                 //distinct Records                
                 var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(arrayHiddenColumnsFIO).ToArray(); //take distinct data
                 dtPersonTemp = GetDistinctRecords(dtTempIntermediate, namesDistinctColumnsArray);
 
-                 ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenColumnsFIO);
+                ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenColumnsFIO);
 
                 panelViewResize(numberPeopleInLoading);
                 nameOfLastTableFromDB = "ListFIO";
             }
-         }
+        }
 
         private void GetFioFromServers(DataTable dataTablePeople) //Get the list of registered users
         {
@@ -1115,7 +1116,7 @@ namespace ASTA
                                             _departmentDescription = record["name"].ToString()
                                         });
                                     }
-                                _ProgressWork1Step(1);
+                                    _ProgressWork1Step(1);
                                 }
                                 catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
@@ -1217,7 +1218,7 @@ namespace ASTA
                                         _departmentBossCode = reader?.GetString(@"boss_code")
                                     });
                                 }
-                                    _ProgressWork1Step(1);
+                                _ProgressWork1Step(1);
                             }
                         }
                     }
@@ -1232,7 +1233,7 @@ namespace ASTA
                         {
                             while (reader.Read())
                             {
-                                if (reader?.GetString(@"code")?.Length > 0  )
+                                if (reader?.GetString(@"code")?.Length > 0)
                                 {
                                     try { emailExist = reader.GetString(@"email").Contains('@'); } catch { emailExist = false; }
                                     if (emailExist)
@@ -1242,7 +1243,7 @@ namespace ASTA
                                             _departmentBossEmail = reader.GetString(@"email"),
                                             _departmentBossCode = reader.GetString(@"code")
                                         });
-                                    _ProgressWork1Step(1);
+                                        _ProgressWork1Step(1);
                                     }
                                 }
                             }
@@ -1361,7 +1362,7 @@ namespace ASTA
 
                                     row[@"Группа"] = personFromServer.GroupPerson;
 
-                                    row[@"Отдел"] = personFromServer.Department;                                  
+                                    row[@"Отдел"] = personFromServer.Department;
                                     row[@"Отдел (id)"] = personFromServer.DepartmentId;
                                     row[@"Должность"] = personFromServer.PositionInDepartment;
                                     row[@"Руководитель (код)"] = personFromServer.DepartmentBossCode;
@@ -1370,7 +1371,7 @@ namespace ASTA
 
                                     row[@"Учетное время прихода ЧЧ:ММ"] = personFromServer.ControlInHHMM;
                                     row[@"Учетное время ухода ЧЧ:ММ"] = personFromServer.ControlOutHHMM;
-                                    
+
                                     if (listCodesWithIdCard.IndexOf(personFromServer.NAV) != -1)
                                     {
                                         ListFIOTemp.Add(personFromServer.FIO + "|" + personFromServer.NAV);
@@ -1421,25 +1422,37 @@ namespace ASTA
             _toolStripStatusLabelSetText(StatusLabel2, "Формирую список уникальных названий департаментов...");
             List<PeopleDepartment> resulListDepartment = groups.ToList();
             HashSet<Department> departmentsUniq = new HashSet<Department>();
-            foreach(var strDepartment in resulListDepartment.ToArray())
+            HashSet<DepartmentEmail> departmentsEmailUniq = new HashSet<DepartmentEmail>();
+
+            foreach (var strDepartment in resulListDepartment.ToArray())
             {
                 if (strDepartment?._departmentName?.Length > 0)
                 {
-                    departmentsUniq.Add(new Department {
-                        _departmentName = strDepartment?._departmentName,
+                    departmentsUniq.Add(new Department
+                    {
+                        _departmentName = strDepartment._departmentName,
                         _departmentDescription = strDepartment?._departmentDescription,
-                        _departmentBossEmail = strDepartment?._departmentBossEmail
                     });
+
+                    if (strDepartment?._departmentBossEmail?.Length > 0)
+                    {
+                        departmentsEmailUniq.Add(new DepartmentEmail
+                        {
+                            _departmentName = strDepartment._departmentName,
+                            _departmentDescription = strDepartment?._departmentDescription,
+                            _departmentBossEmail = strDepartment?._departmentBossEmail
+                        });
+                    }
                 }
             }
             _ProgressWork1Step(1);
 
-            if (databasePerson.Exists )
+            if (databasePerson.Exists)
             {
-             _toolStripStatusLabelSetText(StatusLabel2, "Чищу базу от департаментов с такими же именами...");
-               DeleteAllDataInTableQuery(databasePerson, "LastTakenPeopleComboList");
+                _toolStripStatusLabelSetText(StatusLabel2, "Чищу базу от департаментов с такими же именами...");
+                DeleteAllDataInTableQuery(databasePerson, "LastTakenPeopleComboList");
 
-                foreach (var department in departmentsUniq)
+                foreach (var department in departmentsUniq.ToArray().Distinct())
                 {
                     DeleteDataTableQueryParameters(databasePerson, "PeopleGroup", "GroupPerson", department._departmentName, "", "", "", "");
                     _ProgressWork1Step(1);
@@ -1447,6 +1460,7 @@ namespace ASTA
 
                 /////////////////////////////////////////
                 /// список исключений рассылок
+                /// Очистки departmentsUniq от блокируемых e-mails
                 //////////////////////////////////////////
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
@@ -1460,38 +1474,76 @@ namespace ASTA
                             {
                                 if (record["RecipientEmail"]?.ToString()?.Length > 0)
                                 {
-                                    departmentsUniq.RemoveWhere(x => x._departmentBossEmail == record["RecipientEmail"].ToString());
+                                    departmentsEmailUniq.RemoveWhere(x => x._departmentBossEmail == record["RecipientEmail"].ToString());
                                 }
                             }
                         }
                     }
-                }
 
-                _toolStripStatusLabelSetText(StatusLabel2, "Создаю заново группы и рассылки по группам...");
-                string recipientEmail = "";
-                foreach(var deprtment in departmentsUniq)
-               {
-                    depDescr = deprtment?._departmentDescription;
-                    recipientEmail= deprtment?._departmentBossEmail;
-                    depName = deprtment?._departmentName;
-
-                    CreateGroupInDB(databasePerson, depName, depDescr);
-                    logger.Trace("CreateGroupInDB: " +databasePerson +" "+ depName + " " + depDescr);
-                    if (depName.StartsWith("@") && recipientEmail?.Length > 0 && recipientEmail.Contains('@') && recipientEmail.Contains('.'))
-                    {
-                        SaveMailing(recipientEmail, mailServerUserName, depName, depName, depDescr, "Текущий месяц", "Активная", DateTimeToYYYYMMDDHHMM(), "", "Полный", "28");
-                        logger.Trace("SaveMailing: " + recipientEmail + " " + depName + " " + depDescr);
-                    }
-                    _ProgressWork1Step(1);
-                }
-
-                using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
-                {
-                    sqlConnection.Open();
-                    
+                    _toolStripStatusLabelSetText(StatusLabel2, "Создаю заново группы...");
                     var sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
-                _toolStripStatusLabelSetText(StatusLabel2, "Записываю новые индивидуальные графики...");
+
+                    foreach (var deprtment in departmentsUniq.ToArray().Distinct())
+                    {
+                        depDescr = deprtment?._departmentDescription;
+                        depName = deprtment?._departmentName;
+
+                        using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroupDesciption' (GroupPerson, GroupPersonDescription) " +
+                                                "VALUES (@GroupPerson, @GroupPersonDescription )", sqlConnection))
+                        {
+                            command.Parameters.Add("@GroupPerson", DbType.String).Value = depName;
+                            command.Parameters.Add("@GroupPersonDescription", DbType.String).Value = depDescr;
+                            try { command.ExecuteNonQuery(); } catch { }
+                        }
+
+                        logger.Trace("CreateGroup: " + depName + " " + depDescr);
+                        _ProgressWork1Step(1);
+                    }
+                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
+                    sqlCommand1.ExecuteNonQuery();
+
+
+                    _toolStripStatusLabelSetText(StatusLabel2, "Создаю заново рассылки по группам...");
+                    string recipientEmail = "";
+                    sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
+                    sqlCommand1.ExecuteNonQuery();
+                    foreach (var deprtment in departmentsEmailUniq.ToArray().Distinct())
+                    {
+                        depDescr = deprtment?._departmentDescription;
+                        recipientEmail = deprtment._departmentBossEmail;
+                        depName = deprtment._departmentName;
+
+                        if (depName.StartsWith("@") && recipientEmail.Contains('@'))
+                        {
+                            using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'Mailing' (SenderEmail, RecipientEmail, GroupsReport, NameReport, Description, Period, Status, DateCreated, SendingLastDate, TypeReport, DayReport)" +
+                               " VALUES (@SenderEmail, @RecipientEmail, @GroupsReport, @NameReport, @Description, @Period, @Status, @DateCreated, @SendingLastDate, @TypeReport, @DayReport)", sqlConnection))
+                            {
+                                sqlCommand.Parameters.Add("@SenderEmail", DbType.String).Value = mailServerUserName;
+                                sqlCommand.Parameters.Add("@RecipientEmail", DbType.String).Value = recipientEmail;
+                                sqlCommand.Parameters.Add("@GroupsReport", DbType.String).Value = depName;
+                                sqlCommand.Parameters.Add("@NameReport", DbType.String).Value = depName;
+                                sqlCommand.Parameters.Add("@Description", DbType.String).Value = depDescr;
+                                sqlCommand.Parameters.Add("@Period", DbType.String).Value = "Текущий месяц";
+                                sqlCommand.Parameters.Add("@Status", DbType.String).Value = "Активная";
+                                sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTimeToYYYYMMDDHHMM();
+                                sqlCommand.Parameters.Add("@SendingLastDate", DbType.String).Value = "";
+                                sqlCommand.Parameters.Add("@TypeReport", DbType.String).Value = "Полный";
+                                sqlCommand.Parameters.Add("@DayReport", DbType.String).Value = "28";
+
+                                try { sqlCommand.ExecuteNonQuery(); } catch { }
+                            }
+
+                            logger.Trace("SaveMailing: " + recipientEmail + " " + depName + " " + depDescr);
+                        }
+                        _ProgressWork1Step(1);
+                    }
+                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
+                    sqlCommand1.ExecuteNonQuery();
+
+                    sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
+                    sqlCommand1.ExecuteNonQuery();
+                    _toolStripStatusLabelSetText(StatusLabel2, "Записываю новые индивидуальные графики...");
                     foreach (var shift in peopleShifts.ToArray())
                     {
                         if (shift._nav != null && shift._nav.Length > 0)
@@ -1528,7 +1580,7 @@ namespace ASTA
                     sqlCommand1 = new SQLiteCommand("end", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
 
-                List<string> ListFIOCombo = new List<string>();
+                    List<string> ListFIOCombo = new List<string>();
 
                     _toolStripStatusLabelSetText(StatusLabel2, "Записываю все полученные ФИО в локальную базу...");
                     sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
@@ -1550,7 +1602,8 @@ namespace ASTA
                                 sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = dr[@"Должность"].ToString();
                                 sqlCommand.Parameters.Add("@DepartmentId", DbType.String).Value = dr[@"Отдел (id)"].ToString();
 
-                                try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt)
+                                try { sqlCommand.ExecuteNonQuery(); }
+                                catch (Exception expt)
                                 { logger.Warn("ошибка записи в локальную базу PeopleGroup - " + dr[@"Фамилия Имя Отчество"].ToString() + "\n" + dr[@"NAV-код"].ToString() + "\n" + expt.ToString()); }
 
                                 ListFIOCombo.Add(dr[@"Фамилия Имя Отчество"].ToString() + "|" + dr[@"NAV-код"].ToString());
@@ -1592,8 +1645,8 @@ namespace ASTA
 
                     _toolStripStatusLabelSetText(StatusLabel2, "Получено ФИО - " + arrayFIO.Length + " ");
                     arrayFIO = null;
-                ListFIOCombo = null;
-               }
+                    ListFIOCombo = null;
+                }
 
                 _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
                 _MenuItemEnabled(LoadDataItem, true);
@@ -1965,7 +2018,6 @@ namespace ASTA
                         command.Parameters.Add("@GroupPersonDescription", DbType.String).Value = descriptionGroup;
                         try { command.ExecuteNonQuery(); } catch { }
                     }
-                    connection.Close();
                 }
                 _toolStripStatusLabelSetText(StatusLabel2, "Группа - \"" + nameGroup + "\" создана");
             }
@@ -2005,7 +2057,7 @@ namespace ASTA
             nameOfLastTableFromDB = "PeopleGroupDesciption";
             PersonOrGroupItem.Text = "Работа с одной персоной";
         }
-        
+
         private void CountMembersAndUpdateAmountInTableGroups()
         {
             List<string> groupsUncount = new List<string>();
@@ -2013,11 +2065,21 @@ namespace ASTA
 
             if (databasePerson.Exists)
             {
-                ExecuteSql("UPDATE 'PeopleGroupDesciption' SET Reserv1='0';", databasePerson);
-
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
                     sqlConnection.Open();
+
+                    SQLiteCommand sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
+                    sqlCommand1.ExecuteNonQuery();
+
+                    using (var command = new SQLiteCommand("UPDATE 'PeopleGroupDesciption' SET Reserv1='0';", sqlConnection))
+                    { command.ExecuteNonQuery(); }
+
+                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
+                    sqlCommand1.ExecuteNonQuery();
+
+                    sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
+                    sqlCommand1.ExecuteNonQuery();
                     using (var sqlCommand = new SQLiteCommand("SELECT GroupPerson, DepartmentId FROM PeopleGroup;", sqlConnection))
                     {
                         string idGroup = "";
@@ -2027,7 +2089,7 @@ namespace ASTA
                             foreach (DbDataRecord record in reader)
                             {
                                 group = record["GroupPerson"]?.ToString();
-                                idGroup ="@"+ record["DepartmentId"]?.ToString();
+                                idGroup = "@" + record["DepartmentId"]?.ToString();
 
                                 if (group.Length > 0)
                                 {
@@ -2046,16 +2108,18 @@ namespace ASTA
                             _groupName = group
                         });
                     }
-
-                    SQLiteCommand sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
+                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
 
+                    sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
+                    sqlCommand1.ExecuteNonQuery();
                     if (groups.Count > 0)
                     {
                         foreach (var group in groups.ToArray())
                         {
-                            ExecuteSql("UPDATE 'PeopleGroupDesciption' SET Reserv1='" + group._amountMembers +
-                                       "' WHERE GroupPerson like '" + group._groupName + "';", databasePerson);
+                            using (var command = new SQLiteCommand("UPDATE 'PeopleGroupDesciption' SET Reserv1='" + group._amountMembers +
+                                       "' WHERE GroupPerson like '" + group._groupName + "';", sqlConnection))
+                            { command.ExecuteNonQuery(); }
                         }
                     }
 
@@ -2671,7 +2735,7 @@ namespace ASTA
                 logger.Trace("GetRegistrations, DT - " + dtPeopleGroup.TableName + " , всего записей - " + dtPeopleGroup.Rows.Count);
                 foreach (DataRow row in dtPeopleGroup.Rows)
                 {
-                    if (row[@"Фамилия Имя Отчество"]?.ToString()?.Length > 0 && (row[@"Группа"]?.ToString() == nameGroup || ("@"+row[@"Отдел (id)"]?.ToString()) == nameGroup))
+                    if (row[@"Фамилия Имя Отчество"]?.ToString()?.Length > 0 && (row[@"Группа"]?.ToString() == nameGroup || ("@" + row[@"Отдел (id)"]?.ToString()) == nameGroup))
                     {
                         person = new Person();
 
@@ -2990,8 +3054,8 @@ namespace ASTA
 
             string query = "Select FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Reserv1, Reserv2, DepartmentId  FROM PeopleGroup ";
             if (namePointedGroup.StartsWith(@"@"))
-            { query += "where DepartmentId like '" + namePointedGroup.Remove(0,1) + "'; "; }
-            else if(namePointedGroup.Length > 0)
+            { query += "where DepartmentId like '" + namePointedGroup.Remove(0, 1) + "'; "; }
+            else if (namePointedGroup.Length > 0)
             { query += "where GroupPerson like '" + namePointedGroup + "'; "; }
             else { query += ";"; }
 
@@ -3051,8 +3115,8 @@ namespace ASTA
         {
             if (EditAnualDaysItem.Text.Contains(@"Выходные(рабочие) дни"))
             {
-                AddAnualDateItem.Font= new Font(this.Font, FontStyle.Bold);
-               EditAnualDaysItem.Font = new Font(this.Font, FontStyle.Bold);
+                AddAnualDateItem.Font = new Font(this.Font, FontStyle.Bold);
+                EditAnualDaysItem.Font = new Font(this.Font, FontStyle.Bold);
                 EnterEditAnual();
             }
             else if (EditAnualDaysItem.Text.Contains(@"Завершить редактирование"))
@@ -3243,7 +3307,7 @@ namespace ASTA
                 {
                     foreach (DataRow row in dtPeopleGroup.Rows)
                     {
-                        if (row[@"Фамилия Имя Отчество"]?.ToString()?.Length > 0 && (row[@"Группа"]?.ToString() == nameGroup || (@"@"+row[@"Отдел (id)"]?.ToString()) == nameGroup))
+                        if (row[@"Фамилия Имя Отчество"]?.ToString()?.Length > 0 && (row[@"Группа"]?.ToString() == nameGroup || (@"@" + row[@"Отдел (id)"]?.ToString()) == nameGroup))
                         {
                             person = new Person
                             {
@@ -4766,7 +4830,7 @@ namespace ASTA
                     );
         }
 
-        private void SaveMailing(string recipientEmail, string senderEmail, string groupsReport, string nameReport, string descriptionReport, 
+        private void SaveMailing(string recipientEmail, string senderEmail, string groupsReport, string nameReport, string descriptionReport,
             string periodPreparing, string status, string dateCreatingMailing, string SendingDate, string typeReport, string daySendingReport)
         {
             bool recipientValid = false;
@@ -5356,7 +5420,7 @@ namespace ASTA
             if (bServer1Exist)
             {
                 _controlVisible(groupBoxProperties, false);
-                    _MenuItemEnabled(GetFioItem, true);
+                _MenuItemEnabled(GetFioItem, true);
 
                 sServer1 = server;
                 sServer1UserName = user;
@@ -5812,7 +5876,7 @@ namespace ASTA
                             }
                         }
                     }
-                   else if (nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "ListFIO")
+                    else if (nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "ListFIO")
                     {
                         dgSeek.FindValueInCells(dataGridView1, new string[] {
                             @"Фамилия Имя Отчество", @"NAV-код", @"Группа",
@@ -5842,7 +5906,7 @@ namespace ASTA
                                 sqlCommand.Parameters.Add("@GroupPerson", DbType.String).Value = group;
                                 sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = dgSeek.values[5];
                                 sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = dgSeek.values[6];
-                                sqlCommand.Parameters.Add("@DepartmentId", DbType.String).Value = dgSeek.values[9];                                                                   
+                                sqlCommand.Parameters.Add("@DepartmentId", DbType.String).Value = dgSeek.values[9];
 
                                 sqlCommand.Parameters.Add("@ControllingHHMM", DbType.String).Value = dgSeek.values[3];
                                 sqlCommand.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = dgSeek.values[4];
@@ -6042,7 +6106,7 @@ namespace ASTA
                     mRightClick.MenuItems.Add(new MenuItem(@"Клонировать рассылку:   " + mailing, MakeCloneMailing));
                     mRightClick.MenuItems.Add("-");
                     mRightClick.MenuItems.Add(new MenuItem(@"Удалить рассылку:   " + mailing, DeleteCurrentRow));
-                   mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
+                    mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
                 else if ((nameOfLastTableFromDB == "PeopleGroup") && currentMouseOverRow > -1)
                 {
@@ -6078,13 +6142,13 @@ namespace ASTA
             }
         }
 
-       private void DoReportAndEmail(object sender, EventArgs e)
+        private void DoReportAndEmail(object sender, EventArgs e)
         { DoReportAndEmail(); }
 
         private void DoReportAndEmail()
         {
             DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-            dgSeek.FindValueInCells(dataGridView1, new string[] { @"Группа", @"Описание группы"});
+            dgSeek.FindValueInCells(dataGridView1, new string[] { @"Группа", @"Описание группы" });
 
             _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет по группе" + dgSeek.values[0]);
             logger.Trace("DoReportAndEmail, sendEmail: " + mailServerUserName + "|" + dgSeek.values[0]);
@@ -6099,7 +6163,7 @@ namespace ASTA
         private void DoMainAction(object sender, EventArgs e) //DoMainAction()
         { DoMainAction(); }
 
-         private void DoMainAction()
+        private void DoMainAction()
         {
             _ProgressBar1Start();
 
@@ -6399,14 +6463,14 @@ namespace ASTA
                     _toolStripStatusLabelSetText(StatusLabel2, "Режим почтовых рассылок. " + DateTimeToYYYYMMDDHHMM());
                     _toolStripStatusLabelBackColor(StatusLabel2, Color.LightCyan);
                     ClearFilesInApplicationFolders(@"*.xlsx", "Excel-файлов");
-                }                
+                }
             }
         }
 
         private async void SelectMailingDoAction() //MailingAction()
         {
             //предварительно обновить список ФИО и индивидуальные графики
-            
+
             //GetFIO();
             await Task.Run(() => GetFIO());
 
@@ -6432,34 +6496,34 @@ namespace ASTA
                     {
                         foreach (DbDataRecord record in reader)
                         {
-                                 if (record["SenderEmail"]?.ToString()?.Length > 0 && record["RecipientEmail"]?.ToString()?.Length > 0)
-                                {
-                                    sender = record["SenderEmail"].ToString();
-                                    recipient = record["RecipientEmail"].ToString();
-                                    gproupsReport = record["GroupsReport"].ToString();
-                                    nameReport = record["NameReport"].ToString();
-                                    descriptionReport = record["Description"].ToString();
-                                    period = record["Period"].ToString();
-                                    status = record["Status"].ToString().ToLower();
-                                    typeReport = record["TypeReport"].ToString();
-                                    dayReport = record["DayReport"].ToString();
+                            if (record["SenderEmail"]?.ToString()?.Length > 0 && record["RecipientEmail"]?.ToString()?.Length > 0)
+                            {
+                                sender = record["SenderEmail"].ToString();
+                                recipient = record["RecipientEmail"].ToString();
+                                gproupsReport = record["GroupsReport"].ToString();
+                                nameReport = record["NameReport"].ToString();
+                                descriptionReport = record["Description"].ToString();
+                                period = record["Period"].ToString();
+                                status = record["Status"].ToString().ToLower();
+                                typeReport = record["TypeReport"].ToString();
+                                dayReport = record["DayReport"].ToString();
 
-                                    if (status == "активная")
+                                if (status == "активная")
+                                {
+                                    mailingList.Add(new MailingStructure()
                                     {
-                                        mailingList.Add(new MailingStructure()
-                                        {
-                                            _sender = sender,
-                                            _recipient = recipient,
-                                            _groupsReport = gproupsReport,
-                                            _nameReport = nameReport,
-                                            _descriptionReport = descriptionReport,
-                                            _period = period,
-                                            _typeReport = typeReport,
-                                            _status = status,
-                                            _dayReport = dayReport
-                                        });
-                                    }
+                                        _sender = sender,
+                                        _recipient = recipient,
+                                        _groupsReport = gproupsReport,
+                                        _nameReport = nameReport,
+                                        _descriptionReport = descriptionReport,
+                                        _period = period,
+                                        _typeReport = typeReport,
+                                        _status = status,
+                                        _dayReport = dayReport
+                                    });
                                 }
+                            }
                         }
                     }
                 }
