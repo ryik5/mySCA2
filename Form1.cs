@@ -6812,7 +6812,8 @@ namespace ASTA
             res.ContentId = Guid.NewGuid().ToString();
 
             // текст письма
-            string htmlBody ="";
+            string htmlBody = "";
+            
 
             System.Net.Mail.AlternateView alternateView = System.Net.Mail.AlternateView.CreateAlternateViewFromString(htmlBody, null, System.Net.Mime.MediaTypeNames.Text.Html);
             alternateView.LinkedResources.Add(res);
