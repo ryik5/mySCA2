@@ -44,6 +44,7 @@ namespace ASTA
         private string poversion = "";
         private string productName = "";
         private string strVersion;
+        private string nameOfSenderReports = "Отдел компенсаций и льгот";
 
 
         private int iCounterLine = 0;
@@ -1063,6 +1064,7 @@ namespace ASTA
             string nav = "";
             string groupName = "";
             string depName = "";
+            string depBoss = "";
             string depDescr = "";
 
             string timeStart = ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourStart), _numUpDownReturn(numUpDownMinuteStart));
@@ -1078,7 +1080,6 @@ namespace ASTA
             List<string> listCodesWithIdCard = new List<string>(); //NAV-codes people who have idCard
 
             // import users and group from www.ais
-            //   List<string> listCodesFromWeb = new List<string>();
             List<PeopleShift> peopleShifts = new List<PeopleShift>();
             List<PeopleDepartment> departments = new List<PeopleDepartment>();
             HashSet<PeopleDepartment> groups = new HashSet<PeopleDepartment>();
@@ -1124,7 +1125,7 @@ namespace ASTA
                     }
 
                     //import users from с SCA server
-                    query = "SELECT id, name, surname, patronymic, post, tabnum, parent_id FROM OBJ_PERSON ";
+                    query = "SELECT id, name, surname, patronymic, post, tabnum, parent_id, facility_code, card FROM OBJ_PERSON WHERE is_locked LIKE'0' AND facility_code NOT LIKE '' AND card NOT LIKE '' ";
                     logger.Trace(query);
                     using (var sqlCommand = new System.Data.SqlClient.SqlCommand(query, sqlConnection))
                     {
@@ -1310,7 +1311,7 @@ namespace ASTA
                     catch { }
 
                     // import people from web DB
-                    query = "Select code, family_name, first_name, last_name, vacancy, department,boss_id FROM personal"; //where hidden=0
+                    query = "Select code, family_name, first_name, last_name, vacancy, department, boss_id, city FROM personal WHERE city LIKE '2 КОРП' OR city LIKE 'КОРПОРАЦИЯ' OR city LIKE '3 КОРП'"; //where hidden=0
                     logger.Trace(query);
                     using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
                     {
@@ -1332,7 +1333,10 @@ namespace ASTA
 
                                     depName = departments.FindLast((x) => x._id == personFromServer.DepartmentId)?._departmentName;
                                     personFromServer.Department = depName ?? personFromServer.DepartmentId;
-                                    personFromServer.DepartmentBossCode = reader.GetString(@"boss_id")?.Trim();
+                                    depBoss= departments.FindLast((x) => x._id == personFromServer.DepartmentId)?._departmentBossCode;
+                                    personFromServer.DepartmentBossCode = depBoss ?? reader.GetString(@"boss_id")?.Trim();
+                                    //personFromServer.DepartmentBossCode = reader.GetString(@"boss_id")?.Trim();
+
                                     personFromServer.PositionInDepartment = reader.GetString(@"vacancy")?.Trim();
                                     personFromServer.GroupPerson = groupName;
 
@@ -1372,7 +1376,11 @@ namespace ASTA
                                     row[@"Учетное время прихода ЧЧ:ММ"] = personFromServer.ControlInHHMM;
                                     row[@"Учетное время ухода ЧЧ:ММ"] = personFromServer.ControlOutHHMM;
 
-                                    if (listCodesWithIdCard.IndexOf(personFromServer.NAV) != -1)
+                                    /////////////////////
+                                    //If need only people with idCard - uncomment next string with "if (listCodesWithIdCard....."
+                                    ///////////////////////
+
+                                    // if (listCodesWithIdCard.IndexOf(personFromServer.NAV) != -1)
                                     {
                                         ListFIOTemp.Add(personFromServer.FIO + "|" + personFromServer.NAV);
                                         dataTablePeople.Rows.Add(row);
@@ -2136,12 +2144,18 @@ namespace ASTA
 
         private void SearchMembersSelectedGroup()
         {
+            DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
             if (nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "PeopleGroupDesciption")
             {
-                DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
                 dgSeek.FindValueInCells(dataGridView1, new string[] { @"Группа" });
                 SeekAndShowMembersOfGroup(dgSeek.values[0]);
             }
+            else if (nameOfLastTableFromDB == "Mailing")
+            {
+                dgSeek.FindValueInCells(dataGridView1, new string[] { @"Отчет по группам" });
+                SeekAndShowMembersOfGroup(dgSeek.values[0]);
+            }
+            dgSeek = null;
         }
 
         private void SeekAndShowMembersOfGroup(string nameGroup)
@@ -2155,8 +2169,11 @@ namespace ASTA
             string dprtmnt = "", query = ""; ;
 
             query = "Select FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Reserv1, Reserv2, DepartmentId FROM PeopleGroup ";
-            if (nameGroup.Length > 0)
+           if (nameGroup.Contains("@"))
+            { query += " where DepartmentId like '" + nameGroup.Remove(0,1) + "'"; }
+            else if (nameGroup.Length > 0)
             { query += " where GroupPerson like '" + nameGroup + "'"; }
+            
             query += ";";
             logger.Info("SeekAndShowMembersOfGroup: " + query);
             using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
@@ -6072,8 +6089,9 @@ namespace ASTA
             }
             cell = null;
         }
-
-        private void dataGridView1_MouseClick(object sender, MouseEventArgs e) //right click of mouse on the datagridview
+    
+        //right click of mouse on the datagridview
+        private void dataGridView1_MouseClick(object sender, MouseEventArgs e) 
         {
             if (e.Button == MouseButtons.Right)
             {
@@ -6094,18 +6112,24 @@ namespace ASTA
                 else if ((nameOfLastTableFromDB == "Mailing") && currentMouseOverRow > -1)
                 {
                     string mailing = "";
+                    string mailingDiscription = "";
                     for (int i = 0; i < dataGridView1.ColumnCount; i++)
                     {
                         if (dataGridView1.Columns[i].HeaderText == "Наименование")
                         {
                             mailing = dataGridView1.Rows[currentMouseOverRow].Cells[i].Value.ToString();
                         }
+                        else if (dataGridView1.Columns[i].HeaderText == "Описание")
+                        {
+                            mailingDiscription = dataGridView1.Rows[currentMouseOverRow].Cells[i].Value.ToString();
+                        }
                     }
-                    mRightClick.MenuItems.Add(new MenuItem(@"Выполнить рассылку:   " + mailing, DoMainAction));
-                    mRightClick.MenuItems.Add(new MenuItem(@"Создать рассылку", PrepareForMakingFormMailing));
-                    mRightClick.MenuItems.Add(new MenuItem(@"Клонировать рассылку:   " + mailing, MakeCloneMailing));
+                    mRightClick.MenuItems.Add(new MenuItem(@"Выполнить рассылку:   " + mailing+"("+ mailingDiscription+")", DoMainAction));
+                    mRightClick.MenuItems.Add(new MenuItem(@"Создать новую рассылку", PrepareForMakingFormMailing));
+                    mRightClick.MenuItems.Add(new MenuItem(@"Клонировать рассылку:   " + mailing + "(" + mailingDiscription + ")", MakeCloneMailing));
+                    mRightClick.MenuItems.Add(new MenuItem(@"Состав рассылки:   " + mailing + "(" + mailingDiscription + ")", MembersGroupItem_Click));                    
                     mRightClick.MenuItems.Add("-");
-                    mRightClick.MenuItems.Add(new MenuItem(@"Удалить рассылку:   " + mailing, DeleteCurrentRow));
+                    mRightClick.MenuItems.Add(new MenuItem(@"Удалить рассылку:   " + mailing + "(" + mailingDiscription + ")", DeleteCurrentRow));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
                 else if ((nameOfLastTableFromDB == "PeopleGroup") && currentMouseOverRow > -1)
@@ -6139,6 +6163,8 @@ namespace ASTA
                     mRightClick.MenuItems.Add(new MenuItem(@"Удалить из сохранненых '" + dgSeek.values[2] + @"'  '" + dgSeek.values[0] + @"' для " + navD, DeleteAnualDateItem_Click));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
+
+                dgSeek = null;
             }
         }
 
@@ -6627,7 +6653,7 @@ namespace ASTA
 
                             foreach (string groupName in groups)
                             {
-                                try { System.IO.File.Delete(filePathExcelReport); } catch { }
+                                try { if (System.IO.File.Exists(filePathExcelReport)) { System.IO.File.Delete(filePathExcelReport); } } catch { }
 
                                 nameGroup = groupName.Trim();
                                 if (nameGroup.Length > 0)
@@ -6693,11 +6719,12 @@ namespace ASTA
 
                                         if (reportExcelReady)
                                         {
-                                            bodyOfMail = "Отчет \"" + nameReport + "\" " + " по группе \"" + nameGroup + "\"";
-                                            titleOfbodyMail = "Отчет за период: с " + reportStartDay.Split(' ')[0] + " по " + reportLastDay.Split(' ')[0];
+                                            bodyOfMail = "";
+
+                                            titleOfbodyMail = "с " + reportStartDay.Split(' ')[0] + " по " + reportLastDay.Split(' ')[0];
                                             _toolStripStatusLabelSetText(StatusLabel2, "Подготавливаю отчет для отправки " + recipientEmail);
 
-                                            SendEmailAsync(senderEmail, recipientEmail, titleOfbodyMail, bodyOfMail, filePathExcelReport, Properties.Resources.LogoRYIK, productName);
+                                            SendEmailAsync(senderEmail, recipientEmail, titleOfbodyMail, description, bodyOfMail, filePathExcelReport, Properties.Resources.LogoRYIK, productName);
 
                                             _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
                                             _toolStripStatusLabelSetText(StatusLabel2, DateTimeToYYYYMMDDHHMM() + " Отчет " + nameReport + "(" + groupName + ") подготовлен и отправлен " + recipientEmail);
@@ -6730,7 +6757,7 @@ namespace ASTA
             }
         }
 
-        private async void SendEmailAsync(string sender, string recipient, string title, string messageBeforePicture, string pathToFile, Bitmap myLogo, string messageAfterPicture) //Compose and send e-mail
+        private async void SendEmailAsync(string sender, string recipient, string period, string department, string messageBeforePicture, string pathToFile, Bitmap myLogo, string messageAfterPicture) //Compose and send e-mail
         {
             // string startupPath = AppDomain.CurrentDomain.RelativeSearchPath;
             // string path = System.IO.Path.Combine(startupPath, "HtmlTemplates", "NotifyTemplate.html");
@@ -6750,13 +6777,17 @@ namespace ASTA
                     newMail.IsBodyHtml = true;
                     newMail.BodyEncoding = UTF8Encoding.UTF8;
 
-                    newMail.AlternateViews.Add(getEmbeddedImage(title, messageBeforePicture, myLogo, messageAfterPicture));
+                    newMail.AlternateViews.Add(getEmbeddedImage(period, department, messageBeforePicture, myLogo, messageAfterPicture));
                     // отправитель - устанавливаем адрес и отображаемое в письме имя
-                    newMail.From = new System.Net.Mail.MailAddress(sender, productName);
+                    newMail.From = new System.Net.Mail.MailAddress(sender, nameOfSenderReports);
+
+                    // отправитель - устанавливаем адрес и отображаемое в письме имя
+                    newMail.ReplyToList.Add(sender);
+
                     // кому отправляем
                     newMail.To.Add(new System.Net.Mail.MailAddress(recipient));
                     // тема письма
-                    newMail.Subject = title;
+                    newMail.Subject = "Отчет по посещаемости за период: "+ period;
                     //добавляем вложение
                     newMail.Attachments.Add(new System.Net.Mail.Attachment(pathToFile));
                     // логин и пароль
@@ -6769,10 +6800,10 @@ namespace ASTA
             }
         }
 
-        private System.Net.Mail.AlternateView getEmbeddedImage(string title, string messageBeforePicture, Bitmap bmp, string messageAfterPicture)
+        private System.Net.Mail.AlternateView getEmbeddedImage(string period, string department, string messageBeforePicture, Bitmap bmp, string messageAfterPicture)
         {
             //convert embedded resources into memorystream
-            Bitmap b = new Bitmap(bmp);
+            Bitmap b = new Bitmap(bmp,new Size(50,50));
             ImageConverter ic = new ImageConverter();
             Byte[] ba = (Byte[])ic.ConvertTo(b, typeof(Byte[]));
             System.IO.MemoryStream logo = new System.IO.MemoryStream(ba);
@@ -6781,14 +6812,7 @@ namespace ASTA
             res.ContentId = Guid.NewGuid().ToString();
 
             // текст письма
-            string htmlBody =
-                @"<p><font size='4' color='black' face='Arial'>" + title + @"</font></p>" +
-                @"<p><h4>" + messageBeforePicture + @"</h4></p>" +
-                @"<hr><img src='cid:" + res.ContentId + @"'/>" +
-                @"<hr><p><h5>Отчет сгенерирован на " + pcname +
-                @" с использованием ПО - <font size='2' color='blue' face='Arial'>" +
-                myFileVersionInfo.ProductName + " " + myFileVersionInfo.FileVersion + @"</font> " + @" в автоматическом режиме <font size='2' color='red' face='Arial'>" +
-                DateTimeToYYYYMMDDHHMM() + @"</font></h5></p>";
+            string htmlBody ="";
 
             System.Net.Mail.AlternateView alternateView = System.Net.Mail.AlternateView.CreateAlternateViewFromString(htmlBody, null, System.Net.Mime.MediaTypeNames.Text.Html);
             alternateView.LinkedResources.Add(res);
