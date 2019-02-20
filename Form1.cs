@@ -189,7 +189,7 @@ namespace ASTA
                                   new DataColumn(@"Комментарии (командировка, на выезде, согласованное отсутствие…….)",typeof(string)),                 //38
                                   new DataColumn(@"Должность",typeof(string)),                 //39
                                   new DataColumn(@"График",typeof(string)),                 //40
-                                  new DataColumn(@"Отгул (отпуск за свой счет)",typeof(string)),                 //41
+                                  new DataColumn(@"Прогул (отпуск за свой счет)",typeof(string)),                 //41
                                   new DataColumn(@"Отдел (id)",typeof(string)), //42
                                   new DataColumn(@"Руководитель (код)",typeof(string)) //43
                 };
@@ -236,7 +236,7 @@ namespace ASTA
                                   @"Комментарии (командировка, на выезде, согласованное отсутствие…….)",      //38
                                   @"Должность",                    //39
                                   @"График",                    //40
-                                  @"Отгул (отпуск за свой счет)",   //41
+                                  @"Прогул (отпуск за свой счет)",   //41
                                   @"Отдел (id)",                     //42
                                   @"Руководитель (код)"                     //43
         };
@@ -256,7 +256,7 @@ namespace ASTA
                                   @"Опоздание ЧЧ:ММ",                    //28
                                   @"Ранний уход ЧЧ:ММ",                 //29
                                   @"Отпуск",                 //30
-                                  @"Отгул (отпуск за свой счет)",    //41
+                                  @"Прогул (отпуск за свой счет)",    //41
                                  // @"Командировка",                 //31
                                   @"Больничный",                    //33
                                   @"Отсутствовал на работе",      //34
@@ -298,7 +298,7 @@ namespace ASTA
                             @"Код",                           //35
                             @"Вышестоящая группа",            //36
                             @"Описание группы",                //37
-                            @"Отгул (отпуск за свой счет)",   //41
+                            @"Прогул (отпуск за свой счет)",   //41
                             @"Руководитель (код)"                     //43
         };
         public readonly string[] nameHidenColumnsArray =
@@ -331,7 +331,7 @@ namespace ASTA
                 @"Код",         //35
                 @"Вышестоящая группа",            //36
                 @"Описание группы",                //37
-                @"Отгул (отпуск за свой счет)",   //41
+                @"Прогул (отпуск за свой счет)",   //41
                 @"Руководитель (код)"                     //43
         };
         private List<OutReasons> outResons = new List<OutReasons>();
@@ -1799,7 +1799,7 @@ namespace ASTA
 
                 try
                 {
-                    Microsoft.Office.Interop.Excel.Range rangeColumnD = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Отгул (отпуск за свой счет)")) + 1)];
+                    Microsoft.Office.Interop.Excel.Range rangeColumnD = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Прогул (отпуск за свой счет)")) + 1)];
                     rangeColumnD.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
                 catch (Exception expt) { logger.Warn("Отгул - " + expt.ToString()); }
@@ -2613,7 +2613,7 @@ namespace ASTA
                 }
 
                 dtPersonRegistrationsFullList.Clear();
-                logger.Info("GetData: " + groups);
+                logger.Trace("GetData: " + groups);
 
                 reportStartDay = _dateTimePickerStart().Split(' ')[0];
                 reportLastDay = _dateTimePickerEnd().Split(' ')[0];
@@ -2681,7 +2681,7 @@ namespace ASTA
             outResons.Add(new OutReasons() { _id = "0", _hourly = 1, _name = @"Unknow", _visibleName = @"Неизвестная" });
             string query = "";
             string stringConnection = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;pooling = false; convert zero datetime=True;Connect Timeout=60";
-            logger.Info(stringConnection);
+            logger.Trace(stringConnection);
             using (var sqlConnection = new MySql.Data.MySqlClient.MySqlConnection(stringConnection))
             {
                 sqlConnection.Open();
@@ -2712,7 +2712,7 @@ namespace ASTA
                 string date = "";
                 string resonId = "";
                 query = "Select * FROM out_users where reason_date >= '" + startDate.Split(' ')[0] + "' AND reason_date <= '" + endDate.Split(' ')[0] + "' ";
-                logger.Info(query);
+                logger.Trace(query);
                 using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
                 {
                     using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
@@ -2739,7 +2739,7 @@ namespace ASTA
                 }
                 sqlConnection.Close();
             }
-            logger.Info(person.NAV + " - на сайте всего записей с отсутствиями: " + outPerson.Count);
+            logger.Trace(person.NAV + " - на сайте всего записей с отсутствиями: " + outPerson.Count);
             _ProgressWork1Step(1);
 
 
@@ -3115,7 +3115,7 @@ namespace ASTA
             }
             query = null; dataRow = null;
 
-            logger.Info("LoadGroupMembersFromDbToDataTable, всего записей в dtPeopleGroup - " + dtPeopleGroup.Rows.Count + ", группа - " + namePointedGroup);
+            logger.Trace("LoadGroupMembersFromDbToDataTable, всего записей в dtPeopleGroup - " + dtPeopleGroup.Rows.Count + ", группа - " + namePointedGroup);
         }
 
         private void DeletePersonFromGroupItem_Click(object sender, EventArgs e) //DeletePersonFromGroup()
@@ -3507,9 +3507,9 @@ namespace ASTA
                             case "12":
                             case "20":
                                 if (typeReport == "Полный")
-                                { rowDtStoring[@"Отгул (отпуск за свой счет)"] = outResons.Find((x) => x._id == exceptReason)?._visibleName; }
+                                { rowDtStoring[@"Прогул (отпуск за свой счет)"] = outResons.Find((x) => x._id == exceptReason)?._visibleName; }
                                 else if (typeReport == "Упрощенный")
-                                { rowDtStoring[@"Отгул (отпуск за свой счет)"] = "1"; }
+                                { rowDtStoring[@"Прогул (отпуск за свой счет)"] = "1"; }
                                 break;
                             case "4":
                             case "5":
@@ -6618,7 +6618,7 @@ namespace ASTA
 
                             GetNamePoints();  //Get names of the registration' points
 
-                            logger.Info("MailingAction, sendEmail: " + selectPeriodMonth());
+                            logger.Trace("MailingAction, sendEmail: " + selectPeriodMonth());
                             reportStartDay = selectPeriodMonth().Split('|')[0];
                             reportLastDay = selectPeriodMonth().Split('|')[1];
 
@@ -6643,7 +6643,7 @@ namespace ASTA
                             dtEmpty.Dispose();
                             emptyPerson = null;
 
-                            logger.Info("MailingAction, startDay-lastDay: " + reportStartDay + " " + reportLastDay);
+                            logger.Info("MailingAction: " + selectPeriodMonth()+" | " + reportStartDay + " " + reportLastDay);
 
                             string nameGroup = "";
                             string selectedPeriod = reportStartDay.Split(' ')[0] + " - " + reportLastDay.Split(' ')[0];
@@ -6699,10 +6699,10 @@ namespace ASTA
                                         }
                                     }
                                     person = null;
-                                    logger.Info("dtTempIntermediate: " + dtTempIntermediate.Rows.Count);
+                                    logger.Trace("dtTempIntermediate: " + dtTempIntermediate.Rows.Count);
                                     dtPersonTemp = GetDistinctRecords(dtTempIntermediate, orderColumnsFinacialReport);
                                     dtPersonTemp.SetColumnsOrder(orderColumnsFinacialReport);
-                                    logger.Info("dtPersonTemp: " + dtPersonTemp.Rows.Count);
+                                    logger.Trace("dtPersonTemp: " + dtPersonTemp.Rows.Count);
 
                                     if (dtPersonTemp.Rows.Count > 0)
                                     {
@@ -6803,7 +6803,7 @@ namespace ASTA
         private System.Net.Mail.AlternateView getEmbeddedImage(string period, string department, string messageBeforePicture, Bitmap bmp, string messageAfterPicture)
         {
             //convert embedded resources into memorystream
-            Bitmap b = new Bitmap(bmp,new Size(50,50));
+            Bitmap b = new Bitmap(bmp, new Size(50, 50));
             ImageConverter ic = new ImageConverter();
             Byte[] ba = (Byte[])ic.ConvertTo(b, typeof(Byte[]));
             System.IO.MemoryStream logo = new System.IO.MemoryStream(ba);
@@ -6812,8 +6812,9 @@ namespace ASTA
             res.ContentId = Guid.NewGuid().ToString();
 
             // текст письма
-            string htmlBody = "";
-            
+            MessageForSending messageForSending =
+                new MessageForSending(period, department, nameOfSenderReports, DateTimeToYYYYMMDDHHMM(), res.ContentId);
+            string htmlBody = messageForSending.ToString();
 
             System.Net.Mail.AlternateView alternateView = System.Net.Mail.AlternateView.CreateAlternateViewFromString(htmlBody, null, System.Net.Mime.MediaTypeNames.Text.Html);
             alternateView.LinkedResources.Add(res);
