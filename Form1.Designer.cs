@@ -69,12 +69,8 @@
             this.TableExportToExcelItem = new System.Windows.Forms.ToolStripMenuItem();
             this.TableModeItem = new System.Windows.Forms.ToolStripMenuItem();
             this.VisualModeItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.VisualSelectColorMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.ColorRegistrationMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.BlueItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.RedItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.YellowItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.GreenItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ChangeColorMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ChangeColorOfGraphicItem = new System.Windows.Forms.ToolStripMenuItem();
             this.Separator11 = new System.Windows.Forms.ToolStripSeparator();
             this.ExitItem = new System.Windows.Forms.ToolStripMenuItem();
             this.GroupsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -386,7 +382,7 @@
             this.TableExportToExcelItem,
             this.TableModeItem,
             this.VisualModeItem,
-            this.VisualSelectColorMenuItem,
+            this.ChangeColorMenuItem,
             this.Separator11,
             this.ExitItem});
             this.FunctionMenuItem.Name = "FunctionMenuItem";
@@ -443,46 +439,18 @@
             resources.ApplyResources(this.VisualModeItem, "VisualModeItem");
             this.VisualModeItem.Click += new System.EventHandler(this.VisualItem_Click);
             // 
-            // VisualSelectColorMenuItem
+            // ChangeColorMenuItem
             // 
-            this.VisualSelectColorMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.ColorRegistrationMenuItem});
-            this.VisualSelectColorMenuItem.Name = "VisualSelectColorMenuItem";
-            resources.ApplyResources(this.VisualSelectColorMenuItem, "VisualSelectColorMenuItem");
+            this.ChangeColorMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.ChangeColorOfGraphicItem});
+            this.ChangeColorMenuItem.Name = "ChangeColorMenuItem";
+            resources.ApplyResources(this.ChangeColorMenuItem, "ChangeColorMenuItem");
             // 
-            // ColorRegistrationMenuItem
+            // ChangeColorOfGraphicItem
             // 
-            this.ColorRegistrationMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.BlueItem,
-            this.RedItem,
-            this.YellowItem,
-            this.GreenItem});
-            this.ColorRegistrationMenuItem.Name = "ColorRegistrationMenuItem";
-            resources.ApplyResources(this.ColorRegistrationMenuItem, "ColorRegistrationMenuItem");
-            // 
-            // BlueItem
-            // 
-            this.BlueItem.Name = "BlueItem";
-            resources.ApplyResources(this.BlueItem, "BlueItem");
-            this.BlueItem.Click += new System.EventHandler(this.BlueItem_Click);
-            // 
-            // RedItem
-            // 
-            this.RedItem.Name = "RedItem";
-            resources.ApplyResources(this.RedItem, "RedItem");
-            this.RedItem.Click += new System.EventHandler(this.RedItem_Click);
-            // 
-            // YellowItem
-            // 
-            this.YellowItem.Name = "YellowItem";
-            resources.ApplyResources(this.YellowItem, "YellowItem");
-            this.YellowItem.Click += new System.EventHandler(this.YellowItem_Click);
-            // 
-            // GreenItem
-            // 
-            this.GreenItem.Name = "GreenItem";
-            resources.ApplyResources(this.GreenItem, "GreenItem");
-            this.GreenItem.Click += new System.EventHandler(this.GreenItem_Click);
+            this.ChangeColorOfGraphicItem.Name = "ChangeColorOfGraphicItem";
+            resources.ApplyResources(this.ChangeColorOfGraphicItem, "ChangeColorOfGraphicItem");
+            this.ChangeColorOfGraphicItem.Click += new System.EventHandler(this.ColorRegistrationMenuItem_Click);
             // 
             // Separator11
             // 
@@ -906,13 +874,9 @@
         private System.Windows.Forms.ToolStripMenuItem LoadDataItem;
         private System.Windows.Forms.ToolStripMenuItem TableExportToExcelItem;
         private System.Windows.Forms.ToolStripMenuItem VisualModeItem;
-        private System.Windows.Forms.ToolStripMenuItem VisualSelectColorMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem ColorRegistrationMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ChangeColorMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ChangeColorOfGraphicItem;
         private System.Windows.Forms.ToolStripMenuItem TableModeItem;
-        private System.Windows.Forms.ToolStripMenuItem BlueItem;
-        private System.Windows.Forms.ToolStripMenuItem RedItem;
-        private System.Windows.Forms.ToolStripMenuItem YellowItem;
-        private System.Windows.Forms.ToolStripMenuItem GreenItem;
         private System.Windows.Forms.ToolStripMenuItem ImportPeopleInLocalDBItem;
         private System.Windows.Forms.ToolStripMenuItem ClearRegistryItem;
         private System.Windows.Forms.GroupBox groupBoxTimeEnd;

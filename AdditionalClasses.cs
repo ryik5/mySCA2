@@ -43,24 +43,28 @@ namespace ASTA
     {
         void SetPeriod(string period);
     }
+
     interface IDepartment
     {
         void SetDepartment(string department);
     }
+
     interface ISender
     {
         void SetSender(string sender);
     }
+
     interface IDateAndTime
     {
         void SetDateAndTime(string dateAndTime);
     }
+
     interface IPicture
     {
         void SetPicture(string picture);
     }
 
-    class MessageForSending : IPeriod, IDepartment, ISender, IDateAndTime,IPicture
+    class MessageForSending : IPeriod, IDepartment, ISender, IDateAndTime, IPicture
     {
         private string _period;
         private string _department;
@@ -77,16 +81,16 @@ namespace ASTA
         public MessageForSending() { }
         public MessageForSending(string period, string department, string sender, string dateAndTime, string picture)
         {
-            SetPeriod( period);
-            SetDepartment( department);
-            SetSender( sender);
+            SetPeriod(period);
+            SetDepartment(department);
+            SetSender(sender);
             SetDateAndTime(dateAndTime);
-            SetPicture( picture);
+            SetPicture(picture);
         }
 
         public override string ToString()
         {
-            string message= @"<p><font size='3' color='black' face='Arial'>Здравствуйте,</p>Во вложении «Отчет по учету рабочего времени сотрудников».<p>" +
+            string message = @"<p><font size='3' color='black' face='Arial'>Здравствуйте,</p>Во вложении «Отчет по учету рабочего времени сотрудников».<p>" +
 
                             @"<b>Период: </b>" +
                             _period +
@@ -111,9 +115,8 @@ namespace ASTA
         }
     }
 
-    public class Person
+    class Person
     {
-        public int id;
         public int idCard = 0;
         public string FIO = "";
         public string NAV = "";
@@ -146,7 +149,7 @@ namespace ASTA
         public string Comment = "";
     }
 
-    public class DataGridViewSeekValuesInSelectedRow
+    class DataGridViewSeekValuesInSelectedRow
     {
         public string[] values = new string[10];
         public bool correctData { get; set; }
@@ -206,7 +209,7 @@ namespace ASTA
         }
     }
 
-    public static class DataTableExtensions
+    static class DataTableExtensions
     {
         public static void SetColumnsOrder(this DataTable table, params string[] columnNames)
         {
@@ -230,7 +233,7 @@ namespace ASTA
         }
     }
 
-    public static class DateTimeExtensions
+    static class DateTimeExtensions
     {
         public static DateTime LastDayOfMonth(this DateTime date)
         {
@@ -243,7 +246,7 @@ namespace ASTA
         }
     }
 
-    public class MailingStructure
+    class MailingStructure
     {
         public string _sender = "";
         public string _recipient = "";
@@ -256,7 +259,7 @@ namespace ASTA
         public string _dayReport = "";
     }
 
-    public class OutReasons
+    class OutReasons
     {
         public string _id = "";
         public string _name = "";
@@ -264,7 +267,7 @@ namespace ASTA
         public int _hourly = 0;
     }
 
-    public class OutPerson
+    class OutPerson
     {
         public string _reason_id = "0";
         public string _nav = "";
@@ -274,7 +277,7 @@ namespace ASTA
         public int _hourly = 0;
     }
 
-    public struct PeopleShift
+    struct PeopleShift
     {
         public string _fio;
         public string _nav;
@@ -306,20 +309,20 @@ namespace ASTA
         public string _groupName;
     }
 
-    public class DepartmentEmail
+    class DepartmentEmail
     {
         public string _departmentBossEmail;
         public string _departmentName;
         public string _departmentDescription;
     }
 
-    public class Department
+    class Department
     {
         public string _departmentName;
         public string _departmentDescription;
     }
 
-    public class PeopleDepartment
+    class PeopleDepartment
     {
         public string _departmentBossEmail;
         public string _departmentBossCode;
@@ -329,7 +332,7 @@ namespace ASTA
         public string _id;
     }
 
-    public class EncryptDecrypt
+    class EncryptDecrypt
     {
         /*
             string plainText = "Hello, World!";            

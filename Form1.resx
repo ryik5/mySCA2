@@ -831,40 +831,16 @@
   <data name="VisualModeItem.Text" xml:space="preserve">
     <value>Визуализация регистраций</value>
   </data>
-  <data name="BlueItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>123, 22</value>
+  <data name="ChangeColorOfGraphicItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>198, 22</value>
   </data>
-  <data name="BlueItem.Text" xml:space="preserve">
-    <value>Синий</value>
+  <data name="ChangeColorOfGraphicItem.Text" xml:space="preserve">
+    <value>Сменить цвет графика</value>
   </data>
-  <data name="RedItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>123, 22</value>
-  </data>
-  <data name="RedItem.Text" xml:space="preserve">
-    <value>Красный</value>
-  </data>
-  <data name="YellowItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>123, 22</value>
-  </data>
-  <data name="YellowItem.Text" xml:space="preserve">
-    <value>Желтый</value>
-  </data>
-  <data name="GreenItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>123, 22</value>
-  </data>
-  <data name="GreenItem.Text" xml:space="preserve">
-    <value>Зеленый</value>
-  </data>
-  <data name="ColorRegistrationMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>233, 22</value>
-  </data>
-  <data name="ColorRegistrationMenuItem.Text" xml:space="preserve">
-    <value>Выбрать цвета визуализации</value>
-  </data>
-  <data name="VisualSelectColorMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+  <data name="ChangeColorMenuItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>226, 22</value>
   </data>
-  <data name="VisualSelectColorMenuItem.Text" xml:space="preserve">
+  <data name="ChangeColorMenuItem.Text" xml:space="preserve">
     <value>Изменить цвет</value>
   </data>
   <data name="Separator11.Size" type="System.Drawing.Size, System.Drawing">
@@ -1060,22 +1036,22 @@
     <value>Настройки</value>
   </data>
   <data name="HelpAboutItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>211, 22</value>
+    <value>212, 22</value>
   </data>
   <data name="HelpAboutItem.Text" xml:space="preserve">
     <value>О программе</value>
   </data>
   <data name="SetupItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>211, 22</value>
+    <value>212, 22</value>
   </data>
   <data name="SetupItem.Text" xml:space="preserve">
-    <value>О настройке</value>
+    <value>О настройке программы</value>
   </data>
   <data name="HelpSystemItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>211, 22</value>
+    <value>212, 22</value>
   </data>
   <data name="HelpSystemItem.Text" xml:space="preserve">
-    <value>Служебная информация</value>
+    <value>О запусках программы</value>
   </data>
   <data name="HelpMenuItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>68, 20</value>
@@ -1578,40 +1554,16 @@
   <data name="&gt;&gt;VisualModeItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;VisualSelectColorMenuItem.Name" xml:space="preserve">
-    <value>VisualSelectColorMenuItem</value>
+  <data name="&gt;&gt;ChangeColorMenuItem.Name" xml:space="preserve">
+    <value>ChangeColorMenuItem</value>
   </data>
-  <data name="&gt;&gt;VisualSelectColorMenuItem.Type" xml:space="preserve">
+  <data name="&gt;&gt;ChangeColorMenuItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;ColorRegistrationMenuItem.Name" xml:space="preserve">
-    <value>ColorRegistrationMenuItem</value>
+  <data name="&gt;&gt;ChangeColorOfGraphicItem.Name" xml:space="preserve">
+    <value>ChangeColorOfGraphicItem</value>
   </data>
-  <data name="&gt;&gt;ColorRegistrationMenuItem.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;BlueItem.Name" xml:space="preserve">
-    <value>BlueItem</value>
-  </data>
-  <data name="&gt;&gt;BlueItem.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;RedItem.Name" xml:space="preserve">
-    <value>RedItem</value>
-  </data>
-  <data name="&gt;&gt;RedItem.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;YellowItem.Name" xml:space="preserve">
-    <value>YellowItem</value>
-  </data>
-  <data name="&gt;&gt;YellowItem.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;GreenItem.Name" xml:space="preserve">
-    <value>GreenItem</value>
-  </data>
-  <data name="&gt;&gt;GreenItem.Type" xml:space="preserve">
+  <data name="&gt;&gt;ChangeColorOfGraphicItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;Separator11.Name" xml:space="preserve">
