@@ -343,6 +343,16 @@ namespace ASTA
             logger.Fatal("Test5 Fatal message");
             logger.Info("");
 
+            logger.Info("Настраиваю интерфейс....");
+            Bitmap bmp = Properties.Resources.LogoRYIK;
+            this.Icon = Icon.FromHandle(bmp.GetHicon());
+
+            notifyIcon.Icon = this.Icon;
+            notifyIcon.Visible = true;
+            notifyIcon.BalloonTipText = @"Developed by ©Yuri Ryabchenko";
+            notifyIcon.ShowBalloonTip(500);
+
+
             currentModeAppManual = true;
             _MenuItemTextSet(ModeItem, "Включить режим автоматических e-mail рассылок");
             _menuItemTooltipSet(ModeItem, "Включен интерактивный режим. Все рассылки остановлены.");
@@ -355,28 +365,18 @@ namespace ASTA
             StatusLabel1.Alignment = ToolStripItemAlignment.Right;
             StatusLabel2.Text = " Начните работу с кнопки - \"Получить ФИО\"";
 
-            Bitmap bmp = Properties.Resources.LogoRYIK;
-            this.Icon = Icon.FromHandle(bmp.GetHicon());
-
-            notifyIcon.Icon = this.Icon;
-            notifyIcon.Visible = true;
-            notifyIcon.BalloonTipText = @"Developed by ©Yuri Ryabchenko";
-            notifyIcon.ShowBalloonTip(500);
-
             contextMenu = new ContextMenu();  //Context Menu on notify Icon
             notifyIcon.ContextMenu = contextMenu;
-
-            notifyIcon.Text = myFileVersionInfo.ProductName + "\nv." + myFileVersionInfo.FileVersion + "\n" + myFileVersionInfo.CompanyName;
-
             contextMenu.MenuItems.Add("About", AboutSoft);
             contextMenu.MenuItems.Add("-", AboutSoft);
             contextMenu.MenuItems.Add("Exit", ApplicationExit);
+
             this.Text = myFileVersionInfo.Comments;
-
-            logger.Info("Настраиваю интерфейс....");
-
+            notifyIcon.Text = myFileVersionInfo.ProductName + "\nv." + myFileVersionInfo.FileVersion + "\n" + myFileVersionInfo.CompanyName;
+            
             EditAnualDaysItem.Text = @"Выходные(рабочие) дни";
             EditAnualDaysItem.ToolTipText = @"Войти в режим добавления/удаления праздничных дней";
+
             _MenuItemEnabled(AddAnualDateItem, false);
 
             MembersGroupItem.Enabled = false;
@@ -421,14 +421,14 @@ namespace ASTA
             toolTip1.SetToolTip(textBoxGroupDescription, "Изменить описание группы");
             StatusLabel2.Text = "";
 
-            logger.Info("Проверяю настройки на локальную БД...");
+            logger.Info("Проверяю настройки в локальной БД...");
             TryMakeDB();
             UpdateTableOfDB();
             SetTechInfoIntoDB();
-            BoldAnualDates();
 
             //read last saved parameters from db and Registry and set their into variables
             logger.Info("Загружаю настройки программы...");
+            BoldAnualDates();
             LoadPrevioslySavedParameters();
 
             sServer1 = sServer1Registry.Length > 0 ? sServer1Registry : sServer1DB;
@@ -442,9 +442,8 @@ namespace ASTA
             mysqlServer = mysqlServerRegistry.Length > 0 ? mysqlServerRegistry : mysqlServerDB;
             mysqlServerUserName = mysqlServerUserNameRegistry.Length > 0 ? mysqlServerUserNameRegistry : mysqlServerUserNameDB;
             mysqlServerUserPassword = mysqlServerUserPasswordRegistry.Length > 0 ? mysqlServerUserPasswordRegistry : mysqlServerUserPasswordDB;
-
-
-            logger.Info("Настраиваю внутренние переменные....");
+            
+            logger.Info("Настраиваю переменные....");
 
             //Prepare DataTables
             dtPeople.Columns.AddRange(dcPeople);
@@ -455,12 +454,13 @@ namespace ASTA
             dtPersonRegistrationsFullList = dtPeople.Clone();  //Copy only structure(Name of columns)
             dtPeopleGroup = dtPeople.Clone();  //Copy only structure(Name of columns)
 
-            logger.Info(productName + " полностью загружена....");
+            logger.Info("Программа "+productName + " полностью загружена....");
 
             if (currentModeAppManual)
             {
                 nameOfLastTableFromDB = "ListFIO";
                 SeekAndShowMembersOfGroup("");
+                logger.Info("Программа запущена в интерактивном режиме....");
             }
             else
             {
@@ -476,7 +476,6 @@ namespace ASTA
                 ExecuteAutoMode(true);
             }
         }
-
 
 
         private void AboutSoft(object sender, EventArgs e) //Кнопка "О программе"
