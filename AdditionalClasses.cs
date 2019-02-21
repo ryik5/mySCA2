@@ -152,12 +152,12 @@ namespace ASTA
     class DataGridViewSeekValuesInSelectedRow
     {
         public string[] values = new string[10];
-        public bool correctData { get; set; }
+        private bool correctData { get; set; }
 
-        public void FindValueInCells(DataGridView DGV, params string[] columnsName)
+        public void FindValuesInCurrentRow(DataGridView DGV, params string[] columnsName)
         {
             int IndexCurrentRow = DGV.CurrentRow.Index;
-            correctData = IndexCurrentRow > -1 ? true : false;
+            correctData =( IndexCurrentRow > -1 & columnsName.Length<11) ? true : false;
 
             if (correctData)
             {
@@ -205,7 +205,10 @@ namespace ASTA
                     }
                 }
             }
-
+            else
+            {
+                throw new IndexOutOfRangeException("Taken collumns more then 10!");
+            }
         }
     }
 

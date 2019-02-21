@@ -29,9 +29,9 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(WinFormASTA));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.comboBoxFio = new System.Windows.Forms.ComboBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
@@ -88,7 +88,9 @@
             this.SettingsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SettingsProgrammItem = new System.Windows.Forms.ToolStripMenuItem();
             this.Separator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.MailingItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.MailingsShowItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.MailingAddItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.MailingsExceptItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ModeItem = new System.Windows.Forms.ToolStripMenuItem();
             this.Separator2 = new System.Windows.Forms.ToolStripSeparator();
             this.EditAnualDaysItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -135,20 +137,20 @@
             // dataGridView1
             // 
             this.dataGridView1.AllowUserToOrderColumns = true;
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.Color.SteelBlue;
-            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.Color.SteelBlue;
+            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle3;
             resources.ApplyResources(this.dataGridView1, "dataGridView1");
             this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dataGridView1.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedHeaders;
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            dataGridViewCellStyle2.ForeColor = System.Drawing.Color.Black;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.LightBlue;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.DarkSlateGray;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.Color.LightBlue;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.Color.DarkSlateGray;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnF2;
             this.dataGridView1.Name = "dataGridView1";
@@ -536,7 +538,7 @@
             // 
             this.DeletePersonFromGroupItem.Name = "DeletePersonFromGroupItem";
             resources.ApplyResources(this.DeletePersonFromGroupItem, "DeletePersonFromGroupItem");
-            this.DeletePersonFromGroupItem.Click += new System.EventHandler(this.DeletePersonFromGroupItem_Click);
+            this.DeletePersonFromGroupItem.Click += new System.EventHandler(this.DeleteCurrentRow);
             // 
             // Separator6
             // 
@@ -554,7 +556,9 @@
             this.SettingsMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.SettingsProgrammItem,
             this.Separator1,
-            this.MailingItem,
+            this.MailingsShowItem,
+            this.MailingAddItem,
+            this.MailingsExceptItem,
             this.ModeItem,
             this.Separator2,
             this.EditAnualDaysItem,
@@ -580,11 +584,23 @@
             this.Separator1.Name = "Separator1";
             resources.ApplyResources(this.Separator1, "Separator1");
             // 
-            // MailingItem
+            // MailingsShowItem
             // 
-            this.MailingItem.Name = "MailingItem";
-            resources.ApplyResources(this.MailingItem, "MailingItem");
-            this.MailingItem.Click += new System.EventHandler(this.PrepareForMakingFormMailing);
+            this.MailingsShowItem.Name = "MailingsShowItem";
+            resources.ApplyResources(this.MailingsShowItem, "MailingsShowItem");
+            this.MailingsShowItem.Click += new System.EventHandler(this.MailingsShowItem_Click);
+            // 
+            // MailingAddItem
+            // 
+            this.MailingAddItem.Name = "MailingAddItem";
+            resources.ApplyResources(this.MailingAddItem, "MailingAddItem");
+            this.MailingAddItem.Click += new System.EventHandler(this.PrepareForMakingFormMailing);
+            // 
+            // MailingsExceptItem
+            // 
+            this.MailingsExceptItem.Name = "MailingsExceptItem";
+            resources.ApplyResources(this.MailingsExceptItem, "MailingsExceptItem");
+            this.MailingsExceptItem.Click += new System.EventHandler(this.MailingsExceptItem_Click);
             // 
             // ModeItem
             // 
@@ -885,7 +901,7 @@
         private System.Windows.Forms.NumericUpDown numUpDownMinuteEnd;
         private System.Windows.Forms.Label labelMinuteEnd;
         private System.Windows.Forms.ToolStripMenuItem listFioItem;
-        private System.Windows.Forms.ToolStripMenuItem MailingItem;
+        private System.Windows.Forms.ToolStripMenuItem MailingAddItem;
         private System.Windows.Forms.ToolStripMenuItem ModeItem;
         private System.Windows.Forms.ToolStripSeparator Separator4;
         private System.Windows.Forms.ToolStripSeparator Separator5;
@@ -898,6 +914,8 @@
         private System.Windows.Forms.ToolStripSeparator Separator9;
         private System.Windows.Forms.ToolStripSeparator Separator10;
         private System.Windows.Forms.ToolStripSeparator Separator11;
+        private System.Windows.Forms.ToolStripMenuItem MailingsShowItem;
+        private System.Windows.Forms.ToolStripMenuItem MailingsExceptItem;
     }
 }
 

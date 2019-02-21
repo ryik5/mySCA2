@@ -23,132 +23,136 @@ namespace ASTA
 {
     public partial class WinFormASTA : Form
     {
-        private NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
-        private NotifyIcon notifyIcon = new NotifyIcon();
-        private ContextMenu contextMenu;
-        private bool buttonAboutForm;
+        NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+        NotifyIcon notifyIcon = new NotifyIcon();
+        ContextMenu contextMenu;
+        bool buttonAboutForm;
 
-        private readonly string myRegKey = @"SOFTWARE\RYIK\ASTA";
-        private readonly System.IO.FileInfo databasePerson = new System.IO.FileInfo(@".\main.db");
-        private readonly byte[] btsMess1 = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
-        private readonly byte[] btsMess2 = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
+        readonly string myRegKey = @"SOFTWARE\RYIK\ASTA";
+        readonly System.IO.FileInfo databasePerson = new System.IO.FileInfo(@".\main.db");
+        readonly byte[] btsMess1 = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
+        readonly byte[] btsMess2 = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
 
-        private string nameOfLastTableFromDB = "PersonRegistrationsList";
-        private string currentAction = "";
-        private bool currentModeAppManual = true;
-        private System.Diagnostics.FileVersionInfo myFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
-        private string guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения
-        private string pcname = Environment.MachineName + "|" + Environment.OSVersion;
-        private string poname = "";
-        private string poversion = "";
-        private string productName = "";
-        private string strVersion;
-        const string nameOfSenderReports = "Отдел компенсаций и льгот";
+        string nameOfLastTableFromDB = "PersonRegistrationsList";
+        string currentAction = "";
+        bool currentModeAppManual = true;
+        System.Diagnostics.FileVersionInfo myFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
+        string guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения
+        string pcname = Environment.MachineName + "|" + Environment.OSVersion;
+        string poname = "";
+        string poversion = "";
+        string productName = "";
+        string strVersion;
+        readonly string nameOfSenderReports = "Отдел компенсаций и льгот";
         const decimal offsetTimeIn = 0.02m;
         const decimal offsetTimeOut = 0.02m;
 
-
-        private int iCounterLine = 0;
-        private List<string> listFIO = new List<string>(); // List of FIO and identity of data
-        private List<string> listPoints = new List<string>(); // List of all Points of SCA
-        private List<string> listRegistrations = new List<string>(); // List whole of registration of the selected person at All servers
-        private int iFIO = 0;
+        int iCounterLine = 0;
+        List<string> listFIO = new List<string>(); // List of FIO and identity of data
+        List<string> listPoints = new List<string>(); // List of all Points of SCA
+        List<string> listRegistrations = new List<string>(); // List whole of registration of the selected person at All servers
+        int iFIO = 0;
 
         //Controls "NumUpDown"
-        private decimal numUpHourStart = 9;
-        private decimal numUpMinuteStart = 0;
-        private decimal numUpHourEnd = 18;
-        private decimal numUpMinuteEnd = 0;
+        decimal numUpHourStart = 9;
+        decimal numUpMinuteStart = 0;
+        decimal numUpHourEnd = 18;
+        decimal numUpMinuteEnd = 0;
 
         //Shows visual of registration
-        private PictureBox pictureBox1 = new PictureBox();
-        private Bitmap bmp = new Bitmap(1, 1);
+        PictureBox pictureBox1 = new PictureBox();
+        Bitmap bmp = new Bitmap(1, 1);
 
-        private List<string> selectedDates = new List<string>();
-        private string[] myBoldedDates;
-        private List<string> boldeddDates = new List<string>();
-        private string[] workSelectedDays;
-        private static string reportStartDay = "";
-        private static string reportLastDay = "";
-        private bool reportExcelReady = false;
+        List<string> selectedDates = new List<string>();
+        string[] myBoldedDates;
+        List<string> boldeddDates = new List<string>();
+        string[] workSelectedDays;
+        static string reportStartDay = "";
+        static string reportLastDay = "";
+        bool reportExcelReady = false;
+        string filePathApplication = Application.ExecutablePath;
+        string filePathExcelReport;
+
+        int numberPeopleInLoading = 1;
+        string stimerPrev = "";
+        string stimerCurr = "Ждите!";
 
         //Page of "Settings' Programm"
-        private bool bServer1Exist = false;
-        private Label labelServer1;
-        private TextBox textBoxServer1;
-        private Label labelServer1UserName;
-        private TextBox textBoxServer1UserName;
-        private Label labelServer1UserPassword;
-        private TextBox textBoxServer1UserPassword;
-        private string sServer1 = "";
-        private string sServer1Registry = "";
-        private string sServer1DB = "";
-        private string sServer1UserName = "";
-        private string sServer1UserNameRegistry = "";
-        private string sServer1UserNameDB = "";
-        private string sServer1UserPassword = "";
-        private string sServer1UserPasswordRegistry = "";
-        private string sServer1UserPasswordDB = "";
+        bool bServer1Exist = false;
+        Label labelServer1;
+        TextBox textBoxServer1;
+        Label labelServer1UserName;
+        TextBox textBoxServer1UserName;
+        Label labelServer1UserPassword;
+        TextBox textBoxServer1UserPassword;
+        string sServer1 = "";
+        string sServer1Registry = "";
+        string sServer1DB = "";
+        string sServer1UserName = "";
+        string sServer1UserNameRegistry = "";
+        string sServer1UserNameDB = "";
+        string sServer1UserPassword = "";
+        string sServer1UserPasswordRegistry = "";
+        string sServer1UserPasswordDB = "";
 
         //Page of Mailing
-        private Label labelMailServerName;
-        private TextBox textBoxMailServerName;
-        private Label labelMailServerUserName;
-        private TextBox textBoxMailServerUserName;
-        private Label labelMailServerUserPassword;
-        private TextBox textBoxMailServerUserPassword;
-        private string mailServer = "";
-        private string mailServerRegistry = "";
-        private string mailServerDB = "";
-        private string mailServerUserName = "";
-        private string mailServerUserNameRegistry = "";
-        private string mailServerUserNameDB = "";
-        private string mailServerUserPassword = "";
-        private string mailServerUserPasswordRegistry = "";
-        private string mailServerUserPasswordDB = "";
+        Label labelMailServerName;
+        TextBox textBoxMailServerName;
+        Label labelMailServerUserName;
+        TextBox textBoxMailServerUserName;
+        Label labelMailServerUserPassword;
+        TextBox textBoxMailServerUserPassword;
+        string mailServer = "";
+        string mailServerRegistry = "";
+        string mailServerDB = "";
+        string mailServerUserName = "";
+        string mailServerUserNameRegistry = "";
+        string mailServerUserNameDB = "";
+        string mailServerUserPassword = "";
+        string mailServerUserPasswordRegistry = "";
+        string mailServerUserPasswordDB = "";
 
-        private Label labelmysqlServer;
-        private TextBox textBoxmysqlServer;
-        private Label labelmysqlServerUserName;
-        private TextBox textBoxmysqlServerUserName;
-        private Label labelmysqlServerUserPassword;
-        private TextBox textBoxmysqlServerUserPassword;
-        private string mysqlServer = "";
-        private string mysqlServerRegistry = "";
-        private string mysqlServerDB = "";
-        private string mysqlServerUserName = "";
-        private string mysqlServerUserNameRegistry = "";
-        private string mysqlServerUserNameDB = "";
-        private string mysqlServerUserPassword = "";
-        private string mysqlServerUserPasswordRegistry = "";
-        private string mysqlServerUserPasswordDB = "";
+        Label labelmysqlServer;
+        TextBox textBoxmysqlServer;
+        Label labelmysqlServerUserName;
+        TextBox textBoxmysqlServerUserName;
+        Label labelmysqlServerUserPassword;
+        TextBox textBoxmysqlServerUserPassword;
+        string mysqlServer = "";
+        string mysqlServerRegistry = "";
+        string mysqlServerDB = "";
+        string mysqlServerUserName = "";
+        string mysqlServerUserNameRegistry = "";
+        string mysqlServerUserNameDB = "";
+        string mysqlServerUserPassword = "";
+        string mysqlServerUserPasswordRegistry = "";
+        string mysqlServerUserPasswordDB = "";
 
-        private Label listComboLabel;
-        private ComboBox listCombo = new ComboBox();
+        Label listComboLabel;
+        ComboBox listCombo = new ComboBox();
 
-        private Label periodComboLabel;
-        private ComboBox periodCombo = new ComboBox();
+        Label periodComboLabel;
+        ComboBox periodCombo = new ComboBox();
 
-        private Label labelSettings9;
-        private ComboBox comboSettings9 = new ComboBox();
+        Label labelSettings9;
+        ComboBox comboSettings9 = new ComboBox();
 
-        private Label labelSettings15; //type report
-        private ComboBox comboSettings15 = new ComboBox();
+        Label labelSettings15; //type report
+        ComboBox comboSettings15 = new ComboBox();
 
-        private Label labelSettings16;
-        private TextBox textBoxSettings16;
+        Label labelSettings16;
+        TextBox textBoxSettings16;
 
+        Color clrRealRegistration = Color.PaleGreen;
+        string sLastSelectedElement = "MainForm";
 
-        private Color clrRealRegistration = Color.PaleGreen;
-        private string sLastSelectedElement = "MainForm";
-
-        private OpenFileDialog openFileDialog1 = new OpenFileDialog();
-        private List<string> listGroups = new List<string>();
+        OpenFileDialog openFileDialog1 = new OpenFileDialog();
+        List<string> listGroups = new List<string>();
 
         //DataTables with people data
-        private DataTable dtPeople = new DataTable("People");
-        private DataColumn[] dcPeople =
-            {
+        DataTable dtPeople = new DataTable("People");
+        DataColumn[] dcPeople =
+           {
                                   new DataColumn(@"№ п/п",typeof(int)),//0
                                   new DataColumn(@"Фамилия Имя Отчество",typeof(string)),//1
                                   new DataColumn(@"NAV-код",typeof(string)),//2
@@ -186,7 +190,7 @@ namespace ASTA
                                   new DataColumn(@"Отдел (id)",typeof(string)), //42
                                   new DataColumn(@"Руководитель (код)",typeof(string)) //43
                 };
-        public readonly string[] arrayAllColumnsDataTablePeople =
+        readonly string[] arrayAllColumnsDataTablePeople =
             {
                                   @"№ п/п",//0
                                   @"Фамилия Имя Отчество",//1
@@ -225,7 +229,7 @@ namespace ASTA
                                   @"Отдел (id)",                     //42
                                   @"Руководитель (код)"                     //43
         };
-        public readonly string[] orderColumnsFinacialReport =
+        readonly string[] orderColumnsFinacialReport =
             {
                                   @"Фамилия Имя Отчество",//1
                                   @"NAV-код",//2
@@ -249,7 +253,7 @@ namespace ASTA
                                   @"Должность",                    //39
                                   @"График"                    //40
         };
-        public readonly string[] arrayHiddenColumnsFIO =
+        readonly string[] arrayHiddenColumnsFIO =
             {
                             @"№ п/п",//0
                             @"Время прихода",            //6
@@ -278,7 +282,7 @@ namespace ASTA
                             @"Прогул (отпуск за свой счет)",   //41
                             @"Руководитель (код)"                     //43
         };
-        public readonly string[] nameHidenColumnsArray =
+        readonly string[] nameHidenColumnsArray =
             {
                 @"№ п/п",//0
                 @"Время прихода",//6
@@ -303,24 +307,23 @@ namespace ASTA
                 @"Прогул (отпуск за свой счет)",   //41
                 @"Руководитель (код)"                     //43
         };
-        private List<OutReasons> outResons = new List<OutReasons>();
-        private List<OutPerson> outPerson = new List<OutPerson>();
+        List<OutReasons> outResons = new List<OutReasons>();
+        List<OutPerson> outPerson = new List<OutPerson>();
 
-        private DataTable dtPersonTemp = new DataTable("PersonTemp");
-        private DataTable dtPersonTempAllColumns = new DataTable("PersonTempAllColumns");
-        private DataTable dtPersonRegistrationsFullList = new DataTable("PersonRegistrationsFullList");
-        private DataTable dtPeopleGroup = new DataTable("PeopleGroup");
-        private DataTable dtPeopleListLoaded = new DataTable("PeopleLoaded");
+        DataTable dtPersonTemp = new DataTable("PersonTemp");
+        DataTable dtPersonTempAllColumns = new DataTable("PersonTempAllColumns");
+        DataTable dtPersonRegistrationsFullList = new DataTable("PersonRegistrationsFullList");
+        DataTable dtPeopleGroup = new DataTable("PeopleGroup");
+        DataTable dtPeopleListLoaded = new DataTable("PeopleLoaded");
 
         //Color of Person's Control elements which depend on the selected MenuItem  
-        private Color labelGroupCurrentBackColor;
-        private Color textBoxGroupCurrentBackColor;
-        private Color labelGroupDescriptionCurrentBackColor;
-        private Color textBoxGroupDescriptionCurrentBackColor;
-        private Color comboBoxFioCurrentBackColor;
-        private Color textBoxFIOCurrentBackColor;
-        private Color textBoxNavCurrentBackColor;
-
+        Color labelGroupCurrentBackColor;
+        Color textBoxGroupCurrentBackColor;
+        Color labelGroupDescriptionCurrentBackColor;
+        Color textBoxGroupDescriptionCurrentBackColor;
+        Color comboBoxFioCurrentBackColor;
+        Color textBoxFIOCurrentBackColor;
+        Color textBoxNavCurrentBackColor;
 
 
         public WinFormASTA()
@@ -328,7 +331,6 @@ namespace ASTA
 
         private void Form1_Load(object sender, EventArgs e)
         { Form1Load(); }
-
 
         private void Form1Load()
         {
@@ -340,7 +342,6 @@ namespace ASTA
             logger.Error("Test4 Error message");
             logger.Fatal("Test5 Fatal message");
             logger.Info("");
-
 
             currentModeAppManual = true;
             _MenuItemTextSet(ModeItem, "Включить режим автоматических e-mail рассылок");
@@ -456,7 +457,6 @@ namespace ASTA
 
             logger.Info(productName + " полностью загружена....");
 
-
             if (currentModeAppManual)
             {
                 nameOfLastTableFromDB = "ListFIO";
@@ -467,10 +467,12 @@ namespace ASTA
                 nameOfLastTableFromDB = "Mailing";
                 logger.Info(productName + " включен автоматический режим....");
 
-                ShowDataTableQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
-                    "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', " +
-                    "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', TypeReport AS 'Тип отчета',  DayReport AS 'День отправки'",
-                    " ORDER BY RecipientEmail asc, DateCreated desc; ");
+                ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
+                "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
+                "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
+                " ORDER BY RecipientEmail asc, DateCreated desc; ");
+                _controlEnable(comboBoxFio, false);
+                dataGridView1.Select();
                 ExecuteAutoMode(true);
             }
         }
@@ -501,9 +503,9 @@ namespace ASTA
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'PeopleGroupDesciption' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, GroupPerson TEXT, GroupPersonDescription TEXT, AmountStaffInDepartment TEXT, UNIQUE ('GroupPerson') ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'PeopleGroup' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, GroupPerson TEXT, ControllingHHMM TEXT, ControllingOUTHHMM TEXT, " +
                     "Shift TEXT, Comment TEXT, Department TEXT, PositionInDepartment TEXT, DepartmentId TEXT, UNIQUE ('FIO', 'NAV', 'GroupPerson', 'DepartmentId') ON CONFLICT REPLACE);", databasePerson);
-            ExecuteSql("CREATE TABLE IF NOT EXISTS 'ListOfWorkTimeShifts' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, DayStartShift TEXT, " +
+            ExecuteSql("CREATE TABLE IF NOT EXISTS 'ListOfWorkTimeShifts' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, NAV TEXT, DayStartShift TEXT, " +
                     "MoStart REAL,MoEnd REAL, TuStart REAL,TuEnd REAL, WeStart REAL,WeEnd REAL, ThStart REAL,ThEnd REAL, FrStart REAL,FrEnd REAL, " +
-                    "SaStart REAL,SaEnd REAL, SuStart REAL,SuEnd REAL, Status Text, Comment TEXT, DayInputed TEXT, Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('NAV', 'DayStartShift') ON CONFLICT REPLACE);", databasePerson);
+                    "SaStart REAL,SaEnd REAL, SuStart REAL,SuEnd REAL, Status Text, Comment TEXT, DayInputed TEXT, UNIQUE ('NAV', 'DayStartShift') ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'TechnicalInfo' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, PCName TEXT, POName TEXT, POVersion TEXT, LastDateStarted TEXT, CurrentUser TEXT, " +
                     "FreeRam TEXT, GuidAppication TEXT);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'BoldedDates' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, DayBolded TEXT, NAV TEXT, DayType TEXT, DayDesciption TEXT, DateCreated TEXT);", databasePerson);
@@ -512,12 +514,12 @@ namespace ASTA
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'EquipmentSettings' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, EquipmentParameterName TEXT, EquipmentParameterValue TEXT, EquipmentParameterServer TEXT," +
                     "Reserv1, Reserv2, UNIQUE ('EquipmentParameterName', 'EquipmentParameterServer') ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'LastTakenPeopleComboList' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, ComboList TEXT, " +
-                    "Reserv1 TEXT, Reserv2 TEXT, UNIQUE ('ComboList', Reserv1) ON CONFLICT REPLACE);", databasePerson);
+                    "DateCreated TEXT, UNIQUE ('ComboList') ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'Mailing' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, SenderEmail TEXT, " +
-                    "RecipientEmail TEXT, GroupsReport TEXT, NameReport TEXT, Description TEXT, DateCreated TEXT, Period TEXT, Status TEXT, SendingLastDate TEXT, TypeReport TEXT, DayReport TEXT" +
+                    "RecipientEmail TEXT, GroupsReport TEXT, NameReport TEXT, Description TEXT, Period TEXT, Status TEXT, SendingLastDate TEXT, TypeReport TEXT, DayReport TEXT, DateCreated TEXT" +
                     ", UNIQUE ('RecipientEmail', 'GroupsReport', 'NameReport', 'Description', 'Period', 'TypeReport', 'DayReport') ON CONFLICT REPLACE);", databasePerson);
-            ExecuteSql("CREATE TABLE IF NOT EXISTS 'MailingException' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, RecipientEmail TEXT, GroupsReport TEXT, NameReport TEXT, Period TEXT, TypeReport TEXT, DayReport TEXT, DateCreated TEXT" +
-                    ", UNIQUE ('RecipientEmail', 'GroupsReport', 'NameReport', 'Period', 'TypeReport', 'DayReport') ON CONFLICT REPLACE);", databasePerson);
+            ExecuteSql("CREATE TABLE IF NOT EXISTS 'MailingException' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, RecipientEmail TEXT, NameReport TEXT, Description TEXT, DayReport TEXT, DateCreated TEXT" +
+                    ", UNIQUE ('RecipientEmail', ' Description') ON CONFLICT REPLACE);", databasePerson);
         }
 
         private void UpdateTableOfDB()
@@ -525,15 +527,15 @@ namespace ASTA
             TryUpdateStructureSqlDB("PeopleGroupDesciption", "GroupPerson TEXT, GroupPersonDescription TEXT, AmountStaffInDepartment TEXT", databasePerson);
             TryUpdateStructureSqlDB("PeopleGroup", "FIO TEXT, NAV TEXT, GroupPerson TEXT, ControllingHHMM TEXT, ControllingOUTHHMM TEXT, " +
                     "Shift TEXT, Comment TEXT, Department TEXT, PositionInDepartment TEXT, DepartmentId TEXT", databasePerson);
-            TryUpdateStructureSqlDB("ListOfWorkTimeShifts", "FIO TEXT, NAV TEXT, DayStartShift TEXT, MoStart REAL,MoEnd REAL, TuStart REAL,TuEnd REAL, WeStart REAL,WeEnd REAL, ThStart REAL,ThEnd REAL, FrStart REAL,FrEnd REAL, " +
-                    "SaStart REAL,SaEnd REAL, SuStart REAL,SuEnd REAL, Status Text, Comment TEXT, DayInputed TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
+            TryUpdateStructureSqlDB("ListOfWorkTimeShifts", "NAV TEXT, DayStartShift TEXT, MoStart REAL,MoEnd REAL, TuStart REAL,TuEnd REAL, WeStart REAL,WeEnd REAL, ThStart REAL,ThEnd REAL, FrStart REAL,FrEnd REAL, " +
+                    "SaStart REAL,SaEnd REAL, SuStart REAL,SuEnd REAL, Status Text, Comment TEXT, DayInputed TEXT", databasePerson);
             TryUpdateStructureSqlDB("TechnicalInfo", "PCName TEXT, POName TEXT, POVersion TEXT, LastDateStarted TEXT, CurrentUser TEXT, FreeRam TEXT, GuidAppication TEXT", databasePerson);
             TryUpdateStructureSqlDB("BoldedDates", "DayBolded TEXT, NAV TEXT, DayType TEXT, DayDesciption TEXT, DateCreated TEXT", databasePerson);
             TryUpdateStructureSqlDB("ProgramSettings", " PoParameterName TEXT, PoParameterValue TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
             TryUpdateStructureSqlDB("EquipmentSettings", "EquipmentParameterName TEXT, EquipmentParameterValue TEXT, EquipmentParameterServer TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
-            TryUpdateStructureSqlDB("LastTakenPeopleComboList", "ComboList TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
-            TryUpdateStructureSqlDB("Mailing", "SenderEmail TEXT, RecipientEmail TEXT, GroupsReport TEXT, NameReport TEXT, Description TEXT, DateCreated TEXT, Period TEXT, Status TEXT, SendingLastDate TEXT,TypeReport TEXT, DayReport TEXT", databasePerson);
-            TryUpdateStructureSqlDB("MailingException", "RecipientEmail TEXT, GroupsReport TEXT, NameReport TEXT, Description TEXT, DateCreated TEXT, Period TEXT, TypeReport TEXT, DayReport TEXT, DateCreated TEXT", databasePerson);
+            TryUpdateStructureSqlDB("LastTakenPeopleComboList", "ComboList TEXT, DateCreated TEXT", databasePerson);
+            TryUpdateStructureSqlDB("Mailing", "SenderEmail TEXT, RecipientEmail TEXT, GroupsReport TEXT, NameReport TEXT, Description TEXT, Period TEXT, Status TEXT, SendingLastDate TEXT, TypeReport TEXT, DayReport TEXT, DateCreated TEXT", databasePerson);
+            TryUpdateStructureSqlDB("MailingException", "RecipientEmail TEXT, NameReport TEXT, Description TEXT, DayReport TEXT, DateCreated TEXT", databasePerson);
         }
 
         private void SetTechInfoIntoDB() //Write into DB Technical Info
@@ -746,8 +748,8 @@ namespace ASTA
             }
         }
 
-        //void ShowDataTableQuery(
-        private void ShowDataTableQuery(System.IO.FileInfo databasePerson, string myTable, string mySqlQuery, string mySqlWhere) //Query data from the Table of the DB
+        //void ShowDataTableDbQuery(
+        private void ShowDataTableDbQuery(System.IO.FileInfo databasePerson, string myTable, string mySqlQuery, string mySqlWhere) //Query data from the Table of the DB
         {
             DataTable dt = new DataTable();
             if (databasePerson.Exists)
@@ -764,12 +766,13 @@ namespace ASTA
             }
 
             _dataGridViewSource(dt);
-
             iCounterLine = _dataGridView1RowsCount();
+
+            nameOfLastTableFromDB = myTable;
             sLastSelectedElement = "dataGridView";
         }
 
-        private void ShowDatatableOnDatagridview(DataTable dt, string[] nameHidenColumnsArray1) //Query data from the Table of the DB
+        private void ShowDatatableOnDatagridview(DataTable dt, string[] nameHidenColumnsArray1, string nameLastTable) //Query data from the Table of the DB
         {
             DataTable dataTable = dt.Copy();
             for (int i = 0; i < nameHidenColumnsArray1.Length; i++)
@@ -781,6 +784,7 @@ namespace ASTA
             _dataGridViewSource(dataTable);
             _toolStripStatusLabelSetText(StatusLabel2, "Всего записей: " + _dataGridView1RowsCount());
 
+            nameOfLastTableFromDB = nameLastTable;
             sLastSelectedElement = "dataGridView";
         }
 
@@ -867,7 +871,8 @@ namespace ASTA
         }
 
         private void DeleteDataTableQueryParameters(System.IO.FileInfo databasePerson, string myTable, string mySqlParameter1, string mySqlData1,
-            string mySqlParameter2, string mySqlData2, string mySqlParameter3, string mySqlData3, string mySqlParameter4 = "", string mySqlData4 = "") //Delete data from the Table of the DB by NAV (both parameters are string)
+            string mySqlParameter2 = "", string mySqlData2 = "", string mySqlParameter3 = "", string mySqlData3 = "",
+            string mySqlParameter4 = "", string mySqlData4 = "", string mySqlParameter5 = "", string mySqlData5 = "", string mySqlParameter6 = "", string mySqlData6 = "") //Delete data from the Table of the DB by NAV (both parameters are string)
         {
             if (databasePerson.Exists)
             {
@@ -877,9 +882,45 @@ namespace ASTA
                     var sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
 
-                    if (mySqlParameter1.Length > 0 && mySqlParameter2.Length > 0 && mySqlParameter3.Length > 0 && mySqlParameter4.Length > 0)
+                    if (mySqlParameter1.Length > 0 && mySqlParameter2.Length > 0 && mySqlParameter3.Length > 0 && mySqlParameter4.Length > 0
+                        && mySqlParameter5.Length > 0 && mySqlParameter6.Length > 0)
                     {
-                        using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where " + mySqlParameter1 + "= @" + mySqlParameter1 + " AND " + mySqlParameter2 + "= @" + mySqlParameter2 + " AND " + mySqlParameter3 + "= @" + mySqlParameter3 + " AND " + mySqlParameter4 + "= @" + mySqlParameter4 + ";", sqlConnection))
+                        using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where " + mySqlParameter1 + "= @" + mySqlParameter1 +
+                            " AND " + mySqlParameter2 + "= @" + mySqlParameter2 + " AND " + mySqlParameter3 + "= @" + mySqlParameter3 +
+                            " AND " + mySqlParameter4 + "= @" + mySqlParameter4 + " AND " + mySqlParameter5 + "= @" + mySqlParameter5 +
+                            " AND " + mySqlParameter6 + "= @" + mySqlParameter6 + ";", sqlConnection))
+                        {
+                            sqlCommand.Parameters.Add("@" + mySqlParameter1, DbType.String).Value = mySqlData1;
+                            sqlCommand.Parameters.Add("@" + mySqlParameter2, DbType.String).Value = mySqlData2;
+                            sqlCommand.Parameters.Add("@" + mySqlParameter3, DbType.String).Value = mySqlData3;
+                            sqlCommand.Parameters.Add("@" + mySqlParameter4, DbType.String).Value = mySqlData4;
+                            sqlCommand.Parameters.Add("@" + mySqlParameter5, DbType.String).Value = mySqlData5;
+                            sqlCommand.Parameters.Add("@" + mySqlParameter6, DbType.String).Value = mySqlData6;
+
+                            try { sqlCommand.ExecuteNonQuery(); } catch { }
+                        }
+                    }
+                    else if (mySqlParameter1.Length > 0 && mySqlParameter2.Length > 0 && mySqlParameter3.Length > 0 && mySqlParameter4.Length > 0
+                        && mySqlParameter5.Length > 0)
+                    {
+                        using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where " + mySqlParameter1 + "= @" + mySqlParameter1 +
+                            " AND " + mySqlParameter2 + "= @" + mySqlParameter2 + " AND " + mySqlParameter3 + "= @" + mySqlParameter3 +
+                            " AND " + mySqlParameter4 + "= @" + mySqlParameter4 + " AND " + mySqlParameter5 + "= @" + mySqlParameter5 + ";", sqlConnection))
+                        {
+                            sqlCommand.Parameters.Add("@" + mySqlParameter1, DbType.String).Value = mySqlData1;
+                            sqlCommand.Parameters.Add("@" + mySqlParameter2, DbType.String).Value = mySqlData2;
+                            sqlCommand.Parameters.Add("@" + mySqlParameter3, DbType.String).Value = mySqlData3;
+                            sqlCommand.Parameters.Add("@" + mySqlParameter4, DbType.String).Value = mySqlData4;
+                            sqlCommand.Parameters.Add("@" + mySqlParameter5, DbType.String).Value = mySqlData5;
+
+                            try { sqlCommand.ExecuteNonQuery(); } catch { }
+                        }
+                    }
+                    else if (mySqlParameter1.Length > 0 && mySqlParameter2.Length > 0 && mySqlParameter3.Length > 0 && mySqlParameter4.Length > 0)
+                    {
+                        using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where " + mySqlParameter1 + "= @" + mySqlParameter1 +
+                            " AND " + mySqlParameter2 + "= @" + mySqlParameter2 + " AND " + mySqlParameter3 + "= @" + mySqlParameter3 +
+                            " AND " + mySqlParameter4 + "= @" + mySqlParameter4 + ";", sqlConnection))
                         {
                             sqlCommand.Parameters.Add("@" + mySqlParameter1, DbType.String).Value = mySqlData1;
                             sqlCommand.Parameters.Add("@" + mySqlParameter2, DbType.String).Value = mySqlData2;
@@ -924,6 +965,8 @@ namespace ASTA
             }
             myTable = null; mySqlParameter1 = null; mySqlData1 = null;
         }
+
+
 
         private void CheckAliveIntellectServer(string serverName, string userName, string userPasswords) //Get the list of registered users
         {
@@ -984,7 +1027,7 @@ namespace ASTA
                 _MenuItemEnabled(GetFioItem, true);
                 _MenuItemEnabled(FunctionMenuItem, true);
                 _MenuItemEnabled(LoadDataItem, true);
-                nameOfLastTableFromDB = "ListFIO";
+                _controlEnable(comboBoxFio, true);
             }
             else
             {
@@ -1012,7 +1055,7 @@ namespace ASTA
                 var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(arrayHiddenColumnsFIO).ToArray(); //take distinct data
                 dtPersonTemp = GetDistinctRecords(dtTempIntermediate, namesDistinctColumnsArray);
 
-                ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenColumnsFIO);
+                ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenColumnsFIO, "ListFIO");
 
                 panelViewResize(numberPeopleInLoading);
                 nameOfLastTableFromDB = "ListFIO";
@@ -1033,6 +1076,7 @@ namespace ASTA
             string depName = "";
             string depBoss = "";
             string depDescr = "";
+            string depId = "";
 
             string timeStart = ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourStart), _numUpDownReturn(numUpDownMinuteStart));
             string timeEnd = ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourEnd), _numUpDownReturn(numUpDownMinuteEnd));
@@ -1124,7 +1168,8 @@ namespace ASTA
 
                                         row[@"Отдел"] = depName;
                                         row[@"Отдел"] = depName;
-                                        row[@"Отдел (id)"] = "Intellect";
+
+                                        row[@"Отдел (id)"] = sServer1.IndexOf('.') > -1 ? sServer1.Remove(sServer1.IndexOf('.')) : sServer1;
 
                                         row[@"Должность"] = record["post"].ToString().Trim();
 
@@ -1153,7 +1198,7 @@ namespace ASTA
                 _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...");
                 stimerPrev = "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...";
 
-                groupName = "web"; //People imported from web DB
+                groupName = mysqlServer; //People imported from web DB
                 groups.Add(new PeopleDepartment()
                 {
                     _parent_id = mysqlServer,
@@ -1273,7 +1318,7 @@ namespace ASTA
                         timeEnd_ = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
 
                         //test only
-                        logger.Info("Общий график с " + dayStartShift);
+                        logger.Trace("Общий график с " + dayStartShift);
                     }
                     catch { }
 
@@ -1429,7 +1474,8 @@ namespace ASTA
 
                 foreach (var department in departmentsUniq.ToArray().Distinct())
                 {
-                    DeleteDataTableQueryParameters(databasePerson, "PeopleGroup", "GroupPerson", department._departmentName, "", "", "", "");
+                    DeleteDataTableQueryParameters(databasePerson, "PeopleGroup",
+                        "GroupPerson", department._departmentName);
                     _ProgressWork1Step(1);
                 }
 
@@ -1653,6 +1699,7 @@ namespace ASTA
         {
             nameOfLastTableFromDB = "ListFIO";
             SeekAndShowMembersOfGroup("");
+            _controlEnable(comboBoxFio, true);
         }
 
         private async void Export_Click(object sender, EventArgs e)
@@ -1673,8 +1720,6 @@ namespace ASTA
             _ProgressBar1Stop();
         }
 
-        private string filePathApplication = Application.ExecutablePath;
-        private string filePathExcelReport;
 
         private void ExportDatatableSelectedColumnsToExcel(DataTable dataTable, string nameReport, string filePath)  //Export DataTable to Excel 
         {
@@ -1997,7 +2042,9 @@ namespace ASTA
         }
 
         private void ListGroupsItem_Click(object sender, EventArgs e)
-        { ListGroups(); }
+        {
+            ListGroups();
+        }
 
         private void ListGroups()
         {
@@ -2005,29 +2052,21 @@ namespace ASTA
             dataGridView1.Visible = false;
 
             CountMembersAndUpdateAmountInTableGroups();
+            ShowDataTableDbQuery(databasePerson, "PeopleGroupDesciption", "SELECT GroupPerson AS 'Группа', GroupPersonDescription AS 'Описание группы', AmountStaffInDepartment AS 'Колличество сотрудников в группе' ", " group by GroupPerson ORDER BY GroupPerson asc; ");
 
-            ShowDataTableQuery(databasePerson, "PeopleGroupDesciption", "SELECT GroupPerson AS 'Группа', GroupPersonDescription AS 'Описание группы', AmountStaffInDepartment AS 'Колличество сотрудников в группе' ", " group by GroupPerson ORDER BY GroupPerson asc; ");
-
-            try
-            {
-                DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-                dgSeek.FindValueInCells(dataGridView1, new string[] { @"Группа", @"Описание группы" });
-                textBoxGroup.Text = dgSeek.values[0];
-                textBoxGroupDescription.Text = dgSeek.values[1];
-                StatusLabel2.Text = @"Выбрана группа: " + dgSeek.values[0] + "(" + dgSeek.values[1] + ")" + @" |  Всего групп: " + _dataGridView1RowsCount();
-
-                LoadDataItem.BackColor = Color.PaleGreen;
-                groupBoxPeriod.BackColor = Color.PaleGreen;
-                groupBoxTimeStart.BackColor = Color.PaleGreen;
-                groupBoxTimeEnd.BackColor = Color.PaleGreen;
-                groupBoxFilterReport.BackColor = SystemColors.Control;
-            }
-            catch { }
+            LoadDataItem.BackColor = Color.PaleGreen;
+            groupBoxPeriod.BackColor = Color.PaleGreen;
+            groupBoxTimeStart.BackColor = Color.PaleGreen;
+            groupBoxTimeEnd.BackColor = Color.PaleGreen;
+            groupBoxFilterReport.BackColor = SystemColors.Control;
 
             DeleteGroupItem.Visible = true;
             dataGridView1.Visible = true;
             MembersGroupItem.Enabled = true;
-            nameOfLastTableFromDB = "PeopleGroupDesciption";
+
+            _controlEnable(comboBoxFio, false);
+            dataGridView1.Select();
+
             PersonOrGroupItem.Text = "Работа с одной персоной";
         }
 
@@ -2112,12 +2151,12 @@ namespace ASTA
             DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
             if (nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "PeopleGroupDesciption")
             {
-                dgSeek.FindValueInCells(dataGridView1, new string[] { @"Группа" });
+                dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { @"Группа" });
                 SeekAndShowMembersOfGroup(dgSeek.values[0]);
             }
             else if (nameOfLastTableFromDB == "Mailing")
             {
-                dgSeek.FindValueInCells(dataGridView1, new string[] { @"Отчет по группам" });
+                dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { @"Отчет по группам" });
                 SeekAndShowMembersOfGroup(dgSeek.values[0]);
             }
             dgSeek = null;
@@ -2183,9 +2222,8 @@ namespace ASTA
                 dtPeopleListLoaded = dtTemp.Copy();
                 dtPersonTemp = GetDistinctRecords(dtTemp, namesDistinctCollumnsArray);
 
-                ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenColumnsFIO);
+                ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenColumnsFIO, "PeopleGroup");
                 _MenuItemVisible(DeletePersonFromGroupItem, true);
-                nameOfLastTableFromDB = "PeopleGroup";
             }
 
             query = null;
@@ -2398,7 +2436,7 @@ namespace ASTA
             if (_dataGridView1CurrentRowIndex() > -1)
             {
                 DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-                dgSeek.FindValueInCells(dataGridView1, new string[] {
+                dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
                  @"Фамилия Имя Отчество", @"NAV-код", @"Отдел", @"Должность",
                  @"Учетное время прихода ЧЧ:ММ", @"Учетное время ухода ЧЧ:ММ",
                  @"Комментарии (командировка, на выезде, согласованное отсутствие…….)",
@@ -2576,7 +2614,6 @@ namespace ASTA
                 {
                     _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по \"" + ShortFIO(fio) + "\" ");
                     stimerPrev = "Получаю данные по \"" + ShortFIO(fio) + "\"";
-                    nameOfLastTableFromDB = "PersonRegistrationsList";
                 }
 
                 dtPersonRegistrationsFullList.Clear();
@@ -2596,7 +2633,7 @@ namespace ASTA
 
                 var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(nameHidenColumnsArray).ToArray(); //take distinct data
                 dtPersonTemp = GetDistinctRecords(dtPersonTempAllColumns, namesDistinctColumnsArray);
-                ShowDatatableOnDatagridview(dtPersonTemp, nameHidenColumnsArray);
+                ShowDatatableOnDatagridview(dtPersonTemp, nameHidenColumnsArray, "PeopleGroup");
 
                 stimerPrev = "";
 
@@ -3081,15 +3118,14 @@ namespace ASTA
             logger.Trace("LoadGroupMembersFromDbToDataTable, всего записей в dtPeopleGroup - " + dtPeopleGroup.Rows.Count + ", группа - " + namePointedGroup);
         }
 
-        private void DeletePersonFromGroupItem_Click(object sender, EventArgs e) //DeletePersonFromGroup()
-        {
-            DeleteCurrentRow();
-        }
-
-
 
         private void infoItem_Click(object sender, EventArgs e)
-        { ShowDataTableQuery(databasePerson, "TechnicalInfo", "SELECT PCName AS 'Версия Windows',POName AS 'Путь к ПО',POVersion AS 'Версия ПО',LastDateStarted AS 'Дата использования',CurrentUser,FreeRam,GuidAppication ", "ORDER BY LastDateStarted DESC"); }
+        {
+            ShowDataTableDbQuery(databasePerson, "TechnicalInfo",
+                "SELECT PCName AS 'Версия Windows', POName AS 'Путь к ПО', POVersion AS 'Версия ПО', " +
+                "LastDateStarted AS 'Дата использования', CurrentUser, FreeRam, GuidAppication ",
+                "ORDER BY LastDateStarted DESC");
+        }
 
         private void EnterEditAnualItem_Click(object sender, EventArgs e) //Select - EnterEditAnual() or ExitEditAnual()
         {
@@ -3109,7 +3145,7 @@ namespace ASTA
 
         private void EnterEditAnual()
         {
-            ShowDataTableQuery(databasePerson, "BoldedDates",
+            ShowDataTableDbQuery(databasePerson, "BoldedDates",
                 "SELECT DayBolded AS 'Праздничный (выходной) день', DayType AS 'Тип выходного дня', " +
                 "NAV AS 'Персонально(NAV) или для всех(0)', DayDesciption AS 'Описание', DateCreated AS 'Дата добавления'",
                 " ORDER BY DayBolded desc, NAV asc; ");
@@ -3131,7 +3167,6 @@ namespace ASTA
             EditAnualDaysItem.Text = @"Завершить редактирование";
             EditAnualDaysItem.ToolTipText = @"Выйти из режима редактирования рабочих и выходных дней";
             _toolStripStatusLabelSetText(StatusLabel2, @"Режим редактирования рабочих и выходных дней");
-            nameOfLastTableFromDB = "BoldedDates";
         }
 
         private void ExitEditAnual()
@@ -3164,7 +3199,7 @@ namespace ASTA
         private void AddAnualDateItem_Click(object sender, EventArgs e) //AddAnualDate()
         {
             AddAnualDate();
-            ShowDataTableQuery(databasePerson, "BoldedDates", "SELECT DayBolded AS 'Праздничный (выходной) день', DayType AS 'Тип выходного дня', " +
+            ShowDataTableDbQuery(databasePerson, "BoldedDates", "SELECT DayBolded AS 'Праздничный (выходной) день', DayType AS 'Тип выходного дня', " +
             "NAV AS 'Персонально(NAV) или для всех(0)', DayDesciption AS 'Описание', DateCreated AS 'Дата добавления'",
             " ORDER BY DayBolded desc, NAV asc; ");
         }
@@ -3210,13 +3245,14 @@ namespace ASTA
         private void DeleteAnualDay()
         {
             DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-            dgSeek.FindValueInCells(dataGridView1, new string[] {
+            dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
                 @"Праздничный (выходной) день", @"Тип выходного дня", @"Персонально(NAV) или для всех(0)", @"Дата добавления" });
 
             DeleteDataTableQueryParameters(databasePerson, "BoldedDates",
-                "DayBolded", dgSeek.values[0], "DayType", dgSeek.values[1], "NAV", dgSeek.values[2], "DateCreated", dgSeek.values[3]);
+                "DayBolded", dgSeek.values[0], "DayType", dgSeek.values[1],
+                "NAV", dgSeek.values[2], "DateCreated", dgSeek.values[3]);
 
-            ShowDataTableQuery(databasePerson, "BoldedDates", "SELECT DayBolded AS 'Праздничный (выходной) день', DayType AS 'Тип выходного дня', " +
+            ShowDataTableDbQuery(databasePerson, "BoldedDates", "SELECT DayBolded AS 'Праздничный (выходной) день', DayType AS 'Тип выходного дня', " +
             "NAV AS 'Персонально(NAV) или для всех(0)', DayDesciption AS 'Описание', DateCreated AS 'Дата добавления'",
             " ORDER BY DayBolded desc, NAV asc; ");
         }
@@ -3347,7 +3383,7 @@ namespace ASTA
                 _controlEnable(checkBoxCelebrate, false);
             }
 
-            ShowDatatableOnDatagridview(dtPersonTemp, nameHidenColumnsArray);
+            ShowDatatableOnDatagridview(dtPersonTemp, nameHidenColumnsArray, "PeopleGroup");
             panelViewResize(numberPeopleInLoading);
             _controlVisible(dataGridView1, true);
             dtTempIntermediate = null;
@@ -4002,7 +4038,7 @@ namespace ASTA
             try
             {
                 DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-                dgSeek.FindValueInCells(dataGridView1, new string[] {
+                dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
                     @"Фамилия Имя Отчество", @"NAV-код", @"Группа",
                     @"Учетное время прихода ЧЧ:ММ", @"Учетное время ухода ЧЧ:ММ",
                     @"Отдел", @"Должность", @"График", @"Отдел (id)",
@@ -4102,8 +4138,6 @@ namespace ASTA
             _controlVisible(panelView, true);
             _controlVisible(pictureBox1, true);
         }
-
-        private int numberPeopleInLoading = 1;
 
         private void DrawRegistration(Person personDraw)  // Visualisation of registration
         {
@@ -5318,11 +5352,10 @@ namespace ASTA
 
             if (btnName == @"Сохранить рассылку")
             {
-                ShowDataTableQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
-                    "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', " +
-                    "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', TypeReport AS 'Тип отчета',  DayReport AS 'День отправки'",
-                    " ORDER BY RecipientEmail asc, DateCreated desc; ");
-                nameOfLastTableFromDB = "Mailing";
+                ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
+                "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
+                "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
+                " ORDER BY RecipientEmail asc, DateCreated desc; ");
             }
             EnableMainMenuItems(true);
             _controlVisible(panelView, true);
@@ -5389,13 +5422,16 @@ namespace ASTA
                 string dayReport = _textBoxReturnText(textBoxSettings16);
 
                 if (recipientEmail.Length > 5 && nameReport.Length > 0)
-                { SaveMailing(recipientEmail, senderEmail, report, nameReport, description, period, status, DateTimeToYYYYMMDDHHMM(), "", typeReport, dayReport); }
+                {
+                    SaveMailing(recipientEmail, senderEmail,
+                        report, nameReport, description, period, status,
+                        DateTimeToYYYYMMDDHHMM(), "", typeReport, dayReport);
+                }
 
-                ShowDataTableQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
-                    "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', " +
-                    "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', TypeReport AS 'Тип отчета',  DayReport AS 'День отправки'",
-                    " ORDER BY RecipientEmail asc, DateCreated desc; ");
-                nameOfLastTableFromDB = "Mailing";
+                ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
+                "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
+                "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
+                " ORDER BY RecipientEmail asc, DateCreated desc; ");
             }
 
             DisposeTemporaryControls();
@@ -5403,18 +5439,7 @@ namespace ASTA
             _controlVisible(panelView, true);
         }
 
-        private void MakeCloneMailing()
-        {
-            DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-            dgSeek.FindValueInCells(dataGridView1, new string[] { @"Получатель", @"Отчет по группам", @"Наименование", @"Описание", @"Период", @"Статус", @"Тип отчета", @"День отправки" });
 
-            { SaveMailing(dgSeek.values[0], mailServerUserName, dgSeek.values[1], dgSeek.values[2] + " clone", dgSeek.values[3], dgSeek.values[4], dgSeek.values[5], DateTimeToYYYYMMDDHHMM(), "", dgSeek.values[6], dgSeek.values[7]); }
-
-            ShowDataTableQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
-                "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', " +
-                "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', TypeReport AS 'Тип отчета',  DayReport AS 'День отправки'",
-                " ORDER BY RecipientEmail asc, DateCreated desc; ");
-        }
 
         private void SaveProperties() //Save Parameters into Registry and variables
         {
@@ -5732,26 +5757,28 @@ namespace ASTA
         private void dateTimePickerEnd_CloseUp(object sender, EventArgs e)
         { dateTimePickerStart.MaxDate = DateTime.Parse(dateTimePickerEnd.Value.Year + "-" + dateTimePickerEnd.Value.Month + "-" + dateTimePickerEnd.Value.Day); }
 
-        private bool isPerson = true; //Check
         private void PersonOrGroupItem_Click(object sender, EventArgs e) //PersonOrGroup()
-        { PersonOrGroup(isPerson); }
+        { PersonOrGroup(); }
 
-        private void PersonOrGroup(bool isPerson)
+        private void PersonOrGroup()
         {
-            if (isPerson)
+            string menu = _MenuItemReturnText(PersonOrGroupItem);
+            switch (menu)
             {
-                _MenuItemTextSet(PersonOrGroupItem, "Работа с группой");
-                nameOfLastTableFromDB = "PeopleGroup";
-                isPerson = false;
-            }
-            else
-            {
-                _MenuItemTextSet(PersonOrGroupItem, "Работа с одной персоной");
-                nameOfLastTableFromDB = "PersonRegistrationsList";
-                isPerson = true;
+                case ("Работа с группой"):
+                    _MenuItemTextSet(PersonOrGroupItem, "Работа с одной персоной");
+                    nameOfLastTableFromDB = "PersonRegistrationsList";
+                    break;
+                case ("Работа с одной персоной"):
+                    _MenuItemTextSet(PersonOrGroupItem, "Работа с группой");
+                    nameOfLastTableFromDB = "PeopleGroup";
+                    break;
+                default:
+                    _MenuItemTextSet(PersonOrGroupItem, "Работа с группой");
+                    nameOfLastTableFromDB = "PeopleGroup";
+                    break;
             }
         }
-
         //--- End. Behaviour Controls ---//
 
 
@@ -5779,13 +5806,13 @@ namespace ASTA
 
                     if (nameOfLastTableFromDB == "BoldedDates")
                     {
-                        //    ShowDataTableQuery(databasePerson, "BoldedDates", "SELECT DayBolded AS 'Праздничный (выходной) день', DayType AS 'Тип выходного дня', " +
+                        //    ShowDataTableDbQuery(databasePerson, "BoldedDates", "SELECT DayBolded AS 'Праздничный (выходной) день', DayType AS 'Тип выходного дня', " +
                         //   "NAV AS 'Персонально(NAV) или для всех(0)', DayDesciption AS 'Описание', DateCreated AS 'Дата добавления'",
                         //    " ORDER BY DayBolded desc, NAV asc; ");
                     }
                     else if (nameOfLastTableFromDB == "PeopleGroupDesciption")
                     {
-                        dgSeek.FindValueInCells(dataGridView1, new string[] {
+                        dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
                              @"Группа",   @"Описание группы"
                             });
 
@@ -5801,7 +5828,7 @@ namespace ASTA
                     }
                     else if (nameOfLastTableFromDB == "ListFIO" || nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "PersonRegistrationsList")
                     {
-                        dgSeek.FindValueInCells(dataGridView1, new string[] {
+                        dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
                                 @"Группа", @"Фамилия Имя Отчество", @"NAV-код",
                                 @"Учетное время прихода ЧЧ:ММ", @"Учетное время ухода ЧЧ:ММ"
                             });
@@ -5850,15 +5877,21 @@ namespace ASTA
             string fio = "";
             string nav = "";
             string group = "";
+            int currRow = _dataGridView1CurrentRowIndex();
 
-            if (_dataGridView1CurrentRowIndex() > -1)
+            if (currRow > -1)
             {
                 try
                 {
                     DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-                    if (nameOfLastTableFromDB == "BoldedDates")
+
+                    string currColumn = _dataGridView1ColumnHeaderText(_dataGridView1CurrentColumnIndex());
+                    string currCellValue = _dataGridView1CellValue();
+                    string editedCell = "";
+
+                    if (nameOfLastTableFromDB == @"BoldedDates")
                     {
-                        dgSeek.FindValueInCells(dataGridView1, new string[] {
+                        dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
                         @"Праздничный (выходной) день", @"Персонально(NAV) или для всех(0)", @"Тип выходного дня" });
 
                         string dayType = "";
@@ -5891,9 +5924,9 @@ namespace ASTA
                             }
                         }
                     }
-                    else if (nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "ListFIO")
+                    else if (nameOfLastTableFromDB == @"PeopleGroup" || nameOfLastTableFromDB == "ListFIO")
                     {
-                        dgSeek.FindValueInCells(dataGridView1, new string[] {
+                        dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
                             @"Фамилия Имя Отчество", @"NAV-код", @"Группа",
                             @"Учетное время прихода ЧЧ:ММ", @"Учетное время ухода ЧЧ:ММ",
                             @"Отдел", @"Должность", @"График", @"Комментарии (командировка, на выезде, согласованное отсутствие…….)",
@@ -5936,11 +5969,10 @@ namespace ASTA
                         nameOfLastTableFromDB = "PeopleGroup";
                         StatusLabel2.Text = @"Обновлено время прихода " + ShortFIO(fio) + " в группе: " + group;
                     }
-                    else if (nameOfLastTableFromDB == "PeopleGroupDesciption")
+                    else if (nameOfLastTableFromDB == @"PeopleGroupDesciption")
                     {
-                        dgSeek.FindValueInCells(dataGridView1, new string[] {
-                             @"Группа",   @"Описание группы"
-                            });
+                        dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
+                             @"Группа", @"Описание группы" });
 
                         textBoxGroup.Text = dgSeek.values[0]; //Take the name of selected group
                         textBoxGroupDescription.Text = dgSeek.values[1]; //Take the name of selected group
@@ -5948,26 +5980,23 @@ namespace ASTA
                         groupBoxFilterReport.BackColor = SystemColors.Control;
                         StatusLabel2.Text = @"Выбрана группа: " + dgSeek.values[0] + @" |  Всего ФИО: " + iFIO;
                     }
-                    else if (nameOfLastTableFromDB == "Mailing")
+                    else if (nameOfLastTableFromDB == @"Mailing")
                     {
-                        dgSeek = new DataGridViewSeekValuesInSelectedRow();
-                        dgSeek.FindValueInCells(dataGridView1, new string[] { @"Получатель", @"Отчет по группам", @"Наименование", @"Описание", @"Период", @"Статус", @"Тип отчета", @"День отправки" });
-
-                        int currRow = _dataGridView1CurrentRowIndex();
-                        string currColumn = _dataGridView1ColumnHeaderText(_dataGridView1CurrentColumnIndex());
-                        string currCellValue = _dataGridView1CellValue();
-                        string editedCell = "";
+                        dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
+                            @"Получатель", @"Отчет по группам", @"Наименование", @"Описание",
+                            @"Период", @"Статус", @"Тип отчета", @"День отправки отчета" });
 
                         switch (currColumn)
                         {
-                            case "День отправки":
+                            case "День отправки отчета":
                                 int day = 1;
                                 bool correct = Int32.TryParse(dgSeek.values[7], out day);
                                 if (!correct || day < 1 || day > 28)
                                 { editedCell = "1"; }
                                 else { editedCell = day.ToString(); }
                                 ExecuteSql("UPDATE 'Mailing' SET DayReport='" + editedCell + "' WHERE RecipientEmail='" + dgSeek.values[0]
-                                  + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1] + "';", databasePerson);
+                                  + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1]
+                                  + "' AND Status ='" + dgSeek.values[5] + "' AND Description ='" + dgSeek.values[3] + "';", databasePerson);
                                 break;
 
                             case "Тип отчета":
@@ -5975,7 +6004,8 @@ namespace ASTA
                                 else { editedCell = "Упрощенный"; }
 
                                 ExecuteSql("UPDATE 'Mailing' SET TypeReport='" + editedCell + "' WHERE RecipientEmail='" + dgSeek.values[0]
-                                  + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1] + "';", databasePerson);
+                                  + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1]
+                                  + "' AND Status ='" + dgSeek.values[5] + "' AND Description ='" + dgSeek.values[3] + "';", databasePerson);
                                 break;
 
                             case "Статус":
@@ -5983,7 +6013,7 @@ namespace ASTA
                                 else { editedCell = "Неактивная"; }
 
                                 ExecuteSql("UPDATE 'Mailing' SET Status='" + editedCell + "' WHERE RecipientEmail='" + dgSeek.values[0]
-                                  + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1] + "';", databasePerson);
+                                  + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1] + "' AND Description ='" + dgSeek.values[3] + "';", databasePerson);
                                 break;
 
                             case "Период":
@@ -5991,21 +6021,22 @@ namespace ASTA
                                 else { editedCell = "Предыдущий месяц"; }
 
                                 ExecuteSql("UPDATE 'Mailing' SET Period='" + editedCell + "' WHERE RecipientEmail='" + dgSeek.values[0]
-                                  + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1] + "';", databasePerson);
+                                  + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1]
+                                  + "' AND Status ='" + dgSeek.values[5] + "' AND Description ='" + dgSeek.values[3] + "';", databasePerson);
                                 break;
 
                             case "Описание":
                                 editedCell = currCellValue;
 
                                 ExecuteSql("UPDATE 'Mailing' SET Description='" + editedCell + "' WHERE RecipientEmail='" + dgSeek.values[0]
-                                  + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1] + "';", databasePerson);
+                                  + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1] + "' AND Status ='" + dgSeek.values[5] + "';", databasePerson);
                                 break;
 
                             case "Отчет по группам":
                                 editedCell = currCellValue;
 
                                 ExecuteSql("UPDATE 'Mailing' SET GroupsReport ='" + editedCell + "' WHERE RecipientEmail='" + dgSeek.values[0]
-                                  + "' AND NameReport='" + dgSeek.values[2] + "' AND Description ='" + dgSeek.values[3] + "';", databasePerson);
+                                  + "' AND NameReport='" + dgSeek.values[2] + "' AND Description ='" + dgSeek.values[3] + "' AND Status ='" + dgSeek.values[5] + "';", databasePerson);
                                 break;
 
                             case "Получатель":
@@ -6014,7 +6045,8 @@ namespace ASTA
                                     editedCell = currCellValue;
 
                                     ExecuteSql("UPDATE 'Mailing' SET RecipientEmail ='" + editedCell + "' WHERE Description='" + dgSeek.values[3]
-                                      + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1] + "';", databasePerson);
+                                      + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1]
+                                      + "' AND Status ='" + dgSeek.values[5] + "' AND Description ='" + dgSeek.values[3] + "';", databasePerson);
                                 }
                                 break;
 
@@ -6022,68 +6054,61 @@ namespace ASTA
                                 editedCell = currCellValue;
 
                                 ExecuteSql("UPDATE 'Mailing' SET NameReport ='" + editedCell + "' WHERE RecipientEmail='" + dgSeek.values[0]
-                                  + "' AND  Description='" + dgSeek.values[3] + "' AND GroupsReport ='" + dgSeek.values[1] + "' AND Period ='" + dgSeek.values[4] + "';", databasePerson);
+                                  + "' AND  Description='" + dgSeek.values[3] + "' AND GroupsReport ='" + dgSeek.values[1]
+                                  + "' AND Period ='" + dgSeek.values[4] + "' AND Status ='" + dgSeek.values[5] + "';", databasePerson);
                                 break;
 
                             default:
                                 break;
                         }
 
-                        ShowDataTableQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
-                            "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', " +
-                            "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', TypeReport AS 'Тип отчета',  DayReport AS 'День отправки'",
-                            " ORDER BY RecipientEmail asc, DateCreated desc; ");
-                        nameOfLastTableFromDB = "Mailing";
+                        ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
+                        "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
+                        "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
+                        " ORDER BY RecipientEmail asc, DateCreated desc; ");
+                    }
+                    else if (nameOfLastTableFromDB == @"MailingException")
+                    {
+                        dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
+                             @"Получатель", @"Описание" });
+
+                        switch (currColumn)
+                        {
+                            case "Получатель":
+                                ExecuteSql("UPDATE 'MailingException' SET RecipientEmail='" + currCellValue +
+                                    "' WHERE Description='" + dgSeek.values[1] + "';", databasePerson);
+                                break;
+
+                            case "Описание":
+                                ExecuteSql("UPDATE 'MailingException' SET Description='" + currCellValue +
+                                    "' WHERE RecipientEmail='" + dgSeek.values[0] + "';", databasePerson);
+                                break;
+                            default:
+                                break;
+                        }
+
+                        ShowDataTableDbQuery(databasePerson, "MailingException", "SELECT RecipientEmail AS 'Получатель', " +
+                        "NameReport AS 'Наименование', Description AS 'Описание', DateCreated AS 'Дата создания/модификации', " +
+                        " DayReport AS 'День отправки отчета'", " ORDER BY RecipientEmail asc, DateCreated desc; ");
                     }
                 }
                 catch { }
             }
         }
 
+        //simplify the method
         //Show help to Edit on some columns DataGridView
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
             DataGridViewCell cell;
-            if (nameOfLastTableFromDB == "PeopleGroup")
+            if (_dataGridView1ColumnCount() > 0 && _dataGridView1RowsCount() > 0)
             {
-                try
+                if (nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == @"Mailing" || nameOfLastTableFromDB == @"MailingException")
                 {
-                    if ((e.ColumnIndex == this.dataGridView1.Columns["Фамилия Имя Отчество"].Index) && e.Value != null)
-                    {
-                        cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
-                        cell.ToolTipText = cell.Value.ToString();
-                    }
-                    else if ((e.ColumnIndex == this.dataGridView1.Columns["NAV-код"].Index) && e.Value != null)
-                    {
-                        cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
-                        cell.ToolTipText = cell.Value.ToString();
-                    }
-                    else if ((e.ColumnIndex == this.dataGridView1.Columns["Учетное время прихода ЧЧ:ММ"].Index) && e.Value != null)
-                    {
-                        cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
-                        cell.ToolTipText = "Для установки нового значения нажмите F2,\nвнесите новое значение,\nа затем нажмите Enter";
-                    }
-                    else if ((e.ColumnIndex == this.dataGridView1.Columns["Учетное время ухода ЧЧ:ММ"].Index) && e.Value != null)
-                    {
-                        cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
-                        cell.ToolTipText = "Для установки нового значения нажмите F2,\nвнесите новое значение,\nа затем нажмите Enter";
-                    }
-                    else
-                    {
-                        try
-                        {
-                            cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
-                            cell.ToolTipText = cell.Value.ToString();
-                        }
-                        catch { }
-                    }
+                    // e.ColumnIndex == this.dataGridView1.Columns["NAV-код"].Index
+                    cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                    cell.ToolTipText = "Для установки нового значения нажмите F2,\nвнесите новое значение,\nа затем нажмите Enter";
                 }
-                catch { }
-            }
-            if (nameOfLastTableFromDB == "Mailing" && e.RowIndex > -1 && e.ColumnIndex > -1 && e.Value != null)
-            {
-                cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
-                cell.ToolTipText = "Для установки нового значения нажмите F2,\nвнесите новое значение,\nа затем нажмите Enter";
             }
             cell = null;
         }
@@ -6098,7 +6123,7 @@ namespace ASTA
                 ContextMenu mRightClick = new ContextMenu();
                 DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
 
-                if ((nameOfLastTableFromDB == "PeopleGroupDesciption") && currentMouseOverRow > -1)
+                if ((nameOfLastTableFromDB == @"PeopleGroupDesciption") && currentMouseOverRow > -1)
                 {
                     mRightClick.MenuItems.Add(new MenuItem("Загрузка данных регистрации персонала", GetDataItem_Click));
                     mRightClick.MenuItems.Add(new MenuItem("Загрузить данные регистрациий за текущий месяц отправить отчет", DoReportAndEmail));
@@ -6107,38 +6132,37 @@ namespace ASTA
 
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
-                else if ((nameOfLastTableFromDB == "Mailing") && currentMouseOverRow > -1)
+                else if ((nameOfLastTableFromDB == @"Mailing") && currentMouseOverRow > -1)
                 {
-                    string mailing = "";
-                    string mailingDiscription = "";
-                    for (int i = 0; i < dataGridView1.ColumnCount; i++)
-                    {
-                        if (dataGridView1.Columns[i].HeaderText == "Наименование")
-                        {
-                            mailing = dataGridView1.Rows[currentMouseOverRow].Cells[i].Value.ToString();
-                        }
-                        else if (dataGridView1.Columns[i].HeaderText == "Описание")
-                        {
-                            mailingDiscription = dataGridView1.Rows[currentMouseOverRow].Cells[i].Value.ToString();
-                        }
-                    }
-                    mRightClick.MenuItems.Add(new MenuItem(@"Выполнить рассылку:   " + mailing + "(" + mailingDiscription + ")", DoMainAction));
+                    dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
+                        @"Наименование", @"Описание" });
+
+                    mRightClick.MenuItems.Add(new MenuItem(@"Выполнить рассылку:   " + dgSeek.values[0] + "(" + dgSeek.values[1] + ")", DoMainAction));
                     mRightClick.MenuItems.Add(new MenuItem(@"Создать новую рассылку", PrepareForMakingFormMailing));
-                    mRightClick.MenuItems.Add(new MenuItem(@"Клонировать рассылку:   " + mailing + "(" + mailingDiscription + ")", MakeCloneMailing));
-                    mRightClick.MenuItems.Add(new MenuItem(@"Состав рассылки:   " + mailing + "(" + mailingDiscription + ")", MembersGroupItem_Click));
+                    mRightClick.MenuItems.Add(new MenuItem(@"Клонировать рассылку:   " + dgSeek.values[0] + "(" + dgSeek.values[1] + ")", MakeCloneMailing));
+                    mRightClick.MenuItems.Add(new MenuItem(@"Состав рассылки:   " + dgSeek.values[0] + "(" + dgSeek.values[1] + ")", MembersGroupItem_Click));
                     mRightClick.MenuItems.Add("-");
-                    mRightClick.MenuItems.Add(new MenuItem(@"Удалить рассылку:   " + mailing + "(" + mailingDiscription + ")", DeleteCurrentRow));
+                    mRightClick.MenuItems.Add(new MenuItem(@"Удалить рассылку:   " + dgSeek.values[0] + "(" + dgSeek.values[1] + ")", DeleteCurrentRow));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
-                else if ((nameOfLastTableFromDB == "PeopleGroup") && currentMouseOverRow > -1)
+                else if ((nameOfLastTableFromDB == @"MailingException") && currentMouseOverRow > -1)
+                {
+                    dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { @"Получатель" });
+
+                    mRightClick.MenuItems.Add(new MenuItem(@"Добавить новый адрес 'для исключения из рассылок'", MakeNewRecepientExcept));
+                    mRightClick.MenuItems.Add("-");
+                    mRightClick.MenuItems.Add(new MenuItem(@"Удалить адрес, ранее внесенный как 'исключеный из рассылок':   " + dgSeek.values[0], DeleteCurrentRow));
+                    mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
+                }
+                else if ((nameOfLastTableFromDB == @"PeopleGroup") && currentMouseOverRow > -1)
                 {
                     mRightClick.MenuItems.Add("-");
                     mRightClick.MenuItems.Add(new MenuItem(@"Удалить сотрудника из данной группы", DeleteCurrentRow));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
-                else if (nameOfLastTableFromDB == "BoldedDates" && currentMouseOverRow > -1)
+                else if (nameOfLastTableFromDB == @"BoldedDates" && currentMouseOverRow > -1)
                 {
-                    dgSeek.FindValueInCells(dataGridView1, new string[] {
+                    dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
                         @"Праздничный (выходной) день", @"Персонально(NAV) или для всех(0)", @"Тип выходного дня" });
 
                     string dayType = "";
@@ -6166,13 +6190,16 @@ namespace ASTA
             }
         }
 
+
+
+
         private void DoReportAndEmail(object sender, EventArgs e)
         { DoReportAndEmail(); }
 
         private void DoReportAndEmail()
         {
             DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-            dgSeek.FindValueInCells(dataGridView1, new string[] { @"Группа", @"Описание группы" });
+            dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { @"Группа", @"Описание группы" });
 
             _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет по группе" + dgSeek.values[0]);
             logger.Trace("DoReportAndEmail, sendEmail: " + mailServerUserName + "|" + dgSeek.values[0]);
@@ -6183,6 +6210,71 @@ namespace ASTA
 
         private void MakeCloneMailing(object sender, EventArgs e) //MakeCloneMailing()
         { MakeCloneMailing(); }
+
+        private void MakeCloneMailing()
+        {
+            DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
+            dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
+                @"Получатель", @"Отчет по группам", @"Наименование", @"Описание", @"Период"});
+
+            SaveMailing(
+               dgSeek.values[0], mailServerUserName, dgSeek.values[1], dgSeek.values[2] + "_1",
+               dgSeek.values[3] + "_1", dgSeek.values[4], "Неактивная", DateTimeToYYYYMMDDHHMM(), "", "Копия", "1");
+
+            ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
+            "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
+            "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
+            " ORDER BY RecipientEmail asc, DateCreated desc; ");
+        }
+
+        private void MakeNewRecepientExcept(object sender, EventArgs e) //MakeNewRecepientExcept(), ShowDataTableDbQuery()
+        {
+            MakeNewRecepientExcept();
+            ShowDataTableDbQuery(databasePerson, "MailingException", "SELECT RecipientEmail AS 'Получатель', " +
+            "NameReport AS 'Наименование', Description AS 'Описание', DateCreated AS 'Дата создания/модификации', " +
+            " DayReport AS 'День отправки отчета'", " ORDER BY RecipientEmail asc, DateCreated desc; ");
+        }
+
+        private void MakeNewRecepientExcept()
+        {
+            if (databasePerson.Exists)
+            {
+                using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+                {
+                    sqlConnection.Open();
+                    using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'MailingException' (RecipientEmail, GroupsReport, Description, DateCreated) " +
+                        " VALUES (@RecipientEmail, @GroupsReport, @Description, @DateCreated)", sqlConnection))
+                    {
+                        sqlCommand.Parameters.Add("@RecipientEmail", DbType.String).Value = "example@mail.com";
+                        sqlCommand.Parameters.Add("@GroupsReport", DbType.String).Value = "";
+                        sqlCommand.Parameters.Add("@Description", DbType.String).Value = "example";
+                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTimeToYYYYMMDDHHMM();
+                        try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                    }
+                }
+            }
+        }
+
+        private void MailingsExceptItem_Click(object sender, EventArgs e)
+        {
+            _controlEnable(comboBoxFio, false);
+            dataGridView1.Select();
+
+            ShowDataTableDbQuery(databasePerson, "MailingException", "SELECT RecipientEmail AS 'Получатель', " +
+            "NameReport AS 'Наименование', Description AS 'Описание', DateCreated AS 'Дата создания/модификации', " +
+            " DayReport AS 'День отправки отчета'", " ORDER BY RecipientEmail asc, DateCreated desc; ");
+        }
+
+        private void MailingsShowItem_Click(object sender, EventArgs e)
+        {
+            _controlEnable(comboBoxFio, false);
+            dataGridView1.Select();
+
+            ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
+            "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
+            "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
+            " ORDER BY RecipientEmail asc, DateCreated desc; ");
+        }
 
         private void DoMainAction(object sender, EventArgs e) //DoMainAction()
         { DoMainAction(); }
@@ -6207,7 +6299,7 @@ namespace ASTA
                         currentAction = "sendEmail";
 
                         DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-                        dgSeek.FindValueInCells(dataGridView1, new string[] { @"Получатель", @"Отчет по группам", @"Наименование", @"Описание", @"Период", @"Статус", @"Тип отчета", @"День отправки" });
+                        dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { @"Получатель", @"Отчет по группам", @"Наименование", @"Описание", @"Период", @"Статус", @"Тип отчета", @"День отправки отчета" });
                         _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + dgSeek.values[2]);
                         stimerPrev = "";
 
@@ -6222,11 +6314,11 @@ namespace ASTA
                         MailingAction("sendEmail", dgSeek.values[0], mailServerUserName, dgSeek.values[1], dgSeek.values[2], dgSeek.values[3], dgSeek.values[4], dgSeek.values[5], dgSeek.values[6], dgSeek.values[7]);
 
                         logger.Trace("DoMainAction, ShowDataTableQuery: ");
-                        ShowDataTableQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
-                            "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', " +
-                            "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', TypeReport AS 'Тип отчета',  DayReport AS 'День отправки'",
-                            " ORDER BY RecipientEmail asc, DateCreated desc; ");
-                        nameOfLastTableFromDB = "Mailing"; break;
+                        ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
+                        "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
+                        "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
+                        " ORDER BY RecipientEmail asc, DateCreated desc; ");
+                        break;
                     }
                 default:
                     break;
@@ -6244,21 +6336,19 @@ namespace ASTA
         private void DeleteCurrentRow()
         {
             string group = _textBoxReturnText(textBoxGroup);
+            DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
 
             switch (nameOfLastTableFromDB)
             {
                 case "PeopleGroupDesciption":
                     {
-                        DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-                        dgSeek.FindValueInCells(dataGridView1, new string[] { @"Группа" });
+                        dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { @"Группа" });
 
                         DeleteDataTableQueryParameters(databasePerson, "PeopleGroup", "GroupPerson", dgSeek.values[0], "", "", "", "");
                         DeleteDataTableQueryParameters(databasePerson, "PeopleGroupDesciption", "GroupPerson", dgSeek.values[0], "", "", "", "");
 
-                        PersonOrGroupItem.Text = "Работа с одной персоной";
-
                         CountMembersAndUpdateAmountInTableGroups();
-                        ShowDataTableQuery(databasePerson, "PeopleGroupDesciption", "SELECT GroupPerson AS 'Группа', GroupPersonDescription AS 'Описание группы', AmountStaffInDepartment AS 'Колличество сотрудников в группе' ", " group by GroupPerson ORDER BY GroupPerson asc; ");
+                        ShowDataTableDbQuery(databasePerson, "PeopleGroupDesciption", "SELECT GroupPerson AS 'Группа', GroupPersonDescription AS 'Описание группы', AmountStaffInDepartment AS 'Колличество сотрудников в группе' ", " group by GroupPerson ORDER BY GroupPerson asc; ");
                         _toolStripStatusLabelSetText(StatusLabel2, "Удалена группа: " + dgSeek.values[0] + "| Всего групп: " + _dataGridView1RowsCount());
                         MembersGroupItem.Enabled = true;
                         break;
@@ -6267,11 +6357,7 @@ namespace ASTA
                     {
                         int indexCurrentRow = _dataGridView1CurrentRowIndex();
 
-                        DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-                        dgSeek.FindValueInCells(dataGridView1, new string[] {
-                            @"NAV-код", @"Группа"
-                            });
-
+                        dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { @"NAV-код", @"Группа" });
                         DeleteDataTableQueryParameters(databasePerson, "PeopleGroup", "GroupPerson", dgSeek.values[1], "NAV", dgSeek.values[0], "", "");
 
                         if (indexCurrentRow > 2)
@@ -6281,34 +6367,44 @@ namespace ASTA
                             DeleteDataTableQueryParameters(databasePerson, "PeopleGroupDesciption", "GroupPerson", dgSeek.values[1], "", "", "", "");
 
                             CountMembersAndUpdateAmountInTableGroups();
-                            ShowDataTableQuery(databasePerson, "PeopleGroupDesciption", "SELECT GroupPerson AS 'Группа', GroupPersonDescription AS 'Описание группы', AmountStaffInDepartment AS 'Колличество сотрудников в группе' ", " group by GroupPerson ORDER BY GroupPerson asc; ");
-                            nameOfLastTableFromDB = "PeopleGroupDesciption";
-                            PersonOrGroupItem.Text = "Работа с одной персоной";
+                            ShowDataTableDbQuery(databasePerson, "PeopleGroupDesciption", "SELECT GroupPerson AS 'Группа', GroupPersonDescription AS 'Описание группы', AmountStaffInDepartment AS 'Колличество сотрудников в группе' ", " group by GroupPerson ORDER BY GroupPerson asc; ");
                         }
 
                         textBoxGroup.BackColor = Color.White;
-                        PersonOrGroupItem.Text = "Работа с одной персоной";
-
                         MembersGroupItem.Enabled = true;
                         break;
                     }
                 case "Mailing":
                     {
-                        DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-                        dgSeek.FindValueInCells(dataGridView1, new string[] { @"Получатель", @"Отчет по группам", @"Наименование", @"Описание", @"Период", @"Статус" });
+                        dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
+                            @"Получатель", @"Наименование", @"Дата создания/модификации",
+                            @"Отчет по группам", @"Период", @"Тип отчета" });
                         DeleteDataTableQueryParameters(databasePerson, "Mailing",
-                            "GroupsReport", dgSeek.values[1],
-                            "NameReport", dgSeek.values[2],
-                            "Description", dgSeek.values[3],
+                            "RecipientEmail", dgSeek.values[0],
+                            "NameReport", dgSeek.values[1],
+                            "DateCreated", dgSeek.values[2],
+                            "GroupsReport", dgSeek.values[3],
+                            "TypeReport", dgSeek.values[5],
                             "Period", dgSeek.values[4]);
 
-                        ShowDataTableQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
-                            "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', " +
-                            "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', TypeReport AS 'Тип отчета',  DayReport AS 'День отправки'",
-                            " ORDER BY RecipientEmail asc, DateCreated desc; ");
-
+                        ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
+                        "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
+                        "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
+                        " ORDER BY RecipientEmail asc, DateCreated desc; ");
                         _toolStripStatusLabelSetText(StatusLabel2, "Удалена рассылка отчета " + dgSeek.values[1] + "| Всего рассылок: " + _dataGridView1RowsCount());
-                        nameOfLastTableFromDB = "Mailing";
+                        break;
+                    }
+                case "MailingException":
+                    {
+                        dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
+                            @"Получатель"});
+                        DeleteDataTableQueryParameters(databasePerson, "MailingException",
+                            "RecipientEmail", dgSeek.values[0]);
+
+                        ShowDataTableDbQuery(databasePerson, "MailingException", "SELECT RecipientEmail AS 'Получатель', " +
+                        "NameReport AS 'Наименование', Description AS 'Описание', DateCreated AS 'Дата создания/модификации', " +
+                        "DayReport AS 'День отправки отчета'", " ORDER BY RecipientEmail asc, DateCreated desc; ");
+                        _toolStripStatusLabelSetText(StatusLabel2, "Удален из исключений " + dgSeek.values[0] + "| Всего исключений: " + _dataGridView1RowsCount());
                         break;
                     }
                 default:
@@ -6578,11 +6674,10 @@ namespace ASTA
                 }
             }
 
-            ShowDataTableQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
-                "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', " +
-                "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', TypeReport AS 'Тип отчета',  DayReport AS 'День отправки'",
-                " ORDER BY RecipientEmail asc, DateCreated desc; ");
-            nameOfLastTableFromDB = "Mailing";
+            ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
+            "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
+            "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
+            " ORDER BY RecipientEmail asc, DateCreated desc; ");
 
             sender = null; recipient = null; gproupsReport = null; nameReport = null; descriptionReport = null; period = null; status = null;
             mailingList = null;
@@ -6598,11 +6693,10 @@ namespace ASTA
                     {
                         SaveMailing(mailServerUserName, senderEmail, groupsReport, nameReport, description, period, status, DateTimeToYYYYMMDDHHMM(), "", typeReport, dayReport);
 
-                        ShowDataTableQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', " +
-                            "NameReport AS 'Наименование', Description AS 'Описание', Period AS 'Период', DateCreated AS 'Дата создания/модификации', " +
-                            "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', TypeReport AS 'Тип отчета',  DayReport AS 'День отправки'",
-                            " ORDER BY RecipientEmail asc, DateCreated desc; ");
-                        nameOfLastTableFromDB = "Mailing";
+                        ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
+                        "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
+                        "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
+                        " ORDER BY RecipientEmail asc, DateCreated desc; ");
                         break;
                     }
                 case "sendEmail":
@@ -7034,7 +7128,10 @@ namespace ASTA
                 Invoke(new MethodInvoker(delegate
                 {
                     if (dt?.Columns?.Count > 0 && dt?.Rows?.Count > 0)
-                    { dataGridView1.DataSource = dt; }
+                    {
+                        dataGridView1.DataSource = dt;
+                        dataGridView1.Visible = true;
+                    }
                     else
                     {
                         System.Collections.ArrayList Empty = new System.Collections.ArrayList();
@@ -7046,7 +7143,10 @@ namespace ASTA
             else
             {
                 if (dt?.Columns?.Count > 0 && dt?.Rows?.Count > 0)
-                { dataGridView1.DataSource = dt; }
+                {
+                    dataGridView1.DataSource = dt;
+                    dataGridView1.Visible = true;
+                }
                 else
                 {
                     System.Collections.ArrayList Empty = new System.Collections.ArrayList();
@@ -7061,9 +7161,9 @@ namespace ASTA
         {
             string tBox = "";
             if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { tBox = txtBox.Text.ToString().Trim(); }));
+                Invoke(new MethodInvoker(delegate { tBox = txtBox?.Text?.ToString()?.Trim(); }));
             else
-                tBox = txtBox.Text.ToString().Trim();
+                tBox = txtBox?.Text?.ToString()?.Trim();
             return tBox;
         }
 
@@ -7088,13 +7188,13 @@ namespace ASTA
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
-                    comboBx.Items.Clear();
+                    comboBx?.Items.Clear();
                     comboBx.SelectedText = "";
                     comboBx.Text = "";
                 }));
             else
             {
-                comboBx.Items.Clear();
+                comboBx?.Items.Clear();
                 comboBx.SelectedText = "";
                 comboBx.Text = "";
             }
@@ -7144,11 +7244,11 @@ namespace ASTA
         {
             if (InvokeRequired)
             {
-                Invoke(new MethodInvoker(delegate { try { numericUpDown.Value = i; } catch { numUpDownHourStart.Value = 9; } }));
+                Invoke(new MethodInvoker(delegate { numericUpDown.Value = i; }));
             }
             else
             {
-                try { numericUpDown.Value = i; } catch { numericUpDown.Value = 9; }
+                numericUpDown.Value = i;
             }
         }
 
@@ -7168,11 +7268,11 @@ namespace ASTA
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
-                    stringDT = dateTimePickerStart.Value.Year.ToString("0000") + "-" + dateTimePickerStart.Value.Month.ToString("00") + "-" + dateTimePickerStart.Value.Day.ToString("00") + " 00:00:00";
+                    stringDT = dateTimePickerStart?.Value.Year.ToString("0000") + "-" + dateTimePickerStart?.Value.Month.ToString("00") + "-" + dateTimePickerStart.Value.Day.ToString("00") + " 00:00:00";
                 }));
             else
             {
-                stringDT = dateTimePickerStart.Value.Year.ToString("0000") + "-" + dateTimePickerStart.Value.Month.ToString("00") + "-" + dateTimePickerStart.Value.Day.ToString("00") + " 00:00:00";
+                stringDT = dateTimePickerStart?.Value.Year.ToString("0000") + "-" + dateTimePickerStart?.Value.Month.ToString("00") + "-" + dateTimePickerStart.Value.Day.ToString("00") + " 00:00:00";
             }
             return stringDT;
         }
@@ -7183,11 +7283,11 @@ namespace ASTA
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
-                    stringDT = dateTimePickerEnd.Value.Year.ToString("0000") + "-" + dateTimePickerEnd.Value.Month.ToString("00") + "-" + dateTimePickerEnd.Value.Day.ToString("00") + " 23:59:59";
+                    stringDT = dateTimePickerEnd?.Value.Year.ToString("0000") + "-" + dateTimePickerEnd?.Value.Month.ToString("00") + "-" + dateTimePickerEnd.Value.Day.ToString("00") + " 23:59:59";
                 }));
             else
             {
-                stringDT = dateTimePickerEnd.Value.Year.ToString("0000") + "-" + dateTimePickerEnd.Value.Month.ToString("00") + "-" + dateTimePickerEnd.Value.Day.ToString("00") + " 23:59:59";
+                stringDT = dateTimePickerEnd?.Value.Year.ToString("0000") + "-" + dateTimePickerEnd?.Value.Month.ToString("00") + "-" + dateTimePickerEnd.Value.Day.ToString("00") + " 23:59:59";
             }
             return stringDT;
         }
@@ -7197,10 +7297,10 @@ namespace ASTA
             string result = "";
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
-                { result = dateTimePicker.Value.ToString(); }
+                { result = dateTimePicker?.Value.ToString(); }
                 ));
             else
-                result = dateTimePicker.Value.ToString();
+                result = dateTimePicker?.Value.ToString();
             return result;
         }
 
@@ -7312,11 +7412,11 @@ namespace ASTA
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
-                    panelView.ResumeLayout();
+                    panelView?.ResumeLayout();
                 }));
             else
             {
-                panelView.ResumeLayout();
+                panelView?.ResumeLayout();
             }
         }
 
@@ -7378,11 +7478,13 @@ namespace ASTA
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
-                    height = panelView.Parent.Height;
+                    if (panelView?.Parent?.Height > 0)
+                        height = panelView.Parent.Height;
                 }));
             else
             {
-                height = panelView.Parent.Height;
+                if (panelView?.Parent?.Height > 0)
+                    height = panelView.Parent.Height;
             }
             return height;
         }
@@ -7393,11 +7495,13 @@ namespace ASTA
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
-                    height = panelView.Height;
+                    if (panelView?.Height > 0)
+                        height = panelView.Height;
                 }));
             else
             {
-                height = panelView.Height;
+                if (panelView?.Height > 0)
+                    height = panelView.Height;
             }
             return height;
         }
@@ -7406,13 +7510,17 @@ namespace ASTA
         {
             int width = 0;
             if (InvokeRequired)
+            {
                 Invoke(new MethodInvoker(delegate
-                {
-                    width = panelView.Width;
-                }));
+                 {
+                     if (panelView?.Width > 0)
+                         width = panelView.Width;
+                 }));
+            }
             else
             {
-                width = panelView.Width;
+                if (panelView?.Width > 0)
+                    width = panelView.Width;
             }
             return width;
         }
@@ -7423,11 +7531,13 @@ namespace ASTA
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
-                    count = panelView.Controls.Count;
+                    if (panelView?.Controls?.Count > 0)
+                        count = panelView.Controls.Count;
                 }));
             else
             {
-                count = panelView.Controls.Count;
+                if (panelView?.Controls?.Count > 0)
+                    count = panelView.Controls.Count;
             }
             return count;
         }
@@ -7447,6 +7557,20 @@ namespace ASTA
             }
         }
 
+        private string _MenuItemReturnText(ToolStripMenuItem menuItem) //access from other threads
+        {
+            string name = "";
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    name = menuItem?.Text;
+                }));
+            else
+            {
+                name = menuItem?.Text;
+            }
+            return name;
+        }
 
         private void _MenuItemTextSet(ToolStripMenuItem menuItem, string newTextControl) //access from other threads
         {
@@ -7521,24 +7645,34 @@ namespace ASTA
                 control.BackColor = color; ;
         }
 
-
-        private string stimerPrev = "";
-        private string stimerCurr = "Ждите!";
-
         private void timer1_Tick(object sender, EventArgs e) //Change a Color of the Font on Status by the Timer
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
                     if (StatusLabel2.ForeColor == Color.DarkBlue)
-                    { StatusLabel2.ForeColor = Color.DarkRed; StatusLabel2.Text = stimerCurr; }
-                    else { StatusLabel2.ForeColor = Color.DarkBlue; StatusLabel2.Text = stimerPrev; }
+                    {
+                        StatusLabel2.ForeColor = Color.DarkRed;
+                        StatusLabel2.Text = stimerCurr;
+                    }
+                    else
+                    {
+                        StatusLabel2.ForeColor = Color.DarkBlue;
+                        StatusLabel2.Text = stimerPrev;
+                    }
                 }));
             else
             {
                 if (StatusLabel2.ForeColor == Color.DarkBlue)
-                { StatusLabel2.ForeColor = Color.DarkRed; StatusLabel2.Text = stimerCurr; }
-                else { StatusLabel2.ForeColor = Color.DarkBlue; StatusLabel2.Text = stimerPrev; }
+                {
+                    StatusLabel2.ForeColor = Color.DarkRed;
+                    StatusLabel2.Text = stimerCurr;
+                }
+                else
+                {
+                    StatusLabel2.ForeColor = Color.DarkBlue;
+                    StatusLabel2.Text = stimerPrev;
+                }
             }
         }
 
@@ -7799,7 +7933,6 @@ namespace ASTA
             { return DateTime.Parse(date).ToString("yyyy-MM-dd HH:mm"); }
             else { return DateTime.Now.ToString("yyyy-MM-dd HH:mm"); }
         }
-
 
         //---- End. Convertors of data types ----//
     }
