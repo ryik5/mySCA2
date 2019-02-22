@@ -79,30 +79,12 @@
             this.tableLayoutPanel.Size = new System.Drawing.Size(627, 237);
             this.tableLayoutPanel.TabIndex = 0;
             // 
-            // labelDiscription
-            // 
-            this.labelDiscription.Location = new System.Drawing.Point(0, 0);
-            this.labelDiscription.Name = "labelDiscription";
-            this.labelDiscription.Size = new System.Drawing.Size(100, 23);
-            this.labelDiscription.TabIndex = 0;            
-            // 
-            // labelVersion
-            // 
-            this.labelVersion.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.labelVersion.Location = new System.Drawing.Point(212, 53);
-            this.labelVersion.Margin = new System.Windows.Forms.Padding(6, 0, 3, 0);
-            this.labelVersion.MaximumSize = new System.Drawing.Size(0, 17);
-            this.labelVersion.Name = "labelVersion";
-            this.labelVersion.Size = new System.Drawing.Size(412, 17);
-            this.labelVersion.TabIndex = 0;
-            this.labelVersion.Text = "Версия";
-            this.labelVersion.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
             // logoPictureBox
             // 
+            this.logoPictureBox.BackColor = System.Drawing.SystemColors.Info;
             this.logoPictureBox.BackgroundImage = global::ASTA.Properties.Resources.LogoRYIK;
             this.logoPictureBox.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.logoPictureBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.logoPictureBox.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.logoPictureBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.logoPictureBox.Location = new System.Drawing.Point(1, 1);
             this.logoPictureBox.Margin = new System.Windows.Forms.Padding(1);
@@ -112,7 +94,56 @@
             this.logoPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
             this.logoPictureBox.TabIndex = 12;
             this.logoPictureBox.TabStop = false;
-         
+            this.toolTip1.SetToolTip(this.logoPictureBox, "Send email to the developer");
+            this.logoPictureBox.Click += new System.EventHandler(this.logoPictureBox_Click);
+            // 
+            // labelOcupiedRAM
+            // 
+            this.labelOcupiedRAM.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.labelOcupiedRAM.Location = new System.Drawing.Point(212, 168);
+            this.labelOcupiedRAM.Margin = new System.Windows.Forms.Padding(6, 0, 3, 0);
+            this.labelOcupiedRAM.MaximumSize = new System.Drawing.Size(0, 17);
+            this.labelOcupiedRAM.Name = "labelOcupiedRAM";
+            this.labelOcupiedRAM.Size = new System.Drawing.Size(412, 17);
+            this.labelOcupiedRAM.TabIndex = 26;
+            this.labelOcupiedRAM.Text = "Ocupied RAM";
+            this.labelOcupiedRAM.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // labelOS
+            // 
+            this.labelOS.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.labelOS.Location = new System.Drawing.Point(212, 145);
+            this.labelOS.Margin = new System.Windows.Forms.Padding(6, 0, 3, 0);
+            this.labelOS.MaximumSize = new System.Drawing.Size(0, 17);
+            this.labelOS.Name = "labelOS";
+            this.labelOS.Size = new System.Drawing.Size(412, 17);
+            this.labelOS.TabIndex = 25;
+            this.labelOS.Text = "OS";
+            this.labelOS.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // labelPC
+            // 
+            this.labelPC.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.labelPC.Location = new System.Drawing.Point(212, 122);
+            this.labelPC.Margin = new System.Windows.Forms.Padding(6, 0, 3, 0);
+            this.labelPC.MaximumSize = new System.Drawing.Size(0, 17);
+            this.labelPC.Name = "labelPC";
+            this.labelPC.Size = new System.Drawing.Size(412, 17);
+            this.labelPC.TabIndex = 24;
+            this.labelPC.Text = "PC";
+            this.labelPC.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // labelFile
+            // 
+            this.labelFile.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.labelFile.Location = new System.Drawing.Point(212, 99);
+            this.labelFile.Margin = new System.Windows.Forms.Padding(6, 0, 3, 0);
+            this.labelFile.MaximumSize = new System.Drawing.Size(0, 17);
+            this.labelFile.Name = "labelFile";
+            this.labelFile.Size = new System.Drawing.Size(412, 17);
+            this.labelFile.TabIndex = 23;
+            this.labelFile.Text = "File";
+            this.labelFile.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // labelProductName
             // 
@@ -125,6 +156,18 @@
             this.labelProductName.TabIndex = 19;
             this.labelProductName.Text = "Название продукта";
             this.labelProductName.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // labelVersion
+            // 
+            this.labelVersion.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.labelVersion.Location = new System.Drawing.Point(212, 53);
+            this.labelVersion.Margin = new System.Windows.Forms.Padding(6, 0, 3, 0);
+            this.labelVersion.MaximumSize = new System.Drawing.Size(0, 17);
+            this.labelVersion.Name = "labelVersion";
+            this.labelVersion.Size = new System.Drawing.Size(412, 17);
+            this.labelVersion.TabIndex = 0;
+            this.labelVersion.Text = "Версия";
+            this.labelVersion.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // labelCopyright
             // 
@@ -150,55 +193,6 @@
             this.labelPath.Text = "Path";
             this.labelPath.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // labelFile
-            // 
-            this.labelFile.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.labelFile.Location = new System.Drawing.Point(212, 99);
-            this.labelFile.Margin = new System.Windows.Forms.Padding(6, 0, 3, 0);
-            this.labelFile.MaximumSize = new System.Drawing.Size(0, 17);
-            this.labelFile.Name = "labelFile";
-            this.labelFile.Size = new System.Drawing.Size(412, 17);
-            this.labelFile.TabIndex = 23;
-            this.labelFile.Text = "File";
-            this.labelFile.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // labelPC
-            // 
-            this.labelPC.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.labelPC.Location = new System.Drawing.Point(212, 122);
-            this.labelPC.Margin = new System.Windows.Forms.Padding(6, 0, 3, 0);
-            this.labelPC.MaximumSize = new System.Drawing.Size(0, 17);
-            this.labelPC.Name = "labelPC";
-            this.labelPC.Size = new System.Drawing.Size(412, 17);
-            this.labelPC.TabIndex = 24;
-            this.labelPC.Text = "PC";
-            this.labelPC.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // labelOS
-            // 
-            this.labelOS.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.labelOS.Location = new System.Drawing.Point(212, 145);
-            this.labelOS.Margin = new System.Windows.Forms.Padding(6, 0, 3, 0);
-            this.labelOS.MaximumSize = new System.Drawing.Size(0, 17);
-            this.labelOS.Name = "labelOS";
-            this.labelOS.Size = new System.Drawing.Size(412, 17);
-            this.labelOS.TabIndex = 25;
-            this.labelOS.Text = "OS";
-            this.labelOS.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // labelOcupiedRAM
-            // 
-            this.labelOcupiedRAM.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.labelOcupiedRAM.Location = new System.Drawing.Point(212, 168);
-            this.labelOcupiedRAM.Margin = new System.Windows.Forms.Padding(6, 0, 3, 0);
-            this.labelOcupiedRAM.MaximumSize = new System.Drawing.Size(0, 17);
-            this.labelOcupiedRAM.Name = "labelOcupiedRAM";
-            this.labelOcupiedRAM.Size = new System.Drawing.Size(412, 17);
-            this.labelOcupiedRAM.TabIndex = 26;
-            this.labelOcupiedRAM.Text = "Ocupied RAM";
-            this.labelOcupiedRAM.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-
-            // 
             // buttonNo
             // 
             this.buttonNo.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -220,7 +214,13 @@
             this.buttonYes.Text = "Ok";
             this.buttonYes.UseVisualStyleBackColor = true;
             this.buttonYes.Click += new System.EventHandler(this.buttonYes_Click);
-
+            // 
+            // labelDiscription
+            // 
+            this.labelDiscription.Location = new System.Drawing.Point(0, 0);
+            this.labelDiscription.Name = "labelDiscription";
+            this.labelDiscription.Size = new System.Drawing.Size(100, 23);
+            this.labelDiscription.TabIndex = 0;
             // 
             // AboutBox1
             // 

@@ -373,7 +373,7 @@ namespace ASTA
 
             this.Text = myFileVersionInfo.Comments;
             notifyIcon.Text = myFileVersionInfo.ProductName + "\nv." + myFileVersionInfo.FileVersion + "\n" + myFileVersionInfo.CompanyName;
-            
+
             EditAnualDaysItem.Text = @"Выходные(рабочие) дни";
             EditAnualDaysItem.ToolTipText = @"Войти в режим добавления/удаления праздничных дней";
 
@@ -416,7 +416,7 @@ namespace ASTA
             numUpDownHourEnd.Value = 18;
             numUpDownMinuteEnd.Value = 0;
 
-            PersonOrGroupItem.Text = "Работа с одной персоной";
+            PersonOrGroupItem.Text = "Работать с одной персоной";
             toolTip1.SetToolTip(textBoxGroup, "Создать группу");
             toolTip1.SetToolTip(textBoxGroupDescription, "Изменить описание группы");
             StatusLabel2.Text = "";
@@ -442,7 +442,7 @@ namespace ASTA
             mysqlServer = mysqlServerRegistry.Length > 0 ? mysqlServerRegistry : mysqlServerDB;
             mysqlServerUserName = mysqlServerUserNameRegistry.Length > 0 ? mysqlServerUserNameRegistry : mysqlServerUserNameDB;
             mysqlServerUserPassword = mysqlServerUserPasswordRegistry.Length > 0 ? mysqlServerUserPasswordRegistry : mysqlServerUserPasswordDB;
-            
+
             logger.Info("Настраиваю переменные....");
 
             //Prepare DataTables
@@ -454,7 +454,7 @@ namespace ASTA
             dtPersonRegistrationsFullList = dtPeople.Clone();  //Copy only structure(Name of columns)
             dtPeopleGroup = dtPeople.Clone();  //Copy only structure(Name of columns)
 
-            logger.Info("Программа "+productName + " полностью загружена....");
+            logger.Info("Программа " + productName + " полностью загружена....");
 
             if (currentModeAppManual)
             {
@@ -1007,6 +1007,7 @@ namespace ASTA
         private async void GetFio_Click(object sender, EventArgs e)  //GetFIO()
         {
             _ProgressBar1Start();
+
             CheckBoxesFiltersAll_CheckedState(false);
             CheckBoxesFiltersAll_Enable(false);
             _MenuItemEnabled(LoadDataItem, false);
@@ -1014,8 +1015,6 @@ namespace ASTA
             _MenuItemEnabled(SettingsMenuItem, false);
             _MenuItemEnabled(GroupsMenuItem, false);
             _MenuItemEnabled(GetFioItem, false);
-            _controlVisible(dataGridView1, true);
-            _controlVisible(pictureBox1, false);
 
             await Task.Run(() => GetFIO());
 
@@ -1026,13 +1025,19 @@ namespace ASTA
                 _MenuItemEnabled(GetFioItem, true);
                 _MenuItemEnabled(FunctionMenuItem, true);
                 _MenuItemEnabled(LoadDataItem, true);
-                _controlEnable(comboBoxFio, true);
+                _MenuItemEnabled(GroupsMenuItem, true);
+                _controlVisible(dataGridView1, true);
+                _controlVisible(pictureBox1, false);
+
+                _toolStripStatusLabelForeColor(StatusLabel1, Color.Black);
+                _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
             }
             else
             {
                 _MenuItemEnabled(SettingsMenuItem, true);
             }
             _ProgressBar1Stop();
+            _controlEnable(comboBoxFio, true);
         }
 
         private void GetFIO()  // CheckAliveIntellectServer()   GetFioFromServers()  ImportTablePeopleToTableGroupsInLocalDB()
@@ -1049,15 +1054,10 @@ namespace ASTA
 
                 ImportTablePeopleToTableGroupsInLocalDB(databasePerson.ToString(), dtTempIntermediate);
 
-                //show selected data     
-                //distinct Records                
                 var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(arrayHiddenColumnsFIO).ToArray(); //take distinct data
                 dtPersonTemp = GetDistinctRecords(dtTempIntermediate, namesDistinctColumnsArray);
 
                 ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenColumnsFIO, "ListFIO");
-
-                panelViewResize(numberPeopleInLoading);
-                nameOfLastTableFromDB = "ListFIO";
             }
         }
 
@@ -1075,7 +1075,6 @@ namespace ASTA
             string depName = "";
             string depBoss = "";
             string depDescr = "";
-            string depId = "";
 
             string timeStart = ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourStart), _numUpDownReturn(numUpDownMinuteStart));
             string timeEnd = ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourEnd), _numUpDownReturn(numUpDownMinuteEnd));
@@ -1087,21 +1086,19 @@ namespace ASTA
 
             List<string> ListFIOTemp = new List<string>();
             listFIO?.Clear();
-            List<string> listCodesWithIdCard = new List<string>(); //NAV-codes people who have idCard
-
-            // import users and group from www.ais
+            List<string> listCodesWithIdCard = new List<string>(); //NAV-codes staff who have idCards
             List<PeopleShift> peopleShifts = new List<PeopleShift>();
             List<PeopleDepartment> departments = new List<PeopleDepartment>();
             HashSet<PeopleDepartment> groups = new HashSet<PeopleDepartment>();
 
+            _comboBoxClr(comboBoxFio);
+            _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю данные с " + sServer1 + ". Ждите окончания процесса...");
+            stimerPrev = "Запрашиваю списки персонала с " + sServer1 + ". Ждите окончания процесса...";
+            stringConnection = "Data Source=" + sServer1 + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=60";
+            logger.Trace(stringConnection);
+
             try
             {
-                _comboBoxClr(comboBoxFio);
-                _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю данные с " + sServer1 + ". Ждите окончания процесса...");
-                stimerPrev = "Запрашиваю списки персонала с " + sServer1 + ". Ждите окончания процесса...";
-                stringConnection = "Data Source=" + sServer1 + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=60";
-                logger.Trace(stringConnection);
-
                 // import users and group from SCA server
                 using (var sqlConnection = new System.Data.SqlClient.SqlConnection(stringConnection))
                 {
@@ -1197,7 +1194,7 @@ namespace ASTA
                 _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...");
                 stimerPrev = "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...";
 
-                groupName = mysqlServer; //People imported from web DB
+                groupName = mysqlServer; //group's name for staff who will have been imported from web DB
                 groups.Add(new PeopleDepartment()
                 {
                     _parent_id = mysqlServer,
@@ -1405,293 +1402,267 @@ namespace ASTA
                     sqlConnection.Close();
                 }
 
-                _toolStripStatusLabelSetText(StatusLabel2, "Список ФИО успешно получен");
-                stimerPrev = "Все списки с ФИО с сервера СКД успешно получены";
-            }
-            catch (Exception Expt)
-            {
-                bServer1Exist = false;
-                stimerPrev = "Сервер не доступен или неправильная авторизация";
-                MessageBox.Show(Expt.ToString(), @"Сервер не доступен или неправильная авторизация", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+                _toolStripStatusLabelSetText(StatusLabel2, "Приступаю к формированию списков ФИО и департаментов...");
 
-            _toolStripStatusLabelSetText(StatusLabel2, "Формирую список департаментов...");
-
-            string idDep = "";
-            dataTablePeople.AcceptChanges();
-            foreach (var dr in dataTablePeople.AsEnumerable().Distinct())
-            {
-                idDep = dr[@"Отдел (id)"]?.ToString();
-
-                if (idDep?.Length > 0)
+                string idDep = "";
+                dataTablePeople.AcceptChanges();
+                foreach (var dr in dataTablePeople.AsEnumerable().Distinct())
                 {
-                    groups.Add(new PeopleDepartment()
-                    {
-                        _parent_id = "idCollection",
-                        _departmentName = "@" + idDep,
-                        _departmentDescription = dr[@"Отдел"]?.ToString(),
-                        _departmentBossCode = dr[@"Руководитель (код)"]?.ToString(),
-                        _departmentBossEmail = departments.FindLast((x) => x._departmentBossCode == dr[@"Руководитель (код)"]?.ToString())?._departmentBossEmail
-                    });
+                    idDep = dr[@"Отдел (id)"]?.ToString();
 
-                    _ProgressWork1Step(1);
+                    if (idDep?.Length > 0)
+                    {
+                        groups.Add(new PeopleDepartment()
+                        {
+                            _parent_id = "idCollection",
+                            _departmentName = "@" + idDep,
+                            _departmentDescription = dr[@"Отдел"]?.ToString(),
+                            _departmentBossCode = dr[@"Руководитель (код)"]?.ToString(),
+                            _departmentBossEmail = departments.FindLast((x) => x._departmentBossCode == dr[@"Руководитель (код)"]?.ToString())?._departmentBossEmail
+                        });
+
+                        _ProgressWork1Step(1);
+                    }
                 }
-            }
 
-            _toolStripStatusLabelSetText(StatusLabel2, "Формирую список уникальных названий департаментов...");
-            List<PeopleDepartment> resulListDepartment = groups.ToList();
-            HashSet<Department> departmentsUniq = new HashSet<Department>();
-            HashSet<DepartmentEmail> departmentsEmailUniq = new HashSet<DepartmentEmail>();
-
-            foreach (var strDepartment in resulListDepartment.ToArray())
-            {
-                if (strDepartment?._departmentName?.Length > 0)
+                _toolStripStatusLabelSetText(StatusLabel2, "Формирую список департаментов и рассылок...");
+                List<PeopleDepartment> resulListDepartment = groups.ToList();
+                HashSet<Department> departmentsUniq = new HashSet<Department>();
+                HashSet<DepartmentEmail> departmentsEmailUniq = new HashSet<DepartmentEmail>();
+                foreach (var strDepartment in resulListDepartment.ToArray())
                 {
-                    departmentsUniq.Add(new Department
+                    if (strDepartment?._departmentName?.Length > 0)
                     {
-                        _departmentName = strDepartment._departmentName,
-                        _departmentDescription = strDepartment?._departmentDescription,
-                    });
-
-                    if (strDepartment?._departmentBossEmail?.Length > 0)
-                    {
-                        departmentsEmailUniq.Add(new DepartmentEmail
+                        departmentsUniq.Add(new Department
                         {
                             _departmentName = strDepartment._departmentName,
                             _departmentDescription = strDepartment?._departmentDescription,
-                            _departmentBossEmail = strDepartment?._departmentBossEmail
                         });
+
+                        if (strDepartment?._departmentBossEmail?.Length > 0)
+                        {
+                            departmentsEmailUniq.Add(new DepartmentEmail
+                            {
+                                _departmentName = strDepartment._departmentName,
+                                _departmentDescription = strDepartment?._departmentDescription,
+                                _departmentBossEmail = strDepartment?._departmentBossEmail
+                            });
+                        }
                     }
                 }
-            }
-            _ProgressWork1Step(1);
+                _ProgressWork1Step(1);
 
-            if (databasePerson.Exists)
-            {
-                _toolStripStatusLabelSetText(StatusLabel2, "Чищу базу от департаментов с такими же именами...");
-                DeleteAllDataInTableQuery(databasePerson, "LastTakenPeopleComboList");
-
-                foreach (var department in departmentsUniq.ToArray().Distinct())
+                if (databasePerson.Exists)
                 {
-                    DeleteDataTableQueryParameters(databasePerson, "PeopleGroup",
-                        "GroupPerson", department._departmentName);
-                    _ProgressWork1Step(1);
-                }
+                    _toolStripStatusLabelSetText(StatusLabel2, "Чищу базу от старых списков с ФИО...");
+                    DeleteAllDataInTableQuery(databasePerson, "LastTakenPeopleComboList");
 
-                /////////////////////////////////////////
-                /// список исключений рассылок
-                /// Очистки departmentsUniq от блокируемых e-mails
-                //////////////////////////////////////////
-                using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
-                {
-                    sqlConnection.Open();
-
-                    using (var sqlCommand = new SQLiteCommand("SELECT RecipientEmail FROM MailingException;", sqlConnection))
+                    foreach (var department in departmentsUniq.ToArray().Distinct())
                     {
-                        using (var reader = sqlCommand.ExecuteReader())
+                        DeleteDataTableQueryParameters(databasePerson, "PeopleGroup",
+                            "GroupPerson", department._departmentName);
+                        _ProgressWork1Step(1);
+                    }
+
+                    using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+                    {
+                        sqlConnection.Open();
+
+                        _toolStripStatusLabelSetText(StatusLabel2, "Готовлю списки исключений из рассылок...");
+                        using (var sqlCommand = new SQLiteCommand("SELECT RecipientEmail FROM MailingException;", sqlConnection))
                         {
-                            foreach (DbDataRecord record in reader)
+                            using (var reader = sqlCommand.ExecuteReader())
                             {
-                                if (record["RecipientEmail"]?.ToString()?.Length > 0)
+                                foreach (DbDataRecord record in reader)
                                 {
-                                    departmentsEmailUniq.RemoveWhere(x => x._departmentBossEmail == record["RecipientEmail"].ToString());
+                                    if (record["RecipientEmail"]?.ToString()?.Length > 0)
+                                    {
+                                        departmentsEmailUniq.RemoveWhere(x => x._departmentBossEmail == record["RecipientEmail"].ToString());
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    _toolStripStatusLabelSetText(StatusLabel2, "Создаю заново группы...");
-                    var sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
-
-                    foreach (var deprtment in departmentsUniq.ToArray().Distinct())
-                    {
-                        depDescr = deprtment?._departmentDescription;
-                        depName = deprtment?._departmentName;
-
-                        using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroupDesciption' (GroupPerson, GroupPersonDescription) " +
-                                                "VALUES (@GroupPerson, @GroupPersonDescription )", sqlConnection))
+                        _toolStripStatusLabelSetText(StatusLabel2, "Записываю новые группы ...");
+                        var sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
+                        sqlCommand1.ExecuteNonQuery();
+                        foreach (var deprtment in departmentsUniq.ToArray().Distinct())
                         {
-                            command.Parameters.Add("@GroupPerson", DbType.String).Value = depName;
-                            command.Parameters.Add("@GroupPersonDescription", DbType.String).Value = depDescr;
-                            try { command.ExecuteNonQuery(); } catch { }
-                        }
+                            depDescr = deprtment?._departmentDescription;
+                            depName = deprtment?._departmentName;
 
-                        logger.Trace("CreateGroup: " + depName + " " + depDescr);
+                            using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroupDesciption' (GroupPerson, GroupPersonDescription) " +
+                                                    "VALUES (@GroupPerson, @GroupPersonDescription )", sqlConnection))
+                            {
+                                command.Parameters.Add("@GroupPerson", DbType.String).Value = depName;
+                                command.Parameters.Add("@GroupPersonDescription", DbType.String).Value = depDescr;
+                                try { command.ExecuteNonQuery(); } catch { }
+                            }
+
+                            logger.Trace("CreateGroup: " + depName + " " + depDescr);
+                            _ProgressWork1Step(1);
+                        }
+                        sqlCommand1 = new SQLiteCommand("end", sqlConnection);
+                        sqlCommand1.ExecuteNonQuery();
+
+                        _toolStripStatusLabelSetText(StatusLabel2, "Записываю новые рассылки по группам с учетом исключений...");
+                        string recipientEmail = "";
+                        sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
+                        sqlCommand1.ExecuteNonQuery();
+                        foreach (var deprtment in departmentsEmailUniq.ToArray().Distinct())
+                        {
+                            depDescr = deprtment?._departmentDescription;
+                            recipientEmail = deprtment._departmentBossEmail;
+                            depName = deprtment._departmentName;
+
+                            if (depName.StartsWith("@") && recipientEmail.Contains('@'))
+                            {
+                                using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'Mailing' (SenderEmail, RecipientEmail, GroupsReport, NameReport, Description, Period, Status, DateCreated, SendingLastDate, TypeReport, DayReport)" +
+                                   " VALUES (@SenderEmail, @RecipientEmail, @GroupsReport, @NameReport, @Description, @Period, @Status, @DateCreated, @SendingLastDate, @TypeReport, @DayReport)", sqlConnection))
+                                {
+                                    sqlCommand.Parameters.Add("@SenderEmail", DbType.String).Value = mailServerUserName;
+                                    sqlCommand.Parameters.Add("@RecipientEmail", DbType.String).Value = recipientEmail;
+                                    sqlCommand.Parameters.Add("@GroupsReport", DbType.String).Value = depName;
+                                    sqlCommand.Parameters.Add("@NameReport", DbType.String).Value = depName;
+                                    sqlCommand.Parameters.Add("@Description", DbType.String).Value = depDescr;
+                                    sqlCommand.Parameters.Add("@Period", DbType.String).Value = "Текущий месяц";
+                                    sqlCommand.Parameters.Add("@Status", DbType.String).Value = "Активная";
+                                    sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTimeToYYYYMMDDHHMM();
+                                    sqlCommand.Parameters.Add("@SendingLastDate", DbType.String).Value = "";
+                                    sqlCommand.Parameters.Add("@TypeReport", DbType.String).Value = "Полный";
+                                    sqlCommand.Parameters.Add("@DayReport", DbType.String).Value = "28";
+
+                                    try { sqlCommand.ExecuteNonQuery(); } catch { }
+                                }
+
+                                logger.Trace("SaveMailing: " + recipientEmail + " " + depName + " " + depDescr);
+                            }
+                            _ProgressWork1Step(1);
+                        }
+                        sqlCommand1 = new SQLiteCommand("end", sqlConnection);
+                        sqlCommand1.ExecuteNonQuery();
+
+                        _toolStripStatusLabelSetText(StatusLabel2, "Записываю новые индивидуальные графики...");
+                        sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
+                        sqlCommand1.ExecuteNonQuery();
+                        foreach (var shift in peopleShifts.ToArray())
+                        {
+                            if (shift._nav != null && shift._nav.Length > 0)
+                            {
+                                using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'ListOfWorkTimeShifts' (NAV, DayStartShift, MoStart, MoEnd, " +
+                                    "TuStart, TuEnd, WeStart, WeEnd, ThStart, ThEnd, FrStart, FrEnd, SaStart, SaEnd, SuStart, SuEnd, Status, Comment, DayInputed) " +
+                                " VALUES (@NAV, @DayStartShift, @MoStart, @MoEnd, @TuStart, @TuEnd, @WeStart, @WeEnd, @ThStart, @ThEnd, @FrStart, @FrEnd, " +
+                                " @SaStart, @SaEnd, @SuStart, @SuEnd, @Status, @Comment, @DayInputed)", sqlConnection))
+                                {
+                                    sqlCommand.Parameters.Add("@NAV", DbType.String).Value = shift._nav;
+                                    sqlCommand.Parameters.Add("@DayStartShift", DbType.String).Value = shift._dayStartShift;
+                                    sqlCommand.Parameters.Add("@MoStart", DbType.Int32).Value = shift._MoStart;
+                                    sqlCommand.Parameters.Add("@MoEnd", DbType.Int32).Value = shift._MoEnd;
+                                    sqlCommand.Parameters.Add("@TuStart", DbType.Int32).Value = shift._TuStart;
+                                    sqlCommand.Parameters.Add("@TuEnd", DbType.Int32).Value = shift._TuEnd;
+                                    sqlCommand.Parameters.Add("@WeStart", DbType.Int32).Value = shift._WeStart;
+                                    sqlCommand.Parameters.Add("@WeEnd", DbType.Int32).Value = shift._WeEnd;
+                                    sqlCommand.Parameters.Add("@ThStart", DbType.Int32).Value = shift._ThStart;
+                                    sqlCommand.Parameters.Add("@ThEnd", DbType.Int32).Value = shift._ThEnd;
+                                    sqlCommand.Parameters.Add("@FrStart", DbType.Int32).Value = shift._FrStart;
+                                    sqlCommand.Parameters.Add("@FrEnd", DbType.Int32).Value = shift._FrEnd;
+                                    sqlCommand.Parameters.Add("@SaStart", DbType.Int32).Value = shift._SaStart;
+                                    sqlCommand.Parameters.Add("@SaEnd", DbType.Int32).Value = shift._SaEnd;
+                                    sqlCommand.Parameters.Add("@SuStart", DbType.Int32).Value = shift._SuStart;
+                                    sqlCommand.Parameters.Add("@SuEnd", DbType.Int32).Value = shift._SuEnd;
+                                    sqlCommand.Parameters.Add("@Status", DbType.String).Value = shift._Status;
+                                    sqlCommand.Parameters.Add("@Comment", DbType.String).Value = shift._Comment;
+                                    sqlCommand.Parameters.Add("@DayInputed", DbType.String).Value = DateTimeToYYYYMMDDHHMM();
+                                    try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                    _ProgressWork1Step(1);
+                                }
+                            }
+                        }
+                        sqlCommand1 = new SQLiteCommand("end", sqlConnection);
+                        sqlCommand1.ExecuteNonQuery();
+
+                        _toolStripStatusLabelSetText(StatusLabel2, "Записываю все полученные ФИО в локальную базу...");
+                        List<string> ListFIOCombo = new List<string>();
+                        sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
+                        sqlCommand1.ExecuteNonQuery();
+                        foreach (var dr in dataTablePeople.AsEnumerable().Distinct())
+                        {
+                            if (dr[@"Фамилия Имя Отчество"]?.ToString()?.Length > 0 && dr[@"NAV-код"]?.ToString()?.Length == 6)
+                            {
+                                using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Department, PositionInDepartment, DepartmentId)" +
+                                        " VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Department, @PositionInDepartment, @DepartmentId)", sqlConnection))
+                                {
+                                    sqlCommand.Parameters.Add("@FIO", DbType.String).Value = dr[@"Фамилия Имя Отчество"].ToString();
+                                    sqlCommand.Parameters.Add("@NAV", DbType.String).Value = dr[@"NAV-код"].ToString();
+                                    sqlCommand.Parameters.Add("@GroupPerson", DbType.String).Value = dr[@"Группа"].ToString();
+                                    sqlCommand.Parameters.Add("@ControllingHHMM", DbType.String).Value = dr[@"Учетное время прихода ЧЧ:ММ"].ToString();
+                                    sqlCommand.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = dr[@"Учетное время ухода ЧЧ:ММ"].ToString();
+                                    sqlCommand.Parameters.Add("@Shift", DbType.String).Value = dr[@"График"].ToString();
+                                    sqlCommand.Parameters.Add("@Department", DbType.String).Value = dr[@"Отдел"].ToString();
+                                    sqlCommand.Parameters.Add("@PositionInDepartment", DbType.String).Value = dr[@"Должность"].ToString();
+                                    sqlCommand.Parameters.Add("@DepartmentId", DbType.String).Value = dr[@"Отдел (id)"].ToString();
+
+                                    try { sqlCommand.ExecuteNonQuery(); }
+                                    catch (Exception expt)
+                                    { logger.Warn("ошибка записи в локальную базу PeopleGroup - " + dr[@"Фамилия Имя Отчество"].ToString() + "\n" + dr[@"NAV-код"].ToString() + "\n" + expt.ToString()); }
+
+                                    ListFIOCombo.Add(dr[@"Фамилия Имя Отчество"].ToString() + "|" + dr[@"NAV-код"].ToString());
+                                    _ProgressWork1Step(1);
+                                }
+                            }
+                        }
+                        sqlCommand1 = new SQLiteCommand("end", sqlConnection);
+                        sqlCommand1.ExecuteNonQuery();
+
+                        string[] arrayFIO = ListFIOCombo.Distinct().ToArray();
+                        sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
+                        sqlCommand1.ExecuteNonQuery();
+                        foreach (string str in arrayFIO)
+                        {
+                            if (str != null && str.Length > 1)
+                            {
+                                using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'LastTakenPeopleComboList' (ComboList) VALUES (@ComboList)", sqlConnection))
+                                {
+                                    sqlCommand.Parameters.Add("@ComboList", DbType.String).Value = str;
+                                    try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                    _ProgressWork1Step(1);
+                                }
+                            }
+                        }
+                        sqlCommand1 = new SQLiteCommand("end", sqlConnection);
+                        sqlCommand1.ExecuteNonQuery();
+                        sqlCommand1.Dispose();
+                        sqlConnection.Close();
+
+                        foreach (string str in arrayFIO)
+                        { _comboBoxAdd(comboBoxFio, str); }
                         _ProgressWork1Step(1);
-                    }
-                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
-
-
-                    _toolStripStatusLabelSetText(StatusLabel2, "Создаю заново рассылки по группам...");
-                    string recipientEmail = "";
-                    sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
-                    foreach (var deprtment in departmentsEmailUniq.ToArray().Distinct())
-                    {
-                        depDescr = deprtment?._departmentDescription;
-                        recipientEmail = deprtment._departmentBossEmail;
-                        depName = deprtment._departmentName;
-
-                        if (depName.StartsWith("@") && recipientEmail.Contains('@'))
-                        {
-                            using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'Mailing' (SenderEmail, RecipientEmail, GroupsReport, NameReport, Description, Period, Status, DateCreated, SendingLastDate, TypeReport, DayReport)" +
-                               " VALUES (@SenderEmail, @RecipientEmail, @GroupsReport, @NameReport, @Description, @Period, @Status, @DateCreated, @SendingLastDate, @TypeReport, @DayReport)", sqlConnection))
-                            {
-                                sqlCommand.Parameters.Add("@SenderEmail", DbType.String).Value = mailServerUserName;
-                                sqlCommand.Parameters.Add("@RecipientEmail", DbType.String).Value = recipientEmail;
-                                sqlCommand.Parameters.Add("@GroupsReport", DbType.String).Value = depName;
-                                sqlCommand.Parameters.Add("@NameReport", DbType.String).Value = depName;
-                                sqlCommand.Parameters.Add("@Description", DbType.String).Value = depDescr;
-                                sqlCommand.Parameters.Add("@Period", DbType.String).Value = "Текущий месяц";
-                                sqlCommand.Parameters.Add("@Status", DbType.String).Value = "Активная";
-                                sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTimeToYYYYMMDDHHMM();
-                                sqlCommand.Parameters.Add("@SendingLastDate", DbType.String).Value = "";
-                                sqlCommand.Parameters.Add("@TypeReport", DbType.String).Value = "Полный";
-                                sqlCommand.Parameters.Add("@DayReport", DbType.String).Value = "28";
-
-                                try { sqlCommand.ExecuteNonQuery(); } catch { }
-                            }
-
-                            logger.Trace("SaveMailing: " + recipientEmail + " " + depName + " " + depDescr);
-                        }
+                        if (_comboBoxCountItems(comboBoxFio) > 0)
+                        { _comboBoxSelectIndex(comboBoxFio, 0); }
                         _ProgressWork1Step(1);
+
+                        logger.Info("Получено ФИО: " + arrayFIO.Length);
+                        arrayFIO = null;
+                        ListFIOCombo = null;
                     }
-                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
-
-                    sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
-                    _toolStripStatusLabelSetText(StatusLabel2, "Записываю новые индивидуальные графики...");
-                    foreach (var shift in peopleShifts.ToArray())
-                    {
-                        if (shift._nav != null && shift._nav.Length > 0)
-                        {
-                            using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'ListOfWorkTimeShifts' (NAV, DayStartShift, MoStart, MoEnd, " +
-                                "TuStart, TuEnd, WeStart, WeEnd, ThStart, ThEnd, FrStart, FrEnd, SaStart, SaEnd, SuStart, SuEnd, Status, Comment, DayInputed) " +
-                            " VALUES (@NAV, @DayStartShift, @MoStart, @MoEnd, @TuStart, @TuEnd, @WeStart, @WeEnd, @ThStart, @ThEnd, @FrStart, @FrEnd, " +
-                            " @SaStart, @SaEnd, @SuStart, @SuEnd, @Status, @Comment, @DayInputed)", sqlConnection))
-                            {
-                                sqlCommand.Parameters.Add("@NAV", DbType.String).Value = shift._nav;
-                                sqlCommand.Parameters.Add("@DayStartShift", DbType.String).Value = shift._dayStartShift;
-                                sqlCommand.Parameters.Add("@MoStart", DbType.Int32).Value = shift._MoStart;
-                                sqlCommand.Parameters.Add("@MoEnd", DbType.Int32).Value = shift._MoEnd;
-                                sqlCommand.Parameters.Add("@TuStart", DbType.Int32).Value = shift._TuStart;
-                                sqlCommand.Parameters.Add("@TuEnd", DbType.Int32).Value = shift._TuEnd;
-                                sqlCommand.Parameters.Add("@WeStart", DbType.Int32).Value = shift._WeStart;
-                                sqlCommand.Parameters.Add("@WeEnd", DbType.Int32).Value = shift._WeEnd;
-                                sqlCommand.Parameters.Add("@ThStart", DbType.Int32).Value = shift._ThStart;
-                                sqlCommand.Parameters.Add("@ThEnd", DbType.Int32).Value = shift._ThEnd;
-                                sqlCommand.Parameters.Add("@FrStart", DbType.Int32).Value = shift._FrStart;
-                                sqlCommand.Parameters.Add("@FrEnd", DbType.Int32).Value = shift._FrEnd;
-                                sqlCommand.Parameters.Add("@SaStart", DbType.Int32).Value = shift._SaStart;
-                                sqlCommand.Parameters.Add("@SaEnd", DbType.Int32).Value = shift._SaEnd;
-                                sqlCommand.Parameters.Add("@SuStart", DbType.Int32).Value = shift._SuStart;
-                                sqlCommand.Parameters.Add("@SuEnd", DbType.Int32).Value = shift._SuEnd;
-                                sqlCommand.Parameters.Add("@Status", DbType.String).Value = shift._Status;
-                                sqlCommand.Parameters.Add("@Comment", DbType.String).Value = shift._Comment;
-                                sqlCommand.Parameters.Add("@DayInputed", DbType.String).Value = DateTimeToYYYYMMDDHHMM();
-                                try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
-                                _ProgressWork1Step(1);
-                            }
-                        }
-                    }
-                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
-
-                    List<string> ListFIOCombo = new List<string>();
-
-                    _toolStripStatusLabelSetText(StatusLabel2, "Записываю все полученные ФИО в локальную базу...");
-                    sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
-                    foreach (var dr in dataTablePeople.AsEnumerable().Distinct())
-                    {
-                        if (dr[@"Фамилия Имя Отчество"]?.ToString()?.Length > 0 && dr[@"NAV-код"]?.ToString()?.Length == 6)
-                        {
-                            using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Department, PositionInDepartment, DepartmentId)" +
-                                    " VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Department, @PositionInDepartment, @DepartmentId)", sqlConnection))
-                            {
-                                sqlCommand.Parameters.Add("@FIO", DbType.String).Value = dr[@"Фамилия Имя Отчество"].ToString();
-                                sqlCommand.Parameters.Add("@NAV", DbType.String).Value = dr[@"NAV-код"].ToString();
-                                sqlCommand.Parameters.Add("@GroupPerson", DbType.String).Value = dr[@"Группа"].ToString();
-                                sqlCommand.Parameters.Add("@ControllingHHMM", DbType.String).Value = dr[@"Учетное время прихода ЧЧ:ММ"].ToString();
-                                sqlCommand.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = dr[@"Учетное время ухода ЧЧ:ММ"].ToString();
-                                sqlCommand.Parameters.Add("@Shift", DbType.String).Value = dr[@"График"].ToString();
-                                sqlCommand.Parameters.Add("@Department", DbType.String).Value = dr[@"Отдел"].ToString();
-                                sqlCommand.Parameters.Add("@PositionInDepartment", DbType.String).Value = dr[@"Должность"].ToString();
-                                sqlCommand.Parameters.Add("@DepartmentId", DbType.String).Value = dr[@"Отдел (id)"].ToString();
-
-                                try { sqlCommand.ExecuteNonQuery(); }
-                                catch (Exception expt)
-                                { logger.Warn("ошибка записи в локальную базу PeopleGroup - " + dr[@"Фамилия Имя Отчество"].ToString() + "\n" + dr[@"NAV-код"].ToString() + "\n" + expt.ToString()); }
-
-                                ListFIOCombo.Add(dr[@"Фамилия Имя Отчество"].ToString() + "|" + dr[@"NAV-код"].ToString());
-                                _ProgressWork1Step(1);
-                            }
-                        }
-                    }
-                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
-
-                    string[] arrayFIO = ListFIOCombo.Distinct().ToArray();
-
-                    sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
-                    foreach (string str in arrayFIO)
-                    {
-                        if (str != null && str.Length > 1)
-                        {
-                            using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'LastTakenPeopleComboList' (ComboList) VALUES (@ComboList)", sqlConnection))
-                            {
-                                sqlCommand.Parameters.Add("@ComboList", DbType.String).Value = str;
-                                try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
-                                _ProgressWork1Step(1);
-                            }
-                        }
-                    }
-                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
-
-                    sqlCommand1.Dispose();
-                    sqlConnection.Close();
-                    foreach (string str in arrayFIO)
-                    { _comboBoxAdd(comboBoxFio, str); }
-                    _ProgressWork1Step(1);
-
-                    if (_comboBoxCountItems(comboBoxFio) > 0)
-                    { _comboBoxSelectIndex(comboBoxFio, 0); }
-                    _ProgressWork1Step(1);
-
-                    _toolStripStatusLabelSetText(StatusLabel2, "Получено ФИО - " + arrayFIO.Length + " ");
-                    arrayFIO = null;
-                    ListFIOCombo = null;
                 }
+                departmentsUniq = null;
+                resulListDepartment = null;
 
-                _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
-                _MenuItemEnabled(LoadDataItem, true);
+                _toolStripStatusLabelSetText(StatusLabel2, "Списки ФИО и департаментов успешно получены.");
+                stimerPrev = "Все списки с ФИО и департаментами получены";
+                _ProgressWork1Step(1);
+            }
+            catch (Exception Expt)
+            {
+                logger.Warn("Возникла ошибка во время получения и обработки данных с серверов: " + Expt.ToString());
+                _toolStripStatusLabelSetText(StatusLabel2, "Возникла ошибка во время получения данных с серверов.");
+                _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
             }
 
-            _toolStripStatusLabelForeColor(StatusLabel1, Color.Black);
-            _ProgressWork1Step(1);
             stringConnection = null;
             ListFIOTemp = null;
             listCodesWithIdCard = null;
-            departmentsUniq = null;
-            resulListDepartment = null;
-
-            if (!bServer1Exist)
-            {
-                logger.Warn("GetFioFromServers: Проверьте правильность написания серверов, имя и пароль sa-администратора, а а также доступность серверов и их баз!");
-                _toolStripStatusLabelSetText(StatusLabel2, "Ошибка доступа к БД СКД-сервера");
-                _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
-                _MenuItemEnabled(LoadDataItem, false);
-            }
-            _MenuItemEnabled(GetFioItem, true);
-            _MenuItemEnabled(FunctionMenuItem, true);
-            _MenuItemEnabled(SettingsMenuItem, true);
-            _MenuItemEnabled(GroupsMenuItem, true);
-            _ProgressWork1Step(1);
         }
 
         private void listFioItem_Click(object sender, EventArgs e) //ListFioReturn()
@@ -2016,7 +1987,7 @@ namespace ASTA
                 CreateGroupInDB(databasePerson, textBoxGroup.Text.Trim(), textBoxGroupDescription.Text.Trim());
             }
 
-            PersonOrGroupItem.Text = "Работа с одной персоной";
+            PersonOrGroupItem.Text = "Работать с одной персоной";
             nameOfLastTableFromDB = "PeopleGroup";
             ListGroups();
         }
@@ -2062,11 +2033,11 @@ namespace ASTA
             DeleteGroupItem.Visible = true;
             dataGridView1.Visible = true;
             MembersGroupItem.Enabled = true;
-
             _controlEnable(comboBoxFio, false);
+
             dataGridView1.Select();
 
-            PersonOrGroupItem.Text = "Работа с одной персоной";
+            PersonOrGroupItem.Text = "Работать с одной персоной";
         }
 
         private void CountMembersAndUpdateAmountInTableGroups()
@@ -2178,7 +2149,7 @@ namespace ASTA
             { query += " where GroupPerson like '" + nameGroup + "'"; }
 
             query += ";";
-            logger.Info("SeekAndShowMembersOfGroup: " + query);
+            logger.Trace("SeekAndShowMembersOfGroup: " + query);
             using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
             {
                 sqlConnection.Open();
@@ -2508,7 +2479,7 @@ namespace ASTA
             }
             SeekAndShowMembersOfGroup(group);
 
-            PersonOrGroupItem.Text = "Работа с одной персоной";
+            PersonOrGroupItem.Text = "Работать с одной персоной";
 
             nameOfLastTableFromDB = "PeopleGroup";
             group = null;
@@ -3385,8 +3356,8 @@ namespace ASTA
             ShowDatatableOnDatagridview(dtPersonTemp, nameHidenColumnsArray, "PeopleGroup");
             panelViewResize(numberPeopleInLoading);
             _controlVisible(dataGridView1, true);
-            dtTempIntermediate = null;
             _controlEnable(checkBoxReEnter, true);
+            dtTempIntermediate = null;
         }
 
         public static DataTable GetDistinctRecords(DataTable dt, string[] Columns)
@@ -5667,7 +5638,7 @@ namespace ASTA
 
         private void PersonOrGroupItem_MouseEnter(object sender, EventArgs e)
         {
-            if (PersonOrGroupItem.Text == "Работа с одной персоной")
+            if (PersonOrGroupItem.Text == "Работать с одной персоной")
             {  //Save previous color              
                 comboBoxFioCurrentBackColor = comboBoxFio.BackColor;
                 textBoxFIOCurrentBackColor = textBoxFIO.BackColor;
@@ -5691,7 +5662,7 @@ namespace ASTA
 
         private void PersonOrGroupItem_MouseLeave(object sender, EventArgs e)
         {
-            if (PersonOrGroupItem.Text == "Работа с одной персоной")
+            if (PersonOrGroupItem.Text == "Работать с одной персоной")
             {   //Restore saved color             
                 comboBoxFio.BackColor = comboBoxFioCurrentBackColor;
                 textBoxFIO.BackColor = textBoxFIOCurrentBackColor;
@@ -5764,16 +5735,19 @@ namespace ASTA
             string menu = _MenuItemReturnText(PersonOrGroupItem);
             switch (menu)
             {
-                case ("Работа с группой"):
-                    _MenuItemTextSet(PersonOrGroupItem, "Работа с одной персоной");
+                case ("Работать с группой"):
+                    _MenuItemTextSet(PersonOrGroupItem, "Работать с одной персоной");
+                    _controlEnable(comboBoxFio, false);
                     nameOfLastTableFromDB = "PersonRegistrationsList";
                     break;
-                case ("Работа с одной персоной"):
-                    _MenuItemTextSet(PersonOrGroupItem, "Работа с группой");
+                case ("Работать с одной персоной"):
+                    _MenuItemTextSet(PersonOrGroupItem, "Работать с группой");
+                    _controlEnable(comboBoxFio, true);
                     nameOfLastTableFromDB = "PeopleGroup";
                     break;
                 default:
-                    _MenuItemTextSet(PersonOrGroupItem, "Работа с группой");
+                    _MenuItemTextSet(PersonOrGroupItem, "Работать с группой");
+                    _controlEnable(comboBoxFio, true);
                     nameOfLastTableFromDB = "PeopleGroup";
                     break;
             }
@@ -6124,10 +6098,12 @@ namespace ASTA
 
                 if ((nameOfLastTableFromDB == @"PeopleGroupDesciption") && currentMouseOverRow > -1)
                 {
-                    mRightClick.MenuItems.Add(new MenuItem("Загрузка данных регистрации персонала", GetDataItem_Click));
-                    mRightClick.MenuItems.Add(new MenuItem("Загрузить данные регистрациий за текущий месяц отправить отчет", DoReportAndEmail));
+                    dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { @"Группа", @"Описание группы" });
+
+                    mRightClick.MenuItems.Add(new MenuItem("Загрузить данных регистрации '" + dgSeek.values[1] + "'", GetDataItem_Click));
+                    mRightClick.MenuItems.Add(new MenuItem("Загрузить данные регистрациий '" + dgSeek.values[1]+"' за текущий месяц, и отправить отчет - " +mailServerUserName, DoReportAndEmail));
                     mRightClick.MenuItems.Add("-");
-                    mRightClick.MenuItems.Add(new MenuItem("Удалить выделенную группу", DeleteCurrentRow));
+                    mRightClick.MenuItems.Add(new MenuItem("Удалить группу: '"+ dgSeek.values[1]+"'", DeleteCurrentRow));
 
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
@@ -6588,9 +6564,6 @@ namespace ASTA
 
         private async void SelectMailingDoAction() //MailingAction()
         {
-            //предварительно обновить список ФИО и индивидуальные графики
-
-            //GetFIO();
             await Task.Run(() => GetFIO());
 
             string sender = "";
@@ -6709,12 +6682,9 @@ namespace ASTA
 
                             GetNamePoints();  //Get names of the registration' points
 
-                            logger.Trace("MailingAction, sendEmail: " + selectPeriodMonth());
                             reportStartDay = selectPeriodMonth().Split('|')[0];
                             reportLastDay = selectPeriodMonth().Split('|')[1];
 
-                            //periodComboParameters.Add("Текущий месяц");
-                            //periodComboParameters.Add("Предыдущий месяц");
                             if (period.ToLower().Contains("текущий") || period.ToLower().Contains("текущая"))
                             {
                                 reportStartDay = selectPeriodMonth(true).Split('|')[0];
@@ -6723,22 +6693,16 @@ namespace ASTA
 
                             DateTime dt = DateTime.Parse(reportStartDay);
                             int[] startPeriod = { dt.Year, dt.Month, dt.Day };
-
                             dt = DateTime.Parse(reportLastDay);
                             int[] endPeriod = { dt.Year, dt.Month, dt.Day };
 
-                            DataTable dtEmpty = new DataTable();
-                            Person emptyPerson = new Person();
-                            SeekAnualDays(dtEmpty, emptyPerson, false, startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
+                            SeekAnualDays(dtTempIntermediate, person, false, startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
 
-                            dtEmpty.Dispose();
-                            emptyPerson = null;
-
-                            logger.Info("MailingAction: " + selectPeriodMonth() + " | " + reportStartDay + " " + reportLastDay);
+                            logger.Trace("MailingAction: " + selectPeriodMonth() + " | " + reportStartDay + " " + reportLastDay);
 
                             string nameGroup = "";
                             string selectedPeriod = reportStartDay.Split(' ')[0] + " - " + reportLastDay.Split(' ')[0];
-                            string bodyOfMail = "";
+
                             string titleOfbodyMail = "";
                             string[] groups = groupsReport.Split('+');
 
@@ -6803,19 +6767,18 @@ namespace ASTA
                                         filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), illegal);
                                         try { System.IO.File.Delete(filePathExcelReport); }
                                         catch (Exception expt)
-                                        { logger.Error("Ошибка удаления файла " + filePathExcelReport + " " + expt.ToString()); }
+                                        { logger.Warn("Ошибка удаления файла " + filePathExcelReport + " " + expt.ToString()); }
 
-                                        logger.Info("сохраняю файл: " + filePathExcelReport);
+                                        logger.Trace("сохраняю файл: " + filePathExcelReport);
                                         ExportDatatableSelectedColumnsToExcel(dtPersonTemp, nameReport, filePathExcelReport);
 
                                         if (reportExcelReady)
                                         {
-                                            bodyOfMail = "";
 
                                             titleOfbodyMail = "с " + reportStartDay.Split(' ')[0] + " по " + reportLastDay.Split(' ')[0];
                                             _toolStripStatusLabelSetText(StatusLabel2, "Подготавливаю отчет для отправки " + recipientEmail);
 
-                                            SendEmailAsync(senderEmail, recipientEmail, titleOfbodyMail, description, bodyOfMail, filePathExcelReport, Properties.Resources.LogoRYIK, productName);
+                                            SendEmailAsync(senderEmail, recipientEmail, titleOfbodyMail, description, filePathExcelReport, Properties.Resources.LogoRYIK, productName);
 
                                             _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
                                             _toolStripStatusLabelSetText(StatusLabel2, DateTimeToYYYYMMDDHHMM() + " Отчет " + nameReport + "(" + groupName + ") подготовлен и отправлен " + recipientEmail);
@@ -6831,15 +6794,14 @@ namespace ASTA
                                         _toolStripStatusLabelSetText(StatusLabel2, "Ошибка получения данных по отчету " + nameReport);
                                         _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
                                     }
-                                    //destroy temporary variables
                                     person = null;
                                 }
                             }
-                            //destroy temporary variables
+
                             dtTempIntermediate?.Dispose();
                             dtPersonTemp?.Clear();
                             selectedPeriod = null;
-                            bodyOfMail = null; titleOfbodyMail = null; nameGroup = null;
+                             titleOfbodyMail = null; nameGroup = null;
                         }
                         break;
                     }
@@ -6848,7 +6810,7 @@ namespace ASTA
             }
         }
 
-        private async void SendEmailAsync(string sender, string recipient, string period, string department, string messageBeforePicture, string pathToFile, Bitmap myLogo, string messageAfterPicture) //Compose and send e-mail
+        private async void SendEmailAsync(string sender, string recipient, string period, string department, string pathToFile, Bitmap myLogo, string messageAfterPicture) //Compose and send e-mail
         {
             // string startupPath = AppDomain.CurrentDomain.RelativeSearchPath;
             // string path = System.IO.Path.Combine(startupPath, "HtmlTemplates", "NotifyTemplate.html");
@@ -6868,7 +6830,7 @@ namespace ASTA
                     newMail.IsBodyHtml = true;
                     newMail.BodyEncoding = UTF8Encoding.UTF8;
 
-                    newMail.AlternateViews.Add(getEmbeddedImage(period, department, messageBeforePicture, myLogo, messageAfterPicture));
+                    newMail.AlternateViews.Add(getEmbeddedImage(period, department, myLogo, messageAfterPicture));
                     // отправитель - устанавливаем адрес и отображаемое в письме имя
                     newMail.From = new System.Net.Mail.MailAddress(sender, nameOfSenderReports);
 
@@ -6891,7 +6853,7 @@ namespace ASTA
             }
         }
 
-        private System.Net.Mail.AlternateView getEmbeddedImage(string period, string department, string messageBeforePicture, Bitmap bmp, string messageAfterPicture)
+        private System.Net.Mail.AlternateView getEmbeddedImage(string period, string department, Bitmap bmp, string messageAfterPicture)
         {
             //convert embedded resources into memorystream
             Bitmap b = new Bitmap(bmp, new Size(50, 50));
@@ -7932,7 +7894,6 @@ namespace ASTA
             { return DateTime.Parse(date).ToString("yyyy-MM-dd HH:mm"); }
             else { return DateTime.Now.ToString("yyyy-MM-dd HH:mm"); }
         }
-
         //---- End. Convertors of data types ----//
     }
 }

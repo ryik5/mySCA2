@@ -29,9 +29,9 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(WinFormASTA));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.comboBoxFio = new System.Windows.Forms.ComboBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
@@ -70,7 +70,6 @@
             this.TableModeItem = new System.Windows.Forms.ToolStripMenuItem();
             this.VisualModeItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ChangeColorMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.ChangeColorOfGraphicItem = new System.Windows.Forms.ToolStripMenuItem();
             this.Separator11 = new System.Windows.Forms.ToolStripSeparator();
             this.ExitItem = new System.Windows.Forms.ToolStripMenuItem();
             this.GroupsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -137,20 +136,20 @@
             // dataGridView1
             // 
             this.dataGridView1.AllowUserToOrderColumns = true;
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
-            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.Color.SteelBlue;
-            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.Color.SteelBlue;
+            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
             resources.ApplyResources(this.dataGridView1, "dataGridView1");
             this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dataGridView1.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedHeaders;
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            dataGridViewCellStyle4.ForeColor = System.Drawing.Color.Black;
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.Color.LightBlue;
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.Color.DarkSlateGray;
-            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            dataGridViewCellStyle2.ForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.LightBlue;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.DarkSlateGray;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnF2;
             this.dataGridView1.Name = "dataGridView1";
@@ -443,16 +442,9 @@
             // 
             // ChangeColorMenuItem
             // 
-            this.ChangeColorMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.ChangeColorOfGraphicItem});
             this.ChangeColorMenuItem.Name = "ChangeColorMenuItem";
             resources.ApplyResources(this.ChangeColorMenuItem, "ChangeColorMenuItem");
-            // 
-            // ChangeColorOfGraphicItem
-            // 
-            this.ChangeColorOfGraphicItem.Name = "ChangeColorOfGraphicItem";
-            resources.ApplyResources(this.ChangeColorOfGraphicItem, "ChangeColorOfGraphicItem");
-            this.ChangeColorOfGraphicItem.Click += new System.EventHandler(this.ColorRegistrationMenuItem_Click);
+            this.ChangeColorMenuItem.Click += new System.EventHandler(this.ColorRegistrationMenuItem_Click);
             // 
             // Separator11
             // 
@@ -891,7 +883,6 @@
         private System.Windows.Forms.ToolStripMenuItem TableExportToExcelItem;
         private System.Windows.Forms.ToolStripMenuItem VisualModeItem;
         private System.Windows.Forms.ToolStripMenuItem ChangeColorMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem ChangeColorOfGraphicItem;
         private System.Windows.Forms.ToolStripMenuItem TableModeItem;
         private System.Windows.Forms.ToolStripMenuItem ImportPeopleInLocalDBItem;
         private System.Windows.Forms.ToolStripMenuItem ClearRegistryItem;

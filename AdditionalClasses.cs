@@ -90,7 +90,8 @@ namespace ASTA
 
         public override string ToString()
         {
-            string message = @"<p><font size='3' color='black' face='Arial'>Здравствуйте,</p>Во вложении «Отчет по учету рабочего времени сотрудников».<p>" +
+            string message =@"<style type = 'text/css'> A {text - decoration: none;}</ style >"+
+                            @"<p><font size='3' color='black' face='Arial'>Здравствуйте,</p>Во вложении «Отчет по учету рабочего времени сотрудников».<p>" +
 
                             @"<b>Период: </b>" +
                             _period +
@@ -108,11 +109,24 @@ namespace ASTA
                             @"Данное сообщение и отчет созданы автоматически</br>программой по учету рабочего времени сотрудников." +
                             @"</i></font></br><font size='1' color='red' face='Arial'></br>" +
                             _dateAndTimeCurrent +
-                            @"</font></p><hr><img src='cid:" +
+                            @"</font></p><hr><img alt='ASTA' src='cid:" +
                             _picture +
-                            @"'/>";
+                            @"'/></br><a href='mailto:ryik.yuri@gmail.com'> </a>";
             return message;
         }
+    }
+
+    class MailingStructure
+    {
+        public string _sender = "";
+        public string _recipient = "";
+        public string _groupsReport = "";
+        public string _nameReport = "";
+        public string _descriptionReport = "";
+        public string _period = "";
+        public string _status = "";
+        public string _typeReport = "";
+        public string _dayReport = "";
     }
 
     class Person
@@ -147,6 +161,75 @@ namespace ASTA
         public string directionPass = "";
         public string Shift = "";
         public string Comment = "";
+    }
+
+    class OutReasons
+    {
+        public string _id = "";
+        public string _name = "";
+        public string _visibleName = "";
+        public int _hourly = 0;
+    }
+
+    class OutPerson
+    {
+        public string _reason_id = "0";
+        public string _nav = "";
+        public string _date = "";
+        public int _from = 0;
+        public int _to = 0;
+        public int _hourly = 0;
+    }
+
+    struct PeopleShift
+    {
+        public string _nav;
+        public string _dayStartShift;
+        public int _MoStart;
+        public int _MoEnd;
+        public int _TuStart;
+        public int _TuEnd;
+        public int _WeStart;
+        public int _WeEnd;
+        public int _ThStart;
+        public int _ThEnd;
+        public int _FrStart;
+        public int _FrEnd;
+        public int _SaStart;
+        public int _SaEnd;
+        public int _SuStart;
+        public int _SuEnd;
+        public string _Status;
+        public string _Comment;
+    }
+
+    struct AmountMembersOfGroup
+    {
+        public int _amountMembers;
+        public string _groupName;
+    }
+
+    class DepartmentEmail
+    {
+        public string _departmentBossEmail;
+        public string _departmentName;
+        public string _departmentDescription;
+    }
+
+    class Department
+    {
+        public string _departmentName;
+        public string _departmentDescription;
+    }
+
+    class PeopleDepartment
+    {
+        public string _departmentBossEmail;
+        public string _departmentBossCode;
+        public string _departmentName;
+        public string _departmentDescription;
+        public string _parent_id;
+        public string _id;
     }
 
     class DataGridViewSeekValuesInSelectedRow
@@ -247,92 +330,6 @@ namespace ASTA
         {
             return new DateTime(date.Year, date.Month, 1);
         }
-    }
-
-    class MailingStructure
-    {
-        public string _sender = "";
-        public string _recipient = "";
-        public string _groupsReport = "";
-        public string _nameReport = "";
-        public string _descriptionReport = "";
-        public string _period = "";
-        public string _status = "";
-        public string _typeReport = "";
-        public string _dayReport = "";
-    }
-
-    class OutReasons
-    {
-        public string _id = "";
-        public string _name = "";
-        public string _visibleName = "";
-        public int _hourly = 0;
-    }
-
-    class OutPerson
-    {
-        public string _reason_id = "0";
-        public string _nav = "";
-        public string _date = "";
-        public int _from = 0;
-        public int _to = 0;
-        public int _hourly = 0;
-    }
-
-    struct PeopleShift
-    {
-        public string _fio;
-        public string _nav;
-        public string _dayStartShift;
-        public int _MoStart;
-        public int _MoEnd;
-        public int _TuStart;
-        public int _TuEnd;
-        public int _WeStart;
-        public int _WeEnd;
-        public int _ThStart;
-        public int _ThEnd;
-        public int _FrStart;
-        public int _FrEnd;
-        public int _SaStart;
-        public int _SaEnd;
-        public int _SuStart;
-        public int _SuEnd;
-        public string _Status;
-        public string _Comment;
-        public string _DayInputed;
-        public string _Reserv1;
-        public string _Reserv2;
-    }
-
-    struct AmountMembersOfGroup
-    {
-        public int _amountMembers;
-        public string _groupName;
-    }
-
-    class DepartmentEmail
-    {
-        public string _departmentBossEmail;
-        public string _departmentName;
-        public string _departmentDescription;
-    }
-
-    class Department
-    {
-        public string _departmentName;
-        public string _departmentDescription;
-    }
-
-    class PeopleDepartment
-    {
-        public string _departmentBossEmail;
-        public string _departmentBossCode;
-        public string _departmentName;
-        public string _departmentDescription;
-        public string _parent_id;
-        public string _id;
     }
 
     class EncryptDecrypt

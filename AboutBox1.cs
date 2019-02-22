@@ -7,7 +7,7 @@ namespace ASTA
 {
     partial class AboutBox1 : Form
     {
-        private bool boolButtonOk = false;
+        public bool boolButtonOk = false;
 
         public AboutBox1()
         {
@@ -46,6 +46,12 @@ namespace ASTA
         {
             boolButtonOk = false;
             this.Close();
+        }
+
+        private void logoPictureBox_Click(object sender, EventArgs e)
+        {
+            string url = "mailto:ryik.yuri@gmail.com";
+            System.Diagnostics.Process.Start(url);
         }
     }
 }
