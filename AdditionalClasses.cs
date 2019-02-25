@@ -330,6 +330,16 @@ namespace ASTA
         {
             return new DateTime(date.Year, date.Month, 1);
         }
+
+        public static string ToMonthName(this DateTime dateTime)
+        {
+            return System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(dateTime.Month);
+        }
+
+        public static string ToShortMonthName(this DateTime dateTime)
+        {
+            return System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(dateTime.Month);
+        }
     }
 
     class EncryptDecrypt

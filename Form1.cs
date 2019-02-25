@@ -43,11 +43,16 @@ namespace ASTA
         string poversion = "";
         string productName = "";
         string strVersion;
+        
+        //mailing
         readonly string nameOfSenderReports = "Отдел компенсаций и льгот";
-        const decimal offsetTimeIn = 0.02m;
-        const decimal offsetTimeOut = 0.02m;
+        static System.Threading.Timer timer;
+        static object synclock = new object();
+        static bool sent = false;
 
         int iCounterLine = 0;
+
+        //collecting of data
         List<string> listFIO = new List<string>(); // List of FIO and identity of data
         List<string> listPoints = new List<string>(); // List of all Points of SCA
         List<string> listRegistrations = new List<string>(); // List whole of registration of the selected person at All servers
@@ -63,6 +68,9 @@ namespace ASTA
         PictureBox pictureBox1 = new PictureBox();
         Bitmap bmp = new Bitmap(1, 1);
 
+        //making reports
+        const decimal offsetTimeIn = 0.02m;
+        const decimal offsetTimeOut = 0.02m;
         List<string> selectedDates = new List<string>();
         string[] myBoldedDates;
         List<string> boldeddDates = new List<string>();
@@ -2782,7 +2790,7 @@ namespace ASTA
             int[] endPeriod = ConvertStringDateToIntArray(endDay);
             logger.Trace("GetPersonRegistrationFromServer, person - " + person.NAV);
 
-            SeekAnualDays(dtTarget, person, false, startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
+            SeekAnualDays(dtTarget, person, false, startPeriod, endPeriod);
             DataRow rowPerson;
             string stringConnection = "";
             string query = "";
@@ -3260,7 +3268,7 @@ namespace ASTA
             int[] endPeriod = _dateTimePickerReturnArray(dateTimePickerEnd);
             DataTable dtEmpty = new DataTable();
             Person emptyPerson = new Person();
-            SeekAnualDays(dtEmpty, emptyPerson, false, startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
+            SeekAnualDays(dtEmpty, emptyPerson, false, startPeriod, endPeriod);
 
             dtEmpty.Dispose();
             emptyPerson = null;
@@ -3503,7 +3511,7 @@ namespace ASTA
                     int[] startPeriod = ConvertStringDateToIntArray(reportStartDay);
                     int[] endPeriod = ConvertStringDateToIntArray(reportLastDay);
 
-                    SeekAnualDays(dtTemp, person, true, startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
+                    SeekAnualDays(dtTemp, person, true, startPeriod, endPeriod);
                 }
 
                 if (_CheckboxCheckedStateReturn(checkBoxTimeViolations)) //checkBoxStartWorkInTime Checking
@@ -3555,7 +3563,7 @@ namespace ASTA
             return boldedDays;
         }
 
-        private void SeekAnualDays(DataTable dt, Person person, bool delRow, int startYear, int startMonth, int startDay, int endYear, int endMonth, int endDay) //Exclude Anual Days from the table "PersonTemp" DB
+        private void SeekAnualDays(DataTable dt, Person person, bool delRow, int[] startOfPeriod, int[] endOfPeriod) //Exclude Anual Days from the table "PersonTemp" DB
         {
             //test
             List<string> daysBolded = new List<string>();
@@ -3568,8 +3576,8 @@ namespace ASTA
             var twoDays = TimeSpan.FromDays(2);
 
 
-            var mySelectedStartDay = new DateTime(startYear, startMonth, startDay);
-            var mySelectedEndDay = new DateTime(endYear, endMonth, endDay);
+            var mySelectedStartDay = new DateTime(startOfPeriod[0], startOfPeriod[1], startOfPeriod[2]);
+            var mySelectedEndDay = new DateTime(endOfPeriod[0], endOfPeriod[1], endOfPeriod[2]);
             //  int myYearNow = DateTime.Now.Year;
             var myMonthCalendar = new MonthCalendar();
 
@@ -3579,20 +3587,20 @@ namespace ASTA
 
             for (int year = -1; year < 3; year++)
             {
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 1, 1));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 1, 2));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 1, 7));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 3, 8));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 5, 1));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 5, 2));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 5, 9));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 6, 28));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 8, 24));    // (plavayuschaya data)
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear + year, 10, 16));   // (plavayuschaya data)
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0] + year, 1, 1));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0] + year, 1, 2));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0] + year, 1, 7));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0] + year, 3, 8));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0] + year, 5, 1));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0] + year, 5, 2));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0] + year, 5, 9));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0] + year, 6, 28));
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0] + year, 8, 24));    // (plavayuschaya data)
+                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0] + year, 10, 16));   // (plavayuschaya data)
             }
 
             // Алгоритм для вычисления католической Пасхи http://snippets.dzone.com/posts/show/765
-            int Y = startYear;
+            int Y = startOfPeriod[0];
             int a = Y % 19;
             int b = Y / 100;
             int c = Y % 100;
@@ -3609,34 +3617,34 @@ namespace ASTA
             int dayEaster = ((h + L - 7 * m + 114) % 31) + 1;
 
             //Easter - Paskha
-            myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, monthEaster, dayEaster) + oneDay);
+            myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0], monthEaster, dayEaster) + oneDay);
 
             foreach (string dayAdditional in ReturnBoldedDaysFromDB(person.NAV, @"Выходной")) // or - Рабочий
             { myMonthCalendar.AddAnnuallyBoldedDate(DateTime.Parse(dayAdditional)); }
 
             //Independence day
-            DateTime dayBolded = new DateTime(startYear, 8, 24);
+            DateTime dayBolded = new DateTime(startOfPeriod[0], 8, 24);
             switch ((int)dayBolded.DayOfWeek)
             {
                 case (int)Day.Sunday:
-                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 8, 24) + oneDay);    // (plavayuschaya data)
+                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0], 8, 24) + oneDay);    // (plavayuschaya data)
                     break;
                 case (int)Day.Saturday:
-                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 8, 24) + twoDays);    // (plavayuschaya data)
+                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0], 8, 24) + twoDays);    // (plavayuschaya data)
                     break;
                 default:
                     break;
             }
 
             //day of Ukraine Force
-            dayBolded = new DateTime(startYear, 10, 16);
+            dayBolded = new DateTime(startOfPeriod[0], 10, 16);
             switch ((int)dayBolded.DayOfWeek)
             {
                 case (int)Day.Sunday:
-                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 10, 16) + oneDay);    // (plavayuschaya data)
+                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0], 10, 16) + oneDay);    // (plavayuschaya data)
                     break;
                 case (int)Day.Saturday:
-                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startYear, 10, 16) + twoDays);    // (plavayuschaya data)
+                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0], 10, 16) + twoDays);    // (plavayuschaya data)
                     break;
                 default:
                     break;
@@ -4162,7 +4170,7 @@ namespace ASTA
                 int[] startPeriod = _dateTimePickerReturnArray(dateTimePickerStart);
                 int[] endPeriod = _dateTimePickerReturnArray(dateTimePickerEnd);
                 DataTable dtEmpty = new DataTable();
-                SeekAnualDays(dtEmpty, personDraw, false, startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
+                SeekAnualDays(dtEmpty, personDraw, false, startPeriod, endPeriod);
                 dtEmpty.Dispose();
 
                 foreach (DataRow row in rowsPersonRegistrationsForDraw.Rows)
@@ -4431,7 +4439,7 @@ namespace ASTA
             int[] startPeriod = _dateTimePickerReturnArray(dateTimePickerStart);
             int[] endPeriod = _dateTimePickerReturnArray(dateTimePickerEnd);
             DataTable dtEmpty = new DataTable();
-            SeekAnualDays(dtEmpty, personDraw, false, startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
+            SeekAnualDays(dtEmpty, personDraw, false, startPeriod, endPeriod);
             dtEmpty.Dispose();
 
             foreach (DataRow row in rowsPersonRegistrationsForDraw)
@@ -6100,8 +6108,9 @@ namespace ASTA
                 {
                     dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { @"Группа", @"Описание группы" });
 
-                    mRightClick.MenuItems.Add(new MenuItem("Загрузить данных регистрации '" + dgSeek.values[1] + "'", GetDataItem_Click));
-                    mRightClick.MenuItems.Add(new MenuItem("Загрузить данные регистрациий '" + dgSeek.values[1]+"' за текущий месяц, и отправить отчет - " +mailServerUserName, DoReportAndEmail));
+                    mRightClick.MenuItems.Add(new MenuItem("Загрузить данные регистраций за '" + dgSeek.values[1] + "'", GetDataItem_Click));
+                    mRightClick.MenuItems.Add(new MenuItem("Загрузить данные регистрациий '" + dgSeek.values[1]+
+                        "' за " + _dateTimePickerStartReturnMonth()+", и отправить отчет - " +mailServerUserName, DoReportAndEmailByRightClick));
                     mRightClick.MenuItems.Add("-");
                     mRightClick.MenuItems.Add(new MenuItem("Удалить группу: '"+ dgSeek.values[1]+"'", DeleteCurrentRow));
 
@@ -6164,22 +6173,20 @@ namespace ASTA
                 dgSeek = null;
             }
         }
+        
+        private void DoReportAndEmailByRightClick(object sender, EventArgs e)
+        { DoReportAndEmailByRightClick(); }
 
-
-
-
-        private void DoReportAndEmail(object sender, EventArgs e)
-        { DoReportAndEmail(); }
-
-        private void DoReportAndEmail()
+        private void DoReportAndEmailByRightClick()
         {
             DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
             dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { @"Группа", @"Описание группы" });
 
             _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет по группе" + dgSeek.values[0]);
-            logger.Trace("DoReportAndEmail, sendEmail: " + mailServerUserName + "|" + dgSeek.values[0]);
+            logger.Trace("DoReportAndEmailByRightClick, sendEmail: " + mailServerUserName + "|" + dgSeek.values[0]);
 
-            MailingAction("sendEmail", mailServerUserName, mailServerUserName, dgSeek.values[0], dgSeek.values[0], "Test", "Текущий месяц", "Активная", "Полный", DateTimeToYYYYMMDDHHMM());
+            MailingAction("sendEmail", mailServerUserName, mailServerUserName, 
+            dgSeek.values[0], dgSeek.values[0], "Test", SelectedDatetimePickersPeriodMonth(), "Активная", "Полный", DateTimeToYYYYMMDDHHMM());
             _ProgressBar1Stop();
         }
 
@@ -6274,19 +6281,26 @@ namespace ASTA
                         currentAction = "sendEmail";
 
                         DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-                        dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { @"Получатель", @"Отчет по группам", @"Наименование", @"Описание", @"Период", @"Статус", @"Тип отчета", @"День отправки отчета" });
+                        dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
+                            @"Получатель", @"Отчет по группам", @"Наименование", @"Описание",
+                            @"Период", @"Статус", @"Тип отчета", @"День отправки отчета" });
                         _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + dgSeek.values[2]);
                         stimerPrev = "";
 
-                        logger.Info("DoMainAction: UPDATE 'Mailing' SET SendingLastDate='" + DateTimeToYYYYMMDDHHMM() + "' WHERE RecipientEmail='" + dgSeek.values[0] + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1] + "';");
-                        ExecuteSql("UPDATE 'Mailing' SET SendingLastDate='" + DateTimeToYYYYMMDDHHMM() + "' WHERE RecipientEmail='" + dgSeek.values[0]
-                        + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1] + "';", databasePerson);
+                        logger.Info("DoMainAction: UPDATE 'Mailing' SET SendingLastDate='" + DateTimeToYYYYMMDDHHMM() +
+                            "' WHERE RecipientEmail='" + dgSeek.values[0] + "' AND NameReport='" + dgSeek.values[2] +
+                            "' AND GroupsReport ='" + dgSeek.values[1] + "';");
+                        ExecuteSql("UPDATE 'Mailing' SET SendingLastDate='" + DateTimeToYYYYMMDDHHMM() +
+                            "' WHERE RecipientEmail='" + dgSeek.values[0] + "' AND NameReport='" + dgSeek.values[2] +
+                            "' AND GroupsReport ='" + dgSeek.values[1] + "';", databasePerson);
 
                         logger.Info("DoMainAction, sendEmail: " +
                             dgSeek.values[0] + "|" + dgSeek.values[1] + "|" + dgSeek.values[2] + "|" +
                             dgSeek.values[3] + "|" + dgSeek.values[4] + "|" + dgSeek.values[5] + "|" +
                             dgSeek.values[6] + "|" + dgSeek.values[7]);
-                        MailingAction("sendEmail", dgSeek.values[0], mailServerUserName, dgSeek.values[1], dgSeek.values[2], dgSeek.values[3], dgSeek.values[4], dgSeek.values[5], dgSeek.values[6], dgSeek.values[7]);
+                        MailingAction("sendEmail", dgSeek.values[0], mailServerUserName, 
+                            dgSeek.values[1], dgSeek.values[2], dgSeek.values[3], dgSeek.values[4], 
+                            dgSeek.values[5], dgSeek.values[6], dgSeek.values[7]);
 
                         logger.Trace("DoMainAction, ShowDataTableQuery: ");
                         ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
@@ -6390,28 +6404,6 @@ namespace ASTA
 
         //---  End.  DatagridView functions ---//
 
-
-
-        public string GetSafeFilename(string filename)
-        {
-            return string.Join("_", filename.Split(System.IO.Path.GetInvalidFileNameChars()));
-        }
-
-        private string selectPeriodMonth(bool current = false) //format of result: firstDay + "|" + lastDay
-        {
-            string result = "";
-            var today = DateTime.Today;
-            var lastDayPrevMonth = new DateTime(today.Year, today.Month, 1).AddDays(-1);
-            if (current)
-            { lastDayPrevMonth = new DateTime(today.Year, today.Month, today.Day); }
-
-            result =
-                lastDayPrevMonth.ToString("yyyy-MM") + "-01" + " 00:00:00" +
-                "|" +
-                lastDayPrevMonth.ToString("yyyy-MM-dd") + " 23:59:59";
-
-            return result;
-        }
 
 
         //---  Start. Schedule Functions ---//
@@ -6532,10 +6524,6 @@ namespace ASTA
             }
         }
 
-        static System.Threading.Timer timer;
-        static object synclock = new object();
-        static bool sent = false;
-
         private void ScheduleTask(object obj) //SelectMailingDoAction()
         {
             lock (synclock)
@@ -6655,6 +6643,45 @@ namespace ASTA
             mailingList = null;
         }
 
+        public string GetSafeFilename(string filename)
+        {
+            return string.Join("", filename.Split(System.IO.Path.GetInvalidFileNameChars()));
+        }
+
+        private string SelectWholeCurrentMonth() //format of result: firstDayAndTime + "|" + lastDayAndTime
+        {
+            string result = "";
+            var dt = DateTime.Now;
+       
+            var lastDayPrevMonth = new DateTime(dt.Year, dt.Month, dt.Day); 
+
+            result =
+                lastDayPrevMonth.ToString("yyyy-MM") + "-01" + " 00:00:00" +
+                "|" +
+                lastDayPrevMonth.ToString("yyyy-MM-dd") + " 23:59:59";
+
+            return result;
+        }
+
+        private string SelectWholePreviousMonth() //format of result: firstDay + "|" + lastDay
+        {
+            string result = "";
+            var dt = DateTime.Now;
+            var lastDayPrevMonth = new DateTime(dt.Year, dt.Month, 1).AddDays(-1);
+            
+            result =
+                lastDayPrevMonth.ToString("yyyy-MM") + "-01" + " 00:00:00" +
+                "|" +
+                lastDayPrevMonth.ToString("yyyy-MM-dd") + " 23:59:59";
+
+            return result;
+        }
+
+        private string SelectedDatetimePickersPeriodMonth() //format of result: firstDay + "|" + lastDay
+        {
+            return _dateTimePickerStart() + "|" + _dateTimePickerEnd(); 
+        }
+
         private void MailingAction(string mainAction, string recipientEmail, string senderEmail, string groupsReport, string nameReport, string description, string period, string status, string typeReport, string dayReport)
         {
             _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
@@ -6678,27 +6705,34 @@ namespace ASTA
                         if (bServer1Exist)
                         {
                             DataTable dtTempIntermediate = dtPeople.Clone();
+                            DateTime dtCurrent = DateTime.Today;
                             Person person = new Person();
 
                             GetNamePoints();  //Get names of the registration' points
 
-                            reportStartDay = selectPeriodMonth().Split('|')[0];
-                            reportLastDay = selectPeriodMonth().Split('|')[1];
-
                             if (period.ToLower().Contains("текущий") || period.ToLower().Contains("текущая"))
                             {
-                                reportStartDay = selectPeriodMonth(true).Split('|')[0];
-                                reportLastDay = selectPeriodMonth(true).Split('|')[1];
+                                reportStartDay = SelectWholeCurrentMonth().Split('|')[0];
+                                reportLastDay = SelectWholeCurrentMonth().Split('|')[1];
+                            }
+                            else if (period.ToLower().Contains("предыдущий") || period.ToLower().Contains("предыдущий"))
+                            {
+                                reportStartDay = SelectWholePreviousMonth().Split('|')[0];
+                                reportLastDay = SelectWholePreviousMonth().Split('|')[1];
+                            }
+                            else
+                            {
+                                reportStartDay = SelectedDatetimePickersPeriodMonth().Split('|')[0];
+                                reportLastDay = SelectedDatetimePickersPeriodMonth().Split('|')[1];
                             }
 
                             DateTime dt = DateTime.Parse(reportStartDay);
                             int[] startPeriod = { dt.Year, dt.Month, dt.Day };
                             dt = DateTime.Parse(reportLastDay);
                             int[] endPeriod = { dt.Year, dt.Month, dt.Day };
+                            SeekAnualDays(dtTempIntermediate, person, false, startPeriod, endPeriod);
 
-                            SeekAnualDays(dtTempIntermediate, person, false, startPeriod[0], startPeriod[1], startPeriod[2], endPeriod[0], endPeriod[1], endPeriod[2]);
-
-                            logger.Trace("MailingAction: " + selectPeriodMonth() + " | " + reportStartDay + " " + reportLastDay);
+                            logger.Trace("MailingAction, sendEmail: " + " | " + reportStartDay + " " + reportLastDay);
 
                             string nameGroup = "";
                             string selectedPeriod = reportStartDay.Split(' ')[0] + " - " + reportLastDay.Split(' ')[0];
@@ -6713,18 +6747,18 @@ namespace ASTA
                                 nameGroup = groupName.Trim();
                                 if (nameGroup.Length > 0)
                                 {
-                                    dtPersonRegistrationsFullList.Clear();
+                                    dtPersonRegistrationsFullList?.Clear();
                                     GetRegistrations(groupName, reportStartDay, reportLastDay, "sendEmail");//typeReport== only one group
                                     logger.Trace("sendEmail: dtPeopleGroup.Rows.Count - " + dtPeopleGroup.Rows.Count +
                                         "| dtPersonRegistrationsFullList.Rows.Count - " + dtPersonRegistrationsFullList.Rows.Count);
 
-                                    dtTempIntermediate?.Dispose();
+                                    dtTempIntermediate?.Clear();
                                     dtTempIntermediate = dtPeople.Clone();
 
-                                    person = new Person();
-
-                                    dtPersonTemp?.Dispose();
+                                    dtPersonTemp?.Clear();
                                     dtPersonTemp = dtPeople.Clone();
+
+                                    person = new Person();
 
                                     LoadGroupMembersFromDbToDataTable(nameGroup); //result will be in dtPeopleGroup  //"Select * FROM PeopleGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
 
@@ -6801,7 +6835,8 @@ namespace ASTA
                             dtTempIntermediate?.Dispose();
                             dtPersonTemp?.Clear();
                             selectedPeriod = null;
-                             titleOfbodyMail = null; nameGroup = null;
+                            titleOfbodyMail = null;
+                            nameGroup = null;
                         }
                         break;
                     }
@@ -7238,6 +7273,20 @@ namespace ASTA
             return stringDT;
         }
 
+        private string _dateTimePickerStartReturnMonth() //add string into  from other threads
+        {
+            string stringDT = "";
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    stringDT = dateTimePickerStart?.Value.ToMonthName();
+                }));
+            else
+            {
+                stringDT = dateTimePickerStart?.Value.ToMonthName();
+            }
+            return stringDT;
+        }
         private string _dateTimePickerEnd() //add string into  from other threads
         {
             string stringDT = "";
