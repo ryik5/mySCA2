@@ -39,83 +39,7 @@ namespace ASTA
      }
  }*/
 
-    interface IPeriod
-    {
-        void SetPeriod(string period);
-    }
-
-    interface IDepartment
-    {
-        void SetDepartment(string department);
-    }
-
-    interface ISender
-    {
-        void SetSender(string sender);
-    }
-
-    interface IDateAndTime
-    {
-        void SetDateAndTime(string dateAndTime);
-    }
-
-    interface IPicture
-    {
-        void SetPicture(string picture);
-    }
-
-    class MessageForSending : IPeriod, IDepartment, ISender, IDateAndTime, IPicture
-    {
-        private string _period;
-        private string _department;
-        private string _sender;
-        private string _dateAndTimeCurrent;
-        private string _picture;
-
-        public void SetPeriod(string period) { _period = period; }
-        public void SetDepartment(string department) { _department = department; }
-        public void SetSender(string sender) { _sender = sender; }
-        public void SetDateAndTime(string dateAndTime) { _dateAndTimeCurrent = dateAndTime; }
-        public void SetPicture(string picture) { _picture = picture; }
-
-        public MessageForSending() { }
-        public MessageForSending(string period, string department, string sender, string dateAndTime, string picture)
-        {
-            SetPeriod(period);
-            SetDepartment(department);
-            SetSender(sender);
-            SetDateAndTime(dateAndTime);
-            SetPicture(picture);
-        }
-
-        public override string ToString()
-        {
-            string message =@"<style type = 'text/css'> A {text - decoration: none;}</ style >"+
-                            @"<p><font size='3' color='black' face='Arial'>Здравствуйте,</p>Во вложении «Отчет по учету рабочего времени сотрудников».<p>" +
-
-                            @"<b>Период: </b>" +
-                            _period +
-
-                            @"</br><b>Подразделение: </b>'" +
-                            _department +
-                            @"'</br><p>Уважаемые руководители,</p><p>согласно Приказу ГК АИС «О функционировании процессов кадрового делопроизводства»,</br></br>" +
-                            @"<b>Внесите,</b> пожалуйста, <b>до конца текущего месяца</b> по сотрудникам подразделения " +
-                            @"информацию о командировках, больничных, отпусках, прогулах и т.п. <b>на сайт</b> www.ais .</br></br>" +
-                            @"Руководители <b>подразделений</b> ЦОК, <b>не отображающихся на сайте,</br>вышлите, </b>пожалуйста, <b>Табель</b> учета рабочего времени</br>" +
-                            @"<b>в отдел компенсаций и льгот до последнего рабочего дня месяца.</b></br></p>" +
-                            @"<font size='3' color='black' face='Arial'>С, Уважением,</br>" +
-                            _sender +
-                            @"</font></br></br><font size='2' color='black' face='Arial'><i>" +
-                            @"Данное сообщение и отчет созданы автоматически</br>программой по учету рабочего времени сотрудников." +
-                            @"</i></font></br><font size='1' color='red' face='Arial'></br>" +
-                            _dateAndTimeCurrent +
-                            @"</font></p><hr><img alt='ASTA' src='cid:" +
-                            _picture +
-                            @"'/></br><a href='mailto:ryik.yuri@gmail.com'> </a>";
-            return message;
-        }
-    }
-
+    
     class MailingStructure
     {
         public string _sender = "";
@@ -209,15 +133,9 @@ namespace ASTA
         public string _groupName;
     }
 
-    class DepartmentEmail
-    {
-        public string _departmentBossEmail;
-        public string _departmentName;
-        public string _departmentDescription;
-    }
-
     class Department
     {
+        public string _departmentBossEmail;
         public string _departmentName;
         public string _departmentDescription;
     }
