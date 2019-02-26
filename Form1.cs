@@ -1087,9 +1087,6 @@ namespace ASTA
             string timeStart = ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourStart), _numUpDownReturn(numUpDownMinuteStart));
             string timeEnd = ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourEnd), _numUpDownReturn(numUpDownMinuteEnd));
             string dayStartShift = "";
-
-            string timeStart_ = ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourStart), _numUpDownReturn(numUpDownMinuteStart));
-            string timeEnd_ = ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourEnd), _numUpDownReturn(numUpDownMinuteEnd));
             string dayStartShift_ = "";
 
             List<string> ListFIOTemp = new List<string>();
@@ -1314,12 +1311,11 @@ namespace ASTA
                         dayStartShift_ = "Общий график с " + dayStartShift;
 
                         tmpSeconds = peopleShifts.FindLast((x) => x._nav == "0" && x._dayStartShift == dayStartShift)._MoStart;
-                        timeStart_ = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
+                        timeStart = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
 
                         tmpSeconds = peopleShifts.FindLast((x) => x._nav == "0" && x._dayStartShift == dayStartShift)._MoEnd;
-                        timeEnd_ = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
+                        timeEnd = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
 
-                        //test only
                         logger.Trace("Общий график с " + dayStartShift);
                     }
                     catch { }
@@ -1356,8 +1352,8 @@ namespace ASTA
 
                                     personFromServer.Shift = dayStartShift_;
 
-                                    personFromServer.ControlInHHMM = timeStart_;
-                                    personFromServer.ControlOutHHMM = timeEnd_;
+                                    personFromServer.ControlInHHMM = timeStart;
+                                    personFromServer.ControlOutHHMM = timeEnd;
 
                                     dayStartShift = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._dayStartShift;
                                     if (dayStartShift?.Length > 0)
@@ -1393,7 +1389,6 @@ namespace ASTA
                                     /////////////////////
                                     //If need only people with idCard - uncomment next string with "if (listCodesWithIdCard....."
                                     ///////////////////////
-
                                     // if (listCodesWithIdCard.IndexOf(personFromServer.NAV) != -1)
                                     {
                                         ListFIOTemp.Add(personFromServer.FIO + "|" + personFromServer.NAV);
@@ -1651,8 +1646,10 @@ namespace ASTA
                         ListFIOCombo = null;
                     }
                 }
+
                 departmentsUniq = null;
                 resulListDepartment = null;
+                departmentsEmailUniq = null;
 
                 _toolStripStatusLabelSetText(StatusLabel2, "Списки ФИО и департаментов успешно получены.");
                 stimerPrev = "Все списки с ФИО и департаментами получены";
@@ -1665,9 +1662,14 @@ namespace ASTA
                 _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
             }
 
-            stringConnection = null;
-            ListFIOTemp = null;
+            stringConnection = null; query = null;
+             ListFIOTemp = null;
             listCodesWithIdCard = null;
+            peopleShifts = null;
+            departments = null;
+            groups = null;
+            personFromServer = null;
+            row = null;
         }
 
         private void listFioItem_Click(object sender, EventArgs e) //ListFioReturn()
@@ -1927,7 +1929,7 @@ namespace ASTA
             catch (Exception ex)
             {
                 obj = null;
-                MessageBox.Show("Exception Occured while releasing object of Excel \n" + ex);
+                logger.Trace("Exception Occured while releasing object of Excel: " + ex);
             }
             finally
             { GC.Collect(); }
@@ -1948,8 +1950,7 @@ namespace ASTA
                 result = null;
             return result;
         }
-
-
+        
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         { SelectFioAndNavFromCombobox(); }
@@ -4808,8 +4809,6 @@ namespace ASTA
             if (senderEmail.Length > 0 && senderEmail.Contains('.') && senderEmail.Contains('@') && senderEmail.Split('.').Count() > 1)
             { senderValid = true; }
 
-            _controlVisible(groupBoxProperties, false);
-
             if (databasePerson.Exists && nameReport.Length > 0 && senderValid && recipientValid)
             {
                 using (SQLiteConnection sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
@@ -4840,10 +4839,6 @@ namespace ASTA
                     sqlCommand1 = new SQLiteCommand("end", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
                 }
-            }
-
-            if (databasePerson.Exists && nameReport.Length > 0 && senderValid && recipientValid)
-            {
                 _toolStripStatusLabelSetText(StatusLabel2, "Добавлена рассылка: " + nameReport + "| Всего рассылок: " + _dataGridView1RowsCount());
             }
         }
@@ -5355,8 +5350,7 @@ namespace ASTA
             EnableMainMenuItems(true);
             _controlVisible(panelView, true);
         }
-
-
+        
 
         private void SaveProperties() //Save Parameters into Registry and variables
         {
@@ -5550,7 +5544,6 @@ namespace ASTA
                 comboBoxFio.Items.Add(comboBoxFio.Text);
             }
         }
-
 
         private void EnableMainMenuItems(bool enabled)
         {
