@@ -64,7 +64,7 @@ namespace ASTA
 
         public string PositionInDepartment = "";
 
-        public string GroupPerson = "Office";
+        public string GroupPerson = "";
         public decimal ControlInDecimal = 9;
         public decimal ControlOutDecimal = 18;
         public string ControlInHHMM = "09:00";
@@ -76,9 +76,6 @@ namespace ASTA
         public string RealWorkedDayHoursHHMM = "09:00";
         public string RealDate = "";
         public string RealDayOfWeek = "";
-
-        public bool Late = false;
-        public bool Early = false;
 
         public string serverSKD = "";
         public string namePassPoint = "";
@@ -136,17 +133,9 @@ namespace ASTA
     class Department
     {
         public string _departmentBossEmail;
-        public string _departmentName;
-        public string _departmentDescription;
-    }
-
-    class PeopleDepartment
-    {
-        public string _departmentBossEmail;
         public string _departmentBossCode;
-        public string _departmentName;
         public string _departmentDescription;
-        public string _parent_id;
+        public string _departmentName;
         public string _id;
     }
 

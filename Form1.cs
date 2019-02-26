@@ -1096,8 +1096,8 @@ namespace ASTA
             listFIO?.Clear();
             List<string> listCodesWithIdCard = new List<string>(); //NAV-codes staff who have idCards
             List<PeopleShift> peopleShifts = new List<PeopleShift>();
-            List<PeopleDepartment> departments = new List<PeopleDepartment>();
-            HashSet<PeopleDepartment> groups = new HashSet<PeopleDepartment>();
+            List<Department> departments = new List<Department>();
+            HashSet<Department> groups = new HashSet<Department>();
 
             _comboBoxClr(comboBoxFio);
             _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю данные с " + sServer1 + ". Ждите окончания процесса...");
@@ -1125,9 +1125,8 @@ namespace ASTA
                                 {
                                     if (record?["name"].ToString().Trim().Length > 0)
                                     {
-                                        groups.Add(new PeopleDepartment()
+                                        groups.Add(new Department()
                                         {
-                                            _parent_id = record["parent_id"].ToString(),
                                             _departmentName = record["id"].ToString(),
                                             _departmentDescription = record["name"].ToString()
                                         });
@@ -1203,9 +1202,8 @@ namespace ASTA
                 stimerPrev = "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...";
 
                 groupName = mysqlServer; //group's name for staff who will have been imported from web DB
-                groups.Add(new PeopleDepartment()
+                groups.Add(new Department()
                 {
-                    _parent_id = mysqlServer,
                     _departmentName = groupName,
                     _departmentDescription = "Stuff from the web server"
                 });
@@ -1228,7 +1226,7 @@ namespace ASTA
                             {
                                 if (reader?.GetString(@"name")?.Length > 0)
                                 {
-                                    departments.Add(new PeopleDepartment()
+                                    departments.Add(new Department()
                                     {
                                         _id = reader?.GetString(@"id"),
                                         _departmentName = reader?.GetString(@"name"),
@@ -1255,7 +1253,7 @@ namespace ASTA
                                     try { emailExist = reader.GetString(@"email").Contains('@'); } catch { emailExist = false; }
                                     if (emailExist)
                                     {
-                                        departments.Add(new PeopleDepartment()
+                                        departments.Add(new Department()
                                         {
                                             _departmentBossEmail = reader.GetString(@"email"),
                                             _departmentBossCode = reader.GetString(@"code")
@@ -1420,9 +1418,8 @@ namespace ASTA
 
                     if (idDep?.Length > 0)
                     {
-                        groups.Add(new PeopleDepartment()
+                        groups.Add(new Department()
                         {
-                            _parent_id = "idCollection",
                             _departmentName = "@" + idDep,
                             _departmentDescription = dr[@"Отдел"]?.ToString(),
                             _departmentBossCode = dr[@"Руководитель (код)"]?.ToString(),
@@ -1434,7 +1431,7 @@ namespace ASTA
                 }
 
                 _toolStripStatusLabelSetText(StatusLabel2, "Формирую список департаментов и рассылок...");
-                List<PeopleDepartment> resulListDepartment = groups.ToList();
+                List<Department> resulListDepartment = groups.ToList();
                 HashSet<Department> departmentsUniq = new HashSet<Department>();
                 HashSet<Department> departmentsEmailUniq = new HashSet<Department>();
                 foreach (var strDepartment in resulListDepartment.ToArray())
@@ -6607,7 +6604,7 @@ namespace ASTA
 
         public string GetSafeFilename(string filename)
         {
-            return string.Join("", filename.Split(System.IO.Path.GetInvalidFileNameChars()));
+            return string.Join("_", filename.Split(System.IO.Path.GetInvalidFileNameChars()));
         }
 
         private string SelectWholeCurrentMonth() //format of result: firstDayAndTime + "|" + lastDayAndTime
