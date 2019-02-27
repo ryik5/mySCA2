@@ -2576,7 +2576,7 @@ namespace ASTA
                     {
                         while (reader.Read())
                         {
-                            if (reader.GetString(@"name") != null && reader.GetString(@"name").Length > 0)
+                            if (reader?.GetString(@"id")?.Length > 0 && reader?.GetString(@"name")?.Length > 0)
                             {
                                 outResons.Add(new OutReasons()
                                 {
@@ -2601,7 +2601,7 @@ namespace ASTA
                     {
                         while (reader.Read())
                         {
-                            if (reader.GetString(@"reason_id")?.Length > 0)
+                            if (reader?.GetString(@"reason_id")?.Length > 0 && reader?.GetString(@"user_code")?.Length > 0)
                             {
                                 resonId = outResons.Find((x) => x._id == reader.GetString(@"reason_id"))?._id;
                                 try { date = DateTimeToYYYYMMDD(reader.GetString(@"reason_date")); } catch { date = ""; }
@@ -2609,7 +2609,7 @@ namespace ASTA
                                 outPerson.Add(new OutPerson()
                                 {
                                     _reason_id = resonId,
-                                    _nav = reader.GetString(@"user_code")?.ToUpper()?.Replace('C', 'S'),
+                                    _nav = reader.GetString(@"user_code").ToUpper()?.Replace('C', 'S'),
                                     _date = date,
                                     _from = ConvertStringsTimeToSeconds(reader.GetString(@"from_hour"), reader.GetString(@"from_min")),
                                     _to = ConvertStringsTimeToSeconds(reader.GetString(@"to_hour"), reader.GetString(@"to_min")),

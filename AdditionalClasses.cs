@@ -39,7 +39,20 @@ namespace ASTA
      }
  }*/
 
-    
+    interface IDbConnection
+    {
+        string _connection { get; set; }
+    } 
+    interface IDbQuery
+    {
+        string _query { get; set; }
+    }
+
+    class DbOperation
+    {
+
+    }
+
     class MailingStructure
     {
         public string _sender = "";
