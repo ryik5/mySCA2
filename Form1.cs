@@ -472,6 +472,7 @@ namespace ASTA
             }
             else
             {
+                _controlEnable(comboBoxFio, false);
                 nameOfLastTableFromDB = "Mailing";
                 logger.Info(productName + " включен автоматический режим....");
 
@@ -479,7 +480,6 @@ namespace ASTA
                 "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
                 "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
                 " ORDER BY RecipientEmail asc, DateCreated desc; ");
-                _controlEnable(comboBoxFio, false);
                 dataGridView1.Select();
                 ExecuteAutoMode(true);
             }
@@ -972,8 +972,7 @@ namespace ASTA
             }
             myTable = null; mySqlParameter1 = null; mySqlData1 = null;
         }
-
-
+        
 
         private void CheckAliveIntellectServer(string serverName, string userName, string userPasswords) //Get the list of registered users
         {
@@ -1010,8 +1009,7 @@ namespace ASTA
 
             stringConnection = null;
         }
-
-
+        
         private async void GetFio_Click(object sender, EventArgs e)  //GetFIO()
         {
             _ProgressBar1Start();
@@ -1044,8 +1042,8 @@ namespace ASTA
             {
                 _MenuItemEnabled(SettingsMenuItem, true);
             }
-            _ProgressBar1Stop();
             _controlEnable(comboBoxFio, true);
+            _ProgressBar1Stop();
         }
 
         private void GetFIO()  // CheckAliveIntellectServer()   GetFioFromServers()  ImportTablePeopleToTableGroupsInLocalDB()
@@ -1056,16 +1054,17 @@ namespace ASTA
             {
                 DataTable dtTempIntermediate = dtPeople.Clone();
                 GetFioFromServers(dtTempIntermediate);
-
-                dtPeopleListLoaded?.Clear();
-                dtPeopleListLoaded = dtTempIntermediate.Copy();
-
+                
                 ImportTablePeopleToTableGroupsInLocalDB(databasePerson.ToString(), dtTempIntermediate);
 
-                var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(arrayHiddenColumnsFIO).ToArray(); //take distinct data
-                dtPersonTemp = GetDistinctRecords(dtTempIntermediate, namesDistinctColumnsArray);
+                if (currentAction != @"sendEmail")
+                {
+                    var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(arrayHiddenColumnsFIO).ToArray(); //take distinct data
+                    dtPersonTemp = GetDistinctRecords(dtTempIntermediate, namesDistinctColumnsArray);
 
-                ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenColumnsFIO, "ListFIO");
+                    ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenColumnsFIO, "ListFIO");
+                }
+                dtTempIntermediate?.Dispose();
             }
         }
 
@@ -1427,6 +1426,7 @@ namespace ASTA
 
                 _toolStripStatusLabelSetText(StatusLabel2, "Формирую список департаментов и рассылок...");
                 List<Department> resulListDepartment = groups.ToList();
+
                 HashSet<Department> departmentsUniq = new HashSet<Department>();
                 HashSet<Department> departmentsEmailUniq = new HashSet<Department>();
                 foreach (var strDepartment in resulListDepartment.ToArray())
@@ -1583,36 +1583,7 @@ namespace ASTA
 
                         _toolStripStatusLabelSetText(StatusLabel2, "Записываю все полученные ФИО в локальную базу...");
                         List<string> ListFIOCombo = new List<string>();
-                        sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                        sqlCommand1.ExecuteNonQuery();
-                        foreach (var dr in dataTablePeople.AsEnumerable().Distinct())
-                        {
-                            if (dr[@"Фамилия Имя Отчество"]?.ToString()?.Length > 0 && dr[@"NAV-код"]?.ToString()?.Length == 6)
-                            {
-                                using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Department, PositionInDepartment, DepartmentId)" +
-                                        " VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Department, @PositionInDepartment, @DepartmentId)", sqlConnection))
-                                {
-                                    sqlCommand.Parameters.Add("@FIO", DbType.String).Value = dr[@"Фамилия Имя Отчество"].ToString();
-                                    sqlCommand.Parameters.Add("@NAV", DbType.String).Value = dr[@"NAV-код"].ToString();
-                                    sqlCommand.Parameters.Add("@GroupPerson", DbType.String).Value = dr[@"Группа"].ToString();
-                                    sqlCommand.Parameters.Add("@ControllingHHMM", DbType.String).Value = dr[@"Учетное время прихода ЧЧ:ММ"].ToString();
-                                    sqlCommand.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = dr[@"Учетное время ухода ЧЧ:ММ"].ToString();
-                                    sqlCommand.Parameters.Add("@Shift", DbType.String).Value = dr[@"График"].ToString();
-                                    sqlCommand.Parameters.Add("@Department", DbType.String).Value = dr[@"Отдел"].ToString();
-                                    sqlCommand.Parameters.Add("@PositionInDepartment", DbType.String).Value = dr[@"Должность"].ToString();
-                                    sqlCommand.Parameters.Add("@DepartmentId", DbType.String).Value = dr[@"Отдел (id)"].ToString();
 
-                                    try { sqlCommand.ExecuteNonQuery(); }
-                                    catch (Exception expt)
-                                    { logger.Warn("ошибка записи в локальную базу PeopleGroup - " + dr[@"Фамилия Имя Отчество"].ToString() + "\n" + dr[@"NAV-код"].ToString() + "\n" + expt.ToString()); }
-
-                                    ListFIOCombo.Add(dr[@"Фамилия Имя Отчество"].ToString() + "|" + dr[@"NAV-код"].ToString());
-                                    _ProgressWork1Step(1);
-                                }
-                            }
-                        }
-                        sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                        sqlCommand1.ExecuteNonQuery();
 
                         string[] arrayFIO = ListFIOCombo.Distinct().ToArray();
                         sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
@@ -1688,7 +1659,7 @@ namespace ASTA
             _controlEnable(dataGridView1, false);
 
             filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), "InOut_" + DateTimeToYYYYMMDD() + @".xlsx");
-            await Task.Run(() => ExportDatatableSelectedColumnsToExcel(dtPersonTemp, "InOutPeople", filePathExcelReport));
+            await Task.Run(() => ExportDatatableSelectedColumnsToExcel(ref dtPersonTemp, "InOutPeople", filePathExcelReport));
 
             _MenuItemEnabled(FunctionMenuItem, true);
             _MenuItemEnabled(SettingsMenuItem, true);
@@ -1698,7 +1669,7 @@ namespace ASTA
         }
 
 
-        private void ExportDatatableSelectedColumnsToExcel(DataTable dataTable, string nameReport, string filePath)  //Export DataTable to Excel 
+        private void ExportDatatableSelectedColumnsToExcel(ref DataTable dataTable, string nameReport, string filePath)  //Export DataTable to Excel 
         {
             reportExcelReady = false;
             dataTable.SetColumnsOrder(orderColumnsFinacialReport);
@@ -1708,6 +1679,7 @@ namespace ASTA
 
             logger.Trace("В таблице " + dataTable.TableName + " столбцов всего - " + dtExport.Columns.Count + ", строк - " + dtExport.Rows.Count);
             _toolStripStatusLabelSetText(StatusLabel2, "Записываю в Excel-файл отчет - " + nameReport);
+            stimerPrev = "Записываю в Excel - файл отчет - " + nameReport;
 
             try
             {
@@ -1804,8 +1776,7 @@ namespace ASTA
                     rangeColumnF.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
                 catch (Exception expt) { logger.Warn("Отсутствовал - " + expt.ToString()); }
-
-
+                
                 //first row
                 Microsoft.Office.Interop.Excel.Range rangeColumnName = sheet.Range["A1", GetExcelColumnName(columnsInTable) + 1];
                 rangeColumnName.Cells.WrapText = true;
@@ -1886,13 +1857,6 @@ namespace ASTA
                 //clear temporary objects
                 releaseObject(range);
                 releaseObject(rangeColumnName);
-                //   releaseObject(rangeColumnA);
-                //   releaseObject(rangeColumnB);
-                //   releaseObject(rangeColumnC);
-                //    releaseObject(rangeColumnD);
-                //    releaseObject(rangeColumnE);
-                //    releaseObject(rangeColumnF);
-
                 releaseObject(sheet);
                 releaseObject(workbook);
                 releaseObject(workbooks);
@@ -1903,8 +1867,8 @@ namespace ASTA
 
                 _ProgressWork1Step(1);
 
-                stimerPrev = "";
                 _toolStripStatusLabelSetText(StatusLabel2, "Отчет '" + nameReport + "' сгенерирован и сохранен в файл: " + filePath);
+                stimerPrev = "Отчет '" + nameReport + "' сгенерирован и сохранен в файл: " + filePath;
                 _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
                 reportExcelReady = true;
             }
@@ -2140,8 +2104,8 @@ namespace ASTA
 
         private void SeekAndShowMembersOfGroup(string nameGroup)
         {
-            dtPeopleListLoaded?.Dispose();
-            dtPeopleListLoaded = dtPeople.Clone();
+          //  dtPeopleListLoaded?.Dispose();
+          //  dtPeopleListLoaded = dtPeople.Clone();
             var dtTemp = dtPeople.Clone();
 
             numberPeopleInLoading = 0;
@@ -2195,7 +2159,7 @@ namespace ASTA
             if (numberPeopleInLoading > 0)
             {
                 var namesDistinctCollumnsArray = arrayAllColumnsDataTablePeople.Except(arrayHiddenColumnsFIO).ToArray(); //take distinct data
-                dtPeopleListLoaded = dtTemp.Copy();
+               // dtPeopleListLoaded = dtTemp.Copy();
                 dtPersonTemp = GetDistinctRecords(dtTemp, namesDistinctCollumnsArray);
 
                 ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenColumnsFIO, "PeopleGroup");
@@ -2212,16 +2176,18 @@ namespace ASTA
         {
             dtPeopleListLoaded?.Clear();
             dtPeopleListLoaded = dtPeople.Copy();
+            HashSet<Department> departmentsUniq = new HashSet<Department>();
 
-            ImportTextToTable(dtPeopleListLoaded);
+            ImportTextToTable(dtPeopleListLoaded, ref departmentsUniq);
             ImportTablePeopleToTableGroupsInLocalDB(databasePerson.ToString(), dtPeopleListLoaded);
-            ImportListGroupsDescriptionInLocalDB(databasePerson.ToString(), listGroups);
+            ImportListGroupsDescriptionInLocalDB(databasePerson.ToString(), departmentsUniq);
+            departmentsUniq = null;
         }
 
-        private void ImportTextToTable(DataTable dt) //Fill dtPeople
+        private void ImportTextToTable(DataTable dt, ref HashSet<Department> departmentsUniq) //Fill dtPeople
         {
             List<string> listRows = LoadDataIntoList();
-            listGroups = new List<string>();
+
             string checkHourS;
             string checkHourE;
 
@@ -2257,7 +2223,11 @@ namespace ASTA
                             row[@"Отдел (id)"] = "";
                             row[@"Должность"] = cell[4];
 
-                            listGroups.Add(cell[2]);
+                            departmentsUniq.Add(new Department
+                            {
+                                _departmentName = cell[2],
+                                _departmentDescription = cell[3],
+                            });
 
                             checkHourS = cell[5];
                             if (TryParseStringToDecimal(checkHourS) == 0)
@@ -2313,7 +2283,7 @@ namespace ASTA
                             { sqlCommand.ExecuteNonQuery(); }
                             catch (Exception expt)
                             {
-                                logger.Info("GetFIO, ImportTablePeopleToTableGroupsInLocalDB: ошибка записи в базу: " + dr[@"Фамилия Имя Отчество"] + "\n" + dr[@"NAV-код"] + "\n" + expt.ToString());
+                                logger.Info("ImportTablePeopleToTableGroupsInLocalDB: ошибка записи в базу: " + dr[@"Фамилия Имя Отчество"] + "\n" + dr[@"NAV-код"] + "\n" + expt.ToString());
                             }
                         }
                     }
@@ -2324,7 +2294,7 @@ namespace ASTA
             }
         }
 
-        private void ImportListGroupsDescriptionInLocalDB(string pathToPersonDB, List<string> groups) //use listGroups
+        private void ImportListGroupsDescriptionInLocalDB(string pathToPersonDB, HashSet<Department> departmentsUniq) //use listGroups
         {
             using (var connection = new SQLiteConnection($"Data Source={pathToPersonDB};Version=3;"))
             {
@@ -2334,18 +2304,10 @@ namespace ASTA
                 using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroupDesciption' (GroupPerson, GroupPersonDescription) " +
                                         "VALUES (@GroupPerson, @GroupPersonDescription )", connection))
                 {
-                    foreach (string group in groups.Distinct())
+                    foreach (var group in departmentsUniq)
                     {
-                        if (group.Contains('|'))
-                        {
-                            command.Parameters.Add("@GroupPerson", DbType.String).Value = group.Split('|')[0];
-                            command.Parameters.Add("@GroupPersonDescription", DbType.String).Value = group.Split('|')[1];
-                        }
-                        else
-                        {
-                            command.Parameters.Add("@GroupPerson", DbType.String).Value = group;
-                            command.Parameters.Add("@GroupPersonDescription", DbType.String).Value = group;
-                        }
+                        command.Parameters.Add("@GroupPerson", DbType.String).Value = group._departmentName;
+                        command.Parameters.Add("@GroupPersonDescription", DbType.String).Value = group._departmentDescription;
                         try { command.ExecuteNonQuery(); } catch { }
                     }
                 }
@@ -3254,7 +3216,7 @@ namespace ASTA
                                 Shift = row[@"График"].ToString()
                             };
 
-                            FilterDataByNav(person, dtPersonRegistrationsFullList, dtTempIntermediate);
+                            FilterDataByNav(ref person, ref dtPersonRegistrationsFullList, ref dtTempIntermediate);
                         }
                     }
                 }
@@ -3266,7 +3228,7 @@ namespace ASTA
                 if (!_CheckboxCheckedStateReturn(checkBoxReEnter))
                 { dtTempIntermediate = dtPersonRegistrationsFullList.Copy(); }
                 else
-                { FilterDataByNav(person, dtPersonRegistrationsFullList, dtTempIntermediate); }
+                { FilterDataByNav(ref person, ref dtPersonRegistrationsFullList, ref dtTempIntermediate); }
             }
 
             //store all columns
@@ -3312,7 +3274,7 @@ namespace ASTA
         }
 
         //Copy Data from dtPersonRegistrationsList into dtPersonTemp by Filter(NAV and anual dates or minimalTime or dayoff)
-        private void FilterDataByNav(Person person, DataTable dataTableSource, DataTable dataTableForStoring, string typeReport = "Полный")
+        private void FilterDataByNav(ref Person person, ref DataTable dataTableSource, ref DataTable dataTableForStoring, string typeReport = "Полный")
         {
             logger.Trace("FilterDataByNav: " + person.NAV + "| dataTableSource: " + dataTableSource.Rows.Count, "| typeReport: " + typeReport);
             DataRow rowDtStoring;
@@ -3928,7 +3890,7 @@ namespace ASTA
 
 
         //gathering a person's features from textboxes and other controls
-        private void SelectPersonFromControls(Person personSelected)
+        private void SelectPersonFromControls(ref Person personSelected)
         {
             try
             {
@@ -4029,7 +3991,7 @@ namespace ASTA
 
             if (personVisual.FIO.Length == 0)
             {
-                SelectPersonFromControls(personVisual);
+                SelectPersonFromControls(ref personVisual);
             }
 
             _controlVisible(dataGridView1, false);
@@ -4040,12 +4002,12 @@ namespace ASTA
             if (_CheckboxCheckedStateReturn(checkBoxReEnter))
             {
                 logger.Trace("DrawFullWorkedPeriodRegistration: ");
-                DrawFullWorkedPeriodRegistration(personVisual);
+                DrawFullWorkedPeriodRegistration(ref personVisual);
             }
             else
             {
                 logger.Trace("DrawRegistration: ");
-                DrawRegistration(personVisual);
+                DrawRegistration(ref personVisual);
             }
 
             _MenuItemVisible(TableModeItem, true);
@@ -4057,7 +4019,7 @@ namespace ASTA
             _controlVisible(pictureBox1, true);
         }
 
-        private void DrawRegistration(Person personDraw)  // Visualisation of registration
+        private void DrawRegistration(ref Person personDraw)  // Visualisation of registration
         {
             try
             {
@@ -4337,7 +4299,7 @@ namespace ASTA
             catch (Exception expt) { logger.Info(expt.ToString()); }
         }
 
-        private void DrawFullWorkedPeriodRegistration(Person personDraw)  // Draw the whole period registration
+        private void DrawFullWorkedPeriodRegistration(ref Person personDraw)  // Draw the whole period registration
         {
             //  int iPanelBorder = 2;
             int iMinutesInHour = 60;
@@ -4676,16 +4638,16 @@ namespace ASTA
         public void ColorizeDraw(Color color)
         {
             Person personSelected = new Person();
-            SelectPersonFromControls(personSelected);
+            SelectPersonFromControls(ref personSelected);
 
             clrRealRegistration = color;
             switch (sLastSelectedElement)
             {
                 case "DrawFullWorkedPeriodRegistration":
-                    DrawFullWorkedPeriodRegistration(personSelected);
+                    DrawFullWorkedPeriodRegistration(ref personSelected);
                     break;
                 case "DrawRegistration":
-                    DrawRegistration(personSelected);
+                    DrawRegistration(ref personSelected);
                     break;
                 default:
                     break;
@@ -5351,7 +5313,6 @@ namespace ASTA
             _controlVisible(panelView, true);
         }
         
-
         private void SaveProperties() //Save Parameters into Registry and variables
         {
             string server = _textBoxReturnText(textBoxServer1);
@@ -5782,10 +5743,10 @@ namespace ASTA
         private void dataGridView1_DoubleClick(object sender, EventArgs e) //SearchMembersSelectedGroup()
         { SearchMembersSelectedGroup(); }
 
-        private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e) //dataGridView1CellEndEdit()
-        { dataGridView1CellEndEdit(); }
+        private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e) //DataGridView1CellEndEdit()
+        { DataGridView1CellEndEdit(); }
 
-        private void dataGridView1CellEndEdit()
+        private void DataGridView1CellEndEdit()
         {
             string fio = "";
             string nav = "";
@@ -6009,14 +5970,16 @@ namespace ASTA
             }
         }
 
-        //simplify the method
-        //Show help to Edit on some columns DataGridView
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
             DataGridViewCell cell;
             if (_dataGridView1ColumnCount() > 0 && _dataGridView1RowsCount() > 0)
             {
-                if (nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == @"Mailing" || nameOfLastTableFromDB == @"MailingException")
+                if (
+                    nameOfLastTableFromDB == @"PeopleGroup" || 
+                    nameOfLastTableFromDB == @"Mailing" || 
+                    nameOfLastTableFromDB == @"MailingException"
+                    )
                 {
                     // e.ColumnIndex == this.dataGridView1.Columns["NAV-код"].Index
                     cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
@@ -6113,8 +6076,7 @@ namespace ASTA
 
         private void DoReportByRightClick(object sender, EventArgs e)
         { DoReportByRightClick(); }
-
-
+        
         private void DoReportAndEmailByRightClick()
         {
             DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
@@ -6450,17 +6412,18 @@ namespace ASTA
 
         public void InitScheduleTask(bool manualMode) //ScheduleTask()
         {
-            long interval = 1 * 60 * 1000; //1 minute
+            long interval =  20 * 1000; //20 sek
             if (manualMode)
             {
                 _MenuItemTextSet(ModeItem, "Выключить режим e-mail рассылок");
                 _menuItemTooltipSet(ModeItem, "Включен автоматический режим. Выполняются Активные рассылки из БД.");
                 _MenuItemBackColorChange(ModeItem, Color.DarkOrange);
-
                 _toolStripStatusLabelSetText(StatusLabel2, "Включен режим авторассылки отчетов");
                 _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
 
+                timer?.Dispose();
                 currentAction = "sendEmail";
+
                 timer = new System.Threading.Timer(new System.Threading.TimerCallback(ScheduleTask), null, 0, interval);
             }
             else
@@ -6481,14 +6444,15 @@ namespace ASTA
             lock (synclock)
             {
                 DateTime dd = DateTime.Now;
-                if (dd.Hour == 2 && dd.Minute == 1 && sent == false) //do something at Hour 2 and 5 minute //dd.Day == 1 && 
+                if (dd.Hour == 4 && dd.Minute == 10 && sent == false) //do something at Hour 2 and 5 minute //dd.Day == 1 && 
                 {
                     _toolStripStatusLabelSetText(StatusLabel2, "Ведется работа по подготовке отчетов " + DateTimeToYYYYMMDDHHMM());
                     _toolStripStatusLabelBackColor(StatusLabel2, Color.LightPink);
                     SelectMailingDoAction();
                     sent = true;
+                    _ProgressBar1Stop();
                 }
-                else if (dd.Minute != 1)
+                else
                 {
                     sent = false;
                 }
@@ -6498,13 +6462,24 @@ namespace ASTA
                     _toolStripStatusLabelSetText(StatusLabel2, "Режим почтовых рассылок. " + DateTimeToYYYYMMDDHHMM());
                     _toolStripStatusLabelBackColor(StatusLabel2, Color.LightCyan);
                     ClearFilesInApplicationFolders(@"*.xlsx", "Excel-файлов");
+                    _ProgressBar1Stop();
                 }
             }
         }
 
-        private async void SelectMailingDoAction() //MailingAction()
+        private async void TestToSendAllMailingsItem_Click(object sender, EventArgs e) //SelectMailingDoAction()
         {
-            await Task.Run(() => GetFIO());
+            _ProgressBar1Start();
+            await Task.Run(() => SelectMailingDoAction());
+            _ProgressBar1Stop();
+        }
+
+        private void SelectMailingDoAction() //MailingAction()
+        {
+            _ProgressBar1Start();
+
+            currentAction = "sendEmail";
+            GetFIO();
 
             string sender = "";
             string recipient = "";
@@ -6561,8 +6536,6 @@ namespace ASTA
                 }
             }
 
-            //текущий режим работы приложения
-            currentAction = "sendEmail";
             string str = "";
             foreach (MailingStructure mailng in mailingList)
             {
@@ -6576,13 +6549,16 @@ namespace ASTA
                     _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + mailng._nameReport);
                     stimerPrev = "";
 
-                    str = "UPDATE 'Mailing' SET SendingLastDate='" + DateTimeToYYYYMMDDHHMM() + "' WHERE RecipientEmail='" + mailng._recipient
-                    + "' AND NameReport='" + mailng._nameReport + "' AND GroupsReport ='" + mailng._groupsReport + "';";
+                    str = "UPDATE 'Mailing' SET SendingLastDate='" + DateTimeToYYYYMMDDHHMM() + 
+                        "' WHERE RecipientEmail='" + mailng._recipient + 
+                        "' AND NameReport='" + mailng._nameReport + 
+                        "' AND GroupsReport ='" + mailng._groupsReport + "';";
                     logger.Info(str);
                     ExecuteSql(str, databasePerson);
 
-                    MailingAction("sendEmail", mailServerUserName, mailng._sender, mailng._groupsReport, mailng._nameReport, mailng._descriptionReport,
-                        mailng._period, mailng._status, mailng._typeReport, mailng._dayReport);
+                    GetRegistrationAndSendReport(
+                        mailng._groupsReport, mailng._nameReport, mailng._descriptionReport, mailng._period, mailng._status,
+                        mailng._typeReport, mailng._dayReport, true, mailng._recipient, mailServerUserName);
                 }
             }
 
@@ -6742,7 +6718,7 @@ namespace ASTA
                             person.Comment = row[@"Комментарии (командировка, на выезде, согласованное отсутствие…….)"].ToString();
                             person.Shift = row[@"График"].ToString();
 
-                            FilterDataByNav(person, dtPersonRegistrationsFullList, dtTempIntermediate, typeReport);
+                            FilterDataByNav(ref person, ref dtPersonRegistrationsFullList, ref dtTempIntermediate, typeReport);
                         }
                     }
                     person = null;
@@ -6758,7 +6734,7 @@ namespace ASTA
                         filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), illegal);
 
                         logger.Trace("Подготавливаю отчет: " + filePathExcelReport);
-                        ExportDatatableSelectedColumnsToExcel(dtPersonTemp, nameReport, filePathExcelReport);
+                        ExportDatatableSelectedColumnsToExcel(ref dtPersonTemp, nameReport, filePathExcelReport);
 
                         if (sendReport)
                         {
@@ -6766,6 +6742,7 @@ namespace ASTA
                             {
                                 titleOfbodyMail = "с " + reportStartDay.Split(' ')[0] + " по " + reportLastDay.Split(' ')[0];
                                 _toolStripStatusLabelSetText(StatusLabel2, "Выполняю отправку отчета " + recipientEmail);
+                                stimerPrev = "Выполняю отправку отчета " + recipientEmail;
 
                                 SendEmailAsync(senderEmail, recipientEmail, titleOfbodyMail, description, filePathExcelReport, Properties.Resources.LogoRYIK, productName);
 
@@ -7912,6 +7889,8 @@ namespace ASTA
             { return DateTime.Parse(date).ToString("yyyy-MM-dd HH:mm"); }
             else { return DateTime.Now.ToString("yyyy-MM-dd HH:mm"); }
         }
+
+
         //---- End. Convertors of data types ----//
     }
 }
