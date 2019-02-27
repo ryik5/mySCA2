@@ -71,9 +71,7 @@ namespace ASTA
         //making reports
         const decimal offsetTimeIn = 0.02m;
         const decimal offsetTimeOut = 0.02m;
-        List<string> selectedDates = new List<string>();
         string[] myBoldedDates;
-        List<string> boldeddDates = new List<string>();
         string[] workSelectedDays;
         static string reportStartDay = "";
         static string reportLastDay = "";
@@ -2649,7 +2647,11 @@ namespace ASTA
                 _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по группе " + nameGroup);
                 stimerPrev = "Получаю данные по группе " + nameGroup;
                 //  if (doPostAction != "sendEmail")
-                { LoadGroupMembersFromDbToDataTable(nameGroup); } //result will be in dtPeopleGroup
+                
+                {
+                    dtPeopleGroup.Clear();
+                    LoadGroupMembersFromDbToDataTable(nameGroup, ref dtPeopleGroup);
+                } //result will be in dtPeopleGroup
 
                 logger.Trace("GetRegistrations, DT - " + dtPeopleGroup.TableName + " , всего записей - " + dtPeopleGroup.Rows.Count);
                 foreach (DataRow row in dtPeopleGroup.Rows)
@@ -2713,11 +2715,11 @@ namespace ASTA
 
         private void GetPersonRegistrationFromServer(DataTable dtTarget, Person person, string startDay, string endDay)
         {
-            int[] startPeriod = ConvertStringDateToIntArray(startDay);
-            int[] endPeriod = ConvertStringDateToIntArray(endDay);
             logger.Trace("GetPersonRegistrationFromServer, person - " + person.NAV);
 
-            SeekAnualDays(dtTarget, person, false, startPeriod, endPeriod);
+            SeekAnualDays(ref dtTarget, ref person, false, 
+                ConvertStringDateToIntArray(startDay), ConvertStringDateToIntArray(endDay), 
+                ref myBoldedDates, ref workSelectedDays);
             DataRow rowPerson;
             string stringConnection = "";
             string query = "";
@@ -2940,9 +2942,8 @@ namespace ASTA
         }
 
         //Get info the selected group from DB and make a few lists with these data
-        private void LoadGroupMembersFromDbToDataTable(string namePointedGroup) // dtPeopleGroup //"Select * FROM PeopleGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
+        private void LoadGroupMembersFromDbToDataTable(string namePointedGroup, ref DataTable peopleGroup) // dtPeopleGroup //"Select * FROM PeopleGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
         {
-            dtPeopleGroup.Clear();
             DataRow dataRow;
 
             string query = "Select FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Department, PositionInDepartment, DepartmentId  FROM PeopleGroup ";
@@ -2965,7 +2966,7 @@ namespace ASTA
                             {
                                 if (record[@"FIO"] != null && record[@"NAV"] != null)
                                 {
-                                    dataRow = dtPeopleGroup.NewRow();
+                                    dataRow = peopleGroup.NewRow();
 
                                     dataRow[@"Фамилия Имя Отчество"] = record[@"FIO"].ToString();
                                     dataRow[@"NAV-код"] = record[@"NAV"].ToString();
@@ -2981,7 +2982,7 @@ namespace ASTA
                                     dataRow[@"Учетное время прихода ЧЧ:ММ"] = record[@"ControllingHHMM"].ToString();
                                     dataRow[@"Учетное время ухода ЧЧ:ММ"] = record[@"ControllingOUTHHMM"].ToString();
 
-                                    dtPeopleGroup.Rows.Add(dataRow);
+                                    peopleGroup.Rows.Add(dataRow);
                                 }
                             }
                             catch { }
@@ -2991,7 +2992,7 @@ namespace ASTA
             }
             query = null; dataRow = null;
 
-            logger.Trace("LoadGroupMembersFromDbToDataTable, всего записей в dtPeopleGroup - " + dtPeopleGroup.Rows.Count + ", группа - " + namePointedGroup);
+            logger.Trace("LoadGroupMembersFromDbToDataTable, всего записей - " + peopleGroup.Rows.Count + ", группа - " + namePointedGroup);
         }
 
 
@@ -3162,11 +3163,12 @@ namespace ASTA
 
         private void checkBoxCheckStateChanged()
         {
-            int[] startPeriod = _dateTimePickerReturnArray(dateTimePickerStart);
-            int[] endPeriod = _dateTimePickerReturnArray(dateTimePickerEnd);
             DataTable dtEmpty = new DataTable();
             Person emptyPerson = new Person();
-            SeekAnualDays(dtEmpty, emptyPerson, false, startPeriod, endPeriod);
+            SeekAnualDays(ref dtEmpty, ref emptyPerson, false,
+                _dateTimePickerReturnArray(dateTimePickerStart), 
+                _dateTimePickerReturnArray(dateTimePickerEnd), 
+                ref myBoldedDates, ref workSelectedDays);
 
             dtEmpty.Dispose();
             emptyPerson = null;
@@ -3192,7 +3194,8 @@ namespace ASTA
 
             if ((nameOfLastTableFromDB == "PeopleGroupDesciption" || nameOfLastTableFromDB == "PeopleGroup") && nameGroup.Length > 0)
             {
-                LoadGroupMembersFromDbToDataTable(nameGroup); //result will be in dtPeopleGroup  //"Select * FROM PeopleGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
+                dtPeopleGroup.Clear();
+                LoadGroupMembersFromDbToDataTable(nameGroup, ref dtPeopleGroup);
 
                 if (_CheckboxCheckedStateReturn(checkBoxReEnter))
                 {
@@ -3406,14 +3409,14 @@ namespace ASTA
 
                 if (_CheckboxCheckedStateReturn(checkBoxWeekend) || currentAction == "sendEmail")//checkBoxWeekend Checking
                 {
-                    int[] startPeriod = ConvertStringDateToIntArray(reportStartDay);
-                    int[] endPeriod = ConvertStringDateToIntArray(reportLastDay);
-
-                    SeekAnualDays(dtTemp, person, true, startPeriod, endPeriod);
+                    SeekAnualDays(ref dtTemp, ref person, true,
+                        ConvertStringDateToIntArray(reportStartDay), 
+                        ConvertStringDateToIntArray(reportLastDay),
+                        ref myBoldedDates, ref workSelectedDays);
                 }
 
                 if (_CheckboxCheckedStateReturn(checkBoxTimeViolations)) //checkBoxStartWorkInTime Checking
-                { QueryDeleteDataFromDataTable(dtTemp, "[Опоздание ЧЧ:ММ]='' AND [Ранний уход ЧЧ:ММ]=''", person.NAV); }
+                { QueryDeleteDataFromDataTable(ref dtTemp, "[Опоздание ЧЧ:ММ]='' AND [Ранний уход ЧЧ:ММ]=''", person.NAV); }
 
                 foreach (DataRow dr in dtTemp.AsEnumerable())
                 { dataTableForStoring.ImportRow(dr); }
@@ -3422,8 +3425,14 @@ namespace ASTA
             }
             catch (Exception expt) { MessageBox.Show(expt.ToString()); }
 
-            stringHourMinuteFirstRegistrationInDay = null; stringHourMinuteLastRegistrationInDay = null; hsDays = null;
-            rowDtStoring = null; dtTemp = null; dtAllRegistrationsInSelectedDay = null;
+            stringHourMinuteFirstRegistrationInDay = null;
+            stringHourMinuteLastRegistrationInDay = null;
+            hsDays = null;
+            rowDtStoring = null;
+            dtTemp = null;
+            dayOfWeek = null;
+            exceptReason = null;
+            dtAllRegistrationsInSelectedDay = null;
         }
 
 
@@ -3461,7 +3470,7 @@ namespace ASTA
             return boldedDays;
         }
 
-        private void SeekAnualDays(DataTable dt, Person person, bool delRow, int[] startOfPeriod, int[] endOfPeriod) //Exclude Anual Days from the table "PersonTemp" DB
+        private void SeekAnualDays(ref DataTable dt, ref Person person, bool delRow, int[] startOfPeriod, int[] endOfPeriod, ref string[] boldedDates, ref string[] workDates)//   //Exclude Anual Days from the table "PersonTemp" DB
         {
             //test
             logger.Trace("SeekAnualDays: "+ person.NAV+" " + startOfPeriod[0]);
@@ -3469,20 +3478,13 @@ namespace ASTA
             logger.Trace("SeekAnualDays,end: " + endOfPeriod[0] + " " + endOfPeriod[1] + " " + endOfPeriod[2]);
 
             List<string> daysBolded = new List<string>();
-            boldeddDates.Clear();
-            selectedDates.Clear();
-            workSelectedDays = new string[1];
-            myBoldedDates = new string[1];
 
             var oneDay = TimeSpan.FromDays(1);
-            var twoDays = TimeSpan.FromDays(2);
-
-
+            var twoDays = TimeSpan.FromDays(2);            
             var mySelectedStartDay = new DateTime(startOfPeriod[0], startOfPeriod[1], startOfPeriod[2]);
             var mySelectedEndDay = new DateTime(endOfPeriod[0], endOfPeriod[1], endOfPeriod[2]);
-            //  int myYearNow = DateTime.Now.Year;
             var myMonthCalendar = new MonthCalendar();
-
+            
             myMonthCalendar.MaxSelectionCount = 60;
             myMonthCalendar.SelectionRange = new SelectionRange(mySelectedStartDay, mySelectedEndDay);
             myMonthCalendar.FirstDayOfWeek = Day.Monday;
@@ -3568,11 +3570,13 @@ namespace ASTA
                     daysBolded.Add(singleDate);
                     if (delRow)
                     {
-                        QueryDeleteDataFromDataTable(dt, "[Дата регистрации]='" + singleDate + "'", person.NAV); // ("Дата регистрации",typeof(string)),//12
+                        QueryDeleteDataFromDataTable(ref dt, "[Дата регистрации]='" + singleDate + "'", person.NAV); // ("Дата регистрации",typeof(string)),//12
                     }
                 }
                 daysSelected.Add(singleDate);
             }
+            dt.AcceptChanges();
+
             foreach (var myAnualDate in myMonthCalendar.AnnuallyBoldedDates)
             {
                 for (var myDate = myMonthCalendar.SelectionStart; myDate <= myMonthCalendar.SelectionEnd; myDate += oneDay)
@@ -3584,15 +3588,15 @@ namespace ASTA
                         daysBolded.Add(singleDate);
                         if (delRow)
                         {
-                            QueryDeleteDataFromDataTable(dt, "[Дата регистрации]='" + singleDate + "'", person.NAV); // ("Дата регистрации",typeof(string)),//12
+                            QueryDeleteDataFromDataTable(ref dt, "[Дата регистрации]='" + singleDate + "'", person.NAV); // ("Дата регистрации",typeof(string)),//12
                         }
                     }
                 }
             }
-            myBoldedDates = daysBolded.ToArray();
-            workSelectedDays = daysSelected.Except(daysBolded).ToArray();
-
             dt.AcceptChanges();
+
+            boldedDates = daysBolded.ToArray();
+            workDates  = daysSelected.Except(daysBolded).ToArray();
 
             myMonthCalendar.Dispose();
             daysBolded = null;
@@ -3724,7 +3728,7 @@ namespace ASTA
 
 
 
-        private void QueryDeleteDataFromDataTable(DataTable dt, string queryFull, string NAVcode) //Delete data from the Table of the DB by NAV (both parameters are string)
+        private void QueryDeleteDataFromDataTable(ref DataTable dt, string queryFull, string NAVcode) //Delete data from the Table of the DB by NAV (both parameters are string)
         {
             DataRow[] rows = new DataRow[1];
             try
@@ -3742,31 +3746,6 @@ namespace ASTA
             dt.AcceptChanges();
             rows = null;
         }
-
-        /* private void DeleteDataTableQueryLess(System.IO.FileInfo databasePerson, string myTable,
-             string mySqlParameter2 = "", decimal mySqlData2 = 9) //Delete data from the Table of the DB (both parameters are string)
-         {
-             if (databasePerson.Exists)
-             {
-                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
-                 {
-                     sqlConnection.Open();
-                     if (mySqlParameter2.Trim().Length > 0)
-                     {
-                         using (var sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where NAV like '" + _textBoxReturnText(textBoxNav) + "' AND " + mySqlParameter2 + " < @" + mySqlParameter2 + ";", sqlConnection))
-                         {
-                             sqlCommand.Parameters.Add("@" + mySqlParameter2, DbType.Decimal).Value = mySqlData2;
-                             try { sqlCommand.ExecuteNonQuery(); } catch { }
-                         }
-                     }
-                     //vacuum DB
-                     using (var sqlCommand = new SQLiteCommand("vacuum;", sqlConnection))
-                     { try { sqlCommand.ExecuteNonQuery(); } catch { } }
-                 }
-             }
-             mySqlParameter2 = null;
-         }*/
-
 
 
         //----- Clear ---------//
@@ -4069,10 +4048,11 @@ namespace ASTA
 
                 //count max number of events in-out all of selected people (the group or a single person)
                 //It needs to prevent the error "index of scope"
-                int[] startPeriod = _dateTimePickerReturnArray(dateTimePickerStart);
-                int[] endPeriod = _dateTimePickerReturnArray(dateTimePickerEnd);
                 DataTable dtEmpty = new DataTable();
-                SeekAnualDays(dtEmpty, personDraw, false, startPeriod, endPeriod);
+                SeekAnualDays(ref dtEmpty, ref personDraw, false,
+                    _dateTimePickerReturnArray(dateTimePickerStart),
+                    _dateTimePickerReturnArray(dateTimePickerEnd),
+                    ref myBoldedDates, ref workSelectedDays);
                 dtEmpty.Dispose();
 
                 foreach (DataRow row in rowsPersonRegistrationsForDraw.Rows)
@@ -4338,10 +4318,11 @@ namespace ASTA
 
             //count max number of events in-out all of selected people (the group or a single person)
             //It needs to prevent the error "index of scope"
-            int[] startPeriod = _dateTimePickerReturnArray(dateTimePickerStart);
-            int[] endPeriod = _dateTimePickerReturnArray(dateTimePickerEnd);
             DataTable dtEmpty = new DataTable();
-            SeekAnualDays(dtEmpty, personDraw, false, startPeriod, endPeriod);
+            SeekAnualDays(ref dtEmpty, ref personDraw, false, 
+                _dateTimePickerReturnArray(dateTimePickerStart), 
+                _dateTimePickerReturnArray(dateTimePickerEnd), 
+                ref myBoldedDates, ref workSelectedDays);
             dtEmpty.Dispose();
 
             foreach (DataRow row in rowsPersonRegistrationsForDraw)
@@ -6669,7 +6650,7 @@ namespace ASTA
             int[] startPeriod = { dt.Year, dt.Month, dt.Day };
             dt = DateTime.Parse(reportLastDay);
             int[] endPeriod = { dt.Year, dt.Month, dt.Day };
-            SeekAnualDays(dtTempIntermediate, person, false, startPeriod, endPeriod);
+            SeekAnualDays(ref dtTempIntermediate, ref person, false, startPeriod, endPeriod, ref myBoldedDates, ref workSelectedDays);
             logger.Trace(reportStartDay + " - " + reportLastDay);
 
             string nameGroup = "";
@@ -6694,7 +6675,8 @@ namespace ASTA
 
                     person = new Person();
 
-                    LoadGroupMembersFromDbToDataTable(nameGroup); //result will be in dtPeopleGroup  //"Select * FROM PeopleGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
+                    dtPeopleGroup.Clear();
+                    LoadGroupMembersFromDbToDataTable(nameGroup, ref dtPeopleGroup);
 
                     foreach (DataRow row in dtPeopleGroup.Rows)
                     {
@@ -6761,14 +6743,12 @@ namespace ASTA
                         _toolStripStatusLabelSetText(StatusLabel2, DateTimeToYYYYMMDDHHMM() + "Ошибка получения данных по отчету " + nameReport);
                         _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
                     }
-                    person = null;
                 }
             }
             titleOfbodyMail = null;
 
             dtTempIntermediate?.Dispose();
             dtPersonTemp?.Clear();
-            person = null;
             selectedPeriod = null;
             nameGroup = null;
         }
