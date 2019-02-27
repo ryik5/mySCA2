@@ -84,6 +84,14 @@ namespace ASTA
         public string Comment = "";
     }
 
+    class PassByPoint
+    {
+        public string _id = "";
+        public string _name = "";
+        public string _direction = "";
+        public string _server = "";
+    }
+
     class OutReasons
     {
         public string _id = "";

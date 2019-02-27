@@ -53,8 +53,8 @@ namespace ASTA
         int iCounterLine = 0;
 
         //collecting of data
+        List<PassByPoint> passByPoints = new List<PassByPoint>(); //List byPass points 
         List<string> listFIO = new List<string>(); // List of FIO and identity of data
-        List<string> listPoints = new List<string>(); // List of all Points of SCA
         List<string> listRegistrations = new List<string>(); // List whole of registration of the selected person at All servers
         int iFIO = 0;
 
@@ -792,8 +792,7 @@ namespace ASTA
             nameOfLastTableFromDB = nameLastTable;
             sLastSelectedElement = "dataGridView";
         }
-
-
+        
 
         private void DeleteTable(System.IO.FileInfo databasePerson, string myTable) //Delete All data from the selected Table of the DB (both parameters are string)
         {
@@ -817,7 +816,6 @@ namespace ASTA
                     }
                     sqlConnection.Close();
                 }
-                GC.Collect();
             }
             myTable = null;
         }
@@ -1665,8 +1663,7 @@ namespace ASTA
             _controlEnable(dataGridView1, true);
             _ProgressBar1Stop();
         }
-
-
+        
         private void ExportDatatableSelectedColumnsToExcel(ref DataTable dataTable, string nameReport, string filePath)  //Export DataTable to Excel 
         {
             reportExcelReady = false;
@@ -1676,8 +1673,9 @@ namespace ASTA
             DataTable dtExport = viewExport.ToTable();
 
             logger.Trace("В таблице " + dataTable.TableName + " столбцов всего - " + dtExport.Columns.Count + ", строк - " + dtExport.Rows.Count);
-            _toolStripStatusLabelSetText(StatusLabel2, "Генерирую Excel-файл по отчету: " + nameReport);
+            _toolStripStatusLabelSetText(StatusLabel2, "Генерирую Excel-файл по отчету: '" + nameReport+"'");
             stimerPrev = "Генерирую Excel-файл по отчету: " + nameReport;
+            _ProgressWork1Step(1);
 
             try
             {
@@ -1690,6 +1688,7 @@ namespace ASTA
                     nameColumns[i] = dtExport.Columns[i].ColumnName;
                     indexColumns[i] = dtExport.Columns.IndexOf(nameColumns[i]);
                 }
+                _ProgressWork1Step(1);
 
                 int rows = 1;
                 int rowsInTable = dtExport.Rows.Count;
@@ -1709,8 +1708,6 @@ namespace ASTA
                 //sheet.Names.Add("next", "=" + Path.GetFileNameWithoutExtension(filePathExcelReport) + "!$A$1", true, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
                 _ProgressWork1Step(1);
 
-
-                //Entire columns
                 //colourize background of column
                 //the last column
                 sheet.Columns[columnsInTable].Interior.Color = Microsoft.Office.Interop.Excel.XlRgbColor.rgbSilver;  // последняя колонка
@@ -1720,13 +1717,11 @@ namespace ASTA
                 // or 
                 //sheet.Columns[columnsInTable].Interior.Color = System.Drawing.Color.Silver;
 
-                //"Фамилия Имя Отчество"
                 sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Фамилия Имя Отчество")) + 1)]
                .Interior.Color = Color.DarkSeaGreen;
 
                 try
                 {
-                    //"Опоздание ЧЧ:ММ"
                     sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Опоздание ЧЧ:ММ")) + 1)]
                     .Interior.Color = Color.SandyBrown;
                     sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Опоздание ЧЧ:ММ")) + 1)]
@@ -1736,7 +1731,6 @@ namespace ASTA
                     Microsoft.Office.Interop.Excel.Range rangeColumnA = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Опоздание ЧЧ:ММ")) + 1)];
                     rangeColumnA.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
 
-                    //"Ранний уход ЧЧ:ММ"
                     sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Ранний уход ЧЧ:ММ")) + 1)]
                     .Interior.Color = Color.SandyBrown;
                     sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Ранний уход ЧЧ:ММ")) + 1)]
@@ -1745,35 +1739,37 @@ namespace ASTA
                     Microsoft.Office.Interop.Excel.Range rangeColumnB = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Ранний уход ЧЧ:ММ")) + 1)];
                     rangeColumnB.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
-                catch (Exception expt) { logger.Warn("нарушения - " + expt.ToString()); }
+                catch (Exception expt) { logger.Warn("нарушения: " + expt.ToString()); }
+                _ProgressWork1Step(1);
 
                 try
                 {
                     Microsoft.Office.Interop.Excel.Range rangeColumnC = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Отпуск")) + 1)];
                     rangeColumnC.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
-                catch (Exception expt) { logger.Warn("Отпуск - " + expt.ToString()); }
+                catch (Exception expt) { logger.Warn("Отпуск: " + expt.ToString()); }
 
                 try
                 {
                     Microsoft.Office.Interop.Excel.Range rangeColumnD = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Прогул (отпуск за свой счет)")) + 1)];
                     rangeColumnD.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
-                catch (Exception expt) { logger.Warn("Отгул - " + expt.ToString()); }
+                catch (Exception expt) { logger.Warn("Отгул: " + expt.ToString()); }
 
                 try
                 {
                     Microsoft.Office.Interop.Excel.Range rangeColumnE = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Больничный")) + 1)];
                     rangeColumnE.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
-                catch (Exception expt) { logger.Warn("Больничный - " + expt.ToString()); }
+                catch (Exception expt) { logger.Warn("Больничный: " + expt.ToString()); }
 
                 try
                 {
                     Microsoft.Office.Interop.Excel.Range rangeColumnF = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Отсутствовал на работе")) + 1)];
                     rangeColumnF.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
-                catch (Exception expt) { logger.Warn("Отсутствовал - " + expt.ToString()); }
+                catch (Exception expt) { logger.Warn("Отсутствовал: " + expt.ToString()); }
+                _ProgressWork1Step(1);
 
                 //first row
                 Microsoft.Office.Interop.Excel.Range rangeColumnName = sheet.Range["A1", GetExcelColumnName(columnsInTable) + 1];
@@ -1789,8 +1785,6 @@ namespace ASTA
                 }
                 _ProgressWork1Step(1);
 
-                //next rows
-                //input data
                 foreach (DataRow row in dtExport.Rows)
                 {
                     rows++;
@@ -1798,8 +1792,8 @@ namespace ASTA
                     {
                         sheet.Cells[rows, column + 1].Value = row[indexColumns[column]];
                     }
-                }
                 _ProgressWork1Step(1);
+                }
 
                 //colourize parts of text in the selected cell by different colors
                 /*
@@ -1891,7 +1885,7 @@ namespace ASTA
             catch (Exception ex)
             {
                 obj = null;
-                logger.Trace("Exception Occured while releasing object of Excel: " + ex);
+                logger.Trace("Exception releasing object of Excel: " + ex.Message);
             }
             finally
             { GC.Collect(); }
@@ -1945,7 +1939,6 @@ namespace ASTA
                 groupBoxFilterReport.BackColor = SystemColors.Control;
             }
             sComboboxFIO = null;
-            nameOfLastTableFromDB = "PersonRegistrationsList";
         }
 
         private void CreateGroupItem_Click(object sender, EventArgs e)
@@ -2431,33 +2424,44 @@ namespace ASTA
 
         private void GetNamePoints() //Get names of the pass by points
         {
+            passByPoints = new List<PassByPoint>();
             if (databasePerson.Exists)
             {
-                listPoints.Clear();
                 string stringConnection = @"Data Source=" + sServer1 + @"\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + @";Password=" + sServer1UserPassword + @"; Connect Timeout=60";
-                string sqlQuery;
+                string query;
+                string name;
+                string direction;
                 using (var sqlConnection = new System.Data.SqlClient.SqlConnection(stringConnection))
                 {
                     sqlConnection.Open();
-                    sqlQuery = "Select id, name FROM OBJ_ABC_ARC_READER;";
-                    using (var sqlCommand = new System.Data.SqlClient.SqlCommand(sqlQuery, sqlConnection))
+                    query = "Select id, name FROM OBJ_ABC_ARC_READER;";
+                    using (var sqlCommand = new System.Data.SqlClient.SqlCommand(query, sqlConnection))
                     {
                         using (var sqlReader = sqlCommand.ExecuteReader())
                         {
                             foreach (DbDataRecord record in sqlReader)
                             {
-                                try
+                                if (record["id"]?.ToString()?.Trim()?.Length > 0 && record["name"]?.ToString()?.Trim()?.Length > 0)
                                 {
-                                    if (record["id"]?.ToString()?.Trim()?.Length > 0)
-                                    { listPoints.Add(sServer1 + "|" + record["id"].ToString().Trim() + "|" + record["name"].ToString().Trim()); }
+                                    name = record["name"].ToString().Trim();
+                                    if (name.Contains("выход"))
+                                    { direction = "Выход"; }
+                                    else
+                                    { direction = "Вход"; }
+
+                                    passByPoints.Add(new PassByPoint
+                                    {
+                                        _id = record["id"].ToString().Trim(),
+                                        _server = sServer1,
+                                        _name = name,
+                                        _direction = direction
+                                    });
                                 }
-                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
                 }
-
-                stringConnection = null; sqlQuery = null;
+                stringConnection = query = name = direction=null;
             }
         }
 
@@ -2551,9 +2555,11 @@ namespace ASTA
             Person person = new Person();
 
             //look for late and excepted people during selected period in www's DB
-            outResons = new List<OutReasons>();
             outPerson = new List<OutPerson>();
-            outResons.Add(new OutReasons() { _id = "0", _hourly = 1, _name = @"Unknow", _visibleName = @"Неизвестная" });
+
+            outResons = new List<OutReasons>();
+            outResons.Add(new OutReasons()
+            { _id = "0", _hourly = 1, _name = @"Unknow", _visibleName = @"Неизвестная" });
 
             string query = "";
             string stringConnection = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;pooling = false; convert zero datetime=True;Connect Timeout=60";
@@ -2561,7 +2567,7 @@ namespace ASTA
             using (var sqlConnection = new MySql.Data.MySqlClient.MySqlConnection(stringConnection))
             {
                 sqlConnection.Open();
-                query = "Select id,name,hourly,visibled_name FROM out_reasons";
+                query = "Select id, name,hourly, visibled_name FROM out_reasons";
                 logger.Trace(query);
 
                 using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
@@ -2624,35 +2630,32 @@ namespace ASTA
                 _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по группе " + nameGroup);
                 stimerPrev = "Получаю данные по группе " + nameGroup;
                 //  if (doPostAction != "sendEmail")
-
                 {
                     dtPeopleGroup.Clear();
                     LoadGroupMembersFromDbToDataTable(nameGroup, ref dtPeopleGroup);
-                } //result will be in dtPeopleGroup
+                } 
 
                 logger.Trace("GetRegistrations, DT - " + dtPeopleGroup.TableName + " , всего записей - " + dtPeopleGroup.Rows.Count);
                 foreach (DataRow row in dtPeopleGroup.Rows)
                 {
                     if (row[@"Фамилия Имя Отчество"]?.ToString()?.Length > 0 && (row[@"Группа"]?.ToString() == nameGroup || ("@" + row[@"Отдел (id)"]?.ToString()) == nameGroup))
                     {
-                        person = new Person();
-
-                        person.FIO = row[@"Фамилия Имя Отчество"].ToString();
-                        person.NAV = row[@"NAV-код"]?.ToString();
-
-                        person.GroupPerson = nameGroup;
-                        person.Department = row[@"Отдел"]?.ToString();
-                        person.PositionInDepartment = row[@"Должность"]?.ToString();
-                        person.DepartmentId = row[@"Отдел (id)"]?.ToString();
-
-                        person.ControlInHHMM = row[@"Учетное время прихода ЧЧ:ММ"]?.ToString();
-                        person.ControlOutHHMM = row[@"Учетное время ухода ЧЧ:ММ"]?.ToString();
+                        person = new Person()
+                        {
+                            FIO = row[@"Фамилия Имя Отчество"].ToString(),
+                            NAV = row[@"NAV-код"]?.ToString(),
+                            GroupPerson = nameGroup,
+                            Department = row[@"Отдел"]?.ToString(),
+                            PositionInDepartment = row[@"Должность"]?.ToString(),
+                            DepartmentId = row[@"Отдел (id)"]?.ToString(),
+                            ControlInHHMM = row[@"Учетное время прихода ЧЧ:ММ"]?.ToString(),
+                            ControlOutHHMM = row[@"Учетное время ухода ЧЧ:ММ"]?.ToString(),
+                            Comment = row[@"Комментарии (командировка, на выезде, согласованное отсутствие…….)"]?.ToString(),
+                            Shift = row[@"График"]?.ToString()
+                        };
 
                         person.ControlInSeconds = ConvertStringTimeHHMMToSeconds(person.ControlInHHMM);
                         person.ControlOutSeconds = ConvertStringTimeHHMMToSeconds(person.ControlOutHHMM);
-
-                        person.Comment = row[@"Комментарии (командировка, на выезде, согласованное отсутствие…….)"]?.ToString();
-                        person.Shift = row[@"График"]?.ToString();
 
                         GetPersonRegistrationFromServer(dtPersonRegistrationsFullList, person, startDate, endDate);     //Search Registration at checkpoints of the selected person
                     }
@@ -2737,6 +2740,25 @@ namespace ASTA
                         }
                     }
 
+                    // PassByPoint
+                    query = "Select id, tabnum FROM OBJ_PERSON where tabnum like '" + person.NAV + "';";
+                    using (var cmd = new System.Data.SqlClient.SqlCommand(query, sqlConnection))
+                    {
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            foreach (DbDataRecord record in reader)
+                            {
+                                if (record?["tabnum"]?.ToString()?.Trim() == person.NAV)
+                                {
+                                    stringIdCardIntellect = record["id"].ToString().Trim();
+                                    person.idCard = Convert.ToInt32(record["id"].ToString().Trim());
+                                    break;
+                                }
+                                _ProgressWork1Step(1);
+                            }
+                        }
+                    }
+
                     query = "SELECT param0, param1, objid, objtype, CONVERT(varchar, date, 120) AS date, CONVERT(varchar, PROTOCOL.time, 114) AS time FROM protocol " +
                        " where objtype like 'ABC_ARC_READER' AND param1 like '" + stringIdCardIntellect + "' AND date >= '" + startDay + "' AND date <= '" + endDay + "' " +
                        " ORDER BY date ASC";
@@ -2748,39 +2770,23 @@ namespace ASTA
                             {
                                 try
                                 {
-                                    if (record["param0"]?.ToString()?.Trim()?.Length > 0)
+                                    if (record["param0"]?.ToString()?.Trim()?.Length > 0&& record["param1"]?.ToString()?.Length>0)
                                     {
-                                        stringDataNew = Regex.Split(record["date"].ToString().Trim(), "[ ]")[0];
+                                         logger.Trace(person.NAV);
+                                       stringDataNew = record["date"]?.ToString()?.Trim()?.Split(' ')[0];
                                         person.idCard = Convert.ToInt32(record["param1"].ToString().Trim());
                                         seconds = ConvertStringTimeHHMMToSeconds(record["time"]?.ToString()?.Trim());
-                                        namePoint = "";
-                                        direction = "";
-                                        fullPointName = record["objid"]?.ToString().Trim();
+                                        fullPointName = record["objid"]?.ToString()?.Trim();
 
-                                        foreach (var aPointPass in listPoints.ToArray())
-                                        {
-                                            if (aPointPass != null && fullPointName != null &&
-                                                aPointPass.Contains(sServer1) && aPointPass.Contains(fullPointName) &&
-                                                aPointPass.Contains("|") && fullPointName.Length ==
-                                                Regex.Split(aPointPass, "[|]")[1].Length)
-                                                try
-                                                {
-                                                    namePoint = Regex.Split(aPointPass, "[|]")[2];
-                                                    if (namePoint.ToLower().Contains("выход"))
-                                                        direction = "Выход";
-                                                    else if (namePoint.ToLower().Contains("вход"))
-                                                        direction = "Вход";
-                                                    break;
-                                                }
-                                                catch { }
-                                        }
+                                        namePoint = passByPoints.Find((x) => x._id == fullPointName )?._name;
+                                        direction = passByPoints.Find((x) => x._id == fullPointName)?._direction;
+
                                         personWorkedDays.Add(stringDataNew);
 
                                         rowPerson = dtTarget.NewRow();
-                                        rowPerson[@"Фамилия Имя Отчество"] = record["param0"]?.ToString()?.Trim();
+                                        rowPerson[@"Фамилия Имя Отчество"] = record["param0"].ToString().Trim();
                                         rowPerson[@"NAV-код"] = person.NAV;
-
-                                        rowPerson[@"№ пропуска"] = record["param1"]?.ToString()?.Trim();
+                                        rowPerson[@"№ пропуска"] = record["param1"].ToString().Trim();
                                         rowPerson[@"Группа"] = person.GroupPerson;
                                         rowPerson[@"Отдел"] = person.Department;
                                         rowPerson[@"Должность"] = person.PositionInDepartment;
