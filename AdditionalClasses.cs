@@ -65,8 +65,8 @@ namespace ASTA
         public string PositionInDepartment = "";
 
         public string GroupPerson = "";
-        public decimal ControlInDecimal = 9;
-        public decimal ControlOutDecimal = 18;
+        public int ControlInSeconds = 32460;
+        public int ControlOutSeconds = 64800;
         public string ControlInHHMM = "09:00";
         public string ControlOutHHMM = "18:00";
 
