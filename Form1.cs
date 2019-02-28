@@ -23,7 +23,7 @@ namespace ASTA
 {
     public partial class WinFormASTA : Form
     {
-        NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+        static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         NotifyIcon notifyIcon = new NotifyIcon();
         ContextMenu contextMenu;
         bool buttonAboutForm;
@@ -45,7 +45,7 @@ namespace ASTA
         string strVersion;
 
         //mailing
-        readonly string nameOfSenderReports = "Отдел компенсаций и льгот";
+        static readonly string nameOfSenderReports = "Отдел компенсаций и льгот";
         static System.Threading.Timer timer;
         static object synclock = new object();
         static bool sent = false;
@@ -108,15 +108,15 @@ namespace ASTA
         TextBox textBoxMailServerUserName;
         Label labelMailServerUserPassword;
         TextBox textBoxMailServerUserPassword;
-        string mailServer = "";
-        string mailServerRegistry = "";
-        string mailServerDB = "";
-        string mailServerUserName = "";
-        string mailServerUserNameRegistry = "";
-        string mailServerUserNameDB = "";
-        string mailServerUserPassword = "";
-        string mailServerUserPasswordRegistry = "";
-        string mailServerUserPasswordDB = "";
+        static string mailServer = "";
+        static string mailServerRegistry = "";
+        static string mailServerDB = "";
+        static string mailServerUserName = "";
+        static string mailServerUserNameRegistry = "";
+        static string mailServerUserNameDB = "";
+        static string mailServerUserPassword = "";
+        static string mailServerUserPasswordRegistry = "";
+        static string mailServerUserPasswordDB = "";
 
         Label labelmysqlServer;
         TextBox textBoxmysqlServer;
@@ -124,15 +124,15 @@ namespace ASTA
         TextBox textBoxmysqlServerUserName;
         Label labelmysqlServerUserPassword;
         TextBox textBoxmysqlServerUserPassword;
-        string mysqlServer = "";
-        string mysqlServerRegistry = "";
-        string mysqlServerDB = "";
-        string mysqlServerUserName = "";
-        string mysqlServerUserNameRegistry = "";
-        string mysqlServerUserNameDB = "";
-        string mysqlServerUserPassword = "";
-        string mysqlServerUserPasswordRegistry = "";
-        string mysqlServerUserPasswordDB = "";
+        static string mysqlServer = "";
+        static string mysqlServerRegistry = "";
+        static string mysqlServerDB = "";
+        static string mysqlServerUserName = "";
+        static string mysqlServerUserNameRegistry = "";
+        static string mysqlServerUserNameDB = "";
+        static string mysqlServerUserPassword = "";
+        static string mysqlServerUserPasswordRegistry = "";
+        static string mysqlServerUserPasswordDB = "";
 
         Label listComboLabel;
         ComboBox listCombo = new ComboBox();
@@ -792,7 +792,7 @@ namespace ASTA
             nameOfLastTableFromDB = nameLastTable;
             sLastSelectedElement = "dataGridView";
         }
-        
+
 
         private void DeleteTable(System.IO.FileInfo databasePerson, string myTable) //Delete All data from the selected Table of the DB (both parameters are string)
         {
@@ -1663,7 +1663,7 @@ namespace ASTA
             _controlEnable(dataGridView1, true);
             _ProgressBar1Stop();
         }
-        
+
         private void ExportDatatableSelectedColumnsToExcel(ref DataTable dataTable, string nameReport, string filePath)  //Export DataTable to Excel 
         {
             reportExcelReady = false;
@@ -1673,7 +1673,7 @@ namespace ASTA
             DataTable dtExport = viewExport.ToTable();
 
             logger.Trace("В таблице " + dataTable.TableName + " столбцов всего - " + dtExport.Columns.Count + ", строк - " + dtExport.Rows.Count);
-            _toolStripStatusLabelSetText(StatusLabel2, "Генерирую Excel-файл по отчету: '" + nameReport+"'");
+            _toolStripStatusLabelSetText(StatusLabel2, "Генерирую Excel-файл по отчету: '" + nameReport + "'");
             stimerPrev = "Генерирую Excel-файл по отчету: " + nameReport;
             _ProgressWork1Step(1);
 
@@ -1792,7 +1792,7 @@ namespace ASTA
                     {
                         sheet.Cells[rows, column + 1].Value = row[indexColumns[column]];
                     }
-                _ProgressWork1Step(1);
+                    _ProgressWork1Step(1);
                 }
 
                 //colourize parts of text in the selected cell by different colors
@@ -2461,7 +2461,7 @@ namespace ASTA
                         }
                     }
                 }
-                stringConnection = query = name = direction=null;
+                stringConnection = query = name = direction = null;
             }
         }
 
@@ -2633,7 +2633,7 @@ namespace ASTA
                 {
                     dtPeopleGroup.Clear();
                     LoadGroupMembersFromDbToDataTable(nameGroup, ref dtPeopleGroup);
-                } 
+                }
 
                 logger.Trace("GetRegistrations, DT - " + dtPeopleGroup.TableName + " , всего записей - " + dtPeopleGroup.Rows.Count);
                 foreach (DataRow row in dtPeopleGroup.Rows)
@@ -2770,15 +2770,15 @@ namespace ASTA
                             {
                                 try
                                 {
-                                    if (record["param0"]?.ToString()?.Trim()?.Length > 0&& record["param1"]?.ToString()?.Length>0)
+                                    if (record["param0"]?.ToString()?.Trim()?.Length > 0 && record["param1"]?.ToString()?.Length > 0)
                                     {
-                                         logger.Trace(person.NAV);
-                                       stringDataNew = record["date"]?.ToString()?.Trim()?.Split(' ')[0];
+                                        logger.Trace(person.NAV);
+                                        stringDataNew = record["date"]?.ToString()?.Trim()?.Split(' ')[0];
                                         person.idCard = Convert.ToInt32(record["param1"].ToString().Trim());
                                         seconds = ConvertStringTimeHHMMToSeconds(record["time"]?.ToString()?.Trim());
                                         fullPointName = record["objid"]?.ToString()?.Trim();
 
-                                        namePoint = passByPoints.Find((x) => x._id == fullPointName )?._name;
+                                        namePoint = passByPoints.Find((x) => x._id == fullPointName)?._name;
                                         direction = passByPoints.Find((x) => x._id == fullPointName)?._direction;
 
                                         personWorkedDays.Add(stringDataNew);
@@ -3284,7 +3284,7 @@ namespace ASTA
                     {
                         //Select only one row with selected NAV for the selected workedDay
                         dtAllRegistrationsInSelectedDay = allWorkedDaysPerson.Distinct().CopyToDataTable().Select("[Дата регистрации] = '" + workedDay + "'").CopyToDataTable();
-                        
+
                         rowDtStoring = dtAllRegistrationsInSelectedDay.Select("[Дата регистрации] = '" + workedDay + "'").First();
                         rowDtStoring[@"День недели"] = DayOfWeekRussian(DateTime.Parse(workedDay).DayOfWeek.ToString());
 
@@ -3305,7 +3305,7 @@ namespace ASTA
                         workedSeconds = lastRegistrationInDay - firstRegistrationInDay;
                         rowDtStoring[@"Реальное отработанное время"] = workedSeconds;                                  // ("Реальное отработанное время", typeof(decimal)), //26
                         rowDtStoring[@"Отработанное время ЧЧ:ММ"] = ConvertSecondsToStringHHMM(workedSeconds);  //("Отработанное время ЧЧ:ММ", typeof(string)), //27
-                        logger.Trace("FilterDataByNav: " + person.NAV + "| "+ rowDtStoring[@"Дата регистрации"].ToString()+" " + firstRegistrationInDay+ " - " + lastRegistrationInDay);
+                        logger.Trace("FilterDataByNav: " + person.NAV + "| " + rowDtStoring[@"Дата регистрации"].ToString() + " " + firstRegistrationInDay + " - " + lastRegistrationInDay);
 
                         //todo 
                         //will calculate if day of week different
@@ -3324,7 +3324,7 @@ namespace ASTA
                             else if (typeReport == "Упрощенный")
                             { rowDtStoring[@"Ранний уход ЧЧ:ММ"] = "1"; }
                         }
-                        
+
                         if (rowDtStoring[@"Отсутствовал на работе"].ToString() == "1" && typeReport == "Полный")  // "Ранний уход ЧЧ:ММ", typeof(bool)),                 //29
                         {
                             rowDtStoring[@"Отсутствовал на работе"] = "Да";
@@ -6010,7 +6010,7 @@ namespace ASTA
 
         private void DoReportByRightClick(object sender, EventArgs e)
         { DoReportByRightClick(); }
-        
+
         private void DoReportByRightClick()
         {
             DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
@@ -6122,22 +6122,19 @@ namespace ASTA
                         _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + dgSeek.values[2]);
                         stimerPrev = "";
 
-                        logger.Info("DoMainAction: UPDATE 'Mailing' SET SendingLastDate='" + DateTimeToYYYYMMDDHHMM() +
-                            "' WHERE RecipientEmail='" + dgSeek.values[0] + "' AND NameReport='" + dgSeek.values[2] +
-                            "' AND GroupsReport ='" + dgSeek.values[1] + "';");
                         ExecuteSql("UPDATE 'Mailing' SET SendingLastDate='" + DateTimeToYYYYMMDDHHMM() +
                             "' WHERE RecipientEmail='" + dgSeek.values[0] + "' AND NameReport='" + dgSeek.values[2] +
                             "' AND GroupsReport ='" + dgSeek.values[1] + "';", databasePerson);
+
+                        MailingAction("sendEmail", dgSeek.values[0], mailServerUserName,
+                            dgSeek.values[1], dgSeek.values[2], dgSeek.values[3], dgSeek.values[4],
+                            dgSeek.values[5], dgSeek.values[6], dgSeek.values[7]);
 
                         logger.Info("DoMainAction, sendEmail: " +
                             dgSeek.values[0] + "|" + dgSeek.values[1] + "|" + dgSeek.values[2] + "|" +
                             dgSeek.values[3] + "|" + dgSeek.values[4] + "|" + dgSeek.values[5] + "|" +
                             dgSeek.values[6] + "|" + dgSeek.values[7]);
-                        MailingAction("sendEmail", dgSeek.values[0], mailServerUserName,
-                            dgSeek.values[1], dgSeek.values[2], dgSeek.values[3], dgSeek.values[4],
-                            dgSeek.values[5], dgSeek.values[6], dgSeek.values[7]);
 
-                        logger.Trace("DoMainAction, ShowDataTableQuery: ");
                         ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
                         "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
                         "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
@@ -6460,6 +6457,7 @@ namespace ASTA
             string str = "";
             foreach (MailingStructure mailng in mailingList)
             {
+                _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
                 DateTime dt = DateTime.Now;
                 int daySendReport = 0;
                 bool isDayReport = false;
@@ -6601,6 +6599,7 @@ namespace ASTA
 
             foreach (string groupName in groups)
             {
+                _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
                 nameGroup = groupName.Trim();
                 if (nameGroup.Length > 0)
                 {
@@ -6632,7 +6631,7 @@ namespace ASTA
                             person.PositionInDepartment = row[@"Должность"].ToString();
                             person.DepartmentId = row[@"Отдел (id)"].ToString();
 
-                            person.ControlInSeconds = ConvertStringTimeHHMMToSeconds (row[@"Учетное время прихода ЧЧ:ММ"].ToString());
+                            person.ControlInSeconds = ConvertStringTimeHHMMToSeconds(row[@"Учетное время прихода ЧЧ:ММ"].ToString());
                             person.ControlOutSeconds = ConvertStringTimeHHMMToSeconds(row[@"Учетное время ухода ЧЧ:ММ"].ToString());
                             person.ControlInHHMM = row[@"Учетное время прихода ЧЧ:ММ"].ToString();
                             person.ControlOutHHMM = row[@"Учетное время ухода ЧЧ:ММ"].ToString();
@@ -6663,10 +6662,10 @@ namespace ASTA
                             if (reportExcelReady)
                             {
                                 titleOfbodyMail = "с " + reportStartDay.Split(' ')[0] + " по " + reportLastDay.Split(' ')[0];
-                                _toolStripStatusLabelSetText(StatusLabel2, "Выполняю отправку отчета " + recipientEmail);
-                                stimerPrev = "Выполняю отправку отчета " + recipientEmail;
+                                _toolStripStatusLabelSetText(StatusLabel2, "Выполняю отправку отчета адресату: " + recipientEmail);
+                                stimerPrev = "Выполняю отправку отчета адресату: " + recipientEmail;
 
-                                SendEmailAsync(senderEmail, recipientEmail, titleOfbodyMail, description, filePathExcelReport, Properties.Resources.LogoRYIK, productName);
+                                SendEmail(senderEmail, recipientEmail, titleOfbodyMail, description, filePathExcelReport, Properties.Resources.LogoRYIK, productName);
 
                                 _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
                                 _toolStripStatusLabelSetText(StatusLabel2, DateTimeToYYYYMMDDHHMM() + " Отчет '" + nameReport + "'(" + groupName + ") подготовлен и отправлен " + recipientEmail);
@@ -6674,13 +6673,13 @@ namespace ASTA
                             else
                             {
                                 _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
-                                _toolStripStatusLabelSetText(StatusLabel2, DateTimeToYYYYMMDDHHMM() + " Ошибка создания отчета: " + nameReport + "(" + groupName + ")");
+                                _toolStripStatusLabelSetText(StatusLabel2, DateTimeToYYYYMMDDHHMM() + " Ошибка экспорта в файл отчета: " + nameReport + "(" + groupName + ")");
                             }
                         }
                     }
                     else
                     {
-                        _toolStripStatusLabelSetText(StatusLabel2, DateTimeToYYYYMMDDHHMM() + "Ошибка получения данных по отчету " + nameReport);
+                        _toolStripStatusLabelSetText(StatusLabel2, DateTimeToYYYYMMDDHHMM() + "Ошибка получения данных для отчета: " + nameReport);
                         _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
                     }
                 }
@@ -6693,7 +6692,7 @@ namespace ASTA
             nameGroup = null;
         }
 
-        private async void SendEmailAsync(string sender, string recipient, string period, string department, string pathToFile, Bitmap myLogo, string messageAfterPicture) //Compose and send e-mail
+        private static void SendEmail(string sender, string recipient, string period, string department, string pathToFile, Bitmap myLogo, string messageAfterPicture) //Compose and send e-mail
         {
             // string startupPath = AppDomain.CurrentDomain.RelativeSearchPath;
             // string path = System.IO.Path.Combine(startupPath, "HtmlTemplates", "NotifyTemplate.html");
@@ -6711,7 +6710,7 @@ namespace ASTA
                 {
                     // письмо представляет код html
                     newMail.IsBodyHtml = true;
-                    newMail.BodyEncoding = UTF8Encoding.UTF8;
+                    newMail.BodyEncoding = Encoding.UTF8;
 
                     newMail.AlternateViews.Add(getEmbeddedImage(period, department, myLogo, messageAfterPicture));
                     // отправитель - устанавливаем адрес и отображаемое в письме имя
@@ -6720,23 +6719,56 @@ namespace ASTA
                     // отправитель - устанавливаем адрес и отображаемое в письме имя
                     newMail.ReplyToList.Add(sender);
 
+                    // Скрытая копия
+                    // newMail.Bcc.Add("ry@ais.com.ua");
+
                     // кому отправляем
                     newMail.To.Add(new System.Net.Mail.MailAddress(recipient));
                     // тема письма
                     newMail.Subject = "Отчет по посещаемости за период: " + period;
-                    //добавляем вложение
+                    // Проверка успешности отправки
+                    smtpClient.SendCompleted += new System.Net.Mail.SendCompletedEventHandler(SendCompletedCallback);
+                    // добавляем вложение
                     newMail.Attachments.Add(new System.Net.Mail.Attachment(pathToFile));
                     // логин и пароль
                     smtpClient.Credentials = new System.Net.NetworkCredential(sender.Split('@')[0], "");
-                    //if error - show error
-                    newMail.DeliveryNotificationOptions = System.Net.Mail.DeliveryNotificationOptions.OnFailure;
-                    //async send email
-                    await smtpClient.SendMailAsync(newMail);
+
+                    // отправка письма
+                    try
+                    {
+                        // async sending has a problem with sending
+                        // smtpClient.SendAsync(newMail);
+                        smtpClient.Send(newMail);
+                        logger.Info("SendEmail: " + recipient + " - Ok");
+                    }
+                    catch (Exception expt) { logger.Warn("SendEmail, Error: " + expt.Message); }
+
+                    if (mailSent == false)
+                    {
+                        smtpClient.SendAsyncCancel();
+                    }
                 }
             }
         }
+        
+        static bool mailSent = false;
 
-        private System.Net.Mail.AlternateView getEmbeddedImage(string period, string department, Bitmap bmp, string messageAfterPicture)
+        //for async sending
+        private static void SendCompletedCallback(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
+        {
+            // Get the unique identifier for this asynchronous operation.
+            String token = (string)e.UserState;
+
+            if (e.Cancelled)
+            { logger.Info("Send canceled " + token); }
+            if (e.Error != null)
+            { logger.Info("Send error " + e.Error.ToString()); }
+            else
+            { logger.Info("Message sent"); }
+            mailSent = true;
+        }
+
+        private static System.Net.Mail.AlternateView getEmbeddedImage(string period, string department, Bitmap bmp, string messageAfterPicture)
         {
             //convert embedded resources into memorystream
             Bitmap b = new Bitmap(bmp, new Size(50, 50));
@@ -6774,6 +6806,8 @@ namespace ASTA
             alternateView.LinkedResources.Add(res);
             return alternateView;
         }
+
+
 
         //---  End. Schedule Functions ---//
 
@@ -7646,7 +7680,7 @@ namespace ASTA
             decimal result = decimalHour + TryParseStringToDecimal(TimeSpan.FromMinutes((double)decimalMinute).TotalHours.ToString());
             return result;
         }
-        
+
         private int ConvertDecimalSeparatedTimeToSeconds(decimal decimalHour, decimal decimalMinute)
         {
             int result = Convert.ToInt32(decimalHour * 60 * 60 + decimalMinute * 60);
@@ -7662,7 +7696,7 @@ namespace ASTA
         private string ConvertSecondsToStringHHMM(int seconds)
         {
             string result;
-            int hours = seconds/3600;
+            int hours = seconds / 3600;
             int minutes = (seconds % 3600) / 60;
 
             result = string.Format("{0:d2}:{1:d2}", hours, minutes);
@@ -7766,7 +7800,7 @@ namespace ASTA
                 hours = timeInHHMM;
             }
 
-            return (60 * 60 * Convert.ToInt32(hours) + 60 * Convert.ToInt32(minutes)+ Convert.ToInt32(seconds));
+            return (60 * 60 * Convert.ToInt32(hours) + 60 * Convert.ToInt32(minutes) + Convert.ToInt32(seconds));
         }
 
         private string[] ConvertStringTimeHHMMToStringArray(string timeInHHMM) //time HH:MM converted to decimal value
@@ -7834,7 +7868,7 @@ namespace ASTA
             else { return DateTime.Now.ToString("yyyy-MM-dd"); }
         }
 
-        private string DateTimeToYYYYMMDDHHMM(string date = "")
+        public static string DateTimeToYYYYMMDDHHMM(string date = "")
         {
             if (date.Length > 0)
             { return DateTime.Parse(date).ToString("yyyy-MM-dd HH:mm"); }
