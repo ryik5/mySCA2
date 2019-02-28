@@ -876,6 +876,12 @@
   <data name="SettingsProgrammItem.Text" xml:space="preserve">
     <value>Настройки программы</value>
   </data>
+  <data name="SelectedToLoadCityItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>357, 22</value>
+  </data>
+  <data name="SelectedToLoadCityItem.Text" xml:space="preserve">
+    <value>Список городов для загрузки с www</value>
+  </data>
   <data name="Separator1.Size" type="System.Drawing.Size, System.Drawing">
     <value>354, 6</value>
   </data>
@@ -1821,6 +1827,12 @@
   <data name="&gt;&gt;ModeItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="&gt;&gt;TestToSendAllMailingsItem.Name" xml:space="preserve">
+    <value>TestToSendAllMailingsItem</value>
+  </data>
+  <data name="&gt;&gt;TestToSendAllMailingsItem.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="&gt;&gt;Separator2.Name" xml:space="preserve">
     <value>Separator2</value>
   </data>
@@ -1911,10 +1923,10 @@
   <data name="&gt;&gt;timer1.Type" xml:space="preserve">
     <value>System.Windows.Forms.Timer, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;TestToSendAllMailingsItem.Name" xml:space="preserve">
-    <value>TestToSendAllMailingsItem</value>
+  <data name="&gt;&gt;SelectedToLoadCityItem.Name" xml:space="preserve">
+    <value>SelectedToLoadCityItem</value>
   </data>
-  <data name="&gt;&gt;TestToSendAllMailingsItem.Type" xml:space="preserve">
+  <data name="&gt;&gt;SelectedToLoadCityItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;$this.Name" xml:space="preserve">

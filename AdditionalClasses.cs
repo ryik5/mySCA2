@@ -74,10 +74,13 @@ namespace ASTA
         public string Department = "";
         public string DepartmentId = "";
         public string DepartmentBossCode = "";
-
         public string PositionInDepartment = "";
-
         public string GroupPerson = "";
+        public string City = "";
+    }
+
+    class PersonFull: Person
+    {
         public int ControlInSeconds = 32460;
         public int ControlOutSeconds = 64800;
         public string ControlInHHMM = "09:00";

@@ -91,6 +91,7 @@
             this.MailingAddItem = new System.Windows.Forms.ToolStripMenuItem();
             this.MailingsExceptItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ModeItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.TestToSendAllMailingsItem = new System.Windows.Forms.ToolStripMenuItem();
             this.Separator2 = new System.Windows.Forms.ToolStripSeparator();
             this.EditAnualDaysItem = new System.Windows.Forms.ToolStripMenuItem();
             this.AddAnualDateItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -118,7 +119,7 @@
             this.groupBoxTimeEnd = new System.Windows.Forms.GroupBox();
             this.labelHourEnd = new System.Windows.Forms.Label();
             this.labelMinuteEnd = new System.Windows.Forms.Label();
-            this.TestToSendAllMailingsItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.SelectedToLoadCityItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownHourStart)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownMinuteStart)).BeginInit();
@@ -548,6 +549,7 @@
             // 
             this.SettingsMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.SettingsProgrammItem,
+            this.SelectedToLoadCityItem,
             this.Separator1,
             this.MailingsShowItem,
             this.MailingAddItem,
@@ -601,6 +603,12 @@
             this.ModeItem.Name = "ModeItem";
             resources.ApplyResources(this.ModeItem, "ModeItem");
             this.ModeItem.Click += new System.EventHandler(this.ModeAppItem_Click);
+            // 
+            // TestToSendAllMailingsItem
+            // 
+            this.TestToSendAllMailingsItem.Name = "TestToSendAllMailingsItem";
+            resources.ApplyResources(this.TestToSendAllMailingsItem, "TestToSendAllMailingsItem");
+            this.TestToSendAllMailingsItem.Click += new System.EventHandler(this.TestToSendAllMailingsItem_Click);
             // 
             // Separator2
             // 
@@ -772,11 +780,11 @@
             resources.ApplyResources(this.labelMinuteEnd, "labelMinuteEnd");
             this.labelMinuteEnd.Name = "labelMinuteEnd";
             // 
-            // TestToSendAllMailingsItem
+            // SelectedToLoadCityItem
             // 
-            this.TestToSendAllMailingsItem.Name = "TestToSendAllMailingsItem";
-            resources.ApplyResources(this.TestToSendAllMailingsItem, "TestToSendAllMailingsItem");
-            this.TestToSendAllMailingsItem.Click += new System.EventHandler(this.TestToSendAllMailingsItem_Click);
+            this.SelectedToLoadCityItem.Name = "SelectedToLoadCityItem";
+            resources.ApplyResources(this.SelectedToLoadCityItem, "SelectedToLoadCityItem");
+            this.SelectedToLoadCityItem.Click += new System.EventHandler(this.SelectedToLoadCityItem_Click);
             // 
             // WinFormASTA
             // 
@@ -916,6 +924,7 @@
         private System.Windows.Forms.ToolStripMenuItem MailingsShowItem;
         private System.Windows.Forms.ToolStripMenuItem MailingsExceptItem;
         private System.Windows.Forms.ToolStripMenuItem TestToSendAllMailingsItem;
+        private System.Windows.Forms.ToolStripMenuItem SelectedToLoadCityItem;
     }
 }
 
