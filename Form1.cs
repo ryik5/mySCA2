@@ -1060,14 +1060,13 @@ namespace ASTA
             _toolStripStatusLabelSetText(StatusLabel2, "Формирую и записываю группы в локальную базу...");
             ImportTablePeopleToTableGroupsInLocalDB(databasePerson.ToString(), dtTempIntermediate);
 
-            //  if (currentAction != @"sendEmail")
-            // {
-            var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(arrayHiddenColumnsFIO).ToArray(); //take distinct data
-            dtPersonTemp = GetDistinctRecords(dtTempIntermediate, namesDistinctColumnsArray);
-            ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenColumnsFIO, "ListFIO");
-
-            namesDistinctColumnsArray = null;
-            //  }
+            if (currentAction != @"sendEmail")
+            {
+                var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(arrayHiddenColumnsFIO).ToArray(); //take distinct data
+                dtPersonTemp = GetDistinctRecords(dtTempIntermediate, namesDistinctColumnsArray);
+                ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenColumnsFIO, "ListFIO");
+                namesDistinctColumnsArray = null;
+            }
             dtTempIntermediate?.Dispose();
         }
 
