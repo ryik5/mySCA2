@@ -42,7 +42,7 @@ namespace ASTA
     interface IDbConnection
     {
         string _connection { get; set; }
-    } 
+    }
     interface IDbQuery
     {
         string _query { get; set; }
@@ -79,7 +79,7 @@ namespace ASTA
         public string City = "";
     }
 
-    class PersonFull: Person
+    class PersonFull : Person
     {
         public int ControlInSeconds = 32460;
         public int ControlOutSeconds = 64800;
@@ -152,15 +152,28 @@ namespace ASTA
     {
         public int _amountMembers;
         public string _groupName;
+        public string _emails;
     }
 
     class Department
     {
-        public string _departmentBossEmail;
-        public string _departmentBossCode;
+        public string _departmentId;
         public string _departmentDescription;
-        public string _departmentName;
-        public string _id;
+        public string _departmentBossCode;
+    }
+
+    class PersonCodeEmail
+    {
+        public string _departmentBossCode;
+        public string _departmentBossEmail;
+    }
+
+    class DepartmentFull
+    {
+        public string _departmentId;
+        public string _departmentDescription;
+        public string _departmentBossCode;
+        public string _departmentBossEmail;
     }
 
     class DataGridViewSeekValuesInSelectedRow
@@ -171,7 +184,7 @@ namespace ASTA
         public void FindValuesInCurrentRow(DataGridView DGV, params string[] columnsName)
         {
             int IndexCurrentRow = DGV.CurrentRow.Index;
-            correctData =( IndexCurrentRow > -1 & columnsName.Length<11) ? true : false;
+            correctData = (-1 < IndexCurrentRow & 0 < columnsName.Length & columnsName.Length < 11) ? true : false;
 
             if (correctData)
             {
@@ -213,7 +226,7 @@ namespace ASTA
                     {
                         values[8] = DGV.Rows[IndexCurrentRow].Cells[i].Value.ToString();
                     }
-                    else if (columnsName.Length > 9 && DGV.Columns[i].HeaderText == columnsName[9])
+                    else if (columnsName.Length == 10 && DGV.Columns[i].HeaderText == columnsName[9])
                     {
                         values[9] = DGV.Rows[IndexCurrentRow].Cells[i].Value.ToString();
                     }
