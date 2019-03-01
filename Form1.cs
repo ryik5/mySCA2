@@ -1198,9 +1198,7 @@ namespace ASTA
                                         row[@"NAV-код"] = nav;
 
                                         row[@"Группа"] = groupName;
-
                                         row[@"Отдел"] = depName;
-
                                         row[@"Отдел (id)"] = sServer1.IndexOf('.') > -1 ? sServer1.Remove(sServer1.IndexOf('.')) : sServer1;
 
                                         row[@"Должность"] = record["post"].ToString().Trim();
@@ -1228,9 +1226,10 @@ namespace ASTA
                 _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...");
                 stimerPrev = "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...";
 
+                groupName = mysqlServer;
                 groups.Add(new DepartmentFull()
                 {
-                    _departmentId = mysqlServer, //group's name for staff who will have been imported from web DB
+                    _departmentId = groupName, //group's name for staff who will have been imported from web DB
                     _departmentDescription = "Stuff from the web server",
                     _departmentBossCode="0",
                     _departmentBossEmail="noemail"
@@ -6118,7 +6117,7 @@ namespace ASTA
                     mRightClick.MenuItems.Add(new MenuItem(text: "Загрузить данные регистраций группы: '" + dgSeek.values[1] +
                         "' за " + _dateTimePickerStartReturnMonth() + " и &отправить отчет адресату: " + mailServerUserName, onClick: DoReportAndEmailByRightClick));
                     mRightClick.MenuItems.Add("-");
-                    mRightClick.MenuItems.Add(new MenuItem(text: "Удалить группу: '" + dgSeek.values[1] + "'", onClick: DeleteCurrentRow));
+                    mRightClick.MenuItems.Add(new MenuItem(text: "Удалить группу: '" + dgSeek.values[0] + "'("+ dgSeek.values[1]+")", onClick: DeleteCurrentRow));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
                 else if ((nameOfLastTableFromDB == @"Mailing") && currentMouseOverRow > -1)
