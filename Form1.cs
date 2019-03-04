@@ -1094,7 +1094,7 @@ namespace ASTA
             string dayStartShift_ = "";
 
             listFIO?.Clear();
-            List<string> listCodesWithIdCard = new List<string>(); //NAV-codes staff who have idCards
+          //  List<string> listCodesWithIdCard = new List<string>(); //NAV-codes staff who have idCards
             List<PeopleShift> peopleShifts = new List<PeopleShift>();
             List<Department> departments = new List<Department>();
             List<DepartmentFull> departmentFulls = new List<DepartmentFull>();
@@ -1210,7 +1210,7 @@ namespace ASTA
 
                                         listFIO.Add(new Person { FIO = fio, NAV = nav });
 
-                                        listCodesWithIdCard.Add(nav);
+                                    //    listCodesWithIdCard.Add(nav);
 
                                         _ProgressWork1Step(1);
                                     }
@@ -1718,15 +1718,14 @@ namespace ASTA
             }
 
             stringConnection = null; query = null;
-            listCodesWithIdCard = null;
+          //  listCodesWithIdCard = null;
             peopleShifts = null;
             departments = null;
             groups = null;
             personFromServer = null;
             row = null;
         }
-
-
+        
 
         private void listFioItem_Click(object sender, EventArgs e) //ListFioReturn()
         {
