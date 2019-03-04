@@ -1328,7 +1328,7 @@ namespace ASTA
                                 }
                             }
                         }
-                        sqlConnection1.Close();
+                    //    sqlConnection1.Close();
                     }
 
                     // import individual shifts of people from web DB
@@ -1472,7 +1472,7 @@ namespace ASTA
                             }
                         }
                     }
-                    sqlConnection.Close();
+                //    sqlConnection.Close();
                 }
                 dataTablePeople.AcceptChanges();
                 logger.Trace("departments.count: " + departments.Count);
@@ -1686,7 +1686,7 @@ namespace ASTA
                         sqlCommand1 = new SQLiteCommand("end", sqlConnection);
                         sqlCommand1.ExecuteNonQuery();
                         sqlCommand1.Dispose();
-                        sqlConnection.Close();
+                      //  sqlConnection.Close();
 
                         foreach (var str in listFIO)
                         { _comboBoxAdd(comboBoxFio, str.FIO + "|" + str.NAV); }
