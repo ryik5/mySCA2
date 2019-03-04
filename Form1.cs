@@ -1328,7 +1328,6 @@ namespace ASTA
                                 }
                             }
                         }
-                    //    sqlConnection1.Close();
                     }
 
                     // import individual shifts of people from web DB
@@ -1472,7 +1471,6 @@ namespace ASTA
                             }
                         }
                     }
-                //    sqlConnection.Close();
                 }
                 dataTablePeople.AcceptChanges();
                 logger.Trace("departments.count: " + departments.Count);
