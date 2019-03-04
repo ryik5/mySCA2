@@ -1413,9 +1413,14 @@ namespace ASTA
 
                                     depName = departments.FindLast((x) => x._departmentId == personFromServer.DepartmentId)?._departmentDescription;
                                     personFromServer.Department = depName ?? personFromServer.DepartmentId;
-                                      depBoss = departments.Find((x) => x._departmentId == personFromServer.DepartmentId)?._departmentBossCode;
-                                      personFromServer.DepartmentBossCode = depBoss ?? reader.GetString(@"boss_id")?.Trim();
-                                   // personFromServer.DepartmentBossCode = reader.GetString(@"boss_id")?.Trim();
+                                    depBoss = departments.Find((x) => x._departmentId == personFromServer.DepartmentId)?._departmentBossCode;
+
+                                    mysqlServer = mysqlServerRegistry.Length > 0 ? mysqlServerRegistry : mysqlServerDB;
+
+
+                                    personFromServer.DepartmentBossCode = depBoss?.Length>0 ? depBoss: reader.GetString(@"boss_id")?.Trim();
+
+                                    // personFromServer.DepartmentBossCode = reader.GetString(@"boss_id")?.Trim();
                                     personFromServer.City = reader.GetString(@"city")?.Trim();
 
                                     personFromServer.PositionInDepartment = reader.GetString(@"vacancy")?.Trim();
@@ -1471,7 +1476,7 @@ namespace ASTA
                                         _departmentId = personFromServer.DepartmentId,
                                         _departmentDescription = personFromServer.Department,
                                         _departmentBossCode = personFromServer.DepartmentBossCode,
-                                        _departmentBossEmail= personCodeEmails.FindLast((x) => x._departmentBossCode == personFromServer.DepartmentBossCode)?._departmentBossEmail
+                                        _departmentBossEmail = personCodeEmails.FindLast((x) => x._departmentBossCode == personFromServer.DepartmentBossCode)?._departmentBossEmail
                                     });
 
                                     _ProgressWork1Step(1);
