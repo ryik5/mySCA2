@@ -53,9 +53,8 @@ namespace ASTA
         int iCounterLine = 0;
 
         //collecting of data
-        List<PassByPoint> passByPoints = new List<PassByPoint>(); //List byPass points 
-        List<Person> listFIO = new List<Person>(); // List of FIO and identity of data
-        List<string> listRegistrations = new List<string>(); // List whole of registration of the selected person at All servers
+        static List<PassByPoint> passByPoints = new List<PassByPoint>(); //List byPass points 
+       static List<Person> listFIO = new List<Person>(); // List of FIO and identity of data
 
         //Controls "NumUpDown"
         decimal numUpHourStart = 9;
@@ -1054,7 +1053,6 @@ namespace ASTA
         }
 
      static   DataTable dtTempIntermediate;
-        static HashSet<DepartmentFull> groups = new HashSet<DepartmentFull>();
         static List<PersonCodeEmail> personCodeEmails = new List<PersonCodeEmail>();
         static List<PeopleShift> peopleShifts = new List<PeopleShift>();
 
@@ -1065,11 +1063,11 @@ namespace ASTA
             dtTempIntermediate = dtPeople.Clone();
             GetDataFromRemoteServers(dtTempIntermediate,  personCodeEmails,  peopleShifts);
 
+            _toolStripStatusLabelSetText(StatusLabel2, "Формирую и записываю группы в локальную базу...");
+            WriteGroupsMailingsInLocalDb(dtTempIntermediate,  personCodeEmails,  peopleShifts);
+
             _toolStripStatusLabelSetText(StatusLabel2, "Записываю ФИО в локальную базу...");
             WritePeopleInLocalDB(databasePerson.ToString(), dtTempIntermediate);
-
-            _toolStripStatusLabelSetText(StatusLabel2, "Формирую и записываю группы в локальную базу...");
-            WriteGroupsMailingsInLocalDb(dtTempIntermediate,  groups,  personCodeEmails,  peopleShifts);
             // ImportListGroupsDescriptionInLocalDB
 
             if (currentAction != @"sendEmail")
@@ -1475,6 +1473,8 @@ namespace ASTA
                                         dataTablePeople.Rows.Add(row);
                                     }
 
+                                    listFIO.Add(new Person { FIO = personFromServer.FIO, NAV = personFromServer.NAV });
+
                                     _ProgressWork1Step(1);
                                 }
                             }
@@ -1499,7 +1499,7 @@ namespace ASTA
             row = null;
         }
 
-        private void WriteGroupsMailingsInLocalDb(DataTable dataTablePeople,  HashSet<DepartmentFull> groups,
+        private void WriteGroupsMailingsInLocalDb(DataTable dataTablePeople,
             List<PersonCodeEmail> personCodeEmails, List<PeopleShift> peopleShifts            )
         {
             _toolStripStatusLabelSetText(StatusLabel2, "Формирую обновленные списоки ФИО, департаментов и рассылок...");
@@ -1511,13 +1511,15 @@ namespace ASTA
             string depBoss = "";
             string depDescr = "";
             string depBossEmail = "";
-            List<DepartmentFull> departmentFulls = new List<DepartmentFull>();
+            List<DepartmentFull> groups = new List<DepartmentFull>();
             HashSet<Department> departmentsUniq = new HashSet<Department>();
             HashSet<DepartmentFull> departmentsEmailUniq = new HashSet<DepartmentFull>();            
             _ProgressWork1Step(1);
 
-            foreach (var dr in dataTablePeople.AsEnumerable().Distinct())
+            foreach (var dr in dataTablePeople.AsEnumerable())
             {
+                //todo
+                //get data 'Default_Recepient_code_From_Db' from LocalDB for webServer
                 depId = dr[@"Отдел (id)"]?.ToString();
                 depBossEmail = personCodeEmails.Find((x) => x._departmentBossCode == dr[@"Руководитель (код)"]?.ToString())?._departmentBossEmail;
                 if (depId?.Length > 0)
@@ -1530,32 +1532,40 @@ namespace ASTA
                         _departmentBossEmail = depBossEmail
                     });
 
-                    logger.Trace("@" + depId + " " + dr[@"Отдел"]?.ToString() + " " + dr[@"Руководитель (код)"]?.ToString() + " " + depBossEmail);
-
-                    _ProgressWork1Step(1);
+                    logger.Trace(groups.Count+" @" + depId + " " + dr[@"Отдел"]?.ToString() + " " + dr[@"Руководитель (код)"]?.ToString() + " " + depBossEmail);
                 }
 
                 depId = dr[@"Группа"]?.ToString();
-                depBossEmail = personCodeEmails.Find((x) => x._departmentBossCode == dr[@"Руководитель (код)"]?.ToString())?._departmentBossEmail;
                 if (depId?.Length > 0)
                 {
-                    groups.Add(new DepartmentFull()
+                    if (depId == mysqlServer)
                     {
-                        _departmentId = depId,
-                        _departmentDescription = dr[@"Отдел"]?.ToString(),
-                        _departmentBossCode = dr[@"Руководитель (код)"]?.ToString(),
-                        _departmentBossEmail = depBossEmail
-                    });
-
-                    logger.Trace(depId + " " + dr[@"Отдел"]?.ToString() + " " + dr[@"Руководитель (код)"]?.ToString() + " " + depBossEmail);
-
-                    _ProgressWork1Step(1);
+                        groups.Add(new DepartmentFull()
+                        {
+                            _departmentId = depId,
+                            _departmentDescription = "web",
+                            _departmentBossCode = "GetCodeFromDB",
+                            _departmentBossEmail = "GetEmailFromDB"
+                        });
+                        logger.Trace(groups.Count + " _ " + depId + " " + "web" + " " + "GetCodeFromDB" + " " + "GetEmailFromDB");
+                    }
+                    else
+                    {
+                        groups.Add(new DepartmentFull()
+                        {
+                            _departmentId = depId,
+                            _departmentDescription = dr[@"Отдел"]?.ToString(),
+                            _departmentBossCode = "GetCodeFromDB",
+                            _departmentBossEmail = "GetEmailFromDB"
+                        });
+                        logger.Trace(groups.Count + " _ " + depId + " " + dr[@"Отдел"]?.ToString() + " " + "GetCodeFromDB" + " " + "GetEmailFromDB");
+                    }
                 }
+                _ProgressWork1Step(1);
             }
-            logger.Trace("groups.count: " + groups.Count);
-            
-            departmentFulls = groups.Distinct().ToList();
-            foreach (var strDepartment in departmentFulls.ToArray())
+            logger.Trace("groups.count: " + groups.Distinct().Count());            
+
+            foreach (var strDepartment in groups.Distinct())
             {
                 if (strDepartment?._departmentId?.Length > 0)
                 {
@@ -1584,7 +1594,7 @@ namespace ASTA
                 logger.Trace("Чищу базу от старых списков с ФИО...");
                 DeleteAllDataInTableQuery(databasePerson, "LastTakenPeopleComboList");
 
-                foreach (var department in departmentsUniq.Distinct().ToArray())
+                foreach (var department in departmentsUniq.ToList().Distinct())
                 {
                     DeleteDataTableQueryParameters(databasePerson, "PeopleGroup", "GroupPerson", department._departmentId);
                     _ProgressWork1Step(1);
@@ -1624,15 +1634,13 @@ namespace ASTA
                     logger.Trace("Записываю новые группы ...");
                     sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
-                    foreach (var deprtment in departmentsUniq.Distinct().ToArray())
+                    foreach (var deprtment in departmentsUniq.ToList().Distinct())
                     {
                         depName = deprtment?._departmentId;
                         depDescr = deprtment?._departmentDescription;
 
-                        //todo
-                        //get data 'Default_Recepient_code_From_Db' from LocalDB
                         depBoss = deprtment?._departmentBossCode?.Length>0 ? deprtment?._departmentBossCode: "Default_Recepient_code_From_Db";
-                        using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroupDesciption' (GroupPerson, GroupPersonDescription, Recipient) " +
+                         using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroupDesciption' (GroupPerson, GroupPersonDescription, Recipient) " +
                                                 "VALUES (@GroupPerson, @GroupPersonDescription, @Recipient)", sqlConnection))
                         {
                             command.Parameters.Add("@GroupPerson", DbType.String).Value = depName;
@@ -1651,7 +1659,7 @@ namespace ASTA
                     string recipientEmail = "";
                     sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
-                    foreach (var deprtment in departmentsEmailUniq.ToArray().Distinct())
+                    foreach (var deprtment in departmentsEmailUniq.ToList().Distinct())
                     {
                         depName = deprtment?._departmentId;
                         depDescr = deprtment?._departmentDescription;
@@ -1723,43 +1731,13 @@ namespace ASTA
                     }
                     sqlCommand1 = new SQLiteCommand("end", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
-
-                    logger.Trace("Записываю списки в базу и контролы...");
-                    sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
-                    foreach (var str in listFIO)
-                    {
-                        if (str.FIO.Length > 0 && str.NAV.Length > 0)
-                        {
-                            using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'LastTakenPeopleComboList' (ComboList) VALUES (@ComboList)", sqlConnection))
-                            {
-                                sqlCommand.Parameters.Add("@ComboList", DbType.String).Value = str.FIO + "|" + str.NAV;
-                                try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
-                                _ProgressWork1Step(1);
-                            }
-                        }
-                    }
-                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
-                    sqlCommand1.Dispose();
-                      sqlConnection.Close();
-
-                    foreach (var str in listFIO)
-                    { _comboBoxAdd(comboBoxFio, str.FIO + "|" + str.NAV); }
-                    _ProgressWork1Step(1);
-                    if (_comboBoxCountItems(comboBoxFio) > 0)
-                    { _comboBoxSelectIndex(comboBoxFio, 0); }
-                    _ProgressWork1Step(1);
-
-                    logger.Info("Записано ФИО: " + listFIO.Count);
+                                        
                     logger.Info("Записано групп: " + departmentsUniq.ToArray().Distinct().Count());
                     logger.Info("Записано рассылок: " + departmentsEmailUniq.ToArray().Distinct().Count());
-                    listFIO = null;
                 }
             }
 
             departmentsUniq = null;
-            departmentFulls = null;
             departmentsEmailUniq = null;
 
             _ProgressWork1Step(1);
@@ -2438,11 +2416,11 @@ namespace ASTA
                 sqlConnection.Open();
                 logger.Trace("WritePeopleInLocalDB: " + dtSource + " "+ dtSource.Rows.Count);
                 //Write people in local DB
-                SQLiteCommand commandTransaction = new SQLiteCommand("begin", sqlConnection);
-                commandTransaction.ExecuteNonQuery();
+                SQLiteCommand sqlCommandTransaction = new SQLiteCommand("begin", sqlConnection);
+                sqlCommandTransaction.ExecuteNonQuery();
                 foreach (var dr in dtSource.AsEnumerable())
                 {
-                    if (dr[@"Фамилия Имя Отчество"]?.ToString()?.Length > 0 && dr[@"NAV-код"]?.ToString()?.Length > 0)
+                   if (dr[@"Фамилия Имя Отчество"]?.ToString()?.Length > 0 && dr[@"NAV-код"]?.ToString()?.Length > 0)
                     {
                         using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Department, PositionInDepartment, DepartmentId, City, Boss) " +
                                 " VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Comment, @Department, @PositionInDepartment, @DepartmentId, @City, @Boss)", sqlConnection))
@@ -2473,9 +2451,37 @@ namespace ASTA
                     }
                 }
 
-                commandTransaction = new SQLiteCommand("end", sqlConnection);
-               commandTransaction.ExecuteNonQuery();
-                commandTransaction?.Dispose();
+                sqlCommandTransaction = new SQLiteCommand("end", sqlConnection);
+                sqlCommandTransaction.ExecuteNonQuery();
+
+
+                logger.Trace("Записываю списки в базу и контролы...");
+                sqlCommandTransaction = new SQLiteCommand("begin", sqlConnection);
+                sqlCommandTransaction.ExecuteNonQuery();
+                foreach (var str in listFIO)
+                {
+                    if (str?.FIO?.Length > 0 && str?.NAV?.Length > 0)
+                    {
+                        using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'LastTakenPeopleComboList' (ComboList) VALUES (@ComboList)", sqlConnection))
+                        {
+                            sqlCommand.Parameters.Add("@ComboList", DbType.String).Value = str.FIO + "|" + str.NAV;
+                            try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                            _ProgressWork1Step(1);
+                        }
+                    }
+                }
+                sqlCommandTransaction = new SQLiteCommand("end", sqlConnection);
+                sqlCommandTransaction.ExecuteNonQuery();
+                sqlCommandTransaction?.Dispose();
+                sqlConnection.Close();
+
+                foreach (var str in listFIO)
+                { _comboBoxAdd(comboBoxFio, str.FIO + "|" + str.NAV); }
+                _ProgressWork1Step(1);
+                if (_comboBoxCountItems(comboBoxFio) > 0)
+                { _comboBoxSelectIndex(comboBoxFio, 0); }
+                _ProgressWork1Step(1);
+                logger.Info("Записано ФИО: " + listFIO.Count);
             }
         }
 
@@ -3084,7 +3090,7 @@ namespace ASTA
 
             _ProgressWork1Step(1);
 
-            listRegistrations.Clear(); rowPerson = null;
+            rowPerson = null;
             namePoint = null; direction = null;
             stringIdCardIntellect = null; cellData = new string[1];
         }
