@@ -53,17 +53,17 @@ namespace ASTA
 
     }
 
-    class MailingStructure
+    struct MailingStructure
     {
-        public string _sender = "";
-        public string _recipient = "";
-        public string _groupsReport = "";
-        public string _nameReport = "";
-        public string _descriptionReport = "";
-        public string _period = "";
-        public string _status = "";
-        public string _typeReport = "";
-        public string _dayReport = "";
+        public string _sender ;
+        public string _recipient ;
+        public string _groupsReport ;
+        public string _nameReport ;
+        public string _descriptionReport ;
+        public string _period ;
+        public string _status ;
+        public string _typeReport ;
+        public string _dayReport ;
     }
 
     class Person
