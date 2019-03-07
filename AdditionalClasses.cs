@@ -39,20 +39,20 @@ namespace ASTA
      }
  }*/
 
-    interface IDbConnection
-    {
-        string _connection { get; set; }
-    }
-    interface IDbQuery
-    {
-        string _query { get; set; }
-    }
 
-    class DbOperation
-    {
-
-    }
-
+    //todo
+    /*
+     const string connStr = "server=localhost;user=root; database=test;password=;";
+using (MySqlConnection conn = new MySqlConnection(connStr))
+{
+string sql = "SELECT Text FROM Kody WHERE Kod=@Kod";
+MySqlCommand comand = new MySqlCommand(sql, conn);
+command.Parameters.AddWithValue("@Kod", textBox1.Text);
+conn.Open();
+string name = comand.ExecuteScalar().ToString();
+label1.Text = name;
+}
+*/
     struct MailingStructure
     {
         public string _sender ;
@@ -66,64 +66,66 @@ namespace ASTA
         public string _dayReport ;
     }
 
-    class Person
+    struct Person
     {
-        public int idCard = 0;
-        public string FIO = "";
-        public string NAV = "";
-        public string Department = "";
-        public string DepartmentId = "";
-        public string DepartmentBossCode = "";
-        public string PositionInDepartment = "";
-        public string GroupPerson = "";
-        public string City = "";
+        public string FIO ;
+        public string NAV ;
     }
 
-    class PersonFull : Person
+    struct PersonFull
     {
-        public int ControlInSeconds = 32460;
-        public int ControlOutSeconds = 64800;
-        public string ControlInHHMM = "09:00";
-        public string ControlOutHHMM = "18:00";
+        public int idCard;//= 0
+        public string FIO;//= ""
+        public string NAV;//= ""
+        public string Department;//= ""
+        public string DepartmentId;//= ""
+        public string DepartmentBossCode;//= ""
+        public string PositionInDepartment;//= ""
+        public string GroupPerson;//= ""
+        public string City;//= ""
+        public int ControlInSeconds;//= 32460
+        public int ControlOutSeconds;// =64800
+        public string ControlInHHMM;//= "09:00"
+        public string ControlOutHHMM;//= "18:00"
+        public string Shift;//= ""
+        public string Comment;//= ""
 
-        public string RealInHHMM = "09:00";
-        public string RealOutHHMM = "18:00";
+        //   public string RealInHHMM;//= "09:00"
+        //   public string RealOutHHMM;//= "18:00"
 
-        public string RealWorkedDayHoursHHMM = "09:00";
-        public string RealDate = "";
-        public string RealDayOfWeek = "";
+        //   public string RealWorkedDayHoursHHMM;//= "09:00"
+        //   public string RealDate;//= ""
+        //   public string RealDayOfWeek;//= ""
 
-        public string serverSKD = "";
-        public string namePassPoint = "";
-        public string directionPass = "";
-        public string Shift = "";
-        public string Comment = "";
+        //   public string serverSKD;//= ""
+        //   public string namePassPoint;//= ""
+        //   public string directionPass;//= ""
     }
 
-    class PassByPoint
+    struct PassByPoint
     {
-        public string _id = "";
-        public string _name = "";
-        public string _direction = "";
-        public string _server = "";
+        public string _id ;
+        public string _name ;
+        public string _direction ;
+        public string _server ;
     }
 
-    class OutReasons
+    struct OutReasons
     {
-        public string _id = "";
-        public string _name = "";
-        public string _visibleName = "";
-        public int _hourly = 0;
+        public string _id ;
+        public string _name ;
+        public string _visibleName ;
+        public int _hourly ;
     }
 
-    class OutPerson
+    struct OutPerson
     {
-        public string _reason_id = "0";
-        public string _nav = "";
-        public string _date = "";
-        public int _from = 0;
-        public int _to = 0;
-        public int _hourly = 0;
+        public string _reason_id ;//= "0"
+        public string _nav ;//= ""
+        public string _date ;//= ""
+        public int _from ;//= 0
+        public int _to ;//= 0
+        public int _hourly ;//= 0
     }
 
     struct PeopleShift
@@ -155,20 +157,20 @@ namespace ASTA
         public string _emails;
     }
 
-    class Department
+    struct Department
     {
         public string _departmentId;
         public string _departmentDescription;
         public string _departmentBossCode;
     }
 
-    class PersonCodeEmail
+    struct PersonCodeEmail
     {
         public string _departmentBossCode;
         public string _departmentBossEmail;
     }
 
-    class DepartmentFull
+    struct DepartmentFull
     {
         public string _departmentId;
         public string _departmentDescription;
