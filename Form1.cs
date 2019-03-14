@@ -8230,6 +8230,8 @@ namespace ASTA
             string value = null;
             string parameter = null;
             ActiveDirectoryGetData ad;
+            StaffStore staffStore=new StaffStore();
+            MakeADUsersTable makeADUsersTable ;
 
             List<ObjectsOfConfig> parametersList = new List<ObjectsOfConfig>();
             GetConfigTableFromDB("ConfigDB", ref parametersList);
@@ -8260,9 +8262,18 @@ namespace ASTA
             if (user.Length > 0 && password.Length > 0 && domain.Length > 0 && server.Length > 0)
             {
                 ad = new ActiveDirectoryGetData(user, domain, password, server);
+                staffStore.Story.Push(ad.SaveObjects());
+
+                //передать дальше в обработку:
+                makeADUsersTable = new MakeADUsersTable(staffStore.Story.Pop());
+
+                //аналогично - заполнение таблицы
             }
             ad = null; parametersList = null;
         }
+
+        StaffStore staffStore=new StaffStore();
+        StaffMemento usersAD;
 
         private void GetConfigTableFromDB(string tableName, ref List<ObjectsOfConfig> parametersList)
         {

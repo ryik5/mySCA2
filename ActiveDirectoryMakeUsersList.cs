@@ -21,7 +21,7 @@ namespace ASTA
         string Domain { get; set; }      // домен
         string Password { get; set; }    // пароль
     }
-    public class UserADAuthorization : IUserADAuthorization
+    public class UserADAuthorization :IUserADAuthorization
     {
         public string Name { get; set; }       // имя
         public string Domain { get; set; }      // домен
@@ -69,113 +69,55 @@ namespace ASTA
         }
     }
 
-    public class ActiveDirectoryGetData
+    public class ActiveDirectoryGetData//: Mediator
     {
         static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
-       // UserADAuthorization UserADAuthorization;
-      //  bool isValid = false;
+        // UserADAuthorization UserADAuthorization;
+        //  bool isValid = false;
+        string user, domain, password, domainPath;
+        PrincipalSearcher principalSearcher;
 
-        public ActiveDirectoryGetData(string _user, string _domain, string _password, string DomainPath)
+        public ActiveDirectoryGetData(string _user, string _domain, string _password, string _domainPath)
         {
+            user = _user;
+            domain = _domain;
+            password = _password;
+            domainPath = _domainPath;
+            principalSearcher = GetDataAD();
+        }
+
+        private PrincipalSearcher GetDataAD()
+        {
+            PrincipalSearcher principalSearcher = new PrincipalSearcher();
             //   logger.Trace(DomainPath);
 
             //UserADAuthorization = new UserADAuthorizationBuilder().SetName(_user).SetPassword(_password).SetDomain(_domain).Build();
             // isValid = ValidateCredentials(UserADAuthorization); //sometimes doesn't work correctly
             //  logger.Info("Доступ к домену '" + _domain + "' предоставлен: " + isValid);
-
-
+            
             // if (isValid)
             {
-                using (var context = new PrincipalContext(ContextType.Domain, DomainPath, "OU=Domain Users,DC=" + _domain.Split('.')[0] + ",DC=" + _domain.Split('.')[1], _user, _password))
+                using (var context = new PrincipalContext(ContextType.Domain, domainPath, "OU=Domain Users,DC=" + domain.Split('.')[0] + ",DC=" + domain.Split('.')[1], user, password))
                 {
                     using (var searcher = new PrincipalSearcher(new UserPrincipal(context)))
                     {
-                        string mail, code, decription;
-                        foreach (var result in searcher.FindAll())
-                        {
-                            DirectoryEntry de = result.GetUnderlyingObject() as DirectoryEntry;
+                        principalSearcher = searcher;
 
-                            mail = de?.Properties["mail"]?.Value?.ToString()?.Trim();
-                            code = de?.Properties["extensionAttribute1"]?.Value?.ToString()?.Trim();
-                            try { decription = de.Properties["description"].Value.ToString().ToLower().Trim(); } catch { decription = ""; }
-
-                            try
-                            {
-                                if (code?.Length > 0 && mail.Contains("@") && !decription.Equals("dismiss")) //
-                                    logger.Trace(
-                                        de?.Properties["mail"]?.Value + "| " +
-                                         // de?.Properties["mailNickname"]?.Value + "| " +
-                                         de?.Properties["sAMAccountName"]?.Value + "| " +
-                                         de?.Properties["extensionAttribute1"]?.Value + "| " +
-                                         de?.Properties["displayName"]?.Value
-                                        );
-                            }
-                            catch { }
-                        }
+                        
                     }
                 }
             }
             //   else
             //  {
-            logger.Trace("ActiveDirectoryGetData: User: '" + _user + "' |Password: '" + _password + "' |Domain: '" + _domain + "' |DomainURI: '" + DomainPath + "'");
+            logger.Trace("ActiveDirectoryGetData: User: '" + user + "' |Password: '" + password + "' |Domain: '" + domain + "' |DomainURI: '" + domainPath + "'");
             //   }
+            return principalSearcher;
         }
 
-
-        //add mediator
-        abstract class Mediator
+        public StaffMemento SaveObjects()
         {
-            public abstract void Send(DirectoryEntry _de, Colleague colleague);
+            return new StaffMemento(principalSearcher);
         }
-
-        abstract class Colleague
-        {
-            protected Mediator mediator;
-
-            public Colleague(Mediator mediator)
-            {
-                this.mediator = mediator;
-            }
-        }
-
-        class UsersStore : Colleague
-        {
-            public UsersStore(Mediator mediator)
-                : base(mediator)
-            { }
-
-            public void Send(DirectoryEntry _de)
-            {
-                mediator.Send(_de, this);
-            }
-
-            public void Notify(string message)
-            {
-                //set finish
-            }
-        }
-
-        //https://metanit.com/sharp/patterns/3.9.php
-        class ConcreteMediator : Mediator
-        {
-            public UsersStore usersStore { get; set; }
-            public ADUsersStore adusersStore { get; set; }
-          /*  public override void Send(DirectoryEntry _de, Colleague colleague)
-            {
-                if (adusersStore == colleague)
-                    Colleague2.Notify(msg);
-                else
-                    Colleague1.Notify(msg);
-            }*/
-        }
-
-        class ADUsersStore
-        {
-
-        }
-
-
-
 
         // sometimes doesn't work correctly
         static bool ValidateCredentials(UserADAuthorization userADAuthorization)
@@ -193,6 +135,71 @@ namespace ASTA
         }
     }
 
+    // Memento
+    public class StaffMemento
+    {
+        public PrincipalSearcher principalSearcher { get; private set; }
+
+        public StaffMemento(PrincipalSearcher _principalSearcher)
+        {
+            this.principalSearcher = _principalSearcher;
+        }
+    }
+    // Caretaker
+    class StaffStore
+    {
+        public Stack<StaffMemento> Story { get; private set; }
+        public StaffStore()
+        {
+            Story = new Stack<StaffMemento>();
+        }
+    }
+
+
+    class MakeADUsersTable
+    {
+        static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+        PrincipalSearcher searcher;
+
+        public MakeADUsersTable(StaffMemento memento)
+        {
+            this.searcher = memento.principalSearcher;
+            DoWork(this.searcher);
+        }
+
+        private void DoWork(PrincipalSearcher searcher)
+        {
+            string mail, code, decription;
+            foreach (var result in searcher.FindAll())
+            {
+                DirectoryEntry de = result.GetUnderlyingObject() as DirectoryEntry;
+
+                mail = de?.Properties["mail"]?.Value?.ToString()?.Trim();
+                code = de?.Properties["extensionAttribute1"]?.Value?.ToString()?.Trim();
+                try
+                {
+                    decription = de.Properties["description"].Value.ToString().ToLower().Trim();
+                } catch { decription = ""; }
+
+                try
+                {
+                    if (code?.Length > 0 && mail.Contains("@") && !decription.Equals("dismiss")) //
+                    {
+                        //todo 
+                        //fill struct-Table
+                        logger.Trace(
+                             de?.Properties["mail"]?.Value + "| " +
+                              // de?.Properties["mailNickname"]?.Value + "| " +
+                              de?.Properties["sAMAccountName"]?.Value + "| " +
+                              de?.Properties["extensionAttribute1"]?.Value + "| " +
+                              de?.Properties["displayName"]?.Value
+                             );
+                    }
+                } catch { }
+            }
+        }
+    }
+
 
 
     // sometimes doesn't work correctly!!!!! Check it.
@@ -204,7 +211,7 @@ namespace ASTA
         /// <summary>
         /// The type of logon operation to perform.
         /// </summary>
-        internal enum LogonType : int
+        internal enum LogonType :int
         {
             /// <summary>
             /// This logon type is intended for users who will be interactively using the computer, such as a user being logged on by a terminal server, remote shell, or similar process. This logon type has the additional expense of caching logon information for disconnected operations; therefore, it is inappropriate for some client/server applications, such as a mail server.
@@ -249,7 +256,7 @@ namespace ASTA
         /// <summary>
         /// Specifies the logon provider.
         /// </summary>
-        internal enum LogonProvider : int
+        internal enum LogonProvider :int
         {
             /// <summary>
             /// Use the standard logon provider for the system.
