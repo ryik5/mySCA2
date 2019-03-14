@@ -1053,6 +1053,12 @@
   <data name="TestCryptionItem.Visible" type="System.Boolean, mscorlib">
     <value>False</value>
   </data>
+  <data name="testADToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>357, 22</value>
+  </data>
+  <data name="testADToolStripMenuItem.Text" xml:space="preserve">
+    <value>TestAD</value>
+  </data>
   <data name="SettingsMenuItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>79, 20</value>
   </data>
@@ -1680,6 +1686,12 @@
   <data name="&gt;&gt;SettingsProgrammItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="&gt;&gt;ConfigurationItem.Name" xml:space="preserve">
+    <value>ConfigurationItem</value>
+  </data>
+  <data name="&gt;&gt;ConfigurationItem.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="&gt;&gt;SelectedToLoadCityItem.Name" xml:space="preserve">
     <value>SelectedToLoadCityItem</value>
   </data>
@@ -1812,10 +1824,10 @@
   <data name="&gt;&gt;timer1.Type" xml:space="preserve">
     <value>System.Windows.Forms.Timer, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;ConfigurationItem.Name" xml:space="preserve">
-    <value>ConfigurationItem</value>
+  <data name="&gt;&gt;testADToolStripMenuItem.Name" xml:space="preserve">
+    <value>testADToolStripMenuItem</value>
   </data>
-  <data name="&gt;&gt;ConfigurationItem.Type" xml:space="preserve">
+  <data name="&gt;&gt;testADToolStripMenuItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;$this.Name" xml:space="preserve">

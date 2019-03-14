@@ -132,6 +132,9 @@
     <Reference Include="System.Data.SQLite">
       <HintPath>System.Data.SQLite.dll</HintPath>
     </Reference>
+    <Reference Include="System.DirectoryServices" />
+    <Reference Include="System.DirectoryServices.AccountManagement" />
+    <Reference Include="System.DirectoryServices.Protocols" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Drawing.Design" />
     <Reference Include="System.IO.Compression" />
@@ -172,6 +175,7 @@
     <Compile Include="AboutBox1.Designer.cs">
       <DependentUpon>AboutBox1.cs</DependentUpon>
     </Compile>
+    <Compile Include="ActiveDirectoryMakeUsersList.cs" />
     <Compile Include="AdditionalClasses.cs" />
     <Compile Include="AssemblyInfo1.cs" />
     <Compile Include="ExcelInfo.cs" />
