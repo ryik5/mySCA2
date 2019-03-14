@@ -72,8 +72,8 @@ namespace ASTA
     public class ActiveDirectoryGetData
     {
         static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
-        UserADAuthorization UserADAuthorization;
-        bool isValid = false;
+       // UserADAuthorization UserADAuthorization;
+      //  bool isValid = false;
 
         public ActiveDirectoryGetData(string _user, string _domain, string _password, string DomainPath)
         {
