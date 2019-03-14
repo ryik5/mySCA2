@@ -121,10 +121,61 @@ namespace ASTA
             //   }
         }
 
+
+        //add mediator
+        abstract class Mediator
+        {
+            public abstract void Send(DirectoryEntry _de, Colleague colleague);
+        }
+
+        abstract class Colleague
+        {
+            protected Mediator mediator;
+
+            public Colleague(Mediator mediator)
+            {
+                this.mediator = mediator;
+            }
+        }
+
+        class UsersStore : Colleague
+        {
+            public UsersStore(Mediator mediator)
+                : base(mediator)
+            { }
+
+            public void Send(DirectoryEntry _de)
+            {
+                mediator.Send(_de, this);
+            }
+
+            public void Notify(string message)
+            {
+                //set finish
+            }
+        }
+
+        //https://metanit.com/sharp/patterns/3.9.php
+        class ConcreteMediator : Mediator
+        {
+            public UsersStore usersStore { get; set; }
+            public ADUsersStore adusersStore { get; set; }
+          /*  public override void Send(DirectoryEntry _de, Colleague colleague)
+            {
+                if (adusersStore == colleague)
+                    Colleague2.Notify(msg);
+                else
+                    Colleague1.Notify(msg);
+            }*/
+        }
+
         class ADUsersStore
         {
-            public ADUsersStore(DirectoryEntry de) {}
+
         }
+
+
+
 
         // sometimes doesn't work correctly
         static bool ValidateCredentials(UserADAuthorization userADAuthorization)
