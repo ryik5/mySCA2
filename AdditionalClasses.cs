@@ -178,6 +178,12 @@ label1.Text = name;
         public string _departmentBossEmail;
     }
 
+    struct ObjectsOfConfig
+    {
+        public string _parameter;
+        public string _value;
+    }
+
     class DataGridViewSeekValuesInSelectedRow
     {
         public string[] values = new string[10];
