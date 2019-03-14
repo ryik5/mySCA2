@@ -768,12 +768,13 @@ namespace ASTA
             using (var connection = new SQLiteConnection($"Data Source={databasePerson.FullName};Version=3;"))
             {
                 connection.Open();
-                try
+
+                using (var command = new SQLiteCommand(SqlQuery, connection))
                 {
-                    using (var command = new SQLiteCommand(SqlQuery, connection))
+                    try
                     { command.ExecuteNonQuery(); }
+                    catch (Exception expt) { logger.Info("ExecuteSql: " + SqlQuery + "\n" + expt.ToString()); }
                 }
-                catch (Exception expt) { MessageBox.Show(SqlQuery+"\n"+expt.ToString()); }
             }
             SqlQuery = null;
         }
@@ -845,9 +846,9 @@ namespace ASTA
                         try
                         {
                             sqlCommand.ExecuteNonQuery();
-                            logger.Info("-= Удалена таблица " + myTable + " =-");
+                            logger.Info("Удалена таблица: " + myTable );
                         }
-                        catch { }
+                        catch { logger.Info("DeleteTable: далить таблицу не удалось: " + myTable ); }
                     }
                     using (var sqlCommand = new SQLiteCommand("vacuum;", sqlConnection))   //vacuum DB
                     {
@@ -8211,81 +8212,93 @@ namespace ASTA
             { return DateTime.Parse(date).ToString("yyyy-MM-dd HH:mm"); }
             else { return DateTime.Now.ToString("yyyy-MM-dd HH:mm"); }
         }
+        //---- End. Convertors of data types ----//
+
+
 
         private void testADToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string user;
-            string password;
-            string domain;
-            string server;
-
-            List<ObjectsOfConfig> parametersList = GetConfigDataDB("ConfigDB");
-            foreach (var param in parametersList)
-            {
-                if (param._parameter == "UserdomainName")
-                {
-                    user = param._value;
-                }
-              else  if (param._parameter == "UserdomainPassword")
-                {
-                    user = param._value;
-                }
-                else if (param._parameter == "DomainOfUser")
-                {
-                    user = param._value;
-                }
-                else if (param._parameter == "ServerWithUsers")
-                {
-                    user = param._value;
-                }
-            }
-            /// UserdomainName          - User
-            /// UserdomainPassword      - Password 
-            /// DomainOfUser            - User's Domain of Authentification
-            /// ServerWithUsers         - Server's URI where stores Domain Users 
-
-
-
-
-
-            ActiveDirectoryGetData ad = new ActiveDirectoryGetData(@"UserLogin",@"UserPassword",@"UserDomain", @"ServerURI");
+            GetUsersFromAD();
         }
 
-        private List<ObjectsOfConfig> GetConfigDataDB(string tableName)
+        private void GetUsersFromAD()
         {
-            List<ObjectsOfConfig> parametersList = new List<ObjectsOfConfig>();
+            string user = null;
+            string password = null;
+            string domain = null;
+            string server = null;
+            string value = null;
+            string parameter = null;
+            ActiveDirectoryGetData ad;
 
-            string parameter, value;
-            using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+            List<ObjectsOfConfig> parametersList = new List<ObjectsOfConfig>();
+            GetConfigTableFromDB("ConfigDB", ref parametersList);
+
+            foreach (var param in parametersList)
             {
-                using (var sqlCommand = new SQLiteCommand("SELECT ParameterName,Value FROM ConfigDB;", sqlConnection))
+                parameter = param._parameter;
+                value = param._value;
+                switch (parameter)
                 {
-                    using (var reader = sqlCommand.ExecuteReader())
+                    case "UserName":
+                        user = value;
+                        break;
+                    case "UserPassword":
+                        password = value;
+                        break;
+                    case "DomainOfUser":
+                        domain = value.ToUpper();
+                        break;
+                    case "ServerURI":
+                        server = value.ToUpper();
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            if (user.Length > 0 && password.Length > 0 && domain.Length > 0 && server.Length > 0)
+            {
+                ad = new ActiveDirectoryGetData(user, domain, password, server);
+            }
+            ad = null; parametersList = null;
+        }
+
+        private void GetConfigTableFromDB(string tableName, ref List<ObjectsOfConfig> parametersList)
+        {
+            string parameter, value;
+            
+            if (databasePerson.Exists)
+            {
+                using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+                {
+                    sqlConnection.Open();
+                    using (var sqlCommand = new SQLiteCommand("SELECT ParameterName, Value FROM ConfigDB;", sqlConnection))
                     {
-                        foreach (DbDataRecord record in reader)
+                        using (var reader = sqlCommand.ExecuteReader())
                         {
-                            parameter = record["ParameterName"]?.ToString();
-                            value = record["Value"]?.ToString();
-                            if (parameter?.Length > 0 && value?.Length > 0)
+                            foreach (DbDataRecord record in reader)
                             {
-                                parametersList.Add(
-                                    new ObjectsOfConfig {
-                                        _parameter = parameter,
-                                        _value = value
-                                    });                          
+                                parameter = record["ParameterName"]?.ToString();
+                                value = record["Value"]?.ToString();
+
+                                if (parameter?.Length > 0 && value?.Length > 0)
+                                {
+                                    parametersList.Add(
+                                        new ObjectsOfConfig
+                                        {
+                                            _parameter = parameter,
+                                            _value = value
+                                        });
+                                }
                             }
                         }
                     }
                 }
             }
-            return parametersList;
+            parameter= value=null;
         }
 
-        struct ObjectsOfConfig
-        {
-          public  string _parameter;
-            public string _value;
-        }
-        //---- End. Convertors of data types ----//
+       
     }
 }

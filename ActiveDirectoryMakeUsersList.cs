@@ -75,63 +75,71 @@ namespace ASTA
         UserADAuthorization UserADAuthorization;
         bool isValid = false;
 
-        public ActiveDirectoryGetData(string _user, string _password, string _domain, string DomainPath)
+        public ActiveDirectoryGetData(string _user, string _domain, string _password, string DomainPath)
         {
-            logger.Info(DomainPath);
-            UserADAuthorization = new UserADAuthorizationBuilder().SetName(_user).SetPassword(_password).SetDomain(_domain).Build();
-            isValid = ValidateCredentials(UserADAuthorization);
-            logger.Info(isValid);
-            string mail, code;
-            if (isValid)
+            //   logger.Trace(DomainPath);
+
+            //UserADAuthorization = new UserADAuthorizationBuilder().SetName(_user).SetPassword(_password).SetDomain(_domain).Build();
+            // isValid = ValidateCredentials(UserADAuthorization); //sometimes doesn't work correctly
+            //  logger.Info("Доступ к домену '" + _domain + "' предоставлен: " + isValid);
+
+
+            // if (isValid)
             {
-                using (var context = new PrincipalContext(ContextType.Domain, DomainPath))
+                using (var context = new PrincipalContext(ContextType.Domain, DomainPath, "OU=Domain Users,DC=" + _domain.Split('.')[0] + ",DC=" + _domain.Split('.')[1], _user, _password))
                 {
                     using (var searcher = new PrincipalSearcher(new UserPrincipal(context)))
                     {
+                        string mail, code, decription;
                         foreach (var result in searcher.FindAll())
                         {
                             DirectoryEntry de = result.GetUnderlyingObject() as DirectoryEntry;
-                            mail = de?.Properties["mail"]?.Value?.ToString();
-                            code = de.Properties["extensionAttribute1"]?.Value?.ToString()?.Trim();
 
-                            if (code?.Length > 0 && mail.Contains("@"))
-                                logger.Info(
-                                    de.Properties["mail"].Value + "| " +
-                                    de.Properties["mailNickname"].Value + "| " +
-                                     de.Properties["sAMAccountName"].Value + "| " +
-                                     de.Properties["extensionAttribute1"].Value + "| " +
-                                     de.Properties["displayName"].Value
-                                    );
+                            mail = de?.Properties["mail"]?.Value?.ToString()?.Trim();
+                            code = de?.Properties["extensionAttribute1"]?.Value?.ToString()?.Trim();
+                            try { decription = de.Properties["description"].Value.ToString().ToLower().Trim(); } catch { decription = ""; }
+
+                            try
+                            {
+                                if (code?.Length > 0 && mail.Contains("@") && !decription.Equals("dismiss")) //
+                                    logger.Trace(
+                                        de?.Properties["mail"]?.Value + "| " +
+                                         // de?.Properties["mailNickname"]?.Value + "| " +
+                                         de?.Properties["sAMAccountName"]?.Value + "| " +
+                                         de?.Properties["extensionAttribute1"]?.Value + "| " +
+                                         de?.Properties["displayName"]?.Value
+                                        );
+                            }
+                            catch { }
                         }
                     }
                 }
             }
+            //   else
+            //  {
+            logger.Trace("ActiveDirectoryGetData: User: '" + _user + "' |Password: '" + _password + "' |Domain: '" + _domain + "' |DomainURI: '" + DomainPath + "'");
+            //   }
         }
 
+        // sometimes doesn't work correctly
         static bool ValidateCredentials(UserADAuthorization userADAuthorization)
         {
             IntPtr token;
             bool success = NativeMethods.LogonUser(
-                userADAuthorization.Name, userADAuthorization.Domain, userADAuthorization.Password,
+                userADAuthorization.Name,
+                userADAuthorization.Domain,
+                userADAuthorization.Password,
                 NativeMethods.LogonType.Interactive,
                 NativeMethods.LogonProvider.Default,
                 out token);
             if (token != IntPtr.Zero) NativeMethods.CloseHandle(token);
             return success;
         }
-
-        // HttpContext.Current.User.Identity returns the Windows identity object including 
-        // AuthenticationType("ntml", "kerberos" etc..), IsAuthenticated, Name("Domain/username").
-        //  HttpContext.Current.User.Identity.Name returns "Domain\\username" . 
-        //  string userName = HttpContext.Current.User.Identity.Name.Split('\\')[1].ToString();
-        //  string displayName = GetAllADUsers().Where(x => x.UserName == userName).Select(x => x.DisplayName).First();
     }
-    //https://ru.stackoverflow.com/questions/870560/%D0%A1%D0%BA%D0%B2%D0%BE%D0%B7%D0%BD%D0%B0%D1%8F-%D0%B0%D0%B2%D1%82%D0%BE%D1%80%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F-%D0%B2-ad
 
 
 
-
-
+    // sometimes doesn't work correctly!!!!! Check it.
     /// <summary>
     /// Implements P/Invoke Interop calls to the operating system.
     /// </summary>
