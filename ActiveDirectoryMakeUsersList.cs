@@ -121,6 +121,11 @@ namespace ASTA
             //   }
         }
 
+        class ADUsersStore
+        {
+            public ADUsersStore(DirectoryEntry de) {}
+        }
+
         // sometimes doesn't work correctly
         static bool ValidateCredentials(UserADAuthorization userADAuthorization)
         {
