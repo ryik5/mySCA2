@@ -86,6 +86,7 @@
             this.ImportPeopleInLocalDBItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SettingsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SettingsProgrammItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ConfigurationItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SelectedToLoadCityItem = new System.Windows.Forms.ToolStripMenuItem();
             this.Separator1 = new System.Windows.Forms.ToolStripSeparator();
             this.MailingsShowItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -120,7 +121,7 @@
             this.groupBoxTimeEnd = new System.Windows.Forms.GroupBox();
             this.labelHourEnd = new System.Windows.Forms.Label();
             this.labelMinuteEnd = new System.Windows.Forms.Label();
-            this.ConfigurationItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.testADToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownHourStart)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownMinuteStart)).BeginInit();
@@ -567,7 +568,8 @@
             this.ClearRegistryItem,
             this.ClearAllItem,
             this.Separator7,
-            this.TestCryptionItem});
+            this.TestCryptionItem,
+            this.testADToolStripMenuItem});
             this.SettingsMenuItem.Name = "SettingsMenuItem";
             resources.ApplyResources(this.SettingsMenuItem, "SettingsMenuItem");
             // 
@@ -576,6 +578,12 @@
             this.SettingsProgrammItem.Name = "SettingsProgrammItem";
             resources.ApplyResources(this.SettingsProgrammItem, "SettingsProgrammItem");
             this.SettingsProgrammItem.Click += new System.EventHandler(this.SettingsProgrammItem_Click);
+            // 
+            // ConfigurationItem
+            // 
+            this.ConfigurationItem.Name = "ConfigurationItem";
+            resources.ApplyResources(this.ConfigurationItem, "ConfigurationItem");
+            this.ConfigurationItem.Click += new System.EventHandler(this.ConfigurationItem_Click);
             // 
             // SelectedToLoadCityItem
             // 
@@ -788,11 +796,11 @@
             resources.ApplyResources(this.labelMinuteEnd, "labelMinuteEnd");
             this.labelMinuteEnd.Name = "labelMinuteEnd";
             // 
-            // ConfigurationItem
+            // testADToolStripMenuItem
             // 
-            this.ConfigurationItem.Name = "ConfigurationItem";
-            resources.ApplyResources(this.ConfigurationItem, "ConfigurationItem");
-            this.ConfigurationItem.Click += new System.EventHandler(this.ConfigurationItem_Click);
+            this.testADToolStripMenuItem.Name = "testADToolStripMenuItem";
+            resources.ApplyResources(this.testADToolStripMenuItem, "testADToolStripMenuItem");
+            this.testADToolStripMenuItem.Click += new System.EventHandler(this.testADToolStripMenuItem_Click);
             // 
             // WinFormASTA
             // 
@@ -934,6 +942,7 @@
         private System.Windows.Forms.ToolStripMenuItem TestToSendAllMailingsItem;
         private System.Windows.Forms.ToolStripMenuItem SelectedToLoadCityItem;
         private System.Windows.Forms.ToolStripMenuItem ConfigurationItem;
+        private System.Windows.Forms.ToolStripMenuItem testADToolStripMenuItem;
     }
 }
 

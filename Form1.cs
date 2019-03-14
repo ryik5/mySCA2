@@ -154,13 +154,21 @@ namespace ASTA
         OpenFileDialog openFileDialog1 = new OpenFileDialog();
         List<string> listGroups = new List<string>();
 
+        //todo - turn strings into CONSTs
+        /// <summary>
+        /// Constants
+        /// </summary>
+        const string NPP = @"№ п/п";
+        const string FIO = @"Фамилия Имя Отчество";
+        const string CODE = @"NAV-код";
+
         //DataTables with people data
         DataTable dtPeople = new DataTable("People");
         DataColumn[] dcPeople =
            {
-                                  new DataColumn(@"№ п/п",typeof(int)),//0
-                                  new DataColumn(@"Фамилия Имя Отчество",typeof(string)),//1
-                                  new DataColumn(@"NAV-код",typeof(string)),//2
+                                  new DataColumn(NPP,typeof(int)),//0
+                                  new DataColumn(FIO,typeof(string)),//1
+                                  new DataColumn(CODE,typeof(string)),//2
                                   new DataColumn(@"Группа",typeof(string)),//3
                                   new DataColumn(@"Время прихода",typeof(int)),//6
                                   new DataColumn(@"Время ухода",typeof(int)),//9
@@ -198,9 +206,9 @@ namespace ASTA
                 };
         readonly string[] arrayAllColumnsDataTablePeople =
             {
-                                  @"№ п/п",//0
-                                  @"Фамилия Имя Отчество",//1
-                                  @"NAV-код",//2
+                                  NPP,//0
+                                  FIO,//1
+                                  CODE,//2
                                   @"Группа",//3
                                   @"Время прихода",//6
                                   @"Время ухода",//9
@@ -238,8 +246,8 @@ namespace ASTA
         };
         readonly string[] orderColumnsFinacialReport =
             {
-                                  @"Фамилия Имя Отчество",//1
-                                  @"NAV-код",//2
+                                  FIO,//1
+                                  CODE,//2
                                   @"Отдел",//11
                                   @"Местонахождение сотрудника",//12
                                  // @"Отдел (id)",                     //42
@@ -263,7 +271,7 @@ namespace ASTA
         };
         readonly string[] arrayHiddenColumnsFIO =
             {
-                            @"№ п/п",//0
+                                  NPP,//0
                             @"Время прихода",            //6
                             @"Время ухода",              //9
                             @"№ пропуска",               //10
@@ -292,7 +300,7 @@ namespace ASTA
         };
         readonly string[] nameHidenColumnsArray =
             {
-                @"№ п/п",//0
+                                  NPP,//0
                 @"Время прихода",//6
                 @"Время ухода",//9
                 @"Время регистрации", //15
@@ -428,9 +436,11 @@ namespace ASTA
             toolTip1.SetToolTip(textBoxGroupDescription, "Изменить описание группы");
             StatusLabel2.Text = "";
 
-            logger.Info("Проверяю настройки в локальной БД...");
+            logger.Info("TryMakeDB...");
             TryMakeDB();
+            logger.Info("UpdateTableOfDB...");
             UpdateTableOfDB();
+            logger.Info("SetTechInfoIntoDB...");
             SetTechInfoIntoDB();
 
             //read last saved parameters from db and Registry and set their into variables
@@ -509,7 +519,19 @@ namespace ASTA
 
         private void TryMakeDB()
         {
-            ExecuteSql("CREATE TABLE IF NOT EXISTS 'Config' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, ParameterName TEXT, Value TEXT, Description TEXT, DateCreated TEXT, UNIQUE ('ParameterName') ON CONFLICT REPLACE);", databasePerson);
+            ExecuteSql("CREATE TABLE IF NOT EXISTS 'ConfigDB' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, ParameterName TEXT, Value TEXT, Description TEXT, DateCreated TEXT, UNIQUE ('ParameterName') ON CONFLICT REPLACE);", databasePerson);
+
+            /////////////////////////////////
+            /// names of parameters in Table - 'ConfigDB'
+            /// ParameterName           - Description:
+            /// 
+            /// UserdomainName          - User
+            /// UserdomainPassword      - Password 
+            /// DomainOfUser            - User's Domain of Authentification
+            /// ServerWithUsers         - Server's URI where stores Domain Users 
+            /// 
+            /////////////////////////////////
+
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'PeopleGroupDesciption' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, GroupPerson TEXT, GroupPersonDescription TEXT, AmountStaffInDepartment TEXT, Recipient TEXT, UNIQUE ('GroupPerson') ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'PeopleGroup' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, GroupPerson TEXT, ControllingHHMM TEXT, ControllingOUTHHMM TEXT, " +
                     "Shift TEXT, Comment TEXT, Department TEXT, PositionInDepartment TEXT, DepartmentId TEXT, City TEXT, Boss TEXT, UNIQUE ('FIO', 'NAV', 'GroupPerson', 'DepartmentId') ON CONFLICT REPLACE);", databasePerson);
@@ -527,14 +549,14 @@ namespace ASTA
                     "RecipientEmail TEXT, GroupsReport TEXT, NameReport TEXT, Description TEXT, Period TEXT, Status TEXT, SendingLastDate TEXT, TypeReport TEXT, DayReport TEXT, DateCreated TEXT" +
                     ", UNIQUE ('RecipientEmail', 'GroupsReport', 'NameReport', 'Description', 'Period', 'TypeReport', 'DayReport') ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'MailingException' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, RecipientEmail TEXT, NameReport TEXT, Description TEXT, DayReport TEXT, DateCreated TEXT" +
-                    ", UNIQUE ('RecipientEmail', ' Description') ON CONFLICT REPLACE);", databasePerson);
+                    ", UNIQUE ('RecipientEmail', 'NameReport') ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'SelectedCityToLoadFromWeb' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, City TEXT, DateCreated TEXT" +
                     ", UNIQUE ('City') ON CONFLICT REPLACE);", databasePerson);
         }
 
         private void UpdateTableOfDB()
         {
-            TryUpdateStructureSqlDB("Config", "ParameterName TEXT, Value TEXT, Description TEXT, DateCreated TEXT", databasePerson);
+            TryUpdateStructureSqlDB("ConfigDB", "ParameterName TEXT, Value TEXT, Description TEXT, DateCreated TEXT", databasePerson);
             TryUpdateStructureSqlDB("PeopleGroupDesciption", "GroupPerson TEXT, GroupPersonDescription TEXT, AmountStaffInDepartment TEXT, Recipient TEXT", databasePerson);
             TryUpdateStructureSqlDB("PeopleGroup", "FIO TEXT, NAV TEXT, GroupPerson TEXT, ControllingHHMM TEXT, ControllingOUTHHMM TEXT, " +
                     "Shift TEXT, Comment TEXT, Department TEXT, PositionInDepartment TEXT, DepartmentId TEXT, City TEXT, Boss TEXT", databasePerson);
@@ -549,7 +571,7 @@ namespace ASTA
             TryUpdateStructureSqlDB("SelectedCitytoLoadFromWeb", "City TEXT, DateCreated TEXT", databasePerson);
         }
 
-        private void SetTechInfoIntoDB() //Write into DB Technical Info
+        private void SetTechInfoIntoDB() //Write Technical Info in DB 
         {
             guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения
             pcname = Environment.MachineName + "(" + Environment.OSVersion + ")";
@@ -626,7 +648,7 @@ namespace ASTA
                         }
                     }
 
-                    using (var sqlCommand = new SQLiteCommand("SELECT ParameterName, Value FROM Config;", sqlConnection))
+                    using (var sqlCommand = new SQLiteCommand("SELECT ParameterName, Value FROM ConfigDB;", sqlConnection))
                     {
                         using (var reader = sqlCommand.ExecuteReader())
                         {
@@ -751,7 +773,7 @@ namespace ASTA
                     using (var command = new SQLiteCommand(SqlQuery, connection))
                     { command.ExecuteNonQuery(); }
                 }
-                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                catch (Exception expt) { MessageBox.Show(SqlQuery+"\n"+expt.ToString()); }
             }
             SqlQuery = null;
         }
@@ -4023,7 +4045,7 @@ namespace ASTA
                 DeleteTable(databasePerson, "PeopleGroupDesciption");
                 DeleteTable(databasePerson, "TechnicalInfo");
                 DeleteTable(databasePerson, "BoldedDates");
-                DeleteTable(databasePerson, "Config");
+                DeleteTable(databasePerson, "ConfigDB");
                 DeleteTable(databasePerson, "EquipmentSettings");
                 DeleteTable(databasePerson, "LastTakenPeopleComboList");
                 GC.Collect();
@@ -4757,7 +4779,7 @@ namespace ASTA
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
                     sqlConnection.Open();
-                    using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'Config' (ParameterName, Value, DateCreated) " +
+                    using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'ConfigDB' (ParameterName, Value, DateCreated) " +
                         " VALUES (@ParameterName, @Value, @DateCreated)", sqlConnection))
                     {
                         sqlCommand.Parameters.Add("@ParameterName", DbType.String).Value = "clrRealRegistration";
@@ -4943,9 +4965,9 @@ namespace ASTA
 
         private void ConfigurationItem_Click(object sender, EventArgs e)
         {
-            // TryUpdateStructureSqlDB("Config", "ParameterName TEXT, Value TEXT, Description TEXT, DateCreated TEXT", databasePerson);
+            // TryUpdateStructureSqlDB("ConfigDB", "ParameterName TEXT, Value TEXT, Description TEXT, DateCreated TEXT", databasePerson);
 
-            ShowDataTableDbQuery(databasePerson, "Config", "SELECT ParameterName AS 'Имя параметра', " +
+            ShowDataTableDbQuery(databasePerson, "ConfigDB", "SELECT ParameterName AS 'Имя параметра', " +
             "Value AS 'Данные', Description AS 'Описание', DateCreated AS 'Дата создания/модификации'",
             " ORDER BY ParameterName asc, DateCreated desc; ");
         }
@@ -8190,8 +8212,80 @@ namespace ASTA
             else { return DateTime.Now.ToString("yyyy-MM-dd HH:mm"); }
         }
 
+        private void testADToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string user;
+            string password;
+            string domain;
+            string server;
+
+            List<ObjectsOfConfig> parametersList = GetConfigDataDB("ConfigDB");
+            foreach (var param in parametersList)
+            {
+                if (param._parameter == "UserdomainName")
+                {
+                    user = param._value;
+                }
+              else  if (param._parameter == "UserdomainPassword")
+                {
+                    user = param._value;
+                }
+                else if (param._parameter == "DomainOfUser")
+                {
+                    user = param._value;
+                }
+                else if (param._parameter == "ServerWithUsers")
+                {
+                    user = param._value;
+                }
+            }
+            /// UserdomainName          - User
+            /// UserdomainPassword      - Password 
+            /// DomainOfUser            - User's Domain of Authentification
+            /// ServerWithUsers         - Server's URI where stores Domain Users 
 
 
+
+
+
+            ActiveDirectoryGetData ad = new ActiveDirectoryGetData(@"UserLogin",@"UserPassword",@"UserDomain", @"ServerURI");
+        }
+
+        private List<ObjectsOfConfig> GetConfigDataDB(string tableName)
+        {
+            List<ObjectsOfConfig> parametersList = new List<ObjectsOfConfig>();
+
+            string parameter, value;
+            using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+            {
+                using (var sqlCommand = new SQLiteCommand("SELECT ParameterName,Value FROM ConfigDB;", sqlConnection))
+                {
+                    using (var reader = sqlCommand.ExecuteReader())
+                    {
+                        foreach (DbDataRecord record in reader)
+                        {
+                            parameter = record["ParameterName"]?.ToString();
+                            value = record["Value"]?.ToString();
+                            if (parameter?.Length > 0 && value?.Length > 0)
+                            {
+                                parametersList.Add(
+                                    new ObjectsOfConfig {
+                                        _parameter = parameter,
+                                        _value = value
+                                    });                          
+                            }
+                        }
+                    }
+                }
+            }
+            return parametersList;
+        }
+
+        struct ObjectsOfConfig
+        {
+          public  string _parameter;
+            public string _value;
+        }
         //---- End. Convertors of data types ----//
     }
 }
