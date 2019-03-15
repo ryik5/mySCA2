@@ -15,25 +15,25 @@ using NLog;
 namespace ASTA
 {
 
-    interface IUserADAuthorization
+    interface IUserAD
     {
         string Name { get; set; }        // имя
         string Domain { get; set; }      // домен
         string Password { get; set; }    // пароль
     }
-    public class UserADAuthorization :IUserADAuthorization
+
+    public class UserADAuthorization : IUserAD
     {
         public string Name { get; set; }       // имя
         public string Domain { get; set; }      // домен
         public string Password { get; set; }    // пароль
+        public string DomainPath { get; set; }    // URI сервера
 
-        /* public static UserADAuthorizationBuilder CreateBuilder()
+         public static UserADAuthorizationBuilder Build()
          {
              return new UserADAuthorizationBuilder();
-         }*/
+         }
     }
-
-
 
     public class UserADAuthorizationBuilder
     {
@@ -57,6 +57,11 @@ namespace ASTA
             user.Password = password;
             return this;
         }
+        public UserADAuthorizationBuilder SetDomainPath(string domainPath)
+        {
+            user.DomainPath = domainPath;
+            return this;
+        }
 
         public UserADAuthorization Build()
         {
@@ -69,56 +74,102 @@ namespace ASTA
         }
     }
 
-    public class ActiveDirectoryGetData//: Mediator
+
+    public class ActiveDirectoryGetData
     {
         static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
-        // UserADAuthorization UserADAuthorization;
+        UserADAuthorization UserADAuthorization;
         //  bool isValid = false;
-        string user, domain, password, domainPath;
-        PrincipalSearcher principalSearcher;
+
+        List<StaffAD> staffAD = new List<StaffAD>();
 
         public ActiveDirectoryGetData(string _user, string _domain, string _password, string _domainPath)
         {
-            user = _user;
-            domain = _domain;
-            password = _password;
-            domainPath = _domainPath;
-            principalSearcher = GetDataAD();
+            UserADAuthorization = new UserADAuthorizationBuilder()
+                .SetName(_user)
+                .SetPassword(_password)
+                .SetDomain(_domain)
+                .SetDomainPath(_domainPath)
+                .Build();
+
+            // isValid = ValidateCredentials(UserADAuthorization); 
+            // logger.Info("Доступ к домену '" + UserADAuthorization.Domain + "' предоставлен: " + isValid);
+
+            GetDataAD(ref staffAD);
         }
 
-        private PrincipalSearcher GetDataAD()
+        private void GetDataAD(ref List<StaffAD> staffAD)
         {
-            PrincipalSearcher principalSearcher = new PrincipalSearcher();
-            //   logger.Trace(DomainPath);
+            logger.Trace(UserADAuthorization.DomainPath);
 
-            //UserADAuthorization = new UserADAuthorizationBuilder().SetName(_user).SetPassword(_password).SetDomain(_domain).Build();
-            // isValid = ValidateCredentials(UserADAuthorization); //sometimes doesn't work correctly
-            //  logger.Info("Доступ к домену '" + _domain + "' предоставлен: " + isValid);
-            
+            // sometimes doesn't work correctly
             // if (isValid)
             {
-                using (var context = new PrincipalContext(ContextType.Domain, domainPath, "OU=Domain Users,DC=" + domain.Split('.')[0] + ",DC=" + domain.Split('.')[1], user, password))
+                using (var context = new PrincipalContext(
+                    ContextType.Domain, 
+                    UserADAuthorization.DomainPath, 
+                    "OU=Domain Users,DC=" + UserADAuthorization.Domain.Split('.')[0] + ",DC=" + UserADAuthorization.Domain.Split('.')[1], 
+                    UserADAuthorization.Name, 
+                    UserADAuthorization.Password))
                 {
                     using (var searcher = new PrincipalSearcher(new UserPrincipal(context)))
                     {
-                        principalSearcher = searcher;
+                        string mail, code, decription;
+                        foreach (var result in searcher.FindAll())
+                        {
+                            DirectoryEntry de = result.GetUnderlyingObject() as DirectoryEntry;
 
-                        
+                            mail = de?.Properties["mail"]?.Value?.ToString()?.Trim();
+                            code = de?.Properties["extensionAttribute1"]?.Value?.ToString()?.Trim();
+                            try
+                            {
+                                decription = de.Properties["description"].Value.ToString().ToLower().Trim();
+                            }
+                            catch { decription = ""; }
+
+                            try
+                            {
+                                if (code?.Length > 0 && mail.Contains("@") && !decription.Equals("dismiss")) //
+                                {
+
+                                    //todo 
+                                    //fill 
+                                    staffAD.Add(new StaffAD {
+                                        mail= de?.Properties["mail"]?.Value.ToString(),
+                                        fio= de?.Properties["displayName"]?.Value.ToString(),
+                                        login= de?.Properties["sAMAccountName"]?.Value.ToString(),
+                                        code= de?.Properties["extensionAttribute1"]?.Value.ToString()
+                                    });
+
+                                    logger.Trace(
+                                         de?.Properties["mail"]?.Value + "| " +
+                                          // de?.Properties["mailNickname"]?.Value + "| " +
+                                          de?.Properties["sAMAccountName"]?.Value + "| " +
+                                          de?.Properties["extensionAttribute1"]?.Value + "| " +
+                                          de?.Properties["displayName"]?.Value
+                                         );
+                                }
+                            }
+                            catch { }
+                        }
+
+                        logger.Info("ActiveDirectoryGetData,GetDataAD: finished");
                     }
                 }
             }
             //   else
             //  {
-            logger.Trace("ActiveDirectoryGetData: User: '" + user + "' |Password: '" + password + "' |Domain: '" + domain + "' |DomainURI: '" + domainPath + "'");
+            logger.Trace("ActiveDirectoryGetData: User: '" + UserADAuthorization.Name + "' |Password: '" + UserADAuthorization.Password + "' |Domain: '" + UserADAuthorization.Domain + "' |DomainURI: '" + UserADAuthorization.DomainPath + "'");
             //   }
-            return principalSearcher;
         }
 
-        public StaffMemento SaveObjects()
+        public StaffMemento SaveListStaff()
         {
-            return new StaffMemento(principalSearcher);
+            return new StaffMemento(staffAD);
         }
 
+
+/*
         // sometimes doesn't work correctly
         static bool ValidateCredentials(UserADAuthorization userADAuthorization)
         {
@@ -132,76 +183,57 @@ namespace ASTA
                 out token);
             if (token != IntPtr.Zero) NativeMethods.CloseHandle(token);
             return success;
+        }*/
+    }
+
+    // Originator
+    class ListStaffSender
+    {
+        private List<StaffAD> staffAD = new List<StaffAD>();
+              
+        public void RestoreListStaff(StaffMemento memento)  // восстановление состояния
+        {
+            staffAD = memento.staffAD;
+        }
+
+        public List<StaffAD> GetListStaff()
+        {
+            return staffAD;
         }
     }
 
     // Memento
-    public class StaffMemento
+    public class StaffMemento // сохранить список
     {
-        public PrincipalSearcher principalSearcher { get; private set; }
+        public List<StaffAD> staffAD { get; private set; }
 
-        public StaffMemento(PrincipalSearcher _principalSearcher)
+        public StaffMemento(List<StaffAD> _staffAD)
         {
-            this.principalSearcher = _principalSearcher;
+            this.staffAD = _staffAD;
         }
     }
+
     // Caretaker
-    class StaffStore
+    class StaffListStore //хранитель списка
     {
         public Stack<StaffMemento> Story { get; private set; }
-        public StaffStore()
+        public StaffListStore()
         {
             Story = new Stack<StaffMemento>();
         }
     }
 
-
-    class MakeADUsersTable
+    public struct StaffAD
     {
-        static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
-        PrincipalSearcher searcher;
-
-        public MakeADUsersTable(StaffMemento memento)
-        {
-            this.searcher = memento.principalSearcher;
-            DoWork(this.searcher);
-        }
-
-        private void DoWork(PrincipalSearcher searcher)
-        {
-            string mail, code, decription;
-            foreach (var result in searcher.FindAll())
-            {
-                DirectoryEntry de = result.GetUnderlyingObject() as DirectoryEntry;
-
-                mail = de?.Properties["mail"]?.Value?.ToString()?.Trim();
-                code = de?.Properties["extensionAttribute1"]?.Value?.ToString()?.Trim();
-                try
-                {
-                    decription = de.Properties["description"].Value.ToString().ToLower().Trim();
-                } catch { decription = ""; }
-
-                try
-                {
-                    if (code?.Length > 0 && mail.Contains("@") && !decription.Equals("dismiss")) //
-                    {
-                        //todo 
-                        //fill struct-Table
-                        logger.Trace(
-                             de?.Properties["mail"]?.Value + "| " +
-                              // de?.Properties["mailNickname"]?.Value + "| " +
-                              de?.Properties["sAMAccountName"]?.Value + "| " +
-                              de?.Properties["extensionAttribute1"]?.Value + "| " +
-                              de?.Properties["displayName"]?.Value
-                             );
-                    }
-                } catch { }
-            }
-        }
+        public string mail;
+        public string login;
+        public string code;
+        public string fio;
     }
 
 
 
+    /*
     // sometimes doesn't work correctly!!!!! Check it.
     /// <summary>
     /// Implements P/Invoke Interop calls to the operating system.
@@ -315,4 +347,5 @@ namespace ASTA
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static extern bool CloseHandle(IntPtr handle);
     }
+    */
 }

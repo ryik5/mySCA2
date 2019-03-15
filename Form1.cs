@@ -846,9 +846,9 @@ namespace ASTA
                         try
                         {
                             sqlCommand.ExecuteNonQuery();
-                            logger.Info("Удалена таблица: " + myTable );
+                            logger.Info("Удалена таблица: " + myTable);
                         }
-                        catch { logger.Info("DeleteTable: далить таблицу не удалось: " + myTable ); }
+                        catch { logger.Info("DeleteTable: далить таблицу не удалось: " + myTable); }
                     }
                     using (var sqlCommand = new SQLiteCommand("vacuum;", sqlConnection))   //vacuum DB
                     {
@@ -1095,6 +1095,11 @@ namespace ASTA
         {
             _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные с серверов...");
 
+            //todo
+            //get FIO from DC in another thread. wait result
+            GetUsersFromAD();
+            
+
             dtTempIntermediate = dtPeople.Clone();
             GetDataFromRemoteServers(dtTempIntermediate, personCodeEmails, peopleShifts);
 
@@ -1302,77 +1307,6 @@ namespace ASTA
                         }
                     }
 
-                    // import code and email from web DB
-                    query = "SELECT code, email, name FROM users";
-                    logger.Trace(query);
-                    bool emailExist = false;
-                    using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
-                    {
-                        using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                if (reader?.GetString(@"code")?.Length > 0)
-                                {
-                                    try
-                                    {
-                                        emailExist = reader.GetString(@"email").Length > 0 && reader.GetString(@"email").Contains('@');
-                                    }
-                                    catch
-                                    {
-                                        emailExist = false;
-                                        logger.Trace("doesn't have email: " + reader?.GetString(@"code"));
-                                    }
-
-                                    if (emailExist)
-                                    {
-                                        personCodeEmails.Add(new PersonCodeEmail()
-                                        {
-                                            _departmentBossCode = reader.GetString(@"code"),
-                                            _departmentBossEmail = reader.GetString(@"email")
-                                        });
-                                        _ProgressWork1Step(1);
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    using (var sqlConnection1 = new MySql.Data.MySqlClient.MySqlConnection(
-                        @"server=" + mysqlServer + @";User=" + mysqlServerUserName +
-                        @";Password=" + mysqlServerUserPassword + @";database=ldap;convert zero datetime=True;Connect Timeout=60"))
-                    {
-                        logger.Trace(sqlConnection1);
-                        sqlConnection1.Open();
-                        query = "SELECT code, email, name FROM users";
-                        logger.Trace(query);
-                        using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection1))
-                        {
-                            using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
-                            {
-                                while (reader.Read())
-                                {
-                                    if (reader?.GetString(@"code")?.Length > 0)
-                                    {
-                                        try
-                                        { emailExist = reader.GetString(@"email").Contains('@') && reader.GetString(@"code")?.Length == 6; }
-                                        catch { emailExist = false; }
-
-                                        if (emailExist)
-                                        {
-                                            personCodeEmails.Add(new PersonCodeEmail()
-                                            {
-                                                _departmentBossCode = reader.GetString(@"code"),
-                                                _departmentBossEmail = reader.GetString(@"email")
-                                            });
-                                            _ProgressWork1Step(1);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
                     // import individual shifts of people from web DB
                     query = "Select code,start_date,mo_start,mo_end,tu_start,tu_end,we_start,we_end,th_start,th_end,fr_start,fr_end, " +
                                     "sa_start,sa_end,su_start,su_end,comment FROM work_time ORDER by start_date";
@@ -1555,7 +1489,9 @@ namespace ASTA
                 //todo
                 //get data 'Default_Recepient_code_From_Db' from LocalDB for webServer
                 depId = dr[@"Отдел (id)"]?.ToString();
-                depBossEmail = personCodeEmails.Find((x) => x._departmentBossCode == dr[@"Руководитель (код)"]?.ToString())._departmentBossEmail;
+                //                 = staffAD.Find((x) => x.code == reader.GetString(@"code")).mail
+
+                depBossEmail = staffAD.Find((x) => x.code == dr[@"Руководитель (код)"]?.ToString()).mail;
                 if (depId?.Length > 0)
                 {
                     groups.Add(new DepartmentFull()
@@ -8221,8 +8157,11 @@ namespace ASTA
             GetUsersFromAD();
         }
 
+        List<StaffAD> staffAD = new List<StaffAD>();
+
         private void GetUsersFromAD()
         {
+                logger.Trace("GetUsersFromAD: ");
             string user = null;
             string password = null;
             string domain = null;
@@ -8230,11 +8169,13 @@ namespace ASTA
             string value = null;
             string parameter = null;
             ActiveDirectoryGetData ad;
-            StaffStore staffStore=new StaffStore();
-            MakeADUsersTable makeADUsersTable ;
 
             List<ObjectsOfConfig> parametersList = new List<ObjectsOfConfig>();
             GetConfigTableFromDB("ConfigDB", ref parametersList);
+
+            StaffListStore staffListStore = new StaffListStore();
+            ListStaffSender listStaffSender = new ListStaffSender();
+            staffAD = new List<StaffAD>();
 
             foreach (var param in parametersList)
             {
@@ -8262,23 +8203,27 @@ namespace ASTA
             if (user.Length > 0 && password.Length > 0 && domain.Length > 0 && server.Length > 0)
             {
                 ad = new ActiveDirectoryGetData(user, domain, password, server);
-                staffStore.Story.Push(ad.SaveObjects());
+                staffListStore.Story.Push(ad.SaveListStaff());
+                listStaffSender.RestoreListStaff(staffListStore.Story.Pop());
 
+                staffAD = listStaffSender.GetListStaff();
+
+                logger.Trace("GetUsersFromAD: Store list ");
                 //передать дальше в обработку:
-                makeADUsersTable = new MakeADUsersTable(staffStore.Story.Pop());
-
+                foreach (var person in staffAD)
+                {
+                    logger.Trace(person.fio + " |" + person.login + " |" + person.code + " |" + person.mail);
+                }
                 //аналогично - заполнение таблицы
             }
-            ad = null; parametersList = null;
+            ad = null; parametersList = null; listStaffSender = null; staffListStore = null;
         }
 
-        StaffStore staffStore=new StaffStore();
-        StaffMemento usersAD;
 
         private void GetConfigTableFromDB(string tableName, ref List<ObjectsOfConfig> parametersList)
         {
             string parameter, value;
-            
+
             if (databasePerson.Exists)
             {
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
@@ -8307,9 +8252,7 @@ namespace ASTA
                     }
                 }
             }
-            parameter= value=null;
+            parameter = value = null;
         }
-
-       
     }
 }
