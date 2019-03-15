@@ -104,6 +104,7 @@
             this.ClearAllItem = new System.Windows.Forms.ToolStripMenuItem();
             this.Separator7 = new System.Windows.Forms.ToolStripSeparator();
             this.TestCryptionItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.testADToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpAboutItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SetupItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -121,7 +122,6 @@
             this.groupBoxTimeEnd = new System.Windows.Forms.GroupBox();
             this.labelHourEnd = new System.Windows.Forms.Label();
             this.labelMinuteEnd = new System.Windows.Forms.Label();
-            this.testADToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownHourStart)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownMinuteStart)).BeginInit();
@@ -684,6 +684,12 @@
             resources.ApplyResources(this.TestCryptionItem, "TestCryptionItem");
             this.TestCryptionItem.Click += new System.EventHandler(this.TestCryptionItem_Click);
             // 
+            // testADToolStripMenuItem
+            // 
+            this.testADToolStripMenuItem.Name = "testADToolStripMenuItem";
+            resources.ApplyResources(this.testADToolStripMenuItem, "testADToolStripMenuItem");
+            this.testADToolStripMenuItem.Click += new System.EventHandler(this.testADToolStripMenuItem_Click);
+            // 
             // HelpMenuItem
             // 
             this.HelpMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -795,12 +801,6 @@
             // 
             resources.ApplyResources(this.labelMinuteEnd, "labelMinuteEnd");
             this.labelMinuteEnd.Name = "labelMinuteEnd";
-            // 
-            // testADToolStripMenuItem
-            // 
-            this.testADToolStripMenuItem.Name = "testADToolStripMenuItem";
-            resources.ApplyResources(this.testADToolStripMenuItem, "testADToolStripMenuItem");
-            this.testADToolStripMenuItem.Click += new System.EventHandler(this.testADToolStripMenuItem_Click);
             // 
             // WinFormASTA
             // 
