@@ -73,8 +73,7 @@ namespace ASTA
             return builder.user;
         }
     }
-
-
+    
     public class ActiveDirectoryGetData
     {
         static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
@@ -135,10 +134,10 @@ namespace ASTA
                                     //todo 
                                     //fill 
                                     staffAD.Add(new StaffAD {
-                                        mail= de?.Properties["mail"]?.Value.ToString(),
-                                        fio= de?.Properties["displayName"]?.Value.ToString(),
-                                        login= de?.Properties["sAMAccountName"]?.Value.ToString(),
-                                        code= de?.Properties["extensionAttribute1"]?.Value.ToString()
+                                        mail= de?.Properties["mail"]?.Value?.ToString(),
+                                        fio= de?.Properties["displayName"]?.Value?.ToString(),
+                                        login= de?.Properties["sAMAccountName"]?.Value?.ToString(),
+                                        code= de?.Properties["extensionAttribute1"]?.Value?.ToString()
                                     });
 
                                     logger.Trace(
@@ -170,7 +169,7 @@ namespace ASTA
 
 
 /*
-        // sometimes doesn't work correctly
+        // it sometimes doesn't work correctly
         static bool ValidateCredentials(UserADAuthorization userADAuthorization)
         {
             IntPtr token;
@@ -234,7 +233,7 @@ namespace ASTA
 
 
     /*
-    // sometimes doesn't work correctly!!!!! Check it.
+    // it sometimes doesn't work correctly
     /// <summary>
     /// Implements P/Invoke Interop calls to the operating system.
     /// </summary>
