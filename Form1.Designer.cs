@@ -122,6 +122,7 @@
             this.groupBoxTimeEnd = new System.Windows.Forms.GroupBox();
             this.labelHourEnd = new System.Windows.Forms.Label();
             this.labelMinuteEnd = new System.Windows.Forms.Label();
+            this.AddParameterInConfigItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownHourStart)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownMinuteStart)).BeginInit();
@@ -551,6 +552,7 @@
             // 
             this.SettingsMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.SettingsProgrammItem,
+            this.AddParameterInConfigItem,
             this.ConfigurationItem,
             this.SelectedToLoadCityItem,
             this.Separator1,
@@ -802,6 +804,12 @@
             resources.ApplyResources(this.labelMinuteEnd, "labelMinuteEnd");
             this.labelMinuteEnd.Name = "labelMinuteEnd";
             // 
+            // AddParameterInConfigItem
+            // 
+            this.AddParameterInConfigItem.Name = "AddParameterInConfigItem";
+            resources.ApplyResources(this.AddParameterInConfigItem, "AddParameterInConfigItem");
+            this.AddParameterInConfigItem.Click += new System.EventHandler(this.AddParameterInConfigItem_Click);
+            // 
             // WinFormASTA
             // 
             resources.ApplyResources(this, "$this");
@@ -943,6 +951,7 @@
         private System.Windows.Forms.ToolStripMenuItem SelectedToLoadCityItem;
         private System.Windows.Forms.ToolStripMenuItem ConfigurationItem;
         private System.Windows.Forms.ToolStripMenuItem testADToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem AddParameterInConfigItem;
     }
 }
 
