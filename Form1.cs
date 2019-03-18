@@ -33,6 +33,7 @@ namespace ASTA
         readonly byte[] btsMess1 = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
         readonly byte[] btsMess2 = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
 
+
         string nameOfLastTableFromDB = "PersonRegistrationsList";
         string currentAction = "";
         bool currentModeAppManual = true;
@@ -525,10 +526,10 @@ namespace ASTA
             /// names of parameters in Table - 'ConfigDB'
             /// ParameterName           - Description:
             /// 
-            /// UserdomainName          - User
-            /// UserdomainPassword      - Password 
+            /// UserName          - User
+            /// UserPassword      - Password 
             /// DomainOfUser            - User's Domain of Authentification
-            /// ServerWithUsers         - Server's URI where stores Domain Users 
+            /// ServerURI         - Server's URI where stores Domain Users 
             /// 
             /////////////////////////////////
 
@@ -760,6 +761,101 @@ namespace ASTA
             if (numberOfFio > 0)
             { _MenuItemVisible(listFioItem, true); }
         }
+
+        private void AddParameterInConfigItem_Click(object sender, EventArgs e)
+        {
+            AddParameterInConfig();
+        }
+
+        private void AddParameterInConfig()
+        {
+            /// UserName          - User
+            /// UserPassword      - Password 
+            /// DomainOfUser            - User's Domain of Authentification
+            /// ServerURI         - Server's URI where stores Domain Users 
+            /// 
+            _controlVisible(panelView, false);
+            btnPropertiesSave.Text = "Сохранить настройки";
+
+            List<string> listParameters = new List<string>();
+            listParameters.Add("UserName");
+            listParameters.Add("UserPassword");
+            listParameters.Add("DomainOfUser");
+            listParameters.Add("ServerURI");
+            AddParameterFormSettings(listParameters);
+        }
+
+        private void AddParameterFormSettings(List<string> listParameters            )
+        {
+            panelViewResize(numberPeopleInLoading);
+
+            ComboBox comboBoxParameters = new ComboBox
+            {
+                Location = new Point(20, 120),
+                Size = new Size(590, 22),
+                Parent = groupBoxProperties
+            };
+
+              comboBoxParameters.DataSource = listParameters;
+            toolTip1.SetToolTip(comboBoxParameters, "Перечень параметров");
+
+
+            Label labelParameterName = new Label
+            {
+                Text = "labelParameterName",
+                BackColor = Color.PaleGreen,
+                Location = new Point(20, 60),
+                Size = new Size(590, 22),
+                BorderStyle = BorderStyle.None,
+                TextAlign = ContentAlignment.MiddleLeft,
+                Parent = groupBoxProperties
+            };
+            TextBox textBoxParameter = new TextBox
+            {
+                Text = "txtbox1",
+                Location = new Point(90, 61),
+                // PasswordChar = '*',
+                Size = new Size(90, 20),
+                BorderStyle = BorderStyle.FixedSingle,
+                Parent = groupBoxProperties
+            };
+            toolTip1.SetToolTip(textBoxParameter, "tooltip1");
+
+            Label labelParameterDesciption = new Label
+            {
+                Text = "labelParameterDesciption",
+                BackColor = Color.PaleGreen,
+                Location = new Point(120, 60),
+                Size = new Size(125, 22),
+                BorderStyle = BorderStyle.None,
+                TextAlign = ContentAlignment.MiddleLeft,
+                Parent = groupBoxProperties
+            };
+
+            comboBoxParameters.KeyPress += new KeyPressEventHandler(SelectComboBoxParameters_SelectedIndexChanged);
+            textBoxParameter.TextChanged += new EventHandler(textBoxSettings16_TextChanged);
+
+            textBoxParameter?.BringToFront();
+
+            groupBoxProperties.Visible = true;
+        }
+        private void SelectComboBoxParameters_SelectedIndexChanged(object sender, EventArgs e)
+        { SelectComboBoxParameters(); }
+
+        private void SelectComboBoxParameters()
+        {
+            string sComboboxFIO;
+            textBoxFIO.Text = "";
+            textBoxNav.Text = "";
+            CheckBoxesFiltersAll_Enable(false);
+
+             sComboboxFIO = null;
+        }
+
+
+
+
+
 
         private void ExecuteSql(string SqlQuery, System.IO.FileInfo FileDB) //Prepare DB and execute of SQL Query
         {
@@ -1088,7 +1184,7 @@ namespace ASTA
         }
 
         static DataTable dtTempIntermediate;
-        static List<PersonCodeEmail> personCodeEmails = new List<PersonCodeEmail>();
+       // static List<PersonCodeEmail> personCodeEmails = new List<PersonCodeEmail>();
         static List<PeopleShift> peopleShifts = new List<PeopleShift>();
 
         private void DoListsFioGroupsMailings()  //  GetDataFromRemoteServers()  ImportTablePeopleToTableGroupsInLocalDB()
@@ -1101,10 +1197,10 @@ namespace ASTA
             
 
             dtTempIntermediate = dtPeople.Clone();
-            GetDataFromRemoteServers(dtTempIntermediate, personCodeEmails, peopleShifts);
+            GetDataFromRemoteServers(dtTempIntermediate,  peopleShifts);
 
             _toolStripStatusLabelSetText(StatusLabel2, "Формирую и записываю группы в локальную базу...");
-            WriteGroupsMailingsInLocalDb(dtTempIntermediate, personCodeEmails, peopleShifts);
+            WriteGroupsMailingsInLocalDb(dtTempIntermediate,  peopleShifts);
 
             _toolStripStatusLabelSetText(StatusLabel2, "Записываю ФИО в локальную базу...");
             WritePeopleInLocalDB(databasePerson.ToString(), dtTempIntermediate);
@@ -1125,8 +1221,7 @@ namespace ASTA
 
 
         //Get the list of registered users
-        private void GetDataFromRemoteServers(DataTable dataTablePeople,
-           List<PersonCodeEmail> personCodeEmails, List<PeopleShift> peopleShifts)
+        private void GetDataFromRemoteServers(DataTable dataTablePeople,           List<PeopleShift> peopleShifts)
         {
             PersonFull personFromServer = new PersonFull();
             DataRow row;
@@ -1467,8 +1562,7 @@ namespace ASTA
             row = null;
         }
 
-        private void WriteGroupsMailingsInLocalDb(DataTable dataTablePeople,
-            List<PersonCodeEmail> personCodeEmails, List<PeopleShift> peopleShifts)
+        private void WriteGroupsMailingsInLocalDb(DataTable dataTablePeople,             List<PeopleShift> peopleShifts)
         {
             _toolStripStatusLabelSetText(StatusLabel2, "Формирую обновленные списоки ФИО, департаментов и рассылок...");
 
@@ -4902,8 +4996,6 @@ namespace ASTA
 
         private void ConfigurationItem_Click(object sender, EventArgs e)
         {
-            // TryUpdateStructureSqlDB("ConfigDB", "ParameterName TEXT, Value TEXT, Description TEXT, DateCreated TEXT", databasePerson);
-
             ShowDataTableDbQuery(databasePerson, "ConfigDB", "SELECT ParameterName AS 'Имя параметра', " +
             "Value AS 'Данные', Description AS 'Описание', DateCreated AS 'Дата создания/модификации'",
             " ORDER BY ParameterName asc, DateCreated desc; ");
@@ -8254,5 +8346,7 @@ namespace ASTA
             }
             parameter = value = null;
         }
+
+
     }
 }
