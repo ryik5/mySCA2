@@ -164,11 +164,11 @@ label1.Text = name;
         public string _departmentBossCode;
     }
 
-    struct PersonCodeEmail
+  /*  struct PersonCodeEmail
     {
         public string _departmentBossCode;
         public string _departmentBossEmail;
-    }
+    }*/
 
     struct DepartmentFull
     {
