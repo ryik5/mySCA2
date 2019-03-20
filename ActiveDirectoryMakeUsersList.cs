@@ -1,16 +1,7 @@
 ﻿//Reference: System.DirectoryServices.AccountManagement
-using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Security.Principal;
 using System.DirectoryServices.AccountManagement;
-using System.Text;
-using System.Runtime.InteropServices;
-using System.Windows.Forms;
 using System.DirectoryServices;
-using System.Threading;
-using NLog;
 
 namespace ASTA
 {

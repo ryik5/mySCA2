@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SQLite;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Windows.Forms;
@@ -53,6 +54,176 @@ string name = comand.ExecuteScalar().ToString();
 label1.Text = name;
 }
 */
+    abstract class ParameterOfConfiguration
+    {
+        public string ParameterName { get; set; }
+        public string ParameterValue { get; set; }
+        public string ParameterDescription { get; set; }
+        public string isExample { get; set; }
+        public bool isPassword { get; set; }
+        public bool isRequired { get; set; }
+        public abstract string SaveParameter();
+        public abstract string GetParameter();
+    }
+
+    interface DBParameter
+    {
+        string DBName { get; set; }
+        string TableName { get; set; }
+        string DBConnectionString { get; set; }
+        string DBQuery { get; set; }
+        void Execute();
+    }
+
+    struct ParameterConfig
+    {
+        public string parameterName;
+        public string parameterDescription;
+        public string parameterValue;
+        public bool isPassword;
+        public string isExample;
+    }
+
+    class ParameterOfConfigurationInSQLiteDB : ParameterOfConfiguration
+    {
+        readonly byte[] btsMess1 = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
+        readonly byte[] btsMess2 = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
+        public System.IO.FileInfo databasePerson { get; set; }
+        public override string SaveParameter()
+        {
+            if (isPassword && (ParameterValue == null || ParameterValue.Trim().Length == 0))
+                throw new ArgumentNullException("ParameterValue as Paswsword is empty");
+            else
+            {
+                if (databasePerson.Exists)
+                {
+                    using (SQLiteConnection sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+                    {
+                        sqlConnection.Open();
+
+                        SQLiteCommand sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
+                        sqlCommand1.ExecuteNonQuery();
+                        string ParameterValueSave = "";
+                        if (isPassword)
+                            ParameterValueSave = EncryptionDecryptionCriticalData.EncryptStringToBase64Text(ParameterValue, btsMess1, btsMess2);
+                        else ParameterValueSave = ParameterValue;
+                        //("ConfigDB", "ParameterName , Value , Description , DateCreated , IsPassword , IsExample ");
+
+                        using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'ConfigDB' (ParameterName, Value, Description, DateCreated, IsPassword, IsExample)" +
+                                   " VALUES (@ParameterName, @Value, @Description, @DateCreated, @IsPassword, @IsExample)", sqlConnection))
+                        {
+                            sqlCommand.Parameters.Add("@ParameterName", DbType.String).Value = ParameterName;
+                            sqlCommand.Parameters.Add("@Value", DbType.String).Value = ParameterValueSave;
+                            sqlCommand.Parameters.Add("@Description", DbType.String).Value = ParameterDescription;
+                            sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
+                            sqlCommand.Parameters.Add("@IsPassword", DbType.Boolean).Value = isPassword;
+                            sqlCommand.Parameters.Add("@IsExample", DbType.String).Value = isExample;
+                            try { sqlCommand.ExecuteNonQuery(); } catch { }
+                        }
+                        sqlCommand1 = new SQLiteCommand("end", sqlConnection);
+                        sqlCommand1.ExecuteNonQuery();
+                    }
+                }
+                return "Ok";
+            }
+        }
+        public override string GetParameter() { return ""; }
+    }
+
+   static class EncryptionDecryptionCriticalData
+    {
+        public static string EncryptStringToBase64Text(string plainText, byte[] Key, byte[] IV) //Encrypt variables PlainText Data
+        {
+            string sBase64Test;
+            sBase64Test = Convert.ToBase64String(EncryptStringToBytes(plainText, Key, IV));
+            return sBase64Test;
+        }
+
+        public static byte[] EncryptStringToBytes(string plainText, byte[] Key, byte[] IV) //Encrypt variables PlainText Data
+        {
+            // Check arguments. 
+            if (plainText == null || plainText.Length <= 0)
+                throw new ArgumentNullException("plainText");
+            if (Key == null || Key.Length <= 0)
+                throw new ArgumentNullException("Key");
+            if (IV == null || IV.Length <= 0)
+                throw new ArgumentNullException("IV");
+            byte[] encrypted;
+            // Create an RijndaelManaged object with the specified key and IV. 
+            using (RijndaelManaged rijAlg = new RijndaelManaged())
+            {
+                rijAlg.Key = Key;
+                rijAlg.IV = IV;
+
+                // Create a decrytor to perform the stream transform.
+                ICryptoTransform encryptor = rijAlg.CreateEncryptor(rijAlg.Key, rijAlg.IV);
+
+                // Create the streams used for encryption. 
+                using (System.IO.MemoryStream msEncrypt = new System.IO.MemoryStream())
+                {
+                    using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
+                    {
+                        using (System.IO.StreamWriter swEncrypt = new System.IO.StreamWriter(csEncrypt))
+                        {
+
+                            //Write all data to the stream.
+                            swEncrypt.Write(plainText);
+                        }
+                        encrypted = msEncrypt.ToArray();
+                    }
+                }
+            }
+            // Return the encrypted bytes from the memory stream. 
+            return encrypted;
+        }
+
+        public static string DecryptBase64ToString(string sBase64Text, byte[] Key, byte[] IV) //Encrypt variables PlainText Data
+        {
+            byte[] bBase64Test;
+            bBase64Test = Convert.FromBase64String(sBase64Text);
+            return DecryptStringFromBytes(bBase64Test, Key, IV);
+        }
+
+        public static string DecryptStringFromBytes(byte[] cipherText, byte[] Key, byte[] IV) //Decrypt PlainText Data to variables
+        {
+            // Check arguments. 
+            if (cipherText == null || cipherText.Length <= 0)
+                throw new ArgumentNullException("cipherText");
+            if (Key == null || Key.Length <= 0)
+                throw new ArgumentNullException("Key");
+            if (IV == null || IV.Length <= 0)
+                throw new ArgumentNullException("IV");
+
+            // Declare the string used to hold the decrypted text.
+            string plaintext = null;
+
+            // Create an RijndaelManaged object  with the specified key and IV.
+            using (RijndaelManaged rijAlg = new RijndaelManaged())
+            {
+                rijAlg.Key = Key;
+                rijAlg.IV = IV;
+
+                // Create a decrytor to perform the stream transform.
+                ICryptoTransform decryptor = rijAlg.CreateDecryptor(rijAlg.Key, rijAlg.IV);
+
+                // Create the streams used for decryption. 
+                using (System.IO.MemoryStream msDecrypt = new System.IO.MemoryStream(cipherText))
+                {
+                    using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
+                    {
+                        using (System.IO.StreamReader srDecrypt = new System.IO.StreamReader(csDecrypt))
+                        {
+                            // Read the decrypted bytes from the decrypting stream and place them in a string. 
+                            plaintext = srDecrypt.ReadToEnd();
+                        }
+                    }
+                }
+            }
+
+            return plaintext;
+        }
+    }
+
     struct MailingStructure
     {
         public string _sender ;
@@ -292,6 +463,18 @@ label1.Text = name;
         {
             return System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(dateTime.Month);
         }
+
+        //
+        public static string ToYYYYMMDD(this DateTime dateTime)
+        {
+             return dateTime.ToString("yyyy-MM-dd"); 
+        }
+
+        public static string ToYYYYMMDDHHMM(this DateTime dateTime)
+        {
+            return DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+        }
+
     }
 
     class EncryptDecrypt
