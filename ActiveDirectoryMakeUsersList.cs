@@ -176,8 +176,7 @@ namespace ASTA
         }*/
     }
 
-    // Originator
-    class ListStaffSender
+    class ListStaffSender    // Originator
     {
         private List<StaffAD> staffAD = new List<StaffAD>();
               
@@ -191,9 +190,8 @@ namespace ASTA
             return staffAD;
         }
     }
-
-    // Memento
-    public class StaffMemento // сохранить список
+     
+    public class StaffMemento    // Memento// сохранить список
     {
         public List<StaffAD> staffAD { get; private set; }
 
@@ -203,7 +201,6 @@ namespace ASTA
         }
     }
 
-    // Caretaker
     class StaffListStore //хранитель списка
     {
         public Stack<StaffMemento> Story { get; private set; }
