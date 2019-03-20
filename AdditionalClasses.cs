@@ -260,17 +260,6 @@ label1.Text = name;
         public string ControlOutHHMM;//= "18:00"
         public string Shift;//= ""
         public string Comment;//= ""
-
-        //   public string RealInHHMM;//= "09:00"
-        //   public string RealOutHHMM;//= "18:00"
-
-        //   public string RealWorkedDayHoursHHMM;//= "09:00"
-        //   public string RealDate;//= ""
-        //   public string RealDayOfWeek;//= ""
-
-        //   public string serverSKD;//= ""
-        //   public string namePassPoint;//= ""
-        //   public string directionPass;//= ""
     }
 
     struct PassByPoint
@@ -334,12 +323,6 @@ label1.Text = name;
         public string _departmentDescription;
         public string _departmentBossCode;
     }
-
-  /*  struct PersonCodeEmail
-    {
-        public string _departmentBossCode;
-        public string _departmentBossEmail;
-    }*/
 
     struct DepartmentFull
     {
