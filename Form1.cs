@@ -137,7 +137,7 @@ namespace ASTA
         ComboBox listCombo = new ComboBox();
 
         Label periodComboLabel;
-        ComboBox periodCombo = new ComboBox();
+        ListBox periodCombo = new ListBox();
 
         Label labelSettings9;
         ComboBox comboSettings9 = new ComboBox();
@@ -409,6 +409,9 @@ namespace ASTA
             dataGridView1.ShowCellToolTips = true;
             groupBoxProperties.Visible = false;
 
+            comboBoxFio.DrawMode = DrawMode.OwnerDrawFixed;
+            comboBoxFio.DrawItem += new DrawItemEventHandler(ComboBox_DrawItem);
+
             GetFioItem.BackColor = Color.LightSkyBlue;
             HelpAboutItem.BackColor = Color.PaleGreen;
             ExitItem.BackColor = Color.DarkOrange;
@@ -520,7 +523,6 @@ namespace ASTA
 
         private void TryMakeDB()
         {
-            ExecuteSql("CREATE TABLE IF NOT EXISTS 'ConfigDB' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, ParameterName TEXT, Value TEXT, Description TEXT, DateCreated TEXT, UNIQUE ('ParameterName') ON CONFLICT REPLACE);", databasePerson);
 
             /////////////////////////////////
             /// names of parameters in Table - 'ConfigDB'
@@ -532,6 +534,8 @@ namespace ASTA
             /// ServerURI         - Server's URI where stores Domain Users 
             /// 
             /////////////////////////////////
+
+            ExecuteSql("CREATE TABLE IF NOT EXISTS 'ConfigDB' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, ParameterName TEXT, Value TEXT, Description TEXT, DateCreated TEXT, IsPassword TEXT, IsExample TEXT, UNIQUE ('ParameterName', 'IsExample') ON CONFLICT REPLACE);", databasePerson);
 
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'PeopleGroupDesciption' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, GroupPerson TEXT, GroupPersonDescription TEXT, AmountStaffInDepartment TEXT, Recipient TEXT, UNIQUE ('GroupPerson') ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'PeopleGroup' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, GroupPerson TEXT, ControllingHHMM TEXT, ControllingOUTHHMM TEXT, " +
@@ -557,7 +561,7 @@ namespace ASTA
 
         private void UpdateTableOfDB()
         {
-            TryUpdateStructureSqlDB("ConfigDB", "ParameterName TEXT, Value TEXT, Description TEXT, DateCreated TEXT", databasePerson);
+            TryUpdateStructureSqlDB("ConfigDB", "ParameterName TEXT, Value TEXT, Description TEXT, DateCreated TEXT, IsPassword TEXT, IsExample TEXT", databasePerson);
             TryUpdateStructureSqlDB("PeopleGroupDesciption", "GroupPerson TEXT, GroupPersonDescription TEXT, AmountStaffInDepartment TEXT, Recipient TEXT", databasePerson);
             TryUpdateStructureSqlDB("PeopleGroup", "FIO TEXT, NAV TEXT, GroupPerson TEXT, ControllingHHMM TEXT, ControllingOUTHHMM TEXT, " +
                     "Shift TEXT, Comment TEXT, Department TEXT, PositionInDepartment TEXT, DepartmentId TEXT, City TEXT, Boss TEXT", databasePerson);
@@ -578,7 +582,7 @@ namespace ASTA
             pcname = Environment.MachineName + "(" + Environment.OSVersion + ")";
             poname = myFileVersionInfo.FileName + "(" + myFileVersionInfo.ProductName + ")";
             poversion = myFileVersionInfo.FileVersion;
-            string LastDateStarted = DateTimeToYYYYMMDDHHMM();
+            string LastDateStarted = DateTime.Now.ToYYYYMMDDHHMM();
             string CurrentUser = Environment.UserName;
             string FreeRam = "RAM: " + Environment.WorkingSet.ToString();
 
@@ -695,10 +699,10 @@ namespace ASTA
 
                                             //todo - check to need try
                                             if (record["Reserv1"]?.ToString()?.Length > 0)
-                                                try { sServer1UserNameDB = DecryptBase64ToString(record["Reserv1"].ToString(), btsMess1, btsMess2); } catch { }
+                                                try { sServer1UserNameDB = EncryptionDecryptionCriticalData.DecryptBase64ToString(record["Reserv1"].ToString(), btsMess1, btsMess2); } catch { }
                                             //todo - check to need try
                                             if (record["Reserv2"]?.ToString()?.Length > 0)
-                                                try { sServer1UserPasswordDB = DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2); } catch { }
+                                                try { sServer1UserPasswordDB = EncryptionDecryptionCriticalData.DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2); } catch { }
                                         }
                                         else if (record["EquipmentParameterValue"]?.ToString()?.Trim() == "MailServer" && record["EquipmentParameterName"]?.ToString()?.Trim() == "MailUser")
                                         {
@@ -707,7 +711,7 @@ namespace ASTA
 
                                             //todo - check to need try
                                             if (record["Reserv2"]?.ToString()?.Length > 0)
-                                                try { mailServerUserPasswordDB = DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2); } catch { }
+                                                try { mailServerUserPasswordDB = EncryptionDecryptionCriticalData.DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2); } catch { }
                                         }
                                         else if (record["EquipmentParameterValue"]?.ToString()?.Trim() == "MySQLServer" && record["EquipmentParameterName"]?.ToString()?.Trim() == "MySQLUser")
                                         {
@@ -716,7 +720,7 @@ namespace ASTA
 
                                             //todo - check to need try
                                             if (record["Reserv2"]?.ToString()?.Length > 0)
-                                                try { mysqlServerUserPasswordDB = DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2); } catch { }
+                                                try { mysqlServerUserPasswordDB = EncryptionDecryptionCriticalData.DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2); } catch { }
                                         }
                                     }
                                 }
@@ -731,16 +735,16 @@ namespace ASTA
             using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(myRegKey, Microsoft.Win32.RegistryKeyPermissionCheck.ReadSubTree, System.Security.AccessControl.RegistryRights.ReadKey))
             {
                 try { sServer1Registry = EvUserKey.GetValue("SKDServer").ToString().Trim(); } catch { logger.Warn("Registry GetValue SKDServer"); }
-                try { sServer1UserNameRegistry = DecryptBase64ToString(EvUserKey.GetValue("SKDUser").ToString(), btsMess1, btsMess2).ToString().Trim(); } catch { }
-                try { sServer1UserPasswordRegistry = DecryptBase64ToString(EvUserKey.GetValue("SKDUserPassword").ToString(), btsMess1, btsMess2).ToString().Trim(); } catch { }
+                try { sServer1UserNameRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey.GetValue("SKDUser").ToString(), btsMess1, btsMess2).ToString().Trim(); } catch { }
+                try { sServer1UserPasswordRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey.GetValue("SKDUserPassword").ToString(), btsMess1, btsMess2).ToString().Trim(); } catch { }
 
                 try { mailServerRegistry = EvUserKey.GetValue("MailServer").ToString().Trim(); } catch { logger.Warn("Registry GetValue Mail"); }
                 try { mailServerUserNameRegistry = EvUserKey.GetValue("MailUser").ToString().Trim(); } catch { }
-                try { mailServerUserPasswordRegistry = DecryptBase64ToString(EvUserKey.GetValue("MailUserPassword").ToString(), btsMess1, btsMess2).ToString().Trim(); } catch { }
+                try { mailServerUserPasswordRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey.GetValue("MailUserPassword").ToString(), btsMess1, btsMess2).ToString().Trim(); } catch { }
 
                 try { mysqlServerRegistry = EvUserKey.GetValue("MySQLServer").ToString().Trim(); } catch { logger.Warn("Registry GetValue MySQL"); }
                 try { mysqlServerUserNameRegistry = EvUserKey.GetValue("MySQLUser").ToString().Trim(); } catch { }
-                try { mysqlServerUserPasswordRegistry = DecryptBase64ToString(EvUserKey.GetValue("MySQLUserPassword").ToString(), btsMess1, btsMess2).ToString().Trim(); } catch { }
+                try { mysqlServerUserPasswordRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey.GetValue("MySQLUserPassword").ToString(), btsMess1, btsMess2).ToString().Trim(); } catch { }
 
                 try { modeApp = EvUserKey.GetValue("ModeApp").ToString().Trim(); } catch { logger.Warn("Registry GetValue ModeApp"); }
             }
@@ -767,78 +771,89 @@ namespace ASTA
             AddParameterInConfig();
         }
 
+
+        List<ParameterConfig> listParameters = new List<ParameterConfig>();
+        
+
         private void AddParameterInConfig()
         {
-            /// UserName          - User
-            /// UserPassword      - Password 
-            /// DomainOfUser            - User's Domain of Authentification
-            /// ServerURI         - Server's URI where stores Domain Users 
-            /// 
             _controlVisible(panelView, false);
-            btnPropertiesSave.Text = "Сохранить настройки";
+            btnPropertiesSave.Text = "Сохранить параметр";
+            btnPropertiesSave.Click += new EventHandler(ButtonPropertiesSave_inConfig);
 
-            List<string> listParameters = new List<string>();
-            listParameters.Add("UserName");
-            listParameters.Add("UserPassword");
-            listParameters.Add("DomainOfUser");
-            listParameters.Add("ServerURI");
-            AddParameterFormSettings(listParameters);
+            listParameters = new List<ParameterConfig>();
+
+            //test only
+            //todo - move to ConfigDB
+            //("ConfigDB", "ParameterName , Value , Description , DateCreated , IsPassword , IsExample ");
+
+            listParameters.Add(new ParameterConfig() { parameterName = "UserName", isPassword=false, parameterDescription="логин юзера, с правами чтения списка персонала" });
+            listParameters.Add(new ParameterConfig() { parameterName = "UserPassword", isPassword = true, parameterDescription = "доменный пароль юзера" });
+            listParameters.Add(new ParameterConfig() { parameterName = "DomainOfUser", isPassword = false, parameterDescription = "домен юзера" });
+            listParameters.Add(new ParameterConfig() { parameterName = "ServerURI", isPassword = false, parameterDescription = "сервер, с которого производится чтение списка персонала" });
+
+            InitializeParameterFormSettings(listParameters);
         }
 
-        private void AddParameterFormSettings(List<string> listParameters            )
+        private void InitializeParameterFormSettings(List<ParameterConfig> listParameters)
         {
             panelViewResize(numberPeopleInLoading);
 
-            ComboBox comboBoxParameters = new ComboBox
+            periodCombo = new ListBox
             {
                 Location = new Point(20, 120),
-                Size = new Size(590, 22),
-                Parent = groupBoxProperties
+                Size = new Size(590, 60),
+                Parent = groupBoxProperties,
+                DrawMode = DrawMode.OwnerDrawFixed,                
             };
 
-              comboBoxParameters.DataSource = listParameters;
-            toolTip1.SetToolTip(comboBoxParameters, "Перечень параметров");
+            periodCombo.DrawItem += new DrawItemEventHandler(ListBox_DrawItem);
+            periodCombo.DataSource = listParameters.Select(x=>x.parameterName).ToList();
+          if (listParameters.Count>0)  periodCombo.SelectedIndex = 0;
+            toolTip1.SetToolTip(periodCombo, "Перечень параметров");
 
-
-            Label labelParameterName = new Label
+            labelServer1 = new Label
             {
-                Text = "labelParameterName",
+                Text = "",
                 BackColor = Color.PaleGreen,
-                Location = new Point(20, 60),
-                Size = new Size(590, 22),
+                Location = new Point(20, 59),
+                Size = new Size(590, 24),
                 BorderStyle = BorderStyle.None,
                 TextAlign = ContentAlignment.MiddleLeft,
                 Parent = groupBoxProperties
             };
-            TextBox textBoxParameter = new TextBox
+            textBoxSettings16 = new TextBox
             {
-                Text = "txtbox1",
-                Location = new Point(90, 61),
-                // PasswordChar = '*',
-                Size = new Size(90, 20),
+                Text = "",
+                Location = new Point(150, 61),
+                Size = new Size(150, 20),
                 BorderStyle = BorderStyle.FixedSingle,
                 Parent = groupBoxProperties
             };
-            toolTip1.SetToolTip(textBoxParameter, "tooltip1");
+            toolTip1.SetToolTip(textBoxSettings16, "tooltip1");
 
-            Label labelParameterDesciption = new Label
+            labelSettings9 = new Label
             {
-                Text = "labelParameterDesciption",
+                Text = "",
                 BackColor = Color.PaleGreen,
-                Location = new Point(120, 60),
-                Size = new Size(125, 22),
+                Location = new Point(340, 61),
+                Size = new Size(250, 22),
                 BorderStyle = BorderStyle.None,
-                TextAlign = ContentAlignment.MiddleLeft,
+                TextAlign = ContentAlignment.TopLeft,
                 Parent = groupBoxProperties
             };
 
-            comboBoxParameters.KeyPress += new KeyPressEventHandler(SelectComboBoxParameters_SelectedIndexChanged);
-            textBoxParameter.TextChanged += new EventHandler(textBoxSettings16_TextChanged);
+          //  periodCombo.KeyPress += new KeyPressEventHandler(SelectComboBoxParameters_SelectedIndexChanged);
+            periodCombo.SelectedIndexChanged += new EventHandler(ListBox_SelectedIndexChanged);
+            textBoxSettings16.TextChanged += new EventHandler(textbox_textChanged);
 
-            textBoxParameter?.BringToFront();
-
+            textBoxSettings16.BringToFront();
+            labelSettings9.BringToFront();
+           // Controls.Add(labelSettings9);
+            
             groupBoxProperties.Visible = true;
         }
+
         private void SelectComboBoxParameters_SelectedIndexChanged(object sender, EventArgs e)
         { SelectComboBoxParameters(); }
 
@@ -852,8 +867,57 @@ namespace ASTA
              sComboboxFIO = null;
         }
 
+        private void ListBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string result = _listBoxReturnSelected(sender as ListBox);
+            string tooltip = "";
 
+            bool isPassword= listParameters.Find(x => x.parameterName== result).isPassword;
+            labelServer1.Text = result;
+            labelSettings9.Text= listParameters.Find(x => x.parameterName == result).parameterDescription;
+            tooltip = listParameters.Find(x => x.parameterName == result).parameterDescription;
+            toolTip1.SetToolTip(textBoxSettings16, tooltip);
 
+            if (isPassword && textBoxSettings16 != null)
+            {
+                textBoxSettings16.PasswordChar = '*';
+            }
+            else if(textBoxSettings16 != null)
+            {
+                textBoxSettings16.PasswordChar = '\0';
+            }
+        }
+        
+        private void textbox_textChanged(object sender, EventArgs e)
+        {
+            int result;
+            bool correct = false;
+
+            //allow numbers from 1 to 28
+            if ((sender as TextBox).Text.Length > 0)
+            {
+                correct = Int32.TryParse((sender as TextBox).Text, out result);
+                if (correct)
+                {
+                    if (result > 28) { (sender as TextBox).Text = "28"; }
+                    else if (result < 1) { (sender as TextBox).Text = "1"; }
+                    else
+                    {
+                        (sender as TextBox).Text = result.ToString();
+                    }
+                }
+            }
+        }
+
+        private void ButtonPropertiesSave_inConfig(object sender, EventArgs e) //SaveProperties()
+        {
+
+            //ParameterSave 
+
+            DisposeTemporaryControls();
+            EnableMainMenuItems(true);
+            _controlVisible(panelView, true);
+        }
 
 
 
@@ -1414,7 +1478,8 @@ namespace ASTA
                             {
                                 if (reader.GetString(@"code")?.Length > 0)
                                 {
-                                    try { dayStartShift = DateTimeToYYYYMMDD(reader.GetMySqlDateTime(@"start_date").ToString()); }
+                                    
+                                    try { dayStartShift =DateTimeToYYYYMMDD(reader.GetMySqlDateTime(@"start_date").ToString()); }
                                     catch
                                     { dayStartShift = DateTimeToYYYYMMDD("1980-01-01"); }
 
@@ -1742,7 +1807,7 @@ namespace ASTA
                                 sqlCommand.Parameters.Add("@Description", DbType.String).Value = depDescr;
                                 sqlCommand.Parameters.Add("@Period", DbType.String).Value = "Текущий месяц";
                                 sqlCommand.Parameters.Add("@Status", DbType.String).Value = "Активная";
-                                sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTimeToYYYYMMDDHHMM();
+                                sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
                                 sqlCommand.Parameters.Add("@SendingLastDate", DbType.String).Value = "";
                                 sqlCommand.Parameters.Add("@TypeReport", DbType.String).Value = "Полный";
                                 sqlCommand.Parameters.Add("@DayReport", DbType.String).Value = "28";
@@ -1787,7 +1852,7 @@ namespace ASTA
                                 sqlCommand.Parameters.Add("@SuEnd", DbType.Int32).Value = shift._SuEnd;
                                 sqlCommand.Parameters.Add("@Status", DbType.String).Value = shift._Status;
                                 sqlCommand.Parameters.Add("@Comment", DbType.String).Value = shift._Comment;
-                                sqlCommand.Parameters.Add("@DayInputed", DbType.String).Value = DateTimeToYYYYMMDDHHMM();
+                                sqlCommand.Parameters.Add("@DayInputed", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
                                 try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                                 _ProgressWork1Step(1);
                             }
@@ -4815,7 +4880,7 @@ namespace ASTA
                     {
                         sqlCommand.Parameters.Add("@ParameterName", DbType.String).Value = "clrRealRegistration";
                         sqlCommand.Parameters.Add("@Value", DbType.String).Value = clrRealRegistration.Name;
-                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTimeToYYYYMMDDHHMM();
+                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
                         try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                     }
                 }
@@ -4888,6 +4953,7 @@ namespace ASTA
             _controlVisible(panelView, false);
 
             btnPropertiesSave.Text = "Сохранить рассылку";
+            btnPropertiesSave.Click += new EventHandler(ButtonPropertiesSave_MailingSave);
 
             MakeFormMailing();
         }
@@ -4944,7 +5010,7 @@ namespace ASTA
                     "", "", "",
                     "", "", "",
                     "Вариант отчета", listComboParameters15, "Вариант отображения данных в отчете",
-                    "День подготовки отчета", "", "День, в который выполнять подготовку и отправку данного отчета"
+                    "День подготовки отчета", "", "День, в который выполнять подготовку и отправку данного отчета./nДни месяца с 1 до 28"
                     );
         }
 
@@ -5011,6 +5077,7 @@ namespace ASTA
             _controlVisible(panelView, false);
 
             btnPropertiesSave.Text = "Сохранить настройки";
+            btnPropertiesSave.Click += new EventHandler( buttonPropertiesSave_Click); 
             ViewFormSettings(
                 "Сервер СКД", sServer1, "Имя сервера \"Server\" с базой Intellect в виде - NameOfServer.Domain.Subdomain",
                 "Имя пользователя", sServer1UserName, "Имя администратора \"sa\" SQL-сервера",
@@ -5221,7 +5288,7 @@ namespace ASTA
                     Parent = groupBoxProperties
                 };
 
-                periodCombo = new ComboBox
+                periodCombo = new ListBox
                 {
                     Location = new Point(300, 121),
                     Size = new Size(120, 20),
@@ -5374,7 +5441,7 @@ namespace ASTA
                 };
                 toolTip1.SetToolTip(textBoxSettings16, tooltip16);
                 textBoxSettings16.KeyPress += new KeyPressEventHandler(textBoxSettings16_KeyPress);
-                textBoxSettings16.TextChanged += new EventHandler(textBoxSettings16_TextChanged);
+                textBoxSettings16.TextChanged += new EventHandler(textboxDate_textChanged);
             }
 
             labelServer1?.BringToFront();
@@ -5472,38 +5539,40 @@ namespace ASTA
 
         private void buttonPropertiesSave_Click(object sender, EventArgs e) //SaveProperties()
         {
-            string btnName = btnPropertiesSave.Text.ToString();
+            SaveProperties(); //btnPropertiesSave 
+            
+            DisposeTemporaryControls();
+            EnableMainMenuItems(true);
+            _controlVisible(panelView, true);
+        }
 
-            if (btnName == @"Сохранить настройки")
+
+
+        private void ButtonPropertiesSave_MailingSave(object sender, EventArgs e) //SaveProperties()
+        {
+            string recipientEmail = _textBoxReturnText(textBoxServer1UserName);
+            string senderEmail = mailServerUserName;
+            if (mailServerUserName.Length == 0)
+            { senderEmail = _textBoxReturnText(textBoxServer1); }
+            string nameReport = _textBoxReturnText(textBoxMailServerName);
+            string description = _textBoxReturnText(textBoxMailServerUserName);
+            string report = _comboBoxReturnSelected(listCombo);
+            string period = _listBoxReturnSelected(periodCombo);
+            string status = _comboBoxReturnSelected(comboSettings9);
+            string typeReport = _comboBoxReturnSelected(comboSettings15);
+            string dayReport = _textBoxReturnText(textBoxSettings16);
+
+            if (recipientEmail.Length > 5 && nameReport.Length > 0)
             {
-                SaveProperties();
+                SaveMailing(recipientEmail, senderEmail,
+                    report, nameReport, description, period, status,
+                    DateTime.Now.ToYYYYMMDDHHMM(), "", typeReport, dayReport);
             }
-            else if (btnName == @"Сохранить рассылку")
-            {
-                string recipientEmail = _textBoxReturnText(textBoxServer1UserName);
-                string senderEmail = mailServerUserName;
-                if (mailServerUserName.Length == 0)
-                { senderEmail = _textBoxReturnText(textBoxServer1); }
-                string nameReport = _textBoxReturnText(textBoxMailServerName);
-                string description = _textBoxReturnText(textBoxMailServerUserName);
-                string report = _comboBoxReturnSelected(listCombo);
-                string period = _comboBoxReturnSelected(periodCombo);
-                string status = _comboBoxReturnSelected(comboSettings9);
-                string typeReport = _comboBoxReturnSelected(comboSettings15);
-                string dayReport = _textBoxReturnText(textBoxSettings16);
 
-                if (recipientEmail.Length > 5 && nameReport.Length > 0)
-                {
-                    SaveMailing(recipientEmail, senderEmail,
-                        report, nameReport, description, period, status,
-                        DateTimeToYYYYMMDDHHMM(), "", typeReport, dayReport);
-                }
-
-                ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
-                "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
-                "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
-                " ORDER BY RecipientEmail asc, DateCreated desc; ");
-            }
+            ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
+            "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
+            "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
+            " ORDER BY RecipientEmail asc, DateCreated desc; ");
 
             DisposeTemporaryControls();
             EnableMainMenuItems(true);
@@ -5548,16 +5617,16 @@ namespace ASTA
                     using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(myRegKey))
                     {
                         try { EvUserKey.SetValue("SKDServer", server, Microsoft.Win32.RegistryValueKind.String); } catch { }
-                        try { EvUserKey.SetValue("SKDUser", EncryptStringToBase64Text(user, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
-                        try { EvUserKey.SetValue("SKDUserPassword", EncryptStringToBase64Text(password, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
+                        try { EvUserKey.SetValue("SKDUser", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(user, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
+                        try { EvUserKey.SetValue("SKDUserPassword", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(password, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
 
                         try { EvUserKey.SetValue("MailServer", mailServer, Microsoft.Win32.RegistryValueKind.String); } catch { }
                         try { EvUserKey.SetValue("MailUser", mailServerUserName, Microsoft.Win32.RegistryValueKind.String); } catch { }
-                        try { EvUserKey.SetValue("MailUserPassword", EncryptStringToBase64Text(mailServerUserPassword, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
+                        try { EvUserKey.SetValue("MailUserPassword", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(mailServerUserPassword, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
 
                         try { EvUserKey.SetValue("MySQLServer", mysqlServer, Microsoft.Win32.RegistryValueKind.String); } catch { }
                         try { EvUserKey.SetValue("MySQLUser", mysqlServerUserName, Microsoft.Win32.RegistryValueKind.String); } catch { }
-                        try { EvUserKey.SetValue("MySQLUserPassword", EncryptStringToBase64Text(mysqlServerUserPassword, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
+                        try { EvUserKey.SetValue("MySQLUserPassword", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(mysqlServerUserPassword, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
 
                         logger.Info("Данные в реестре сохранены");
                     }
@@ -5579,8 +5648,8 @@ namespace ASTA
                             sqlCommand.Parameters.Add("@EquipmentParameterName", DbType.String).Value = "SKDUser";
                             sqlCommand.Parameters.Add("@EquipmentParameterValue", DbType.String).Value = "SKDServer";
                             sqlCommand.Parameters.Add("@EquipmentParameterServer", DbType.String).Value = sServer1;
-                            try { sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = EncryptStringToBase64Text(sServer1UserName, btsMess1, btsMess2); } catch { }
-                            try { sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = EncryptStringToBase64Text(sServer1UserPassword, btsMess1, btsMess2); } catch { }
+                            try { sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = EncryptionDecryptionCriticalData.EncryptStringToBase64Text(sServer1UserName, btsMess1, btsMess2); } catch { }
+                            try { sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = EncryptionDecryptionCriticalData.EncryptStringToBase64Text(sServer1UserPassword, btsMess1, btsMess2); } catch { }
                             try { sqlCommand.ExecuteNonQuery(); } catch { }
                         }
 
@@ -5591,7 +5660,7 @@ namespace ASTA
                             sqlCommand.Parameters.Add("@EquipmentParameterValue", DbType.String).Value = "MailServer";
                             sqlCommand.Parameters.Add("@EquipmentParameterServer", DbType.String).Value = mailServer;
                             sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = mailServerUserName;
-                            try { sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = EncryptStringToBase64Text(mailServerUserPassword, btsMess1, btsMess2); } catch { }
+                            try { sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = EncryptionDecryptionCriticalData.EncryptStringToBase64Text(mailServerUserPassword, btsMess1, btsMess2); } catch { }
                             try { sqlCommand.ExecuteNonQuery(); } catch { }
                         }
 
@@ -5602,7 +5671,7 @@ namespace ASTA
                             sqlCommand.Parameters.Add("@EquipmentParameterValue", DbType.String).Value = "MySQLServer";
                             sqlCommand.Parameters.Add("@EquipmentParameterServer", DbType.String).Value = mysqlServer;
                             sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = mysqlServerUserName;
-                            try { sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = EncryptStringToBase64Text(mysqlServerUserPassword, btsMess1, btsMess2); } catch { }
+                            try { sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = EncryptionDecryptionCriticalData.EncryptStringToBase64Text(mysqlServerUserPassword, btsMess1, btsMess2); } catch { }
                             try { sqlCommand.ExecuteNonQuery(); } catch { }
                         }
 
@@ -5618,7 +5687,47 @@ namespace ASTA
             }
         }
 
-        private void ClearRegistryItem_Click(object sender, EventArgs e) //ClearRegistryData()
+       /*  private void buttonPropertiesSave_Click(object sender, EventArgs e) //SaveProperties()
+        {
+            string btnName = btnPropertiesSave.Text.ToString();
+
+            if (btnName == @"Сохранить настройки")
+            {
+                SaveProperties(); //btnPropertiesSave 
+            }
+            else if (btnName == @"Сохранить рассылку")
+            {
+                string recipientEmail = _textBoxReturnText(textBoxServer1UserName);
+                string senderEmail = mailServerUserName;
+                if (mailServerUserName.Length == 0)
+                { senderEmail = _textBoxReturnText(textBoxServer1); }
+                string nameReport = _textBoxReturnText(textBoxMailServerName);
+                string description = _textBoxReturnText(textBoxMailServerUserName);
+                string report = _comboBoxReturnSelected(listCombo);
+                string period = _listBoxReturnSelected(periodCombo);
+                string status = _comboBoxReturnSelected(comboSettings9);
+                string typeReport = _comboBoxReturnSelected(comboSettings15);
+                string dayReport = _textBoxReturnText(textBoxSettings16);
+
+                if (recipientEmail.Length > 5 && nameReport.Length > 0)
+                {
+                    SaveMailing(recipientEmail, senderEmail,
+                        report, nameReport, description, period, status,
+                        DateTime.Now.ToYYYYMMDDHHMM(), "", typeReport, dayReport);
+                }
+
+                ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
+                "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
+                "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
+                " ORDER BY RecipientEmail asc, DateCreated desc; ");
+            }
+
+            DisposeTemporaryControls();
+            EnableMainMenuItems(true);
+            _controlVisible(panelView, true);
+        }*/
+
+       private void ClearRegistryItem_Click(object sender, EventArgs e) //ClearRegistryData()
         { ClearRegistryData(); }
 
         private void ClearRegistryData()
@@ -5678,7 +5787,7 @@ namespace ASTA
             }
         }
 
-        private void textBoxSettings16_TextChanged(object sender, EventArgs e)
+        private void textboxDate_textChanged(object sender, EventArgs e)
         {
             int result;
             bool correct = false;
@@ -5686,11 +5795,15 @@ namespace ASTA
             //allow numbers from 1 to 28
             if ((sender as TextBox).Text.Length > 0)
             {
-                correct = Int32.TryParse(textBoxSettings16.Text, out result);
+                correct = Int32.TryParse((sender as TextBox).Text, out result);
                 if (correct)
                 {
-                    if (result > 28) { textBoxSettings16.Text = "28"; }
-                    if (result < 1) { textBoxSettings16.Text = "1"; }
+                    if (result > 28) { (sender as TextBox).Text = "28"; }
+                    else if (result < 1) { (sender as TextBox).Text = "1"; }
+                    else
+                    {
+                        (sender as TextBox).Text = result.ToString();
+                    }
                 }
             }
         }
@@ -6325,7 +6438,7 @@ namespace ASTA
                         " VALUES (@City, @DateCreated)", sqlConnection))
                     {
                         sqlCommand.Parameters.Add("@City", DbType.String).Value = "City";
-                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTimeToYYYYMMDDHHMM();
+                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
                         try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                     }
                 }
@@ -6363,7 +6476,7 @@ namespace ASTA
             logger.Trace("DoReportAndEmailByRightClick: " + mailServerUserName + "|" + dgSeek.values[0]);
 
             MailingAction("sendEmail", mailServerUserName, mailServerUserName,
-            dgSeek.values[0], dgSeek.values[0], "Test", SelectedDatetimePickersPeriodMonth(), "Активная", "Полный", DateTimeToYYYYMMDDHHMM());
+            dgSeek.values[0], dgSeek.values[0], "Test", SelectedDatetimePickersPeriodMonth(), "Активная", "Полный", DateTime.Now.ToYYYYMMDDHHMM());
             _ProgressBar1Stop();
         }
 
@@ -6378,7 +6491,7 @@ namespace ASTA
             _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет по группе" + dgSeek.values[0]);
             logger.Trace("DoReportByRightClick: " + dgSeek.values[0]);
 
-            GetRegistrationAndSendReport(dgSeek.values[0], dgSeek.values[0], dgSeek.values[1], SelectedDatetimePickersPeriodMonth(), "Активная", "Полный", DateTimeToYYYYMMDDHHMM(), false, "", "");
+            GetRegistrationAndSendReport(dgSeek.values[0], dgSeek.values[0], dgSeek.values[1], SelectedDatetimePickersPeriodMonth(), "Активная", "Полный", DateTime.Now.ToYYYYMMDDHHMM(), false, "", "");
 
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer.exe", " /select, " + System.IO.Path.GetDirectoryName(filePathExcelReport) + @"\")); // //System.Reflection.Assembly.GetExecutingAssembly().Location)
 
@@ -6397,7 +6510,7 @@ namespace ASTA
 
             SaveMailing(
                dgSeek.values[0], mailServerUserName, dgSeek.values[1], dgSeek.values[2] + "_1",
-               dgSeek.values[3] + "_1", dgSeek.values[4], "Неактивная", DateTimeToYYYYMMDDHHMM(), "", "Копия", "1");
+               dgSeek.values[3] + "_1", dgSeek.values[4], "Неактивная", DateTime.Now.ToYYYYMMDDHHMM(), "", "Копия", "1");
 
             ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
             "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
@@ -6426,7 +6539,7 @@ namespace ASTA
                         sqlCommand.Parameters.Add("@RecipientEmail", DbType.String).Value = "example@mail.com";
                         sqlCommand.Parameters.Add("@GroupsReport", DbType.String).Value = "";
                         sqlCommand.Parameters.Add("@Description", DbType.String).Value = "example";
-                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTimeToYYYYMMDDHHMM();
+                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
                         try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                     }
                 }
@@ -6483,7 +6596,7 @@ namespace ASTA
                         _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + dgSeek.values[2]);
                         stimerPrev = "";
 
-                        ExecuteSql("UPDATE 'Mailing' SET SendingLastDate='" + DateTimeToYYYYMMDDHHMM() +
+                        ExecuteSql("UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToYYYYMMDDHHMM() +
                             "' WHERE RecipientEmail='" + dgSeek.values[0] + "' AND NameReport='" + dgSeek.values[2] +
                             "' AND GroupsReport ='" + dgSeek.values[1] + "';", databasePerson);
 
@@ -6726,7 +6839,7 @@ namespace ASTA
                 if (dd.Hour == 4 && dd.Minute == 10 && sent == false) //do something at Hour 2 and 5 minute //dd.Day == 1 && 
                 {
                     _ProgressBar1Start();
-                    _toolStripStatusLabelSetText(StatusLabel2, "Ведется работа по подготовке отчетов " + DateTimeToYYYYMMDDHHMM());
+                    _toolStripStatusLabelSetText(StatusLabel2, "Ведется работа по подготовке отчетов " + DateTime.Now.ToYYYYMMDDHHMM());
                     _toolStripStatusLabelBackColor(StatusLabel2, Color.LightPink);
                     CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword);
                     SelectMailingDoAction();
@@ -6740,7 +6853,7 @@ namespace ASTA
 
                 if (dd.Hour == 7 && dd.Minute == 1)
                 {
-                    _toolStripStatusLabelSetText(StatusLabel2, "Режим почтовых рассылок. " + DateTimeToYYYYMMDDHHMM());
+                    _toolStripStatusLabelSetText(StatusLabel2, "Режим почтовых рассылок. " + DateTime.Now.ToYYYYMMDDHHMM());
                     _toolStripStatusLabelBackColor(StatusLabel2, Color.LightCyan);
                     ClearFilesInApplicationFolders(@"*.xlsx", "Excel-файлов");
                     _ProgressBar1Stop();
@@ -6830,7 +6943,7 @@ namespace ASTA
                     _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + mailng._nameReport);
                     stimerPrev = "";
 
-                    str = "UPDATE 'Mailing' SET SendingLastDate='" + DateTimeToYYYYMMDDHHMM() +
+                    str = "UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToYYYYMMDDHHMM() +
                         "' WHERE RecipientEmail='" + mailng._recipient +
                         "' AND NameReport='" + mailng._nameReport +
                         "' AND GroupsReport ='" + mailng._groupsReport + "';";
@@ -6899,7 +7012,7 @@ namespace ASTA
             {
                 case "saveEmail":
                     {
-                        SaveMailing(mailServerUserName, senderEmail, groupsReport, nameReport, description, period, status, DateTimeToYYYYMMDDHHMM(), "", typeReport, dayReport);
+                        SaveMailing(mailServerUserName, senderEmail, groupsReport, nameReport, description, period, status, DateTime.Now.ToYYYYMMDDHHMM(), "", typeReport, dayReport);
 
                         ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
                         "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
@@ -7015,7 +7128,7 @@ namespace ASTA
 
                     if (dtPersonTemp.Rows.Count > 0)
                     {
-                        string nameFile = nameReport + " " + reportStartDay.Split(' ')[0] + "-" + reportLastDay.Split(' ')[0] + " " + groupName + " от " + DateTimeToYYYYMMDDHHMM();
+                        string nameFile = nameReport + " " + reportStartDay.Split(' ')[0] + "-" + reportLastDay.Split(' ')[0] + " " + groupName + " от " + DateTime.Now.ToYYYYMMDDHHMM();
                         string illegal = GetSafeFilename(nameFile) + @".xlsx";
                         filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), illegal);
 
@@ -7033,18 +7146,18 @@ namespace ASTA
                                 SendEmail(senderEmail, recipientEmail, titleOfbodyMail, description, filePathExcelReport, Properties.Resources.LogoRYIK, productName);
 
                                 _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
-                                _toolStripStatusLabelSetText(StatusLabel2, DateTimeToYYYYMMDDHHMM() + " Отчет '" + nameReport + "'(" + groupName + ") подготовлен и отправлен " + recipientEmail);
+                                _toolStripStatusLabelSetText(StatusLabel2, DateTime.Now.ToYYYYMMDDHHMM() + " Отчет '" + nameReport + "'(" + groupName + ") подготовлен и отправлен " + recipientEmail);
                             }
                             else
                             {
                                 _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
-                                _toolStripStatusLabelSetText(StatusLabel2, DateTimeToYYYYMMDDHHMM() + " Ошибка экспорта в файл отчета: " + nameReport + "(" + groupName + ")");
+                                _toolStripStatusLabelSetText(StatusLabel2, DateTime.Now.ToYYYYMMDDHHMM() + " Ошибка экспорта в файл отчета: " + nameReport + "(" + groupName + ")");
                             }
                         }
                     }
                     else
                     {
-                        _toolStripStatusLabelSetText(StatusLabel2, DateTimeToYYYYMMDDHHMM() + "Ошибка получения данных для отчета: " + nameReport);
+                        _toolStripStatusLabelSetText(StatusLabel2, DateTime.Now.ToYYYYMMDDHHMM() + "Ошибка получения данных для отчета: " + nameReport);
                         _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
                     }
                 }
@@ -7162,7 +7275,7 @@ namespace ASTA
                 @"</font><br/><br/><font size='2' color='black' face='Arial'><i>" +
                 @"Данное сообщение и отчет созданы автоматически<br/>программой по учету рабочего времени сотрудников." +
                 @"</i></font><br/><font size='1' color='red' face='Arial'><br/>" +
-                DateTimeToYYYYMMDDHHMM() +
+                DateTime.Now.ToYYYYMMDDHHMM() +
                 @"</font></p><hr><img alt='ASTA' src='cid:" +
                 res.ContentId +
                 @"'/><br/><a href='mailto:ryik.yuri@gmail.com'>_</a>";
@@ -7172,104 +7285,12 @@ namespace ASTA
             return alternateView;
         }
 
-
-
         //---  End. Schedule Functions ---//
 
 
 
+
         //---  Start. Block Encryption-Decryption ---//  
-
-        private static string EncryptStringToBase64Text(string plainText, byte[] Key, byte[] IV) //Encrypt variables PlainText Data
-        {
-            string sBase64Test;
-            sBase64Test = Convert.ToBase64String(EncryptStringToBytes(plainText, Key, IV));
-            return sBase64Test;
-        }
-
-        private static byte[] EncryptStringToBytes(string plainText, byte[] Key, byte[] IV) //Encrypt variables PlainText Data
-        {
-            // Check arguments. 
-            if (plainText == null || plainText.Length <= 0)
-                throw new ArgumentNullException("plainText");
-            if (Key == null || Key.Length <= 0)
-                throw new ArgumentNullException("Key");
-            if (IV == null || IV.Length <= 0)
-                throw new ArgumentNullException("IV");
-            byte[] encrypted;
-            // Create an RijndaelManaged object with the specified key and IV. 
-            using (RijndaelManaged rijAlg = new RijndaelManaged())
-            {
-                rijAlg.Key = Key;
-                rijAlg.IV = IV;
-
-                // Create a decrytor to perform the stream transform.
-                ICryptoTransform encryptor = rijAlg.CreateEncryptor(rijAlg.Key, rijAlg.IV);
-
-                // Create the streams used for encryption. 
-                using (System.IO.MemoryStream msEncrypt = new System.IO.MemoryStream())
-                {
-                    using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
-                    {
-                        using (System.IO.StreamWriter swEncrypt = new System.IO.StreamWriter(csEncrypt))
-                        {
-
-                            //Write all data to the stream.
-                            swEncrypt.Write(plainText);
-                        }
-                        encrypted = msEncrypt.ToArray();
-                    }
-                }
-            }
-            // Return the encrypted bytes from the memory stream. 
-            return encrypted;
-        }
-
-        private static string DecryptBase64ToString(string sBase64Text, byte[] Key, byte[] IV) //Encrypt variables PlainText Data
-        {
-            byte[] bBase64Test;
-            bBase64Test = Convert.FromBase64String(sBase64Text);
-            return DecryptStringFromBytes(bBase64Test, Key, IV);
-        }
-
-        private static string DecryptStringFromBytes(byte[] cipherText, byte[] Key, byte[] IV) //Decrypt PlainText Data to variables
-        {
-            // Check arguments. 
-            if (cipherText == null || cipherText.Length <= 0)
-                throw new ArgumentNullException("cipherText");
-            if (Key == null || Key.Length <= 0)
-                throw new ArgumentNullException("Key");
-            if (IV == null || IV.Length <= 0)
-                throw new ArgumentNullException("IV");
-
-            // Declare the string used to hold the decrypted text.
-            string plaintext = null;
-
-            // Create an RijndaelManaged object  with the specified key and IV.
-            using (RijndaelManaged rijAlg = new RijndaelManaged())
-            {
-                rijAlg.Key = Key;
-                rijAlg.IV = IV;
-
-                // Create a decrytor to perform the stream transform.
-                ICryptoTransform decryptor = rijAlg.CreateDecryptor(rijAlg.Key, rijAlg.IV);
-
-                // Create the streams used for decryption. 
-                using (System.IO.MemoryStream msDecrypt = new System.IO.MemoryStream(cipherText))
-                {
-                    using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
-                    {
-                        using (System.IO.StreamReader srDecrypt = new System.IO.StreamReader(csDecrypt))
-                        {
-                            // Read the decrypted bytes from the decrypting stream and place them in a string. 
-                            plaintext = srDecrypt.ReadToEnd();
-                        }
-                    }
-                }
-            }
-
-            return plaintext;
-        }
 
         private void TestCryptionItem_Click(object sender, EventArgs e)
         {
@@ -7281,7 +7302,7 @@ namespace ASTA
                 myRijndael.Key = btsMess1;
                 myRijndael.IV = btsMess2;
                 // Encrypt the string to an array of bytes.
-                byte[] encrypted = EncryptStringToBytes(original, myRijndael.Key, myRijndael.IV);
+                byte[] encrypted = EncryptionDecryptionCriticalData.EncryptStringToBytes(original, myRijndael.Key, myRijndael.IV);
 
                 StringBuilder s = new StringBuilder();
                 foreach (byte item in encrypted)
@@ -7291,7 +7312,7 @@ namespace ASTA
                 MessageBox.Show("Encrypted:   " + s);
 
                 // Decrypt the bytes to a string.
-                string decrypted = DecryptStringFromBytes(encrypted, btsMess1, btsMess2);
+                string decrypted = EncryptionDecryptionCriticalData.DecryptStringFromBytes(encrypted, btsMess1, btsMess2);
 
                 //Display the original data and the decrypted data.
                 MessageBox.Show("Decrypted:    " + decrypted);
@@ -7299,6 +7320,82 @@ namespace ASTA
         }
 
         //---  End. Block Encryption-Decryption ---//  
+
+
+
+
+
+        private void ListBox_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            Font font = (sender as ListBox).Font;
+            Brush backgroundColor;
+            Brush textColor;
+
+            if (e.Index % 2 != 0)
+            {
+                if ((e.State & DrawItemState.Selected) == DrawItemState.Selected)
+                {
+                    backgroundColor = Brushes.SandyBrown;
+                    textColor = Brushes.Black;
+                }
+                else
+                {
+                    backgroundColor = SystemBrushes.Window;
+                    textColor = Brushes.Black;
+                }
+            }
+            else
+            {
+                if ((e.State & DrawItemState.Selected) == DrawItemState.Selected)
+                {
+                    backgroundColor = Brushes.SandyBrown;// SystemBrushes.Highlight;
+                    textColor = textColor = Brushes.Black;// SystemBrushes.HighlightText;
+                }
+                else
+                {
+                    backgroundColor = Brushes.PaleTurquoise; // SystemBrushes.Window;
+                    textColor = Brushes.Black;// SystemBrushes.WindowText;
+                }
+            }
+            e.Graphics.FillRectangle(backgroundColor, e.Bounds);
+            e.Graphics.DrawString((sender as ListBox).Items[e.Index].ToString(), font, textColor, e.Bounds);
+        }
+
+        private void ComboBox_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            Font font = (sender as ComboBox).Font;
+            Brush backgroundColor;
+            Brush textColor;
+
+            if (e.Index % 2 != 0)
+            {
+                if ((e.State & DrawItemState.Selected) == DrawItemState.Selected)
+                {
+                    backgroundColor = Brushes.SandyBrown;
+                    textColor = Brushes.Black;
+                }
+                else
+                {
+                    backgroundColor = SystemBrushes.Window;
+                    textColor = Brushes.Black;
+                }
+            }
+            else
+            {
+                if ((e.State & DrawItemState.Selected) == DrawItemState.Selected)
+                {
+                    backgroundColor = Brushes.SandyBrown;// SystemBrushes.Highlight;
+                    textColor = textColor = Brushes.Black;// SystemBrushes.HighlightText;
+                }
+                else
+                {
+                    backgroundColor = Brushes.PaleTurquoise; // SystemBrushes.Window;
+                    textColor = Brushes.Black;// SystemBrushes.WindowText;
+                }
+            }
+            e.Graphics.FillRectangle(backgroundColor, e.Bounds);
+            e.Graphics.DrawString((sender as ComboBox).Items[e.Index].ToString(), font, textColor, e.Bounds);
+        }
 
 
 
@@ -7501,6 +7598,26 @@ namespace ASTA
             return result;
         }
 
+        private string _listBoxReturnSelected(ListBox listBox) //from other threads
+        {
+            string result = "";
+            if (InvokeRequired)
+            {
+                Invoke(new MethodInvoker(delegate
+                {
+                    result = listBox.SelectedIndex == -1
+                     ? listBox.Text.Trim()
+                         : listBox.SelectedItem.ToString();
+                }));
+            }
+            else
+            {
+                result = listBox.SelectedIndex == -1
+                               ? listBox.Text.Trim()
+                                   : listBox.SelectedItem.ToString();
+            }
+            return result;
+        }
 
         private void _numUpDownSet(NumericUpDown numericUpDown, decimal i) //add string into comboBoxTargedPC from other threads
         {
@@ -8227,7 +8344,8 @@ namespace ASTA
             return sFullNameOnly;
         }
 
-        private string DateTimeToYYYYMMDD(string date = "")
+        
+        public static string DateTimeToYYYYMMDD(string date = "")
         {
             if (date.Length > 0)
             { return DateTime.Parse(date).ToString("yyyy-MM-dd"); }
@@ -8240,6 +8358,20 @@ namespace ASTA
             { return DateTime.Parse(date).ToString("yyyy-MM-dd HH:mm"); }
             else { return DateTime.Now.ToString("yyyy-MM-dd HH:mm"); }
         }
+        /*
+        public static string DateTimeToYYYYMMDD(string date = "")
+        {
+            if (date.Length > 0)
+            { return DateTime.Parse(date).ToString("yyyy-MM-dd"); }
+            else { return DateTime.Now.ToString("yyyy-MM-dd"); }
+        }
+
+        public static string DateTimeToYYYYMMDDHHMM(string date = "")
+        {
+            if (date.Length > 0)
+            { return DateTime.Parse(date).ToString("yyyy-MM-dd HH:mm"); }
+            else { return DateTime.Now.ToString("yyyy-MM-dd HH:mm"); }
+        }*/
         //---- End. Convertors of data types ----//
 
 
