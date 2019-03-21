@@ -63,6 +63,7 @@ label1.Text = name;
         public bool isPassword { get; set; }
         public abstract string SaveParameter();
         public abstract string GetParameter();
+        public abstract List<ParameterConfig> GetParameters();
     }
 
     interface DBParameter
@@ -129,7 +130,40 @@ label1.Text = name;
                 return ParameterName+" was saved";
             }
         }
-        public override string GetParameter() { return ""; }
+        public override string GetParameter()
+        {
+            return "";
+        }
+        public override List<ParameterConfig> GetParameters()
+        {
+            string myConnString;
+
+            using (SQLiteConnection sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+            {
+                using (SQLiteCommand sqCommand = (SQLiteCommand)sqlConnection.CreateCommand())
+                { sqCommand.CommandText = "SELECT DeptNo, DName, Loc FROM Dept";
+                    sqlConnection.Open();
+                    SQLiteDataReader sqReader = sqCommand.ExecuteReader();
+                    try
+                    {
+                        // Always call Read before accessing data.
+                        while (sqReader.Read())
+                        {
+                            Console.WriteLine(sqReader.GetInt32(0).ToString() + " " +
+                            sqReader.GetString(1) + " " + sqReader.GetString(2));
+                        }
+                    } finally
+                    {
+                        // always call Close when done reading.
+                        sqReader.Close();
+
+                        // Close the connection when done with it.
+                        sqlConnection.Close();
+                    }
+                }
+            }
+            return new List<ParameterConfig>;
+        }
     }
 
    static class EncryptionDecryptionCriticalData
