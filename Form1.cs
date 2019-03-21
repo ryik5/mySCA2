@@ -134,19 +134,22 @@ namespace ASTA
         static string mysqlServerUserPasswordDB = "";
 
         Label listComboLabel;
-        ComboBox listCombo = new ComboBox();
+        ComboBox listCombo ;
 
         Label periodComboLabel;
-        ListBox periodCombo = new ListBox();
+        ListBox periodCombo ;
 
         Label labelSettings9;
-        ComboBox comboSettings9 = new ComboBox();
+        ComboBox comboSettings9 ;
 
         Label labelSettings15; //type report
-        ComboBox comboSettings15 = new ComboBox();
+        ComboBox comboSettings15;
 
         Label labelSettings16;
         TextBox textBoxSettings16;
+
+        CheckBox checkBox1;
+        static List<ParameterConfig> listParameters = new List<ParameterConfig>();
 
         static Color clrRealRegistration = Color.PaleGreen;
         Color clrRealRegistrationRegistry = Color.PaleGreen;
@@ -162,6 +165,7 @@ namespace ASTA
         const string NPP = @"№ п/п";
         const string FIO = @"Фамилия Имя Отчество";
         const string CODE = @"NAV-код";
+        const string GROUP = @"Группа";
 
         //DataTables with people data
         DataTable dtPeople = new DataTable("People");
@@ -170,7 +174,7 @@ namespace ASTA
                                   new DataColumn(NPP,typeof(int)),//0
                                   new DataColumn(FIO,typeof(string)),//1
                                   new DataColumn(CODE,typeof(string)),//2
-                                  new DataColumn(@"Группа",typeof(string)),//3
+                                  new DataColumn(GROUP,typeof(string)),//3
                                   new DataColumn(@"Время прихода",typeof(int)),//6
                                   new DataColumn(@"Время ухода",typeof(int)),//9
                                   new DataColumn(@"№ пропуска",typeof(int)), //10
@@ -210,7 +214,7 @@ namespace ASTA
                                   NPP,//0
                                   FIO,//1
                                   CODE,//2
-                                  @"Группа",//3
+                                  GROUP,//3
                                   @"Время прихода",//6
                                   @"Время ухода",//9
                                   @"№ пропуска", //10
@@ -523,20 +527,7 @@ namespace ASTA
 
         private void TryMakeDB()
         {
-
-            /////////////////////////////////
-            /// names of parameters in Table - 'ConfigDB'
-            /// ParameterName           - Description:
-            /// 
-            /// UserName          - User
-            /// UserPassword      - Password 
-            /// DomainOfUser            - User's Domain of Authentification
-            /// ServerURI         - Server's URI where stores Domain Users 
-            /// 
-            /////////////////////////////////
-
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'ConfigDB' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, ParameterName TEXT, Value TEXT, Description TEXT, DateCreated TEXT, IsPassword TEXT, IsExample TEXT, UNIQUE ('ParameterName', 'IsExample') ON CONFLICT REPLACE);", databasePerson);
-
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'PeopleGroupDesciption' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, GroupPerson TEXT, GroupPersonDescription TEXT, AmountStaffInDepartment TEXT, Recipient TEXT, UNIQUE ('GroupPerson') ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'PeopleGroup' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, GroupPerson TEXT, ControllingHHMM TEXT, ControllingOUTHHMM TEXT, " +
                     "Shift TEXT, Comment TEXT, Department TEXT, PositionInDepartment TEXT, DepartmentId TEXT, City TEXT, Boss TEXT, UNIQUE ('FIO', 'NAV', 'GroupPerson', 'DepartmentId') ON CONFLICT REPLACE);", databasePerson);
@@ -772,13 +763,12 @@ namespace ASTA
         }
 
 
-        List<ParameterConfig> listParameters = new List<ParameterConfig>();
-        
 
         private void AddParameterInConfig()
         {
             _controlVisible(panelView, false);
             btnPropertiesSave.Text = "Сохранить параметр";
+            RemoveClickEvent(btnPropertiesSave);
             btnPropertiesSave.Click += new EventHandler(ButtonPropertiesSave_inConfig);
 
             listParameters = new List<ParameterConfig>();
@@ -830,7 +820,7 @@ namespace ASTA
                 BorderStyle = BorderStyle.FixedSingle,
                 Parent = groupBoxProperties
             };
-            toolTip1.SetToolTip(textBoxSettings16, "tooltip1");
+            toolTip1.SetToolTip(textBoxSettings16, "");
 
             labelSettings9 = new Label
             {
@@ -843,49 +833,50 @@ namespace ASTA
                 Parent = groupBoxProperties
             };
 
-          //  periodCombo.KeyPress += new KeyPressEventHandler(SelectComboBoxParameters_SelectedIndexChanged);
+            checkBox1 = new CheckBox
+                 {
+                     Text = "Данные шифровать",
+                     BackColor = Color.PaleGreen,
+                     Location = new Point(20, 91),
+                     Size = new Size(590, 22),
+                     TextAlign = ContentAlignment.TopLeft,
+                     Parent = groupBoxProperties,
+                     Checked=false
+                 };
+            //  periodCombo.KeyPress += new KeyPressEventHandler(SelectComboBoxParameters_SelectedIndexChanged);
             periodCombo.SelectedIndexChanged += new EventHandler(ListBox_SelectedIndexChanged);
             textBoxSettings16.TextChanged += new EventHandler(textbox_textChanged);
-
+            checkBox1.CheckStateChanged += new EventHandler(checkBox1_CheckStateChanged);
             textBoxSettings16.BringToFront();
             labelSettings9.BringToFront();
-           // Controls.Add(labelSettings9);
-            
+            checkBox1.BringToFront();
+
             groupBoxProperties.Visible = true;
         }
 
-        private void SelectComboBoxParameters_SelectedIndexChanged(object sender, EventArgs e)
-        { SelectComboBoxParameters(); }
-
-        private void SelectComboBoxParameters()
+        private void checkBox1_CheckStateChanged(object sender, EventArgs e)
         {
-            string sComboboxFIO;
-            textBoxFIO.Text = "";
-            textBoxNav.Text = "";
-            CheckBoxesFiltersAll_Enable(false);
-
-             sComboboxFIO = null;
+            if (checkBox1.Checked)
+            {
+                textBoxSettings16.PasswordChar = '*';
+            }
+            else
+            {
+                textBoxSettings16.PasswordChar = '\0';
+            }
         }
+
 
         private void ListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             string result = _listBoxReturnSelected(sender as ListBox);
             string tooltip = "";
 
-            bool isPassword= listParameters.Find(x => x.parameterName== result).isPassword;
+           // bool isPassword= listParameters.Find(x => x.parameterName== result).isPassword;
             labelServer1.Text = result;
             labelSettings9.Text= listParameters.Find(x => x.parameterName == result).parameterDescription;
             tooltip = listParameters.Find(x => x.parameterName == result).parameterDescription;
             toolTip1.SetToolTip(textBoxSettings16, tooltip);
-
-            if (isPassword && textBoxSettings16 != null)
-            {
-                textBoxSettings16.PasswordChar = '*';
-            }
-            else if(textBoxSettings16 != null)
-            {
-                textBoxSettings16.PasswordChar = '\0';
-            }
         }
         
         private void textbox_textChanged(object sender, EventArgs e)
@@ -911,13 +902,25 @@ namespace ASTA
 
         private void ButtonPropertiesSave_inConfig(object sender, EventArgs e) //SaveProperties()
         {
-
-            //ParameterSave 
+            string resultSaving;
+            ParameterOfConfigurationInSQLiteDB parameter = new ParameterOfConfigurationInSQLiteDB();
+            parameter.databasePerson = databasePerson;
+            parameter.ParameterName = labelServer1.Text;
+            parameter.ParameterValue = textBoxSettings16.Text;
+            parameter.ParameterDescription= labelSettings9.Text;
+            parameter.isPassword = checkBox1.Checked;
+            parameter.isExample = "no";
+            resultSaving= parameter.SaveParameter();
+            MessageBox.Show(resultSaving);
 
             DisposeTemporaryControls();
-            EnableMainMenuItems(true);
             _controlVisible(panelView, true);
+
+            ShowDataTableDbQuery(databasePerson, "ConfigDB", "SELECT ParameterName AS 'Имя параметра', " +
+            "Value AS 'Данные', Description AS 'Описание', DateCreated AS 'Дата создания/модификации'",
+            " ORDER BY ParameterName asc, DateCreated desc; ");
         }
+
 
 
 
@@ -1399,7 +1402,7 @@ namespace ASTA
                                         row[@"Фамилия Имя Отчество"] = fio;
                                         row[@"NAV-код"] = nav;
 
-                                        row[@"Группа"] = groupName;
+                                        row[GROUP] = groupName;
                                         row[@"Отдел"] = depName;
                                         row[@"Отдел (id)"] = sServer1.IndexOf('.') > -1 ? sServer1.Remove(sServer1.IndexOf('.')) : sServer1;
 
@@ -1579,7 +1582,7 @@ namespace ASTA
                                     row[@"Фамилия Имя Отчество"] = personFromServer.FIO;
                                     row[@"NAV-код"] = personFromServer.NAV;
 
-                                    row[@"Группа"] = personFromServer.GroupPerson;
+                                    row[GROUP] = personFromServer.GroupPerson;
                                     row[@"Местонахождение сотрудника"] = personFromServer.City;
 
                                     row[@"Отдел"] = personFromServer.Department;
@@ -1664,7 +1667,7 @@ namespace ASTA
                     logger.Trace(groups.Count + " @" + depId + " " + dr[@"Отдел"]?.ToString() + " " + dr[@"Руководитель (код)"]?.ToString() + " " + depBossEmail);
                 }
 
-                depId = dr[@"Группа"]?.ToString();
+                depId = dr[GROUP]?.ToString();
                 if (depId?.Length > 0)
                 {
                     if (depId == mysqlServer)
@@ -2380,7 +2383,7 @@ namespace ASTA
             DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
             if (nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "PeopleGroupDesciption")
             {
-                dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { @"Группа" });
+                dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { GROUP });
                 SeekAndShowMembersOfGroup(dgSeek.values[0]);
             }
             else if (nameOfLastTableFromDB == "Mailing")
@@ -2426,7 +2429,7 @@ namespace ASTA
                                 dataRow[@"Фамилия Имя Отчество"] = record[@"FIO"].ToString();
                                 dataRow[@"NAV-код"] = record[@"NAV"].ToString();
 
-                                dataRow[@"Группа"] = record[@"GroupPerson"]?.ToString();
+                                dataRow[GROUP] = record[@"GroupPerson"]?.ToString();
                                 dataRow[@"Отдел"] = dprtmnt;
                                 dataRow[@"Отдел (id)"] = record[@"DepartmentId"]?.ToString();
                                 dataRow[@"Должность"] = record[@"PositionInDepartment"]?.ToString();
@@ -2507,7 +2510,7 @@ namespace ASTA
                         {
                             row[@"Фамилия Имя Отчество"] = cell[0];
                             row[@"NAV-код"] = cell[1];
-                            row[@"Группа"] = cell[2];
+                            row[GROUP] = cell[2];
                             row[@"Отдел"] = cell[3];
                             row[@"Отдел (id)"] = "";
                             row[@"Должность"] = cell[4];
@@ -2557,7 +2560,7 @@ namespace ASTA
                             sqlCommand.Parameters.Add("@FIO", DbType.String).Value = dr[@"Фамилия Имя Отчество"]?.ToString();
                             sqlCommand.Parameters.Add("@NAV", DbType.String).Value = dr[@"NAV-код"]?.ToString();
 
-                            sqlCommand.Parameters.Add("@GroupPerson", DbType.String).Value = dr[@"Группа"]?.ToString();
+                            sqlCommand.Parameters.Add("@GroupPerson", DbType.String).Value = dr[GROUP]?.ToString();
                             sqlCommand.Parameters.Add("@Department", DbType.String).Value = dr[@"Отдел"]?.ToString();
                             sqlCommand.Parameters.Add("@DepartmentId", DbType.String).Value = dr[@"Отдел (id)"].ToString();
                             sqlCommand.Parameters.Add("@PositionInDepartment", DbType.String).Value = dr[@"Должность"]?.ToString();
@@ -2969,7 +2972,7 @@ namespace ASTA
                 logger.Trace("GetRegistrations, DT - " + dtPeopleGroup.TableName + " , всего записей - " + dtPeopleGroup.Rows.Count);
                 foreach (DataRow row in dtPeopleGroup.Rows)
                 {
-                    if (row[@"Фамилия Имя Отчество"]?.ToString()?.Length > 0 && (row[@"Группа"]?.ToString() == nameGroup || ("@" + row[@"Отдел (id)"]?.ToString()) == nameGroup))
+                    if (row[@"Фамилия Имя Отчество"]?.ToString()?.Length > 0 && (row[GROUP]?.ToString() == nameGroup || ("@" + row[@"Отдел (id)"]?.ToString()) == nameGroup))
                     {
                         person = new PersonFull()
                         {
@@ -3122,7 +3125,7 @@ namespace ASTA
                                         rowPerson[@"Фамилия Имя Отчество"] = record["param0"].ToString().Trim();
                                         rowPerson[@"NAV-код"] = person.NAV;
                                         rowPerson[@"№ пропуска"] = record["param1"].ToString().Trim();
-                                        rowPerson[@"Группа"] = person.GroupPerson;
+                                        rowPerson[GROUP] = person.GroupPerson;
                                         rowPerson[@"Отдел"] = person.Department;
                                         rowPerson[@"Должность"] = person.PositionInDepartment;
                                         rowPerson[@"Местонахождение сотрудника"] = person.City;
@@ -3163,7 +3166,7 @@ namespace ASTA
                 rowPerson = dtTarget.NewRow();
                 rowPerson[@"Фамилия Имя Отчество"] = person.FIO;
                 rowPerson[@"NAV-код"] = person.NAV;
-                rowPerson[@"Группа"] = person.GroupPerson;
+                rowPerson[GROUP] = person.GroupPerson;
                 rowPerson[@"№ пропуска"] = person.idCard;
 
                 rowPerson[@"Отдел"] = person.Department;
@@ -3189,7 +3192,7 @@ namespace ASTA
                 if (row[@"NAV-код"].ToString() == person.NAV)
                 {
                     row[@"Фамилия Имя Отчество"] = person.FIO;
-                    row[@"Группа"] = person.GroupPerson;
+                    row[GROUP] = person.GroupPerson;
                     row[@"№ пропуска"] = person.idCard;
                     row[@"Отдел"] = person.Department;
                     row[@"Местонахождение сотрудника"] = person.City;
@@ -3287,7 +3290,7 @@ namespace ASTA
                                     dataRow[@"Фамилия Имя Отчество"] = record[@"FIO"].ToString();
                                     dataRow[@"NAV-код"] = record[@"NAV"].ToString();
 
-                                    dataRow[@"Группа"] = record[@"GroupPerson"].ToString();
+                                    dataRow[GROUP] = record[@"GroupPerson"].ToString();
                                     dataRow[@"Отдел"] = record[@"Department"].ToString();
                                     dataRow[@"Отдел (id)"] = record[@"DepartmentId"].ToString();
                                     dataRow[@"Должность"] = record[@"PositionInDepartment"].ToString();
@@ -3518,13 +3521,13 @@ namespace ASTA
                 {
                     foreach (DataRow row in dtPeopleGroup.Rows)
                     {
-                        if (row[@"Фамилия Имя Отчество"]?.ToString()?.Length > 0 && (row[@"Группа"]?.ToString() == nameGroup || (@"@" + row[@"Отдел (id)"]?.ToString()) == nameGroup))
+                        if (row[@"Фамилия Имя Отчество"]?.ToString()?.Length > 0 && (row[GROUP]?.ToString() == nameGroup || (@"@" + row[@"Отдел (id)"]?.ToString()) == nameGroup))
                         {
                             person = new PersonFull
                             {
                                 FIO = row[@"Фамилия Имя Отчество"].ToString(),
                                 NAV = row[@"NAV-код"].ToString(),
-                                GroupPerson = row[@"Группа"].ToString(),
+                                GroupPerson = row[GROUP].ToString(),
                                 Department = row[@"Отдел"].ToString(),
                                 PositionInDepartment = row[@"Должность"].ToString(),
                                 City = row[@"Местонахождение сотрудника"]?.ToString(),
@@ -4198,7 +4201,7 @@ namespace ASTA
             {
                 DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
                 dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
-                    @"Фамилия Имя Отчество", @"NAV-код", @"Группа",
+                    @"Фамилия Имя Отчество", @"NAV-код", GROUP,
                     @"Учетное время прихода ЧЧ:ММ", @"Учетное время ухода ЧЧ:ММ",
                     @"Отдел", @"Должность", @"График", @"Отдел (id)",
                     @"Комментарии (командировка, на выезде, согласованное отсутствие…….)"
@@ -4953,6 +4956,7 @@ namespace ASTA
             _controlVisible(panelView, false);
 
             btnPropertiesSave.Text = "Сохранить рассылку";
+            RemoveClickEvent(btnPropertiesSave);
             btnPropertiesSave.Click += new EventHandler(ButtonPropertiesSave_MailingSave);
 
             MakeFormMailing();
@@ -5077,6 +5081,7 @@ namespace ASTA
             _controlVisible(panelView, false);
 
             btnPropertiesSave.Text = "Сохранить настройки";
+            RemoveClickEvent(btnPropertiesSave);
             btnPropertiesSave.Click += new EventHandler( buttonPropertiesSave_Click); 
             ViewFormSettings(
                 "Сервер СКД", sServer1, "Имя сервера \"Server\" с базой Intellect в виде - NameOfServer.Domain.Subdomain",
@@ -5997,7 +6002,7 @@ namespace ASTA
                     else if (nameOfLastTableFromDB == "PeopleGroupDesciption")
                     {
                         dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
-                             @"Группа",   @"Описание группы"
+                             GROUP,   @"Описание группы"
                             });
 
                         textBoxGroup.Text = dgSeek.values[0]; //Take the name of selected group
@@ -6013,7 +6018,7 @@ namespace ASTA
                     else if (nameOfLastTableFromDB == "ListFIO" || nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "PersonRegistrationsList")
                     {
                         dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
-                                @"Группа", @"Фамилия Имя Отчество", @"NAV-код",
+                                GROUP, @"Фамилия Имя Отчество", @"NAV-код",
                                 @"Учетное время прихода ЧЧ:ММ", @"Учетное время ухода ЧЧ:ММ"
                             });
 
@@ -6111,7 +6116,7 @@ namespace ASTA
                     else if (nameOfLastTableFromDB == @"PeopleGroup" || nameOfLastTableFromDB == "ListFIO")
                     {
                         dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
-                            @"Фамилия Имя Отчество", @"NAV-код", @"Группа",
+                            @"Фамилия Имя Отчество", @"NAV-код", GROUP,
                             @"Учетное время прихода ЧЧ:ММ", @"Учетное время ухода ЧЧ:ММ",
                             @"Отдел", @"Должность", @"График", @"Комментарии (командировка, на выезде, согласованное отсутствие…….)",
                             @"Отдел (id)"
@@ -6158,7 +6163,7 @@ namespace ASTA
                     else if (nameOfLastTableFromDB == @"PeopleGroupDesciption")
                     {
                         dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
-                             @"Группа", @"Описание группы" });
+                             GROUP, @"Описание группы" });
 
                         textBoxGroup.Text = dgSeek.values[0]; //Take the name of selected group
                         textBoxGroupDescription.Text = dgSeek.values[1]; //Take the name of selected group
@@ -6329,7 +6334,7 @@ namespace ASTA
 
                 if ((nameOfLastTableFromDB == @"PeopleGroupDesciption") && currentMouseOverRow > -1)
                 {
-                    dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { @"Группа", @"Описание группы" });
+                    dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { GROUP, @"Описание группы" });
 
                     mRightClick.MenuItems.Add(new MenuItem(text: "&Загрузить данные регистраций группы: '" + dgSeek.values[1] +
                         "' за " + _dateTimePickerStartReturnMonth(), onClick: GetDataItem_Click));
@@ -6470,7 +6475,7 @@ namespace ASTA
         private void DoReportAndEmailByRightClick()
         {
             DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-            dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { @"Группа", @"Описание группы" });
+            dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { GROUP, @"Описание группы" });
 
             _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет по группе" + dgSeek.values[0]);
             logger.Trace("DoReportAndEmailByRightClick: " + mailServerUserName + "|" + dgSeek.values[0]);
@@ -6486,7 +6491,7 @@ namespace ASTA
         private void DoReportByRightClick()
         {
             DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-            dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { @"Группа", @"Описание группы" });
+            dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { GROUP, @"Описание группы" });
 
             _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет по группе" + dgSeek.values[0]);
             logger.Trace("DoReportByRightClick: " + dgSeek.values[0]);
@@ -6637,7 +6642,7 @@ namespace ASTA
             {
                 case "PeopleGroupDesciption":
                     {
-                        dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { @"Группа" });
+                        dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { GROUP });
 
                         DeleteDataTableQueryParameters(databasePerson, "PeopleGroup", "GroupPerson", dgSeek.values[0], "", "", "", "");
                         DeleteDataTableQueryParameters(databasePerson, "PeopleGroupDesciption", "GroupPerson", dgSeek.values[0], "", "", "", "");
@@ -6652,7 +6657,7 @@ namespace ASTA
                     {
                         int indexCurrentRow = _dataGridView1CurrentRowIndex();
 
-                        dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { @"NAV-код", @"Группа" });
+                        dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { @"NAV-код", GROUP });
                         DeleteDataTableQueryParameters(databasePerson, "PeopleGroup", "GroupPerson", dgSeek.values[1], "NAV", dgSeek.values[0], "", "");
 
                         if (indexCurrentRow > 2)
@@ -7094,7 +7099,7 @@ namespace ASTA
 
                     foreach (DataRow row in dtPeopleGroup.Rows)
                     {
-                        if (row[@"Фамилия Имя Отчество"]?.ToString()?.Length > 0 && (row[@"Группа"]?.ToString() == nameGroup || (@"@" + row[@"Отдел (id)"]?.ToString()) == nameGroup))
+                        if (row[@"Фамилия Имя Отчество"]?.ToString()?.Length > 0 && (row[GROUP]?.ToString() == nameGroup || (@"@" + row[@"Отдел (id)"]?.ToString()) == nameGroup))
                         {
                             person = new PersonFull()
 
@@ -7102,7 +7107,7 @@ namespace ASTA
                                 FIO = row[@"Фамилия Имя Отчество"].ToString(),
                                 NAV = row[@"NAV-код"].ToString(),
 
-                                GroupPerson = row[@"Группа"].ToString(),
+                                GroupPerson = row[GROUP].ToString(),
                                 Department = row[@"Отдел"].ToString(),
                                 PositionInDepartment = row[@"Должность"].ToString(),
                                 DepartmentId = row[@"Отдел (id)"].ToString(),
@@ -7395,6 +7400,17 @@ namespace ASTA
             }
             e.Graphics.FillRectangle(backgroundColor, e.Bounds);
             e.Graphics.DrawString((sender as ComboBox).Items[e.Index].ToString(), font, textColor, e.Bounds);
+        }
+
+        private void RemoveClickEvent(Button b) //clear all events in the button
+        {
+            System.Reflection.FieldInfo f1 = typeof(Control).GetField("EventClick",
+                System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+            object obj = f1.GetValue(b);
+            System.Reflection.PropertyInfo pi = b.GetType().GetProperty("Events",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            System.ComponentModel.EventHandlerList list = (System.ComponentModel.EventHandlerList)pi.GetValue(b, null);
+            list.RemoveHandler(obj, list[obj]);
         }
 
 
@@ -8022,11 +8038,13 @@ namespace ASTA
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
-                    control?.Dispose();
+                    if(control!=null)
+                    control.Dispose();
                 }));
             else
             {
-                control?.Dispose();
+                if (control != null)
+                    control.Dispose();
             }
         }
 

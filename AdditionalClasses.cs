@@ -61,7 +61,6 @@ label1.Text = name;
         public string ParameterDescription { get; set; }
         public string isExample { get; set; }
         public bool isPassword { get; set; }
-        public bool isRequired { get; set; }
         public abstract string SaveParameter();
         public abstract string GetParameter();
     }
@@ -91,8 +90,11 @@ label1.Text = name;
         public System.IO.FileInfo databasePerson { get; set; }
         public override string SaveParameter()
         {
-            if (isPassword && (ParameterValue == null || ParameterValue.Trim().Length == 0))
-                throw new ArgumentNullException("ParameterValue as Paswsword is empty");
+            if (ParameterName == null || ParameterName.Length == 0)
+                throw new ArgumentNullException("a ParameterName should have a name");
+
+            if (isPassword && (ParameterValue == null || ParameterValue.Length == 0))
+                throw new ArgumentNullException("this ParameterValue can't be empty!");
             else
             {
                 if (databasePerson.Exists)
@@ -105,9 +107,9 @@ label1.Text = name;
                         sqlCommand1.ExecuteNonQuery();
                         string ParameterValueSave = "";
                         if (isPassword)
-                            ParameterValueSave = EncryptionDecryptionCriticalData.EncryptStringToBase64Text(ParameterValue, btsMess1, btsMess2);
-                        else ParameterValueSave = ParameterValue;
-                        //("ConfigDB", "ParameterName , Value , Description , DateCreated , IsPassword , IsExample ");
+                        { ParameterValueSave = EncryptionDecryptionCriticalData.EncryptStringToBase64Text(ParameterValue, btsMess1, btsMess2); }
+                        else
+                        { ParameterValueSave = ParameterValue; }
 
                         using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'ConfigDB' (ParameterName, Value, Description, DateCreated, IsPassword, IsExample)" +
                                    " VALUES (@ParameterName, @Value, @Description, @DateCreated, @IsPassword, @IsExample)", sqlConnection))
@@ -124,7 +126,7 @@ label1.Text = name;
                         sqlCommand1.ExecuteNonQuery();
                     }
                 }
-                return "Ok";
+                return ParameterName+" was saved";
             }
         }
         public override string GetParameter() { return ""; }
