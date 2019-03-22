@@ -100,23 +100,6 @@ namespace ASTA
         string sServer1UserPasswordRegistry = "";
         string sServer1UserPasswordDB = "";
 
-        //Page of Mailing
-        Label labelMailServerName;
-        TextBox textBoxMailServerName;
-        Label labelMailServerUserName;
-        TextBox textBoxMailServerUserName;
-        Label labelMailServerUserPassword;
-        TextBox textBoxMailServerUserPassword;
-        static string mailServer = "";
-        static string mailServerRegistry = "";
-        static string mailServerDB = "";
-        static string mailServerUserName = "";
-        static string mailServerUserNameRegistry = "";
-        static string mailServerUserNameDB = "";
-        static string mailServerUserPassword = "";
-        static string mailServerUserPasswordRegistry = "";
-        static string mailServerUserPasswordDB = "";
-
         Label labelmysqlServer;
         TextBox textBoxmysqlServer;
         Label labelmysqlServerUserName;
@@ -147,6 +130,25 @@ namespace ASTA
 
         Label labelSettings16;
         TextBox textBoxSettings16;
+
+        //Page of Mailing
+        Label labelMailServerName;
+        TextBox textBoxMailServerName;
+        Label labelMailServerUserName;
+        TextBox textBoxMailServerUserName;
+        Label labelMailServerUserPassword;
+        TextBox textBoxMailServerUserPassword;
+        static string mailServer = "";
+        static string mailServerRegistry = "";
+        static string mailServerDB = "";
+        static string mailServerUserName = "";
+        static string mailServerUserNameRegistry = "";
+        static string mailServerUserNameDB = "";
+        static string mailServerUserPassword = "";
+        static string mailServerUserPasswordRegistry = "";
+        static string mailServerUserPasswordDB = "";
+
+        string DEFAULT_DAY_OF_REPORT = "28";
 
         CheckBox checkBox1;
         static List<ParameterConfig> listParameters = new List<ParameterConfig>();
@@ -660,19 +662,6 @@ namespace ASTA
                         }
                     }
 
-                    //todo
-                    /*
-                     const string connStr = "server=localhost;user=root; database=test;password=;";
-            using (MySqlConnection conn = new MySqlConnection(connStr))
-            {
-                string sql = "SELECT Text FROM Kody WHERE Kod=@Kod";
-                MySqlCommand comand = new MySqlCommand(sql, conn);
-                command.Parameters.AddWithValue("@Kod", textBox1.Text);
-                conn.Open();
-                string name = comand.ExecuteScalar().ToString();
-                label1.Text = name;
-            }
-            */
 
                     using (var sqlCommand = new SQLiteCommand("SELECT EquipmentParameterName, EquipmentParameterValue, EquipmentParameterServer, Reserv1, Reserv2  FROM EquipmentSettings;", sqlConnection))
                     {
@@ -720,7 +709,22 @@ namespace ASTA
                         }
                     }
                 }
+
+
+                //done!
+                listParameters = new List<ParameterConfig>();
+                ParameterOfConfigurationInSQLiteDB parameters = new ParameterOfConfigurationInSQLiteDB();
+                parameters.databasePerson = databasePerson;
+                listParameters = parameters.GetParameters("%%").FindAll(x => x.isExample == "no"); //load only real data
+
+                DEFAULT_DAY_OF_REPORT = listParameters.FindLast(x => x.parameterName == @"DEFAULT_DAY_OF_REPORT").parameterValue != null ?
+                   listParameters.FindLast(x => x.parameterName == @"DEFAULT_DAY_OF_REPORT").parameterValue :
+                   "28";
+
+                listParameters = null;
+                parameters = null;
             }
+
             try { comboBoxFio.SelectedIndex = 0; } catch { }
 
             using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(myRegKey, Microsoft.Win32.RegistryKeyPermissionCheck.ReadSubTree, System.Security.AccessControl.RegistryRights.ReadKey))
@@ -773,14 +777,10 @@ namespace ASTA
 
             listParameters = new List<ParameterConfig>();
 
-            //test only
-            //todo - move to ConfigDB
-            //("ConfigDB", "ParameterName , Value , Description , DateCreated , IsPassword , IsExample ");
-
-            listParameters.Add(new ParameterConfig() { parameterName = "UserName", isPassword=false, parameterDescription="логин юзера, с правами чтения списка персонала" });
-            listParameters.Add(new ParameterConfig() { parameterName = "UserPassword", isPassword = true, parameterDescription = "доменный пароль юзера" });
-            listParameters.Add(new ParameterConfig() { parameterName = "DomainOfUser", isPassword = false, parameterDescription = "домен юзера" });
-            listParameters.Add(new ParameterConfig() { parameterName = "ServerURI", isPassword = false, parameterDescription = "сервер, с которого производится чтение списка персонала" });
+            ParameterOfConfigurationInSQLiteDB parameter = new ParameterOfConfigurationInSQLiteDB();
+            parameter.databasePerson = databasePerson;
+            listParameters = parameter.GetParameters("%%");
+           // listParameters = parameter.GetParameters("%%").FindAll(x => x.isExample != "no"); //load only real data
 
             InitializeParameterFormSettings(listParameters);
         }
@@ -872,9 +872,10 @@ namespace ASTA
             string result = _listBoxReturnSelected(sender as ListBox);
             string tooltip = "";
 
-           // bool isPassword= listParameters.Find(x => x.parameterName== result).isPassword;
+            checkBox1.Checked= listParameters.Find(x => x.parameterName== result).isPassword;
             labelServer1.Text = result;
-            labelSettings9.Text= listParameters.Find(x => x.parameterName == result).parameterDescription;
+            labelSettings9.Text = listParameters.Find(x => x.parameterName == result).parameterDescription;
+            textBoxSettings16.Text = listParameters.Find(x => x.parameterName == result).parameterValue;
             tooltip = listParameters.Find(x => x.parameterName == result).parameterDescription;
             toolTip1.SetToolTip(textBoxSettings16, tooltip);
         }
@@ -1258,11 +1259,8 @@ namespace ASTA
         {
             _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные с серверов...");
 
-            //todo
-            //get FIO from DC in another thread. wait result
             GetUsersFromAD();
             
-
             dtTempIntermediate = dtPeople.Clone();
             GetDataFromRemoteServers(dtTempIntermediate,  peopleShifts);
 
@@ -1813,7 +1811,7 @@ namespace ASTA
                                 sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
                                 sqlCommand.Parameters.Add("@SendingLastDate", DbType.String).Value = "";
                                 sqlCommand.Parameters.Add("@TypeReport", DbType.String).Value = "Полный";
-                                sqlCommand.Parameters.Add("@DayReport", DbType.String).Value = "28";
+                                sqlCommand.Parameters.Add("@DayReport", DbType.String).Value = DEFAULT_DAY_OF_REPORT;
 
                                 try { sqlCommand.ExecuteNonQuery(); } catch { }
                             }
@@ -6133,6 +6131,12 @@ namespace ASTA
 
                         //todo
                         //Change to UPDATE, but not Replace!!!!
+                        /*
+                         myCommand1.CommandText = "UPDATE dept SET dname = :dname, loc = :loc WHERE deptno = @deptno";
+                        myCommand1.Parameters.Add("@deptno", 20);
+                        myCommand1.Parameters.Add("dname", "SALES");
+                        myCommand1.Parameters.Add("loc", "NEW YORK");
+                        */
                         using (var connection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                         {
                             connection.Open();
@@ -8395,52 +8399,37 @@ namespace ASTA
 
 
         private void testADToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            GetUsersFromAD();
-        }
+        {            GetUsersFromAD();        }
 
-        List<StaffAD> staffAD = new List<StaffAD>();
+       static List<StaffAD> staffAD = new List<StaffAD>();
 
         private void GetUsersFromAD()
         {
-                logger.Trace("GetUsersFromAD: ");
+            logger.Trace("GetUsersFromAD: ");
             string user = null;
             string password = null;
             string domain = null;
             string server = null;
-            string value = null;
-            string parameter = null;
+
             ActiveDirectoryGetData ad;
-
-            List<ObjectsOfConfig> parametersList = new List<ObjectsOfConfig>();
-            GetConfigTableFromDB("ConfigDB", ref parametersList);
-
             StaffListStore staffListStore = new StaffListStore();
             ListStaffSender listStaffSender = new ListStaffSender();
             staffAD = new List<StaffAD>();
 
-            foreach (var param in parametersList)
+            listParameters = new List<ParameterConfig>();
+            ParameterOfConfigurationInSQLiteDB parameters = new ParameterOfConfigurationInSQLiteDB();
+            parameters.databasePerson = databasePerson;
+            listParameters = parameters.GetParameters("%%").FindAll(x => x.isExample == "no"); //load only real data
+
+            try
             {
-                parameter = param._parameter;
-                value = param._value;
-                switch (parameter)
-                {
-                    case "UserName":
-                        user = value;
-                        break;
-                    case "UserPassword":
-                        password = value;
-                        break;
-                    case "DomainOfUser":
-                        domain = value.ToUpper();
-                        break;
-                    case "ServerURI":
-                        server = value.ToUpper();
-                        break;
-                    default:
-                        break;
-                }
+                user = listParameters.FindLast(x => x.parameterName == @"UserName").parameterValue;
+                password = listParameters.FindLast(x => x.parameterName == @"UserPassword").parameterValue;
+                server = listParameters.FindLast(x => x.parameterName == @"ServerURI").parameterValue;
+                domain = listParameters.FindLast(x => x.parameterName == @"DomainOfUser").parameterValue;
             }
+            catch (Exception expt) { logger.Info(expt.ToString()); }
+            logger.Trace("user, domain, password, server: " + user + " |" + domain + " |" + password + " |" + server);
 
             if (user.Length > 0 && password.Length > 0 && domain.Length > 0 && server.Length > 0)
             {
@@ -8456,12 +8445,11 @@ namespace ASTA
                 {
                     logger.Trace(person.fio + " |" + person.login + " |" + person.code + " |" + person.mail);
                 }
-                //аналогично - заполнение таблицы
             }
-            ad = null; parametersList = null; listStaffSender = null; staffListStore = null;
+            ad = null; listStaffSender = null; staffListStore = null; parameters = null; listParameters = null;
         }
 
-
+        /*
         private void GetConfigTableFromDB(string tableName, ref List<ObjectsOfConfig> parametersList)
         {
             string parameter, value;
@@ -8496,7 +8484,7 @@ namespace ASTA
             }
             parameter = value = null;
         }
-
+        */
 
     }
 }
