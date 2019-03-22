@@ -62,8 +62,7 @@ label1.Text = name;
         public string isExample { get; set; }
         public bool isPassword { get; set; }
         public abstract string SaveParameter();
-        public abstract string GetParameter();
-        public abstract List<ParameterConfig> GetParameters();
+        public abstract List<ParameterConfig> GetParameters(string parameter);
     }
 
     interface DBParameter
@@ -80,15 +79,34 @@ label1.Text = name;
         public string parameterName;
         public string parameterDescription;
         public string parameterValue;
+        public string dateCreated;
         public bool isPassword;
         public string isExample;
     }
 
+    //todo
+    /*
+     const string connStr = "server=localhost;user=root; database=test;password=;";
+using (MySqlConnection conn = new MySqlConnection(connStr))
+{
+string sql = "SELECT Text FROM Kody WHERE Kod=@Kod";
+MySqlCommand comand = new MySqlCommand(sql, conn);
+command.Parameters.AddWithValue("@Kod", textBox1.Text);
+conn.Open();
+string name = comand.ExecuteScalar().ToString();
+label1.Text = name;
+}
+*/
+
+
     class ParameterOfConfigurationInSQLiteDB : ParameterOfConfiguration
     {
+        static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+
         readonly byte[] btsMess1 = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
         readonly byte[] btsMess2 = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
         public System.IO.FileInfo databasePerson { get; set; }
+
         public override string SaveParameter()
         {
             if (ParameterName == null || ParameterName.Length == 0)
@@ -130,39 +148,76 @@ label1.Text = name;
                 return ParameterName+" was saved";
             }
         }
-        public override string GetParameter()
-        {
-            return "";
-        }
-        public override List<ParameterConfig> GetParameters()
-        {
-            string myConnString;
 
-            using (SQLiteConnection sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+        public override List<ParameterConfig> GetParameters(string parameter)
+        {
+            List<ParameterConfig> parametersConfig = new List<ParameterConfig>(); ;
+
+            ParameterConfig parameterConfig = new ParameterConfig() { parameterName = "", parameterDescription = "", parameterValue = "", isPassword = false, isExample = "no" };
+
+            string value = ""; string valueTmp = ""; string name = ""; string decrypt = "";
+            if (databasePerson.Exists)
             {
-                using (SQLiteCommand sqCommand = (SQLiteCommand)sqlConnection.CreateCommand())
-                { sqCommand.CommandText = "SELECT DeptNo, DName, Loc FROM Dept";
+                using (SQLiteConnection sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+                {
                     sqlConnection.Open();
-                    SQLiteDataReader sqReader = sqCommand.ExecuteReader();
+
                     try
                     {
-                        // Always call Read before accessing data.
-                        while (sqReader.Read())
+                        using (SQLiteCommand sqlCommand = sqlConnection.CreateCommand())
                         {
-                            Console.WriteLine(sqReader.GetInt32(0).ToString() + " " +
-                            sqReader.GetString(1) + " " + sqReader.GetString(2));
-                        }
-                    } finally
-                    {
-                        // always call Close when done reading.
-                        sqReader.Close();
+                            if (parameter.Length > 0&& parameter!="%%")
+                            {
+                                sqlCommand.CommandText = @"Select ParameterName, Value, Description, DateCreated, IsPassword, IsExample from ConfigDB where ParameterName=@parameter";
+                                sqlCommand.Parameters.Add(new SQLiteParameter("@parameter") { Value = parameter });
+                            }
+                            else
+                            {
+                                sqlCommand.CommandText = @"Select ParameterName, Value, Description, DateCreated, IsPassword, IsExample from ConfigDB";
+                            }
+                            sqlCommand.CommandType = System.Data.CommandType.Text;
+                            logger.Trace("ParameterOfConfigurationInSQLiteDB: "+ sqlCommand.CommandText.ToString());
+                            using (SQLiteDataReader reader = sqlCommand.ExecuteReader())
+                            {
+                                while (reader.Read())
+                                {
+                                    name = reader["ParameterName"]?.ToString();
+                                    if (name?.Length > 0)
+                                    {
+                                        parameterConfig = new ParameterConfig() { parameterName = "", parameterDescription = "", parameterValue = "", isPassword = false, isExample = "no" };
+                                        decrypt = reader["IsPassword"]?.ToString();
 
-                        // Close the connection when done with it.
-                        sqlConnection.Close();
+                                        valueTmp = reader["Value"]?.ToString();
+                                        if (decrypt=="1" && valueTmp?.Length > 0)
+                                        {
+                                            value = EncryptionDecryptionCriticalData.DecryptBase64ToString(valueTmp, btsMess1, btsMess2);
+                                            parameterConfig.isPassword = true;
+                                        }
+                                        else
+                                        {
+                                            value = valueTmp;
+                                            parameterConfig.isPassword = false;
+                                        }
+                                        parameterConfig.parameterName = name;
+                                        parameterConfig.parameterValue = value;
+                                        parameterConfig.parameterDescription = reader["Description"]?.ToString();
+                                        parameterConfig.dateCreated = reader["DateCreated"]?.ToString();
+                                        parameterConfig.isExample = reader["IsExample"]?.ToString();
+
+                                        parametersConfig.Add(parameterConfig);
+                                        logger.Trace("ParameterOfConfigurationInSQLiteDB, add: " + name);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception exc)
+                    {
+                        logger.Trace("ParameterOfConfigurationInSQLiteDB, error: " + exc.ToString());
                     }
                 }
             }
-            return new List<ParameterConfig>;
+            return parametersConfig;
         }
     }
 
