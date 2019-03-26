@@ -6329,14 +6329,13 @@ namespace ASTA
         //right click of mouse on the datagridview
         private void dataGridView1_MouseClick(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Right)
-            {
                 int currentMouseOverRow = dataGridView1.HitTest(e.X, e.Y).RowIndex;
-
+            if (e.Button == MouseButtons.Right&& currentMouseOverRow > -1)
+            {
                 ContextMenu mRightClick = new ContextMenu();
                 DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
 
-                if ((nameOfLastTableFromDB == @"PeopleGroupDesciption") && currentMouseOverRow > -1)
+                 if (nameOfLastTableFromDB == @"PeopleGroupDesciption")
                 {
                     dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { GROUP, @"Описание группы" });
 
@@ -6350,7 +6349,7 @@ namespace ASTA
                     mRightClick.MenuItems.Add(new MenuItem(text: "Удалить группу: '" + dgSeek.values[0] + "'(" + dgSeek.values[1] + ")", onClick: DeleteCurrentRow));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
-                else if ((nameOfLastTableFromDB == @"Mailing") && currentMouseOverRow > -1)
+                else if (nameOfLastTableFromDB == @"Mailing")
                 {
                     dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
                         @"Наименование", @"Описание" });
@@ -6363,7 +6362,7 @@ namespace ASTA
                     mRightClick.MenuItems.Add(new MenuItem(@"Удалить рассылку:   " + dgSeek.values[0] + "(" + dgSeek.values[1] + ")", DeleteCurrentRow));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
-                else if ((nameOfLastTableFromDB == @"MailingException") && currentMouseOverRow > -1)
+                else if (nameOfLastTableFromDB == @"MailingException")
                 {
                     dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { @"Получатель" });
 
@@ -6372,13 +6371,23 @@ namespace ASTA
                     mRightClick.MenuItems.Add(new MenuItem(@"Удалить адрес, ранее внесенный как 'исключеный из рассылок':   " + dgSeek.values[0], DeleteCurrentRow));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
-                else if ((nameOfLastTableFromDB == @"PeopleGroup") && currentMouseOverRow > -1)
+                else if (nameOfLastTableFromDB == @"PeopleGroup"|| nameOfLastTableFromDB == @"ListFIO")
                 {
+                    dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
+                 @"Фамилия Имя Отчество", @"NAV-код", @"Отдел", @"Должность",
+                 @"Руководитель (код)", @"График", @"Отдел (id)", @"Местонахождение сотрудника"
+                            });
+                    //todo 
+                    //move to the middleware method
+                    _textBoxSetText(textBoxGroup, "");
+
+                    mRightClick.MenuItems.Add(new MenuItem(text: "&Загрузить данные регистраций сотрудника: '" + dgSeek.values[0] +
+                        "' за " + _dateTimePickerStartReturnMonth(), onClick: GetDataItem_Click));
                     mRightClick.MenuItems.Add("-");
                     mRightClick.MenuItems.Add(new MenuItem(@"Удалить сотрудника из данной группы", DeleteCurrentRow));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
-                else if (nameOfLastTableFromDB == @"BoldedDates" && currentMouseOverRow > -1)
+                else if (nameOfLastTableFromDB == @"BoldedDates" )
                 {
                     dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
                         @"Праздничный (выходной) день", @"Персонально(NAV) или для всех(0)", @"Тип выходного дня" });
@@ -6403,7 +6412,7 @@ namespace ASTA
                     mRightClick.MenuItems.Add(new MenuItem(@"Удалить из сохранненых '" + dgSeek.values[2] + @"'  '" + dgSeek.values[0] + @"' для " + navD, DeleteAnualDateItem_Click));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
-                else if ((nameOfLastTableFromDB == @"SelectedCityToLoadFromWeb") && currentMouseOverRow > -1)
+                else if (nameOfLastTableFromDB == @"SelectedCityToLoadFromWeb")
                 {
                     mRightClick.MenuItems.Add(new MenuItem(@"Добавить новый город", AddNewCityToLoadByRightClick));
                     mRightClick.MenuItems.Add("-");
@@ -8380,20 +8389,6 @@ namespace ASTA
             { return DateTime.Parse(date).ToString("yyyy-MM-dd HH:mm"); }
             else { return DateTime.Now.ToString("yyyy-MM-dd HH:mm"); }
         }
-        /*
-        public static string DateTimeToYYYYMMDD(string date = "")
-        {
-            if (date.Length > 0)
-            { return DateTime.Parse(date).ToString("yyyy-MM-dd"); }
-            else { return DateTime.Now.ToString("yyyy-MM-dd"); }
-        }
-
-        public static string DateTimeToYYYYMMDDHHMM(string date = "")
-        {
-            if (date.Length > 0)
-            { return DateTime.Parse(date).ToString("yyyy-MM-dd HH:mm"); }
-            else { return DateTime.Now.ToString("yyyy-MM-dd HH:mm"); }
-        }*/
         //---- End. Convertors of data types ----//
 
 
