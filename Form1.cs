@@ -117,13 +117,13 @@ namespace ASTA
         static string mysqlServerUserPasswordDB = "";
 
         Label listComboLabel;
-        ComboBox listCombo ;
+        ComboBox listCombo;
 
         Label periodComboLabel;
-        ListBox periodCombo ;
+        ListBox periodCombo;
 
         Label labelSettings9;
-        ComboBox comboSettings9 ;
+        ComboBox comboSettings9;
 
         Label labelSettings15; //type report
         ComboBox comboSettings15;
@@ -780,7 +780,7 @@ namespace ASTA
             ParameterOfConfigurationInSQLiteDB parameter = new ParameterOfConfigurationInSQLiteDB();
             parameter.databasePerson = databasePerson;
             listParameters = parameter.GetParameters("%%");
-           // listParameters = parameter.GetParameters("%%").FindAll(x => x.isExample != "no"); //load only real data
+            // listParameters = parameter.GetParameters("%%").FindAll(x => x.isExample != "no"); //load only real data
 
             InitializeParameterFormSettings(listParameters);
         }
@@ -794,12 +794,12 @@ namespace ASTA
                 Location = new Point(20, 120),
                 Size = new Size(590, 60),
                 Parent = groupBoxProperties,
-                DrawMode = DrawMode.OwnerDrawFixed,                
+                DrawMode = DrawMode.OwnerDrawFixed,
             };
 
             periodCombo.DrawItem += new DrawItemEventHandler(ListBox_DrawItem);
-            periodCombo.DataSource = listParameters.Select(x=>x.parameterName).ToList();
-          if (listParameters.Count>0)  periodCombo.SelectedIndex = 0;
+            periodCombo.DataSource = listParameters.Select(x => x.parameterName).ToList();
+            if (listParameters.Count > 0) periodCombo.SelectedIndex = 0;
             toolTip1.SetToolTip(periodCombo, "Перечень параметров");
 
             labelServer1 = new Label
@@ -834,15 +834,15 @@ namespace ASTA
             };
 
             checkBox1 = new CheckBox
-                 {
-                     Text = "Данные шифровать",
-                     BackColor = Color.PaleGreen,
-                     Location = new Point(20, 91),
-                     Size = new Size(590, 22),
-                     TextAlign = ContentAlignment.TopLeft,
-                     Parent = groupBoxProperties,
-                     Checked=false
-                 };
+            {
+                Text = "Данные шифровать",
+                BackColor = Color.PaleGreen,
+                Location = new Point(20, 91),
+                Size = new Size(590, 22),
+                TextAlign = ContentAlignment.TopLeft,
+                Parent = groupBoxProperties,
+                Checked = false
+            };
             //  periodCombo.KeyPress += new KeyPressEventHandler(SelectComboBoxParameters_SelectedIndexChanged);
             periodCombo.SelectedIndexChanged += new EventHandler(ListBox_SelectedIndexChanged);
             textBoxSettings16.TextChanged += new EventHandler(textbox_textChanged);
@@ -872,14 +872,14 @@ namespace ASTA
             string result = _listBoxReturnSelected(sender as ListBox);
             string tooltip = "";
 
-            checkBox1.Checked= listParameters.Find(x => x.parameterName== result).isPassword;
+            checkBox1.Checked = listParameters.Find(x => x.parameterName == result).isPassword;
             labelServer1.Text = result;
             labelSettings9.Text = listParameters.Find(x => x.parameterName == result).parameterDescription;
             textBoxSettings16.Text = listParameters.Find(x => x.parameterName == result).parameterValue;
             tooltip = listParameters.Find(x => x.parameterName == result).parameterDescription;
             toolTip1.SetToolTip(textBoxSettings16, tooltip);
         }
-        
+
         private void textbox_textChanged(object sender, EventArgs e)
         {
             int result;
@@ -908,10 +908,10 @@ namespace ASTA
             parameter.databasePerson = databasePerson;
             parameter.ParameterName = labelServer1.Text;
             parameter.ParameterValue = textBoxSettings16.Text;
-            parameter.ParameterDescription= labelSettings9.Text;
+            parameter.ParameterDescription = labelSettings9.Text;
             parameter.isPassword = checkBox1.Checked;
             parameter.isExample = "no";
-            resultSaving= parameter.SaveParameter();
+            resultSaving = parameter.SaveParameter();
             MessageBox.Show(resultSaving);
 
             DisposeTemporaryControls();
@@ -1252,7 +1252,7 @@ namespace ASTA
         }
 
         static DataTable dtTempIntermediate;
-       // static List<PersonCodeEmail> personCodeEmails = new List<PersonCodeEmail>();
+        // static List<PersonCodeEmail> personCodeEmails = new List<PersonCodeEmail>();
         static List<PeopleShift> peopleShifts = new List<PeopleShift>();
 
         private void DoListsFioGroupsMailings()  //  GetDataFromRemoteServers()  ImportTablePeopleToTableGroupsInLocalDB()
@@ -1260,12 +1260,12 @@ namespace ASTA
             _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные с серверов...");
 
             GetUsersFromAD();
-            
+
             dtTempIntermediate = dtPeople.Clone();
-            GetDataFromRemoteServers(dtTempIntermediate,  peopleShifts);
+            GetDataFromRemoteServers(dtTempIntermediate, peopleShifts);
 
             _toolStripStatusLabelSetText(StatusLabel2, "Формирую и записываю группы в локальную базу...");
-            WriteGroupsMailingsInLocalDb(dtTempIntermediate,  peopleShifts);
+            WriteGroupsMailingsInLocalDb(dtTempIntermediate, peopleShifts);
 
             _toolStripStatusLabelSetText(StatusLabel2, "Записываю ФИО в локальную базу...");
             WritePeopleInLocalDB(databasePerson.ToString(), dtTempIntermediate);
@@ -1286,7 +1286,7 @@ namespace ASTA
 
 
         //Get the list of registered users
-        private void GetDataFromRemoteServers(DataTable dataTablePeople,           List<PeopleShift> peopleShifts)
+        private void GetDataFromRemoteServers(DataTable dataTablePeople, List<PeopleShift> peopleShifts)
         {
             PersonFull personFromServer = new PersonFull();
             DataRow row;
@@ -1479,8 +1479,8 @@ namespace ASTA
                             {
                                 if (reader.GetString(@"code")?.Length > 0)
                                 {
-                                    
-                                    try { dayStartShift =DateTimeToYYYYMMDD(reader.GetMySqlDateTime(@"start_date").ToString()); }
+
+                                    try { dayStartShift = DateTimeToYYYYMMDD(reader.GetMySqlDateTime(@"start_date").ToString()); }
                                     catch
                                     { dayStartShift = DateTimeToYYYYMMDD("1980-01-01"); }
 
@@ -1628,7 +1628,7 @@ namespace ASTA
             row = null;
         }
 
-        private void WriteGroupsMailingsInLocalDb(DataTable dataTablePeople,             List<PeopleShift> peopleShifts)
+        private void WriteGroupsMailingsInLocalDb(DataTable dataTablePeople, List<PeopleShift> peopleShifts)
         {
             _toolStripStatusLabelSetText(StatusLabel2, "Формирую обновленные списоки ФИО, департаментов и рассылок...");
 
@@ -5080,7 +5080,7 @@ namespace ASTA
 
             btnPropertiesSave.Text = "Сохранить настройки";
             RemoveClickEvent(btnPropertiesSave);
-            btnPropertiesSave.Click += new EventHandler( buttonPropertiesSave_Click); 
+            btnPropertiesSave.Click += new EventHandler(buttonPropertiesSave_Click);
             ViewFormSettings(
                 "Сервер СКД", sServer1, "Имя сервера \"Server\" с базой Intellect в виде - NameOfServer.Domain.Subdomain",
                 "Имя пользователя", sServer1UserName, "Имя администратора \"sa\" SQL-сервера",
@@ -5543,7 +5543,7 @@ namespace ASTA
         private void buttonPropertiesSave_Click(object sender, EventArgs e) //SaveProperties()
         {
             SaveProperties(); //btnPropertiesSave 
-            
+
             DisposeTemporaryControls();
             EnableMainMenuItems(true);
             _controlVisible(panelView, true);
@@ -5690,47 +5690,47 @@ namespace ASTA
             }
         }
 
-       /*  private void buttonPropertiesSave_Click(object sender, EventArgs e) //SaveProperties()
-        {
-            string btnName = btnPropertiesSave.Text.ToString();
+        /*  private void buttonPropertiesSave_Click(object sender, EventArgs e) //SaveProperties()
+         {
+             string btnName = btnPropertiesSave.Text.ToString();
 
-            if (btnName == @"Сохранить настройки")
-            {
-                SaveProperties(); //btnPropertiesSave 
-            }
-            else if (btnName == @"Сохранить рассылку")
-            {
-                string recipientEmail = _textBoxReturnText(textBoxServer1UserName);
-                string senderEmail = mailServerUserName;
-                if (mailServerUserName.Length == 0)
-                { senderEmail = _textBoxReturnText(textBoxServer1); }
-                string nameReport = _textBoxReturnText(textBoxMailServerName);
-                string description = _textBoxReturnText(textBoxMailServerUserName);
-                string report = _comboBoxReturnSelected(listCombo);
-                string period = _listBoxReturnSelected(periodCombo);
-                string status = _comboBoxReturnSelected(comboSettings9);
-                string typeReport = _comboBoxReturnSelected(comboSettings15);
-                string dayReport = _textBoxReturnText(textBoxSettings16);
+             if (btnName == @"Сохранить настройки")
+             {
+                 SaveProperties(); //btnPropertiesSave 
+             }
+             else if (btnName == @"Сохранить рассылку")
+             {
+                 string recipientEmail = _textBoxReturnText(textBoxServer1UserName);
+                 string senderEmail = mailServerUserName;
+                 if (mailServerUserName.Length == 0)
+                 { senderEmail = _textBoxReturnText(textBoxServer1); }
+                 string nameReport = _textBoxReturnText(textBoxMailServerName);
+                 string description = _textBoxReturnText(textBoxMailServerUserName);
+                 string report = _comboBoxReturnSelected(listCombo);
+                 string period = _listBoxReturnSelected(periodCombo);
+                 string status = _comboBoxReturnSelected(comboSettings9);
+                 string typeReport = _comboBoxReturnSelected(comboSettings15);
+                 string dayReport = _textBoxReturnText(textBoxSettings16);
 
-                if (recipientEmail.Length > 5 && nameReport.Length > 0)
-                {
-                    SaveMailing(recipientEmail, senderEmail,
-                        report, nameReport, description, period, status,
-                        DateTime.Now.ToYYYYMMDDHHMM(), "", typeReport, dayReport);
-                }
+                 if (recipientEmail.Length > 5 && nameReport.Length > 0)
+                 {
+                     SaveMailing(recipientEmail, senderEmail,
+                         report, nameReport, description, period, status,
+                         DateTime.Now.ToYYYYMMDDHHMM(), "", typeReport, dayReport);
+                 }
 
-                ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
-                "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
-                "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
-                " ORDER BY RecipientEmail asc, DateCreated desc; ");
-            }
+                 ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
+                 "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
+                 "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
+                 " ORDER BY RecipientEmail asc, DateCreated desc; ");
+             }
 
-            DisposeTemporaryControls();
-            EnableMainMenuItems(true);
-            _controlVisible(panelView, true);
-        }*/
+             DisposeTemporaryControls();
+             EnableMainMenuItems(true);
+             _controlVisible(panelView, true);
+         }*/
 
-       private void ClearRegistryItem_Click(object sender, EventArgs e) //ClearRegistryData()
+        private void ClearRegistryItem_Click(object sender, EventArgs e) //ClearRegistryData()
         { ClearRegistryData(); }
 
         private void ClearRegistryData()
@@ -8042,8 +8042,8 @@ namespace ASTA
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
-                    if(control!=null)
-                    control.Dispose();
+                    if (control != null)
+                        control.Dispose();
                 }));
             else
             {
@@ -8366,7 +8366,7 @@ namespace ASTA
             return sFullNameOnly;
         }
 
-        
+
         public static string DateTimeToYYYYMMDD(string date = "")
         {
             if (date.Length > 0)
@@ -8399,9 +8399,9 @@ namespace ASTA
 
 
         private void testADToolStripMenuItem_Click(object sender, EventArgs e)
-        {            GetUsersFromAD();        }
+        { GetUsersFromAD(); }
 
-       static List<StaffAD> staffAD = new List<StaffAD>();
+        static List<StaffAD> staffAD = new List<StaffAD>();
 
         private void GetUsersFromAD()
         {

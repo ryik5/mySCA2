@@ -21,14 +21,14 @@ namespace ASTA
         public string Password { get; set; }    // пароль
         public string DomainPath { get; set; }    // URI сервера
 
-         public static UserADAuthorizationBuilder Build()
-         {
-             return new UserADAuthorizationBuilder();
-         }
+        public static UserADAuthorizationBuilder Build()
+        {
+            return new UserADAuthorizationBuilder();
+        }
 
         public override string ToString()
         {
-            return Name+"\t"+Domain+ "\t" + Password + "\t" + DomainPath;
+            return Name + "\t" + Domain + "\t" + Password + "\t" + DomainPath;
         }
 
         public override bool Equals(object obj)
@@ -87,7 +87,7 @@ namespace ASTA
             return builder.user;
         }
     }
-    
+
     public class ActiveDirectoryGetData
     {
         static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
@@ -119,10 +119,10 @@ namespace ASTA
             // if (isValid)
             {
                 using (var context = new PrincipalContext(
-                    ContextType.Domain, 
-                    UserADAuthorization.DomainPath, 
-                    "OU=Domain Users,DC=" + UserADAuthorization.Domain.Split('.')[0] + ",DC=" + UserADAuthorization.Domain.Split('.')[1], 
-                    UserADAuthorization.Name, 
+                    ContextType.Domain,
+                    UserADAuthorization.DomainPath,
+                    "OU=Domain Users,DC=" + UserADAuthorization.Domain.Split('.')[0] + ",DC=" + UserADAuthorization.Domain.Split('.')[1],
+                    UserADAuthorization.Name,
                     UserADAuthorization.Password))
                 {
                     using (var searcher = new PrincipalSearcher(new UserPrincipal(context)))
@@ -147,11 +147,12 @@ namespace ASTA
 
                                     //todo 
                                     //fill 
-                                    staffAD.Add(new StaffAD {
-                                        mail= de?.Properties["mail"]?.Value?.ToString(),
-                                        fio= de?.Properties["displayName"]?.Value?.ToString(),
-                                        login= de?.Properties["sAMAccountName"]?.Value?.ToString(),
-                                        code= de?.Properties["extensionAttribute1"]?.Value?.ToString()
+                                    staffAD.Add(new StaffAD
+                                    {
+                                        mail = de?.Properties["mail"]?.Value?.ToString(),
+                                        fio = de?.Properties["displayName"]?.Value?.ToString(),
+                                        login = de?.Properties["sAMAccountName"]?.Value?.ToString(),
+                                        code = de?.Properties["extensionAttribute1"]?.Value?.ToString()
                                     });
 
                                     logger.Trace(
@@ -182,27 +183,27 @@ namespace ASTA
         }
 
 
-/*
-        // it sometimes doesn't work correctly
-        static bool ValidateCredentials(UserADAuthorization userADAuthorization)
-        {
-            IntPtr token;
-            bool success = NativeMethods.LogonUser(
-                userADAuthorization.Name,
-                userADAuthorization.Domain,
-                userADAuthorization.Password,
-                NativeMethods.LogonType.Interactive,
-                NativeMethods.LogonProvider.Default,
-                out token);
-            if (token != IntPtr.Zero) NativeMethods.CloseHandle(token);
-            return success;
-        }*/
+        /*
+                // it sometimes doesn't work correctly
+                static bool ValidateCredentials(UserADAuthorization userADAuthorization)
+                {
+                    IntPtr token;
+                    bool success = NativeMethods.LogonUser(
+                        userADAuthorization.Name,
+                        userADAuthorization.Domain,
+                        userADAuthorization.Password,
+                        NativeMethods.LogonType.Interactive,
+                        NativeMethods.LogonProvider.Default,
+                        out token);
+                    if (token != IntPtr.Zero) NativeMethods.CloseHandle(token);
+                    return success;
+                }*/
     }
 
     class ListStaffSender    // Originator
     {
         private List<StaffAD> staffAD = new List<StaffAD>();
-              
+
         public void RestoreListStaff(StaffMemento memento)  // восстановление состояния
         {
             staffAD = memento.staffAD;
@@ -213,7 +214,7 @@ namespace ASTA
             return staffAD;
         }
     }
-     
+
     public class StaffMemento    // Memento// сохранить список
     {
         public List<StaffAD> staffAD { get; private set; }

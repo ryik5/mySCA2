@@ -85,8 +85,8 @@ label1.Text = name;
 
         public override string ToString()
         {
-            return parameterName + "\t" + parameterDescription + "\t"+ parameterValue + "\t"+ dateCreated + "\t"+ 
-                isPassword.ToString() + "\t"+ isExample ;
+            return parameterName + "\t" + parameterDescription + "\t" + parameterValue + "\t" + dateCreated + "\t" +
+                isPassword.ToString() + "\t" + isExample;
         }
 
         public override bool Equals(object obj)
@@ -167,7 +167,7 @@ label1.Text = name;
                         sqlCommand1.ExecuteNonQuery();
                     }
                 }
-                return ParameterName+" was saved";
+                return ParameterName + " was saved";
             }
         }
 
@@ -188,7 +188,7 @@ label1.Text = name;
                     {
                         using (SQLiteCommand sqlCommand = sqlConnection.CreateCommand())
                         {
-                            if (parameter.Length > 0&& parameter!="%%")
+                            if (parameter.Length > 0 && parameter != "%%")
                             {
                                 sqlCommand.CommandText = @"Select ParameterName, Value, Description, DateCreated, IsPassword, IsExample from ConfigDB where ParameterName=@parameter";
                                 sqlCommand.Parameters.Add(new SQLiteParameter("@parameter") { Value = parameter });
@@ -198,7 +198,7 @@ label1.Text = name;
                                 sqlCommand.CommandText = @"Select ParameterName, Value, Description, DateCreated, IsPassword, IsExample from ConfigDB";
                             }
                             sqlCommand.CommandType = System.Data.CommandType.Text;
-                            logger.Trace("ParameterOfConfigurationInSQLiteDB: "+ sqlCommand.CommandText.ToString());
+                            logger.Trace("ParameterOfConfigurationInSQLiteDB: " + sqlCommand.CommandText.ToString());
                             using (SQLiteDataReader reader = sqlCommand.ExecuteReader())
                             {
                                 while (reader.Read())
@@ -210,7 +210,7 @@ label1.Text = name;
                                         decrypt = reader["IsPassword"]?.ToString();
 
                                         valueTmp = reader["Value"]?.ToString();
-                                        if (decrypt=="1" && valueTmp?.Length > 0)
+                                        if (decrypt == "1" && valueTmp?.Length > 0)
                                         {
                                             value = EncryptionDecryptionCriticalData.DecryptBase64ToString(valueTmp, btsMess1, btsMess2);
                                             parameterConfig.isPassword = true;
@@ -243,7 +243,7 @@ label1.Text = name;
         }
     }
 
-   static class EncryptionDecryptionCriticalData
+    static class EncryptionDecryptionCriticalData
     {
         public static string EncryptStringToBase64Text(string plainText, byte[] Key, byte[] IV) //Encrypt variables PlainText Data
         {
@@ -339,21 +339,21 @@ label1.Text = name;
 
     class MailingStructure
     {
-        public string _sender ;
-        public string _recipient ;
-        public string _groupsReport ;
-        public string _nameReport ;
-        public string _descriptionReport ;
-        public string _period ;
-        public string _status ;
-        public string _typeReport ;
-        public string _dayReport ;
+        public string _sender;
+        public string _recipient;
+        public string _groupsReport;
+        public string _nameReport;
+        public string _descriptionReport;
+        public string _period;
+        public string _status;
+        public string _typeReport;
+        public string _dayReport;
 
         public override string ToString()
         {
-            return _sender + "\t" + _recipient + "\t"+ 
-                _groupsReport + "\t"+ _nameReport + "\t"+ _descriptionReport + "\t"+ _period + "\t"+
-                _status + "\t"+ _typeReport + "\t"+ _dayReport;
+            return _sender + "\t" + _recipient + "\t" +
+                _groupsReport + "\t" + _nameReport + "\t" + _descriptionReport + "\t" + _period + "\t" +
+                _status + "\t" + _typeReport + "\t" + _dayReport;
         }
 
         public override bool Equals(object obj)
@@ -376,11 +376,11 @@ label1.Text = name;
 
     interface IPerson
     {
-         string FIO { get; set; }
-         string NAV { get; set; }
+        string FIO { get; set; }
+        string NAV { get; set; }
     }
 
-    class Person:IPerson
+    class Person : IPerson
     {
         public string FIO { get; set; }
         public string NAV { get; set; }
@@ -408,7 +408,7 @@ label1.Text = name;
         }
     }
 
-    class PersonFull: IPerson
+    class PersonFull : IPerson
     {
         public int idCard;//= 0
         public string FIO { get; set; }//= ""
@@ -428,10 +428,10 @@ label1.Text = name;
 
         public override string ToString()
         {
-            return idCard + "\t" + FIO + "\t" + NAV + "\t" + this.Department + "\t"+ DepartmentId + "\t"+ DepartmentBossCode + "\t"+ 
-                PositionInDepartment + "\t"+ GroupPerson + "\t"+ City + "\t"+ 
-                ControlInSeconds + "\t"+ ControlOutSeconds + "\t"+ ControlInHHMM + "\t"+ ControlOutHHMM + "\t"+
-                Shift + "\t"+ Comment ;
+            return idCard + "\t" + FIO + "\t" + NAV + "\t" + this.Department + "\t" + DepartmentId + "\t" + DepartmentBossCode + "\t" +
+                PositionInDepartment + "\t" + GroupPerson + "\t" + City + "\t" +
+                ControlInSeconds + "\t" + ControlOutSeconds + "\t" + ControlInHHMM + "\t" + ControlOutHHMM + "\t" +
+                Shift + "\t" + Comment;
         }
 
         public override bool Equals(object obj)
@@ -454,10 +454,10 @@ label1.Text = name;
 
     class PassByPoint
     {
-        public string _id ;
-        public string _name ;
-        public string _direction ;
-        public string _server ;
+        public string _id;
+        public string _name;
+        public string _direction;
+        public string _server;
 
         public override string ToString()
         {
@@ -484,10 +484,10 @@ label1.Text = name;
 
     class OutReasons
     {
-        public string _id ;
-        public string _name ;
-        public string _visibleName ;
-        public int _hourly ;
+        public string _id;
+        public string _name;
+        public string _visibleName;
+        public int _hourly;
 
         public override string ToString()
         {
@@ -514,12 +514,12 @@ label1.Text = name;
 
     class OutPerson
     {
-        public string _reason_id ;//= "0"
-        public string _nav ;//= ""
-        public string _date ;//= ""
-        public int _from ;//= 0
-        public int _to ;//= 0
-        public int _hourly ;//= 0
+        public string _reason_id;//= "0"
+        public string _nav;//= ""
+        public string _date;//= ""
+        public int _from;//= 0
+        public int _to;//= 0
+        public int _hourly;//= 0
 
         public override string ToString()
         {
@@ -596,12 +596,12 @@ label1.Text = name;
 
     interface IDepartment
     {
-         string _departmentId { get; set; }
+        string _departmentId { get; set; }
         string _departmentDescription { get; set; }
         string _departmentBossCode { get; set; }
     }
 
-    class Department: IDepartment
+    class Department : IDepartment
     {
         public string _departmentId { get; set; }
         public string _departmentDescription { get; set; }
@@ -638,7 +638,7 @@ label1.Text = name;
 
         public override string ToString()
         {
-            return _departmentId+"\t"+ _departmentDescription+ "\t" + _departmentBossCode + "\t" + _departmentBossEmail;
+            return _departmentId + "\t" + _departmentDescription + "\t" + _departmentBossCode + "\t" + _departmentBossEmail;
         }
 
         public override bool Equals(object obj)
@@ -776,7 +776,7 @@ label1.Text = name;
         //
         public static string ToYYYYMMDD(this DateTime dateTime)
         {
-             return dateTime.ToString("yyyy-MM-dd"); 
+            return dateTime.ToString("yyyy-MM-dd");
         }
 
         public static string ToYYYYMMDDHHMM(this DateTime dateTime)
