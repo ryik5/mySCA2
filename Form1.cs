@@ -1540,16 +1540,16 @@ namespace ASTA
                                     row = dataTablePeople.NewRow();
                                     personFromServer = new PersonFull();
 
-                                    fio = (reader.GetString(@"family_name")?.Trim() + " " + reader.GetString(@"first_name")?.Trim() + " " + reader.GetString(@"last_name")?.Trim()).Replace(@"  ", @" ");
+                                    fio = (reader.GetString(@"family_name")?.Trim() + " " + reader.GetString(@"first_name")?.Trim() + " " + reader.GetString(@"last_name")?.Trim())?.Replace(@"  ", @" ");
 
                                     personFromServer.FIO = fio.Replace("&acute;", "'");
-                                    personFromServer.NAV = reader.GetString(@"code").Trim().ToUpper().Replace('C', 'S');
+                                    personFromServer.NAV = reader.GetString(@"code")?.Trim()?.ToUpper()?.Replace('C', 'S');
                                     personFromServer.DepartmentId = reader.GetString(@"department")?.Trim();
 
-                                    depName = departments.FindLast((x) => x._departmentId == personFromServer.DepartmentId)._departmentDescription;
-                                    personFromServer.Department = depName ?? personFromServer.DepartmentId;
+                                    depName = departments.FindLast((x) => x._departmentId == personFromServer?.DepartmentId)?._departmentDescription;
+                                    personFromServer.Department = depName ?? personFromServer?.DepartmentId;
 
-                                    depBoss = departments.Find((x) => x._departmentId == personFromServer.DepartmentId)._departmentBossCode;
+                                    depBoss = departments.Find((x) => x._departmentId == personFromServer?.DepartmentId)?._departmentBossCode;
                                     personFromServer.DepartmentBossCode = depBoss?.Length > 0 ? depBoss : reader.GetString(@"boss_id")?.Trim();
 
                                     personFromServer.City = reader.GetString(@"city")?.Trim();
@@ -1651,7 +1651,7 @@ namespace ASTA
                 depId = dr[@"Отдел (id)"]?.ToString();
                 //                 = staffAD.Find((x) => x.code == reader.GetString(@"code")).mail
 
-                depBossEmail = staffAD.Find((x) => x.code == dr[@"Руководитель (код)"]?.ToString()).mail;
+                depBossEmail = staffAD.Find((x) => x.code == dr[@"Руководитель (код)"]?.ToString())?.mail;
                 if (depId?.Length > 0)
                 {
                     groups.Add(new DepartmentFull()
@@ -2336,8 +2336,8 @@ namespace ASTA
                     ///////////////////
                     ///
 
-                    logger.Trace("groupsUncount: " + groupsUncount.Distinct().Count());
-                    foreach (string group in groupsUncount.Distinct())
+                    logger.Trace("groupsUncount: " + (new HashSet<string>(groupsUncount)).Count());
+                    foreach (string group in new HashSet<string>(groupsUncount))
                     {
                         amounts.Add(new AmountMembersOfGroup()
                         {

@@ -74,7 +74,7 @@ label1.Text = name;
         void Execute();
     }
 
-    struct ParameterConfig
+    class ParameterConfig
     {
         public string parameterName;
         public string parameterDescription;
@@ -82,6 +82,28 @@ label1.Text = name;
         public string dateCreated;
         public bool isPassword;
         public string isExample;
+
+        public override string ToString()
+        {
+            return parameterName + "\t" + parameterDescription + "\t"+ parameterValue + "\t"+ dateCreated + "\t"+ 
+                isPassword.ToString() + "\t"+ isExample ;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            ParameterConfig df = obj as ParameterConfig;
+            if ((Object)df == null)
+                return false;
+
+            return this.ToString() == df.ToString();
+        }
+        public override int GetHashCode()
+        {
+            return ToString().GetHashCode();
+        }
     }
 
     //todo
@@ -315,7 +337,7 @@ label1.Text = name;
         }
     }
 
-    struct MailingStructure
+    class MailingStructure
     {
         public string _sender ;
         public string _recipient ;
@@ -326,19 +348,71 @@ label1.Text = name;
         public string _status ;
         public string _typeReport ;
         public string _dayReport ;
+
+        public override string ToString()
+        {
+            return _sender + "\t" + _recipient + "\t"+ 
+                _groupsReport + "\t"+ _nameReport + "\t"+ _descriptionReport + "\t"+ _period + "\t"+
+                _status + "\t"+ _typeReport + "\t"+ _dayReport;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            MailingStructure df = obj as MailingStructure;
+            if ((Object)df == null)
+                return false;
+
+            return this.ToString() == df.ToString();
+        }
+
+        public override int GetHashCode()
+        {
+            return ToString().GetHashCode();
+        }
     }
 
-    struct Person
+    interface IPerson
     {
-        public string FIO ;
-        public string NAV ;
+         string FIO { get; set; }
+         string NAV { get; set; }
     }
 
-    struct PersonFull
+    class Person:IPerson
+    {
+        public string FIO { get; set; }
+        public string NAV { get; set; }
+
+        public override string ToString()
+        {
+            return FIO + "\t" + NAV;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            Person df = obj as Person;
+            if ((Object)df == null)
+                return false;
+
+            return this.ToString() == df.ToString();
+        }
+
+        public override int GetHashCode()
+        {
+            return ToString().GetHashCode();
+        }
+    }
+
+    class PersonFull: IPerson
     {
         public int idCard;//= 0
-        public string FIO;//= ""
-        public string NAV;//= ""
+        public string FIO { get; set; }//= ""
+        public string NAV { get; set; }//= ""
         public string Department;//= ""
         public string DepartmentId;//= ""
         public string DepartmentBossCode;//= ""
@@ -351,25 +425,94 @@ label1.Text = name;
         public string ControlOutHHMM;//= "18:00"
         public string Shift;//= ""
         public string Comment;//= ""
+
+        public override string ToString()
+        {
+            return idCard + "\t" + FIO + "\t" + NAV + "\t" + this.Department + "\t"+ DepartmentId + "\t"+ DepartmentBossCode + "\t"+ 
+                PositionInDepartment + "\t"+ GroupPerson + "\t"+ City + "\t"+ 
+                ControlInSeconds + "\t"+ ControlOutSeconds + "\t"+ ControlInHHMM + "\t"+ ControlOutHHMM + "\t"+
+                Shift + "\t"+ Comment ;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            PersonFull df = obj as PersonFull;
+            if ((Object)df == null)
+                return false;
+
+            return this.ToString() == df.ToString();
+        }
+
+        public override int GetHashCode()
+        {
+            return ToString().GetHashCode();
+        }
     }
 
-    struct PassByPoint
+    class PassByPoint
     {
         public string _id ;
         public string _name ;
         public string _direction ;
         public string _server ;
+
+        public override string ToString()
+        {
+            return _id + "\t" + _name + "\t" + _direction + "\t" + _server;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            PassByPoint df = obj as PassByPoint;
+            if ((Object)df == null)
+                return false;
+
+            return this.ToString() == df.ToString();
+        }
+
+        public override int GetHashCode()
+        {
+            return ToString().GetHashCode();
+        }
     }
 
-    struct OutReasons
+    class OutReasons
     {
         public string _id ;
         public string _name ;
         public string _visibleName ;
         public int _hourly ;
+
+        public override string ToString()
+        {
+            return _id + "\t" + _name + "\t" + _visibleName + "\t" + _hourly;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            OutReasons df = obj as OutReasons;
+            if ((Object)df == null)
+                return false;
+
+            return this.ToString() == df.ToString();
+        }
+
+        public override int GetHashCode()
+        {
+            return ToString().GetHashCode();
+        }
     }
 
-    struct OutPerson
+    class OutPerson
     {
         public string _reason_id ;//= "0"
         public string _nav ;//= ""
@@ -377,6 +520,28 @@ label1.Text = name;
         public int _from ;//= 0
         public int _to ;//= 0
         public int _hourly ;//= 0
+
+        public override string ToString()
+        {
+            return _reason_id + "\t" + _nav + "\t" + _date + "\t" + _from + "\t" + _to + "\t" + _hourly;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            OutPerson df = obj as OutPerson;
+            if ((Object)df == null)
+                return false;
+
+            return this.ToString() == df.ToString();
+        }
+
+        public override int GetHashCode()
+        {
+            return ToString().GetHashCode();
+        }
     }
 
     struct PeopleShift
@@ -401,26 +566,96 @@ label1.Text = name;
         public string _Comment;
     }
 
-    struct AmountMembersOfGroup
+    class AmountMembersOfGroup
     {
         public int _amountMembers;
         public string _groupName;
         public string _emails;
+
+        public override string ToString()
+        {
+            return _amountMembers + "\t" + _groupName + "\t" + _emails;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            AmountMembersOfGroup df = obj as AmountMembersOfGroup;
+            if ((Object)df == null)
+                return false;
+
+            return this.ToString() == df.ToString();
+        }
+        public override int GetHashCode()
+        {
+            return ToString().GetHashCode();
+        }
     }
 
-    struct Department
+    interface IDepartment
     {
-        public string _departmentId;
-        public string _departmentDescription;
-        public string _departmentBossCode;
+         string _departmentId { get; set; }
+        string _departmentDescription { get; set; }
+        string _departmentBossCode { get; set; }
     }
 
-    struct DepartmentFull
+    class Department: IDepartment
     {
-        public string _departmentId;
-        public string _departmentDescription;
-        public string _departmentBossCode;
-        public string _departmentBossEmail;
+        public string _departmentId { get; set; }
+        public string _departmentDescription { get; set; }
+        public string _departmentBossCode { get; set; }
+
+        public override string ToString()
+        {
+            return _departmentId + "\t" + _departmentDescription + "\t" + _departmentBossCode;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            Department df = obj as Department;
+            if ((Object)df == null)
+                return false;
+
+            return this.ToString() == df.ToString();
+        }
+        public override int GetHashCode()
+        {
+            return ToString().GetHashCode();
+        }
+    }
+
+    class DepartmentFull : IDepartment
+    {
+        public string _departmentId { get; set; }
+        public string _departmentDescription { get; set; }
+        public string _departmentBossCode { get; set; }
+        public string _departmentBossEmail { get; set; }
+
+        public override string ToString()
+        {
+            return _departmentId+"\t"+ _departmentDescription+ "\t" + _departmentBossCode + "\t" + _departmentBossEmail;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            DepartmentFull df = obj as DepartmentFull;
+            if ((Object)df == null)
+                return false;
+
+            return this.ToString() == df.ToString();
+        }
+        public override int GetHashCode()
+        {
+            return ToString().GetHashCode();
+        }
     }
 
     struct ObjectsOfConfig
