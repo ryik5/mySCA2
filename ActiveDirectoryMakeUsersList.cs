@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.DirectoryServices.AccountManagement;
 using System.DirectoryServices;
+using System;
 
 namespace ASTA
 {
@@ -24,6 +25,28 @@ namespace ASTA
          {
              return new UserADAuthorizationBuilder();
          }
+
+        public override string ToString()
+        {
+            return Name+"\t"+Domain+ "\t" + Password + "\t" + DomainPath;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            UserADAuthorization df = obj as UserADAuthorization;
+            if ((Object)df == null)
+                return false;
+
+            return this.ToString() == df.ToString();
+        }
+
+        public override int GetHashCode()
+        {
+            return ToString().GetHashCode();
+        }
     }
 
     public class UserADAuthorizationBuilder
@@ -210,12 +233,34 @@ namespace ASTA
         }
     }
 
-    public struct StaffAD
+    public class StaffAD
     {
         public string mail;
         public string login;
         public string code;
         public string fio;
+
+        public override string ToString()
+        {
+            return mail + "\t" + login + "\t" + code + "\t" + fio;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            StaffAD df = obj as StaffAD;
+            if ((Object)df == null)
+                return false;
+
+            return this.ToString() == df.ToString();
+        }
+
+        public override int GetHashCode()
+        {
+            return ToString().GetHashCode();
+        }
     }
 
 
