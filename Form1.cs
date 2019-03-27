@@ -3616,7 +3616,7 @@ namespace ASTA
                 if (_CheckboxCheckedStateReturn(checkBoxReEnter) || currentAction == "sendEmail") //checkBoxReEnter.Checked
                 {
                     foreach (DataRow dataRowDate in allWorkedDaysPerson) //make the list of worked days
-                    { hsDays.Add(dataRowDate[@"Дата регистрации"].ToString()); }
+                    { hsDays.Add(dataRowDate[@"Дата регистрации"]?.ToString()); }
 
                     foreach (var workedDay in hsDays.ToArray())
                     {
@@ -3643,7 +3643,7 @@ namespace ASTA
                         workedSeconds = lastRegistrationInDay - firstRegistrationInDay;
                         rowDtStoring[@"Реальное отработанное время"] = workedSeconds;                                  // ("Реальное отработанное время", typeof(decimal)), //26
                         rowDtStoring[@"Отработанное время ЧЧ:ММ"] = ConvertSecondsToStringHHMM(workedSeconds);  //("Отработанное время ЧЧ:ММ", typeof(string)), //27
-                        logger.Trace("FilterDataByNav: " + person.NAV + "| " + rowDtStoring[@"Дата регистрации"].ToString() + " " + firstRegistrationInDay + " - " + lastRegistrationInDay);
+                        logger.Trace("FilterDataByNav: " + person.NAV + "| " + rowDtStoring[@"Дата регистрации"]?.ToString() + " " + firstRegistrationInDay + " - " + lastRegistrationInDay);
 
                         //todo 
                         //will calculate if day of week different
@@ -3663,14 +3663,14 @@ namespace ASTA
                             { rowDtStoring[@"Ранний уход ЧЧ:ММ"] = "1"; }
                         }
 
-                        if (rowDtStoring[@"Отсутствовал на работе"].ToString() == "1" && typeReport == "Полный")  // "Ранний уход ЧЧ:ММ", typeof(bool)),                 //29
+                        if (rowDtStoring[@"Отсутствовал на работе"]?.ToString() == "1" && typeReport == "Полный")  // "Ранний уход ЧЧ:ММ", typeof(bool)),                 //29
                         {
                             rowDtStoring[@"Отсутствовал на работе"] = "Да";
                         }
 
-                        exceptReason = rowDtStoring[@"Комментарии (командировка, на выезде, согласованное отсутствие…….)"].ToString();
+                        exceptReason = rowDtStoring[@"Комментарии (командировка, на выезде, согласованное отсутствие…….)"]?.ToString();
 
-                        rowDtStoring[@"Комментарии (командировка, на выезде, согласованное отсутствие…….)"] = outResons.Find((x) => x._id == exceptReason)._visibleName;
+                        rowDtStoring[@"Комментарии (командировка, на выезде, согласованное отсутствие…….)"] = outResons.Find((x) => x._id == exceptReason)?._visibleName;
 
                         switch (exceptReason)
                         {
@@ -3679,14 +3679,14 @@ namespace ASTA
                             case "11":
                             case "18":
                                 if (typeReport == "Полный")
-                                { rowDtStoring[@"Отпуск"] = outResons.Find((x) => x._id == exceptReason)._visibleName; }
+                                { rowDtStoring[@"Отпуск"] = outResons.Find((x) => x._id == exceptReason)?._visibleName; }
                                 else if (typeReport == "Упрощенный")
                                 { rowDtStoring[@"Отпуск"] = "1"; }
                                 break;
                             case "3":
                             case "21":
                                 if (typeReport == "Полный")
-                                { rowDtStoring[@"Больничный"] = outResons.Find((x) => x._id == exceptReason)._visibleName; }
+                                { rowDtStoring[@"Больничный"] = outResons.Find((x) => x._id == exceptReason)?._visibleName; }
                                 else if (typeReport == "Упрощенный")
                                 { rowDtStoring[@"Больничный"] = "1"; }
                                 break;
@@ -3695,7 +3695,7 @@ namespace ASTA
                             case "12":
                             case "20":
                                 if (typeReport == "Полный")
-                                { rowDtStoring[@"Прогул (отпуск за свой счет)"] = outResons.Find((x) => x._id == exceptReason)._visibleName; }
+                                { rowDtStoring[@"Прогул (отпуск за свой счет)"] = outResons.Find((x) => x._id == exceptReason)?._visibleName; }
                                 else if (typeReport == "Упрощенный")
                                 { rowDtStoring[@"Прогул (отпуск за свой счет)"] = "1"; }
                                 break;
@@ -3703,7 +3703,7 @@ namespace ASTA
                             case "5":
                             case "6":
                             case "7":
-                                rowDtStoring[@"Комментарии (командировка, на выезде, согласованное отсутствие…….)"] = outResons.Find((x) => x._id == exceptReason)._visibleName;
+                                rowDtStoring[@"Комментарии (командировка, на выезде, согласованное отсутствие…….)"] = outResons.Find((x) => x._id == exceptReason)?._visibleName;
                                 break;
                             default:
                                 break;
