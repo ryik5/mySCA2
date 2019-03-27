@@ -1891,7 +1891,8 @@ namespace ASTA
             _controlEnable(dataGridView1, false);
 
             filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), "InOut_" + DateTimeToYYYYMMDD() + @".xlsx");
-            await Task.Run(() => ExportDatatableSelectedColumnsToExcel(ref dtPersonTemp, "InOutPeople", ref filePathExcelReport));
+            await Task.Run(() => ExportDatatableSelectedColumnsToExcel(ref dtPersonTemp, "InOutStaff", ref filePathExcelReport));
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer.exe", " /select, " + filePathExcelReport)); // //System.Reflection.Assembly.GetExecutingAssembly().Location)
 
             _MenuItemEnabled(FunctionMenuItem, true);
             _MenuItemEnabled(SettingsMenuItem, true);
@@ -6511,7 +6512,7 @@ namespace ASTA
 
             GetRegistrationAndSendReport(dgSeek.values[0], dgSeek.values[0], dgSeek.values[1], SelectedDatetimePickersPeriodMonth(), "Активная", "Полный", DateTime.Now.ToYYYYMMDDHHMM(), false, "", "");
 
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer.exe", " /select, " + System.IO.Path.GetDirectoryName(filePathExcelReport) + @"\")); // //System.Reflection.Assembly.GetExecutingAssembly().Location)
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer.exe", " /select, " + filePathExcelReport)); // //System.Reflection.Assembly.GetExecutingAssembly().Location)
 
             _ProgressBar1Stop();
             nameOfLastTableFromDB = "PeopleGroupDesciption";
