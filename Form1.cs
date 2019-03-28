@@ -161,11 +161,7 @@ namespace ASTA
         string stimerPrev = "";
         string stimerCurr = "Ждите!";
 
-
-        //todo - turn strings into CONSTs
-        /// <summary>
-        /// Constants
-        /// </summary>
+        //Names of collumns
         const string NPP = @"№ п/п";
         const string FIO = @"Фамилия Имя Отчество";
         const string CODE = @"NAV-код";
@@ -265,11 +261,11 @@ namespace ASTA
                                   REAL_TIME_IN,//24
                                   REAL_TIME_OUT, //25
                                   EMPLOYEE_TIME_SPENT, //26
-                                 EMPLOYEE_PLAN_TIME_WORKED, //27
+                                  EMPLOYEE_PLAN_TIME_WORKED, //27
                                   EMPLOYEE_BEING_LATE,                    //28
                                   EMPLOYEE_EARLY_DEPARTURE,                 //29
-                                 EMPLOYEE_VACATION,                 //30
-                                 EMPLOYEE_TRIP,                 //31
+                                  EMPLOYEE_VACATION,                 //30
+                                  EMPLOYEE_TRIP,                 //31
                                   DAY_OF_WEEK,                    //32
                                   EMPLOYEE_SICK_LEAVE,                    //33
                                   EMPLOYEE_ABSENCE,      //34
@@ -296,10 +292,10 @@ namespace ASTA
                                   DESIRED_TIME_OUT,//23
                                   REAL_TIME_IN,//24
                                   REAL_TIME_OUT, //25
-                                 EMPLOYEE_PLAN_TIME_WORKED, //27
+                                  EMPLOYEE_PLAN_TIME_WORKED, //27
                                   EMPLOYEE_BEING_LATE,                    //28
                                   EMPLOYEE_EARLY_DEPARTURE,                 //29
-                                 EMPLOYEE_VACATION,                 //30
+                                  EMPLOYEE_VACATION,                 //30
                                   EMPLOYEE_HOOKY,    //41
                                  //EMPLOYEE_TRIP,                 //31
                                   EMPLOYEE_SICK_LEAVE,                    //33
@@ -323,11 +319,11 @@ namespace ASTA
                             REAL_TIME_IN,//24
                             REAL_TIME_OUT, //25
                             EMPLOYEE_TIME_SPENT, //26
-                           EMPLOYEE_PLAN_TIME_WORKED, //27
+                            EMPLOYEE_PLAN_TIME_WORKED, //27
                             EMPLOYEE_BEING_LATE,                   //28
                             EMPLOYEE_EARLY_DEPARTURE,              //29
-                           EMPLOYEE_VACATION,           //30
-                           EMPLOYEE_TRIP,                 //31
+                            EMPLOYEE_VACATION,           //30
+                            EMPLOYEE_TRIP,                 //31
                             DAY_OF_WEEK,                    //32
                             EMPLOYEE_SICK_LEAVE,                    //33
                             EMPLOYEE_ABSENCE,      //34
@@ -348,11 +344,11 @@ namespace ASTA
                 NAME_CHECKPOINT, //20
                 DIRECTION_WAY, //21
                 EMPLOYEE_TIME_SPENT, //26
-               EMPLOYEE_PLAN_TIME_WORKED, //27
+                EMPLOYEE_PLAN_TIME_WORKED, //27
                 EMPLOYEE_BEING_LATE,                    //28
                 EMPLOYEE_EARLY_DEPARTURE,                 //29
-               EMPLOYEE_VACATION,              //30
-               EMPLOYEE_TRIP,                 //31
+                EMPLOYEE_VACATION,              //30
+                EMPLOYEE_TRIP,                 //31
                 DAY_OF_WEEK,  //32
                 EMPLOYEE_SICK_LEAVE,  //33
                 EMPLOYEE_ABSENCE,      //34
@@ -677,22 +673,6 @@ namespace ASTA
                         }
                     }
 
-                    /*  using (var sqlCommand = new SQLiteCommand("SELECT ParameterName, Value FROM ConfigDB;", sqlConnection))
-                      {
-                          using (var reader = sqlCommand.ExecuteReader())
-                          {
-                              foreach (DbDataRecord record in reader)
-                              {
-                                  try
-                                  {
-                                      if (record["ParameterName"]?.ToString()?.Trim() == "clrRealRegistration")
-                                      { clrRealRegistrationRegistry = Color.FromName(record["Value"].ToString()); }
-                                  }
-                                  catch (Exception expt) { logger.Info(expt.ToString()); }
-                              }
-                          }
-                      }*/
-
                     using (var sqlCommand = new SQLiteCommand("SELECT EquipmentParameterName, EquipmentParameterValue, EquipmentParameterServer, Reserv1, Reserv2  FROM EquipmentSettings;", sqlConnection))
                     {
                         using (var reader = sqlCommand.ExecuteReader())
@@ -755,7 +735,7 @@ namespace ASTA
                    "587";
 
                 clrRealRegistrationRegistry = Color.FromName(listParameters.FindLast(x => x.parameterName == @"clrRealRegistration")?.parameterValue != null ?
-                  listParameters.FindLast(x => x.parameterName == @"clrRealRegistration").parameterValue :
+                  listParameters.FindLast(x => x.parameterName == @"clrRealRegistration")?.parameterValue :
                   "PaleGreen");
 
                 // todo
