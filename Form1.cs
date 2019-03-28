@@ -45,11 +45,6 @@ namespace ASTA
         string productName = "";
         string strVersion;
 
-        //mailing
-        static readonly string nameOfSenderReports = "Отдел компенсаций и льгот";
-        static System.Threading.Timer timer;
-        static object synclock = new object();
-        static bool sent = false;
 
         int iCounterLine = 0;
 
@@ -68,8 +63,8 @@ namespace ASTA
         Bitmap bmp = new Bitmap(1, 1);
 
         //making reports
-        const int offsetTimeIn = 60;
-        const int offsetTimeOut = 60;
+        const int offsetTimeIn = 60;    // смещение времени прихода после учетного, в секундах, в течении которого не учитывается опоздание
+        const int offsetTimeOut = 60;   // смещение времени ухода до учетного, в секундах в течении которого не учитывается ранний уход
         string[] myBoldedDates;
         string[] workSelectedDays;
         static string reportStartDay = "";
@@ -78,9 +73,30 @@ namespace ASTA
         string filePathApplication = Application.ExecutablePath;
         string filePathExcelReport;
 
-        int numberPeopleInLoading = 1;
-        string stimerPrev = "";
-        string stimerCurr = "Ждите!";
+        //mailing
+        static readonly string nameOfSenderReports = "Отдел компенсаций и льгот";
+        static System.Threading.Timer timer;
+        static object synclock = new object();
+        static bool sent = false;
+        static string DEFAULT_RECEIVING_PORT_MAILSERVER = "587";
+        static string DEFAULT_DAY_OF_SENDING_REPORT = "28";
+        
+        //Page of Mailing
+        Label labelMailServerName;
+        TextBox textBoxMailServerName;
+        Label labelMailServerUserName;
+        TextBox textBoxMailServerUserName;
+        Label labelMailServerUserPassword;
+        TextBox textBoxMailServerUserPassword;
+        static string mailServer = "";
+        static string mailServerRegistry = "";
+        static string mailServerDB = "";
+        static string mailServerUserName = "";
+        static string mailServerUserNameRegistry = "";
+        static string mailServerUserNameDB = "";
+        static string mailServerUserPassword = "";
+        static string mailServerUserPasswordRegistry = "";
+        static string mailServerUserPasswordDB = "";
 
         //Page of "Settings' Programm"
         bool bServer1Exist = false;
@@ -115,7 +131,7 @@ namespace ASTA
         static string mysqlServerUserPassword = "";
         static string mysqlServerUserPasswordRegistry = "";
         static string mysqlServerUserPasswordDB = "";
-
+        
         Label listComboLabel;
         ComboBox listCombo ;
 
@@ -131,25 +147,6 @@ namespace ASTA
         Label labelSettings16;
         TextBox textBoxSettings16;
 
-        //Page of Mailing
-        Label labelMailServerName;
-        TextBox textBoxMailServerName;
-        Label labelMailServerUserName;
-        TextBox textBoxMailServerUserName;
-        Label labelMailServerUserPassword;
-        TextBox textBoxMailServerUserPassword;
-        static string mailServer = "";
-        static string mailServerRegistry = "";
-        static string mailServerDB = "";
-        static string mailServerUserName = "";
-        static string mailServerUserNameRegistry = "";
-        static string mailServerUserNameDB = "";
-        static string mailServerUserPassword = "";
-        static string mailServerUserPasswordRegistry = "";
-        static string mailServerUserPasswordDB = "";
-
-        string DEFAULT_DAY_OF_REPORT = "28";
-
         CheckBox checkBox1;
         static List<ParameterConfig> listParameters = new List<ParameterConfig>();
 
@@ -159,6 +156,11 @@ namespace ASTA
 
         OpenFileDialog openFileDialog1 = new OpenFileDialog();
         List<string> listGroups = new List<string>();
+
+        int numberPeopleInLoading = 1;
+        string stimerPrev = "";
+        string stimerCurr = "Ждите!";
+
 
         //todo - turn strings into CONSTs
         /// <summary>
@@ -646,7 +648,7 @@ namespace ASTA
                         }
                     }
 
-                    using (var sqlCommand = new SQLiteCommand("SELECT ParameterName, Value FROM ConfigDB;", sqlConnection))
+                  /*  using (var sqlCommand = new SQLiteCommand("SELECT ParameterName, Value FROM ConfigDB;", sqlConnection))
                     {
                         using (var reader = sqlCommand.ExecuteReader())
                         {
@@ -660,8 +662,7 @@ namespace ASTA
                                 catch (Exception expt) { logger.Info(expt.ToString()); }
                             }
                         }
-                    }
-
+                    }*/
 
                     using (var sqlCommand = new SQLiteCommand("SELECT EquipmentParameterName, EquipmentParameterValue, EquipmentParameterServer, Reserv1, Reserv2  FROM EquipmentSettings;", sqlConnection))
                     {
@@ -710,16 +711,30 @@ namespace ASTA
                     }
                 }
 
-
-                //done!
+                
+                //loading parameters
                 listParameters = new List<ParameterConfig>();
                 ParameterOfConfigurationInSQLiteDB parameters = new ParameterOfConfigurationInSQLiteDB();
                 parameters.databasePerson = databasePerson;
                 listParameters = parameters.GetParameters("%%").FindAll(x => x.isExample == "no"); //load only real data
 
-                DEFAULT_DAY_OF_REPORT = listParameters.FindLast(x => x.parameterName == @"DEFAULT_DAY_OF_REPORT").parameterValue != null ?
-                   listParameters.FindLast(x => x.parameterName == @"DEFAULT_DAY_OF_REPORT").parameterValue :
+                DEFAULT_DAY_OF_SENDING_REPORT = listParameters.FindLast(x => x.parameterName == @"DEFAULT_DAY_OF_SENDING_REPORT")?.parameterValue != null ?
+                   listParameters.FindLast(x => x.parameterName == @"DEFAULT_DAY_OF_SENDING_REPORT")?.parameterValue :
                    "28";
+
+                DEFAULT_RECEIVING_PORT_MAILSERVER = listParameters.FindLast(x => x.parameterName == @"DEFAULT_RECEIVING_PORT_MAILSERVER")?.parameterValue != null ?
+                   listParameters.FindLast(x => x.parameterName == @"DEFAULT_RECEIVING_PORT_MAILSERVER")?.parameterValue :
+                   "587";
+
+                   clrRealRegistrationRegistry = Color.FromName( listParameters.FindLast(x => x.parameterName == @"clrRealRegistration")?.parameterValue != null ?
+                     listParameters.FindLast(x => x.parameterName == @"clrRealRegistration").parameterValue :
+                     "PaleGreen");
+
+                // todo
+                // move here functions to load all parameters in localDB
+                
+                // todo
+                // the same way of saving
 
                 listParameters = null;
                 parameters = null;
@@ -1811,7 +1826,7 @@ namespace ASTA
                                 sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
                                 sqlCommand.Parameters.Add("@SendingLastDate", DbType.String).Value = "";
                                 sqlCommand.Parameters.Add("@TypeReport", DbType.String).Value = "Полный";
-                                sqlCommand.Parameters.Add("@DayReport", DbType.String).Value = DEFAULT_DAY_OF_REPORT;
+                                sqlCommand.Parameters.Add("@DayReport", DbType.String).Value = DEFAULT_DAY_OF_SENDING_REPORT;
 
                                 try { sqlCommand.ExecuteNonQuery(); } catch { }
                             }
