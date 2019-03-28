@@ -658,12 +658,6 @@ label1.Text = name;
         }
     }
 
-    struct ObjectsOfConfig
-    {
-        public string _parameter;
-        public string _value;
-    }
-
     class DataGridViewSeekValuesInSelectedRow
     {
         public string[] values = new string[10];
