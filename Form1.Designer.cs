@@ -86,6 +86,7 @@
             this.ImportPeopleInLocalDBItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SettingsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SettingsProgrammItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.AddParameterInConfigItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ConfigurationItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SelectedToLoadCityItem = new System.Windows.Forms.ToolStripMenuItem();
             this.Separator1 = new System.Windows.Forms.ToolStripSeparator();
@@ -122,7 +123,6 @@
             this.groupBoxTimeEnd = new System.Windows.Forms.GroupBox();
             this.labelHourEnd = new System.Windows.Forms.Label();
             this.labelMinuteEnd = new System.Windows.Forms.Label();
-            this.AddParameterInConfigItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownHourStart)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownMinuteStart)).BeginInit();
@@ -581,6 +581,12 @@
             resources.ApplyResources(this.SettingsProgrammItem, "SettingsProgrammItem");
             this.SettingsProgrammItem.Click += new System.EventHandler(this.SettingsProgrammItem_Click);
             // 
+            // AddParameterInConfigItem
+            // 
+            this.AddParameterInConfigItem.Name = "AddParameterInConfigItem";
+            resources.ApplyResources(this.AddParameterInConfigItem, "AddParameterInConfigItem");
+            this.AddParameterInConfigItem.Click += new System.EventHandler(this.AddParameterInConfigItem_Click);
+            // 
             // ConfigurationItem
             // 
             this.ConfigurationItem.Name = "ConfigurationItem";
@@ -803,12 +809,6 @@
             // 
             resources.ApplyResources(this.labelMinuteEnd, "labelMinuteEnd");
             this.labelMinuteEnd.Name = "labelMinuteEnd";
-            // 
-            // AddParameterInConfigItem
-            // 
-            this.AddParameterInConfigItem.Name = "AddParameterInConfigItem";
-            resources.ApplyResources(this.AddParameterInConfigItem, "AddParameterInConfigItem");
-            this.AddParameterInConfigItem.Click += new System.EventHandler(this.AddParameterInConfigItem_Click);
             // 
             // WinFormASTA
             // 
