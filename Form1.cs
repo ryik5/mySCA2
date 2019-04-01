@@ -33,6 +33,11 @@ namespace ASTA
         readonly byte[] btsMess1 = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
         readonly byte[] btsMess2 = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
 
+        static string[] allParametersOfConfig = new string[] {
+                "SKDServer" , "SKDUser", "SKDUserPassword",
+                "MySQLServer", "MySQLUser", "MySQLUserPassword",
+                "MailServer","MailUser","MailUserPassword"
+            };
 
         string nameOfLastTableFromDB = "PersonRegistrationsList";
         string currentAction = "";
@@ -656,7 +661,8 @@ namespace ASTA
                                         _comboBoxAdd(comboBoxFio, record["ComboList"].ToString().Trim());
                                         iCombo++;
                                     }
-                                } catch (Exception expt) { logger.Info(expt.ToString()); }
+                                }
+                                catch (Exception expt) { logger.Info(expt.ToString()); }
                             }
                         }
                     }
@@ -672,99 +678,53 @@ namespace ASTA
                             }
                         }
                     }
-
-                    using (var sqlCommand = new SQLiteCommand("SELECT EquipmentParameterName, EquipmentParameterValue, EquipmentParameterServer, Reserv1, Reserv2  FROM EquipmentSettings;", sqlConnection))
-                    {
-                        using (var reader = sqlCommand.ExecuteReader())
-                        {
-                            foreach (DbDataRecord record in reader)
-                            {
-                                try
-                                {
-                                    if (record["EquipmentParameterValue"]?.ToString()?.Length > 0)
-                                    {
-                                        if (record["EquipmentParameterValue"]?.ToString()?.Trim() == "SKDServer" && record["EquipmentParameterName"]?.ToString()?.Trim() == "SKDUser")
-                                        {
-                                            sServer1DB = record["EquipmentParameterServer"]?.ToString();
-
-                                            //todo - check to need try
-                                            if (record["Reserv1"]?.ToString()?.Length > 0)
-                                                try { sServer1UserNameDB = EncryptionDecryptionCriticalData.DecryptBase64ToString(record["Reserv1"].ToString(), btsMess1, btsMess2); } catch { }
-                                            //todo - check to need try
-                                            if (record["Reserv2"]?.ToString()?.Length > 0)
-                                                try { sServer1UserPasswordDB = EncryptionDecryptionCriticalData.DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2); } catch { }
-                                        }
-                                        else if (record["EquipmentParameterValue"]?.ToString()?.Trim() == "MailServer" && record["EquipmentParameterName"]?.ToString()?.Trim() == "MailUser")
-                                        {
-                                            mailServerDB = record["EquipmentParameterServer"]?.ToString();
-                                            mailServerUserNameDB = record["Reserv1"]?.ToString();
-
-                                            //todo - check to need try
-                                            if (record["Reserv2"]?.ToString()?.Length > 0)
-                                                try { mailServerUserPasswordDB = EncryptionDecryptionCriticalData.DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2); } catch { }
-                                        }
-                                        else if (record["EquipmentParameterValue"]?.ToString()?.Trim() == "MySQLServer" && record["EquipmentParameterName"]?.ToString()?.Trim() == "MySQLUser")
-                                        {
-                                            mysqlServerDB = record["EquipmentParameterServer"]?.ToString();
-                                            mysqlServerUserNameDB = record["Reserv1"]?.ToString();
-
-                                            //todo - check to need try
-                                            if (record["Reserv2"]?.ToString()?.Length > 0)
-                                                try { mysqlServerUserPasswordDB = EncryptionDecryptionCriticalData.DecryptBase64ToString(record["Reserv2"].ToString(), btsMess1, btsMess2); } catch { }
-                                        }
-                                    }
-                                } catch (Exception expt) { logger.Info(expt.ToString()); }
-                            }
-                        }
-                    }
                 }
 
 
                 //loading parameters
                 listParameters = new List<ParameterConfig>();
+
                 ParameterOfConfigurationInSQLiteDB parameters = new ParameterOfConfigurationInSQLiteDB();
                 parameters.databasePerson = databasePerson;
                 listParameters = parameters.GetParameters("%%").FindAll(x => x.isExample == "no"); //load only real data
 
-                DEFAULT_DAY_OF_SENDING_REPORT = listParameters.FindLast(x => x.parameterName == @"DEFAULT_DAY_OF_SENDING_REPORT")?.parameterValue != null ?
-                   listParameters.FindLast(x => x.parameterName == @"DEFAULT_DAY_OF_SENDING_REPORT")?.parameterValue :
-                   "28";
+                    DEFAULT_DAY_OF_SENDING_REPORT = GetValueOfConfigParameter(listParameters, @"DEFAULT_DAY_OF_SENDING_REPORT", "28");
+                    DEFAULT_RECEIVING_PORT_MAILSERVER = GetValueOfConfigParameter(listParameters, @"DEFAULT_RECEIVING_PORT_MAILSERVER", "587");
+                    clrRealRegistrationRegistry = Color.FromName(GetValueOfConfigParameter(listParameters, @"clrRealRegistration", "PaleGreen"));
 
-                DEFAULT_RECEIVING_PORT_MAILSERVER = listParameters.FindLast(x => x.parameterName == @"DEFAULT_RECEIVING_PORT_MAILSERVER")?.parameterValue != null ?
-                   listParameters.FindLast(x => x.parameterName == @"DEFAULT_RECEIVING_PORT_MAILSERVER")?.parameterValue :
-                   "587";
+                    sServer1DB = GetValueOfConfigParameter(listParameters, @"SKDServer", null);
+                    sServer1UserNameDB = GetValueOfConfigParameter(listParameters, @"SKDUser", null);
+                    sServer1UserPasswordDB = GetValueOfConfigParameter(listParameters, @"SKDUserPassword", null, true);
 
-                clrRealRegistrationRegistry = Color.FromName(listParameters.FindLast(x => x.parameterName == @"clrRealRegistration")?.parameterValue != null ?
-                  listParameters.FindLast(x => x.parameterName == @"clrRealRegistration")?.parameterValue :
-                  "PaleGreen");
+                    mysqlServerDB = GetValueOfConfigParameter(listParameters, @"MySQLServer", null);
+                    mysqlServerUserNameDB = GetValueOfConfigParameter(listParameters, @"MySQLUser", null);
+                    mysqlServerUserPasswordDB = GetValueOfConfigParameter(listParameters, @"MySQLUserPassword", null, true);
 
-                // todo
-                // move here functions to load all parameters in localDB
-
-                // todo
-                // the same way of saving
-
+                    mailServerDB = GetValueOfConfigParameter(listParameters, @"MailServer", null);
+                    mailServerUserNameDB = GetValueOfConfigParameter(listParameters, @"MailUser", null);
+                    mailServerUserPasswordDB = GetValueOfConfigParameter(listParameters, @"MailUserPassword", null, true);
+                
                 listParameters = null;
                 parameters = null;
             }
-
+            
             try { comboBoxFio.SelectedIndex = 0; } catch { }
 
             using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(myRegKey, Microsoft.Win32.RegistryKeyPermissionCheck.ReadSubTree, System.Security.AccessControl.RegistryRights.ReadKey))
             {
-                try { sServer1Registry = EvUserKey.GetValue("SKDServer").ToString().Trim(); } catch { logger.Warn("Registry GetValue SKDServer"); }
-                try { sServer1UserNameRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey.GetValue("SKDUser").ToString(), btsMess1, btsMess2).ToString().Trim(); } catch { }
-                try { sServer1UserPasswordRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey.GetValue("SKDUserPassword").ToString(), btsMess1, btsMess2).ToString().Trim(); } catch { }
+                try { sServer1Registry = EvUserKey?.GetValue("SKDServer")?.ToString(); } catch { logger.Warn("Registry GetValue SKDServer"); }
+                try { sServer1UserNameRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey?.GetValue("SKDUser")?.ToString(), btsMess1, btsMess2).ToString(); } catch { }
+                try { sServer1UserPasswordRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey?.GetValue("SKDUserPassword")?.ToString(), btsMess1, btsMess2).ToString(); } catch { }
 
-                try { mailServerRegistry = EvUserKey.GetValue("MailServer").ToString().Trim(); } catch { logger.Warn("Registry GetValue Mail"); }
-                try { mailServerUserNameRegistry = EvUserKey.GetValue("MailUser").ToString().Trim(); } catch { }
-                try { mailServerUserPasswordRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey.GetValue("MailUserPassword").ToString(), btsMess1, btsMess2).ToString().Trim(); } catch { }
+                try { mailServerRegistry = EvUserKey?.GetValue("MailServer")?.ToString(); } catch { logger.Warn("Registry GetValue Mail"); }
+                try { mailServerUserNameRegistry = EvUserKey?.GetValue("MailUser")?.ToString(); } catch { }
+                try { mailServerUserPasswordRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey?.GetValue("MailUserPassword")?.ToString(), btsMess1, btsMess2).ToString(); } catch { }
 
-                try { mysqlServerRegistry = EvUserKey.GetValue("MySQLServer").ToString().Trim(); } catch { logger.Warn("Registry GetValue MySQL"); }
-                try { mysqlServerUserNameRegistry = EvUserKey.GetValue("MySQLUser").ToString().Trim(); } catch { }
-                try { mysqlServerUserPasswordRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey.GetValue("MySQLUserPassword").ToString(), btsMess1, btsMess2).ToString().Trim(); } catch { }
+                try { mysqlServerRegistry = EvUserKey?.GetValue("MySQLServer")?.ToString() ; } catch { logger.Warn("Registry GetValue MySQL"); }
+                try { mysqlServerUserNameRegistry = EvUserKey?.GetValue("MySQLUser")?.ToString(); } catch { }
+                try { mysqlServerUserPasswordRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey?.GetValue("MySQLUserPassword")?.ToString(), btsMess1, btsMess2).ToString(); } catch { }
 
-                try { modeApp = EvUserKey.GetValue("ModeApp").ToString().Trim(); } catch { logger.Warn("Registry GetValue ModeApp"); }
+                try { modeApp = EvUserKey?.GetValue("ModeApp")?.ToString(); } catch { logger.Warn("Registry GetValue ModeApp"); }
             }
             switch (modeApp)
             {
@@ -783,6 +743,14 @@ namespace ASTA
             if (numberOfFio > 0)
             { _MenuItemVisible(listFioItem, true); }
         }
+        
+        private string GetValueOfConfigParameter(List<ParameterConfig> listOfParameters, string nameParameter, string defaultValue, bool pass = false)
+        {
+                return listOfParameters.FindLast(x => x.parameterName == nameParameter)?.parameterValue != null ?
+                       listParameters.FindLast(x => x.parameterName == nameParameter)?.parameterValue :
+                       defaultValue; 
+        }
+
 
         private void AddParameterInConfigItem_Click(object sender, EventArgs e)
         {
@@ -799,10 +767,26 @@ namespace ASTA
             btnPropertiesSave.Click += new EventHandler(ButtonPropertiesSave_inConfig);
 
             listParameters = new List<ParameterConfig>();
-
             ParameterOfConfigurationInSQLiteDB parameter = new ParameterOfConfigurationInSQLiteDB();
+
             parameter.databasePerson = databasePerson;
             listParameters = parameter.GetParameters("%%");
+
+            foreach (string sParameter in allParametersOfConfig)
+            {
+                if (!(listParameters.FindLast(x => x.parameterName == sParameter)?.parameterValue?.Length > 0))
+                {
+                    listParameters.Add(new ParameterConfig()
+                    {
+                        parameterName = sParameter,
+                        parameterDescription = "Example",
+                        parameterValue = "",
+                        isPassword = false,
+                        isExample = "yes"
+                    });
+                }
+            }
+
             // listParameters = parameter.GetParameters("%%").FindAll(x => x.isExample != "no"); //load only real data
 
             InitializeParameterFormSettings(listParameters);
@@ -815,9 +799,10 @@ namespace ASTA
             periodCombo = new ListBox
             {
                 Location = new Point(20, 120),
-                Size = new Size(590, 60),
+                Size = new Size(590, 100),
                 Parent = groupBoxProperties,
                 DrawMode = DrawMode.OwnerDrawFixed,
+                Sorted=true
             };
 
             periodCombo.DrawItem += new DrawItemEventHandler(ListBox_DrawItem);
@@ -858,7 +843,7 @@ namespace ASTA
 
             checkBox1 = new CheckBox
             {
-                Text = "Данные шифровать",
+                Text = "Данные хранить зашифрованными",
                 BackColor = Color.PaleGreen,
                 Location = new Point(20, 91),
                 Size = new Size(590, 22),
@@ -895,11 +880,17 @@ namespace ASTA
             string result = _listBoxReturnSelected(sender as ListBox);
             string tooltip = "";
 
-            checkBox1.Checked = listParameters.Find(x => x.parameterName == result).isPassword;
+            checkBox1.Checked = false;
+            labelServer1.Text = "";
+            labelSettings9.Text = "";
+            textBoxSettings16.Text = "";
+            toolTip1.SetToolTip(textBoxSettings16, tooltip);
+            
+            checkBox1.Checked = listParameters.FindLast(x => x.parameterName == result).isPassword;
             labelServer1.Text = result;
-            labelSettings9.Text = listParameters.Find(x => x.parameterName == result).parameterDescription;
-            textBoxSettings16.Text = listParameters.Find(x => x.parameterName == result).parameterValue;
-            tooltip = listParameters.Find(x => x.parameterName == result).parameterDescription;
+            labelSettings9.Text = listParameters.FindLast(x => x.parameterName == result)?.parameterDescription;
+            textBoxSettings16.Text = listParameters.FindLast(x => x.parameterName == result)?.parameterValue;
+            tooltip = listParameters.FindLast(x => x.parameterName == result)?.parameterDescription;
             toolTip1.SetToolTip(textBoxSettings16, tooltip);
         }
 
@@ -935,7 +926,7 @@ namespace ASTA
             parameter.isPassword = checkBox1.Checked;
             parameter.isExample = "no";
             resultSaving = parameter.SaveParameter();
-            MessageBox.Show(resultSaving);
+            MessageBox.Show(parameter.ParameterName+"="+ parameter.ParameterValue + "\n"+resultSaving);
 
             DisposeTemporaryControls();
             _controlVisible(panelView, true);
@@ -1195,20 +1186,23 @@ namespace ASTA
         }
 
 
-        private void CheckAliveIntellectServer(string serverName, string userName, string userPasswords) //Get the list of registered users
+        private void CheckAliveIntellectServer(string serverName, string userName, string userPasswords) //Check alive the SKD Intellect-server and its DB's 'intellect'
         {
             bServer1Exist = false;
             string stringConnection;
-            // _toolStripStatusLabelSetText(StatusLabel2, "Проверка доступности " + serverName + ". Ждите окончания процесса...");
-            stimerPrev = "Проверка доступности " + serverName + ". Ждите окончания процесса...";
+             _toolStripStatusLabelSetText(StatusLabel2, "Проверка доступности " + serverName + ". Ждите окончания процесса...");
+
             stringConnection = "Data Source=" + serverName + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + userName + ";Password=" + userPasswords + "; Connect Timeout=5";
 
             try
             {
+                logger.Trace("CheckAliveIntellectServer: " + stringConnection);
                 using (var sqlConnection = new System.Data.SqlClient.SqlConnection(stringConnection))
                 {
                     sqlConnection.Open();
-                    string query = "SELECT id FROM OBJ_EMPLOYEE ";
+                    string query = "SELECT database_id FROM sys.databases WHERE Name ='intellect' ";
+                    logger.Trace("CheckAliveIntellectServer: " + query);
+
                     using (var sqlCommand = new System.Data.SqlClient.SqlCommand(query, sqlConnection))
                     {
                         using (var sqlReader = sqlCommand.ExecuteReader())
@@ -1217,14 +1211,17 @@ namespace ASTA
                         }
                     }
                 }
-            } catch
-            { bServer1Exist = false; }
+            }
+            catch (Exception expt)
+            {
+                bServer1Exist = false;
+                logger.Info(expt.ToString());
+            }
 
             if (!bServer1Exist)
             {
                 _toolStripStatusLabelSetText(StatusLabel2, "Ошибка доступа к " + serverName + " SQL БД СКД-сервера!");
                 _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
-                stimerPrev = serverName + " не доступен или неправильная авторизация";
             }
 
             stringConnection = null;
@@ -1272,13 +1269,10 @@ namespace ASTA
         }
 
         static DataTable dtTempIntermediate;
-        // static List<PersonCodeEmail> personCodeEmails = new List<PersonCodeEmail>();
         static List<PeopleShift> peopleShifts = new List<PeopleShift>();
-
         private void DoListsFioGroupsMailings()  //  GetDataFromRemoteServers()  ImportTablePeopleToTableGroupsInLocalDB()
         {
             _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные с серверов...");
-
             GetUsersFromAD();
 
             dtTempIntermediate = dtPeople.Clone();
@@ -1288,6 +1282,7 @@ namespace ASTA
             WriteGroupsMailingsInLocalDb(dtTempIntermediate, peopleShifts);
 
             _toolStripStatusLabelSetText(StatusLabel2, "Записываю ФИО в локальную базу...");
+
             WritePeopleInLocalDB(databasePerson.ToString(), dtTempIntermediate);
             // ImportListGroupsDescriptionInLocalDB
 
@@ -1297,11 +1292,8 @@ namespace ASTA
                 dtPersonTemp = GetDistinctRecords(dtTempIntermediate, namesDistinctColumnsArray);
                 ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenColumnsFIO, "ListFIO");
                 _toolStripStatusLabelSetText(StatusLabel2, "Списки ФИО и департаментов получены.");
-                stimerPrev = "Списки ФИО и департаментов получены";
                 namesDistinctColumnsArray = null;
             }
-            // dtTempIntermediate?.Clear();
-            //  dtTempIntermediate?.Dispose();
         }
 
 
@@ -1329,7 +1321,6 @@ namespace ASTA
 
             _comboBoxClr(comboBoxFio);
             _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю данные с " + sServer1 + ". Ждите окончания процесса...");
-            stimerPrev = "Запрашиваю списки персонала с " + sServer1 + ". Ждите окончания процесса...";
             stringConnection = "Data Source=" + sServer1 + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=60";
             logger.Trace(stringConnection);
 
@@ -1367,7 +1358,7 @@ namespace ASTA
                     sqlConnection.Open();
 
                     //import group from SCA server
-                    query = "SELECT id,level_id,name,owner_id,parent_id,region_id,schedule_id  FROM OBJ_DEPARTMENT";
+                    query = "SELECT id,level_id,name,owner_id,parent_id,region_id,schedule_id FROM OBJ_DEPARTMENT";
                     logger.Trace(query);
                     using (var sqlCommand = new System.Data.SqlClient.SqlCommand(query, sqlConnection))
                     {
@@ -1393,7 +1384,7 @@ namespace ASTA
                     }
 
                     //import users from с SCA server
-                    query = "SELECT id, name, surname, patronymic, post, tabnum, parent_id, facility_code, card FROM OBJ_EMPLOYEE WHERE is_locked LIKE'0' AND facility_code NOT LIKE '' AND card NOT LIKE '' ";
+                    query = "SELECT id, name, surname, patronymic, post, tabnum, parent_id, facility_code, card FROM OBJ_PERSON WHERE is_locked = '0' AND facility_code NOT LIKE '' AND card NOT LIKE '' ";
                     logger.Trace(query);
                     using (var sqlCommand = new System.Data.SqlClient.SqlCommand(query, sqlConnection))
                     {
@@ -1443,7 +1434,6 @@ namespace ASTA
                 // import users, shifts and group from web DB
                 int tmpSeconds = 0;
                 _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...");
-                stimerPrev = "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...";
 
                 groupName = mysqlServer;
                 /* groups.Add(new DepartmentFull()
@@ -1629,7 +1619,6 @@ namespace ASTA
                 dataTablePeople.AcceptChanges();
                 logger.Trace("departments.count: " + departments.Count);
                 _toolStripStatusLabelSetText(StatusLabel2, "ФИО и наименования департаментов получены.");
-                stimerPrev = "ФИО и наименования департаментов получены";
             } catch (Exception expt)
             {
                 logger.Info("Возникла ошибка во время получения и обработки данных с серверов: " + expt.ToString());
@@ -1886,7 +1875,6 @@ namespace ASTA
 
             _ProgressWork1Step(1);
             _toolStripStatusLabelSetText(StatusLabel2, "Списки ФИО и департаментов получены.");
-            stimerPrev = "Списки ФИО и департаментов получены";
         }
 
         private void listFioItem_Click(object sender, EventArgs e) //ListFioReturn()
@@ -1925,7 +1913,6 @@ namespace ASTA
 
             logger.Trace("В таблице " + dataTable.TableName + " столбцов всего - " + dtExport.Columns.Count + ", строк - " + dtExport.Rows.Count);
             _toolStripStatusLabelSetText(StatusLabel2, "Генерирую Excel-файл по отчету: '" + nameReport + "'");
-            stimerPrev = "Генерирую Excel-файл по отчету: " + nameReport;
             _ProgressWork1Step(1);
 
             try
@@ -2106,7 +2093,6 @@ namespace ASTA
                 _ProgressWork1Step(1);
 
                 _toolStripStatusLabelSetText(StatusLabel2, "Отчет сохранен в файл: " + filePath);
-                stimerPrev = "Отчет сохранен в файл: " + filePath;
                 _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
                 reportExcelReady = true;
             } catch (Exception expt)
@@ -2822,7 +2808,6 @@ namespace ASTA
             if (bServer1Exist)
             {
                 await Task.Run(() => GetData());
-                stimerPrev = "";
 
                 _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
                 _MenuItemBackColorChange(LoadDataItem, SystemColors.Control);
@@ -2964,7 +2949,6 @@ namespace ASTA
                 nameOfLastTableFromDB == "ListFIO" || doPostAction == "sendEmail") && nameGroup.Length > 0)
             {
                 _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по группе " + nameGroup);
-                stimerPrev = "Получаю данные по группе " + nameGroup;
                 //  if (doPostAction != "sendEmail")
                 {
                     dtPeopleGroup.Clear();
@@ -3008,7 +2992,6 @@ namespace ASTA
                 person.FIO = _textBoxReturnText(textBoxFIO);
 
                 _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по \"" + ShortFIO(person.FIO) + "\" ");
-                stimerPrev = "Получаю данные по \"" + ShortFIO(person.FIO) + "\"";
 
                 person.GroupPerson = "One Person";
                 person.Department = "";
@@ -3062,7 +3045,7 @@ namespace ASTA
                 {
                     sqlConnection.Open();
 
-                    query = "Select id, tabnum FROM OBJ_EMPLOYEE where tabnum like '" + person.NAV + "';";
+                    query = "Select id, tabnum FROM OBJ_PERSON where tabnum like '" + person.NAV + "';";
                     using (var cmd = new System.Data.SqlClient.SqlCommand(query, sqlConnection))
                     {
                         using (var reader = cmd.ExecuteReader())
@@ -3081,7 +3064,7 @@ namespace ASTA
                     }
 
                     // PassByPoint
-                    query = "Select id, tabnum FROM OBJ_EMPLOYEE where tabnum like '" + person.NAV + "';";
+                    query = "Select id, tabnum FROM OBJ_PERSON where tabnum like '" + person.NAV + "';";
                     using (var cmd = new System.Data.SqlClient.SqlCommand(query, sqlConnection))
                     {
                         using (var reader = cmd.ExecuteReader())
@@ -6599,7 +6582,6 @@ namespace ASTA
                             @"Получатель", @"Отчет по группам", @"Наименование", @"Описание",
                             @"Период", @"Статус", @"Тип отчета", @"День отправки отчета" });
                         _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + dgSeek.values[2]);
-                        stimerPrev = "";
 
                         ExecuteSql("UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToYYYYMMDDHHMM() +
                             "' WHERE RecipientEmail='" + dgSeek.values[0] + "' AND NameReport='" + dgSeek.values[2] +
@@ -6944,7 +6926,6 @@ namespace ASTA
                 if (isDayReport && daySendReport == dt.Day) //send selected report only on inputed day
                 {
                     _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + mailng._nameReport);
-                    stimerPrev = "";
 
                     str = "UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToYYYYMMDDHHMM() +
                         "' WHERE RecipientEmail='" + mailng._recipient +
@@ -7144,7 +7125,6 @@ namespace ASTA
                             {
                                 titleOfbodyMail = "с " + reportStartDay.Split(' ')[0] + " по " + reportLastDay.Split(' ')[0];
                                 _toolStripStatusLabelSetText(StatusLabel2, "Выполняю отправку отчета адресату: " + recipientEmail);
-                                stimerPrev = "Выполняю отправку отчета адресату: " + recipientEmail;
 
                                 SendEmail(senderEmail, recipientEmail, titleOfbodyMail, description, filePathExcelReport, Properties.Resources.LogoRYIK, productName);
 
@@ -7737,12 +7717,14 @@ namespace ASTA
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
+
                     StatusLabel2.Text = s;
                 }));
             else
             {
                 StatusLabel2.Text = s;
             }
+            stimerPrev = s;
             logger.Info(s);
         }
 
