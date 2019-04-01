@@ -940,7 +940,7 @@
     <value>357, 22</value>
   </data>
   <data name="SettingsProgrammItem.Text" xml:space="preserve">
-    <value>Настройки программы</value>
+    <value>Первичная настройка программы</value>
   </data>
   <data name="AddParameterInConfigItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>357, 22</value>
@@ -952,7 +952,7 @@
     <value>357, 22</value>
   </data>
   <data name="ConfigurationItem.Text" xml:space="preserve">
-    <value>Конфигурация ПО</value>
+    <value>Вся конфигурация ПО</value>
   </data>
   <data name="SelectedToLoadCityItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>357, 22</value>
@@ -1692,6 +1692,12 @@
   <data name="&gt;&gt;SettingsProgrammItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="&gt;&gt;AddParameterInConfigItem.Name" xml:space="preserve">
+    <value>AddParameterInConfigItem</value>
+  </data>
+  <data name="&gt;&gt;AddParameterInConfigItem.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="&gt;&gt;ConfigurationItem.Name" xml:space="preserve">
     <value>ConfigurationItem</value>
   </data>
@@ -1835,12 +1841,6 @@
   </data>
   <data name="&gt;&gt;timer1.Type" xml:space="preserve">
     <value>System.Windows.Forms.Timer, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;AddParameterInConfigItem.Name" xml:space="preserve">
-    <value>AddParameterInConfigItem</value>
-  </data>
-  <data name="&gt;&gt;AddParameterInConfigItem.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;$this.Name" xml:space="preserve">
     <value>WinFormASTA</value>
