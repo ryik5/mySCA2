@@ -697,8 +697,8 @@ namespace ASTA
                 //loading parameters
                 listParameters = new List<ParameterConfig>();
 
-                ParameterOfConfigurationInSQLiteDB parameters = new ParameterOfConfigurationInSQLiteDB();
-                parameters.databasePerson = databasePerson;
+                ParameterOfConfigurationInSQLiteDB parameters = new ParameterOfConfigurationInSQLiteDB(databasePerson);
+
                 listParameters = parameters.GetParameters("%%").FindAll(x => x.isExample == "no"); //load only real data
 
                 DEFAULT_DAY_OF_SENDING_REPORT = GetValueOfConfigParameter(listParameters, @"DEFAULT_DAY_OF_SENDING_REPORT", "28");
@@ -780,9 +780,8 @@ namespace ASTA
             btnPropertiesSave.Click += new EventHandler(ButtonPropertiesSave_inConfig);
 
             listParameters = new List<ParameterConfig>();
-            ParameterOfConfigurationInSQLiteDB parameter = new ParameterOfConfigurationInSQLiteDB();
+            ParameterOfConfigurationInSQLiteDB parameter = new ParameterOfConfigurationInSQLiteDB(databasePerson);
 
-            parameter.databasePerson = databasePerson;
             listParameters = parameter.GetParameters("%%");
 
             foreach (string sParameter in allParametersOfConfig)
@@ -930,19 +929,23 @@ namespace ASTA
 
         private void ButtonPropertiesSave_inConfig(object sender, EventArgs e) //SaveProperties()
         {
-            string resultSaving;
-            ParameterOfConfigurationInSQLiteDB parameter = new ParameterOfConfigurationInSQLiteDB();
-            parameter.databasePerson = databasePerson;
-            parameter.ParameterName = labelServer1.Text;
-            parameter.ParameterValue = textBoxSettings16.Text;
-            parameter.ParameterDescription = labelSettings9.Text;
-            parameter.isPassword = checkBox1.Checked;
-            parameter.isExample = "no";
-            resultSaving = parameter.SaveParameter();
-            MessageBox.Show(parameter.ParameterName + "=" + parameter.ParameterValue + "\n" + resultSaving);
+            ParameterOfConfigurationInSQLiteDB parameter = new ParameterOfConfigurationInSQLiteDB(databasePerson);
+
+            ParameterOfConfiguration parameterOfConfiguration = new ParameterOfConfigurationBuilder().
+                SetParameterName(labelServer1.Text).
+                SetParameterValue(textBoxSettings16.Text).
+                SetParameterDescription(labelSettings9.Text).
+                IsPassword(checkBox1.Checked).
+                SetIsExample("no");
+
+            string resultSaving = parameter.SaveParameter(parameterOfConfiguration);
+            MessageBox.Show(parameterOfConfiguration.ParameterName + " (" + parameterOfConfiguration.ParameterValue + ")\n" + resultSaving);
 
             DisposeTemporaryControls();
             _controlVisible(panelView, true);
+
+            parameterOfConfiguration = null;
+            parameter = null;
 
             ShowDataTableDbQuery(databasePerson, "ConfigDB", "SELECT ParameterName AS 'Имя параметра', " +
             "Value AS 'Данные', Description AS 'Описание', DateCreated AS 'Дата создания/модификации'",
@@ -5643,9 +5646,9 @@ namespace ASTA
                 {
                     using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(myRegKey))
                     {
-                        try { EvUserKey.SetValue("SKDServer", server, Microsoft.Win32.RegistryValueKind.String); } catch { }
-                        try { EvUserKey.SetValue("SKDUser", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(user, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
-                        try { EvUserKey.SetValue("SKDUserPassword", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(password, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
+                        try { EvUserKey.SetValue("SKDServer", sServer1, Microsoft.Win32.RegistryValueKind.String); } catch { }
+                        try { EvUserKey.SetValue("SKDUser", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(sServer1UserName, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
+                        try { EvUserKey.SetValue("SKDUserPassword", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(sServer1UserPassword, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
 
                         try { EvUserKey.SetValue("MailServer", mailServer, Microsoft.Win32.RegistryValueKind.String); } catch { }
                         try { EvUserKey.SetValue("MailUser", mailServerUserName, Microsoft.Win32.RegistryValueKind.String); } catch { }
@@ -5655,32 +5658,94 @@ namespace ASTA
                         try { EvUserKey.SetValue("MySQLUser", mysqlServerUserName, Microsoft.Win32.RegistryValueKind.String); } catch { }
                         try { EvUserKey.SetValue("MySQLUserPassword", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(mysqlServerUserPassword, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
 
-                        logger.Info("Данные в реестре сохранены");
+                        logger.Info("CreateSubKey: Данные в реестре сохранены");
                     }
                 }
-                catch { logger.Error("CreateSubKey. Ошибки с доступом на запись в реестр. Данные сохранены не корректно."); }
+                catch(Exception expt) { logger.Error("CreateSubKey: Ошибки с доступом на запись в реестр. Данные сохранены не корректно. "+ expt.ToString()); }
+
+                {
+                    string resultSaving = "";
+                    ParameterOfConfigurationInSQLiteDB parameterSQLite = new ParameterOfConfigurationInSQLiteDB(databasePerson);
+
+                    ParameterOfConfiguration parameterOfConfiguration = new ParameterOfConfigurationBuilder().
+                        SetParameterName("SKDServer").
+                        SetParameterValue(sServer1).
+                        SetParameterDescription("URI SKD-сервера").
+                        IsPassword(false).
+                        SetIsExample("no");
+                    resultSaving += parameterOfConfiguration.ParameterName + " " + parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
+                    parameterOfConfiguration = new ParameterOfConfigurationBuilder().
+                        SetParameterName("SKDUser").
+                        SetParameterValue(sServer1UserName?.Length > 0 ? EncryptionDecryptionCriticalData.EncryptStringToBase64Text(sServer1UserName, btsMess1, btsMess2) : "").
+                        SetParameterDescription("SKD MSSQL User's Name").
+                        IsPassword(true).
+                        SetIsExample("no");
+                    resultSaving += parameterOfConfiguration.ParameterName + " " + parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
+                    parameterOfConfiguration = new ParameterOfConfigurationBuilder().
+                        SetParameterName("SKDUserPassword").
+                        SetParameterValue(sServer1UserPassword?.Length > 0 ? EncryptionDecryptionCriticalData.EncryptStringToBase64Text(sServer1UserPassword, btsMess1, btsMess2) : "").
+                        SetParameterDescription("SKD MSSQL User's Password").
+                        IsPassword(true).
+                        SetIsExample("no");
+                    resultSaving += parameterOfConfiguration.ParameterName + " " + parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
 
 
+                    parameterOfConfiguration = new ParameterOfConfigurationBuilder().
+                        SetParameterName("MailServer").
+                        SetParameterValue(mailServer).
+                        SetParameterDescription("URI Mail-серверa").
+                        IsPassword(false).
+                        SetIsExample("no");
+                    resultSaving += parameterOfConfiguration.ParameterName + " " + parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
+                    parameterOfConfiguration = new ParameterOfConfigurationBuilder().
+                        SetParameterName("MailUser").
+                        SetParameterValue(mailServerUserName).
+                        SetParameterDescription("Senders E-Mail").
+                        IsPassword(false).
+                        SetIsExample("no");
+                    resultSaving += parameterOfConfiguration.ParameterName + " " + parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
+                    parameterOfConfiguration = new ParameterOfConfigurationBuilder().
+                        SetParameterName("MailUserPassword").
+                        SetParameterValue(mailServerUserPassword?.Length > 0 ? EncryptionDecryptionCriticalData.EncryptStringToBase64Text(mailServerUserPassword, btsMess1, btsMess2) : "").
+                        SetParameterDescription("Password of sender of e-mails").
+                        IsPassword(true).
+                        SetIsExample("no");
+                    resultSaving += parameterOfConfiguration.ParameterName + " " + parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
 
 
-                ParameterOfConfigurationInSQLiteDB parameters = new ParameterOfConfigurationInSQLiteDB();
-                parameters.databasePerson = databasePerson;
-                listParameters = parameters.GetParameters("%%").FindAll(x => x.isExample == "no"); //load only real data
+                    parameterOfConfiguration = new ParameterOfConfigurationBuilder().
+                        SetParameterName("MySQLServer").
+                        SetParameterValue(mysqlServer).
+                        SetParameterDescription("URI MySQL серверa (www)").
+                        IsPassword(false).
+                        SetIsExample("no");
+                    resultSaving += parameterOfConfiguration.ParameterName + " " + parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
+                    parameterOfConfiguration = new ParameterOfConfigurationBuilder().
+                        SetParameterName("MySQLUser").
+                        SetParameterValue(mysqlServerUserName).
+                        SetParameterDescription("MySQL User login").
+                        IsPassword(false).
+                        SetIsExample("no");
+                    resultSaving += parameterOfConfiguration.ParameterName + " " + parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
+                    parameterOfConfiguration = new ParameterOfConfigurationBuilder().
+                        SetParameterName("MySQLUserPassword").
+                        SetParameterValue(mysqlServerUserPassword?.Length > 0 ? EncryptionDecryptionCriticalData.EncryptStringToBase64Text(mysqlServerUserPassword, btsMess1, btsMess2) : "").
+                        SetParameterDescription("Password of MySQL User").
+                        IsPassword(true).
+                        SetIsExample("no");
+                    resultSaving += parameterOfConfiguration.ParameterName + " " + parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
 
-                sServer1DB = GetValueOfConfigParameter(listParameters, @"SKDServer", null);
-                sServer1UserNameDB = GetValueOfConfigParameter(listParameters, @"SKDUser", null);
-                sServer1UserPasswordDB = GetValueOfConfigParameter(listParameters, @"SKDUserPassword", null, true);
+                    MessageBox.Show(parameterOfConfiguration.ParameterName + " (" + parameterOfConfiguration.ParameterValue + ")\n" + resultSaving);
 
-                mysqlServerDB = GetValueOfConfigParameter(listParameters, @"MySQLServer", null);
-                mysqlServerUserNameDB = GetValueOfConfigParameter(listParameters, @"MySQLUser", null);
-                mysqlServerUserPasswordDB = GetValueOfConfigParameter(listParameters, @"MySQLUserPassword", null, true);
+                    DisposeTemporaryControls();
+                    _controlVisible(panelView, true);
 
-                mailServerDB = GetValueOfConfigParameter(listParameters, @"MailServer", null);
-                mailServerUserNameDB = GetValueOfConfigParameter(listParameters, @"MailUser", null);
-                mailServerUserPasswordDB = GetValueOfConfigParameter(listParameters, @"MailUserPassword", null, true);
-
-
-
+                    parameterOfConfiguration = null;
+                    parameterSQLite = null;
+                    resultSaving = null;
+                }
+                
+                /*
                 if (databasePerson.Exists)
                 {
                     using (SQLiteConnection sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
@@ -5728,11 +5793,19 @@ namespace ASTA
                         sqlCommand1.Dispose();
                     }
                 }
+                */
+
+                ShowDataTableDbQuery(databasePerson, "ConfigDB", "SELECT ParameterName AS 'Имя параметра', " +
+                "Value AS 'Данные', Description AS 'Описание', DateCreated AS 'Дата создания/модификации'",
+                " ORDER BY ParameterName asc, DateCreated desc; ");
+
+
             }
             else
             {
                 GetInfoSetup();
             }
+            server = user = password = sMailServer = sMailUser = sMailUserPassword = sMySqlServer = sMySqlServerUser = sMySqlServerUserPassword=null;
         }
 
         private void ClearRegistryItem_Click(object sender, EventArgs e) //ClearRegistryData()
@@ -8434,8 +8507,8 @@ namespace ASTA
             staffAD = new List<StaffAD>();
 
             listParameters = new List<ParameterConfig>();
-            ParameterOfConfigurationInSQLiteDB parameters = new ParameterOfConfigurationInSQLiteDB();
-            parameters.databasePerson = databasePerson;
+            ParameterOfConfigurationInSQLiteDB parameters = new ParameterOfConfigurationInSQLiteDB(databasePerson);
+
             listParameters = parameters.GetParameters("%%").FindAll(x => x.isExample == "no"); //load only real data
 
             try
