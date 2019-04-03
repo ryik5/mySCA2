@@ -86,6 +86,8 @@ namespace ASTA
         static string DEFAULT_RECEIVING_PORT_MAILSERVER = "587";
         static string DEFAULT_DAY_OF_SENDING_REPORT = "28";
         static bool mailSent = false; //the flag of sending data
+        const string RECEPIENTS_OF_REPORTS = @"Получатель рассылки";
+
 
         //Page of Mailing
         Label labelMailServerName;
@@ -203,7 +205,7 @@ namespace ASTA
         const string EMPLOYEE_BEING_LATE = @"Опоздание ЧЧ:ММ";
         const string EMPLOYEE_EARLY_DEPARTURE = @"Ранний уход ЧЧ:ММ";
         const string EMPLOYEE_PLAN_TIME_WORKED = @"Отработанное время ЧЧ:ММ";
-        const string EMPLOYEE_TIME_SPENT = @"Реальное отработанное время";
+        const string EMPLOYEE_TIME_SPENT = @"Реальное отработанное время"; 
 
         //DataTables with people data
         DataTable dtPeople = new DataTable("People");
@@ -2233,7 +2235,7 @@ namespace ASTA
             UpdateAmountAndRecepientOfPeopleGroupDesciption();
 
             ShowDataTableDbQuery(databasePerson, "PeopleGroupDesciption",
-                "SELECT GroupPerson AS 'Группа', GroupPersonDescription AS 'Описание группы', AmountStaffInDepartment AS 'Колличество сотрудников в группе', Recipient AS 'Получатель рассылки' ", " group by GroupPerson ORDER BY GroupPerson asc; ");
+                "SELECT GroupPerson AS 'Группа', GroupPersonDescription AS 'Описание группы', AmountStaffInDepartment AS 'Колличество сотрудников в группе', Recipient AS '"+ RECEPIENTS_OF_REPORTS+"' ", " group by GroupPerson ORDER BY GroupPerson asc; ");
 
             LoadDataItem.BackColor = Color.PaleGreen;
             groupBoxPeriod.BackColor = Color.PaleGreen;
@@ -2335,7 +2337,7 @@ namespace ASTA
                                 {
                                     if (tmpRec.Length == 0)
                                     { tmpRec += record["RecipientEmail"]?.ToString(); }
-                                    else { tmpRec += ", " + record["RecipientEmail"]?.ToString(); }
+                                    else { tmpRec += "; " + record["RecipientEmail"]?.ToString(); }
                                 }
                             }
                         }
@@ -3683,36 +3685,44 @@ namespace ASTA
 
                         switch (exceptReason)
                         {
-                            case "2":
-                            case "10":
-                            case "11":
-                            case "18":
+                            case "2": //Отпуск
+                            case "10": //Отпуск по беременности и родам
+                            case "11": //Отпуск по уходу за ребёнком
+                                       //  case "18": //Согласованное отсутствие (менее < 3 часов)
+                                rowDtStoring[EMPLOYEE_EARLY_DEPARTURE] = "";
+                                rowDtStoring[EMPLOYEE_BEING_LATE] = "";
                                 if (typeReport == "Полный")
                                 { rowDtStoring[@"Отпуск"] = outResons.Find((x) => x._id == exceptReason)?._visibleName; }
                                 else if (typeReport == "Упрощенный")
                                 { rowDtStoring[@"Отпуск"] = "1"; }
                                 break;
-                            case "3":
-                            case "21":
+                            case "3": //Больничный
+                            case "21": //Больничный 0,5 (менее < 5 часов)
+                                rowDtStoring[EMPLOYEE_EARLY_DEPARTURE] = "";
+                                rowDtStoring[EMPLOYEE_BEING_LATE] = "";
                                 if (typeReport == "Полный")
                                 { rowDtStoring[EMPLOYEE_SICK_LEAVE] = outResons.Find((x) => x._id == exceptReason)?._visibleName; }
                                 else if (typeReport == "Упрощенный")
                                 { rowDtStoring[EMPLOYEE_SICK_LEAVE] = "1"; }
                                 break;
-                            case "1":
-                            case "9":
-                            case "12":
-                            case "20":
+                            case "1": //Отпуск (за свой счёт)
+                            case "9": //Прогул
+                            case "12": //Отпуск по уходу за ребёнком возрастом до 3-х лет
+                            case "20": //Отпуск за свой счет 0,5 (менее < 5 часов)
+                                rowDtStoring[EMPLOYEE_EARLY_DEPARTURE] = "";
+                                rowDtStoring[EMPLOYEE_BEING_LATE] = "";
                                 if (typeReport == "Полный")
                                 { rowDtStoring[EMPLOYEE_HOOKY] = outResons.Find((x) => x._id == exceptReason)?._visibleName; }
                                 else if (typeReport == "Упрощенный")
                                 { rowDtStoring[EMPLOYEE_HOOKY] = "1"; }
                                 break;
-                            case "4":
-                            case "5":
-                            case "6":
-                            case "7":
+                            case "4": //Командировка
+                            case "5": //Выходной
+                            case "6": //На выезде (по работе)
+                            case "7": //Забыл пропуск
                                 rowDtStoring[EMPLOYEE_SHIFT_COMMENT] = outResons.Find((x) => x._id == exceptReason)?._visibleName;
+                                rowDtStoring[EMPLOYEE_EARLY_DEPARTURE] = "";
+                                rowDtStoring[EMPLOYEE_BEING_LATE] = "";
                                 break;
                             default:
                                 break;
@@ -6343,19 +6353,28 @@ namespace ASTA
             {
                 ContextMenu mRightClick = new ContextMenu();
                 DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-
+                string recepient="";
                 if (nameOfLastTableFromDB == @"PeopleGroupDesciption")
                 {
-                    dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { GROUP, GROUP_DECRIPTION });
+                    dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { GROUP, GROUP_DECRIPTION, RECEPIENTS_OF_REPORTS });
 
                     mRightClick.MenuItems.Add(new MenuItem(text: "&Загрузить данные регистраций группы: '" + dgSeek.values[1] +
                         "' за " + _dateTimePickerStartReturnMonth(), onClick: GetDataItem_Click));
-                    mRightClick.MenuItems.Add(new MenuItem(text: "&Загрузить данные регистраций группы: '" + dgSeek.values[1] +
-                        "' за " + _dateTimePickerStartReturnMonth() + " и &подготовить отчет", onClick: DoReportByRightClick));
                     mRightClick.MenuItems.Add(new MenuItem(text: "Загрузить данные регистраций группы: '" + dgSeek.values[1] +
-                        "' за " + _dateTimePickerStartReturnMonth() + " и &отправить отчет адресату: " + mailServerUserName, onClick: DoReportAndEmailByRightClick));
+                        "' за " + _dateTimePickerStartReturnMonth() + " и &подготовить отчет", onClick: DoReportByRightClick));
+                    if (dgSeek.values[2]?.Length > 0)
+                    {
+                        recepient = dgSeek.values[2];
+                    }
+                    else if (mailServerUserName?.Length>0)
+                    {
+                        recepient = mailServerUserName;
+                    }
+
+                    mRightClick.MenuItems.Add(new MenuItem(text: "Загрузить данные регистраций группы: '" + dgSeek.values[1] +
+                        "' за " + _dateTimePickerStartReturnMonth() + " и &отправить отчет адресату: " + recepient, onClick: DoReportAndEmailByRightClick));
                     mRightClick.MenuItems.Add("-");
-                    mRightClick.MenuItems.Add(new MenuItem(text: "Удалить группу: '" + dgSeek.values[0] + "'(" + dgSeek.values[1] + ")", onClick: DeleteCurrentRow));
+                    mRightClick.MenuItems.Add(new MenuItem(text: "&Удалить группу: '" + dgSeek.values[0] + "'(" + dgSeek.values[1] + ")", onClick: DeleteCurrentRow));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
                 else if (nameOfLastTableFromDB == @"Mailing")
@@ -6497,14 +6516,31 @@ namespace ASTA
         private void DoReportAndEmailByRightClick()
         {
             DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-            dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { GROUP, GROUP_DECRIPTION });
+            dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { GROUP, GROUP_DECRIPTION, RECEPIENTS_OF_REPORTS });
 
             _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет по группе" + dgSeek.values[0]);
-            logger.Trace("DoReportAndEmailByRightClick: " + mailServerUserName + "|" + dgSeek.values[0]);
 
-            MailingAction("sendEmail", mailServerUserName, mailServerUserName,
-            dgSeek.values[0], dgSeek.values[0], "Test", SelectedDatetimePickersPeriodMonth(), "Активная", "Полный", DateTime.Now.ToYYYYMMDDHHMM());
-            _ProgressBar1Stop();
+            if (dgSeek.values[2]?.Length > 0)
+            {
+                foreach (string recepient in dgSeek.values[2].Split(';'))
+                {
+                    MailingAction("sendEmail", recepient.Trim(), mailServerUserName,
+                 dgSeek.values[0], dgSeek.values[0], dgSeek.values[1], SelectedDatetimePickersPeriodMonth(), "Активная", "Упрощенный", DateTime.Now.ToYYYYMMDDHHMM());
+                    _ProgressBar1Stop();
+                }
+            }
+            else if (mailServerUserName?.Length > 0)
+            {
+                MailingAction("sendEmail", mailServerUserName, mailServerUserName,
+             dgSeek.values[0], dgSeek.values[0], dgSeek.values[1], SelectedDatetimePickersPeriodMonth(), "Активная", "Упрощенный", DateTime.Now.ToYYYYMMDDHHMM());
+                _ProgressBar1Stop();
+            }
+            else
+            {
+                _toolStripStatusLabelSetText(StatusLabel2, "Попытка отправить отчет " + dgSeek.values[0] + " не существующему получателю");
+                _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange); //Color.PaleGreen
+                logger.Trace("DoReportAndEmailByRightClick, an unexisted recepient for the report: " + dgSeek.values[0]);
+            }
         }
 
         private void DoReportByRightClick(object sender, EventArgs e)
@@ -6768,7 +6804,7 @@ namespace ASTA
                 _MenuItemBackColorChange(ModeItem, Color.DarkOrange);
 
                 _toolStripStatusLabelSetText(StatusLabel2, "Включен режим рассылки отчетов по почте");
-                _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
+                _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen); //Color.DarkOrange
 
                 try
                 {
@@ -7759,7 +7795,6 @@ namespace ASTA
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
-
                     StatusLabel2.Text = s;
                 }));
             else
