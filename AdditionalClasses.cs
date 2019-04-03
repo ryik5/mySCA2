@@ -54,29 +54,8 @@ string name = comand.ExecuteScalar().ToString();
 label1.Text = name;
 }
 */
-     class ParameterOfConfiguration
-    {
-        public string ParameterName { get; set; }
-        public string ParameterValue { get; set; }
-        public string ParameterDescription { get; set; }
-        public string isExample { get; set; }
-        public bool isPassword { get; set; }
-    }
 
-    class ParameterOfConfigurationBuilder
-    {
-        private ParameterOfConfiguration parameterOfConfiguration;
-        public string ParameterName { get; set; }
-        public string ParameterValue { get; set; }
-        public string ParameterDescription { get; set; }
-        public string isExample { get; set; }
-        public bool isPassword { get; set; }
-        public ParameterOfConfigurationBuilder() {
-            parameterOfConfiguration = new ParameterOfConfiguration();
-        }
-    }
-
-    interface DBParameter
+    interface IDBParameter
     {
         string DBName { get; set; }
         string TableName { get; set; }
@@ -96,8 +75,8 @@ label1.Text = name;
 
         public override string ToString()
         {
-            return parameterName + "\t" + parameterDescription + "\t"+ parameterValue + "\t"+ dateCreated + "\t"+ 
-                isPassword.ToString() + "\t"+ isExample ;
+            return parameterName + "\t" + parameterDescription + "\t" + parameterValue + "\t" + dateCreated + "\t" +
+                isPassword.ToString() + "\t" + isExample;
         }
 
         public override bool Equals(object obj)
@@ -131,27 +110,84 @@ label1.Text = name;
 }
 */
 
+    class ParameterOfConfiguration
+    {
+        public string ParameterName { get; set; }
+        public string ParameterValue { get; set; }
+        public string ParameterDescription { get; set; }
+        public string isExample { get; set; }
+        public bool isPassword { get; set; }
 
-    class ParameterOfConfigurationInSQLiteDB : ParameterOfConfiguration
+        public static ParameterOfConfigurationBuilder CreateParameter()
+        {
+            return new ParameterOfConfigurationBuilder();
+        }        
+    }
+
+    class ParameterOfConfigurationBuilder
+    {
+        private ParameterOfConfiguration parameterOfConfiguration;
+
+        public ParameterOfConfigurationBuilder()
+        {
+            parameterOfConfiguration = new ParameterOfConfiguration();
+        }
+        public ParameterOfConfigurationBuilder SetParameterName(string name)
+        {
+            parameterOfConfiguration.ParameterName = name;
+            return this;
+        }
+        public ParameterOfConfigurationBuilder SetParameterValue(string name)
+        {
+            parameterOfConfiguration.ParameterValue = name;
+            return this;
+        }
+        public ParameterOfConfigurationBuilder SetParameterDescription(string name)
+        {
+            parameterOfConfiguration.ParameterDescription = name;
+            return this;
+        }
+        public ParameterOfConfigurationBuilder SetIsExample(string name)
+        {
+            parameterOfConfiguration.isExample = name;
+            return this;
+        }
+        public ParameterOfConfigurationBuilder IsPassword(bool state)
+        {
+                parameterOfConfiguration.isPassword = state;
+                return this;
+        }
+
+        public static implicit operator ParameterOfConfiguration(ParameterOfConfigurationBuilder parameter)
+        {
+            return parameter.parameterOfConfiguration;
+        }
+    }
+
+
+    class ParameterOfConfigurationInSQLiteDB 
     {
         ParameterOfConfiguration parameterOfConfiguration;
+         System.IO.FileInfo databasePerson;
 
         static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         readonly byte[] btsMess1 = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
         readonly byte[] btsMess2 = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
-        public System.IO.FileInfo databasePerson { get; set; }
 
-      public  ParameterOfConfigurationInSQLiteDB (string parameterName)
+        public ParameterOfConfigurationInSQLiteDB(System.IO.FileInfo _databasePerson)
         {
-            ParameterName = parameterName;
+            databasePerson = _databasePerson;
         }
-        public  string SaveParameter()
+
+        public string SaveParameter(ParameterOfConfiguration _parameterOfConfiguration)
         {
-            if (ParameterName == null || ParameterName.Length == 0)
+            parameterOfConfiguration = _parameterOfConfiguration;
+
+            if (parameterOfConfiguration.ParameterName == null || parameterOfConfiguration.ParameterName.Length == 0)
                 throw new ArgumentNullException("a ParameterName should have a name");
 
-            if (isPassword && (ParameterValue == null || ParameterValue.Length == 0))
+            if (parameterOfConfiguration.isPassword && (parameterOfConfiguration.ParameterValue == null || parameterOfConfiguration.ParameterValue.Length == 0))
                 throw new ArgumentNullException("this ParameterValue can't be empty!");
             else
             {
@@ -164,27 +200,31 @@ label1.Text = name;
                         SQLiteCommand sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
                         sqlCommand1.ExecuteNonQuery();
                         string ParameterValueSave = "";
-                        if (isPassword)
-                        { ParameterValueSave = EncryptionDecryptionCriticalData.EncryptStringToBase64Text(ParameterValue, btsMess1, btsMess2); }
+                        if (parameterOfConfiguration.isPassword)
+                        { ParameterValueSave = EncryptionDecryptionCriticalData.EncryptStringToBase64Text(parameterOfConfiguration.ParameterValue, btsMess1, btsMess2); }
                         else
-                        { ParameterValueSave = ParameterValue; }
+                        { ParameterValueSave = parameterOfConfiguration.ParameterValue; }
 
                         using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'ConfigDB' (ParameterName, Value, Description, DateCreated, IsPassword, IsExample)" +
                                    " VALUES (@ParameterName, @Value, @Description, @DateCreated, @IsPassword, @IsExample)", sqlConnection))
                         {
-                            sqlCommand.Parameters.Add("@ParameterName", DbType.String).Value = ParameterName;
+                            sqlCommand.Parameters.Add("@ParameterName", DbType.String).Value = parameterOfConfiguration.ParameterName;
                             sqlCommand.Parameters.Add("@Value", DbType.String).Value = ParameterValueSave;
-                            sqlCommand.Parameters.Add("@Description", DbType.String).Value = ParameterDescription;
+                            sqlCommand.Parameters.Add("@Description", DbType.String).Value = parameterOfConfiguration.ParameterDescription;
                             sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
-                            sqlCommand.Parameters.Add("@IsPassword", DbType.Boolean).Value = isPassword;
-                            sqlCommand.Parameters.Add("@IsExample", DbType.String).Value = isExample;
+                            sqlCommand.Parameters.Add("@IsPassword", DbType.Boolean).Value = parameterOfConfiguration.isPassword;
+                            sqlCommand.Parameters.Add("@IsExample", DbType.String).Value = parameterOfConfiguration.isExample;
                             try { sqlCommand.ExecuteNonQuery(); } catch { }
                         }
                         sqlCommand1 = new SQLiteCommand("end", sqlConnection);
                         sqlCommand1.ExecuteNonQuery();
                     }
+                    return parameterOfConfiguration.ParameterName + " (" + parameterOfConfiguration.ParameterValue + ")" + " - was saved!";
                 }
-                return ParameterName+" was saved";
+                else
+                {
+                    return parameterOfConfiguration.ParameterName + " - wasn't saved!\n"+ databasePerson.ToString()+" is not exist!";
+                }
             }
         }
 
@@ -205,7 +245,7 @@ label1.Text = name;
                     {
                         using (SQLiteCommand sqlCommand = sqlConnection.CreateCommand())
                         {
-                            if (parameter.Length > 0&& parameter!="%%")
+                            if (parameter.Length > 0 && parameter != "%%")
                             {
                                 sqlCommand.CommandText = @"Select ParameterName, Value, Description, DateCreated, IsPassword, IsExample from ConfigDB where ParameterName=@parameter";
                                 sqlCommand.Parameters.Add(new SQLiteParameter("@parameter") { Value = parameter });
@@ -215,7 +255,7 @@ label1.Text = name;
                                 sqlCommand.CommandText = @"Select ParameterName, Value, Description, DateCreated, IsPassword, IsExample from ConfigDB";
                             }
                             sqlCommand.CommandType = System.Data.CommandType.Text;
-                            logger.Trace("ParameterOfConfigurationInSQLiteDB: "+ sqlCommand.CommandText.ToString());
+                            logger.Trace("ParameterOfConfigurationInSQLiteDB: " + sqlCommand.CommandText.ToString());
                             using (SQLiteDataReader reader = sqlCommand.ExecuteReader())
                             {
                                 while (reader.Read())
@@ -227,7 +267,7 @@ label1.Text = name;
                                         decrypt = reader["IsPassword"]?.ToString();
 
                                         valueTmp = reader["Value"]?.ToString();
-                                        if (decrypt=="1" && valueTmp?.Length > 0)
+                                        if (decrypt == "1" && valueTmp?.Length > 0)
                                         {
                                             value = EncryptionDecryptionCriticalData.DecryptBase64ToString(valueTmp, btsMess1, btsMess2);
                                             parameterConfig.isPassword = true;
@@ -260,7 +300,7 @@ label1.Text = name;
         }
     }
 
-   static class EncryptionDecryptionCriticalData
+    static class EncryptionDecryptionCriticalData
     {
         public static string EncryptStringToBase64Text(string plainText, byte[] Key, byte[] IV) //Encrypt variables PlainText Data
         {
@@ -356,21 +396,21 @@ label1.Text = name;
 
     class MailingStructure
     {
-        public string _sender ;
-        public string _recipient ;
-        public string _groupsReport ;
-        public string _nameReport ;
-        public string _descriptionReport ;
-        public string _period ;
-        public string _status ;
-        public string _typeReport ;
-        public string _dayReport ;
+        public string _sender;
+        public string _recipient;
+        public string _groupsReport;
+        public string _nameReport;
+        public string _descriptionReport;
+        public string _period;
+        public string _status;
+        public string _typeReport;
+        public string _dayReport;
 
         public override string ToString()
         {
-            return _sender + "\t" + _recipient + "\t"+ 
-                _groupsReport + "\t"+ _nameReport + "\t"+ _descriptionReport + "\t"+ _period + "\t"+
-                _status + "\t"+ _typeReport + "\t"+ _dayReport;
+            return _sender + "\t" + _recipient + "\t" +
+                _groupsReport + "\t" + _nameReport + "\t" + _descriptionReport + "\t" + _period + "\t" +
+                _status + "\t" + _typeReport + "\t" + _dayReport;
         }
 
         public override bool Equals(object obj)
@@ -393,11 +433,11 @@ label1.Text = name;
 
     interface IPerson
     {
-         string FIO { get; set; }
-         string NAV { get; set; }
+        string FIO { get; set; }
+        string NAV { get; set; }
     }
 
-    class Person:IPerson
+    class Person : IPerson
     {
         public string FIO { get; set; }
         public string NAV { get; set; }
@@ -425,7 +465,7 @@ label1.Text = name;
         }
     }
 
-    class PersonFull: IPerson
+    class PersonFull : IPerson
     {
         public int idCard;//= 0
         public string FIO { get; set; }//= ""
@@ -445,10 +485,10 @@ label1.Text = name;
 
         public override string ToString()
         {
-            return idCard + "\t" + FIO + "\t" + NAV + "\t" + this.Department + "\t"+ DepartmentId + "\t"+ DepartmentBossCode + "\t"+ 
-                PositionInDepartment + "\t"+ GroupPerson + "\t"+ City + "\t"+ 
-                ControlInSeconds + "\t"+ ControlOutSeconds + "\t"+ ControlInHHMM + "\t"+ ControlOutHHMM + "\t"+
-                Shift + "\t"+ Comment ;
+            return idCard + "\t" + FIO + "\t" + NAV + "\t" + this.Department + "\t" + DepartmentId + "\t" + DepartmentBossCode + "\t" +
+                PositionInDepartment + "\t" + GroupPerson + "\t" + City + "\t" +
+                ControlInSeconds + "\t" + ControlOutSeconds + "\t" + ControlInHHMM + "\t" + ControlOutHHMM + "\t" +
+                Shift + "\t" + Comment;
         }
 
         public override bool Equals(object obj)
@@ -471,10 +511,10 @@ label1.Text = name;
 
     class PassByPoint
     {
-        public string _id ;
-        public string _name ;
-        public string _direction ;
-        public string _server ;
+        public string _id;
+        public string _name;
+        public string _direction;
+        public string _server;
 
         public override string ToString()
         {
@@ -501,10 +541,10 @@ label1.Text = name;
 
     class OutReasons
     {
-        public string _id ;
-        public string _name ;
-        public string _visibleName ;
-        public int _hourly ;
+        public string _id;
+        public string _name;
+        public string _visibleName;
+        public int _hourly;
 
         public override string ToString()
         {
@@ -531,12 +571,12 @@ label1.Text = name;
 
     class OutPerson
     {
-        public string _reason_id ;//= "0"
-        public string _nav ;//= ""
-        public string _date ;//= ""
-        public int _from ;//= 0
-        public int _to ;//= 0
-        public int _hourly ;//= 0
+        public string _reason_id;//= "0"
+        public string _nav;//= ""
+        public string _date;//= ""
+        public int _from;//= 0
+        public int _to;//= 0
+        public int _hourly;//= 0
 
         public override string ToString()
         {
@@ -613,12 +653,12 @@ label1.Text = name;
 
     interface IDepartment
     {
-         string _departmentId { get; set; }
+        string _departmentId { get; set; }
         string _departmentDescription { get; set; }
         string _departmentBossCode { get; set; }
     }
 
-    class Department: IDepartment
+    class Department : IDepartment
     {
         public string _departmentId { get; set; }
         public string _departmentDescription { get; set; }
@@ -655,7 +695,7 @@ label1.Text = name;
 
         public override string ToString()
         {
-            return _departmentId+"\t"+ _departmentDescription+ "\t" + _departmentBossCode + "\t" + _departmentBossEmail;
+            return _departmentId + "\t" + _departmentDescription + "\t" + _departmentBossCode + "\t" + _departmentBossEmail;
         }
 
         public override bool Equals(object obj)
@@ -787,7 +827,7 @@ label1.Text = name;
         //
         public static string ToYYYYMMDD(this DateTime dateTime)
         {
-             return dateTime.ToString("yyyy-MM-dd"); 
+            return dateTime.ToString("yyyy-MM-dd");
         }
 
         public static string ToYYYYMMDDHHMM(this DateTime dateTime)
