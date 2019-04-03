@@ -54,15 +54,26 @@ string name = comand.ExecuteScalar().ToString();
 label1.Text = name;
 }
 */
-    abstract class ParameterOfConfiguration
+     class ParameterOfConfiguration
     {
         public string ParameterName { get; set; }
         public string ParameterValue { get; set; }
         public string ParameterDescription { get; set; }
         public string isExample { get; set; }
         public bool isPassword { get; set; }
-        public abstract string SaveParameter();
-        public abstract List<ParameterConfig> GetParameters(string parameter);
+    }
+
+    class ParameterOfConfigurationBuilder
+    {
+        private ParameterOfConfiguration parameterOfConfiguration;
+        public string ParameterName { get; set; }
+        public string ParameterValue { get; set; }
+        public string ParameterDescription { get; set; }
+        public string isExample { get; set; }
+        public bool isPassword { get; set; }
+        public ParameterOfConfigurationBuilder() {
+            parameterOfConfiguration = new ParameterOfConfiguration();
+        }
     }
 
     interface DBParameter
@@ -123,13 +134,19 @@ label1.Text = name;
 
     class ParameterOfConfigurationInSQLiteDB : ParameterOfConfiguration
     {
+        ParameterOfConfiguration parameterOfConfiguration;
+
         static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         readonly byte[] btsMess1 = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
         readonly byte[] btsMess2 = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
         public System.IO.FileInfo databasePerson { get; set; }
 
-        public override string SaveParameter()
+      public  ParameterOfConfigurationInSQLiteDB (string parameterName)
+        {
+            ParameterName = parameterName;
+        }
+        public  string SaveParameter()
         {
             if (ParameterName == null || ParameterName.Length == 0)
                 throw new ArgumentNullException("a ParameterName should have a name");
@@ -171,7 +188,7 @@ label1.Text = name;
             }
         }
 
-        public override List<ParameterConfig> GetParameters(string parameter)
+        public  List<ParameterConfig> GetParameters(string parameter)
         {
             List<ParameterConfig> parametersConfig = new List<ParameterConfig>(); ;
 
