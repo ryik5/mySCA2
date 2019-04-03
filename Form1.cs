@@ -5660,6 +5660,27 @@ namespace ASTA
                 }
                 catch { logger.Error("CreateSubKey. Ошибки с доступом на запись в реестр. Данные сохранены не корректно."); }
 
+
+
+
+                ParameterOfConfigurationInSQLiteDB parameters = new ParameterOfConfigurationInSQLiteDB();
+                parameters.databasePerson = databasePerson;
+                listParameters = parameters.GetParameters("%%").FindAll(x => x.isExample == "no"); //load only real data
+
+                sServer1DB = GetValueOfConfigParameter(listParameters, @"SKDServer", null);
+                sServer1UserNameDB = GetValueOfConfigParameter(listParameters, @"SKDUser", null);
+                sServer1UserPasswordDB = GetValueOfConfigParameter(listParameters, @"SKDUserPassword", null, true);
+
+                mysqlServerDB = GetValueOfConfigParameter(listParameters, @"MySQLServer", null);
+                mysqlServerUserNameDB = GetValueOfConfigParameter(listParameters, @"MySQLUser", null);
+                mysqlServerUserPasswordDB = GetValueOfConfigParameter(listParameters, @"MySQLUserPassword", null, true);
+
+                mailServerDB = GetValueOfConfigParameter(listParameters, @"MailServer", null);
+                mailServerUserNameDB = GetValueOfConfigParameter(listParameters, @"MailUser", null);
+                mailServerUserPasswordDB = GetValueOfConfigParameter(listParameters, @"MailUserPassword", null, true);
+
+
+
                 if (databasePerson.Exists)
                 {
                     using (SQLiteConnection sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
