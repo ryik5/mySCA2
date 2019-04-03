@@ -88,6 +88,12 @@ namespace ASTA
         static bool mailSent = false; //the flag of sending data
         const string RECEPIENTS_OF_REPORTS = @"Получатель рассылки";
 
+        //Collumns of the table 'Day off'
+        const string DAYOFF_NAME = @"Праздничный (выходной) день";
+        const string DAYOFF_TYPE = @"Тип выходного дня";
+        const string DAYOFF_FOR = @"Персонально(NAV) или для всех(0)";
+        const string DAYOFF_DATE_SAVING = @"Дата добавления";
+
 
         //Page of Mailing
         Label labelMailServerName;
@@ -205,7 +211,7 @@ namespace ASTA
         const string EMPLOYEE_BEING_LATE = @"Опоздание ЧЧ:ММ";
         const string EMPLOYEE_EARLY_DEPARTURE = @"Ранний уход ЧЧ:ММ";
         const string EMPLOYEE_PLAN_TIME_WORKED = @"Отработанное время ЧЧ:ММ";
-        const string EMPLOYEE_TIME_SPENT = @"Реальное отработанное время"; 
+        const string EMPLOYEE_TIME_SPENT = @"Реальное отработанное время";
 
         //DataTables with people data
         DataTable dtPeople = new DataTable("People");
@@ -578,7 +584,7 @@ namespace ASTA
                     "SaStart REAL,SaEnd REAL, SuStart REAL,SuEnd REAL, Status Text, Comment TEXT, DayInputed TEXT, UNIQUE ('NAV', 'DayStartShift') ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'TechnicalInfo' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, PCName TEXT, POName TEXT, POVersion TEXT, LastDateStarted TEXT, CurrentUser TEXT, " +
                     "FreeRam TEXT, GuidAppication TEXT);", databasePerson);
-            ExecuteSql("CREATE TABLE IF NOT EXISTS 'BoldedDates' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, DayBolded TEXT, NAV TEXT, DayType TEXT, DayDesciption TEXT, DateCreated TEXT);", databasePerson);
+            ExecuteSql("CREATE TABLE IF NOT EXISTS 'BoldedDates' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, DayBolded TEXT, NAV TEXT, DayType TEXT, DayDescription TEXT, DateCreated TEXT);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'EquipmentSettings' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, EquipmentParameterName TEXT, EquipmentParameterValue TEXT, EquipmentParameterServer TEXT," +
                     "Reserv1, Reserv2, UNIQUE ('EquipmentParameterName', 'EquipmentParameterServer') ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'LastTakenPeopleComboList' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, ComboList TEXT, " +
@@ -601,7 +607,7 @@ namespace ASTA
             TryUpdateStructureSqlDB("ListOfWorkTimeShifts", "NAV TEXT, DayStartShift TEXT, MoStart REAL,MoEnd REAL, TuStart REAL,TuEnd REAL, WeStart REAL,WeEnd REAL, ThStart REAL,ThEnd REAL, FrStart REAL,FrEnd REAL, " +
                     "SaStart REAL,SaEnd REAL, SuStart REAL,SuEnd REAL, Status Text, Comment TEXT, DayInputed TEXT", databasePerson);
             TryUpdateStructureSqlDB("TechnicalInfo", "PCName TEXT, POName TEXT, POVersion TEXT, LastDateStarted TEXT, CurrentUser TEXT, FreeRam TEXT, GuidAppication TEXT", databasePerson);
-            TryUpdateStructureSqlDB("BoldedDates", "DayBolded TEXT, NAV TEXT, DayType TEXT, DayDesciption TEXT, DateCreated TEXT", databasePerson);
+            TryUpdateStructureSqlDB("BoldedDates", "DayBolded TEXT, NAV TEXT, DayType TEXT, DayDescription TEXT, DateCreated TEXT", databasePerson);
             TryUpdateStructureSqlDB("EquipmentSettings", "EquipmentParameterName TEXT, EquipmentParameterValue TEXT, EquipmentParameterServer TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
             TryUpdateStructureSqlDB("LastTakenPeopleComboList", "ComboList TEXT, DateCreated TEXT", databasePerson);
             TryUpdateStructureSqlDB("Mailing", "SenderEmail TEXT, RecipientEmail TEXT, GroupsReport TEXT, NameReport TEXT, Description TEXT, Period TEXT, Status TEXT, SendingLastDate TEXT, TypeReport TEXT, DayReport TEXT, DateCreated TEXT", databasePerson);
@@ -2235,7 +2241,7 @@ namespace ASTA
             UpdateAmountAndRecepientOfPeopleGroupDesciption();
 
             ShowDataTableDbQuery(databasePerson, "PeopleGroupDesciption",
-                "SELECT GroupPerson AS 'Группа', GroupPersonDescription AS 'Описание группы', AmountStaffInDepartment AS 'Колличество сотрудников в группе', Recipient AS '"+ RECEPIENTS_OF_REPORTS+"' ", " group by GroupPerson ORDER BY GroupPerson asc; ");
+                "SELECT GroupPerson AS 'Группа', GroupPersonDescription AS 'Описание группы', AmountStaffInDepartment AS 'Колличество сотрудников в группе', Recipient AS '" + RECEPIENTS_OF_REPORTS + "' ", " group by GroupPerson ORDER BY GroupPerson asc; ");
 
             LoadDataItem.BackColor = Color.PaleGreen;
             groupBoxPeriod.BackColor = Color.PaleGreen;
@@ -3351,8 +3357,8 @@ namespace ASTA
         private void EnterEditAnual()
         {
             ShowDataTableDbQuery(databasePerson, "BoldedDates",
-                "SELECT DayBolded AS 'Праздничный (выходной) день', DayType AS 'Тип выходного дня', " +
-                "NAV AS 'Персонально(NAV) или для всех(0)', DayDesciption AS 'Описание', DateCreated AS 'Дата добавления'",
+                "SELECT DayBolded AS '" + DAYOFF_NAME + "', DayType AS '" + DAYOFF_TYPE + "', " +
+                "NAV AS '" + DAYOFF_FOR + "', DayDescription AS 'Описание', DateCreated AS '" + DAYOFF_DATE_SAVING + "'",
                 " ORDER BY DayBolded desc, NAV asc; ");
 
             _MenuItemEnabled(FunctionMenuItem, false);
@@ -3404,8 +3410,8 @@ namespace ASTA
         private void AddAnualDateItem_Click(object sender, EventArgs e) //AddAnualDate()
         {
             AddAnualDate();
-            ShowDataTableDbQuery(databasePerson, "BoldedDates", "SELECT DayBolded AS 'Праздничный (выходной) день', DayType AS 'Тип выходного дня', " +
-            "NAV AS 'Персонально(NAV) или для всех(0)', DayDesciption AS 'Описание', DateCreated AS 'Дата добавления'",
+            ShowDataTableDbQuery(databasePerson, "BoldedDates", "SELECT DayBolded AS '" + DAYOFF_NAME + "', DayType AS '" + DAYOFF_TYPE + "', " +
+            "NAV AS '" + DAYOFF_FOR + "', DayDescription AS 'Описание', DateCreated AS '" + DAYOFF_DATE_SAVING + "'",
             " ORDER BY DayBolded desc, NAV asc; ");
         }
 
@@ -3430,13 +3436,13 @@ namespace ASTA
                 {
                     sqlConnection.Open();
 
-                    using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'BoldedDates' (DayBolded, NAV, DayType, DayDesciption, DateCreated) " +
-                        " VALUES (@BoldedDate, @NAV, @DayType, @DayDesciption, @DateCreated)", sqlConnection))
+                    using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'BoldedDates' (DayBolded, NAV, DayType, DayDescription, DateCreated) " +
+                        " VALUES (@BoldedDate, @NAV, @DayType, @DayDescription, @DateCreated)", sqlConnection))
                     {
                         sqlCommand.Parameters.Add("@BoldedDate", DbType.String).Value = monthCalendar.SelectionStart.ToString("yyyy-MM-dd");
                         sqlCommand.Parameters.Add("@NAV", DbType.String).Value = nav;
                         sqlCommand.Parameters.Add("@DayType", DbType.String).Value = dayType;
-                        sqlCommand.Parameters.Add("@DayDesciption", DbType.String).Value = textBoxGroupDescription.Text.Trim();
+                        sqlCommand.Parameters.Add("@DayDescription", DbType.String).Value = textBoxGroupDescription.Text.Trim();
                         sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTimeToYYYYMMDD();
                         try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                     }
@@ -3451,14 +3457,14 @@ namespace ASTA
         {
             DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
             dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
-                @"Праздничный (выходной) день", @"Тип выходного дня", @"Персонально(NAV) или для всех(0)", @"Дата добавления" });
+                 DAYOFF_NAME, DAYOFF_TYPE, DAYOFF_FOR, DAYOFF_DATE_SAVING });
 
             DeleteDataTableQueryParameters(databasePerson, "BoldedDates",
                 "DayBolded", dgSeek.values[0], "DayType", dgSeek.values[1],
                 "NAV", dgSeek.values[2], "DateCreated", dgSeek.values[3]);
 
-            ShowDataTableDbQuery(databasePerson, "BoldedDates", "SELECT DayBolded AS 'Праздничный (выходной) день', DayType AS 'Тип выходного дня', " +
-            "NAV AS 'Персонально(NAV) или для всех(0)', DayDesciption AS 'Описание', DateCreated AS 'Дата добавления'",
+            ShowDataTableDbQuery(databasePerson, "BoldedDates", "SELECT DayBolded AS '" + DAYOFF_NAME + "', DayType AS '" + DAYOFF_TYPE + "', " +
+            "NAV AS '" + DAYOFF_FOR + "', DayDescription AS 'Описание', DateCreated AS '" + DAYOFF_DATE_SAVING + "'",
             " ORDER BY DayBolded desc, NAV asc; ");
         }
 
@@ -3549,7 +3555,7 @@ namespace ASTA
                                 Shift = row[EMPLOYEE_SHIFT].ToString()
                             };
 
-                            FilterDataByNav(ref person, ref dtPersonRegistrationsFullList, ref dtTempIntermediate);
+                            FilterRegistrationsOfPerson(ref person, ref dtPersonRegistrationsFullList, ref dtTempIntermediate);
                         }
                     }
                 }
@@ -3561,7 +3567,7 @@ namespace ASTA
                 if (!_CheckboxCheckedStateReturn(checkBoxReEnter))
                 { dtTempIntermediate = dtPersonRegistrationsFullList.Copy(); }
                 else
-                { FilterDataByNav(ref person, ref dtPersonRegistrationsFullList, ref dtTempIntermediate); }
+                { FilterRegistrationsOfPerson(ref person, ref dtPersonRegistrationsFullList, ref dtTempIntermediate); }
             }
 
             //store all columns
@@ -3606,9 +3612,9 @@ namespace ASTA
             return dtUniqRecords;
         }
 
-        private void FilterDataByNav(ref PersonFull person, ref DataTable dataTableSource, ref DataTable dataTableForStoring, string typeReport = "Полный")
+        private void FilterRegistrationsOfPerson(ref PersonFull person, ref DataTable dataTableSource, ref DataTable dataTableForStoring, string typeReport = "Полный")
         {
-            logger.Trace("FilterDataByNav: " + person.NAV + "| dataTableSource: " + dataTableSource.Rows.Count, "| typeReport: " + typeReport);
+            logger.Trace("FilterRegistrationsOfPerson: " + person.NAV + "| dataTableSource: " + dataTableSource.Rows.Count, "| typeReport: " + typeReport);
             DataRow rowDtStoring;
             DataTable dtTemp = dataTableSource.Clone();
 
@@ -3654,7 +3660,7 @@ namespace ASTA
                         workedSeconds = lastRegistrationInDay - firstRegistrationInDay;
                         rowDtStoring[EMPLOYEE_TIME_SPENT] = workedSeconds;                                  // ("Реальное отработанное время", typeof(decimal)), //26
                         //  rowDtStoring[@"Отработанное время ЧЧ:ММ"] = ConvertSecondsToStringHHMM(workedSeconds);  //("Отработанное время ЧЧ:ММ", typeof(string)), //27
-                        logger.Trace("FilterDataByNav: " + person.NAV + "| " + rowDtStoring[DATE_REGISTRATION]?.ToString() + " " + firstRegistrationInDay + " - " + lastRegistrationInDay);
+                        logger.Trace("FilterRegistrationsOfPerson: " + person.NAV + "| " + rowDtStoring[DATE_REGISTRATION]?.ToString() + " " + firstRegistrationInDay + " - " + lastRegistrationInDay);
 
                         //todo 
                         //will calculate if day of week different
@@ -3803,6 +3809,7 @@ namespace ASTA
             logger.Trace("SeekAnualDays,end: " + endOfPeriod[0] + " " + endOfPeriod[1] + " " + endOfPeriod[2]);
 
             List<string> daysBolded = new List<string>();
+            string singleDate;
 
             var oneDay = TimeSpan.FromDays(1);
             var twoDays = TimeSpan.FromDays(2);
@@ -3879,8 +3886,6 @@ namespace ASTA
                     break;
             }
 
-            string singleDate = null;
-
             //Remove additional works days from the bolded days 
             foreach (string dayAdditional in ReturnBoldedDaysFromDB(person.NAV, @"Рабочий"))
             { myMonthCalendar.RemoveAnnuallyBoldedDate(DateTime.Parse(dayAdditional)); }
@@ -3888,8 +3893,8 @@ namespace ASTA
             List<string> daysSelected = new List<string>();
             for (var myDate = myMonthCalendar.SelectionStart; myDate <= myMonthCalendar.SelectionEnd; myDate += oneDay)
             {
-                //todo - will do simplify "singleDate"
-                singleDate = Regex.Split(myDate.ToString("yyyy-MM-dd"), " ")[0].Trim();
+                singleDate = myDate.ToString("yyyy-MM-dd");
+
                 if (myDate.DayOfWeek == DayOfWeek.Saturday || myDate.DayOfWeek == DayOfWeek.Sunday)
                 {
                     daysBolded.Add(singleDate);
@@ -3908,8 +3913,7 @@ namespace ASTA
                 {
                     if (myDate == myAnualDate)
                     {
-                        //todo - will do simplify "singleDate"
-                        singleDate = Regex.Split(myDate.ToString("yyyy-MM-dd"), " ")[0].Trim();
+                        singleDate = myDate.ToString("yyyy-MM-dd");
                         daysBolded.Add(singleDate);
                         if (delRow)
                         {
@@ -3924,6 +3928,7 @@ namespace ASTA
             workDates = daysSelected.Except(daysBolded).ToArray();
 
             myMonthCalendar.Dispose();
+            singleDate = null;
             daysBolded = null;
             daysSelected = null;
         }
@@ -5709,46 +5714,6 @@ namespace ASTA
             }
         }
 
-        /*  private void buttonPropertiesSave_Click(object sender, EventArgs e) //SaveProperties()
-         {
-             string btnName = btnPropertiesSave.Text.ToString();
-
-             if (btnName == @"Сохранить настройки")
-             {
-                 SaveProperties(); //btnPropertiesSave 
-             }
-             else if (btnName == @"Сохранить рассылку")
-             {
-                 string recipientEmail = _textBoxReturnText(textBoxServer1UserName);
-                 string senderEmail = mailServerUserName;
-                 if (mailServerUserName.Length == 0)
-                 { senderEmail = _textBoxReturnText(textBoxServer1); }
-                 string nameReport = _textBoxReturnText(textBoxMailServerName);
-                 string description = _textBoxReturnText(textBoxMailServerUserName);
-                 string report = _comboBoxReturnSelected(listCombo);
-                 string period = _listBoxReturnSelected(periodCombo);
-                 string status = _comboBoxReturnSelected(comboSettings9);
-                 string typeReport = _comboBoxReturnSelected(comboSettings15);
-                 string dayReport = _textBoxReturnText(textBoxSettings16);
-
-                 if (recipientEmail.Length > 5 && nameReport.Length > 0)
-                 {
-                     SaveMailing(recipientEmail, senderEmail,
-                         report, nameReport, description, period, status,
-                         DateTime.Now.ToYYYYMMDDHHMM(), "", typeReport, dayReport);
-                 }
-
-                 ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
-                 "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
-                 "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
-                 " ORDER BY RecipientEmail asc, DateCreated desc; ");
-             }
-
-             DisposeTemporaryControls();
-             EnableMainMenuItems(true);
-             _controlVisible(panelView, true);
-         }*/
-
         private void ClearRegistryItem_Click(object sender, EventArgs e) //ClearRegistryData()
         { ClearRegistryData(); }
 
@@ -6012,8 +5977,8 @@ namespace ASTA
 
                     if (nameOfLastTableFromDB == "BoldedDates")
                     {
-                        //    ShowDataTableDbQuery(databasePerson, "BoldedDates", "SELECT DayBolded AS 'Праздничный (выходной) день', DayType AS 'Тип выходного дня', " +
-                        //   "NAV AS 'Персонально(NAV) или для всех(0)', DayDesciption AS 'Описание', DateCreated AS 'Дата добавления'",
+                        //    ShowDataTableDbQuery(databasePerson, "BoldedDates", "SELECT DayBolded AS '"+ DAYOFF_NAME+"', DayType AS '"+DAYOFF_TYPE+"', " +
+                        //   "NAV AS '"+DAYOFF_FOR+"', DayDescription AS 'Описание', DateCreated AS '"+DAYOFF_DATE_SAVING+"'",
                         //    " ORDER BY DayBolded desc, NAV asc; ");
                     }
                     else if (nameOfLastTableFromDB == "PeopleGroupDesciption")
@@ -6098,7 +6063,7 @@ namespace ASTA
                     if (nameOfLastTableFromDB == @"BoldedDates")
                     {
                         dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
-                        @"Праздничный (выходной) день", @"Персонально(NAV) или для всех(0)", @"Тип выходного дня" });
+                        DAYOFF_NAME, DAYOFF_FOR, DAYOFF_TYPE });
 
                         string dayType = "";
                         if (textBoxGroup?.Text?.Trim()?.Length == 0 || textBoxGroup?.Text?.ToLower()?.Trim() == "выходной")
@@ -6118,13 +6083,13 @@ namespace ASTA
                         {
                             sqlConnection.Open();
 
-                            using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'BoldedDates' (DayBolded, NAV, DayType, DayDesciption, DateCreated) " +
-                                " VALUES (@BoldedDate, @NAV, @DayType, @DayDesciption, @DateCreated)", sqlConnection))
+                            using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'BoldedDates' (DayBolded, NAV, DayType, DayDescription, DateCreated) " +
+                                " VALUES (@BoldedDate, @NAV, @DayType, @DayDescription, @DateCreated)", sqlConnection))
                             {
                                 sqlCommand.Parameters.Add("@BoldedDate", DbType.String).Value = monthCalendar.SelectionStart.ToString("yyyy-MM-dd");
                                 sqlCommand.Parameters.Add("@NAV", DbType.String).Value = nav;
                                 sqlCommand.Parameters.Add("@DayType", DbType.String).Value = dayType;
-                                sqlCommand.Parameters.Add("@DayDesciption", DbType.String).Value = textBoxGroupDescription.Text.Trim();
+                                sqlCommand.Parameters.Add("@DayDescription", DbType.String).Value = textBoxGroupDescription.Text.Trim();
                                 sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTimeToYYYYMMDD();
                                 try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
@@ -6353,7 +6318,7 @@ namespace ASTA
             {
                 ContextMenu mRightClick = new ContextMenu();
                 DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-                string recepient="";
+                string recepient = "";
                 if (nameOfLastTableFromDB == @"PeopleGroupDesciption")
                 {
                     dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { GROUP, GROUP_DECRIPTION, RECEPIENTS_OF_REPORTS });
@@ -6366,7 +6331,7 @@ namespace ASTA
                     {
                         recepient = dgSeek.values[2];
                     }
-                    else if (mailServerUserName?.Length>0)
+                    else if (mailServerUserName?.Length > 0)
                     {
                         recepient = mailServerUserName;
                     }
@@ -6402,23 +6367,21 @@ namespace ASTA
                 else if (nameOfLastTableFromDB == @"PeopleGroup" || nameOfLastTableFromDB == @"ListFIO")
                 {
                     dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
-                 FIO, CODE, DEPARTMENT, EMPLOYEE_POSITION,
-                 CHIEF_ID, EMPLOYEE_SHIFT, DEPARTMENT_ID, PLACE_EMPLOYEE
-                            });
-                    //todo 
-                    //move to the middleware method
+                    FIO, CODE, DEPARTMENT, EMPLOYEE_POSITION, CHIEF_ID, EMPLOYEE_SHIFT, DEPARTMENT_ID, PLACE_EMPLOYEE
+                    });
+
                     _textBoxSetText(textBoxGroup, "");
 
                     mRightClick.MenuItems.Add(new MenuItem(text: "&Загрузить данные регистраций сотрудника: '" + dgSeek.values[0] +
                         "' за " + _dateTimePickerStartReturnMonth(), onClick: GetDataItem_Click));
                     mRightClick.MenuItems.Add("-");
-                    mRightClick.MenuItems.Add(new MenuItem(@"Удалить сотрудника из данной группы", DeleteCurrentRow));
+                    mRightClick.MenuItems.Add(new MenuItem("&Удалить сотрудника из данной группы", DeleteCurrentRow));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
                 else if (nameOfLastTableFromDB == @"BoldedDates")
                 {
                     dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
-                        @"Праздничный (выходной) день", @"Персонально(NAV) или для всех(0)", @"Тип выходного дня" });
+                        DAYOFF_NAME, DAYOFF_FOR, DAYOFF_TYPE });
 
                     string dayType = "";
                     if (textBoxGroup?.Text?.Trim()?.Length == 0 || textBoxGroup?.Text?.ToLower()?.Trim() == "выходной")
@@ -6505,8 +6468,6 @@ namespace ASTA
             DeleteDataTableQueryParameters(databasePerson, "SelectedCityToLoadFromWeb",
                             "City", dgSeek.values[0]);
         }
-
-
 
 
 
@@ -7178,7 +7139,7 @@ namespace ASTA
                                 Shift = row[EMPLOYEE_SHIFT].ToString()
                             };
 
-                            FilterDataByNav(ref person, ref dtPersonRegistrationsFullList, ref dtTempIntermediate, typeReport);
+                            FilterRegistrationsOfPerson(ref person, ref dtPersonRegistrationsFullList, ref dtTempIntermediate, typeReport);
                         }
                     }
 
