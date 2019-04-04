@@ -54,7 +54,7 @@ string name = comand.ExecuteScalar().ToString();
 label1.Text = name;
 }
 */
-
+/*
     interface IDBParameter
     {
         string DBName { get; set; }
@@ -63,6 +63,21 @@ label1.Text = name;
         string DBQuery { get; set; }
         void Execute();
     }
+    */
+
+    //todo
+    /*
+     const string connStr = "server=localhost;user=root; database=test;password=;";
+using (MySqlConnection conn = new MySqlConnection(connStr))
+{
+string sql = "SELECT Text FROM Kody WHERE Kod=@Kod";
+MySqlCommand comand = new MySqlCommand(sql, conn);
+command.Parameters.AddWithValue("@Kod", textBox1.Text);
+conn.Open();
+string name = comand.ExecuteScalar().ToString();
+label1.Text = name;
+}
+*/
 
     class ParameterConfig
     {
@@ -96,20 +111,6 @@ label1.Text = name;
         }
     }
 
-    //todo
-    /*
-     const string connStr = "server=localhost;user=root; database=test;password=;";
-using (MySqlConnection conn = new MySqlConnection(connStr))
-{
-string sql = "SELECT Text FROM Kody WHERE Kod=@Kod";
-MySqlCommand comand = new MySqlCommand(sql, conn);
-command.Parameters.AddWithValue("@Kod", textBox1.Text);
-conn.Open();
-string name = comand.ExecuteScalar().ToString();
-label1.Text = name;
-}
-*/
-
     class ParameterOfConfiguration
     {
         public string ParameterName { get; set; }
@@ -121,7 +122,7 @@ label1.Text = name;
         public static ParameterOfConfigurationBuilder CreateParameter()
         {
             return new ParameterOfConfigurationBuilder();
-        }        
+        }
     }
 
     class ParameterOfConfigurationBuilder
@@ -154,8 +155,8 @@ label1.Text = name;
         }
         public ParameterOfConfigurationBuilder IsPassword(bool state)
         {
-                parameterOfConfiguration.isPassword = state;
-                return this;
+            parameterOfConfiguration.isPassword = state;
+            return this;
         }
 
         public static implicit operator ParameterOfConfiguration(ParameterOfConfigurationBuilder parameter)
@@ -163,12 +164,11 @@ label1.Text = name;
             return parameter.parameterOfConfiguration;
         }
     }
-
-
-    class ParameterOfConfigurationInSQLiteDB 
+    
+    class ParameterOfConfigurationInSQLiteDB
     {
         ParameterOfConfiguration parameterOfConfiguration;
-         System.IO.FileInfo databasePerson;
+        System.IO.FileInfo databasePerson;
 
         static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
@@ -185,50 +185,51 @@ label1.Text = name;
             parameterOfConfiguration = _parameterOfConfiguration;
 
             if (parameterOfConfiguration.ParameterName == null || parameterOfConfiguration.ParameterName.Length == 0)
-                throw new ArgumentNullException("a ParameterName should have a name");
+                throw new ArgumentNullException("any of Parameters should have a name");
 
-            if (parameterOfConfiguration.isPassword && (parameterOfConfiguration.ParameterValue == null || parameterOfConfiguration.ParameterValue.Length == 0))
-                throw new ArgumentNullException("this ParameterValue can't be empty!");
+            if (databasePerson.Exists)
+            {
+                using (SQLiteConnection sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+                {
+                    sqlConnection.Open();
+
+                    SQLiteCommand sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
+                    sqlCommand1.ExecuteNonQuery();
+                    string ParameterValueSave = "";
+                    if (parameterOfConfiguration.isPassword)
+                    {
+                        ParameterValueSave =
+                            (parameterOfConfiguration.ParameterValue == null || parameterOfConfiguration.ParameterValue.Length == 0) ?
+                            "" :
+                            EncryptionDecryptionCriticalData.EncryptStringToBase64Text(parameterOfConfiguration.ParameterValue, btsMess1, btsMess2);
+                    }
+                    else
+                    { ParameterValueSave = parameterOfConfiguration.ParameterValue; }
+
+                    using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'ConfigDB' (ParameterName, Value, Description, DateCreated, IsPassword, IsExample)" +
+                               " VALUES (@ParameterName, @Value, @Description, @DateCreated, @IsPassword, @IsExample)", sqlConnection))
+                    {
+                        sqlCommand.Parameters.Add("@ParameterName", DbType.String).Value = parameterOfConfiguration.ParameterName;
+                        sqlCommand.Parameters.Add("@Value", DbType.String).Value = ParameterValueSave;
+                        sqlCommand.Parameters.Add("@Description", DbType.String).Value = parameterOfConfiguration.ParameterDescription;
+                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
+                        sqlCommand.Parameters.Add("@IsPassword", DbType.Boolean).Value = parameterOfConfiguration.isPassword;
+                        sqlCommand.Parameters.Add("@IsExample", DbType.String).Value = parameterOfConfiguration.isExample;
+                        try { sqlCommand.ExecuteNonQuery(); } catch { }
+                    }
+                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
+                    sqlCommand1.ExecuteNonQuery();
+                }
+                return parameterOfConfiguration.ParameterName + " (" + parameterOfConfiguration.ParameterValue + ")" + " - was saved!";
+            }
             else
             {
-                if (databasePerson.Exists)
-                {
-                    using (SQLiteConnection sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
-                    {
-                        sqlConnection.Open();
-
-                        SQLiteCommand sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                        sqlCommand1.ExecuteNonQuery();
-                        string ParameterValueSave = "";
-                        if (parameterOfConfiguration.isPassword)
-                        { ParameterValueSave = EncryptionDecryptionCriticalData.EncryptStringToBase64Text(parameterOfConfiguration.ParameterValue, btsMess1, btsMess2); }
-                        else
-                        { ParameterValueSave = parameterOfConfiguration.ParameterValue; }
-
-                        using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'ConfigDB' (ParameterName, Value, Description, DateCreated, IsPassword, IsExample)" +
-                                   " VALUES (@ParameterName, @Value, @Description, @DateCreated, @IsPassword, @IsExample)", sqlConnection))
-                        {
-                            sqlCommand.Parameters.Add("@ParameterName", DbType.String).Value = parameterOfConfiguration.ParameterName;
-                            sqlCommand.Parameters.Add("@Value", DbType.String).Value = ParameterValueSave;
-                            sqlCommand.Parameters.Add("@Description", DbType.String).Value = parameterOfConfiguration.ParameterDescription;
-                            sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
-                            sqlCommand.Parameters.Add("@IsPassword", DbType.Boolean).Value = parameterOfConfiguration.isPassword;
-                            sqlCommand.Parameters.Add("@IsExample", DbType.String).Value = parameterOfConfiguration.isExample;
-                            try { sqlCommand.ExecuteNonQuery(); } catch { }
-                        }
-                        sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                        sqlCommand1.ExecuteNonQuery();
-                    }
-                    return parameterOfConfiguration.ParameterName + " (" + parameterOfConfiguration.ParameterValue + ")" + " - was saved!";
-                }
-                else
-                {
-                    return parameterOfConfiguration.ParameterName + " - wasn't saved!\n"+ databasePerson.ToString()+" is not exist!";
-                }
+                return parameterOfConfiguration.ParameterName + " - wasn't saved!\n" + databasePerson.ToString() + " is not exist!";
             }
+
         }
 
-        public  List<ParameterConfig> GetParameters(string parameter)
+        public List<ParameterConfig> GetParameters(string parameter)
         {
             List<ParameterConfig> parametersConfig = new List<ParameterConfig>(); ;
 
@@ -824,7 +825,6 @@ label1.Text = name;
             return System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(dateTime.Month);
         }
 
-        //
         public static string ToYYYYMMDD(this DateTime dateTime)
         {
             return dateTime.ToString("yyyy-MM-dd");
@@ -834,7 +834,6 @@ label1.Text = name;
         {
             return DateTime.Now.ToString("yyyy-MM-dd HH:mm");
         }
-
     }
 
     class EncryptDecrypt
@@ -954,5 +953,4 @@ label1.Text = name;
             return plaintext;
         }
     }
-
 }
