@@ -585,8 +585,6 @@ namespace ASTA
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'TechnicalInfo' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, PCName TEXT, POName TEXT, POVersion TEXT, LastDateStarted TEXT, CurrentUser TEXT, " +
                     "FreeRam TEXT, GuidAppication TEXT);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'BoldedDates' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, DayBolded TEXT, NAV TEXT, DayType TEXT, DayDescription TEXT, DateCreated TEXT);", databasePerson);
-            ExecuteSql("CREATE TABLE IF NOT EXISTS 'EquipmentSettings' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, EquipmentParameterName TEXT, EquipmentParameterValue TEXT, EquipmentParameterServer TEXT," +
-                    "Reserv1, Reserv2, UNIQUE ('EquipmentParameterName', 'EquipmentParameterServer') ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'LastTakenPeopleComboList' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, ComboList TEXT, " +
                     "DateCreated TEXT, UNIQUE ('ComboList') ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'Mailing' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, SenderEmail TEXT, " +
@@ -608,7 +606,6 @@ namespace ASTA
                     "SaStart REAL,SaEnd REAL, SuStart REAL,SuEnd REAL, Status Text, Comment TEXT, DayInputed TEXT", databasePerson);
             TryUpdateStructureSqlDB("TechnicalInfo", "PCName TEXT, POName TEXT, POVersion TEXT, LastDateStarted TEXT, CurrentUser TEXT, FreeRam TEXT, GuidAppication TEXT", databasePerson);
             TryUpdateStructureSqlDB("BoldedDates", "DayBolded TEXT, NAV TEXT, DayType TEXT, DayDescription TEXT, DateCreated TEXT", databasePerson);
-            TryUpdateStructureSqlDB("EquipmentSettings", "EquipmentParameterName TEXT, EquipmentParameterValue TEXT, EquipmentParameterServer TEXT, Reserv1 TEXT, Reserv2 TEXT", databasePerson);
             TryUpdateStructureSqlDB("LastTakenPeopleComboList", "ComboList TEXT, DateCreated TEXT", databasePerson);
             TryUpdateStructureSqlDB("Mailing", "SenderEmail TEXT, RecipientEmail TEXT, GroupsReport TEXT, NameReport TEXT, Description TEXT, Period TEXT, Status TEXT, SendingLastDate TEXT, TypeReport TEXT, DayReport TEXT, DateCreated TEXT", databasePerson);
             TryUpdateStructureSqlDB("MailingException", "RecipientEmail TEXT, NameReport TEXT, Description TEXT, DayReport TEXT, DateCreated TEXT", databasePerson);
@@ -1245,6 +1242,60 @@ namespace ASTA
             stringConnection = null;
         }
 
+
+
+        private void testADToolStripMenuItem_Click(object sender, EventArgs e)
+        { GetUsersFromAD(); }
+
+        private void GetUsersFromAD()
+        {
+            logger.Trace("GetUsersFromAD: ");
+            string user = null;
+            string password = null;
+            string domain = null;
+            string server = null;
+
+            ActiveDirectoryGetData ad;
+            StaffListStore staffListStore = new StaffListStore();
+            ListStaffSender listStaffSender = new ListStaffSender();
+            staffAD = new List<StaffAD>();
+
+            listParameters = new List<ParameterConfig>();
+            ParameterOfConfigurationInSQLiteDB parameters = new ParameterOfConfigurationInSQLiteDB(databasePerson);
+
+            listParameters = parameters.GetParameters("%%").FindAll(x => x.isExample == "no"); //load only real data
+
+            user = listParameters.FindLast(x => x.parameterName == @"UserName")?.parameterValue;
+            password = listParameters.FindLast(x => x.parameterName == @"UserPassword")?.parameterValue;
+            server = listParameters.FindLast(x => x.parameterName == @"ServerURI")?.parameterValue;
+            domain = listParameters.FindLast(x => x.parameterName == @"DomainOfUser")?.parameterValue;
+
+            logger.Trace("user, domain, password, server: " + user + " |" + domain + " |" + password + " |" + server);
+
+            if (user?.Length > 0 && password?.Length > 0 && domain?.Length > 0 && server?.Length > 0)
+            {
+                ad = new ActiveDirectoryGetData(user, domain, password, server);
+                staffListStore.Story.Push(ad.SaveListStaff());
+                listStaffSender.RestoreListStaff(staffListStore.Story.Pop());
+
+                staffAD = listStaffSender.GetListStaff();
+
+                logger.Trace("GetUsersFromAD: Store list ");
+                //передать дальше в обработку:
+                foreach (var person in staffAD)
+                {
+                    logger.Trace(person.fio + " |" + person?.login + " |" + person?.code + " |" + person?.mail);
+                }
+            }
+            else
+            {
+                _toolStripStatusLabelSetText(StatusLabel2, "Ошибка доступа к домену!");
+                logger.Error("user: " + user + "| domain: " + domain + "| password: " + password + "| server: " + server);
+                _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
+            }
+            ad = null; listStaffSender = null; staffListStore = null; parameters = null; listParameters = null;
+        }
+
         private async void GetFio_Click(object sender, EventArgs e)  //DoListsFioGroupsMailings()
         {
             _ProgressBar1Start();
@@ -1300,7 +1351,6 @@ namespace ASTA
             _toolStripStatusLabelSetText(StatusLabel2, "Записываю ФИО в локальную базу...");
 
             WritePeopleInLocalDB(databasePerson.ToString(), dtTempIntermediate);
-            // ImportListGroupsDescriptionInLocalDB
 
             if (currentAction != @"sendEmail")
             {
@@ -1311,7 +1361,6 @@ namespace ASTA
                 namesDistinctColumnsArray = null;
             }
         }
-
 
         //Get the list of registered users
         private void GetDataFromRemoteServers(DataTable dataTablePeople, List<PeopleShift> peopleShifts)
@@ -1333,7 +1382,6 @@ namespace ASTA
 
             listFIO = new List<Person>();
             List<Department> departments = new List<Department>();
-            //  List<string> listCodesWithIdCard = new List<string>(); //NAV-codes staff who have idCards
 
             _comboBoxClr(comboBoxFio);
             _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю данные с " + sServer1 + ". Ждите окончания процесса...");
@@ -1382,20 +1430,16 @@ namespace ASTA
                         {
                             foreach (DbDataRecord record in sqlReader)
                             {
-                                try
+                                if (record?["name"]?.ToString()?.Trim()?.Length > 0)
                                 {
-                                    if (record?["name"].ToString().Trim().Length > 0)
+                                    departments.Add(new Department()
                                     {
-                                        departments.Add(new Department()
-                                        {
-                                            _departmentId = record["id"].ToString(),
-                                            _departmentDescription = record["name"].ToString(),
-                                            _departmentBossCode = sServer1
-                                        });
-                                    }
-                                    _ProgressWork1Step(1);
+                                        _departmentId = record["id"]?.ToString(),
+                                        _departmentDescription = record["name"].ToString(),
+                                        _departmentBossCode = sServer1
+                                    });
                                 }
-                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                _ProgressWork1Step(1);
                             }
                         }
                     }
@@ -1409,42 +1453,38 @@ namespace ASTA
                         {
                             foreach (DbDataRecord record in sqlReader)
                             {
-                                try
+                                if (record["name"]?.ToString()?.Trim()?.Length > 0)
                                 {
-                                    if (record["name"]?.ToString()?.Trim()?.Length > 0)
+                                    row = dataTablePeople.NewRow();
+                                    fio = (record["name"]?.ToString()?.Trim() + " " + record["surname"]?.ToString()?.Trim() + " " + record["patronymic"]?.ToString()?.Trim()).Replace(@"  ", @" ");
+                                    groupName = record["parent_id"]?.ToString()?.Trim();
+                                    nav = record["tabnum"]?.ToString()?.Trim()?.ToUpper();
+                                    try
                                     {
-                                        row = dataTablePeople.NewRow();
-                                        fio = (record["name"]?.ToString()?.Trim() + " " + record["surname"]?.ToString()?.Trim() + " " + record["patronymic"]?.ToString()?.Trim()).Replace(@"  ", @" ");
-                                        groupName = record["parent_id"]?.ToString()?.Trim();
-                                        nav = record["tabnum"]?.ToString()?.Trim()?.ToUpper();
-                                        try
-                                        {
-                                            depName = departments.First((x) => x._departmentId == groupName)._departmentDescription;
-                                        }
-                                        catch (Exception expt) { logger.Warn(expt.Message); }
-
-                                        row[N_ID] = Convert.ToInt32(record["id"].ToString().Trim());
-                                        row[FIO] = fio;
-                                        row[CODE] = nav;
-
-                                        row[GROUP] = groupName;
-                                        row[DEPARTMENT] = depName;
-                                        row[DEPARTMENT_ID] = sServer1.IndexOf('.') > -1 ? sServer1.Remove(sServer1.IndexOf('.')) : sServer1;
-
-                                        row[EMPLOYEE_POSITION] = record["post"].ToString().Trim();
-
-                                        row[DESIRED_TIME_IN] = timeStart;
-                                        row[DESIRED_TIME_OUT] = timeEnd;
-
-                                        dataTablePeople.Rows.Add(row);
-
-                                        listFIO.Add(new Person { FIO = fio, NAV = nav });
-                                        //    listCodesWithIdCard.Add(nav);
-
-                                        _ProgressWork1Step(1);
+                                        depName = departments.First((x) => x._departmentId == groupName)?._departmentDescription;
                                     }
+                                    catch (Exception expt) { logger.Warn(expt.Message); }
+
+                                    row[N_ID] = Convert.ToInt32(record["id"]?.ToString()?.Trim());
+                                    row[FIO] = fio;
+                                    row[CODE] = nav;
+
+                                    row[GROUP] = groupName;
+                                    row[DEPARTMENT] = depName;
+                                    row[DEPARTMENT_ID] = sServer1.IndexOf('.') > -1 ? sServer1.Remove(sServer1.IndexOf('.')) : sServer1;
+
+                                    row[EMPLOYEE_POSITION] = record["post"]?.ToString()?.Trim();
+
+                                    row[DESIRED_TIME_IN] = timeStart;
+                                    row[DESIRED_TIME_OUT] = timeEnd;
+
+                                    dataTablePeople.Rows.Add(row);
+
+                                    listFIO.Add(new Person { FIO = fio, NAV = nav });
+                                    //    listCodesWithIdCard.Add(nav);
+
+                                    _ProgressWork1Step(1);
                                 }
-                                catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                             }
                         }
                     }
@@ -1455,14 +1495,6 @@ namespace ASTA
                 _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...");
 
                 groupName = mysqlServer;
-                /* groups.Add(new DepartmentFull()
-                 {
-                     _departmentId = groupName, //group's name for staff who will have been imported from web DB
-                     _departmentDescription = "Stuff from the web server",
-                     _departmentBossCode = "0",
-                     _departmentBossEmail = "noemail"
-                 });
-                 _ProgressWork1Step(1);*/
 
                 stringConnection = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60"; //Allow Zero Datetime=true;
                 logger.Trace(stringConnection);
@@ -1664,36 +1696,51 @@ namespace ASTA
             string depBoss = "";
             string depDescr = "";
             string depBossEmail = "";
-            List<DepartmentFull> groups = new List<DepartmentFull>();
+            HashSet<DepartmentFull> groups = new HashSet<DepartmentFull>();
             HashSet<Department> departmentsUniq = new HashSet<Department>();
             HashSet<DepartmentFull> departmentsEmailUniq = new HashSet<DepartmentFull>();
             _ProgressWork1Step(1);
 
+            string skdName = sServer1.Split('.')[0];
+            int iSKD = 0;
+            int iMysql = 0;
             foreach (var dr in dataTablePeople.AsEnumerable())
             {
-                //todo
-                //get data 'Default_Recepient_code_From_Db' from LocalDB for webServer
                 depId = dr[DEPARTMENT_ID]?.ToString();
-                //                 = staffAD.Find((x) => x.code == reader.GetString(@"code")).mail
 
                 depBossEmail = staffAD.Find((x) => x.code == dr[CHIEF_ID]?.ToString())?.mail;
                 if (depId?.Length > 0)
                 {
-                    groups.Add(new DepartmentFull()
+                    if (depId == skdName && iSKD < 1)
                     {
-                        _departmentId = "@" + depId,
-                        _departmentDescription = dr[DEPARTMENT]?.ToString(),
-                        _departmentBossCode = dr[CHIEF_ID]?.ToString(),
-                        _departmentBossEmail = depBossEmail
-                    });
+                        groups.Add(new DepartmentFull()
+                        {
+                            _departmentId = "@" + depId,
+                            _departmentDescription = "skd",
+                            _departmentBossCode = dr[CHIEF_ID]?.ToString(),
+                            _departmentBossEmail = depBossEmail
+                        });
+                        iSKD++;
+                        logger.Trace(groups.Count + " @" + depId + " " + dr[DEPARTMENT]?.ToString() + " " + dr[CHIEF_ID]?.ToString() + " " + depBossEmail);
+                    }
+                    else if (depId != skdName)
+                    {
+                        groups.Add(new DepartmentFull()
+                        {
+                            _departmentId = "@" + depId,
+                            _departmentDescription = dr[DEPARTMENT]?.ToString(),
+                            _departmentBossCode = dr[CHIEF_ID]?.ToString(),
+                            _departmentBossEmail = depBossEmail
+                        });
 
-                    logger.Trace(groups.Count + " @" + depId + " " + dr[DEPARTMENT]?.ToString() + " " + dr[CHIEF_ID]?.ToString() + " " + depBossEmail);
+                        logger.Trace(groups.Count + " @" + depId + " " + dr[DEPARTMENT]?.ToString() + " " + dr[CHIEF_ID]?.ToString() + " " + depBossEmail);
+                    }
                 }
 
                 depId = dr[GROUP]?.ToString();
                 if (depId?.Length > 0)
                 {
-                    if (depId == mysqlServer)
+                    if (depId == mysqlServer && iMysql < 1)
                     {
                         groups.Add(new DepartmentFull()
                         {
@@ -1702,9 +1749,10 @@ namespace ASTA
                             _departmentBossCode = "GetCodeFromDB",
                             _departmentBossEmail = "GetEmailFromDB"
                         });
+                        iMysql++;
                         logger.Trace(groups.Count + " _ " + depId + " " + "web" + " " + "GetCodeFromDB" + " " + "GetEmailFromDB");
                     }
-                    else
+                    else if (depId != mysqlServer)
                     {
                         groups.Add(new DepartmentFull()
                         {
@@ -1720,9 +1768,9 @@ namespace ASTA
             }
             logger.Trace("groups.count: " + groups.Distinct().Count());
 
-            foreach (var strDepartment in groups.Distinct())
+            foreach (var strDepartment in groups?.Distinct())
             {
-                if (strDepartment._departmentId?.Length > 0)
+                if (strDepartment?._departmentId?.Length > 0)
                 {
                     departmentsUniq.Add(new Department
                     {
@@ -1731,7 +1779,7 @@ namespace ASTA
                         _departmentBossCode = strDepartment._departmentBossCode
                     });
 
-                    if (strDepartment._departmentBossEmail?.Length > 0)
+                    if (strDepartment?._departmentBossEmail?.Length > 0)
                     {
                         departmentsEmailUniq.Add(new DepartmentFull
                         {
@@ -1749,9 +1797,9 @@ namespace ASTA
                 logger.Trace("Чищу базу от старых списков с ФИО...");
                 DeleteAllDataInTableQuery(databasePerson, "LastTakenPeopleComboList");
 
-                foreach (var department in departmentsUniq.ToList().Distinct())
+                foreach (var department in departmentsUniq?.ToList()?.Distinct())
                 {
-                    DeleteDataTableQueryParameters(databasePerson, "PeopleGroup", "GroupPerson", department._departmentId);
+                    DeleteDataTableQueryParameters(databasePerson, "PeopleGroup", "GroupPerson", department?._departmentId);
                     _ProgressWork1Step(1);
                 }
                 _ProgressWork1Step(1);
@@ -1814,12 +1862,12 @@ namespace ASTA
                     string recipientEmail = "";
                     sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
-                    foreach (var deprtment in departmentsEmailUniq.ToList().Distinct())
+                    foreach (var deprtment in departmentsEmailUniq?.ToList()?.Distinct())
                     {
-                        depName = deprtment._departmentId;
-                        depDescr = deprtment._departmentDescription;
-                        depBoss = deprtment._departmentBossCode;
-                        recipientEmail = deprtment._departmentBossEmail;
+                        depName = deprtment?._departmentId;
+                        depDescr = deprtment?._departmentDescription;
+                        depBoss = deprtment?._departmentBossCode;
+                        recipientEmail = deprtment?._departmentBossEmail;
 
                         if (depName.StartsWith("@") && recipientEmail.Contains('@'))
                         {
@@ -1851,9 +1899,9 @@ namespace ASTA
                     logger.Trace("Записываю новые индивидуальные графики...");
                     sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
-                    foreach (var shift in peopleShifts.ToArray())
+                    foreach (var shift in peopleShifts?.ToArray())
                     {
-                        if (shift._nav != null && shift._nav.Length > 0)
+                        if (shift._nav?.Length > 0)
                         {
                             using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'ListOfWorkTimeShifts' (NAV, DayStartShift, MoStart, MoEnd, " +
                                 "TuStart, TuEnd, WeStart, WeEnd, ThStart, ThEnd, FrStart, FrEnd, SaStart, SaEnd, SuStart, SuEnd, Status, Comment, DayInputed) " +
@@ -1887,8 +1935,8 @@ namespace ASTA
                     sqlCommand1 = new SQLiteCommand("end", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
 
-                    logger.Info("Записано групп: " + departmentsUniq.ToArray().Distinct().Count());
-                    logger.Info("Записано рассылок: " + departmentsEmailUniq.ToArray().Distinct().Count());
+                    logger.Info("Записано групп: " + departmentsUniq?.ToArray()?.Distinct()?.Count());
+                    logger.Info("Записано рассылок: " + departmentsEmailUniq?.ToArray()?.Distinct()?.Count());
                 }
             }
 
@@ -2314,9 +2362,6 @@ namespace ASTA
                         }
                     }
 
-                    ////////////////////////////////////
-                    /////  ("Mailing", "SenderEmail TEXT, RecipientEmail TEXT, GroupsReport TEXT, NameReport TEXT, Description TEXT, Period TEXT, Status TEXT, SendingLastDate TEXT, TypeReport TEXT, DayReport TEXT, DateCreated TEXT", databasePerson);
-                    // ("PeopleGroupDesciption", "GroupPerson TEXT, GroupPersonDescription TEXT, AmountStaffInDepartment TEXT, Recipient TEXT", databasePerson);
                     query = "SELECT GroupPerson FROM PeopleGroupDesciption;";
                     logger.Trace(query);
                     using (var sqlCommand = new SQLiteCommand(query, sqlConnection))
@@ -2356,8 +2401,6 @@ namespace ASTA
                             _departmentBossEmail = tmpRec
                         });
                     }
-                    ///////////////////
-                    ///
 
                     logger.Trace("groupsUncount: " + (new HashSet<string>(groupsUncount)).Count());
                     foreach (string group in new HashSet<string>(groupsUncount))
@@ -2417,8 +2460,6 @@ namespace ASTA
 
         private void SeekAndShowMembersOfGroup(string nameGroup)
         {
-            //  dtPeopleListLoaded?.Dispose();
-            //  dtPeopleListLoaded = dtPeople.Clone();
             var dtTemp = dtPeople.Clone();
 
             numberPeopleInLoading = 0;
@@ -2524,7 +2565,7 @@ namespace ASTA
                 {
                     DataRow row = dt.NewRow();
 
-                    foreach (string strRow in listRows)
+                    foreach (string strRow in listRows.Distinct())
                     {
                         string[] cell = strRow.Split('\t');
                         if (cell.Length == 7)
@@ -3299,30 +3340,30 @@ namespace ASTA
                     {
                         foreach (DbDataRecord record in sqlReader)
                         {
-                            try
+                            //      try
+                            //     {
+                            if (record[@"FIO"]?.ToString()?.Length > 0 && record[@"NAV"]?.ToString()?.Length > 0)
                             {
-                                if (record[@"FIO"]?.ToString()?.Length > 0 && record[@"NAV"]?.ToString()?.Length > 0)
-                                {
-                                    dataRow = peopleGroup.NewRow();
+                                dataRow = peopleGroup.NewRow();
 
-                                    dataRow[FIO] = record[@"FIO"].ToString();
-                                    dataRow[CODE] = record[@"NAV"].ToString();
+                                dataRow[FIO] = record[@"FIO"].ToString();
+                                dataRow[CODE] = record[@"NAV"].ToString();
 
-                                    dataRow[GROUP] = record[@"GroupPerson"].ToString();
-                                    dataRow[DEPARTMENT] = record[@"Department"].ToString();
-                                    dataRow[DEPARTMENT_ID] = record[@"DepartmentId"].ToString();
-                                    dataRow[EMPLOYEE_POSITION] = record[@"PositionInDepartment"].ToString();
-                                    dataRow[PLACE_EMPLOYEE] = record[@"City"].ToString();
-                                    dataRow[EMPLOYEE_SHIFT_COMMENT] = record[@"Comment"].ToString();
-                                    dataRow[EMPLOYEE_SHIFT] = record[@"Shift"].ToString();
+                                dataRow[GROUP] = record[@"GroupPerson"]?.ToString();
+                                dataRow[DEPARTMENT] = record[@"Department"]?.ToString();
+                                dataRow[DEPARTMENT_ID] = record[@"DepartmentId"]?.ToString();
+                                dataRow[EMPLOYEE_POSITION] = record[@"PositionInDepartment"]?.ToString();
+                                dataRow[PLACE_EMPLOYEE] = record[@"City"]?.ToString();
+                                dataRow[EMPLOYEE_SHIFT_COMMENT] = record[@"Comment"]?.ToString();
+                                dataRow[EMPLOYEE_SHIFT] = record[@"Shift"]?.ToString();
 
-                                    dataRow[DESIRED_TIME_IN] = record[@"ControllingHHMM"].ToString();
-                                    dataRow[DESIRED_TIME_OUT] = record[@"ControllingOUTHHMM"].ToString();
+                                dataRow[DESIRED_TIME_IN] = record[@"ControllingHHMM"]?.ToString();
+                                dataRow[DESIRED_TIME_OUT] = record[@"ControllingOUTHHMM"]?.ToString();
 
-                                    peopleGroup.Rows.Add(dataRow);
-                                }
+                                peopleGroup.Rows.Add(dataRow);
                             }
-                            catch { }
+                            //        }
+                            //   catch { }
                         }
                     }
                 }
@@ -3773,6 +3814,7 @@ namespace ASTA
 
 
 
+
         /// <summary>
         /// ///////////////////////////////////////////////////////////////
         /// </summary>
@@ -4057,6 +4099,10 @@ namespace ASTA
             monthCalendar.Refresh();
         }
 
+        /// <summary>
+        /// ///////////////////////////////////////////////////////////////
+        /// </summary>
+        //check dubled function!!!!!!!!
 
 
 
@@ -4170,7 +4216,6 @@ namespace ASTA
                 DeleteTable(databasePerson, "TechnicalInfo");
                 DeleteTable(databasePerson, "BoldedDates");
                 DeleteTable(databasePerson, "ConfigDB");
-                DeleteTable(databasePerson, "EquipmentSettings");
                 DeleteTable(databasePerson, "LastTakenPeopleComboList");
                 GC.Collect();
 
@@ -5661,7 +5706,7 @@ namespace ASTA
                         logger.Info("CreateSubKey: Данные в реестре сохранены");
                     }
                 }
-                catch(Exception expt) { logger.Error("CreateSubKey: Ошибки с доступом на запись в реестр. Данные сохранены не корректно. "+ expt.ToString()); }
+                catch (Exception expt) { logger.Error("CreateSubKey: Ошибки с доступом на запись в реестр. Данные сохранены не корректно. " + expt.ToString()); }
 
                 {
                     string resultSaving = "";
@@ -5673,21 +5718,21 @@ namespace ASTA
                         SetParameterDescription("URI SKD-сервера").
                         IsPassword(false).
                         SetIsExample("no");
-                    resultSaving += parameterOfConfiguration.ParameterName + " " + parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
+                    resultSaving += parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
                     parameterOfConfiguration = new ParameterOfConfigurationBuilder().
                         SetParameterName("SKDUser").
-                        SetParameterValue(sServer1UserName?.Length > 0 ? EncryptionDecryptionCriticalData.EncryptStringToBase64Text(sServer1UserName, btsMess1, btsMess2) : "").
+                        SetParameterValue(sServer1UserName).
                         SetParameterDescription("SKD MSSQL User's Name").
                         IsPassword(true).
                         SetIsExample("no");
-                    resultSaving += parameterOfConfiguration.ParameterName + " " + parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
+                    resultSaving += parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
                     parameterOfConfiguration = new ParameterOfConfigurationBuilder().
                         SetParameterName("SKDUserPassword").
-                        SetParameterValue(sServer1UserPassword?.Length > 0 ? EncryptionDecryptionCriticalData.EncryptStringToBase64Text(sServer1UserPassword, btsMess1, btsMess2) : "").
+                        SetParameterValue(sServer1UserPassword).
                         SetParameterDescription("SKD MSSQL User's Password").
                         IsPassword(true).
                         SetIsExample("no");
-                    resultSaving += parameterOfConfiguration.ParameterName + " " + parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
+                    resultSaving += parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
 
 
                     parameterOfConfiguration = new ParameterOfConfigurationBuilder().
@@ -5696,21 +5741,21 @@ namespace ASTA
                         SetParameterDescription("URI Mail-серверa").
                         IsPassword(false).
                         SetIsExample("no");
-                    resultSaving += parameterOfConfiguration.ParameterName + " " + parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
+                    resultSaving += parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
                     parameterOfConfiguration = new ParameterOfConfigurationBuilder().
                         SetParameterName("MailUser").
                         SetParameterValue(mailServerUserName).
                         SetParameterDescription("Senders E-Mail").
                         IsPassword(false).
                         SetIsExample("no");
-                    resultSaving += parameterOfConfiguration.ParameterName + " " + parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
+                    resultSaving += parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
                     parameterOfConfiguration = new ParameterOfConfigurationBuilder().
                         SetParameterName("MailUserPassword").
-                        SetParameterValue(mailServerUserPassword?.Length > 0 ? EncryptionDecryptionCriticalData.EncryptStringToBase64Text(mailServerUserPassword, btsMess1, btsMess2) : "").
+                        SetParameterValue(mailServerUserPassword).
                         SetParameterDescription("Password of sender of e-mails").
                         IsPassword(true).
                         SetIsExample("no");
-                    resultSaving += parameterOfConfiguration.ParameterName + " " + parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
+                    resultSaving += parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
 
 
                     parameterOfConfiguration = new ParameterOfConfigurationBuilder().
@@ -5719,23 +5764,23 @@ namespace ASTA
                         SetParameterDescription("URI MySQL серверa (www)").
                         IsPassword(false).
                         SetIsExample("no");
-                    resultSaving += parameterOfConfiguration.ParameterName + " " + parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
+                    resultSaving += parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
                     parameterOfConfiguration = new ParameterOfConfigurationBuilder().
                         SetParameterName("MySQLUser").
                         SetParameterValue(mysqlServerUserName).
                         SetParameterDescription("MySQL User login").
                         IsPassword(false).
                         SetIsExample("no");
-                    resultSaving += parameterOfConfiguration.ParameterName + " " + parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
+                    resultSaving += parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
                     parameterOfConfiguration = new ParameterOfConfigurationBuilder().
                         SetParameterName("MySQLUserPassword").
-                        SetParameterValue(mysqlServerUserPassword?.Length > 0 ? EncryptionDecryptionCriticalData.EncryptStringToBase64Text(mysqlServerUserPassword, btsMess1, btsMess2) : "").
+                        SetParameterValue(mysqlServerUserPassword).
                         SetParameterDescription("Password of MySQL User").
                         IsPassword(true).
                         SetIsExample("no");
-                    resultSaving += parameterOfConfiguration.ParameterName + " " + parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
+                    resultSaving += parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
 
-                    MessageBox.Show(parameterOfConfiguration.ParameterName + " (" + parameterOfConfiguration.ParameterValue + ")\n" + resultSaving);
+                    MessageBox.Show(resultSaving);
 
                     DisposeTemporaryControls();
                     _controlVisible(panelView, true);
@@ -5744,68 +5789,16 @@ namespace ASTA
                     parameterSQLite = null;
                     resultSaving = null;
                 }
-                
-                /*
-                if (databasePerson.Exists)
-                {
-                    using (SQLiteConnection sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
-                    {
-                        sqlConnection.Open();
-
-                        SQLiteCommand sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                        sqlCommand1.ExecuteNonQuery();
-
-                        using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'EquipmentSettings' (EquipmentParameterName, EquipmentParameterValue, EquipmentParameterServer, Reserv1, Reserv2)" +
-                                   " VALUES (@EquipmentParameterName, @EquipmentParameterValue, @EquipmentParameterServer, @Reserv1, @Reserv2)", sqlConnection))
-                        {
-                            sqlCommand.Parameters.Add("@EquipmentParameterName", DbType.String).Value = "SKDUser";
-                            sqlCommand.Parameters.Add("@EquipmentParameterValue", DbType.String).Value = "SKDServer";
-                            sqlCommand.Parameters.Add("@EquipmentParameterServer", DbType.String).Value = sServer1;
-                            try { sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = EncryptionDecryptionCriticalData.EncryptStringToBase64Text(sServer1UserName, btsMess1, btsMess2); } catch { }
-                            try { sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = EncryptionDecryptionCriticalData.EncryptStringToBase64Text(sServer1UserPassword, btsMess1, btsMess2); } catch { }
-                            try { sqlCommand.ExecuteNonQuery(); } catch { }
-                        }
-
-                        using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'EquipmentSettings' (EquipmentParameterName, EquipmentParameterValue, EquipmentParameterServer, Reserv1, Reserv2)" +
-                                " VALUES (@EquipmentParameterName, @EquipmentParameterValue, @EquipmentParameterServer, @Reserv1, @Reserv2)", sqlConnection))
-                        {
-                            sqlCommand.Parameters.Add("@EquipmentParameterName", DbType.String).Value = "MailUser";
-                            sqlCommand.Parameters.Add("@EquipmentParameterValue", DbType.String).Value = "MailServer";
-                            sqlCommand.Parameters.Add("@EquipmentParameterServer", DbType.String).Value = mailServer;
-                            sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = mailServerUserName;
-                            try { sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = EncryptionDecryptionCriticalData.EncryptStringToBase64Text(mailServerUserPassword, btsMess1, btsMess2); } catch { }
-                            try { sqlCommand.ExecuteNonQuery(); } catch { }
-                        }
-
-                        using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'EquipmentSettings' (EquipmentParameterName, EquipmentParameterValue, EquipmentParameterServer, Reserv1, Reserv2)" +
-                                " VALUES (@EquipmentParameterName, @EquipmentParameterValue, @EquipmentParameterServer, @Reserv1, @Reserv2)", sqlConnection))
-                        {
-                            sqlCommand.Parameters.Add("@EquipmentParameterName", DbType.String).Value = "MySQLUser";
-                            sqlCommand.Parameters.Add("@EquipmentParameterValue", DbType.String).Value = "MySQLServer";
-                            sqlCommand.Parameters.Add("@EquipmentParameterServer", DbType.String).Value = mysqlServer;
-                            sqlCommand.Parameters.Add("@Reserv1", DbType.String).Value = mysqlServerUserName;
-                            try { sqlCommand.Parameters.Add("@Reserv2", DbType.String).Value = EncryptionDecryptionCriticalData.EncryptStringToBase64Text(mysqlServerUserPassword, btsMess1, btsMess2); } catch { }
-                            try { sqlCommand.ExecuteNonQuery(); } catch { }
-                        }
-
-                        sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                        sqlCommand1.ExecuteNonQuery();
-                        sqlCommand1.Dispose();
-                    }
-                }
-                */
 
                 ShowDataTableDbQuery(databasePerson, "ConfigDB", "SELECT ParameterName AS 'Имя параметра', " +
-                "Value AS 'Данные', Description AS 'Описание', DateCreated AS 'Дата создания/модификации'",
-                " ORDER BY ParameterName asc, DateCreated desc; ");
-
-
+               "Value AS 'Данные', Description AS 'Описание', DateCreated AS 'Дата создания/модификации'",
+               " ORDER BY ParameterName asc, DateCreated desc; ");
             }
             else
             {
                 GetInfoSetup();
             }
-            server = user = password = sMailServer = sMailUser = sMailUserPassword = sMySqlServer = sMySqlServerUser = sMySqlServerUserPassword=null;
+            server = user = password = sMailServer = sMailUser = sMailUserPassword = sMySqlServer = sMySqlServerUser = sMySqlServerUserPassword = null;
         }
 
         private void ClearRegistryItem_Click(object sender, EventArgs e) //ClearRegistryData()
@@ -5815,7 +5808,7 @@ namespace ASTA
         {
             try
             {
-                using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(myRegKey))
+                using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(myRegKey))
                 {
                     EvUserKey?.DeleteSubKey("SKDServer");
                     EvUserKey?.DeleteSubKey("SKDUser");
@@ -5829,7 +5822,12 @@ namespace ASTA
                     EvUserKey?.DeleteSubKey("ModeApp");
                 }
             }
-            catch { MessageBox.Show("Ошибки с доступом у реестру на запись. Данные не удалены."); }
+            catch (Exception expt)
+            {
+                _toolStripStatusLabelSetText(StatusLabel2, "Ошибки с доступом у реестру на запись. Данные не удалены.");
+                _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange); //Color.PaleGreen
+                logger.Warn("ClearRegistryData: " + expt.ToString());
+            }
         }
 
         //--- End. Features of programm ---//
@@ -8487,56 +8485,5 @@ namespace ASTA
             else { return DateTime.Now.ToString("yyyy-MM-dd HH:mm"); }
         }
         //---- End. Convertors of data types ----//
-
-
-
-        private void testADToolStripMenuItem_Click(object sender, EventArgs e)
-        { GetUsersFromAD(); }
-
-        private void GetUsersFromAD()
-        {
-            logger.Trace("GetUsersFromAD: ");
-            string user = null;
-            string password = null;
-            string domain = null;
-            string server = null;
-
-            ActiveDirectoryGetData ad;
-            StaffListStore staffListStore = new StaffListStore();
-            ListStaffSender listStaffSender = new ListStaffSender();
-            staffAD = new List<StaffAD>();
-
-            listParameters = new List<ParameterConfig>();
-            ParameterOfConfigurationInSQLiteDB parameters = new ParameterOfConfigurationInSQLiteDB(databasePerson);
-
-            listParameters = parameters.GetParameters("%%").FindAll(x => x.isExample == "no"); //load only real data
-
-            try
-            {
-                user = listParameters.FindLast(x => x.parameterName == @"UserName").parameterValue;
-                password = listParameters.FindLast(x => x.parameterName == @"UserPassword").parameterValue;
-                server = listParameters.FindLast(x => x.parameterName == @"ServerURI").parameterValue;
-                domain = listParameters.FindLast(x => x.parameterName == @"DomainOfUser").parameterValue;
-            }
-            catch (Exception expt) { logger.Info(expt.ToString()); }
-            logger.Trace("user, domain, password, server: " + user + " |" + domain + " |" + password + " |" + server);
-
-            if (user.Length > 0 && password.Length > 0 && domain.Length > 0 && server.Length > 0)
-            {
-                ad = new ActiveDirectoryGetData(user, domain, password, server);
-                staffListStore.Story.Push(ad.SaveListStaff());
-                listStaffSender.RestoreListStaff(staffListStore.Story.Pop());
-
-                staffAD = listStaffSender.GetListStaff();
-
-                logger.Trace("GetUsersFromAD: Store list ");
-                //передать дальше в обработку:
-                foreach (var person in staffAD)
-                {
-                    logger.Trace(person.fio + " |" + person.login + " |" + person.code + " |" + person.mail);
-                }
-            }
-            ad = null; listStaffSender = null; staffListStore = null; parameters = null; listParameters = null;
-        }
     }
 }
