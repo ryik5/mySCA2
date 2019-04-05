@@ -8302,6 +8302,35 @@ namespace ASTA
             return result;
         }
 
+        private string ShortFIO(string s) //Transform from full FIO into Short form FIO
+        {
+            var stmp = new string[1];
+            try { stmp = Regex.Split(s, "[ ]"); } catch { }
+            var sFullNameOnly = "";
+            try { sFullNameOnly = stmp[0]; } catch { }
+            try { sFullNameOnly += " " + stmp[1].Substring(0, 1) + @"."; } catch { }
+            try { sFullNameOnly += " " + stmp[2].Substring(0, 1) + @"."; } catch { }
+            stmp = new string[1];
+            return sFullNameOnly;
+        }
+
+        public string DateTimeToYYYYMMDD(string date = "")
+        {
+            if (date.Length > 0)
+            { return DateTime.Parse(date).ToString("yyyy-MM-dd"); }
+            else { return DateTime.Now.ToString("yyyy-MM-dd"); }
+        }
+
+        public string DateTimeToYYYYMMDDHHMM(string date = "")
+        {
+            if (date.Length > 0)
+            { return DateTime.Parse(date).ToString("yyyy-MM-dd HH:mm"); }
+            else { return DateTime.Now.ToString("yyyy-MM-dd HH:mm"); }
+        }
+
+
+
+
         private string ConvertSecondsToStringHHMM(int seconds)
         {
             string result;
@@ -8326,7 +8355,7 @@ namespace ASTA
             result = string.Format("{0:d2}:{1:d2}", hour, minute);
             return result;
         }
-
+        
         private string[] ConvertSecondsTimeToStringHHMMArray(int seconds)
         {
             string[] result = new string[3];
@@ -8411,9 +8440,35 @@ namespace ASTA
 
             return (60 * 60 * Convert.ToInt32(hours) + 60 * Convert.ToInt32(minutes) + Convert.ToInt32(seconds));
         }
+ 
+        private int[] ConvertStringDateToIntArray(string dateYYYYmmDD) //date "YYYY-MM-DD HH:MM" to int array values
+        {
+            int[] result = new int[] { 1970, 1, 1 };
+
+            if (dateYYYYmmDD.Contains('-'))
+            {
+                string[] res = dateYYYYmmDD.Split(' ')[0]?.Trim()?.Split('-');
+                result[0] = Convert.ToInt32(res[0]);
+                result[1] = Convert.ToInt32(res[1]);
+                result[2] = Convert.ToInt32(res[2]);
+            }
+            else if (dateYYYYmmDD.Length == 8)
+            {
+                result[0] = Convert.ToInt32(dateYYYYmmDD.Remove(4));
+                result[1] = Convert.ToInt32((dateYYYYmmDD.Remove(0, 2)).Remove(2));
+                result[2] = Convert.ToInt32(dateYYYYmmDD.Remove(0, 5));
+            }
+
+            return result;
+        }
+
 
         private string[] ConvertStringTimeHHMMToStringArray(string timeInHHMM) //time HH:MM converted to decimal value
         {
+           // TimeConvertor timeConvertor1 = new TimeConvertor { Seconds = 115 };
+           //  TimeStore timer = timeConvertor1;
+           //  Console.WriteLine($"{timer.Hours}:{timer.Minutes}:{timer.Seconds}"); // 0:1:55
+
             string[] result = new string[4];
             decimal h = 0;
             decimal m = 0;
@@ -8437,53 +8492,6 @@ namespace ASTA
             return result;
         }
 
-        private int[] ConvertStringDateToIntArray(string dateYYYYmmDD) //date "YYYY-MM-DD HH:MM" to int array values
-        {
-            int[] result = new int[] { 1970, 1, 1 };
-
-            if (dateYYYYmmDD.Contains('-'))
-            {
-                string[] res = dateYYYYmmDD.Split(' ')[0]?.Trim()?.Split('-');
-                result[0] = Convert.ToInt32(res[0]);
-                result[1] = Convert.ToInt32(res[1]);
-                result[2] = Convert.ToInt32(res[2]);
-            }
-            else if (dateYYYYmmDD.Length == 8)
-            {
-                result[0] = Convert.ToInt32(dateYYYYmmDD.Remove(4));
-                result[1] = Convert.ToInt32((dateYYYYmmDD.Remove(0, 2)).Remove(2));
-                result[2] = Convert.ToInt32(dateYYYYmmDD.Remove(0, 5));
-            }
-
-            return result;
-        }
-
-        private string ShortFIO(string s) //Transform from full FIO into Short form FIO
-        {
-            var stmp = new string[1];
-            try { stmp = Regex.Split(s, "[ ]"); } catch { }
-            var sFullNameOnly = "";
-            try { sFullNameOnly = stmp[0]; } catch { }
-            try { sFullNameOnly += " " + stmp[1].Substring(0, 1) + @"."; } catch { }
-            try { sFullNameOnly += " " + stmp[2].Substring(0, 1) + @"."; } catch { }
-            stmp = new string[1];
-            return sFullNameOnly;
-        }
-
-
-        public string DateTimeToYYYYMMDD(string date = "")
-        {
-            if (date.Length > 0)
-            { return DateTime.Parse(date).ToString("yyyy-MM-dd"); }
-            else { return DateTime.Now.ToString("yyyy-MM-dd"); }
-        }
-
-        public string DateTimeToYYYYMMDDHHMM(string date = "")
-        {
-            if (date.Length > 0)
-            { return DateTime.Parse(date).ToString("yyyy-MM-dd HH:mm"); }
-            else { return DateTime.Now.ToString("yyyy-MM-dd HH:mm"); }
-        }
         //---- End. Convertors of data types ----//
     }
 }
