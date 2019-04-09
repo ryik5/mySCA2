@@ -813,7 +813,7 @@ label1.Text = name;
  
         TimeConvertor timeConvertor2 = (TimeConvertor)timer;
         Console.WriteLine(timeConvertor2.Seconds);  //115
-        */
+        
     class TimeStore
     {
         public int Hours { get; set; }
@@ -847,7 +847,7 @@ label1.Text = name;
             return new TimeStore { Hours = h, Minutes = m, Seconds = s };
         }
     }
-
+    */
     static class DateTimeExtensions
     {
         public static DateTime LastDayOfMonth(this DateTime date)
