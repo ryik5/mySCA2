@@ -1284,7 +1284,7 @@ namespace ASTA
                 //передать дальше в обработку:
                 foreach (var person in staffAD)
                 {
-                    logger.Trace(person.fio + " |" + person?.login + " |" + person?.code + " |" + person?.mail);
+                    logger.Trace(person?.fio + " |" + person?.login + " |" + person?.code + " |" + person?.mail);
                 }
             }
             else
@@ -1293,7 +1293,8 @@ namespace ASTA
                 logger.Error("user: " + user + "| domain: " + domain + "| password: " + password + "| server: " + server);
                 _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
             }
-            ad = null; listStaffSender = null; staffListStore = null; parameters = null; listParameters = null;
+            parameters = null; listParameters = null; listStaffSender = null; staffListStore = null; ad = null;
+            user = password = domain = server = null;
         }
 
         private async void GetFio_Click(object sender, EventArgs e)  //DoListsFioGroupsMailings()
@@ -1335,20 +1336,24 @@ namespace ASTA
                 _MenuItemEnabled(SettingsMenuItem, true);
             }
             _ProgressBar1Stop();
+            _toolStripStatusLabelSetText(StatusLabel2, "Завершена работа");
         }
 
         private void DoListsFioGroupsMailings()  //  GetDataFromRemoteServers()  ImportTablePeopleToTableGroupsInLocalDB()
         {
-            _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные с серверов...");
+            if (currentAction != @"sendEmail")
+            { _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные с серверов..."); }
             GetUsersFromAD();
 
             dtTempIntermediate = dtPeople.Clone();
             GetDataFromRemoteServers(dtTempIntermediate, peopleShifts);
 
-            _toolStripStatusLabelSetText(StatusLabel2, "Формирую и записываю группы в локальную базу...");
+            if (currentAction != @"sendEmail")
+            { _toolStripStatusLabelSetText(StatusLabel2, "Формирую и записываю группы в локальную базу..."); }
             WriteGroupsMailingsInLocalDb(dtTempIntermediate, peopleShifts);
 
-            _toolStripStatusLabelSetText(StatusLabel2, "Записываю ФИО в локальную базу...");
+            if (currentAction != @"sendEmail")
+            { _toolStripStatusLabelSetText(StatusLabel2, "Записываю ФИО в локальную базу..."); }
 
             WritePeopleInLocalDB(databasePerson.ToString(), dtTempIntermediate);
 
@@ -1372,6 +1377,7 @@ namespace ASTA
             string fio = "";
             string nav = "";
             string groupName = "";
+            string idGroup = "";
             string depName = "";
             string depBoss = "";
 
@@ -1381,7 +1387,9 @@ namespace ASTA
             string dayStartShift_ = "";
 
             listFIO = new List<Person>();
-            List<Department> departments = new List<Department>();
+            //  HashSet<Department> departments = new HashSet<Department>(); //check
+            Dictionary<string, Department> departments = new Dictionary<string, Department>();
+            Department departmentFromDictionary;
 
             _comboBoxClr(comboBoxFio);
             _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю данные с " + sServer1 + ". Ждите окончания процесса...");
@@ -1430,12 +1438,14 @@ namespace ASTA
                         {
                             foreach (DbDataRecord record in sqlReader)
                             {
-                                if (record?["name"]?.ToString()?.Trim()?.Length > 0)
+                                idGroup = record["id"]?.ToString()?.Trim();
+                                groupName = record?["name"]?.ToString()?.Trim();
+                                if (groupName?.Length > 0 && idGroup?.Length > 0 && !departments.ContainsKey(idGroup))
                                 {
-                                    departments.Add(new Department()
+                                    departments.Add(idGroup, new Department()
                                     {
-                                        _departmentId = record["id"]?.ToString(),
-                                        _departmentDescription = record["name"].ToString(),
+                                        _departmentId = idGroup,
+                                        _departmentDescription = groupName,
                                         _departmentBossCode = sServer1
                                     });
                                 }
@@ -1459,11 +1469,14 @@ namespace ASTA
                                     fio = (record["name"]?.ToString()?.Trim() + " " + record["surname"]?.ToString()?.Trim() + " " + record["patronymic"]?.ToString()?.Trim()).Replace(@"  ", @" ");
                                     groupName = record["parent_id"]?.ToString()?.Trim();
                                     nav = record["tabnum"]?.ToString()?.Trim()?.ToUpper();
-                                    try
+
+                                    departmentFromDictionary = new Department();
+                                    //  depName = departments.First((x) => x._departmentId == groupName)?._departmentDescription;
+                                    if (departments.TryGetValue(groupName, out departmentFromDictionary))
                                     {
-                                        depName = departments.First((x) => x._departmentId == groupName)?._departmentDescription;
+                                        depName = departmentFromDictionary._departmentDescription;
                                     }
-                                    catch (Exception expt) { logger.Warn(expt.Message); }
+                                    else { depName = ""; }
 
                                     row[N_ID] = Convert.ToInt32(record["id"]?.ToString()?.Trim());
                                     row[FIO] = fio;
@@ -1511,12 +1524,14 @@ namespace ASTA
                         {
                             while (reader.Read())
                             {
-                                if (reader?.GetString(@"name")?.Length > 0)
+                                idGroup = reader?.GetString(@"id");
+
+                                if (reader?.GetString(@"name")?.Length > 0 && idGroup?.Length > 0 && !departments.ContainsKey(idGroup))
                                 {
-                                    departments.Add(new Department()
+                                    departments.Add(idGroup, new Department()
                                     {
-                                        _departmentId = reader?.GetString(@"id"),
-                                        _departmentDescription = reader?.GetString(@"name"),
+                                        _departmentId = idGroup,
+                                        _departmentDescription = reader.GetString(@"name"),
                                         _departmentBossCode = reader?.GetString(@"boss_code")
                                     });
                                 }
@@ -1537,7 +1552,6 @@ namespace ASTA
                             {
                                 if (reader.GetString(@"code")?.Length > 0)
                                 {
-
                                     try { dayStartShift = DateTimeToYYYYMMDD(reader.GetMySqlDateTime(@"start_date").ToString()); }
                                     catch
                                     { dayStartShift = DateTimeToYYYYMMDD("1980-01-01"); }
@@ -1604,10 +1618,18 @@ namespace ASTA
                                     personFromServer.NAV = reader.GetString(@"code")?.Trim()?.ToUpper()?.Replace('C', 'S');
                                     personFromServer.DepartmentId = reader.GetString(@"department")?.Trim();
 
-                                    depName = departments.FindLast((x) => x._departmentId == personFromServer?.DepartmentId)?._departmentDescription;
+                                    departmentFromDictionary = new Department();
+                                    //  depName = departments.First((x) => x._departmentId == groupName)?._departmentDescription;
+                                    if (departments.TryGetValue(personFromServer?.DepartmentId, out departmentFromDictionary))
+                                    {
+                                        depName = departmentFromDictionary?._departmentDescription;
+                                        depBoss = departmentFromDictionary?._departmentBossCode;
+                                    }
+
+                                  //  depName = departments.First((x) => x._departmentId == personFromServer?.DepartmentId)?._departmentDescription;
                                     personFromServer.Department = depName ?? personFromServer?.DepartmentId;
 
-                                    depBoss = departments.Find((x) => x._departmentId == personFromServer?.DepartmentId)?._departmentBossCode;
+                                    //  depBoss = departments.First((x) => x._departmentId == personFromServer?.DepartmentId)?._departmentBossCode;
                                     personFromServer.DepartmentBossCode = depBoss?.Length > 0 ? depBoss : reader.GetString(@"boss_id")?.Trim();
 
                                     personFromServer.City = reader.GetString(@"city")?.Trim();
@@ -1680,9 +1702,9 @@ namespace ASTA
                 _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
             }
 
-            stringConnection = null; query = null;
+            stringConnection = query = fio = nav = groupName = depName = depBoss = timeStart = timeEnd = dayStartShift = dayStartShift_ = confitionToLoad = null;
+            row = null; departments = null; departmentFromDictionary = null; personFromServer = null;
             //  listCodesWithIdCard = null;
-            row = null;
         }
 
         private void WriteGroupsMailingsInLocalDb(DataTable dataTablePeople, List<PeopleShift> peopleShifts)
@@ -1696,7 +1718,9 @@ namespace ASTA
             string depBoss = "";
             string depDescr = "";
             string depBossEmail = "";
-            HashSet<DepartmentFull> groups = new HashSet<DepartmentFull>();
+
+            // HashSet<DepartmentFull> groups = new HashSet<DepartmentFull>();
+            Dictionary<string, DepartmentFull> groups = new Dictionary<string, DepartmentFull>();
             HashSet<Department> departmentsUniq = new HashSet<Department>();
             HashSet<DepartmentFull> departmentsEmailUniq = new HashSet<DepartmentFull>();
             _ProgressWork1Step(1);
@@ -1707,13 +1731,12 @@ namespace ASTA
             foreach (var dr in dataTablePeople.AsEnumerable())
             {
                 depId = dr[DEPARTMENT_ID]?.ToString();
-
                 depBossEmail = staffAD.Find((x) => x.code == dr[CHIEF_ID]?.ToString())?.mail;
-                if (depId?.Length > 0)
+                if (depId?.Length > 0 && !groups.ContainsKey("@" + depId))
                 {
                     if (depId == skdName && iSKD < 1)
                     {
-                        groups.Add(new DepartmentFull()
+                        groups.Add("@" + depId, new DepartmentFull()
                         {
                             _departmentId = "@" + depId,
                             _departmentDescription = "skd",
@@ -1721,28 +1744,25 @@ namespace ASTA
                             _departmentBossEmail = depBossEmail
                         });
                         iSKD++;
-                        logger.Trace(groups.Count + " @" + depId + " " + dr[DEPARTMENT]?.ToString() + " " + dr[CHIEF_ID]?.ToString() + " " + depBossEmail);
                     }
                     else if (depId != skdName)
                     {
-                        groups.Add(new DepartmentFull()
+                        groups.Add("@" + depId, new DepartmentFull()
                         {
                             _departmentId = "@" + depId,
                             _departmentDescription = dr[DEPARTMENT]?.ToString(),
                             _departmentBossCode = dr[CHIEF_ID]?.ToString(),
                             _departmentBossEmail = depBossEmail
                         });
-
-                        logger.Trace(groups.Count + " @" + depId + " " + dr[DEPARTMENT]?.ToString() + " " + dr[CHIEF_ID]?.ToString() + " " + depBossEmail);
                     }
                 }
 
                 depId = dr[GROUP]?.ToString();
-                if (depId?.Length > 0)
+                if (depId?.Length > 0 && !groups.ContainsKey(depId))
                 {
                     if (depId == mysqlServer && iMysql < 1)
                     {
-                        groups.Add(new DepartmentFull()
+                        groups.Add(depId, new DepartmentFull()
                         {
                             _departmentId = depId,
                             _departmentDescription = "web",
@@ -1750,42 +1770,44 @@ namespace ASTA
                             _departmentBossEmail = "GetEmailFromDB"
                         });
                         iMysql++;
-                        logger.Trace(groups.Count + " _ " + depId + " " + "web" + " " + "GetCodeFromDB" + " " + "GetEmailFromDB");
                     }
                     else if (depId != mysqlServer)
                     {
-                        groups.Add(new DepartmentFull()
+                        groups.Add(depId, new DepartmentFull()
                         {
                             _departmentId = depId,
                             _departmentDescription = dr[DEPARTMENT]?.ToString(),
                             _departmentBossCode = "GetCodeFromDB",
                             _departmentBossEmail = "GetEmailFromDB"
                         });
-                        logger.Trace(groups.Count + " _ " + depId + " " + dr[DEPARTMENT]?.ToString() + " " + "GetCodeFromDB" + " " + "GetEmailFromDB");
                     }
                 }
                 _ProgressWork1Step(1);
             }
+            foreach (var dep in groups)
+            {
+                logger.Trace(dep.Value._departmentId + " " + dep.Value._departmentDescription + " " + dep.Value._departmentBossCode + " " + dep.Value._departmentBossEmail);
+            }
             logger.Trace("groups.count: " + groups.Distinct().Count());
 
-            foreach (var strDepartment in groups?.Distinct())
+            foreach (var strDepartment in groups)
             {
-                if (strDepartment?._departmentId?.Length > 0)
+                if (strDepartment.Value?._departmentId?.Length > 0)
                 {
                     departmentsUniq.Add(new Department
                     {
-                        _departmentId = strDepartment._departmentId,
-                        _departmentDescription = strDepartment._departmentDescription,
-                        _departmentBossCode = strDepartment._departmentBossCode
+                        _departmentId = strDepartment.Value._departmentId,
+                        _departmentDescription = strDepartment.Value._departmentDescription,
+                        _departmentBossCode = strDepartment.Value._departmentBossCode
                     });
 
-                    if (strDepartment?._departmentBossEmail?.Length > 0)
+                    if (strDepartment.Value?._departmentBossEmail?.Length > 0)
                     {
                         departmentsEmailUniq.Add(new DepartmentFull
                         {
-                            _departmentId = strDepartment._departmentId,
-                            _departmentDescription = strDepartment._departmentDescription,
-                            _departmentBossEmail = strDepartment._departmentBossEmail
+                            _departmentId = strDepartment.Value._departmentId,
+                            _departmentDescription = strDepartment.Value._departmentDescription,
+                            _departmentBossEmail = strDepartment.Value._departmentBossEmail
                         });
                     }
                 }
@@ -6953,13 +6975,14 @@ namespace ASTA
                 DateTime dd = DateTime.Now;
                 if (dd.Hour == 4 && dd.Minute == 10 && sent == false) //do something at Hour 2 and 5 minute //dd.Day == 1 && 
                 {
-                    _ProgressBar1Start();
                     _toolStripStatusLabelSetText(StatusLabel2, "Ведется работа по подготовке отчетов " + DateTime.Now.ToYYYYMMDDHHMM());
                     _toolStripStatusLabelBackColor(StatusLabel2, Color.LightPink);
                     CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword);
                     SelectMailingDoAction();
                     sent = true;
-                    _ProgressBar1Stop();
+                    logger.Info("MailingAction: Все задачи по подготовке и отправке отчетов завершены...");
+                    logger.Info("");
+                    logger.Info("---/  " + DateTimeToYYYYMMDDHHMM() + "  /---");
                 }
                 else
                 {
@@ -6971,21 +6994,21 @@ namespace ASTA
                     _toolStripStatusLabelSetText(StatusLabel2, "Режим почтовых рассылок. " + DateTime.Now.ToYYYYMMDDHHMM());
                     _toolStripStatusLabelBackColor(StatusLabel2, Color.LightCyan);
                     ClearFilesInApplicationFolders(@"*.xlsx", "Excel-файлов");
-                    _ProgressBar1Stop();
                 }
+
             }
         }
 
         private async void TestToSendAllMailingsItem_Click(object sender, EventArgs e) //SelectMailingDoAction()
         {
-            _ProgressBar1Start();
             await Task.Run(() => CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword));
             await Task.Run(() => SelectMailingDoAction());
-            _ProgressBar1Stop();
         }
 
         private void SelectMailingDoAction() //MailingAction()
         {
+            _ProgressBar1Start();
+
             currentAction = "sendEmail";
             DoListsFioGroupsMailings();
 
@@ -6998,8 +7021,9 @@ namespace ASTA
             string status = "";
             string typeReport = "";
             string dayReport = "";
+            string str = "";
 
-            List<MailingStructure> mailingList = new List<MailingStructure>();
+            HashSet<MailingStructure> mailingList = new HashSet<MailingStructure>();
 
             using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
             {
@@ -7044,7 +7068,6 @@ namespace ASTA
                 }
             }
 
-            string str = "";
             foreach (MailingStructure mailng in mailingList)
             {
                 _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
@@ -7070,13 +7093,17 @@ namespace ASTA
                 }
             }
 
+            logger.Info("MailingAction: Перечень задач по подготовке и отправке отчетов завершен...");
+
             ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
             "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
             "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
             " ORDER BY RecipientEmail asc, DateCreated desc; ");
 
-            sender = null; recipient = null; gproupsReport = null; nameReport = null; descriptionReport = null; period = null; status = null;
+            sender = recipient = gproupsReport = nameReport = descriptionReport = period = status = typeReport = dayReport = str= null;
             mailingList = null;
+
+            _ProgressBar1Stop();
         }
 
         public string GetSafeFilename(string filename)
@@ -7141,6 +7168,7 @@ namespace ASTA
                         if (bServer1Exist)
                         {
                             GetRegistrationAndSendReport(groupsReport, nameReport, description, period, status, typeReport, dayReport, true, recipientEmail, senderEmail);
+                            logger.Info("MailingAction: Задача по подготовке и отправке отчета '"+ nameReport+"' выполнена ");
                         }
                         break;
                     }
