@@ -1336,7 +1336,7 @@ namespace ASTA
                 _MenuItemEnabled(SettingsMenuItem, true);
             }
             _ProgressBar1Stop();
-            _toolStripStatusLabelSetText(StatusLabel2, "Завершена работа");
+      //      _toolStripStatusLabelSetText(StatusLabel2, "Завершена работа");
         }
 
         private void DoListsFioGroupsMailings()  //  GetDataFromRemoteServers()  ImportTablePeopleToTableGroupsInLocalDB()
@@ -1449,7 +1449,7 @@ namespace ASTA
                                         _departmentBossCode = sServer1
                                     });
                                 }
-                                _ProgressWork1Step(1);
+                                _ProgressWork1Step();
                             }
                         }
                     }
@@ -1496,7 +1496,7 @@ namespace ASTA
                                     listFIO.Add(new Person { FIO = fio, NAV = nav });
                                     //    listCodesWithIdCard.Add(nav);
 
-                                    _ProgressWork1Step(1);
+                                    _ProgressWork1Step();
                                 }
                             }
                         }
@@ -1535,7 +1535,7 @@ namespace ASTA
                                         _departmentBossCode = reader?.GetString(@"boss_code")
                                     });
                                 }
-                                _ProgressWork1Step(1);
+                                _ProgressWork1Step();
                             }
                         }
                     }
@@ -1577,7 +1577,7 @@ namespace ASTA
                                         _Status = "",
                                         _Comment = reader.GetString(@"comment")
                                     });
-                                    _ProgressWork1Step(1);
+                                    _ProgressWork1Step();
                                 }
                             }
                         }
@@ -1685,7 +1685,7 @@ namespace ASTA
 
                                     listFIO.Add(new Person { FIO = personFromServer.FIO, NAV = personFromServer.NAV });
 
-                                    _ProgressWork1Step(1);
+                                    _ProgressWork1Step();
                                 }
                             }
                         }
@@ -1723,7 +1723,7 @@ namespace ASTA
             Dictionary<string, DepartmentFull> groups = new Dictionary<string, DepartmentFull>();
             HashSet<Department> departmentsUniq = new HashSet<Department>();
             HashSet<DepartmentFull> departmentsEmailUniq = new HashSet<DepartmentFull>();
-            _ProgressWork1Step(1);
+            _ProgressWork1Step();
 
             string skdName = sServer1.Split('.')[0];
             int iSKD = 0;
@@ -1782,7 +1782,7 @@ namespace ASTA
                         });
                     }
                 }
-                _ProgressWork1Step(1);
+                _ProgressWork1Step();
             }
             foreach (var dep in groups)
             {
@@ -1812,7 +1812,7 @@ namespace ASTA
                     }
                 }
             }
-            _ProgressWork1Step(1);
+            _ProgressWork1Step();
 
             if (databasePerson.Exists)
             {
@@ -1822,9 +1822,9 @@ namespace ASTA
                 foreach (var department in departmentsUniq?.ToList()?.Distinct())
                 {
                     DeleteDataTableQueryParameters(databasePerson, "PeopleGroup", "GroupPerson", department?._departmentId);
-                    _ProgressWork1Step(1);
+                    _ProgressWork1Step();
                 }
-                _ProgressWork1Step(1);
+                _ProgressWork1Step();
 
                 using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
                 {
@@ -1875,7 +1875,7 @@ namespace ASTA
                         }
 
                         logger.Trace("CreatedGroup: " + depName + "(" + depDescr + ")");
-                        _ProgressWork1Step(1);
+                        _ProgressWork1Step();
                     }
                     sqlCommand1 = new SQLiteCommand("end", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
@@ -1913,7 +1913,7 @@ namespace ASTA
 
                             logger.Trace("SaveMailing: " + recipientEmail + " " + depName + " " + depDescr);
                         }
-                        _ProgressWork1Step(1);
+                        _ProgressWork1Step();
                     }
                     sqlCommand1 = new SQLiteCommand("end", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
@@ -1950,7 +1950,7 @@ namespace ASTA
                                 sqlCommand.Parameters.Add("@Comment", DbType.String).Value = shift._Comment;
                                 sqlCommand.Parameters.Add("@DayInputed", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
                                 try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
-                                _ProgressWork1Step(1);
+                                _ProgressWork1Step();
                             }
                         }
                     }
@@ -1965,7 +1965,7 @@ namespace ASTA
             departmentsUniq = null;
             departmentsEmailUniq = null;
 
-            _ProgressWork1Step(1);
+            _ProgressWork1Step();
             _toolStripStatusLabelSetText(StatusLabel2, "Списки ФИО и департаментов получены.");
         }
 
@@ -2005,7 +2005,7 @@ namespace ASTA
 
             logger.Trace("В таблице " + dataTable.TableName + " столбцов всего - " + dtExport.Columns.Count + ", строк - " + dtExport.Rows.Count);
             _toolStripStatusLabelSetText(StatusLabel2, "Генерирую Excel-файл по отчету: '" + nameReport + "'");
-            _ProgressWork1Step(1);
+            _ProgressWork1Step();
 
             try
             {
@@ -2018,7 +2018,7 @@ namespace ASTA
                     nameColumns[i] = dtExport.Columns[i].ColumnName;
                     indexColumns[i] = dtExport.Columns.IndexOf(nameColumns[i]);
                 }
-                _ProgressWork1Step(1);
+                _ProgressWork1Step();
 
                 int rows = 1;
                 int rowsInTable = dtExport.Rows.Count;
@@ -2036,7 +2036,7 @@ namespace ASTA
 
                 sheet.Name = nameReport;
                 //sheet.Names.Add("next", "=" + Path.GetFileNameWithoutExtension(filePathExcelReport) + "!$A$1", true, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
-                _ProgressWork1Step(1);
+                _ProgressWork1Step();
 
                 //colourize background of column
                 //the last column
@@ -2070,7 +2070,7 @@ namespace ASTA
                     rangeColumnB.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
                 catch (Exception expt) { logger.Warn("нарушения: " + expt.ToString()); }
-                _ProgressWork1Step(1);
+                _ProgressWork1Step();
 
                 try
                 {
@@ -2099,7 +2099,7 @@ namespace ASTA
                     rangeColumnF.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
                 catch (Exception expt) { logger.Warn("Отсутствовал: " + expt.ToString()); }
-                _ProgressWork1Step(1);
+                _ProgressWork1Step();
 
                 //first row
                 Microsoft.Office.Interop.Excel.Range rangeColumnName = sheet.Range["A1", GetExcelColumnName(columnsInTable) + 1];
@@ -2113,7 +2113,7 @@ namespace ASTA
                     sheet.Cells[1, column + 1].Value = nameColumns[column];
                     sheet.Columns[column + 1].NumberFormat = "@"; // set format data of cells - text
                 }
-                _ProgressWork1Step(1);
+                _ProgressWork1Step();
 
                 foreach (DataRow row in dtExport.Rows)
                 {
@@ -2122,7 +2122,7 @@ namespace ASTA
                     {
                         sheet.Cells[rows, column + 1].Value = row[indexColumns[column]];
                     }
-                    _ProgressWork1Step(1);
+                    _ProgressWork1Step();
                 }
 
                 //colourize parts of text in the selected cell by different colors
@@ -2144,7 +2144,7 @@ namespace ASTA
                 range.Cells.Font.Size = 8;
                 //ширина колонок - авто
                 range.Cells.EntireColumn.AutoFit();
-                _ProgressWork1Step(1);
+                _ProgressWork1Step();
 
                 range.Cells.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeBottom].LineStyle = Microsoft.Office.Interop.Excel.XlLineStyle.xlContinuous;
                 range.Cells.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeBottom].Weight = Microsoft.Office.Interop.Excel.XlBorderWeight.xlThin;
@@ -2154,7 +2154,7 @@ namespace ASTA
                 range.Cells.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlInsideHorizontal].Weight = Microsoft.Office.Interop.Excel.XlBorderWeight.xlThin;
                 range.Cells.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlInsideVertical].LineStyle = Microsoft.Office.Interop.Excel.XlLineStyle.xlContinuous;
                 range.Cells.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlInsideVertical].Weight = Microsoft.Office.Interop.Excel.XlBorderWeight.xlThin;
-                _ProgressWork1Step(1);
+                _ProgressWork1Step();
 
                 //Autofilter
                 range.Select();
@@ -2174,7 +2174,7 @@ namespace ASTA
                 //close document
                 workbook.Close(false, System.Reflection.Missing.Value, System.Reflection.Missing.Value);
                 workbooks.Close();
-                _ProgressWork1Step(1);
+                _ProgressWork1Step();
 
                 //clear temporary objects
                 releaseObject(range);
@@ -2187,7 +2187,7 @@ namespace ASTA
                 indexColumns = null;
                 nameColumns = null;
 
-                _ProgressWork1Step(1);
+                _ProgressWork1Step();
 
                 _toolStripStatusLabelSetText(StatusLabel2, "Отчет сохранен в файл: " + filePath);
                 _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
@@ -2682,7 +2682,7 @@ namespace ASTA
                         {
                             sqlCommand.Parameters.Add("@ComboList", DbType.String).Value = str.FIO + "|" + str.NAV;
                             try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
-                            _ProgressWork1Step(1);
+                            _ProgressWork1Step();
                         }
                     }
                 }
@@ -2693,10 +2693,10 @@ namespace ASTA
 
                 foreach (var str in listFIO)
                 { _comboBoxAdd(comboBoxFio, str.FIO + "|" + str.NAV); }
-                _ProgressWork1Step(1);
+                _ProgressWork1Step();
                 if (_comboBoxCountItems(comboBoxFio) > 0)
                 { _comboBoxSelectIndex(comboBoxFio, 0); }
-                _ProgressWork1Step(1);
+                _ProgressWork1Step();
                 logger.Info("Записано ФИО: " + listFIO.Count);
             }
         }
@@ -2934,6 +2934,7 @@ namespace ASTA
                 GetInfoSetup();
                 _MenuItemEnabled(SettingsMenuItem, true);
             }
+            stimerPrev = "";
             _ProgressBar1Stop();
 
             if (dtPersonTemp?.Rows.Count > 0)
@@ -3006,7 +3007,7 @@ namespace ASTA
                         }
                     }
                 }
-                _ProgressWork1Step(1);
+                _ProgressWork1Step();
 
                 string date = "";
                 string resonId = "";
@@ -3039,7 +3040,7 @@ namespace ASTA
                 sqlConnection.Close();
                 logger.Trace("Всего с " + startDate.Split(' ')[0] + " по " + endDate.Split(' ')[0] + " на сайте есть - " + outPerson.Count + " записей с отсутствиями");
             }
-            _ProgressWork1Step(1);
+            _ProgressWork1Step();
 
             if ((nameOfLastTableFromDB == "PeopleGroupDesciption" || nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "Mailing" ||
                 nameOfLastTableFromDB == "ListFIO" || doPostAction == "sendEmail") && nameGroup.Length > 0)
@@ -3154,7 +3155,7 @@ namespace ASTA
                                     person.idCard = Convert.ToInt32(record["id"].ToString().Trim());
                                     break;
                                 }
-                                _ProgressWork1Step(1);
+                                _ProgressWork1Step();
                             }
                         }
                     }
@@ -3173,7 +3174,7 @@ namespace ASTA
                                     person.idCard = Convert.ToInt32(record["id"].ToString().Trim());
                                     break;
                                 }
-                                _ProgressWork1Step(1);
+                                _ProgressWork1Step();
                             }
                         }
                     }
@@ -3226,7 +3227,7 @@ namespace ASTA
 
                                         dtTarget.Rows.Add(rowPerson);
 
-                                        _ProgressWork1Step(1);
+                                        _ProgressWork1Step();
                                     }
                                 }
                                 catch (Exception expt) { logger.Warn("GetPersonRegistrationFromServer " + expt.ToString()); }
@@ -3236,7 +3237,7 @@ namespace ASTA
                 }
 
                 stringDataNew = null; query = null; stringConnection = null;
-                _ProgressWork1Step(1);
+                _ProgressWork1Step();
             }
             catch (Exception Expt)
             { MessageBox.Show(Expt.ToString(), @"Сервер не доступен, или неправильная авторизация", MessageBoxButtons.OK, MessageBoxIcon.Error); }
@@ -3264,7 +3265,7 @@ namespace ASTA
                 rowPerson[EMPLOYEE_ABSENCE] = "1";
 
                 dtTarget.Rows.Add(rowPerson);//добавляем рабочий день в который  сотрудник не выходил на работу
-                _ProgressWork1Step(1);
+                _ProgressWork1Step();
             }
             dtTarget.AcceptChanges();
 
@@ -3301,7 +3302,7 @@ namespace ASTA
             }
             dtTarget.AcceptChanges();
 
-            _ProgressWork1Step(1);
+            _ProgressWork1Step();
 
             rowPerson = null;
             namePoint = null; direction = null;
@@ -7821,6 +7822,7 @@ namespace ASTA
             }
             return stringDT;
         }
+
         private string _dateTimePickerEnd() //add string into  from other threads
         {
             string stringDT = "";
@@ -7876,14 +7878,19 @@ namespace ASTA
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
-                    StatusLabel2.Text = s;
+                    statusLabel.Text = s;
                 }));
             else
             {
-                StatusLabel2.Text = s;
+                statusLabel.Text = s;
             }
+
             stimerPrev = s;
-            logger.Info(s);
+
+            if (s?.Length > 0)
+            {
+                logger.Info(s);
+            }
         }
 
         private void _toolStripStatusLabelForeColor(ToolStripStatusLabel statusLabel, Color s)
@@ -7897,9 +7904,9 @@ namespace ASTA
         private void _toolStripStatusLabelBackColor(ToolStripStatusLabel statusLabel, Color s) //add string into  from other threads
         {
             if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { StatusLabel2.BackColor = s; }));
+                Invoke(new MethodInvoker(delegate { statusLabel.BackColor = s; }));
             else
-                StatusLabel2.BackColor = s;
+                statusLabel.BackColor = s;
         }
 
 
@@ -7957,11 +7964,11 @@ namespace ASTA
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
-                    panelView?.ResumeLayout();
+                    panel?.ResumeLayout();
                 }));
             else
             {
-                panelView?.ResumeLayout();
+                panel?.ResumeLayout();
             }
         }
 
@@ -8023,13 +8030,13 @@ namespace ASTA
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
-                    if (panelView?.Parent?.Height > 0)
-                        height = panelView.Parent.Height;
+                    if (panel?.Parent?.Height > 0)
+                        height = panel.Parent.Height;
                 }));
             else
             {
-                if (panelView?.Parent?.Height > 0)
-                    height = panelView.Parent.Height;
+                if (panel?.Parent?.Height > 0)
+                    height = panel.Parent.Height;
             }
             return height;
         }
@@ -8040,13 +8047,13 @@ namespace ASTA
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
-                    if (panelView?.Height > 0)
-                        height = panelView.Height;
+                    if (panel?.Height > 0)
+                        height = panel.Height;
                 }));
             else
             {
-                if (panelView?.Height > 0)
-                    height = panelView.Height;
+                if (panel?.Height > 0)
+                    height = panel.Height;
             }
             return height;
         }
@@ -8058,14 +8065,14 @@ namespace ASTA
             {
                 Invoke(new MethodInvoker(delegate
                  {
-                     if (panelView?.Width > 0)
-                         width = panelView.Width;
+                     if (panel?.Width > 0)
+                         width = panel.Width;
                  }));
             }
             else
             {
-                if (panelView?.Width > 0)
-                    width = panelView.Width;
+                if (panel?.Width > 0)
+                    width = panel.Width;
             }
             return width;
         }
@@ -8076,13 +8083,13 @@ namespace ASTA
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
-                    if (panelView?.Controls?.Count > 0)
-                        count = panelView.Controls.Count;
+                    if (panel?.Controls?.Count > 0)
+                        count = panel.Controls.Count;
                 }));
             else
             {
-                if (panelView?.Controls?.Count > 0)
-                    count = panelView.Controls.Count;
+                if (panel?.Controls?.Count > 0)
+                    count = panel.Controls.Count;
             }
             return count;
         }
@@ -8223,7 +8230,7 @@ namespace ASTA
             }
         }
 
-        private void _ProgressWork1Step(int step) //add into progressBar Value 2 from other threads
+        private void _ProgressWork1Step() //add into progressBar Value 2 from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -8231,14 +8238,14 @@ namespace ASTA
                     if (ProgressBar1.Value > 99)
                     { ProgressBar1.Value = 0; }
                     ProgressBar1.Maximum = 100;
-                    ProgressBar1.Value += step;
+                    ProgressBar1.Value += 1;
                 }));
             else
             {
                 if (ProgressBar1.Value > 99)
                 { ProgressBar1.Value = 0; }
                 ProgressBar1.Maximum = 100;
-                ProgressBar1.Value += step;
+                ProgressBar1.Value += 1;
             }
         }
 
@@ -8249,7 +8256,6 @@ namespace ASTA
                 {
                     timer1.Enabled = true;
                     ProgressBar1.Value = 0;
-                    timer1.Enabled = true;
                 }));
             else
             {
