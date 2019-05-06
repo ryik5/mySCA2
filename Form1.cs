@@ -7356,12 +7356,13 @@ namespace ASTA
                     // отправка письма
                     try
                     {
-                        // async sending has a problem with sending
+                        // async sending method sometimes has a problem with sending emails
+                        // a default MS Exch Server blocks the action of mass sending emails
                         // smtpClient.SendAsync(newMail);
                         smtpClient.Send(newMail);
                         logger.Info("SendEmail: " + recipient + " - Ok");
                     }
-                    catch (Exception expt) { logger.Warn("SendEmail, Error: " + expt.Message); }
+                    catch (Exception expt) { logger.Error("SendEmail, Error: " + expt.Message); }
 
                     if (mailSent == false)
                     {
@@ -8287,24 +8288,25 @@ namespace ASTA
 
         //---- Start. Convertors of data types ----//
 
-        private double TryParseStringToDouble(string str)  //string -> decimal. if error it will return 0
+      /*  private double TryParseStringToDouble(string str)  //string -> decimal. if error it will return 0
         {
             double result = 0;
             try { result = double.Parse(str); } catch { }
             return result;
-        }
+        }*/
 
         private decimal TryParseStringToDecimal(string str)  //string -> decimal. if error it will return 0
         {
             decimal result = 0;
-            try { result = decimal.Parse(str); } catch { result = 0; }
+            if (!decimal.TryParse(str, out result))
+            { result = 0; }
             return result;
         }
 
         private int TryParseStringToInt(string str)  //string -> decimal. if error it will return 0
         {
             int result = 0;
-            try { result = int.Parse(str); } catch { }
+            bool convertOk = Int32.TryParse(str, out result);
             return result;
         }
 
@@ -8323,18 +8325,18 @@ namespace ASTA
             decimal result = decimalHour + TryParseStringToDecimal(TimeSpan.FromMinutes((double)decimalMinute).TotalHours.ToString());
             return result;
         }
-
+        /*
         private int ConvertDecimalSeparatedTimeToSeconds(decimal decimalHour, decimal decimalMinute)
         {
             int result = Convert.ToInt32(decimalHour * 60 * 60 + decimalMinute * 60);
             return result;
-        }
+        }*/
 
-        private decimal ConvertStringsTimeToDecimal(string hour, string minute)
+       /* private decimal ConvertStringsTimeToDecimal(string hour, string minute)
         {
             decimal result = TryParseStringToDecimal(hour) + TryParseStringToDecimal(TimeSpan.FromMinutes(TryParseStringToDouble(minute)).TotalHours.ToString());
             return result;
-        }
+        }*/
 
         private string ShortFIO(string s) //Transform from full FIO into Short form FIO
         {
@@ -8381,14 +8383,14 @@ namespace ASTA
             return result;
         }
 
-        private string ConvertDecimalTimeToStringHHMM(decimal decimalTime)
+      /*  private string ConvertDecimalTimeToStringHHMM(decimal decimalTime)
         {
             string result;
             int hour = (int)(decimalTime);
             int minute = Convert.ToInt32(60 * (decimalTime - hour));
             result = string.Format("{0:d2}:{1:d2}", hour, minute);
             return result;
-        }
+        }*/
         
         private string[] ConvertSecondsTimeToStringHHMMArray(int seconds)
         {
@@ -8415,8 +8417,8 @@ namespace ASTA
         {
             int h = 0;
             int m = 0;
-            try { h = Convert.ToInt32(hour); } catch { }
-            try { m = Convert.ToInt32(minute); } catch { }
+            bool hourOk = Int32.TryParse(hour, out h);
+            bool minuteOk = Int32.TryParse(minute, out m);
             int result = h * 60 * 60 + m * 60;
             return result;
         }
@@ -8496,7 +8498,7 @@ namespace ASTA
             return result;
         }
 
-
+        /*
         private string[] ConvertStringTimeHHMMToStringArray(string timeInHHMM) //time HH:MM converted to decimal value
         {
            // TimeConvertor timeConvertor1 = new TimeConvertor { Seconds = 115 };
@@ -8524,7 +8526,7 @@ namespace ASTA
             result[2] = String.Format("{0:d2}:{1:d2}", h, m);                   // normalyze to     22:25
 
             return result;
-        }
+        }*/
 
         //---- End. Convertors of data types ----//
     }
