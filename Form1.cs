@@ -87,9 +87,8 @@ namespace ASTA
         static object synclock = new object();
         static bool sent = false;
         static string DEFAULT_RECEIVING_PORT_MAILSERVER = "587";
-        static string DEFAULT_DAY_OF_SENDING_REPORT = END_OF_MONTH;
-
-
+        static string DEFAULT_DAY_OF_SENDING_REPORT = @"END_OF_MONTH";
+        
         static bool mailSent = false; //the flag of sending data
         const string RECEPIENTS_OF_REPORTS = @"Получатель рассылки";
 
@@ -728,7 +727,7 @@ namespace ASTA
                 listParameters = parameters.GetParameters("%%").FindAll(x => x.isExample == "no"); //load only real data
 
                 DEFAULT_DAY_OF_SENDING_REPORT = GetValueOfConfigParameter(listParameters, @"DEFAULT_DAY_OF_SENDING_REPORT", END_OF_MONTH);
-                DEFAULT_RECEIVING_PORT_MAILSERVER = GetValueOfConfigParameter(listParameters, @"DEFAULT_RECEIVING_PORT_MAILSERVER", "587");
+                DEFAULT_RECEIVING_PORT_MAILSERVER = GetValueOfConfigParameter(listParameters, @"DEFAULT_RECEIVING_PORT_MAILSERVER", "25"); //587
                 clrRealRegistrationRegistry = Color.FromName(GetValueOfConfigParameter(listParameters, @"clrRealRegistration", "PaleGreen"));
 
                 sServer1DB = GetValueOfConfigParameter(listParameters, @"SKDServer", null);
@@ -6578,7 +6577,7 @@ namespace ASTA
 
             SaveMailing(
                dgSeek.values[0], mailServerUserName, dgSeek.values[1], dgSeek.values[2] + "_1",
-               dgSeek.values[3] + "_1", dgSeek.values[4], "Неактивная", DateTime.Now.ToYYYYMMDDHHMM(), "", "Копия", "1");
+               dgSeek.values[3] + "_1", dgSeek.values[4], "Неактивная", DateTime.Now.ToYYYYMMDDHHMM(), "", "Копия", DEFAULT_DAY_OF_SENDING_REPORT);
 
             ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
             "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
@@ -6663,10 +6662,13 @@ namespace ASTA
                             @"Период", @"Статус", @"Тип отчета", @"День отправки отчета" });
                         _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + dgSeek.values[2]);
 
-                        ExecuteSql("UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToYYYYMMDDHHMM() +
-                            "' WHERE RecipientEmail='" + dgSeek.values[0] + "' AND NameReport='" + dgSeek.values[2] +
-                            "' AND GroupsReport ='" + dgSeek.values[1] + "';", databasePerson);
-
+                        ExecuteSql("UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToYYYYMMDDHHMM()
+                            + "' WHERE RecipientEmail='" + dgSeek.values[0]+ "' AND GroupsReport ='" + dgSeek.values[1]
+                            + "' AND NameReport='" + dgSeek.values[2] + "' AND Description ='" + dgSeek.values[3]
+                            + "' AND Period='" + dgSeek.values[4] + "' AND Status='" + dgSeek.values[5]
+                            + "' AND TypeReport='" + dgSeek.values[6] + "' AND DayReport ='" + dgSeek.values[7]
+                            + "';", databasePerson);
+                        
                         MailingAction("sendEmail", dgSeek.values[0], mailServerUserName,
                             dgSeek.values[1], dgSeek.values[2], dgSeek.values[3], dgSeek.values[4],
                             dgSeek.values[5], dgSeek.values[6], dgSeek.values[7]);
@@ -6955,6 +6957,25 @@ namespace ASTA
             return result;
         }
 
+        private int ReturnNumberStrongNameDayOfSendingReports(string inputDate, DaysOfSendingMail daysOfSendingMail)
+        {
+            int result = 0;
+
+            if (inputDate.Equals("START_OF_MONTH"))
+            {
+                result = daysOfSendingMail.START_OF_MONTH;
+            }
+            else if (inputDate.Equals("MIDDLE_OF_MONTH"))
+            {
+                result = daysOfSendingMail.MIDDLE_OF_MONTH;
+            }
+            else
+            {
+                result = daysOfSendingMail.LAST_WORK_DAY_OF_MONTH;
+            }
+            return result;
+        }
+
         private string ReturnStrongNameDayOfSendingReports(int inputDate)
         {
             string result = "";
@@ -6975,26 +6996,6 @@ namespace ASTA
             return result;
         }
 
-        private int ReturnNumberOfStrongNameDayOfSendingReports(string inputDate)
-        {
-            int result = 0;
-
-            if (inputDate.Equals("1") || inputDate.Equals("2") || inputDate.Equals("3") || inputDate.Contains("ПЕРВ") || inputDate.Contains("НАЧАЛ") || inputDate.Contains("START"))
-            {
-                result = 1;
-            }
-            else if (inputDate.Equals("16") || inputDate.Equals("15") || inputDate.Equals("14") || inputDate.Contains("СЕРЕД") || inputDate.Contains("СРЕД") || inputDate.Contains("MIDDLE"))
-            {
-                result = 15;
-            }
-            else
-            {
-                result = 28;
-            }
-
-            return result;
-        }
-
         private void SelectMailingDoAction() //MailingAction()
         {
             _ProgressBar1Start();
@@ -7010,7 +7011,7 @@ namespace ASTA
             string period = "";
             string status = "";
             string typeReport = "";
-            int dayReport = 28;
+            string dayReport ="";
             string str = "";
 
             DataTable dtEmpty = new DataTable();
@@ -7026,16 +7027,15 @@ namespace ASTA
                 );
             dtEmpty = null;
             personEmpty = null;
+            DaysToSendReports daysToSendReports = new DaysToSendReports(workSelectedDays);
+            DaysOfSendingMail daysOfSendingMail = daysToSendReports.GetDays();
 
             logger.Trace("SelectMailingDoAction: "+ 
                 startDayOfCurrentMonth[0] + "-"+ startDayOfCurrentMonth[1] + "-" + startDayOfCurrentMonth[2] + 
                 " - " +
                 lastDayOfCurrentMonth[0] + "-" + lastDayOfCurrentMonth[1] + "-" + lastDayOfCurrentMonth[2]
                 );
-
-            DaysToSendReports daysToSendReports = new DaysToSendReports(workSelectedDays);
-            DaysOfSendingMail daysOfSendingMail = daysToSendReports.GetDays();
-
+            
             HashSet<MailingStructure> mailingList = new HashSet<MailingStructure>();
 
             using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
@@ -7058,35 +7058,14 @@ namespace ASTA
                                 period = record["Period"].ToString();
                                 status = record["Status"].ToString().ToLower();
                                 typeReport = record["TypeReport"].ToString();
-                                // dayReport = record["DayReport"].ToString();
 
                                 string dayReportInDB = record["DayReport"]?.ToString()?.Trim()?.ToUpper();
-                                string day = null;
-                                logger.Trace("DayReport: " + dayReportInDB);
+                                dayReport = ReturnStrongNameDayOfSendingReports(dayReportInDB);
+                                int dayToSendReport = ReturnNumberStrongNameDayOfSendingReports(dayReport,daysOfSendingMail);
 
-                                day = ReturnStrongNameDayOfSendingReports(dayReportInDB);
+                                logger.Trace("DayReport: " + dayReportInDB+" "+ dayReport+" "+ dayToSendReport);
 
-                                switch (day)
-                                {
-                                    case "START_OF_MONTH":
-                                        dayReport = daysOfSendingMail.START_OF_MONTH;
-                                        break;
-                                    case "MIDDLE_OF_MONTH":
-                                        dayReport = daysOfSendingMail.MIDDLE_OF_MONTH;
-                                        break;
-                                    case "END_OF_MONTH":
-                                        dayReport = daysOfSendingMail.LAST_WORK_DAY_OF_MONTH;
-                                        break;
-                                    default:
-                                        dayReport = daysOfSendingMail.START_OF_MONTH;
-                                        break;
-                                }
-                                logger.Trace("Selected Day of Sending: " + dayReport);
-
-                                //look for the day of sending //string SelectWholeCurrentMonthWithTime(),workSelectedDays
-                                //transform first_day_of_month, middle_of_month, last_work_day_of_month into the day
-                                //write day of month in '_dayReport'
-                                if (status == "активная" && dayReport == today.Day)
+                                if (status == "активная" && dayToSendReport == today.Day)
                                 {
                                     mailingList.Add(new MailingStructure()
                                     {
@@ -7124,7 +7103,7 @@ namespace ASTA
                 ExecuteSql(str, databasePerson);
                 GetRegistrationAndSendReport(
                     mailng._groupsReport, mailng._nameReport, mailng._descriptionReport, mailng._period, mailng._status,
-                    mailng._typeReport, mailng._dayReport.ToString(), true, mailng._recipient, mailServerUserName);
+                    mailng._typeReport, mailng._dayReport, true, mailng._recipient, mailServerUserName);
 
                 _ProgressWork1Step();
             }
@@ -7157,29 +7136,6 @@ namespace ASTA
             string dayReport = "";
             string str = "";
 
-            DataTable dtEmpty = new DataTable();
-            PersonFull personEmpty = new PersonFull();
-            var today = DateTime.Today;
-
-            int[] startDayOfCurrentMonth = { today.Year, today.Month, 1 };
-            int[] lastDayOfCurrentMonth = { today.Year, today.Month, today.LastDayOfMonth().Day };
-
-            SeekAnualDays(ref dtEmpty, ref personEmpty, false,
-                startDayOfCurrentMonth, lastDayOfCurrentMonth,
-                ref myBoldedDates, ref workSelectedDays
-                );
-            dtEmpty = null;
-            personEmpty = null;
-
-            logger.Trace("UpdateMailingInDB: " +
-                startDayOfCurrentMonth[0] + "-" + startDayOfCurrentMonth[1] + "-" + startDayOfCurrentMonth[2] +
-                " - " +
-                lastDayOfCurrentMonth[0] + "-" + lastDayOfCurrentMonth[1] + "-" + lastDayOfCurrentMonth[2]
-                );
-
-            DaysToSendReports daysToSendReports = new DaysToSendReports(workSelectedDays);
-            DaysOfSendingMail daysOfSendingMail = daysToSendReports.GetDays();
-
             HashSet<MailingStructure> mailingList = new HashSet<MailingStructure>();
 
             using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
@@ -7204,10 +7160,9 @@ namespace ASTA
                                 typeReport = record["TypeReport"].ToString();
 
                                 string dayReportInDB = record["DayReport"]?.ToString()?.Trim()?.ToUpper();
-                                int day = 0;
                                 logger.Trace("DayReport: " + dayReportInDB);
 
-                                day= ReturnNumberOfStrongNameDayOfSendingReports(dayReportInDB);
+                                dayReport = ReturnStrongNameDayOfSendingReports(dayReportInDB);
 
                                 mailingList.Add(new MailingStructure()
                                 {
@@ -7219,7 +7174,7 @@ namespace ASTA
                                     _period = period,
                                     _typeReport = typeReport,
                                     _status = status,
-                                    _dayReport = day
+                                    _dayReport = dayReport
                                 });
                             }
                         }
@@ -7229,9 +7184,7 @@ namespace ASTA
 
             foreach (MailingStructure mailng in mailingList)
             {
-                dayReport = ReturnStrongNameDayOfSendingReports(mailng._dayReport);
-
-                str = "UPDATE 'Mailing' SET DayReport='" + dayReport +
+                str = "UPDATE 'Mailing' SET DayReport='" + mailng._dayReport +
                     "' WHERE RecipientEmail='" + mailng._recipient +
                     "' AND NameReport='" + mailng._nameReport +
                     "' AND Period='" + mailng._period +
@@ -7340,14 +7293,10 @@ namespace ASTA
             if (period.ToLower().Contains("текущ"))
             {
                 selectedDate = dtCurrentDate;
-              //  reportStartDay = dtCurrentDate.FirstDayOfMonth().ToYYYYMMDD() + " 00:00:00";
-             //   reportLastDay = dtCurrentDate.LastDayOfMonth().ToYYYYMMDD() + " 23:59:59";
             }
             else if (period.ToLower().Contains("предыдущ"))
             {
                 selectedDate = new DateTime(dtCurrentDate.Year, dtCurrentDate.Month, 1).AddDays(-1);
-             //   reportStartDay = dtPreviousMonthDate.FirstDayOfMonth().ToYYYYMMDD() + " 00:00:00";
-              //  reportLastDay = dtPreviousMonthDate.LastDayOfMonth().ToYYYYMMDD() + " 23:59:59";
             }
  
                reportStartDay = selectedDate.FirstDayOfMonth().ToYYYYMMDD() + " 00:00:00";
