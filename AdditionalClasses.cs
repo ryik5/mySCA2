@@ -406,7 +406,7 @@ label1.Text = name;
         public string _period;
         public string _status;
         public string _typeReport;
-        public int _dayReport;
+        public string _dayReport;
 
         public override string ToString()
         {
