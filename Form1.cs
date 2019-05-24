@@ -80,19 +80,33 @@ namespace ASTA
 
         //mailing
         const string NAME_OF_SENDER_REPORTS = "Отдел компенсаций и льгот";
+        const string START_OF_MONTH = @"START_OF_MONTH";
+        const string MIDDLE_OF_MONTH = @"MIDDLE_OF_MONTH";
+        const string END_OF_MONTH = @"END_OF_MONTH";
         static System.Threading.Timer timer;
         static object synclock = new object();
         static bool sent = false;
         static string DEFAULT_RECEIVING_PORT_MAILSERVER = "587";
-        static string DEFAULT_DAY_OF_SENDING_REPORT = "28";
+        static string DEFAULT_DAY_OF_SENDING_REPORT = END_OF_MONTH;
+
+
         static bool mailSent = false; //the flag of sending data
         const string RECEPIENTS_OF_REPORTS = @"Получатель рассылки";
 
+
         //Collumns of the table 'Day off'
-        const string DAYOFF_NAME = @"Праздничный (выходной) день";
-        const string DAYOFF_TYPE = @"Тип выходного дня";
-        const string DAYOFF_FOR = @"Персонально(NAV) или для всех(0)";
-        const string DAYOFF_DATE_SAVING = @"Дата добавления";
+        const string DAY_DATE = @"День";
+        const string DAY_TYPE = @"Выходной или рабочий день";
+        const string DAY_USED_BY = @"Персонально(NAV) или для всех(0)";
+        const string DAY_ADDED = @"Дата добавления";
+
+
+        //string constants
+        const string DAY_OFF_AND_WORK = @"Выходные(рабочие) дни";
+        const string DAY_OFF_AND_WORK_EDIT = @"Войти в режим добавления/удаления праздничных дней";
+
+        const string WORK_WITH_A_PERSON = @"Работать с одной персоной";
+        const string WORK_WITH_A_GROUP = @"Работать с группой";
 
 
         //Page of Mailing
@@ -351,7 +365,7 @@ namespace ASTA
         };
         readonly string[] nameHidenColumnsArray =
             {
-                                  NPP,//0
+                NPP,//0
                 TIMEIN,//6
                 TIMEOUT,//9
                 TIME_REGISTRATION, //15
@@ -410,6 +424,7 @@ namespace ASTA
             logger.Error("Test4 Error message");
             logger.Fatal("Test5 Fatal message");
             logger.Info("");
+            var today = DateTime.Today;
 
             logger.Info("Настраиваю интерфейс....");
             Bitmap bmp = Properties.Resources.LogoRYIK;
@@ -442,8 +457,8 @@ namespace ASTA
             this.Text = myFileVersionInfo.Comments;
             notifyIcon.Text = myFileVersionInfo.ProductName + "\nv." + myFileVersionInfo.FileVersion + "\n" + myFileVersionInfo.CompanyName;
 
-            EditAnualDaysItem.Text = @"Выходные(рабочие) дни";
-            EditAnualDaysItem.ToolTipText = @"Войти в режим добавления/удаления праздничных дней";
+            EditAnualDaysItem.Text = DAY_OFF_AND_WORK;
+            EditAnualDaysItem.ToolTipText = DAY_OFF_AND_WORK_EDIT;
 
             _MenuItemEnabled(AddAnualDateItem, false);
 
@@ -476,32 +491,31 @@ namespace ASTA
             dateTimePickerEnd.Format = DateTimePickerFormat.Custom;
             dateTimePickerStart.MinDate = DateTime.Parse("2016-01-01");
             dateTimePickerEnd.MinDate = DateTime.Parse("2016-01-01");
-            dateTimePickerStart.MaxDate = DateTime.Now;
+            dateTimePickerStart.MaxDate = today;
             dateTimePickerEnd.MaxDate = DateTime.Parse("2025-12-31");
             dateTimePickerStart.Value = DateTime.Parse(DateTime.Now.Year + "-" + DateTime.Now.Month + "-01");
-            dateTimePickerEnd.Value = DateTime.Now;
-            //DateTime.Now.ToString("yyyy-MM-dd HH:mm")
+            dateTimePickerEnd.Value = today.LastDayOfMonth();
 
             numUpDownHourStart.Value = 9;
             numUpDownMinuteStart.Value = 0;
             numUpDownHourEnd.Value = 18;
             numUpDownMinuteEnd.Value = 0;
 
-            PersonOrGroupItem.Text = "Работать с одной персоной";
+            PersonOrGroupItem.Text = WORK_WITH_A_PERSON;
             toolTip1.SetToolTip(textBoxGroup, "Создать группу");
             toolTip1.SetToolTip(textBoxGroupDescription, "Изменить описание группы");
             StatusLabel2.Text = "";
 
-            logger.Info("TryMakeDB...");
+            logger.Trace("TryMakeDB");
             TryMakeDB();
-            logger.Info("UpdateTableOfDB...");
+            logger.Trace("UpdateTableOfDB");
             UpdateTableOfDB();
-            logger.Info("SetTechInfoIntoDB...");
+            logger.Trace("SetTechInfoIntoDB");
             SetTechInfoIntoDB();
 
             //read last saved parameters from db and Registry and set their into variables
             logger.Info("Загружаю настройки программы...");
-            BoldAnualDates();
+
             LoadPrevioslySavedParameters();
 
             sServer1 = sServer1Registry?.Length > 0 ? sServer1Registry : sServer1DB;
@@ -518,7 +532,22 @@ namespace ASTA
 
             clrRealRegistration = clrRealRegistrationRegistry != Color.PaleGreen ? clrRealRegistrationRegistry : Color.PaleGreen;
 
+            DataTable dtEmpty = new DataTable();
+            PersonFull personEmpty = new PersonFull();
+            var startDay = today.AddDays(-60).ToYYYYMMDD();
+            var endDay = today.AddDays(30).ToYYYYMMDD();
 
+            SeekAnualDays(ref dtEmpty,ref personEmpty,false,
+                ConvertStringDateToIntArray(startDay), ConvertStringDateToIntArray(endDay),
+                ref myBoldedDates, ref workSelectedDays
+                );
+            dtEmpty = null;
+            personEmpty = null;
+
+            monthCalendar.SelectionStart = today;
+            monthCalendar.SelectionEnd = today;
+            monthCalendar.Update();
+            monthCalendar.Refresh();
             logger.Info("Настраиваю переменные....");
 
             //Prepare DataTables
@@ -698,7 +727,7 @@ namespace ASTA
 
                 listParameters = parameters.GetParameters("%%").FindAll(x => x.isExample == "no"); //load only real data
 
-                DEFAULT_DAY_OF_SENDING_REPORT = GetValueOfConfigParameter(listParameters, @"DEFAULT_DAY_OF_SENDING_REPORT", "28");
+                DEFAULT_DAY_OF_SENDING_REPORT = GetValueOfConfigParameter(listParameters, @"DEFAULT_DAY_OF_SENDING_REPORT", END_OF_MONTH);
                 DEFAULT_RECEIVING_PORT_MAILSERVER = GetValueOfConfigParameter(listParameters, @"DEFAULT_RECEIVING_PORT_MAILSERVER", "587");
                 clrRealRegistrationRegistry = Color.FromName(GetValueOfConfigParameter(listParameters, @"clrRealRegistration", "PaleGreen"));
 
@@ -862,7 +891,9 @@ namespace ASTA
             };
             //  periodCombo.KeyPress += new KeyPressEventHandler(SelectComboBoxParameters_SelectedIndexChanged);
             periodCombo.SelectedIndexChanged += new EventHandler(ListBox_SelectedIndexChanged);
-            textBoxSettings16.TextChanged += new EventHandler(textbox_textChanged);
+            textBoxSettings16.KeyPress += new KeyPressEventHandler(textboxDate_KeyPress);
+
+          //  textBoxSettings16.TextChanged += new EventHandler(textboxDate_textChanged);
             checkBox1.CheckStateChanged += new EventHandler(checkBox1_CheckStateChanged);
             textBoxSettings16.BringToFront();
             labelSettings9.BringToFront();
@@ -903,7 +934,19 @@ namespace ASTA
             toolTip1.SetToolTip(textBoxSettings16, tooltip);
         }
 
-        private void textbox_textChanged(object sender, EventArgs e)
+
+        private void textboxDate_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            string inputed = null;
+            if (e.KeyChar == (char)13)//если нажата Enter
+            {
+                inputed = ReturnStrongNameDayOfSendingReports((sender as TextBox).Text);
+                (sender as TextBox).Text = inputed;
+            }
+        }
+
+        /*
+        private void textboxDate_textChanged(object sender, EventArgs e)
         {
             int result;
             bool correct = false;
@@ -923,6 +966,20 @@ namespace ASTA
                 }
             }
         }
+
+        private void textBoxSettings16_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) && (e.KeyChar != '.'))
+            {
+                e.Handled = true;
+            }
+
+            // only allow one decimal point
+            if (char.IsDigit(e.KeyChar) && ((sender as TextBox).Text.IndexOf('.') > -1))
+            {
+                e.Handled = true;
+            }
+        }*/
 
         private void ButtonPropertiesSave_inConfig(object sender, EventArgs e) //SaveProperties()
         {
@@ -2069,7 +2126,7 @@ namespace ASTA
                     Microsoft.Office.Interop.Excel.Range rangeColumnB = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(EMPLOYEE_EARLY_DEPARTURE)) + 1)];
                     rangeColumnB.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
-                catch (Exception expt) { logger.Warn("нарушения: " + expt.ToString()); }
+                catch (Exception expt) { logger.Warn("Нарушения: " + expt.ToString()); }
                 _ProgressWork1Step();
 
                 try
@@ -2277,7 +2334,7 @@ namespace ASTA
                 CreateGroupInDB(databasePerson, textBoxGroup.Text.Trim(), textBoxGroupDescription.Text.Trim());
             }
 
-            PersonOrGroupItem.Text = "Работать с одной персоной";
+            PersonOrGroupItem.Text = WORK_WITH_A_PERSON;
             nameOfLastTableFromDB = "PeopleGroup";
             ListGroups();
         }
@@ -2329,7 +2386,7 @@ namespace ASTA
 
             dataGridView1.Select();
 
-            PersonOrGroupItem.Text = "Работать с одной персоной";
+            PersonOrGroupItem.Text = WORK_WITH_A_PERSON;
         }
 
         private void UpdateAmountAndRecepientOfPeopleGroupDesciption()
@@ -2834,7 +2891,7 @@ namespace ASTA
             SeekAndShowMembersOfGroup(group);
 
             labelGroup.BackColor = SystemColors.Control;
-            PersonOrGroupItem.Text = "Работать с одной персоной";
+            PersonOrGroupItem.Text = WORK_WITH_A_PERSON;
             nameOfLastTableFromDB = "PeopleGroup";
             group = groupDescription = null; dgSeek = null;
         }
@@ -3407,7 +3464,7 @@ namespace ASTA
 
         private void EnterEditAnualItem_Click(object sender, EventArgs e) //Select - EnterEditAnual() or ExitEditAnual()
         {
-            if (EditAnualDaysItem.Text.Contains(@"Выходные(рабочие) дни"))
+            if (EditAnualDaysItem.Text.Contains(DAY_OFF_AND_WORK))
             {
                 AddAnualDateItem.Font = new Font(this.Font, FontStyle.Bold);
                 EditAnualDaysItem.Font = new Font(this.Font, FontStyle.Bold);
@@ -3424,8 +3481,8 @@ namespace ASTA
         private void EnterEditAnual()
         {
             ShowDataTableDbQuery(databasePerson, "BoldedDates",
-                "SELECT DayBolded AS '" + DAYOFF_NAME + "', DayType AS '" + DAYOFF_TYPE + "', " +
-                "NAV AS '" + DAYOFF_FOR + "', DayDescription AS 'Описание', DateCreated AS '" + DAYOFF_DATE_SAVING + "'",
+                "SELECT DayBolded AS '" + DAY_DATE + "', DayType AS '" + DAY_TYPE + "', " +
+                "NAV AS '" + DAY_USED_BY + "', DayDescription AS 'Описание', DateCreated AS '" + DAY_ADDED + "'",
                 " ORDER BY DayBolded desc, NAV asc; ");
 
             _MenuItemEnabled(FunctionMenuItem, false);
@@ -3459,8 +3516,8 @@ namespace ASTA
 
             CheckBoxesFiltersAll_Visible(true);
 
-            EditAnualDaysItem.Text = @"Выходные(рабочие) дни";
-            EditAnualDaysItem.ToolTipText = @"Войти в режим добавления/удаления праздничных дней";
+            EditAnualDaysItem.Text = DAY_OFF_AND_WORK;
+            EditAnualDaysItem.ToolTipText = DAY_OFF_AND_WORK_EDIT;
 
             toolTip1.SetToolTip(textBoxGroup, "Создать группу");
             toolTip1.SetToolTip(textBoxGroupDescription, "Изменить описание группы");
@@ -3477,8 +3534,8 @@ namespace ASTA
         private void AddAnualDateItem_Click(object sender, EventArgs e) //AddAnualDate()
         {
             AddAnualDate();
-            ShowDataTableDbQuery(databasePerson, "BoldedDates", "SELECT DayBolded AS '" + DAYOFF_NAME + "', DayType AS '" + DAYOFF_TYPE + "', " +
-            "NAV AS '" + DAYOFF_FOR + "', DayDescription AS 'Описание', DateCreated AS '" + DAYOFF_DATE_SAVING + "'",
+            ShowDataTableDbQuery(databasePerson, "BoldedDates", "SELECT DayBolded AS '" + DAY_DATE + "', DayType AS '" + DAY_TYPE + "', " +
+            "NAV AS '" + DAY_USED_BY + "', DayDescription AS 'Описание', DateCreated AS '" + DAY_ADDED + "'",
             " ORDER BY DayBolded desc, NAV asc; ");
         }
 
@@ -3506,11 +3563,11 @@ namespace ASTA
                     using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'BoldedDates' (DayBolded, NAV, DayType, DayDescription, DateCreated) " +
                         " VALUES (@BoldedDate, @NAV, @DayType, @DayDescription, @DateCreated)", sqlConnection))
                     {
-                        sqlCommand.Parameters.Add("@BoldedDate", DbType.String).Value = monthCalendar.SelectionStart.ToString("yyyy-MM-dd");
+                        sqlCommand.Parameters.Add("@BoldedDate", DbType.String).Value = monthCalendar.SelectionStart.ToYYYYMMDD();
                         sqlCommand.Parameters.Add("@NAV", DbType.String).Value = nav;
                         sqlCommand.Parameters.Add("@DayType", DbType.String).Value = dayType;
                         sqlCommand.Parameters.Add("@DayDescription", DbType.String).Value = textBoxGroupDescription.Text.Trim();
-                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTimeToYYYYMMDD();
+                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value =DateTimeToYYYYMMDD();
                         try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                     }
                 }
@@ -3524,14 +3581,14 @@ namespace ASTA
         {
             DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
             dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
-                 DAYOFF_NAME, DAYOFF_TYPE, DAYOFF_FOR, DAYOFF_DATE_SAVING });
+                 DAY_DATE, DAY_TYPE, DAY_USED_BY, DAY_ADDED });
 
             DeleteDataTableQueryParameters(databasePerson, "BoldedDates",
                 "DayBolded", dgSeek.values[0], "DayType", dgSeek.values[1],
                 "NAV", dgSeek.values[2], "DateCreated", dgSeek.values[3]);
 
-            ShowDataTableDbQuery(databasePerson, "BoldedDates", "SELECT DayBolded AS '" + DAYOFF_NAME + "', DayType AS '" + DAYOFF_TYPE + "', " +
-            "NAV AS '" + DAYOFF_FOR + "', DayDescription AS 'Описание', DateCreated AS '" + DAYOFF_DATE_SAVING + "'",
+            ShowDataTableDbQuery(databasePerson, "BoldedDates", "SELECT DayBolded AS '" + DAY_DATE + "', DayType AS '" + DAY_TYPE + "', " +
+            "NAV AS '" + DAY_USED_BY + "', DayDescription AS 'Описание', DateCreated AS '" + DAY_ADDED + "'",
             " ORDER BY DayBolded desc, NAV asc; ");
         }
 
@@ -3837,21 +3894,24 @@ namespace ASTA
 
 
 
-
-        /// <summary>
-        /// ///////////////////////////////////////////////////////////////
-        /// </summary>
-        //check dubled function!!!!!!!!
-
+       
         private List<string> ReturnBoldedDaysFromDB(string nav, string dayType)
         {
             List<string> boldedDays = new List<string>();
+            string sqlQuery = null;
+            if (nav.Length ==6)
+            {
+                sqlQuery = "SELECT DayBolded FROM BoldedDates WHERE (NAV LIKE '" + nav + "' OR  NAV LIKE '0') AND DayType LIKE '" + dayType + "';";
+            }
+            else
+            {
+                sqlQuery = "SELECT DayBolded FROM BoldedDates WHERE (NAV LIKE '0') AND DayType LIKE '" + dayType + "';";
+            }
 
             using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
             {
                 sqlConnection.Open();
-                using (var sqlCommand = new SQLiteCommand(
-                    "SELECT DayBolded FROM BoldedDates WHERE (NAV LIKE '" + nav + "' OR  NAV LIKE '0') AND DayType LIKE '" + dayType + "';", sqlConnection))
+                using (var sqlCommand = new SQLiteCommand(sqlQuery, sqlConnection))
                 {
                     using (var sqlReader = sqlCommand.ExecuteReader())
                     {
@@ -3869,10 +3929,13 @@ namespace ASTA
             return boldedDays;
         }
 
-        private void SeekAnualDays(ref DataTable dt, ref PersonFull person, bool delRow, int[] startOfPeriod, int[] endOfPeriod, ref string[] boldedDates, ref string[] workDates)//   //Exclude Anual Days from the table "PersonTemp" DB
+        private void SeekAnualDays(ref DataTable dt, ref PersonFull person, bool delRow, int[] startOfPeriod, int[] endOfPeriod, ref string[] boldedDays, ref string[] workDays)//   //Exclude Anual Days from the table "PersonTemp" DB
         {
-            //test
-            logger.Trace("SeekAnualDays: " + person.NAV + " " + startOfPeriod[0]);
+            //Trace
+            if (person != null&& person.NAV!=null)
+            { logger.Trace("SeekAnualDays: " + person.NAV + " " + startOfPeriod[0]); }
+            else { person.NAV = "0"; }
+
             logger.Trace("SeekAnualDays,start: " + startOfPeriod[0] + " " + startOfPeriod[1] + " " + startOfPeriod[2]);
             logger.Trace("SeekAnualDays,end: " + endOfPeriod[0] + " " + endOfPeriod[1] + " " + endOfPeriod[2]);
 
@@ -3881,6 +3944,7 @@ namespace ASTA
 
             var oneDay = TimeSpan.FromDays(1);
             var twoDays = TimeSpan.FromDays(2);
+
             var mySelectedStartDay = new DateTime(startOfPeriod[0], startOfPeriod[1], startOfPeriod[2]);
             var mySelectedEndDay = new DateTime(endOfPeriod[0], endOfPeriod[1], endOfPeriod[2]);
             var myMonthCalendar = new MonthCalendar();
@@ -3889,18 +3953,18 @@ namespace ASTA
             myMonthCalendar.SelectionRange = new SelectionRange(mySelectedStartDay, mySelectedEndDay);
             myMonthCalendar.FirstDayOfWeek = Day.Monday;
 
-            for (int year = -1; year < 3; year++)
+            for (int year = -1; year < 2; year++)
             {
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0] + year, 1, 1));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0] + year, 1, 2));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0] + year, 1, 7));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0] + year, 3, 8));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0] + year, 5, 1));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0] + year, 5, 2));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0] + year, 5, 9));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0] + year, 6, 28));
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0] + year, 8, 24));    // (plavayuschaya data)
-                myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0] + year, 10, 16));   // (plavayuschaya data)
+                myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0] + year, 1, 1));
+                myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0] + year, 1, 2));
+                myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0] + year, 1, 7));
+                myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0] + year, 3, 8));
+                myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0] + year, 5, 1));
+                myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0] + year, 5, 2));
+                myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0] + year, 5, 9));
+                myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0] + year, 6, 28));
+                myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0] + year, 8, 24));    // (plavayuschaya data)
+                myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0] + year, 10, 16));   // (plavayuschaya data)
             }
 
             // Алгоритм для вычисления католической Пасхи http://snippets.dzone.com/posts/show/765
@@ -3921,20 +3985,20 @@ namespace ASTA
             int dayEaster = ((h + L - 7 * m + 114) % 31) + 1;
 
             //Easter - Paskha
-            myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0], monthEaster, dayEaster) + oneDay);
+            myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0], monthEaster, dayEaster) + oneDay);
 
             foreach (string dayAdditional in ReturnBoldedDaysFromDB(person.NAV, @"Выходной")) // or - Рабочий
-            { myMonthCalendar.AddAnnuallyBoldedDate(DateTime.Parse(dayAdditional)); }
+            { myMonthCalendar.AddBoldedDate(DateTime.Parse(dayAdditional)); }
 
             //Independence day
             DateTime dayBolded = new DateTime(startOfPeriod[0], 8, 24);
             switch ((int)dayBolded.DayOfWeek)
             {
                 case (int)Day.Sunday:
-                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0], 8, 24) + oneDay);    // (plavayuschaya data)
+                    myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0], 8, 24) + oneDay);    // (plavayuschaya data)
                     break;
                 case (int)Day.Saturday:
-                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0], 8, 24) + twoDays);    // (plavayuschaya data)
+                    myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0], 8, 24) + twoDays);    // (plavayuschaya data)
                     break;
                 default:
                     break;
@@ -3945,189 +4009,76 @@ namespace ASTA
             switch ((int)dayBolded.DayOfWeek)
             {
                 case (int)Day.Sunday:
-                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0], 10, 16) + oneDay);    // (plavayuschaya data)
+                    myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0], 10, 16) + oneDay);    // (plavayuschaya data)
                     break;
                 case (int)Day.Saturday:
-                    myMonthCalendar.AddAnnuallyBoldedDate(new DateTime(startOfPeriod[0], 10, 16) + twoDays);    // (plavayuschaya data)
+                    myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0], 10, 16) + twoDays);    // (plavayuschaya data)
                     break;
                 default:
                     break;
+            }
+
+            //add all weekends to bolded days
+            for (var myDate = myMonthCalendar.SelectionStart; myDate <= myMonthCalendar.SelectionEnd; myDate += oneDay)
+            {
+                if (myDate.DayOfWeek == DayOfWeek.Saturday || myDate.DayOfWeek == DayOfWeek.Sunday)
+                {
+                    myMonthCalendar.AddBoldedDate(myDate);
+                }
             }
 
             //Remove additional works days from the bolded days 
             foreach (string dayAdditional in ReturnBoldedDaysFromDB(person.NAV, @"Рабочий"))
-            { myMonthCalendar.RemoveAnnuallyBoldedDate(DateTime.Parse(dayAdditional)); }
+            {
+                logger.Trace("SeekAnualDays, Removed worked day from bolded: " + dayAdditional);
+                myMonthCalendar.RemoveBoldedDate(DateTime.Parse(dayAdditional));
+            }
 
             List<string> daysSelected = new List<string>();
-            for (var myDate = myMonthCalendar.SelectionStart; myDate <= myMonthCalendar.SelectionEnd; myDate += oneDay)
-            {
-                singleDate = myDate.ToString("yyyy-MM-dd");
-
-                if (myDate.DayOfWeek == DayOfWeek.Saturday || myDate.DayOfWeek == DayOfWeek.Sunday)
-                {
-                    daysBolded.Add(singleDate);
-                    if (delRow)
-                    {
-                        QueryDeleteDataFromDataTable(ref dt, "[Дата регистрации]='" + singleDate + "'", person.NAV); // ("Дата регистрации",typeof(string)),//12
-                    }
-                }
-                daysSelected.Add(singleDate);
-            }
-            dt.AcceptChanges();
-
-            foreach (var myAnualDate in myMonthCalendar.AnnuallyBoldedDates)
+            foreach (var day in myMonthCalendar.BoldedDates)
             {
                 for (var myDate = myMonthCalendar.SelectionStart; myDate <= myMonthCalendar.SelectionEnd; myDate += oneDay)
                 {
-                    if (myDate == myAnualDate)
+                    singleDate = myDate.ToYYYYMMDD();
+                    if (myDate == day)
                     {
-                        singleDate = myDate.ToString("yyyy-MM-dd");
                         daysBolded.Add(singleDate);
-                        if (delRow)
+                        if (delRow&& dt!=null)
                         {
                             QueryDeleteDataFromDataTable(ref dt, "[Дата регистрации]='" + singleDate + "'", person.NAV); // ("Дата регистрации",typeof(string)),//12
                         }
                     }
+                    daysSelected.Add(singleDate);
                 }
             }
-            dt.AcceptChanges();
+            if (dt != null)
+            { dt.AcceptChanges(); }
 
-            boldedDates = daysBolded.ToArray();
-            workDates = daysSelected.Except(daysBolded).ToArray();
+            daysBolded.Sort();
+            daysSelected.Sort();
+
+            boldedDays = daysBolded.ToArray();
+
+            if (person == null||person.NAV=="0")
+            {
+                monthCalendar.RemoveAllBoldedDates();
+                foreach (string day in boldedDays)
+                {
+                    monthCalendar.AddBoldedDate(DateTime.Parse(day));
+                }
+            }
+
+
+            workDays = daysSelected.Except(daysBolded).ToArray();
+
+            foreach (string day in boldedDays)
+            { logger.Trace("SeekAnualDays, Result bolded day: " + day); }
+
+            foreach (string day in workDays)
+            { logger.Trace("SeekAnualDays, Result work day: " + day); }
 
             myMonthCalendar.Dispose();
-            singleDate = null;
-            daysBolded = null;
-            daysSelected = null;
         }
-
-        private void BoldAnualDates() //Excluded Anual Days from the table "PersonTemp" DB
-        {
-            var oneDay = TimeSpan.FromDays(1);
-            var twoDays = TimeSpan.FromDays(2);
-            var fiftyDays = TimeSpan.FromDays(50);
-
-            var mySelectedStartDay = new DateTime(dateTimePickerStart.Value.Year, dateTimePickerStart.Value.Month, dateTimePickerStart.Value.Day);
-            var mySelectedEndDay = new DateTime(dateTimePickerEnd.Value.Year, dateTimePickerEnd.Value.Month, dateTimePickerEnd.Value.Day);
-            int myYearNow = DateTime.Now.Year;
-
-            monthCalendar.MaxSelectionCount = 60;
-            monthCalendar.SelectionRange = new SelectionRange(mySelectedStartDay, mySelectedEndDay);
-            monthCalendar.FirstDayOfWeek = Day.Monday;
-
-            //Start of the Block Bolded days
-            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 1, 1));
-            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 1, 2));
-            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 1, 7));
-            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 3, 8));
-            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 5, 1));
-            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 5, 2));
-            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 5, 9));
-            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 6, 28));
-            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 8, 24));    // (plavayuschaya data)
-            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 10, 16));   // (plavayuschaya data)
-
-            // Алгоритм для вычисления католической Пасхи    http://snippets.dzone.com/posts/show/765
-            int Y = myYearNow;
-            int a = Y % 19;
-            int b = Y / 100;
-            int c = Y % 100;
-            int d = b / 4;
-            int e = b % 4;
-            int f = (b + 8) / 25;
-            int g = (b - f + 1) / 3;
-            int h = (19 * a + b - d - g + 15) % 30;
-            int i = c / 4;
-            int k = c % 4;
-            int L = (32 + 2 * e + 2 * i - h - k) % 7;
-            int m = (a + 11 * h + 22 * L) / 451;
-            int monthEaster = (h + L - 7 * m + 114) / 31;
-            int dayEaster = ((h + L - 7 * m + 114) % 31) + 1;
-
-            monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, monthEaster, dayEaster) + oneDay);   //Easter - Paskha
-
-            foreach (string dayAdditional in ReturnBoldedDaysFromDB("0", @"Выходной")) // or - Рабочий
-            { monthCalendar.AddAnnuallyBoldedDate(DateTime.Parse(dayAdditional)); }
-
-            //Independence day
-            DateTime dayBolded = new DateTime(myYearNow, 8, 24);
-            switch ((int)dayBolded.DayOfWeek)
-            {
-                case (int)Day.Sunday:
-                    monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 8, 24) + oneDay);
-                    break;
-                case (int)Day.Saturday:
-                    monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 8, 24) + twoDays);
-                    break;
-                default:
-                    break;
-            }
-
-            //day of Ukraine Force
-            dayBolded = new DateTime(myYearNow, 10, 16);
-            switch ((int)dayBolded.DayOfWeek)
-            {
-                case (int)Day.Sunday:
-                    monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 10, 16) + oneDay);
-                    break;
-                case (int)Day.Saturday:
-                    monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 10, 16) + twoDays);
-                    break;
-                default:
-                    break;
-            }
-
-            //Cristmas day
-            dayBolded = new DateTime(myYearNow, 7, 1);
-            switch ((int)dayBolded.DayOfWeek)
-            {
-                case (int)Day.Sunday:
-                    monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 7, 1) + oneDay);
-                    break;
-                case (int)Day.Saturday:
-                    monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, 7, 1) + twoDays);
-                    break;
-                default:
-                    break;
-            }
-
-            //Troitsa
-            dayBolded = new DateTime(myYearNow, monthEaster, dayEaster) + fiftyDays;
-            switch ((int)dayBolded.DayOfWeek)
-            {
-                case (int)Day.Sunday:
-                    monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, monthEaster, dayEaster) + fiftyDays + oneDay);
-                    break;
-                case (int)Day.Saturday:
-                    monthCalendar.AddAnnuallyBoldedDate(new DateTime(myYearNow, monthEaster, dayEaster) + fiftyDays + twoDays);
-                    break;
-                default:
-                    break;
-            }
-
-            foreach (string dayAdditional in ReturnBoldedDaysFromDB("0", @"Рабочий"))
-            { monthCalendar.RemoveAnnuallyBoldedDate(DateTime.Parse(dayAdditional)); }
-
-            //incorrect for the days less 50 after and before every New Year
-            for (var myDate = monthCalendar.SelectionStart - fiftyDays - fiftyDays; myDate <= monthCalendar.SelectionEnd + fiftyDays + fiftyDays; myDate += oneDay)     // Sunday and Saturday
-            {
-                if (myDate.DayOfWeek == DayOfWeek.Saturday || myDate.DayOfWeek == DayOfWeek.Sunday)
-                    monthCalendar.AddAnnuallyBoldedDate(myDate);
-            }
-
-            var today = DateTime.Today;
-            monthCalendar.SelectionStart = today;
-            monthCalendar.SelectionEnd = today;
-            monthCalendar.Update();
-            monthCalendar.Refresh();
-        }
-
-        /// <summary>
-        /// ///////////////////////////////////////////////////////////////
-        /// </summary>
-        //check dubled function!!!!!!!!
-
-
 
 
         private void QueryDeleteDataFromDataTable(ref DataTable dt, string queryFull, string NAVcode) //Delete data from the Table of the DB by NAV (both parameters are string)
@@ -5107,7 +5058,7 @@ namespace ASTA
                     "", "", "",
                     "", "", "",
                     "Вариант отчета", listComboParameters15, "Вариант отображения данных в отчете",
-                    "День подготовки отчета", "", "День, в который выполнять подготовку и отправку данного отчета./nДни месяца с 1 до 28"
+                    "День подготовки отчета", "", "День, в который выполнять подготовку и отправку данного отчета./nНачало, Средина, Конец"
                     );
         }
 
@@ -5538,8 +5489,11 @@ namespace ASTA
 
                 };
                 toolTip1.SetToolTip(textBoxSettings16, tooltip16);
-                textBoxSettings16.KeyPress += new KeyPressEventHandler(textBoxSettings16_KeyPress);
-                textBoxSettings16.TextChanged += new EventHandler(textboxDate_textChanged);
+
+                
+                textBoxSettings16.KeyPress += new KeyPressEventHandler(textboxDate_KeyPress);
+              //  textBoxSettings16.KeyPress += new KeyPressEventHandler(textBoxSettings16_KeyPress);
+              //  textBoxSettings16.TextChanged += new EventHandler(textboxDate_textChanged);
             }
 
             labelServer1?.BringToFront();
@@ -5875,40 +5829,8 @@ namespace ASTA
             }
         }
 
-        private void textBoxSettings16_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) && (e.KeyChar != '.'))
-            {
-                e.Handled = true;
-            }
 
-            // only allow one decimal point
-            if (char.IsDigit(e.KeyChar) && ((sender as TextBox).Text.IndexOf('.') > -1))
-            {
-                e.Handled = true;
-            }
-        }
 
-        private void textboxDate_textChanged(object sender, EventArgs e)
-        {
-            int result;
-            bool correct = false;
-
-            //allow numbers from 1 to 28
-            if ((sender as TextBox).Text.Length > 0)
-            {
-                correct = Int32.TryParse((sender as TextBox).Text, out result);
-                if (correct)
-                {
-                    if (result > 28) { (sender as TextBox).Text = "28"; }
-                    else if (result < 1) { (sender as TextBox).Text = "1"; }
-                    else
-                    {
-                        (sender as TextBox).Text = result.ToString();
-                    }
-                }
-            }
-        }
 
         private void comboBoxFio_KeyPress(object sender, KeyPressEventArgs e)
         {
@@ -5951,7 +5873,7 @@ namespace ASTA
 
         private void PersonOrGroupItem_MouseEnter(object sender, EventArgs e)
         {
-            if (PersonOrGroupItem.Text == "Работать с одной персоной")
+            if (PersonOrGroupItem.Text == WORK_WITH_A_PERSON)
             {  //Save previous color              
                 comboBoxFioCurrentBackColor = comboBoxFio.BackColor;
                 textBoxFIOCurrentBackColor = textBoxFIO.BackColor;
@@ -5975,7 +5897,7 @@ namespace ASTA
 
         private void PersonOrGroupItem_MouseLeave(object sender, EventArgs e)
         {
-            if (PersonOrGroupItem.Text == "Работать с одной персоной")
+            if (PersonOrGroupItem.Text == WORK_WITH_A_PERSON)
             {   //Restore saved color             
                 comboBoxFio.BackColor = comboBoxFioCurrentBackColor;
                 textBoxFIO.BackColor = textBoxFIOCurrentBackColor;
@@ -6048,18 +5970,18 @@ namespace ASTA
             string menu = _MenuItemReturnText(PersonOrGroupItem);
             switch (menu)
             {
-                case ("Работать с группой"):
-                    _MenuItemTextSet(PersonOrGroupItem, "Работать с одной персоной");
+                case (WORK_WITH_A_GROUP):
+                    _MenuItemTextSet(PersonOrGroupItem, WORK_WITH_A_PERSON);
                     _controlEnable(comboBoxFio, false);
                     nameOfLastTableFromDB = "PersonRegistrationsList";
                     break;
-                case ("Работать с одной персоной"):
-                    _MenuItemTextSet(PersonOrGroupItem, "Работать с группой");
+                case (WORK_WITH_A_PERSON):
+                    _MenuItemTextSet(PersonOrGroupItem, WORK_WITH_A_GROUP);
                     _controlEnable(comboBoxFio, true);
                     nameOfLastTableFromDB = "PeopleGroup";
                     break;
                 default:
-                    _MenuItemTextSet(PersonOrGroupItem, "Работать с группой");
+                    _MenuItemTextSet(PersonOrGroupItem, WORK_WITH_A_GROUP);
                     _controlEnable(comboBoxFio, true);
                     nameOfLastTableFromDB = "PeopleGroup";
                     break;
@@ -6092,8 +6014,8 @@ namespace ASTA
 
                     if (nameOfLastTableFromDB == "BoldedDates")
                     {
-                        //    ShowDataTableDbQuery(databasePerson, "BoldedDates", "SELECT DayBolded AS '"+ DAYOFF_NAME+"', DayType AS '"+DAYOFF_TYPE+"', " +
-                        //   "NAV AS '"+DAYOFF_FOR+"', DayDescription AS 'Описание', DateCreated AS '"+DAYOFF_DATE_SAVING+"'",
+                        //    ShowDataTableDbQuery(databasePerson, "BoldedDates", "SELECT DayBolded AS '"+ DAY_DATE+"', DayType AS '"+DAY_TYPE+"', " +
+                        //   "NAV AS '"+DAY_USED_BY+"', DayDescription AS 'Описание', DateCreated AS '"+DAY_ADDED+"'",
                         //    " ORDER BY DayBolded desc, NAV asc; ");
                     }
                     else if (nameOfLastTableFromDB == "PeopleGroupDesciption")
@@ -6178,7 +6100,7 @@ namespace ASTA
                     if (nameOfLastTableFromDB == @"BoldedDates")
                     {
                         dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
-                        DAYOFF_NAME, DAYOFF_FOR, DAYOFF_TYPE });
+                        DAY_DATE, DAY_USED_BY, DAY_TYPE });
 
                         string dayType = "";
                         if (textBoxGroup?.Text?.Trim()?.Length == 0 || textBoxGroup?.Text?.ToLower()?.Trim() == "выходной")
@@ -6201,7 +6123,7 @@ namespace ASTA
                             using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'BoldedDates' (DayBolded, NAV, DayType, DayDescription, DateCreated) " +
                                 " VALUES (@BoldedDate, @NAV, @DayType, @DayDescription, @DateCreated)", sqlConnection))
                             {
-                                sqlCommand.Parameters.Add("@BoldedDate", DbType.String).Value = monthCalendar.SelectionStart.ToString("yyyy-MM-dd");
+                                sqlCommand.Parameters.Add("@BoldedDate", DbType.String).Value = monthCalendar.SelectionStart.ToYYYYMMDD();
                                 sqlCommand.Parameters.Add("@NAV", DbType.String).Value = nav;
                                 sqlCommand.Parameters.Add("@DayType", DbType.String).Value = dayType;
                                 sqlCommand.Parameters.Add("@DayDescription", DbType.String).Value = textBoxGroupDescription.Text.Trim();
@@ -6283,13 +6205,10 @@ namespace ASTA
                         switch (currColumn)
                         {
                             case "День отправки отчета":
-                                int day = 1;
-                                bool correct = Int32.TryParse(dgSeek.values[7], out day);
-                                if (!correct || day < 1 || day > 28)
-                                { editedCell = "1"; }
-                                else { editedCell = day.ToString(); }
+                                editedCell = ReturnStrongNameDayOfSendingReports(dgSeek.values[7]);
                                 ExecuteSql("UPDATE 'Mailing' SET DayReport='" + editedCell + "' WHERE RecipientEmail='" + dgSeek.values[0]
                                   + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1]
+                                  + "' AND Period='" + dgSeek.values[4] + "' AND TypeReport ='" + dgSeek.values[6]
                                   + "' AND Status ='" + dgSeek.values[5] + "' AND Description ='" + dgSeek.values[3] + "';", databasePerson);
                                 break;
 
@@ -6298,7 +6217,8 @@ namespace ASTA
                                 else { editedCell = "Упрощенный"; }
 
                                 ExecuteSql("UPDATE 'Mailing' SET TypeReport='" + editedCell + "' WHERE RecipientEmail='" + dgSeek.values[0]
-                                  + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1]
+                                  + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1] 
+                                  + "' AND Period='" + dgSeek.values[4] + "' AND DayReport='" + dgSeek.values[7]
                                   + "' AND Status ='" + dgSeek.values[5] + "' AND Description ='" + dgSeek.values[3] + "';", databasePerson);
                                 break;
 
@@ -6307,7 +6227,9 @@ namespace ASTA
                                 else { editedCell = "Неактивная"; }
 
                                 ExecuteSql("UPDATE 'Mailing' SET Status='" + editedCell + "' WHERE RecipientEmail='" + dgSeek.values[0]
-                                  + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1] + "' AND Description ='" + dgSeek.values[3] + "';", databasePerson);
+                                  + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1]
+                                  + "' AND Period='" + dgSeek.values[4] + "' AND DayReport='" + dgSeek.values[7]
+                                  + "' AND TypeReport ='" + dgSeek.values[6] + "' AND Description ='" + dgSeek.values[3] + "';", databasePerson);
                                 break;
 
                             case "Период":
@@ -6315,22 +6237,27 @@ namespace ASTA
                                 else { editedCell = "Предыдущий месяц"; }
 
                                 ExecuteSql("UPDATE 'Mailing' SET Period='" + editedCell + "' WHERE RecipientEmail='" + dgSeek.values[0]
-                                  + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1]
-                                  + "' AND Status ='" + dgSeek.values[5] + "' AND Description ='" + dgSeek.values[3] + "';", databasePerson);
+                                   + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1]
+                                   + "' AND TypeReport ='" + dgSeek.values[6] + "' AND DayReport='" + dgSeek.values[7]
+                                   + "' AND Status ='" + dgSeek.values[5] + "' AND Description ='" + dgSeek.values[3] + "';", databasePerson);
                                 break;
 
                             case "Описание":
                                 editedCell = currCellValue;
 
                                 ExecuteSql("UPDATE 'Mailing' SET Description='" + editedCell + "' WHERE RecipientEmail='" + dgSeek.values[0]
-                                  + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1] + "' AND Status ='" + dgSeek.values[5] + "';", databasePerson);
+                                  + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1]
+                                  + "' AND TypeReport ='" + dgSeek.values[6] + "' AND DayReport='" + dgSeek.values[7]
+                                  + "' AND Status ='" + dgSeek.values[5] + "' AND Period='" + dgSeek.values[4] + "';", databasePerson);
                                 break;
 
                             case "Отчет по группам":
                                 editedCell = currCellValue;
 
                                 ExecuteSql("UPDATE 'Mailing' SET GroupsReport ='" + editedCell + "' WHERE RecipientEmail='" + dgSeek.values[0]
-                                  + "' AND NameReport='" + dgSeek.values[2] + "' AND Description ='" + dgSeek.values[3] + "' AND Status ='" + dgSeek.values[5] + "';", databasePerson);
+                                  + "' AND NameReport='" + dgSeek.values[2] + "' AND Description ='" + dgSeek.values[3]
+                                  + "' AND Status ='" + dgSeek.values[5] + "' AND Period='" + dgSeek.values[4]
+                                  + "' AND TypeReport ='" + dgSeek.values[6] + "' AND DayReport='" + dgSeek.values[7] + "';", databasePerson);
                                 break;
 
                             case "Получатель":
@@ -6338,8 +6265,9 @@ namespace ASTA
                                 {
                                     editedCell = currCellValue;
 
-                                    ExecuteSql("UPDATE 'Mailing' SET RecipientEmail ='" + editedCell + "' WHERE Description='" + dgSeek.values[3]
+                                    ExecuteSql("UPDATE 'Mailing' SET RecipientEmail ='" + editedCell + "' WHERE TypeReport ='" + dgSeek.values[6]
                                       + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1]
+                                      + "' AND DayReport='" + dgSeek.values[7] + "' AND Period='" + dgSeek.values[4]
                                       + "' AND Status ='" + dgSeek.values[5] + "' AND Description ='" + dgSeek.values[3] + "';", databasePerson);
                                 }
                                 break;
@@ -6348,7 +6276,8 @@ namespace ASTA
                                 editedCell = currCellValue;
 
                                 ExecuteSql("UPDATE 'Mailing' SET NameReport ='" + editedCell + "' WHERE RecipientEmail='" + dgSeek.values[0]
-                                  + "' AND  Description='" + dgSeek.values[3] + "' AND GroupsReport ='" + dgSeek.values[1]
+                                  + "' AND Description='" + dgSeek.values[3] + "' AND GroupsReport ='" + dgSeek.values[1]
+                                  + "' AND DayReport='" + dgSeek.values[7] + "' AND TypeReport ='" + dgSeek.values[6]
                                   + "' AND Period ='" + dgSeek.values[4] + "' AND Status ='" + dgSeek.values[5] + "';", databasePerson);
                                 break;
 
@@ -6496,7 +6425,7 @@ namespace ASTA
                 else if (nameOfLastTableFromDB == @"BoldedDates")
                 {
                     dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
-                        DAYOFF_NAME, DAYOFF_FOR, DAYOFF_TYPE });
+                        DAY_DATE, DAY_USED_BY, DAY_TYPE });
 
                     string dayType = "";
                     if (textBoxGroup?.Text?.Trim()?.Length == 0 || textBoxGroup?.Text?.ToLower()?.Trim() == "выходной")
@@ -6513,7 +6442,7 @@ namespace ASTA
                     { navD = "всех"; }
                     else { navD = dgSeek.values[1]; }
 
-                    mRightClick.MenuItems.Add(new MenuItem(@"Сохранить для " + nav + @" как '" + dayType + @"' " + monthCalendar.SelectionStart.ToString("yyyy-MM-dd"), AddAnualDateItem_Click));
+                    mRightClick.MenuItems.Add(new MenuItem(@"Сохранить для " + nav + @" как '" + dayType + @"' " + monthCalendar.SelectionStart.ToYYYYMMDD(), AddAnualDateItem_Click));
                     mRightClick.MenuItems.Add("-");
                     mRightClick.MenuItems.Add(new MenuItem(@"Удалить из сохранненых '" + dgSeek.values[2] + @"'  '" + dgSeek.values[0] + @"' для " + navD, DeleteAnualDateItem_Click));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
@@ -7003,7 +6932,67 @@ namespace ASTA
         private async void TestToSendAllMailingsItem_Click(object sender, EventArgs e) //SelectMailingDoAction()
         {
             await Task.Run(() => CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword));
+            await Task.Run(() => UpdateMailingInDB());
             await Task.Run(() => SelectMailingDoAction());
+        }
+
+        private string ReturnStrongNameDayOfSendingReports(string inputDate)
+        {
+            string result = null;
+
+            if (inputDate.Equals("1") || inputDate.Equals("2") || inputDate.Equals("3") || inputDate.Contains("ПЕРВ") || inputDate.Contains("НАЧАЛ") || inputDate.Contains("START"))
+            {
+                result = "START_OF_MONTH";
+            }
+            else if (inputDate.Equals("16") || inputDate.Equals("15") || inputDate.Equals("14") || inputDate.Contains("СЕРЕД") || inputDate.Contains("СРЕД") || inputDate.Contains("MIDDLE"))
+            {
+                result = "MIDDLE_OF_MONTH";
+            }
+            else 
+            {
+                result = "END_OF_MONTH";
+            }
+            return result;
+        }
+
+        private string ReturnStrongNameDayOfSendingReports(int inputDate)
+        {
+            string result = "";
+
+            if (inputDate == 1 || inputDate == 2 || inputDate == 3)
+            {
+                result = "START_OF_MONTH";
+            }
+            else if (inputDate == 14 || inputDate == 15 || inputDate == 16)
+            {
+                result = "MIDDLE_OF_MONTH";
+            }
+            else
+            {
+                result = "END_OF_MONTH";
+            }
+
+            return result;
+        }
+
+        private int ReturnNumberOfStrongNameDayOfSendingReports(string inputDate)
+        {
+            int result = 0;
+
+            if (inputDate.Equals("1") || inputDate.Equals("2") || inputDate.Equals("3") || inputDate.Contains("ПЕРВ") || inputDate.Contains("НАЧАЛ") || inputDate.Contains("START"))
+            {
+                result = 1;
+            }
+            else if (inputDate.Equals("16") || inputDate.Equals("15") || inputDate.Equals("14") || inputDate.Contains("СЕРЕД") || inputDate.Contains("СРЕД") || inputDate.Contains("MIDDLE"))
+            {
+                result = 15;
+            }
+            else
+            {
+                result = 28;
+            }
+
+            return result;
         }
 
         private void SelectMailingDoAction() //MailingAction()
@@ -7021,8 +7010,31 @@ namespace ASTA
             string period = "";
             string status = "";
             string typeReport = "";
-            string dayReport = "";
+            int dayReport = 28;
             string str = "";
+
+            DataTable dtEmpty = new DataTable();
+            PersonFull personEmpty = new PersonFull();
+            var today = DateTime.Today;
+
+            int[] startDayOfCurrentMonth = { today.Year, today.Month, 1 };
+            int[] lastDayOfCurrentMonth = { today.Year, today.Month, today.LastDayOfMonth().Day};
+
+            SeekAnualDays(ref dtEmpty, ref personEmpty, false,
+                startDayOfCurrentMonth, lastDayOfCurrentMonth,
+                ref myBoldedDates, ref workSelectedDays
+                );
+            dtEmpty = null;
+            personEmpty = null;
+
+            logger.Trace("SelectMailingDoAction: "+ 
+                startDayOfCurrentMonth[0] + "-"+ startDayOfCurrentMonth[1] + "-" + startDayOfCurrentMonth[2] + 
+                " - " +
+                lastDayOfCurrentMonth[0] + "-" + lastDayOfCurrentMonth[1] + "-" + lastDayOfCurrentMonth[2]
+                );
+
+            DaysToSendReports daysToSendReports = new DaysToSendReports(workSelectedDays);
+            DaysOfSendingMail daysOfSendingMail = daysToSendReports.GetDays();
 
             HashSet<MailingStructure> mailingList = new HashSet<MailingStructure>();
 
@@ -7046,9 +7058,35 @@ namespace ASTA
                                 period = record["Period"].ToString();
                                 status = record["Status"].ToString().ToLower();
                                 typeReport = record["TypeReport"].ToString();
-                                dayReport = record["DayReport"].ToString();
+                                // dayReport = record["DayReport"].ToString();
 
-                                if (status == "активная")
+                                string dayReportInDB = record["DayReport"]?.ToString()?.Trim()?.ToUpper();
+                                string day = null;
+                                logger.Trace("DayReport: " + dayReportInDB);
+
+                                day = ReturnStrongNameDayOfSendingReports(dayReportInDB);
+
+                                switch (day)
+                                {
+                                    case "START_OF_MONTH":
+                                        dayReport = daysOfSendingMail.START_OF_MONTH;
+                                        break;
+                                    case "MIDDLE_OF_MONTH":
+                                        dayReport = daysOfSendingMail.MIDDLE_OF_MONTH;
+                                        break;
+                                    case "END_OF_MONTH":
+                                        dayReport = daysOfSendingMail.LAST_WORK_DAY_OF_MONTH;
+                                        break;
+                                    default:
+                                        dayReport = daysOfSendingMail.START_OF_MONTH;
+                                        break;
+                                }
+                                logger.Trace("Selected Day of Sending: " + dayReport);
+
+                                //look for the day of sending //string SelectWholeCurrentMonthWithTime(),workSelectedDays
+                                //transform first_day_of_month, middle_of_month, last_work_day_of_month into the day
+                                //write day of month in '_dayReport'
+                                if (status == "активная" && dayReport == today.Day)
                                 {
                                     mailingList.Add(new MailingStructure()
                                     {
@@ -7072,26 +7110,23 @@ namespace ASTA
             foreach (MailingStructure mailng in mailingList)
             {
                 _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
-                DateTime dt = DateTime.Now;
-                int daySendReport = 0;
-                bool isDayReport = false;
-                isDayReport = Int32.TryParse(mailng._dayReport, out daySendReport);
 
-                if (isDayReport && daySendReport == dt.Day) //send selected report only on inputed day
-                {
-                    _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + mailng._nameReport);
+                _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + mailng._nameReport);
 
-                    str = "UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToYYYYMMDDHHMM() +
-                        "' WHERE RecipientEmail='" + mailng._recipient +
-                        "' AND NameReport='" + mailng._nameReport +
-                        "' AND GroupsReport ='" + mailng._groupsReport + "';";
-                    logger.Info(str);
-                    ExecuteSql(str, databasePerson);
+                str = "UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToYYYYMMDDHHMM() +
+                    "' WHERE RecipientEmail='" + mailng._recipient +
+                    "' AND NameReport='" + mailng._nameReport +
+                    "' AND Period='" + mailng._period +
+                    "' AND Status='" + mailng._status +
+                    "' AND TypeReport='" + mailng._typeReport +
+                    "' AND GroupsReport ='" + mailng._groupsReport + "';";
+                logger.Trace(str);
+                ExecuteSql(str, databasePerson);
+                GetRegistrationAndSendReport(
+                    mailng._groupsReport, mailng._nameReport, mailng._descriptionReport, mailng._period, mailng._status,
+                    mailng._typeReport, mailng._dayReport.ToString(), true, mailng._recipient, mailServerUserName);
 
-                    GetRegistrationAndSendReport(
-                        mailng._groupsReport, mailng._nameReport, mailng._descriptionReport, mailng._period, mailng._status,
-                        mailng._typeReport, mailng._dayReport, true, mailng._recipient, mailServerUserName);
-                }
+                _ProgressWork1Step();
             }
 
             logger.Info("MailingAction: Перечень задач по подготовке и отправке отчетов завершен...");
@@ -7101,7 +7136,122 @@ namespace ASTA
             "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
             " ORDER BY RecipientEmail asc, DateCreated desc; ");
 
-            sender = recipient = gproupsReport = nameReport = descriptionReport = period = status = typeReport = dayReport = str= null;
+            mailingList = null;
+
+            _ProgressBar1Stop();
+        }
+        
+
+        private void UpdateMailingInDB()
+        {
+            _ProgressBar1Start();
+            
+            string sender = "";
+            string recipient = "";
+            string gproupsReport = "";
+            string nameReport = "";
+            string descriptionReport = "";
+            string period = "";
+            string status = "";
+            string typeReport = "";
+            string dayReport = "";
+            string str = "";
+
+            DataTable dtEmpty = new DataTable();
+            PersonFull personEmpty = new PersonFull();
+            var today = DateTime.Today;
+
+            int[] startDayOfCurrentMonth = { today.Year, today.Month, 1 };
+            int[] lastDayOfCurrentMonth = { today.Year, today.Month, today.LastDayOfMonth().Day };
+
+            SeekAnualDays(ref dtEmpty, ref personEmpty, false,
+                startDayOfCurrentMonth, lastDayOfCurrentMonth,
+                ref myBoldedDates, ref workSelectedDays
+                );
+            dtEmpty = null;
+            personEmpty = null;
+
+            logger.Trace("UpdateMailingInDB: " +
+                startDayOfCurrentMonth[0] + "-" + startDayOfCurrentMonth[1] + "-" + startDayOfCurrentMonth[2] +
+                " - " +
+                lastDayOfCurrentMonth[0] + "-" + lastDayOfCurrentMonth[1] + "-" + lastDayOfCurrentMonth[2]
+                );
+
+            DaysToSendReports daysToSendReports = new DaysToSendReports(workSelectedDays);
+            DaysOfSendingMail daysOfSendingMail = daysToSendReports.GetDays();
+
+            HashSet<MailingStructure> mailingList = new HashSet<MailingStructure>();
+
+            using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+            {
+                sqlConnection.Open();
+
+                using (var sqlCommand = new SQLiteCommand("SELECT * FROM Mailing;", sqlConnection))
+                {
+                    using (var reader = sqlCommand.ExecuteReader())
+                    {
+                        foreach (DbDataRecord record in reader)
+                        {
+                            if (record["SenderEmail"]?.ToString()?.Length > 0 && record["RecipientEmail"]?.ToString()?.Length > 0)
+                            {
+                                sender = record["SenderEmail"].ToString();
+                                recipient = record["RecipientEmail"].ToString();
+                                gproupsReport = record["GroupsReport"].ToString();
+                                nameReport = record["NameReport"].ToString();
+                                descriptionReport = record["Description"].ToString();
+                                period = record["Period"].ToString();
+                                status = record["Status"].ToString().ToLower();
+                                typeReport = record["TypeReport"].ToString();
+
+                                string dayReportInDB = record["DayReport"]?.ToString()?.Trim()?.ToUpper();
+                                int day = 0;
+                                logger.Trace("DayReport: " + dayReportInDB);
+
+                                day= ReturnNumberOfStrongNameDayOfSendingReports(dayReportInDB);
+
+                                mailingList.Add(new MailingStructure()
+                                {
+                                    _sender = sender,
+                                    _recipient = recipient,
+                                    _groupsReport = gproupsReport,
+                                    _nameReport = nameReport,
+                                    _descriptionReport = descriptionReport,
+                                    _period = period,
+                                    _typeReport = typeReport,
+                                    _status = status,
+                                    _dayReport = day
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
+            foreach (MailingStructure mailng in mailingList)
+            {
+                dayReport = ReturnStrongNameDayOfSendingReports(mailng._dayReport);
+
+                str = "UPDATE 'Mailing' SET DayReport='" + dayReport +
+                    "' WHERE RecipientEmail='" + mailng._recipient +
+                    "' AND NameReport='" + mailng._nameReport +
+                    "' AND Period='" + mailng._period +
+                    "' AND Status='" + mailng._status +
+                    "' AND TypeReport='" + mailng._typeReport +
+                    "' AND GroupsReport ='" + mailng._groupsReport + "';";
+
+                logger.Trace(str);
+                ExecuteSql(str, databasePerson);
+
+                _ProgressWork1Step();
+            }
+
+            logger.Info("MailingAction: Перечень задач по подготовке и отправке отчетов завершен...");
+
+            ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
+            "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
+            "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
+            " ORDER BY RecipientEmail asc, DateCreated desc; ");
+
             mailingList = null;
 
             _ProgressBar1Stop();
@@ -7112,36 +7262,36 @@ namespace ASTA
             return string.Join("_", filename.Split(System.IO.Path.GetInvalidFileNameChars()));
         }
 
-        private string SelectWholeCurrentMonth() //format of result: firstDayAndTime + "|" + lastDayAndTime
+      /*  private string SelectWholeMonthWithTime(DateTime dt) //format of result: "1971-01-01 00:00:00|1971-01-31 23:59:59" // 'yyyy-MM-dd HH:mm:SS'
+        {
+            string result = "";
+           // var dt = DateTime.Now;
+
+       //     var currentMonth = new DateTime(dt.Year, dt.Month, dt.Day);
+
+            result =
+                dt.FirstDayOfMonth().ToYYYYMMDD() + " 00:00:00" +
+                "|" +
+                dt.LastDayOfMonth().ToYYYYMMDD() + " 23:59:59";
+
+            return result;
+        }*/
+
+       /* private string SelectWholePreviousMonthWithTime() //format of result: "1971-01-01 00:00:00|1971-01-31 23:59:59" // 'yyyy-MM-dd HH:mm:SS'
         {
             string result = "";
             var dt = DateTime.Now;
+          //  var previousMonth = new DateTime(dt.Year, dt.Month, 1).AddDays(-1);
 
-            var lastDayPrevMonth = new DateTime(dt.Year, dt.Month, dt.Day);
-
-            result =
-                lastDayPrevMonth.ToString("yyyy-MM") + "-01" + " 00:00:00" +
+            result = 
+                previousMonth.FirstDayOfMonth().ToYYYYMMDD() + " 00:00:00" +
                 "|" +
-                lastDayPrevMonth.ToString("yyyy-MM-dd") + " 23:59:59";
+                previousMonth.LastDayOfMonth().ToYYYYMMDD() + " 23:59:59";
 
             return result;
-        }
-
-        private string SelectWholePreviousMonth() //format of result: firstDay + "|" + lastDay
-        {
-            string result = "";
-            var dt = DateTime.Now;
-            var lastDayPrevMonth = new DateTime(dt.Year, dt.Month, 1).AddDays(-1);
-
-            result =
-                lastDayPrevMonth.ToString("yyyy-MM") + "-01" + " 00:00:00" +
-                "|" +
-                lastDayPrevMonth.ToString("yyyy-MM-dd") + " 23:59:59";
-
-            return result;
-        }
-
-        private string SelectedDatetimePickersPeriodMonth() //format of result: firstDay + "|" + lastDay
+        }*/
+        
+        private string SelectedDatetimePickersPeriodMonth() //format of result: "1971-01-01 00:00:00|1971-01-31 23:59:59" // 'yyyy-MM-dd HH:mm:SS'
         {
             return _dateTimePickerStart() + "|" + _dateTimePickerEnd();
         }
@@ -7181,22 +7331,29 @@ namespace ASTA
         private void GetRegistrationAndSendReport(string groupsReport, string nameReport, string description, string period, string status, string typeReport, string dayReport, bool sendReport, string recipientEmail, string senderEmail)
         {
             DataTable dtTempIntermediate = dtPeople.Clone();
-            DateTime dtCurrent = DateTime.Today;
+            DateTime dtCurrentDate = DateTime.Today;
             PersonFull person = new PersonFull();
+            DateTime selectedDate = DateTime.Today;
 
             GetNamePoints();  //Get names of the registration' points
 
-            if (period.ToLower().Contains("текущий") || period.ToLower().Contains("текущая"))
+            if (period.ToLower().Contains("текущ"))
             {
-                reportStartDay = SelectWholeCurrentMonth().Split('|')[0];
-                reportLastDay = SelectWholeCurrentMonth().Split('|')[1];
+                selectedDate = dtCurrentDate;
+              //  reportStartDay = dtCurrentDate.FirstDayOfMonth().ToYYYYMMDD() + " 00:00:00";
+             //   reportLastDay = dtCurrentDate.LastDayOfMonth().ToYYYYMMDD() + " 23:59:59";
             }
-            else if (period.ToLower().Contains("предыдущий") || period.ToLower().Contains("предыдущий"))
+            else if (period.ToLower().Contains("предыдущ"))
             {
-                reportStartDay = SelectWholePreviousMonth().Split('|')[0];
-                reportLastDay = SelectWholePreviousMonth().Split('|')[1];
+                selectedDate = new DateTime(dtCurrentDate.Year, dtCurrentDate.Month, 1).AddDays(-1);
+             //   reportStartDay = dtPreviousMonthDate.FirstDayOfMonth().ToYYYYMMDD() + " 00:00:00";
+              //  reportLastDay = dtPreviousMonthDate.LastDayOfMonth().ToYYYYMMDD() + " 23:59:59";
             }
-            else
+ 
+               reportStartDay = selectedDate.FirstDayOfMonth().ToYYYYMMDD() + " 00:00:00";
+              reportLastDay = selectedDate.LastDayOfMonth().ToYYYYMMDD() + " 23:59:59";
+
+            if (!period.ToLower().Contains("предыдущ")&&!period.ToLower().Contains("текущ"))
             {
                 reportStartDay = SelectedDatetimePickersPeriodMonth().Split('|')[0];
                 reportLastDay = SelectedDatetimePickersPeriodMonth().Split('|')[1];
@@ -7371,10 +7528,8 @@ namespace ASTA
                 }
             }
         }
-
-
-        //for async sending
-        private static void SendCompletedCallback(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
+           
+        private static void SendCompletedCallback(object sender, System.ComponentModel.AsyncCompletedEventArgs e)     //for async sending
         {
             // Get the unique identifier for this asynchronous operation.
             String token = (string)e.UserState;
@@ -7467,7 +7622,7 @@ namespace ASTA
 
 
 
-        private void ListBox_DrawItem(object sender, DrawItemEventArgs e)
+        private void ListBox_DrawItem(object sender, DrawItemEventArgs e) //Colorize the Listbox
         {
             Font font = (sender as ListBox).Font;
             Brush backgroundColor;
@@ -7503,7 +7658,7 @@ namespace ASTA
             e.Graphics.DrawString((sender as ListBox).Items[e.Index].ToString(), font, textColor, e.Bounds);
         }
 
-        private void ComboBox_DrawItem(object sender, DrawItemEventArgs e)
+        private void ComboBox_DrawItem(object sender, DrawItemEventArgs e) //Colorize the Combobox
         {
             Font font = (sender as ComboBox).Font;
             Brush backgroundColor;
@@ -7539,7 +7694,7 @@ namespace ASTA
             e.Graphics.DrawString((sender as ComboBox).Items[e.Index].ToString(), font, textColor, e.Bounds);
         }
 
-        private void RemoveClickEvent(Button b) //clear all events in the button
+        private void RemoveClickEvent(Button b) //clear all Click events in the button
         {
             System.Reflection.FieldInfo f1 = typeof(Control).GetField("EventClick",
                 System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
@@ -8288,13 +8443,6 @@ namespace ASTA
 
         //---- Start. Convertors of data types ----//
 
-      /*  private double TryParseStringToDouble(string str)  //string -> decimal. if error it will return 0
-        {
-            double result = 0;
-            try { result = double.Parse(str); } catch { }
-            return result;
-        }*/
-
         private decimal TryParseStringToDecimal(string str)  //string -> decimal. if error it will return 0
         {
             decimal result = 0;
@@ -8325,18 +8473,6 @@ namespace ASTA
             decimal result = decimalHour + TryParseStringToDecimal(TimeSpan.FromMinutes((double)decimalMinute).TotalHours.ToString());
             return result;
         }
-        /*
-        private int ConvertDecimalSeparatedTimeToSeconds(decimal decimalHour, decimal decimalMinute)
-        {
-            int result = Convert.ToInt32(decimalHour * 60 * 60 + decimalMinute * 60);
-            return result;
-        }*/
-
-       /* private decimal ConvertStringsTimeToDecimal(string hour, string minute)
-        {
-            decimal result = TryParseStringToDecimal(hour) + TryParseStringToDecimal(TimeSpan.FromMinutes(TryParseStringToDouble(minute)).TotalHours.ToString());
-            return result;
-        }*/
 
         private string ShortFIO(string s) //Transform from full FIO into Short form FIO
         {
@@ -8353,20 +8489,17 @@ namespace ASTA
         public string DateTimeToYYYYMMDD(string date = "")
         {
             if (date.Length > 0)
-            { return DateTime.Parse(date).ToString("yyyy-MM-dd"); }
-            else { return DateTime.Now.ToString("yyyy-MM-dd"); }
+            { return DateTime.Parse(date).ToYYYYMMDD(); }
+            else { return DateTime.Now.ToYYYYMMDD(); }
         }
 
         public string DateTimeToYYYYMMDDHHMM(string date = "")
         {
             if (date.Length > 0)
-            { return DateTime.Parse(date).ToString("yyyy-MM-dd HH:mm"); }
-            else { return DateTime.Now.ToString("yyyy-MM-dd HH:mm"); }
+            { return DateTime.Parse(date).ToYYYYMMDDHHMM(); }
+            else { return DateTime.Now.ToYYYYMMDDHHMM(); }
         }
-
-
-
-
+                     
         private string ConvertSecondsToStringHHMM(int seconds)
         {
             string result;
@@ -8477,7 +8610,7 @@ namespace ASTA
             return (60 * 60 * Convert.ToInt32(hours) + 60 * Convert.ToInt32(minutes) + Convert.ToInt32(seconds));
         }
  
-        private int[] ConvertStringDateToIntArray(string dateYYYYmmDD) //date "YYYY-MM-DD HH:MM" to int array values
+        private int[] ConvertStringDateToIntArray(string dateYYYYmmDD) //date "YYYY-MM-DD HH:MM" to  int[] { 1970, 1, 1 }
         {
             int[] result = new int[] { 1970, 1, 1 };
 

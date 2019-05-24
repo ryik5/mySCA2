@@ -54,16 +54,16 @@ string name = comand.ExecuteScalar().ToString();
 label1.Text = name;
 }
 */
-/*
-    interface IDBParameter
-    {
-        string DBName { get; set; }
-        string TableName { get; set; }
-        string DBConnectionString { get; set; }
-        string DBQuery { get; set; }
-        void Execute();
-    }
-    */
+    /*
+        interface IDBParameter
+        {
+            string DBName { get; set; }
+            string TableName { get; set; }
+            string DBConnectionString { get; set; }
+            string DBQuery { get; set; }
+            void Execute();
+        }
+        */
 
     //todo
     /*
@@ -165,7 +165,7 @@ label1.Text = name;
             return parameter.parameterOfConfiguration;
         }
     }
-    
+
     class ParameterOfConfigurationInSQLiteDB
     {
         ParameterOfConfiguration parameterOfConfiguration;
@@ -406,7 +406,7 @@ label1.Text = name;
         public string _period;
         public string _status;
         public string _typeReport;
-        public string _dayReport;
+        public int _dayReport;
 
         public override string ToString()
         {
@@ -801,6 +801,52 @@ label1.Text = name;
                 table.Columns[columnName].SetOrdinal(columnIndex);
                 columnIndex++;
             }
+        }
+    }
+
+    public struct DaysOfSendingMail
+    {
+        public int START_OF_MONTH;
+        public int MIDDLE_OF_MONTH;
+        public int LAST_WORK_DAY_OF_MONTH;
+    }
+
+
+    interface IDaysSendReports
+    {
+         DaysOfSendingMail GetDays();
+    }
+
+    public class DaysToSendReports : IDaysSendReports
+    {
+        public DaysToSendReports(string[] workDays) { SetSendDays(workDays); }
+        DaysOfSendingMail daysOfSendingMail = new DaysOfSendingMail();
+
+        void SetSendDays(string[] workDays)
+        {
+            int daySelected = 0;
+            if (workDays.Length == 0) throw new RankException();
+            foreach (string day in workDays)
+            {
+                if (day.Length != 10) throw new ArgumentException();
+            }
+
+            //look for last work day
+            if (Int32.TryParse(workDays[workDays.Length - 1].Remove(0, 8), out daySelected))
+            {
+                daysOfSendingMail.LAST_WORK_DAY_OF_MONTH = daySelected;
+            }
+            else
+            {
+                daysOfSendingMail.LAST_WORK_DAY_OF_MONTH = 28;
+            }
+            daysOfSendingMail.START_OF_MONTH = 1;
+            daysOfSendingMail.MIDDLE_OF_MONTH = daysOfSendingMail.LAST_WORK_DAY_OF_MONTH / 2 + 1;
+        }
+
+        public DaysOfSendingMail GetDays()
+        {
+            return daysOfSendingMail;
         }
     }
 
