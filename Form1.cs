@@ -3846,7 +3846,8 @@ namespace ASTA
                             case "2": //Отпуск
                             case "10": //Отпуск по беременности и родам
                             case "11": //Отпуск по уходу за ребёнком
-                                       //  case "18": //Согласованное отсутствие (менее < 3 часов)
+                            case "18": //Согласованное отсутствие (менее < 3 часов)
+                            case "19": //Согласованное отсутствие (менее < 3 часов)
                                 rowDtStoring[EMPLOYEE_EARLY_DEPARTURE] = "";
                                 rowDtStoring[EMPLOYEE_BEING_LATE] = "";
                                 if (typeReport == "Полный")
@@ -3878,6 +3879,11 @@ namespace ASTA
                             case "5": //Выходной
                             case "6": //На выезде (по работе)
                             case "7": //Забыл пропуск
+
+                            case "13": //Отгул (отпросился)
+                            case "14": //Индивидуальный график
+                            case "15": //Индивидуальный график
+
                                 rowDtStoring[EMPLOYEE_SHIFT_COMMENT] = outResons.Find((x) => x._id == exceptReason)?._visibleName;
                                 rowDtStoring[EMPLOYEE_EARLY_DEPARTURE] = "";
                                 rowDtStoring[EMPLOYEE_BEING_LATE] = "";
