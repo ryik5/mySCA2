@@ -33,10 +33,14 @@ namespace ASTA
         readonly byte[] btsMess1 = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
         readonly byte[] btsMess2 = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
 
+        //Все константы в локальной базе данных
         static string[] allParametersOfConfig = new string[] {
-                "SKDServer" , "SKDUser", "SKDUserPassword",
-                "MySQLServer", "MySQLUser", "MySQLUserPassword",
-                "MailServer","MailUser","MailUserPassword"
+                @"SKDServer" , @"SKDUser", @"SKDUserPassword",
+                @"MySQLServer", @"MySQLUser", @"MySQLUserPassword",
+                @"MailServer", @"MailUser", @"MailUserPassword",
+                @"DEFAULT_DAY_OF_SENDING_REPORT", @"MailServerSMTPport",
+                @"DomainOfUser", @"ServerURI", @"UserName", @"UserPassword",
+                @"clrRealRegistration", @"ShiftDaysBackOfSendingFromLastWorkDay"
             };
 
         string nameOfLastTableFromDB = "PersonRegistrationsList";
@@ -87,7 +91,7 @@ namespace ASTA
         static object synclock = new object();
         static bool sent = false;
         static string DEFAULT_DAY_OF_SENDING_REPORT = @"END_OF_MONTH";
-        
+        static int ShiftDaysBackOfSendingFromLastWorkDay = 3;
         static bool mailSent = false; //the flag of sending data
         const string RECEPIENTS_OF_REPORTS = @"Получатель рассылки";
 
@@ -522,10 +526,8 @@ namespace ASTA
             sServer1UserName = sServer1UserNameRegistry?.Length > 0 ? sServer1UserNameRegistry : sServer1UserNameDB;
             sServer1UserPassword = sServer1UserPasswordRegistry?.Length > 0 ? sServer1UserPasswordRegistry : sServer1UserPasswordDB;
 
-            mailServer = mailServerDB?.Length > 0 ? mailServerDB : "";
-
+            mailServer = mailServerDB?.Length > 0 ? mailServerDB : "";            
             Int32.TryParse(mailServerSMTPPortDB, out mailServerSMTPPort);
-            //  mailServerSMTPPort = mailServerSMTPPortDB?.Length > 0 ? mailServerSMTPPortDB : 25;
             mailServerUserName = mailServerUserNameDB?.Length > 0 ? mailServerUserNameDB : "";
             mailServerUserPassword = mailServerUserPasswordDB?.Length > 0 ? mailServerUserPasswordDB : "";
 
@@ -608,7 +610,16 @@ namespace ASTA
         { ApplicationExit(); }
 
         private void ApplicationExit()
-        { Application.Exit(); }
+        {
+            logger.Info("");
+            logger.Info("");
+            logger.Info("-=-=  Завершение работы ПО  =-=-");
+            logger.Info("");
+            logger.Info("-----------------------------------------");
+            logger.Info("");
+
+            Application.Exit();
+        }
 
         private void TryMakeDB()
         {
@@ -729,25 +740,34 @@ namespace ASTA
 
 
                 //loading parameters
-                listParameters = new List<ParameterConfig>();
+              //  listParameters = new List<ParameterConfig>();
 
                 ParameterOfConfigurationInSQLiteDB parameters = new ParameterOfConfigurationInSQLiteDB(databasePerson);
 
-                listParameters = parameters.GetParameters("%%").FindAll(x => x.isExample == "no"); //load only real data
+                listParameters = parameters.GetParameters("%%").FindAll(x => x?.isExample == "no"); //load only real data
 
                 DEFAULT_DAY_OF_SENDING_REPORT = GetValueOfConfigParameter(listParameters, @"DEFAULT_DAY_OF_SENDING_REPORT", END_OF_MONTH);
+                int days = 0;
+                int.TryParse(GetValueOfConfigParameter(listParameters, @"ShiftDaysBackOfSendingFromLastWorkDay", ""), out days);
+
+                if (days == 0 || days > 27)
+                { ShiftDaysBackOfSendingFromLastWorkDay = 3; }
+                else
+                { ShiftDaysBackOfSendingFromLastWorkDay = days; }
+
                 clrRealRegistrationRegistry = Color.FromName(GetValueOfConfigParameter(listParameters, @"clrRealRegistration", "PaleGreen"));
 
                 sServer1DB = GetValueOfConfigParameter(listParameters, @"SKDServer", null);
                 sServer1UserNameDB = GetValueOfConfigParameter(listParameters, @"SKDUser", null);
                 sServer1UserPasswordDB = GetValueOfConfigParameter(listParameters, @"SKDUserPassword", null, true);
 
+
                 mysqlServerDB = GetValueOfConfigParameter(listParameters, @"MySQLServer", null);
                 mysqlServerUserNameDB = GetValueOfConfigParameter(listParameters, @"MySQLUser", null);
                 mysqlServerUserPasswordDB = GetValueOfConfigParameter(listParameters, @"MySQLUserPassword", null, true);
 
                 mailServerDB = GetValueOfConfigParameter(listParameters, @"MailServer", null);
-                mailServerSMTPPortDB = GetValueOfConfigParameter(listParameters, @"DEFAULT_RECEIVING_PORT_MAILSERVER", null);
+                mailServerSMTPPortDB = GetValueOfConfigParameter(listParameters, @"MailServerSMTPport", null);
                 mailServerUserNameDB = GetValueOfConfigParameter(listParameters, @"MailUser", null);
                 mailServerUserPasswordDB = GetValueOfConfigParameter(listParameters, @"MailUserPassword", null, true);
 
@@ -793,8 +813,8 @@ namespace ASTA
 
         private string GetValueOfConfigParameter(List<ParameterConfig> listOfParameters, string nameParameter, string defaultValue, bool pass = false)
         {
-            return listOfParameters.FindLast(x => x.parameterName == nameParameter)?.parameterValue != null ?
-                   listParameters.FindLast(x => x.parameterName == nameParameter)?.parameterValue :
+            return listOfParameters.FindLast(x => x?.parameterName?.Trim() == nameParameter)?.parameterValue?.Trim() != null ?
+                   listParameters.FindLast(x => x?.parameterName?.Trim() == nameParameter)?.parameterValue?.Trim() :
                    defaultValue;
         }
 
@@ -820,7 +840,7 @@ namespace ASTA
 
             foreach (string sParameter in allParametersOfConfig)
             {
-                if (!(listParameters.FindLast(x => x.parameterName == sParameter)?.parameterValue?.Length > 0))
+                if (!(listParameters.FindLast(x => x?.parameterName?.Trim() == sParameter)?.parameterValue?.Length > 0))
                 {
                     listParameters.Add(new ParameterConfig()
                     {
@@ -1330,10 +1350,10 @@ namespace ASTA
 
             listParameters = parameters.GetParameters("%%").FindAll(x => x.isExample == "no"); //load only real data
 
-            user = listParameters.FindLast(x => x.parameterName == @"UserName")?.parameterValue;
-            password = listParameters.FindLast(x => x.parameterName == @"UserPassword")?.parameterValue;
-            server = listParameters.FindLast(x => x.parameterName == @"ServerURI")?.parameterValue;
-            domain = listParameters.FindLast(x => x.parameterName == @"DomainOfUser")?.parameterValue;
+            user = listParameters.FindLast(x => x?.parameterName == @"UserName")?.parameterValue;
+            password = listParameters.FindLast(x => x?.parameterName == @"UserPassword")?.parameterValue;
+            server = listParameters.FindLast(x => x?.parameterName == @"ServerURI")?.parameterValue;
+            domain = listParameters.FindLast(x => x?.parameterName == @"DomainOfUser")?.parameterValue;
 
             logger.Trace("user, domain, password, server: " + user + " |" + domain + " |" + password + " |" + server);
 
@@ -5680,9 +5700,9 @@ namespace ASTA
                         try { EvUserKey.SetValue("SKDUser", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(sServer1UserName, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
                         try { EvUserKey.SetValue("SKDUserPassword", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(sServer1UserPassword, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
 
-                        try { EvUserKey.SetValue("MailServer", mailServer, Microsoft.Win32.RegistryValueKind.String); } catch { }
-                        try { EvUserKey.SetValue("MailUser", mailServerUserName, Microsoft.Win32.RegistryValueKind.String); } catch { }
-                        try { EvUserKey.SetValue("MailUserPassword", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(mailServerUserPassword, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
+                     //   try { EvUserKey.SetValue("MailServer", mailServer, Microsoft.Win32.RegistryValueKind.String); } catch { }
+                    //    try { EvUserKey.SetValue("MailUser", mailServerUserName, Microsoft.Win32.RegistryValueKind.String); } catch { }
+                     //   try { EvUserKey.SetValue("MailUserPassword", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(mailServerUserPassword, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
 
                         try { EvUserKey.SetValue("MySQLServer", mysqlServer, Microsoft.Win32.RegistryValueKind.String); } catch { }
                         try { EvUserKey.SetValue("MySQLUser", mysqlServerUserName, Microsoft.Win32.RegistryValueKind.String); } catch { }
@@ -6397,11 +6417,15 @@ namespace ASTA
                 else if (nameOfLastTableFromDB == @"Mailing")
                 {
                     dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
-                        @"Наименование", @"Описание" });
+                        @"Наименование", @"Описание", @"День отправки отчета", @"Период", @"Тип отчета", @"Получатель"});
 
-                    mRightClick.MenuItems.Add(new MenuItem(@"Выполнить рассылку:   " + dgSeek.values[0] + "(" + dgSeek.values[1] + ")", DoMainAction));
+                    mRightClick.MenuItems.Add(new MenuItem(@"Выполнить активные рассылки по всем у кого: тип отчета - " + dgSeek.values[4] +" за "+ dgSeek.values[3]+ " на "+ dgSeek.values[2], SendAllReportsInSelectedPeriod));
+                    mRightClick.MenuItems.Add("-");
+                    mRightClick.MenuItems.Add(new MenuItem(@"Выполнить рассылку:   " + dgSeek.values[0] + "(" + dgSeek.values[1] + ") для "+ dgSeek.values[5], DoMainAction));
+                    mRightClick.MenuItems.Add("-");
                     mRightClick.MenuItems.Add(new MenuItem(@"Создать новую рассылку", PrepareForMakingFormMailing));
                     mRightClick.MenuItems.Add(new MenuItem(@"Клонировать рассылку:   " + dgSeek.values[0] + "(" + dgSeek.values[1] + ")", MakeCloneMailing));
+                    mRightClick.MenuItems.Add("-");
                     mRightClick.MenuItems.Add(new MenuItem(@"Состав рассылки:   " + dgSeek.values[0] + "(" + dgSeek.values[1] + ")", MembersGroupItem_Click));
                     mRightClick.MenuItems.Add("-");
                     mRightClick.MenuItems.Add(new MenuItem(@"Удалить рассылку:   " + dgSeek.values[0] + "(" + dgSeek.values[1] + ")", DeleteCurrentRow));
@@ -6696,6 +6720,147 @@ namespace ASTA
                 default:
                     break;
             }
+
+            _ProgressBar1Stop();
+        }
+
+        private void SendAllReportsInSelectedPeriod(object sender, EventArgs e) //DoMainAction()
+        { SendAllReportsInSelectedPeriod(); }
+
+        private void SendAllReportsInSelectedPeriod()
+        {
+            _ProgressBar1Start();
+
+            DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
+            dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
+                            @"Получатель", @"Отчет по группам", @"Наименование", @"Описание",
+                            @"Период", @"Статус", @"Тип отчета", @"День отправки отчета" });
+            _toolStripStatusLabelSetText(StatusLabel2, "Готовлю все активные рассылки с отчетами " + dgSeek.values[6] + " за " + dgSeek.values[4] + " на " + dgSeek.values[7]);
+
+            currentAction = "sendEmail";
+            DoListsFioGroupsMailings();
+
+            string sender = "";
+            string recipient = "";
+            string gproupsReport = "";
+            string nameReport = "";
+            string descriptionReport = "";
+            string period = "";
+            string status = "";
+            string typeReport = "";
+            string dayReport = "";
+            string str = "";
+
+            DataTable dtEmpty = new DataTable();
+            PersonFull personEmpty = new PersonFull();
+            var now = DateTime.Today;
+
+            int[] startDayOfCurrentMonth = { now.Year, now.Month, 1 };
+            int[] lastDayOfCurrentMonth = { now.Year, now.Month, now.LastDayOfMonth().Day };
+
+            SeekAnualDays(ref dtEmpty, ref personEmpty, false,
+                startDayOfCurrentMonth, lastDayOfCurrentMonth,
+                ref myBoldedDates, ref workSelectedDays
+                );
+            dtEmpty = null;
+            personEmpty = null;
+            DaysToSendReports daysToSendReports = new DaysToSendReports(workSelectedDays, ShiftDaysBackOfSendingFromLastWorkDay);
+            DaysOfSendingMail daysOfSendingMail = daysToSendReports.GetDays();
+
+            logger.Trace("SendAllReportsInSelectedPeriod: активные отчеты " + dgSeek.values[6] + " за " + dgSeek.values[4] +
+                startDayOfCurrentMonth[0] + "-" + startDayOfCurrentMonth[1] + "-" + startDayOfCurrentMonth[2] +
+                " - " +
+                lastDayOfCurrentMonth[0] + "-" + lastDayOfCurrentMonth[1] + "-" + lastDayOfCurrentMonth[2]+ " на дату - "+ dgSeek.values[7]
+                );
+
+            HashSet<MailingStructure> mailingList = new HashSet<MailingStructure>();
+
+            using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+            {
+                sqlConnection.Open();
+
+                using (var sqlCommand = new SQLiteCommand("SELECT * FROM Mailing;", sqlConnection))
+                {
+                    using (var reader = sqlCommand.ExecuteReader())
+                    {
+                        foreach (DbDataRecord record in reader)
+                        {
+                            if (record["SenderEmail"]?.ToString()?.Length > 0 &&
+                                record["RecipientEmail"]?.ToString()?.Length > 0 &&
+                                record["DayReport"]?.ToString()?.Trim()?.ToUpper() == dgSeek.values[7])
+                            {
+                                sender = record["SenderEmail"].ToString();
+                                recipient = record["RecipientEmail"].ToString();
+                                gproupsReport = record["GroupsReport"].ToString();
+                                nameReport = record["NameReport"].ToString();
+                                descriptionReport = record["Description"].ToString();
+                                period = record["Period"].ToString();
+                                status = record["Status"].ToString();
+                                typeReport = record["TypeReport"].ToString();
+
+                                string dayReportInDB = record["DayReport"]?.ToString()?.Trim();
+                                dayReport = ReturnStrongNameDayOfSendingReports(dayReportInDB);
+
+                                int dayToSendReport = ReturnNumberStrongNameDayOfSendingReports(dayReport, daysOfSendingMail);
+
+                                logger.Trace("DayReport: " + dayReportInDB + " " + dayReport + " " + dayToSendReport);
+                                
+                            if (
+                                    status == "Активная" && 
+                                    typeReport==dgSeek.values[6] && 
+                                    period == dgSeek.values[4] && 
+                                    dayReportInDB==dgSeek.values[7]
+                                    )
+                                {
+                                    mailingList.Add(new MailingStructure()
+                                    {
+                                        _sender = sender,
+                                        _recipient = recipient,
+                                        _groupsReport = gproupsReport,
+                                        _nameReport = nameReport,
+                                        _descriptionReport = descriptionReport,
+                                        _period = period,
+                                        _typeReport = typeReport,
+                                        _status = status,
+                                        _dayReport = dayReport
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            foreach (MailingStructure mailng in mailingList)
+            {
+                _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
+
+                _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + mailng._nameReport);
+
+                str = "UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToYYYYMMDDHHMM() +
+                    "' WHERE RecipientEmail='" + mailng._recipient +
+                    "' AND NameReport='" + mailng._nameReport +
+                    "' AND Period='" + mailng._period +
+                    "' AND Status='" + mailng._status +
+                    "' AND TypeReport='" + mailng._typeReport +
+                    "' AND GroupsReport ='" + mailng._groupsReport + "';";
+                logger.Trace(str);
+                ExecuteSql(str, databasePerson);
+                GetRegistrationAndSendReport(
+                    mailng._groupsReport, mailng._nameReport, mailng._descriptionReport, mailng._period, mailng._status,
+                    mailng._typeReport, mailng._dayReport, true, mailng._recipient, mailServerUserName);
+
+                _ProgressWork1Step();
+            }
+
+            logger.Info("MailingAction: Перечень задач по подготовке и отправке отчетов завершен...");
+
+            ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
+            "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
+            "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
+            " ORDER BY RecipientEmail asc, DateCreated desc; ");
+
+            mailingList = null;
 
             _ProgressBar1Stop();
         }
@@ -7036,7 +7201,7 @@ namespace ASTA
                 );
             dtEmpty = null;
             personEmpty = null;
-            DaysToSendReports daysToSendReports = new DaysToSendReports(workSelectedDays);
+            DaysToSendReports daysToSendReports = new DaysToSendReports(workSelectedDays, ShiftDaysBackOfSendingFromLastWorkDay);
             DaysOfSendingMail daysOfSendingMail = daysToSendReports.GetDays();
 
             logger.Trace("SelectMailingDoAction: "+ 
@@ -7070,6 +7235,7 @@ namespace ASTA
 
                                 string dayReportInDB = record["DayReport"]?.ToString()?.Trim()?.ToUpper();
                                 dayReport = ReturnStrongNameDayOfSendingReports(dayReportInDB);
+
                                 int dayToSendReport = ReturnNumberStrongNameDayOfSendingReports(dayReport,daysOfSendingMail);
 
                                 logger.Trace("DayReport: " + dayReportInDB+" "+ dayReport+" "+ dayToSendReport);
