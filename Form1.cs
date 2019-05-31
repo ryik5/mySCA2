@@ -86,7 +86,6 @@ namespace ASTA
         static System.Threading.Timer timer;
         static object synclock = new object();
         static bool sent = false;
-        static string DEFAULT_RECEIVING_PORT_MAILSERVER = "587";
         static string DEFAULT_DAY_OF_SENDING_REPORT = @"END_OF_MONTH";
         
         static bool mailSent = false; //the flag of sending data
@@ -116,13 +115,15 @@ namespace ASTA
         Label labelMailServerUserPassword;
         TextBox textBoxMailServerUserPassword;
         static string mailServer = "";
-        static string mailServerRegistry = "";
+        //   static string mailServerRegistry = "";
         static string mailServerDB = "";
+        static int mailServerSMTPPort = 25;
+       static string mailServerSMTPPortDB = "";
         static string mailServerUserName = "";
-        static string mailServerUserNameRegistry = "";
+     //   static string mailServerUserNameRegistry = "";
         static string mailServerUserNameDB = "";
         static string mailServerUserPassword = "";
-        static string mailServerUserPasswordRegistry = "";
+     //   static string mailServerUserPasswordRegistry = "";
         static string mailServerUserPasswordDB = "";
 
         //Page of "Settings' Programm"
@@ -413,7 +414,7 @@ namespace ASTA
         private void Form1_Load(object sender, EventArgs e)
         { Form1Load(); }
 
-        private void Form1Load()
+        private async void Form1Load()
         {
             logger.Info("");
             logger.Info("Test Info message");
@@ -521,9 +522,12 @@ namespace ASTA
             sServer1UserName = sServer1UserNameRegistry?.Length > 0 ? sServer1UserNameRegistry : sServer1UserNameDB;
             sServer1UserPassword = sServer1UserPasswordRegistry?.Length > 0 ? sServer1UserPasswordRegistry : sServer1UserPasswordDB;
 
-            mailServer = mailServerRegistry?.Length > 0 ? mailServerRegistry : mailServerDB;
-            mailServerUserName = mailServerUserNameRegistry?.Length > 0 ? mailServerUserNameRegistry : mailServerUserNameDB;
-            mailServerUserPassword = mailServerUserPasswordRegistry?.Length > 0 ? mailServerUserPasswordRegistry : mailServerUserPasswordDB;
+            mailServer = mailServerDB?.Length > 0 ? mailServerDB : "";
+
+            Int32.TryParse(mailServerSMTPPortDB, out mailServerSMTPPort);
+            //  mailServerSMTPPort = mailServerSMTPPortDB?.Length > 0 ? mailServerSMTPPortDB : 25;
+            mailServerUserName = mailServerUserNameDB?.Length > 0 ? mailServerUserNameDB : "";
+            mailServerUserPassword = mailServerUserPasswordDB?.Length > 0 ? mailServerUserPasswordDB : "";
 
             mysqlServer = mysqlServerRegistry?.Length > 0 ? mysqlServerRegistry : mysqlServerDB;
             mysqlServerUserName = mysqlServerUserNameRegistry?.Length > 0 ? mysqlServerUserNameRegistry : mysqlServerUserNameDB;
@@ -536,7 +540,7 @@ namespace ASTA
             var startDay = today.AddDays(-60).ToYYYYMMDD();
             var endDay = today.AddDays(30).ToYYYYMMDD();
 
-            SeekAnualDays(ref dtEmpty,ref personEmpty,false,
+            SeekAnualDays(ref dtEmpty, ref personEmpty, false,
                 ConvertStringDateToIntArray(startDay), ConvertStringDateToIntArray(endDay),
                 ref myBoldedDates, ref workSelectedDays
                 );
@@ -578,6 +582,11 @@ namespace ASTA
                 " ORDER BY RecipientEmail asc, DateCreated desc; ");
                 dataGridView1.Select();
                 ExecuteAutoMode(true);
+            }
+            if (mailServerDB?.Length < 5 || mailServerSMTPPortDB?.Length < 1)
+            {
+                logger.Warn("Form1Load finished: mailServerDB: " + mailServerDB + ", mailServerSMTPPortDB: " + mailServerSMTPPortDB);
+                await Task.Run(() => MessageBox.Show("mailServerDB: " + mailServerDB + "\nmailServerSMTPPortDB: " + mailServerSMTPPortDB));
             }
         }
 
@@ -727,7 +736,6 @@ namespace ASTA
                 listParameters = parameters.GetParameters("%%").FindAll(x => x.isExample == "no"); //load only real data
 
                 DEFAULT_DAY_OF_SENDING_REPORT = GetValueOfConfigParameter(listParameters, @"DEFAULT_DAY_OF_SENDING_REPORT", END_OF_MONTH);
-                DEFAULT_RECEIVING_PORT_MAILSERVER = GetValueOfConfigParameter(listParameters, @"DEFAULT_RECEIVING_PORT_MAILSERVER", "25"); //587
                 clrRealRegistrationRegistry = Color.FromName(GetValueOfConfigParameter(listParameters, @"clrRealRegistration", "PaleGreen"));
 
                 sServer1DB = GetValueOfConfigParameter(listParameters, @"SKDServer", null);
@@ -739,6 +747,7 @@ namespace ASTA
                 mysqlServerUserPasswordDB = GetValueOfConfigParameter(listParameters, @"MySQLUserPassword", null, true);
 
                 mailServerDB = GetValueOfConfigParameter(listParameters, @"MailServer", null);
+                mailServerSMTPPortDB = GetValueOfConfigParameter(listParameters, @"DEFAULT_RECEIVING_PORT_MAILSERVER", null);
                 mailServerUserNameDB = GetValueOfConfigParameter(listParameters, @"MailUser", null);
                 mailServerUserPasswordDB = GetValueOfConfigParameter(listParameters, @"MailUserPassword", null, true);
 
@@ -754,9 +763,9 @@ namespace ASTA
                 try { sServer1UserNameRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey?.GetValue("SKDUser")?.ToString(), btsMess1, btsMess2).ToString(); } catch { }
                 try { sServer1UserPasswordRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey?.GetValue("SKDUserPassword")?.ToString(), btsMess1, btsMess2).ToString(); } catch { }
 
-                try { mailServerRegistry = EvUserKey?.GetValue("MailServer")?.ToString(); } catch { logger.Warn("Registry GetValue Mail"); }
-                try { mailServerUserNameRegistry = EvUserKey?.GetValue("MailUser")?.ToString(); } catch { }
-                try { mailServerUserPasswordRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey?.GetValue("MailUserPassword")?.ToString(), btsMess1, btsMess2).ToString(); } catch { }
+              //  try { mailServerRegistry = EvUserKey?.GetValue("MailServer")?.ToString(); } catch { logger.Warn("Registry GetValue Mail"); }
+              //  try { mailServerUserNameRegistry = EvUserKey?.GetValue("MailUser")?.ToString(); } catch { }
+              //  try { mailServerUserPasswordRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey?.GetValue("MailUserPassword")?.ToString(), btsMess1, btsMess2).ToString(); } catch { }
 
                 try { mysqlServerRegistry = EvUserKey?.GetValue("MySQLServer")?.ToString(); } catch { logger.Warn("Registry GetValue MySQL"); }
                 try { mysqlServerUserNameRegistry = EvUserKey?.GetValue("MySQLUser")?.ToString(); } catch { }
@@ -7418,14 +7427,14 @@ namespace ASTA
             nameGroup = null;
         }
 
-        private static void SendEmail(string sender, string recipient, string period, string department, string pathToFile, Bitmap myLogo, string messageAfterPicture) //Compose and send e-mail
+        private async static void SendEmail(string sender, string recipient, string period, string department, string pathToFile, Bitmap myLogo, string messageAfterPicture) //Compose and send e-mail
         {
             // string startupPath = AppDomain.CurrentDomain.RelativeSearchPath;
             // string path = System.IO.Path.Combine(startupPath, "HtmlTemplates", "NotifyTemplate.html");
             // string body = System.IO.File.ReadAllText(path);
 
             // адрес smtp-сервера и порт, с которого будем отправлять письмо
-            using (System.Net.Mail.SmtpClient smtpClient = new System.Net.Mail.SmtpClient(mailServer, 587))
+            using (System.Net.Mail.SmtpClient smtpClient = new System.Net.Mail.SmtpClient(mailServer, mailServerSMTPPort))
             {
                 smtpClient.EnableSsl = false; // I get error with "true"
                 smtpClient.DeliveryMethod = System.Net.Mail.SmtpDeliveryMethod.Network;
@@ -7460,23 +7469,59 @@ namespace ASTA
                     smtpClient.Credentials = new System.Net.NetworkCredential(sender.Split('@')[0], "");
 
                     // отправка письма
-                    try
+                    int attempts = 5;
+                    do
                     {
-                        // async sending method sometimes has a problem with sending emails
-                        // a default MS Exch Server blocks the action of mass sending emails
-                        // smtpClient.SendAsync(newMail);
-                        smtpClient.Send(newMail);
-                        logger.Info("SendEmail: " + recipient + " - Ok");
-                    }
-                    catch (Exception expt) { logger.Error("SendEmail, Error: " + expt.Message); }
+                        try
+                        {
+                            // async sending method sometimes has a problem with sending emails
+                            // a default MS Exch Server blocks the action of mass sending emails
+                            // smtpClient.SendAsync(newMail);
+                            smtpClient.Send(newMail);
+                            logger.Info("SendEmail: " + recipient + " " + mailServer + ":" + mailServerSMTPPort + " - Ok");
+                            attempts = 0;
+                        }
+                        catch (Exception expt)
+                        {
+                            logger.Info("SendEmail, mailserver: " + mailServer + ", mailServerSMTPPort: " + mailServerSMTPPort);
+                            logger.Error("SendEmail, Error: " + expt.Message);
+                            await Task.Delay(60000);
+                            attempts--;
+                        }
 
-                    if (mailSent == false)
-                    {
-                        smtpClient.SendAsyncCancel();
+                        if (mailSent == false)
+                        {
+                            smtpClient.SendAsyncCancel();
+                        }
                     }
+                    while (attempts > 0);
+
                 }
             }
         }
+/*
+        private void WaitSeconds(int seconds)
+        {
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
+
+            //No need to risk overflowing an int
+            while (true)
+            {
+                //No need to count iterations, just set them
+                //Really need to account for CPU speed, etc. though, as a
+                //CPU twice as fast runs this loop twice as many times,
+                //while a slow one may greatly overshoot the desired time
+                //interval. Iterations too high = overshoot, too low = excessive overhead 
+                System.Threading.SpinWait(100000);
+
+                //No need to stop the stopwatch, simply "mark the lap"
+                if (sw.ElapsedMilliseconds > seconds * 1000)
+                    break;
+            }
+
+            sw.Stop();
+        }*/
            
         private static void SendCompletedCallback(object sender, System.ComponentModel.AsyncCompletedEventArgs e)     //for async sending
         {
@@ -8465,15 +8510,6 @@ namespace ASTA
             return result;
         }
 
-      /*  private string ConvertDecimalTimeToStringHHMM(decimal decimalTime)
-        {
-            string result;
-            int hour = (int)(decimalTime);
-            int minute = Convert.ToInt32(60 * (decimalTime - hour));
-            result = string.Format("{0:d2}:{1:d2}", hour, minute);
-            return result;
-        }*/
-        
         private string[] ConvertSecondsTimeToStringHHMMArray(int seconds)
         {
             string[] result = new string[3];
@@ -8579,37 +8615,6 @@ namespace ASTA
 
             return result;
         }
-
-        /*
-        private string[] ConvertStringTimeHHMMToStringArray(string timeInHHMM) //time HH:MM converted to decimal value
-        {
-           // TimeConvertor timeConvertor1 = new TimeConvertor { Seconds = 115 };
-           //  TimeStore timer = timeConvertor1;
-           //  Console.WriteLine($"{timer.Hours}:{timer.Minutes}:{timer.Seconds}"); // 0:1:55
-
-            string[] result = new string[4];
-            decimal h = 0;
-            decimal m = 0;
-
-            if (timeInHHMM.Contains(':'))
-            {
-                string[] time = timeInHHMM.Split(':');
-                h = TryParseStringToDecimal(time[0]);
-                m = TryParseStringToDecimal(time[1]);
-            }
-            else
-            {
-                h = TryParseStringToDecimal(timeInHHMM);
-                m = 0;
-            }
-
-            result[0] = String.Format("{0:d2}", h);                             // only hours        22
-            result[1] = String.Format("{0:d2}", m);                             // only minutes        25
-            result[2] = String.Format("{0:d2}:{1:d2}", h, m);                   // normalyze to     22:25
-
-            return result;
-        }*/
-
         //---- End. Convertors of data types ----//
     }
 }
