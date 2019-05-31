@@ -91,7 +91,7 @@ namespace ASTA
         static object synclock = new object();
         static bool sent = false;
         static string DEFAULT_DAY_OF_SENDING_REPORT = @"END_OF_MONTH";
-        static int ShiftDaysBackOfSendingFromLastWorkDay = 3;
+        static int ShiftDaysBackOfSendingFromLastWorkDay = 3; //shift back of sending email before a last working day within the month
         static bool mailSent = false; //the flag of sending data
         const string RECEPIENTS_OF_REPORTS = @"Получатель рассылки";
 
@@ -3839,7 +3839,7 @@ namespace ASTA
 
                         exceptReason = rowDtStoring[EMPLOYEE_SHIFT_COMMENT]?.ToString();
 
-                        rowDtStoring[EMPLOYEE_SHIFT_COMMENT] = outResons.Find((x) => x._id == exceptReason)?._visibleName;
+                        rowDtStoring[EMPLOYEE_SHIFT_COMMENT] = outResons.Find((x) => x._id == exceptReason)?._name;
 
                         switch (exceptReason)
                         {
@@ -3851,7 +3851,7 @@ namespace ASTA
                                 rowDtStoring[EMPLOYEE_EARLY_DEPARTURE] = "";
                                 rowDtStoring[EMPLOYEE_BEING_LATE] = "";
                                 if (typeReport == "Полный")
-                                { rowDtStoring[@"Отпуск"] = outResons.Find((x) => x._id == exceptReason)?._visibleName; }
+                                { rowDtStoring[@"Отпуск"] = outResons.Find((x) => x._id == exceptReason)?._name; }
                                 else if (typeReport == "Упрощенный")
                                 { rowDtStoring[@"Отпуск"] = "1"; }
                                 break;
@@ -3860,7 +3860,7 @@ namespace ASTA
                                 rowDtStoring[EMPLOYEE_EARLY_DEPARTURE] = "";
                                 rowDtStoring[EMPLOYEE_BEING_LATE] = "";
                                 if (typeReport == "Полный")
-                                { rowDtStoring[EMPLOYEE_SICK_LEAVE] = outResons.Find((x) => x._id == exceptReason)?._visibleName; }
+                                { rowDtStoring[EMPLOYEE_SICK_LEAVE] = outResons.Find((x) => x._id == exceptReason)?._name; }
                                 else if (typeReport == "Упрощенный")
                                 { rowDtStoring[EMPLOYEE_SICK_LEAVE] = "1"; }
                                 break;
@@ -3871,7 +3871,7 @@ namespace ASTA
                                 rowDtStoring[EMPLOYEE_EARLY_DEPARTURE] = "";
                                 rowDtStoring[EMPLOYEE_BEING_LATE] = "";
                                 if (typeReport == "Полный")
-                                { rowDtStoring[EMPLOYEE_HOOKY] = outResons.Find((x) => x._id == exceptReason)?._visibleName; }
+                                { rowDtStoring[EMPLOYEE_HOOKY] = outResons.Find((x) => x._id == exceptReason)?._name; }
                                 else if (typeReport == "Упрощенный")
                                 { rowDtStoring[EMPLOYEE_HOOKY] = "1"; }
                                 break;
@@ -3884,7 +3884,7 @@ namespace ASTA
                             case "14": //Индивидуальный график
                             case "15": //Индивидуальный график
 
-                                rowDtStoring[EMPLOYEE_SHIFT_COMMENT] = outResons.Find((x) => x._id == exceptReason)?._visibleName;
+                                rowDtStoring[EMPLOYEE_SHIFT_COMMENT] = outResons.Find((x) => x._id == exceptReason)?._name;
                                 rowDtStoring[EMPLOYEE_EARLY_DEPARTURE] = "";
                                 rowDtStoring[EMPLOYEE_BEING_LATE] = "";
                                 break;
