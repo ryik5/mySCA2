@@ -257,7 +257,7 @@ label1.Text = name;
                                 sqlCommand.CommandText = @"Select ParameterName, Value, Description, DateCreated, IsPassword, IsExample from ConfigDB";
                             }
                             sqlCommand.CommandType = System.Data.CommandType.Text;
-                            logger.Trace("ParameterOfConfigurationInSQLiteDB: " + sqlCommand.CommandText.ToString());
+                            logger.Trace("ParameterOfConfigurationInSQLiteDB: " + sqlCommand.CommandText);
                             using (SQLiteDataReader reader = sqlCommand.ExecuteReader())
                             {
                                 while (reader.Read())
@@ -819,10 +819,10 @@ label1.Text = name;
 
     public class DaysToSendReports : IDaysSendReports
     {
-        public DaysToSendReports(string[] workDays) { SetSendDays(workDays); }
+        public DaysToSendReports(string[] workDays, int ShiftDaysBackOfSendingFromLastWorkDay) { SetSendDays(workDays, ShiftDaysBackOfSendingFromLastWorkDay); }
         DaysOfSendingMail daysOfSendingMail = new DaysOfSendingMail();
 
-        void SetSendDays(string[] workDays)
+        void SetSendDays(string[] workDays, int ShiftDaysBackOfSendingFromLastWorkDay)
         {
             int daySelected = 0;
             if (workDays.Length == 0) throw new RankException();
@@ -834,11 +834,11 @@ label1.Text = name;
             //look for last work day
             if (Int32.TryParse(workDays[workDays.Length - 1].Remove(0, 8), out daySelected))
             {
-                daysOfSendingMail.LAST_WORK_DAY_OF_MONTH = daySelected;
+                daysOfSendingMail.LAST_WORK_DAY_OF_MONTH = daySelected- ShiftDaysBackOfSendingFromLastWorkDay;
             }
             else
             {
-                daysOfSendingMail.LAST_WORK_DAY_OF_MONTH = 28;
+                daysOfSendingMail.LAST_WORK_DAY_OF_MONTH = 28- ShiftDaysBackOfSendingFromLastWorkDay;
             }
             daysOfSendingMail.START_OF_MONTH = 1;
             daysOfSendingMail.MIDDLE_OF_MONTH = daysOfSendingMail.LAST_WORK_DAY_OF_MONTH / 2 + 1;
