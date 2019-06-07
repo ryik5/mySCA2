@@ -4054,6 +4054,7 @@ namespace ASTA
             }
             //Easter - Paskha
             DateTime dayBolded = new DateTime(startOfPeriod[0], monthEasterPr, dayEasterPr);
+            MessageBox.Show("Easter: "+dayBolded.ToYYYYMMDD());
             logger.Trace("SeekAnualDays,AddBoldedDate Easter: " + dayBolded.ToYYYYMMDD());
 
             switch ((int)dayBolded.DayOfWeek)
