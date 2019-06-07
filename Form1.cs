@@ -4115,6 +4115,9 @@ namespace ASTA
 
             List<string> tmp = wholeSelectedDays.Except(daysListBolded).ToList();
             string[] result = tmp.Union(daysListWorked).ToArray();
+
+            logger.Trace("SeekAnualDays, days:" + wholeSelectedDays.Count);
+
             logger.Trace("SeekAnualDays, result worked:" + result.Length);
 
             foreach (string str in result)
@@ -4122,6 +4125,9 @@ namespace ASTA
 
             result = daysListBolded.Except(daysListWorked).ToArray();
             logger.Trace("SeekAnualDays, result bolded:" + result.Length);
+
+            foreach (string str in result)
+            { logger.Trace("SeekAnualDays, result: " + str); }
 
             List<string> daysSelected = new List<string>();
             foreach (var day in myMonthCalendar.BoldedDates)
