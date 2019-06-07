@@ -4029,8 +4029,8 @@ namespace ASTA
             int monthEaster = (h + L - 7 * m + 114) / 31;
             int dayEaster = ((h + L - 7 * m + 114) % 31) + 1;
 
-            int monthEasterPr = 0;
-            int dayEasterPr = 0;
+            int monthEasterPr = 1;
+            int dayEasterPr = 1;
 
             if (dPr == 29 && ePr == 6)
             {
@@ -4075,7 +4075,7 @@ namespace ASTA
                     break;
             }
 
-
+/*
             foreach (string dayAdditional in ReturnBoldedDaysFromDB(person.NAV, @"Выходной")) // or - Рабочий
             {
                 myMonthCalendar.AddBoldedDate(DateTime.Parse(dayAdditional));
@@ -4141,7 +4141,7 @@ namespace ASTA
                     logger.Trace("SeekAnualDays,AddBoldedDate weekends: " + myDate.ToYYYYMMDD());
                 }
             }
-
+ */
             //Remove additional works days from the bolded days 
             foreach (string myDate in ReturnBoldedDaysFromDB(person.NAV, @"Рабочий"))
             {
@@ -4224,7 +4224,7 @@ namespace ASTA
 
             foreach (string day in workDays)
             { logger.Trace("SeekAnualDays, Result work day: " + day); }
-
+           
             myMonthCalendar.Dispose();
         }
        
