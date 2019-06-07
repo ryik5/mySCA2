@@ -4111,9 +4111,10 @@ namespace ASTA
             daysListWorked.Sort();
             daysListBolded.Sort();
 
-             logger.Trace("SeekAnualDays, daysListWorked:" + daysListWorked.ToArray().Length+ " daysListBolded:" + daysListBolded.ToArray().Length + " "); 
+             logger.Trace("SeekAnualDays, daysListWorked:" + daysListWorked.ToArray().Length+ " daysListBolded:" + daysListBolded.ToArray().Length + " ");
 
-            string[] result = wholeSelectedDays.Except(daysListBolded).Intersect(daysListWorked).ToArray();
+            List<string> tmp = wholeSelectedDays.Except(daysListBolded).ToList();
+            string[] result = tmp.Intersect(daysListWorked).ToArray();
             logger.Trace("SeekAnualDays, result:" + result.Length);
 
             foreach (string str in result)
