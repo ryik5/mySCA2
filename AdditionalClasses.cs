@@ -810,8 +810,7 @@ label1.Text = name;
         public int MIDDLE_OF_MONTH;
         public int LAST_WORK_DAY_OF_MONTH;
     }
-
-
+    
     interface IDaysSendReports
     {
          DaysOfSendingMail GetDays();

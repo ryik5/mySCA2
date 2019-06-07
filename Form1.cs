@@ -3877,12 +3877,11 @@ namespace ASTA
                             case "5": //Выходной
                             case "6": //На выезде (по работе)
                             case "7": //Забыл пропуск
-
                             case "13": //Отгул (отпросился)
                             case "14": //Индивидуальный график
                             case "15": //Индивидуальный график
                             case "18": //Согласованное отсутствие (менее < 3 часов)
-                            case "19": //Согласованное отсутствие (менее < 3 часов)
+                            case "19": //Согласованное отсутствие (менее < 5 часов)
 
                                 rowDtStoring[EMPLOYEE_SHIFT_COMMENT] = outResons.Find((x) => x._id == exceptReason)?._name;
                                 rowDtStoring[EMPLOYEE_EARLY_DEPARTURE] = "";
@@ -3928,40 +3927,26 @@ namespace ASTA
 
 
 
-       
-        private List<string> ReturnBoldedDaysFromDB(string nav, string dayType)
-        {
-            List<string> boldedDays = new List<string>();
-            string sqlQuery = null;
-            if (nav.Length ==6)
-            {
-                sqlQuery = "SELECT DayBolded FROM BoldedDates WHERE (NAV LIKE '" + nav + "' OR  NAV LIKE '0') AND DayType LIKE '" + dayType + "';";
-            }
-            else
-            {
-                sqlQuery = "SELECT DayBolded FROM BoldedDates WHERE (NAV LIKE '0') AND DayType LIKE '" + dayType + "';";
-            }
 
-            using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
-            {
-                sqlConnection.Open();
-                using (var sqlCommand = new SQLiteCommand(sqlQuery, sqlConnection))
-                {
-                    using (var sqlReader = sqlCommand.ExecuteReader())
-                    {
-                        foreach (DbDataRecord record in sqlReader)
-                        {
-                            if (record["DayBolded"]?.ToString()?.Length > 0)
-                            {
-                                boldedDays.Add(record["DayBolded"].ToString());
-                            }
-                        }
-                    }
-                }
-                sqlConnection.Close();
-            }
-            return boldedDays;
-        }
+
+
+
+
+
+
+
+        /// <summary>
+        /// ///////////////////////////////////////////////////
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <param name="person"></param>
+        /// <param name="delRow"></param>
+        /// <param name="startOfPeriod"></param>
+        /// <param name="endOfPeriod"></param>
+        /// <param name="boldedDays"></param>
+        /// <param name="workDays"></param>
+
+
 
         private void SeekAnualDays(ref DataTable dt, ref PersonFull person, bool delRow, int[] startOfPeriod, int[] endOfPeriod, ref string[] boldedDays, ref string[] workDays)//   //Exclude Anual Days from the table "PersonTemp" DB
         {
@@ -4086,6 +4071,8 @@ namespace ASTA
                     if (myDate == day)
                     {
                         daysBolded.Add(singleDate);
+                        logger.Trace("SeekAnualDays, daysBolded.Add: " + singleDate);
+
                         if (delRow&& dt!=null)
                         {
                             logger.Trace("SeekAnualDays, QueryDeleteDataFromDataTable: " + singleDate);
@@ -4109,6 +4096,7 @@ namespace ASTA
                 foreach (string day in boldedDays)
                 {
                     monthCalendar.AddBoldedDate(DateTime.Parse(day));
+                    logger.Trace("SeekAnualDays, AddBoldedDate: " + day);
                 }
             }
 
@@ -4123,8 +4111,41 @@ namespace ASTA
 
             myMonthCalendar.Dispose();
         }
+       
+        private List<string> ReturnBoldedDaysFromDB(string nav, string dayType)
+        {
+            List<string> boldedDays = new List<string>();
+            string sqlQuery = null;
+            if (nav.Length ==6)
+            {
+                sqlQuery = "SELECT DayBolded FROM BoldedDates WHERE (NAV LIKE '" + nav + "' OR  NAV LIKE '0') AND DayType LIKE '" + dayType + "';";
+            }
+            else
+            {
+                sqlQuery = "SELECT DayBolded FROM BoldedDates WHERE (NAV LIKE '0') AND DayType LIKE '" + dayType + "';";
+            }
 
-
+            using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = new SQLiteCommand(sqlQuery, sqlConnection))
+                {
+                    using (var sqlReader = sqlCommand.ExecuteReader())
+                    {
+                        foreach (DbDataRecord record in sqlReader)
+                        {
+                            if (record["DayBolded"]?.ToString()?.Length > 0)
+                            {
+                                boldedDays.Add(record["DayBolded"].ToString());
+                            }
+                        }
+                    }
+                }
+                sqlConnection.Close();
+            }
+            return boldedDays;
+        }
+        
         private void QueryDeleteDataFromDataTable(ref DataTable dt, string queryFull, string NAVcode) //Delete data from the Table of the DB by NAV (both parameters are string)
         {
             DataRow[] rows = new DataRow[1];
@@ -4143,6 +4164,22 @@ namespace ASTA
             dt.AcceptChanges();
             rows = null;
         }
+
+
+        /// <summary>
+        /// ///////////////////////////////////////////////////
+        /// </summary>
+        /// <param name="maskFiles"></param>
+        /// <param name="discribeFiles"></param>
+
+
+
+
+
+
+
+
+
 
 
         //----- Clear ---------//
@@ -5158,8 +5195,7 @@ namespace ASTA
             "Value AS 'Данные', Description AS 'Описание', DateCreated AS 'Дата создания/модификации'",
             " ORDER BY ParameterName asc, DateCreated desc; ");
         }
-
-
+        
         private void SettingsProgrammItem_Click(object sender, EventArgs e)
         { MakeFormSettings(); }
 
@@ -5641,8 +5677,6 @@ namespace ASTA
             EnableMainMenuItems(true);
             _controlVisible(panelView, true);
         }
-
-
 
         private void ButtonPropertiesSave_MailingSave(object sender, EventArgs e) //SaveProperties()
         {
@@ -6176,7 +6210,7 @@ namespace ASTA
                             }
                         }
                     }
-                    else if (nameOfLastTableFromDB == @"PeopleGroup" || nameOfLastTableFromDB == "ListFIO")
+                    else if (nameOfLastTableFromDB == @"PeopleGroup" || nameOfLastTableFromDB == @"ListFIO")
                     {
                         dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
                             FIO, CODE, GROUP,
@@ -6560,8 +6594,6 @@ namespace ASTA
             DeleteDataTableQueryParameters(databasePerson, "SelectedCityToLoadFromWeb",
                             "City", dgSeek.values[0]);
         }
-
-
 
         private void DoReportAndEmailByRightClick(object sender, EventArgs e)
         { DoReportAndEmailByRightClick(); }
