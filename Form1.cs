@@ -1794,7 +1794,7 @@ namespace ASTA
 
         private void WriteGroupsMailingsInLocalDb(DataTable dataTablePeople, List<PeopleShift> peopleShifts)
         {
-            _toolStripStatusLabelSetText(StatusLabel2, "Формирую обновленные списоки ФИО, департаментов и рассылок...");
+            _toolStripStatusLabelSetText(StatusLabel2, "Формирую обновленные списки ФИО, департаментов и рассылок...");
 
             logger.Trace("Приступаю к формированию списков ФИО и департаментов...");
             string query;
@@ -3846,8 +3846,6 @@ namespace ASTA
                             case "2": //Отпуск
                             case "10": //Отпуск по беременности и родам
                             case "11": //Отпуск по уходу за ребёнком
-                            case "18": //Согласованное отсутствие (менее < 3 часов)
-                            case "19": //Согласованное отсутствие (менее < 3 часов)
                                 rowDtStoring[EMPLOYEE_EARLY_DEPARTURE] = "";
                                 rowDtStoring[EMPLOYEE_BEING_LATE] = "";
                                 if (typeReport == "Полный")
@@ -3883,6 +3881,8 @@ namespace ASTA
                             case "13": //Отгул (отпросился)
                             case "14": //Индивидуальный график
                             case "15": //Индивидуальный график
+                            case "18": //Согласованное отсутствие (менее < 3 часов)
+                            case "19": //Согласованное отсутствие (менее < 3 часов)
 
                                 rowDtStoring[EMPLOYEE_SHIFT_COMMENT] = outResons.Find((x) => x._id == exceptReason)?._name;
                                 rowDtStoring[EMPLOYEE_EARLY_DEPARTURE] = "";
@@ -4020,9 +4020,13 @@ namespace ASTA
 
             //Easter - Paskha
             myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0], monthEaster, dayEaster) + oneDay);
+            logger.Trace("SeekAnualDays,AddBoldedDate Easter: " + new DateTime(startOfPeriod[0], monthEaster, dayEaster) + oneDay);
 
             foreach (string dayAdditional in ReturnBoldedDaysFromDB(person.NAV, @"Выходной")) // or - Рабочий
-            { myMonthCalendar.AddBoldedDate(DateTime.Parse(dayAdditional)); }
+            {
+                logger.Trace("SeekAnualDays,AddBoldedDate from DB: " + dayAdditional);
+                myMonthCalendar.AddBoldedDate(DateTime.Parse(dayAdditional));
+            }
 
             //Independence day
             DateTime dayBolded = new DateTime(startOfPeriod[0], 8, 24);
@@ -4030,9 +4034,11 @@ namespace ASTA
             {
                 case (int)Day.Sunday:
                     myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0], 8, 24) + oneDay);    // (plavayuschaya data)
+                    logger.Trace("SeekAnualDays,AddBoldedDate Independence day: " + new DateTime(startOfPeriod[0], 8, 24) + oneDay);
                     break;
                 case (int)Day.Saturday:
                     myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0], 8, 24) + twoDays);    // (plavayuschaya data)
+                    logger.Trace("SeekAnualDays,AddBoldedDate Independence day: " + new DateTime(startOfPeriod[0], 8, 24) + twoDays);
                     break;
                 default:
                     break;
@@ -4044,9 +4050,11 @@ namespace ASTA
             {
                 case (int)Day.Sunday:
                     myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0], 10, 16) + oneDay);    // (plavayuschaya data)
+                    logger.Trace("SeekAnualDays,AddBoldedDate day of Ukraine Force: " + new DateTime(startOfPeriod[0], 10, 16) + oneDay);
                     break;
                 case (int)Day.Saturday:
                     myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0], 10, 16) + twoDays);    // (plavayuschaya data)
+                    logger.Trace("SeekAnualDays,AddBoldedDate day of Ukraine Force: " + new DateTime(startOfPeriod[0], 10, 16) + twoDays);
                     break;
                 default:
                     break;
@@ -4057,6 +4065,7 @@ namespace ASTA
             {
                 if (myDate.DayOfWeek == DayOfWeek.Saturday || myDate.DayOfWeek == DayOfWeek.Sunday)
                 {
+                    logger.Trace("SeekAnualDays,AddBoldedDate add all weekends: " + myDate);
                     myMonthCalendar.AddBoldedDate(myDate);
                 }
             }
@@ -4079,6 +4088,7 @@ namespace ASTA
                         daysBolded.Add(singleDate);
                         if (delRow&& dt!=null)
                         {
+                            logger.Trace("SeekAnualDays, QueryDeleteDataFromDataTable: " + singleDate);
                             QueryDeleteDataFromDataTable(ref dt, "[Дата регистрации]='" + singleDate + "'", person.NAV); // ("Дата регистрации",typeof(string)),//12
                         }
                     }
