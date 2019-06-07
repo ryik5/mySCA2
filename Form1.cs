@@ -4039,15 +4039,21 @@ namespace ASTA
 
             //Independence day
             DateTime dayBolded = new DateTime(startOfPeriod[0], 8, 24);
+            daysListBolded.Add(dayBolded.ToYYYYMMDD());
+
             switch ((int)dayBolded.DayOfWeek)
             {
                 case (int)Day.Sunday:
-                    myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0], 8, 24) + oneDay);    // (plavayuschaya data)
-                    logger.Trace("SeekAnualDays,AddBoldedDate Independence day: " + (new DateTime(startOfPeriod[0], 8, 24) + oneDay).ToYYYYMMDD());
+                    myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0], 8, 24).AddDays(1));    // (plavayuschaya data)
+                    daysListBolded.Add((new DateTime(startOfPeriod[0], 8, 24).AddDays(1)).ToYYYYMMDD());
+
+                    logger.Trace("SeekAnualDays,AddBoldedDate Independence day: " + (new DateTime(startOfPeriod[0], 8, 24).AddDays(1)).ToYYYYMMDD());
                     break;
                 case (int)Day.Saturday:
-                    myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0], 8, 24) + twoDays);    // (plavayuschaya data)
-                    logger.Trace("SeekAnualDays,AddBoldedDate Independence day: " + (new DateTime(startOfPeriod[0], 8, 24) + twoDays).ToYYYYMMDD());
+                    myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0], 8, 24).AddDays(2));    // (plavayuschaya data)
+                    daysListBolded.Add((new DateTime(startOfPeriod[0], 8, 24).AddDays(2)).ToYYYYMMDD());
+
+                    logger.Trace("SeekAnualDays,AddBoldedDate Independence day: " + (new DateTime(startOfPeriod[0], 8, 24).AddDays(2)).ToYYYYMMDD());
                     break;
                 default:
                     break;
@@ -4055,15 +4061,21 @@ namespace ASTA
 
             //day of Ukraine Force
             dayBolded = new DateTime(startOfPeriod[0], 10, 16);
+            daysListBolded.Add(dayBolded.ToYYYYMMDD());
+
             switch ((int)dayBolded.DayOfWeek)
             {
                 case (int)Day.Sunday:
-                    myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0], 10, 16) + oneDay);    // (plavayuschaya data)
-                    logger.Trace("SeekAnualDays,AddBoldedDate day of Ukraine Force: " +( new DateTime(startOfPeriod[0], 10, 16) + oneDay).ToYYYYMMDD());
+                    myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0], 10, 16).AddDays(1));    // (plavayuschaya data)
+                    daysListBolded.Add((new DateTime(startOfPeriod[0], 10, 16).AddDays(1)).ToYYYYMMDD());
+
+                    logger.Trace("SeekAnualDays,AddBoldedDate day of Ukraine Force: " +( new DateTime(startOfPeriod[0], 10, 16).AddDays(1)).ToYYYYMMDD());
                     break;
                 case (int)Day.Saturday:
-                    myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0], 10, 16) + twoDays);    // (plavayuschaya data)
-                    logger.Trace("SeekAnualDays,AddBoldedDate day of Ukraine Force: " + (new DateTime(startOfPeriod[0], 10, 16) + twoDays).ToYYYYMMDD());
+                    myMonthCalendar.AddBoldedDate(new DateTime(startOfPeriod[0], 10, 16).AddDays(2));    // (plavayuschaya data)
+                    daysListBolded.Add((new DateTime(startOfPeriod[0], 10, 16).AddDays(2)).ToYYYYMMDD());
+
+                    logger.Trace("SeekAnualDays,AddBoldedDate day of Ukraine Force: " + (new DateTime(startOfPeriod[0], 10, 16).AddDays(2)).ToYYYYMMDD());
                     break;
                 default:
                     break;
@@ -4074,17 +4086,38 @@ namespace ASTA
             {
                 if (myDate.DayOfWeek == DayOfWeek.Saturday || myDate.DayOfWeek == DayOfWeek.Sunday)
                 {
-                    logger.Trace("SeekAnualDays,AddBoldedDate weekends: " + myDate.ToYYYYMMDD());
                     myMonthCalendar.AddBoldedDate(myDate);
+                    daysListBolded.Add(myDate.ToYYYYMMDD());
+
+                    logger.Trace("SeekAnualDays,AddBoldedDate weekends: " + myDate.ToYYYYMMDD());
                 }
             }
 
             //Remove additional works days from the bolded days 
-            foreach (string dayAdditional in ReturnBoldedDaysFromDB(person.NAV, @"Рабочий"))
+            foreach (string myDate in ReturnBoldedDaysFromDB(person.NAV, @"Рабочий"))
             {
-                logger.Trace("SeekAnualDays, Removed worked day from bolded: " + dayAdditional);
-                myMonthCalendar.RemoveBoldedDate(DateTime.Parse(dayAdditional));
+                myMonthCalendar.RemoveBoldedDate(DateTime.Parse(myDate));
+                daysListWorked.Add(myDate);
+
+                logger.Trace("SeekAnualDays, Removed worked day from bolded: " + myDate);
             }
+
+            List<string> wholeSelectedDays = new List<string>();
+            for (var myDate = myMonthCalendar.SelectionStart; myDate <= myMonthCalendar.SelectionEnd; myDate += oneDay)
+            {
+                wholeSelectedDays.Add(myDate.ToYYYYMMDD());
+            }
+
+            daysListWorked.Sort();
+            daysListBolded.Sort();
+
+             logger.Trace("SeekAnualDays, daysListWorked:" + daysListWorked.ToArray().Length+ " daysListBolded:" + daysListBolded.ToArray().Length + " "); 
+
+            string[] result = wholeSelectedDays.Except(daysListBolded).Intersect(daysListWorked).ToArray();
+            logger.Trace("SeekAnualDays, result:" + result.Length);
+
+            foreach (string str in result)
+            { logger.Trace("SeekAnualDays, result: " + str); }
 
             List<string> daysSelected = new List<string>();
             foreach (var day in myMonthCalendar.BoldedDates)
