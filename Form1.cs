@@ -4053,7 +4053,7 @@ namespace ASTA
                  monthEasterPr= 4;
             }
             //Easter - Paskha
-            DateTime dayBolded = new DateTime(startOfPeriod[0], monthEasterPr, dayEasterPr);
+            DateTime dayBolded = new DateTime(startOfPeriod[0], monthEasterPr, dayEasterPr).AddDays(13);
             MessageBox.Show("Easter: "+dayBolded.ToYYYYMMDD());
             logger.Trace("SeekAnualDays,AddBoldedDate Easter: " + dayBolded.ToYYYYMMDD());
 
