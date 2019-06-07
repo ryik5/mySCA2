@@ -4114,11 +4114,14 @@ namespace ASTA
              logger.Trace("SeekAnualDays, daysListWorked:" + daysListWorked.ToArray().Length+ " daysListBolded:" + daysListBolded.ToArray().Length + " ");
 
             List<string> tmp = wholeSelectedDays.Except(daysListBolded).ToList();
-            string[] result = tmp.Intersect(daysListWorked).ToArray();
-            logger.Trace("SeekAnualDays, result:" + result.Length);
+            string[] result = tmp.Union(daysListWorked).ToArray();
+            logger.Trace("SeekAnualDays, result worked:" + result.Length);
 
             foreach (string str in result)
             { logger.Trace("SeekAnualDays, result: " + str); }
+
+            result = daysListBolded.Except(daysListWorked).ToArray();
+            logger.Trace("SeekAnualDays, result bolded:" + result.Length);
 
             List<string> daysSelected = new List<string>();
             foreach (var day in myMonthCalendar.BoldedDates)
