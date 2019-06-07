@@ -4034,25 +4034,24 @@ namespace ASTA
 
             if (dPr == 29 && ePr == 6)
             {
-                monthEasterPr = 19;
-                dayEasterPr = 4;
+                dayEasterPr = 19;
+                 monthEasterPr= 4;
             }
            else if (dPr == 28 && ePr == 6)
             {
-                monthEasterPr = 18;
-                dayEasterPr = 4;
+                dayEasterPr = 18;
+                 monthEasterPr= 4;
             }
            else if (fPr <= 9)
             {
-                monthEasterPr = 22+fPr;
-                dayEasterPr = 3;
+               dayEasterPr  = 22+fPr;
+                 monthEasterPr= 3;
             }
             else
             {
-                monthEasterPr = fPr-9;
-                dayEasterPr = 4;
+               dayEasterPr  = fPr-9;
+                 monthEasterPr= 4;
             }
-
             //Easter - Paskha
             DateTime dayBolded = new DateTime(startOfPeriod[0], monthEasterPr, dayEasterPr);
             logger.Trace("SeekAnualDays,AddBoldedDate Easter: " + dayBolded.ToYYYYMMDD());
