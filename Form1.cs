@@ -3966,6 +3966,224 @@ namespace ASTA
             List<string> daysListBolded = new List<string>();
             List<string> daysListWorked = new List<string>();
 
+            string singleDate;
+
+            var oneDay = TimeSpan.FromDays(1);
+            var twoDays = TimeSpan.FromDays(2);
+
+            var mySelectedStartDay = new DateTime(startOfPeriod[0], startOfPeriod[1], startOfPeriod[2]);
+            var mySelectedEndDay = new DateTime(endOfPeriod[0], endOfPeriod[1], endOfPeriod[2]);
+            var myMonthCalendar = new MonthCalendar();
+
+            myMonthCalendar.MaxSelectionCount = 60;
+            myMonthCalendar.SelectionRange = new SelectionRange(mySelectedStartDay, mySelectedEndDay);
+
+            for (int year = -1; year < 1; year++)
+            {
+                daysListBolded.Add(new DateTime(startOfPeriod[0] + year, 1, 1).ToYYYYMMDD());
+                daysListBolded.Add(new DateTime(startOfPeriod[0] + year, 1, 2).ToYYYYMMDD());
+                daysListBolded.Add(new DateTime(startOfPeriod[0] + year, 1, 7).ToYYYYMMDD());
+                daysListBolded.Add(new DateTime(startOfPeriod[0] + year, 3, 8).ToYYYYMMDD());
+                daysListBolded.Add(new DateTime(startOfPeriod[0] + year, 5, 1).ToYYYYMMDD());
+                daysListBolded.Add(new DateTime(startOfPeriod[0] + year, 5, 2).ToYYYYMMDD());
+                daysListBolded.Add(new DateTime(startOfPeriod[0] + year, 5, 9).ToYYYYMMDD());
+                daysListBolded.Add(new DateTime(startOfPeriod[0] + year, 6, 28).ToYYYYMMDD());
+                daysListBolded.Add(new DateTime(startOfPeriod[0] + year, 8, 24).ToYYYYMMDD());
+                daysListBolded.Add(new DateTime(startOfPeriod[0] + year, 10, 16).ToYYYYMMDD());
+            }
+
+            //Easter - Paskha
+            // Алгоритм для вычисления католической Пасхи http://snippets.dzone.com/posts/show/765
+            int Y = startOfPeriod[0];
+            int a= Y % 19;
+            int b = Y % 4;
+            int c = Y % 7;
+            int d = (19 * a + 15) % 30;
+            int e = (2 * b + 4 * c + 6 * d + 6) % 7;
+            int f = d + e;
+
+            int monthEasterPr = 1;
+            int dayEasterPr = 1;
+
+            if (d == 29 && e == 6)
+            {
+                dayEasterPr = 19;
+                 monthEasterPr= 4;
+            }
+           else if (d == 28 && e == 6)
+            {
+                dayEasterPr = 18;
+                 monthEasterPr= 4;
+            }
+           else if (f <= 9)
+            {
+               dayEasterPr  = 22+f;
+                 monthEasterPr= 3;
+            }
+            else
+            {
+               dayEasterPr  = f-9;
+                 monthEasterPr= 4;
+            }
+                        
+            DateTime dayBolded = new DateTime(startOfPeriod[0], monthEasterPr, dayEasterPr).AddDays(13);
+            logger.Trace("SeekAnualDays,AddBoldedDate Easter: " + dayBolded.ToYYYYMMDD());
+
+            switch ((int)dayBolded.DayOfWeek)
+            {
+                case (int)Day.Sunday:
+                    daysListBolded.Add(dayBolded.AddDays(1).ToYYYYMMDD());
+                    logger.Trace("SeekAnualDays,AddBoldedDate EasterNext day: " + dayBolded.AddDays(1).ToYYYYMMDD());
+                    break;
+                case (int)Day.Saturday:
+                    daysListBolded.Add(dayBolded.AddDays(2).ToYYYYMMDD());
+                    logger.Trace("SeekAnualDays,AddBoldedDate EasterNextNext day: " + dayBolded.AddDays(2).ToYYYYMMDD());
+                    break;
+                default:
+                    break;
+            }
+
+            foreach (string dayAdditional in ReturnBoldedDaysFromDB(person.NAV, @"Выходной")) // or - Рабочий
+            {
+                daysListBolded.Add(DateTime.Parse(dayAdditional).ToYYYYMMDD());
+                logger.Trace("SeekAnualDays,AddBoldedDate from DB: " + dayAdditional);
+            }
+
+            //Independence day
+            dayBolded = new DateTime(startOfPeriod[0], 8, 24);
+            daysListBolded.Add(dayBolded.ToYYYYMMDD());
+            logger.Trace("SeekAnualDays,AddBoldedDate Independence day: " + dayBolded.ToYYYYMMDD());
+
+            switch ((int)dayBolded.DayOfWeek)
+            {
+                case (int)Day.Sunday:
+                    daysListBolded.Add(dayBolded.AddDays(1).ToYYYYMMDD());
+                    logger.Trace("SeekAnualDays,AddBoldedDate Independence day: " + dayBolded.AddDays(1).ToYYYYMMDD());
+                    break;
+                case (int)Day.Saturday:
+                    daysListBolded.Add(dayBolded.AddDays(2).ToYYYYMMDD());
+                    logger.Trace("SeekAnualDays,AddBoldedDate Independence day: " + dayBolded.AddDays(2).ToYYYYMMDD());
+                    break;
+                default:
+                    break;
+            }
+
+            //day of Ukraine Force
+            dayBolded = new DateTime(startOfPeriod[0], 10, 16);
+            daysListBolded.Add(dayBolded.ToYYYYMMDD());
+            logger.Trace("SeekAnualDays,AddBoldedDate day of Ukraine Force: " + dayBolded.ToYYYYMMDD());
+
+            switch ((int)dayBolded.DayOfWeek)
+            {
+                case (int)Day.Sunday:
+                    daysListBolded.Add(dayBolded.AddDays(1).ToYYYYMMDD());
+                    logger.Trace("SeekAnualDays,AddBoldedDate day of Ukraine Force: " + dayBolded.AddDays(1).ToYYYYMMDD());
+                    break;
+                case (int)Day.Saturday:
+                    daysListBolded.Add(dayBolded.AddDays(2).ToYYYYMMDD());
+                    logger.Trace("SeekAnualDays,AddBoldedDate day of Ukraine Force: " + dayBolded.AddDays(2).ToYYYYMMDD());
+                    break;
+                default:
+                    break;
+            }
+
+            //add all weekends to bolded days
+            for (var myDate = myMonthCalendar.SelectionStart; myDate <= myMonthCalendar.SelectionEnd; myDate += oneDay)
+            {
+                if (myDate.DayOfWeek == DayOfWeek.Saturday || myDate.DayOfWeek == DayOfWeek.Sunday)
+                {
+                    daysListBolded.Add(myDate.ToYYYYMMDD());
+                    logger.Trace("SeekAnualDays,AddBoldedDate weekends: " + myDate.ToYYYYMMDD());
+                }
+            }
+            daysListBolded.Sort();
+            logger.Trace("SeekAnualDays, daysListBolded:" + daysListBolded.ToArray().Length);
+
+            //Add works days in List 'daysListWorked'
+            foreach (string myDate in ReturnBoldedDaysFromDB(person.NAV, @"Рабочий"))
+            {
+                daysListWorked.Add(myDate);
+                logger.Trace("SeekAnualDays, Removed worked day from bolded: " + myDate);
+            }
+            daysListWorked.Sort();
+             logger.Trace("SeekAnualDays, daysListWorked:" + daysListWorked.ToArray().Length);
+
+            //whole range of days in the selection period
+            List<string> wholeSelectedDays = new List<string>();
+            for (var myDate = myMonthCalendar.SelectionStart; myDate <= myMonthCalendar.SelectionEnd; myDate += oneDay)
+            {
+                wholeSelectedDays.Add(myDate.ToYYYYMMDD());
+            }
+            logger.Trace("SeekAnualDays, days:" + wholeSelectedDays.Count);
+            
+            List<string> tmp = wholeSelectedDays.Except(daysListBolded).ToList();
+            tmp.Sort();
+            string[] result = tmp.Union(daysListWorked).ToArray();
+            workDays = result;
+
+            logger.Trace("SeekAnualDays, amount worked days:" + result.Length);
+            foreach (string str in result)
+            { logger.Trace("SeekAnualDays, worked day: " + str); }
+
+            result = daysListBolded.Except(daysListWorked).ToArray();
+            logger.Trace("SeekAnualDays, amount bolded days:" + result.Length);
+            foreach (string str in result)
+            { logger.Trace("SeekAnualDays, bolded day: " + str); }
+
+            foreach (var day in result)
+            {
+                if (delRow && dt != null)
+                {
+                    logger.Trace("SeekAnualDays, QueryDeleteDataFromDataTable: " + day);
+                    QueryDeleteDataFromDataTable(ref dt, "[Дата регистрации]='" + day + "'", person.NAV); // ("Дата регистрации",typeof(string)),//12
+                }
+            }
+
+            if (dt != null)
+            { dt.AcceptChanges(); }
+            boldedDays = result;
+
+            daysBolded.Sort();            
+
+            if (person == null||person.NAV=="0")
+            {
+                monthCalendar.RemoveAllBoldedDates();
+                foreach (string day in boldedDays)
+                {
+                    monthCalendar.AddBoldedDate(DateTime.Parse(day));
+                    logger.Trace("SeekAnualDays, AddBoldedDate: " + day);
+                }
+            }
+            
+            foreach (string day in boldedDays)
+            { logger.Trace("SeekAnualDays, Result bolded day: " + day); }
+
+            foreach (string day in workDays)
+            { logger.Trace("SeekAnualDays, Result work day: " + day); }
+           
+            myMonthCalendar.Dispose();
+        }
+       
+
+        /*
+        private void SeekAnualDays(ref DataTable dt, ref PersonFull person, bool delRow, int[] startOfPeriod, int[] endOfPeriod, ref string[] boldedDays, ref string[] workDays)//   //Exclude Anual Days from the table "PersonTemp" DB
+        {
+            //Trace
+            if (person != null&& person.NAV!=null)
+            {
+                logger.Trace("SeekAnualDays: " + person.NAV + " " + startOfPeriod[0]);
+            }
+            else { person.NAV = "0"; }
+
+            logger.Trace("SeekAnualDays,start: " + startOfPeriod[0] + " " + startOfPeriod[1] + " " + startOfPeriod[2]);
+            logger.Trace("SeekAnualDays,end: " + endOfPeriod[0] + " " + endOfPeriod[1] + " " + endOfPeriod[2]);
+
+            List<string> daysBolded = new List<string>();
+
+
+            List<string> daysListBolded = new List<string>();
+            List<string> daysListWorked = new List<string>();
+
 
 
             string singleDate;
@@ -4075,7 +4293,6 @@ namespace ASTA
                     break;
             }
 
-/*
             foreach (string dayAdditional in ReturnBoldedDaysFromDB(person.NAV, @"Выходной")) // or - Рабочий
             {
                 myMonthCalendar.AddBoldedDate(DateTime.Parse(dayAdditional));
@@ -4141,7 +4358,7 @@ namespace ASTA
                     logger.Trace("SeekAnualDays,AddBoldedDate weekends: " + myDate.ToYYYYMMDD());
                 }
             }
- */
+
             //Remove additional works days from the bolded days 
             foreach (string myDate in ReturnBoldedDaysFromDB(person.NAV, @"Рабочий"))
             {
@@ -4151,21 +4368,21 @@ namespace ASTA
                 logger.Trace("SeekAnualDays, Removed worked day from bolded: " + myDate);
             }
 
-            List<string> wholeSelectedDays = new List<string>();
+    List<string> wholeSelectedDays = new List<string>();
             for (var myDate = myMonthCalendar.SelectionStart; myDate <= myMonthCalendar.SelectionEnd; myDate += oneDay)
             {
                 wholeSelectedDays.Add(myDate.ToYYYYMMDD());
             }
 
-            daysListWorked.Sort();
+daysListWorked.Sort();
             daysListBolded.Sort();
 
              logger.Trace("SeekAnualDays, daysListWorked:" + daysListWorked.ToArray().Length+ " daysListBolded:" + daysListBolded.ToArray().Length + " ");
 
             List<string> tmp = wholeSelectedDays.Except(daysListBolded).ToList();
-            string[] result = tmp.Union(daysListWorked).ToArray();
+string[] result = tmp.Union(daysListWorked).ToArray();
 
-            logger.Trace("SeekAnualDays, days:" + wholeSelectedDays.Count);
+logger.Trace("SeekAnualDays, days:" + wholeSelectedDays.Count);
 
             logger.Trace("SeekAnualDays, result worked:" + result.Length);
 
@@ -4173,7 +4390,7 @@ namespace ASTA
             { logger.Trace("SeekAnualDays, result: " + str); }
 
             result = daysListBolded.Except(daysListWorked).ToArray();
-            logger.Trace("SeekAnualDays, result bolded:" + result.Length);
+logger.Trace("SeekAnualDays, result bolded:" + result.Length);
 
             foreach (string str in result)
             { logger.Trace("SeekAnualDays, result: " + str); }
@@ -4216,7 +4433,6 @@ namespace ASTA
                 }
             }
 
-
             workDays = daysSelected.Except(daysBolded).ToArray();
 
             foreach (string day in boldedDays)
@@ -4226,8 +4442,10 @@ namespace ASTA
             { logger.Trace("SeekAnualDays, Result work day: " + day); }
            
             myMonthCalendar.Dispose();
-        }
-       
+        }            */
+
+
+
         private List<string> ReturnBoldedDaysFromDB(string nav, string dayType)
         {
             List<string> boldedDays = new List<string>();
