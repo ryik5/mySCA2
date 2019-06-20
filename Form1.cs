@@ -3927,31 +3927,10 @@ namespace ASTA
 
 
 
-
-
-
-
-
-
-
-
-        /// <summary>
-        /// ///////////////////////////////////////////////////
-        /// </summary>
-        /// <param name="dt"></param>
-        /// <param name="person"></param>
-        /// <param name="delRow"></param>
-        /// <param name="startOfPeriod"></param>
-        /// <param name="endOfPeriod"></param>
-        /// <param name="boldedDays"></param>
-        /// <param name="workDays"></param>
-
-
-
         private void SeekAnualDays(ref DataTable dt, ref PersonFull person, bool delRow, int[] startOfPeriod, int[] endOfPeriod, ref string[] boldedDays, ref string[] workDays)//   //Exclude Anual Days from the table "PersonTemp" DB
         {
             //Trace
-            if (person != null&& person.NAV!=null)
+            if (person != null && person.NAV != null)
             {
                 logger.Trace("SeekAnualDays: " + person.NAV + " " + startOfPeriod[0]);
             }
@@ -3962,11 +3941,8 @@ namespace ASTA
 
             List<string> daysBolded = new List<string>();
 
-
             List<string> daysListBolded = new List<string>();
             List<string> daysListWorked = new List<string>();
-
-            string singleDate;
 
             var oneDay = TimeSpan.FromDays(1);
             var twoDays = TimeSpan.FromDays(2);
@@ -3992,41 +3968,38 @@ namespace ASTA
                 daysListBolded.Add(new DateTime(startOfPeriod[0] + year, 10, 16).ToYYYYMMDD());
             }
 
-            //Easter - Paskha
-            // Алгоритм для вычисления католической Пасхи http://snippets.dzone.com/posts/show/765
+            //Easter - Православная Пасха
             int Y = startOfPeriod[0];
-            int a= Y % 19;
+            int a = Y % 19;
             int b = Y % 4;
             int c = Y % 7;
             int d = (19 * a + 15) % 30;
             int e = (2 * b + 4 * c + 6 * d + 6) % 7;
             int f = d + e;
-
-            int monthEasterPr = 1;
-            int dayEasterPr = 1;
+            int monthWhenWillBeEaster = 4;
+            int dayWhenWillBeEaster = 23;
 
             if (d == 29 && e == 6)
             {
-                dayEasterPr = 19;
-                 monthEasterPr= 4;
+                monthWhenWillBeEaster = 4;
+                dayWhenWillBeEaster = 19;
             }
-           else if (d == 28 && e == 6)
+            else if (d == 28 && e == 6)
             {
-                dayEasterPr = 18;
-                 monthEasterPr= 4;
+                monthWhenWillBeEaster = 4;
+                dayWhenWillBeEaster = 18;
             }
-           else if (f <= 9)
+            else if (f <= 9)
             {
-               dayEasterPr  = 22+f;
-                 monthEasterPr= 3;
+                monthWhenWillBeEaster = 3;
+                dayWhenWillBeEaster = 22 + f;
             }
             else
             {
-               dayEasterPr  = f-9;
-                 monthEasterPr= 4;
+                monthWhenWillBeEaster = 4;
+                dayWhenWillBeEaster = f - 9;
             }
-                        
-            DateTime dayBolded = new DateTime(startOfPeriod[0], monthEasterPr, dayEasterPr).AddDays(13);
+            DateTime dayBolded = new DateTime(startOfPeriod[0], monthWhenWillBeEaster, dayWhenWillBeEaster).AddDays(13);
             logger.Trace("SeekAnualDays,AddBoldedDate Easter: " + dayBolded.ToYYYYMMDD());
 
             switch ((int)dayBolded.DayOfWeek)
@@ -4106,7 +4079,7 @@ namespace ASTA
                 logger.Trace("SeekAnualDays, Removed worked day from bolded: " + myDate);
             }
             daysListWorked.Sort();
-             logger.Trace("SeekAnualDays, daysListWorked:" + daysListWorked.ToArray().Length);
+            logger.Trace("SeekAnualDays, daysListWorked:" + daysListWorked.ToArray().Length);
 
             //whole range of days in the selection period
             List<string> wholeSelectedDays = new List<string>();
@@ -4115,7 +4088,7 @@ namespace ASTA
                 wholeSelectedDays.Add(myDate.ToYYYYMMDD());
             }
             logger.Trace("SeekAnualDays, days:" + wholeSelectedDays.Count);
-            
+
             List<string> tmp = wholeSelectedDays.Except(daysListBolded).ToList();
             tmp.Sort();
             string[] result = tmp.Union(daysListWorked).ToArray();
@@ -4143,9 +4116,9 @@ namespace ASTA
             { dt.AcceptChanges(); }
             boldedDays = result;
 
-            daysBolded.Sort();            
+            daysBolded.Sort();
 
-            if (person == null||person.NAV=="0")
+            if (person == null || person.NAV == "0")
             {
                 monthCalendar.RemoveAllBoldedDates();
                 foreach (string day in boldedDays)
@@ -4154,14 +4127,67 @@ namespace ASTA
                     logger.Trace("SeekAnualDays, AddBoldedDate: " + day);
                 }
             }
-            
+
             foreach (string day in boldedDays)
             { logger.Trace("SeekAnualDays, Result bolded day: " + day); }
 
             foreach (string day in workDays)
             { logger.Trace("SeekAnualDays, Result work day: " + day); }
-           
+
             myMonthCalendar.Dispose();
+        }
+
+        private List<string> ReturnBoldedDaysFromDB(string nav, string dayType)
+        {
+            List<string> boldedDays = new List<string>();
+            string sqlQuery = null;
+            if (nav.Length ==6)
+            {
+                sqlQuery = "SELECT DayBolded FROM BoldedDates WHERE (NAV LIKE '" + nav + "' OR  NAV LIKE '0') AND DayType LIKE '" + dayType + "';";
+            }
+            else
+            {
+                sqlQuery = "SELECT DayBolded FROM BoldedDates WHERE (NAV LIKE '0') AND DayType LIKE '" + dayType + "';";
+            }
+
+            using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+            {
+                sqlConnection.Open();
+                using (var sqlCommand = new SQLiteCommand(sqlQuery, sqlConnection))
+                {
+                    using (var sqlReader = sqlCommand.ExecuteReader())
+                    {
+                        foreach (DbDataRecord record in sqlReader)
+                        {
+                            if (record["DayBolded"]?.ToString()?.Length > 0)
+                            {
+                                boldedDays.Add(record["DayBolded"].ToString());
+                            }
+                        }
+                    }
+                }
+                sqlConnection.Close();
+            }
+            return boldedDays;
+        }
+        
+        private void QueryDeleteDataFromDataTable(ref DataTable dt, string queryFull, string NAVcode) //Delete data from the Table of the DB by NAV (both parameters are string)
+        {
+            DataRow[] rows = new DataRow[1];
+            try
+            {
+                if (queryFull.Length > 0 && NAVcode.Length > 0)
+                { rows = dt.Select("(" + queryFull + ") AND [NAV-код]='" + NAVcode + "'"); }
+                else if (queryFull.Length > 0)
+                { rows = dt.Select(queryFull); }
+
+                foreach (var row in rows)
+                { row.Delete(); }
+            }
+            catch (Exception expt)
+            { MessageBox.Show(expt.ToString()); }
+            dt.AcceptChanges();
+            rows = null;
         }
        
 
@@ -4446,77 +4472,10 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
 
 
 
-        private List<string> ReturnBoldedDaysFromDB(string nav, string dayType)
-        {
-            List<string> boldedDays = new List<string>();
-            string sqlQuery = null;
-            if (nav.Length ==6)
-            {
-                sqlQuery = "SELECT DayBolded FROM BoldedDates WHERE (NAV LIKE '" + nav + "' OR  NAV LIKE '0') AND DayType LIKE '" + dayType + "';";
-            }
-            else
-            {
-                sqlQuery = "SELECT DayBolded FROM BoldedDates WHERE (NAV LIKE '0') AND DayType LIKE '" + dayType + "';";
-            }
-
-            using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
-            {
-                sqlConnection.Open();
-                using (var sqlCommand = new SQLiteCommand(sqlQuery, sqlConnection))
-                {
-                    using (var sqlReader = sqlCommand.ExecuteReader())
-                    {
-                        foreach (DbDataRecord record in sqlReader)
-                        {
-                            if (record["DayBolded"]?.ToString()?.Length > 0)
-                            {
-                                boldedDays.Add(record["DayBolded"].ToString());
-                            }
-                        }
-                    }
-                }
-                sqlConnection.Close();
-            }
-            return boldedDays;
-        }
-        
-        private void QueryDeleteDataFromDataTable(ref DataTable dt, string queryFull, string NAVcode) //Delete data from the Table of the DB by NAV (both parameters are string)
-        {
-            DataRow[] rows = new DataRow[1];
-            try
-            {
-                if (queryFull.Length > 0 && NAVcode.Length > 0)
-                { rows = dt.Select("(" + queryFull + ") AND [NAV-код]='" + NAVcode + "'"); }
-                else if (queryFull.Length > 0)
-                { rows = dt.Select(queryFull); }
-
-                foreach (var row in rows)
-                { row.Delete(); }
-            }
-            catch (Exception expt)
-            { MessageBox.Show(expt.ToString()); }
-            dt.AcceptChanges();
-            rows = null;
-        }
-
-
-        /// <summary>
-        /// ///////////////////////////////////////////////////
-        /// </summary>
-        /// <param name="maskFiles"></param>
-        /// <param name="discribeFiles"></param>
 
 
 
-
-
-
-
-
-
-
-
-        //----- Clear ---------//
+        //----- Clearing. Start ---------//
         private void ClearFilesInApplicationFolders(string maskFiles, string discribeFiles)
         {
             try
@@ -4628,6 +4587,37 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
 
             _toolStripStatusLabelSetText(StatusLabel2, @"Все таблицы очищены");
         }
+
+        private void ClearRegistryItem_Click(object sender, EventArgs e) //ClearRegistryData()
+        { ClearRegistryData(); }
+
+        private void ClearRegistryData()
+        {
+            try
+            {
+                using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(myRegKey))
+                {
+                    EvUserKey?.DeleteSubKey("SKDServer");
+                    EvUserKey?.DeleteSubKey("SKDUser");
+                    EvUserKey?.DeleteSubKey("SKDUserPassword");
+                    EvUserKey?.DeleteSubKey("MailServer");
+                    EvUserKey?.DeleteSubKey("MailUser");
+                    EvUserKey?.DeleteSubKey("MailUserPassword");
+                    EvUserKey?.DeleteSubKey("MySQLServer");
+                    EvUserKey?.DeleteSubKey("MySQLUser");
+                    EvUserKey?.DeleteSubKey("MySQLUserPassword");
+                    EvUserKey?.DeleteSubKey("ModeApp");
+                }
+            }
+            catch (Exception expt)
+            {
+                _toolStripStatusLabelSetText(StatusLabel2, "Ошибки с доступом у реестру на запись. Данные не удалены.");
+                _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange); //Color.PaleGreen
+                logger.Warn("ClearRegistryData: " + expt.ToString());
+            }
+        }
+        //----- Clearing. End ---------//
+
 
 
         //gathering a person's features from textboxes and other controls
@@ -6190,34 +6180,6 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
             server = user = password = sMailServer = sMailUser = sMailUserPassword = sMySqlServer = sMySqlServerUser = sMySqlServerUserPassword = null;
         }
 
-        private void ClearRegistryItem_Click(object sender, EventArgs e) //ClearRegistryData()
-        { ClearRegistryData(); }
-
-        private void ClearRegistryData()
-        {
-            try
-            {
-                using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(myRegKey))
-                {
-                    EvUserKey?.DeleteSubKey("SKDServer");
-                    EvUserKey?.DeleteSubKey("SKDUser");
-                    EvUserKey?.DeleteSubKey("SKDUserPassword");
-                    EvUserKey?.DeleteSubKey("MailServer");
-                    EvUserKey?.DeleteSubKey("MailUser");
-                    EvUserKey?.DeleteSubKey("MailUserPassword");
-                    EvUserKey?.DeleteSubKey("MySQLServer");
-                    EvUserKey?.DeleteSubKey("MySQLUser");
-                    EvUserKey?.DeleteSubKey("MySQLUserPassword");
-                    EvUserKey?.DeleteSubKey("ModeApp");
-                }
-            }
-            catch (Exception expt)
-            {
-                _toolStripStatusLabelSetText(StatusLabel2, "Ошибки с доступом у реестру на запись. Данные не удалены.");
-                _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange); //Color.PaleGreen
-                logger.Warn("ClearRegistryData: " + expt.ToString());
-            }
-        }
 
         //--- End. Features of programm ---//
 
@@ -6874,6 +6836,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
             }
         }
 
+
         private void SelectedToLoadCityItem_Click(object sender, EventArgs e) //SelectedToLoadCity()
         { SelectedToLoadCity(); }
 
@@ -6928,6 +6891,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
             DeleteDataTableQueryParameters(databasePerson, "SelectedCityToLoadFromWeb",
                             "City", dgSeek.values[0]);
         }
+
 
         private void DoReportAndEmailByRightClick(object sender, EventArgs e)
         { DoReportAndEmailByRightClick(); }
@@ -7146,7 +7110,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                 );
             dtEmpty = null;
             personEmpty = null;
-            DaysToSendReports daysToSendReports = new DaysToSendReports(workSelectedDays, ShiftDaysBackOfSendingFromLastWorkDay);
+            DaysWhenSendReports daysToSendReports = new DaysWhenSendReports(workSelectedDays, ShiftDaysBackOfSendingFromLastWorkDay, now.LastDayOfMonth().Day);
             DaysOfSendingMail daysOfSendingMail = daysToSendReports.GetDays();
 
             logger.Trace("SendAllReportsInSelectedPeriod: активные отчеты " + dgSeek.values[6] + " за " + dgSeek.values[4] +
@@ -7337,7 +7301,6 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
 
 
 
-        //---  Start. Schedule Functions ---//
         /*
         // SetUpTimer(new TimeSpan(1, 1, 0, 0)); //runs on 1st at 1:00:00 
         private void SetUpTimer(TimeSpan alertTime)
@@ -7353,7 +7316,11 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                  SelectMailingDoAction();
              }, null, timeToGo, System.Threading.Timeout.InfiniteTimeSpan);
         }
-        */
+        */        
+        
+            
+            
+         //---  Start. Schedule Functions ---//
 
         private void ModeAppItem_Click(object sender, EventArgs e)  //ModeApp()
         { SwitchAppMode(); }
@@ -7496,9 +7463,9 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
 
         private string ReturnStrongNameDayOfSendingReports(string inputDate)
         {
-            string result = null;
+            string result = "END_OF_MONTH";
 
-            if (inputDate.Equals("1") || inputDate.Equals("2") || inputDate.Equals("3") || inputDate.Contains("ПЕРВ") || inputDate.Contains("НАЧАЛ") || inputDate.Contains("START"))
+            if (inputDate.Equals("1") || inputDate.Equals("01") || inputDate.Contains("ПЕРВ") || inputDate.Contains("НАЧАЛ") || inputDate.Contains("START"))
             {
                 result = "START_OF_MONTH";
             }
@@ -7506,10 +7473,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
             {
                 result = "MIDDLE_OF_MONTH";
             }
-            else 
-            {
-                result = "END_OF_MONTH";
-            }
+
             return result;
         }
 
@@ -7583,15 +7547,19 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                 );
             dtEmpty = null;
             personEmpty = null;
-            DaysToSendReports daysToSendReports = new DaysToSendReports(workSelectedDays, ShiftDaysBackOfSendingFromLastWorkDay);
+            DaysWhenSendReports daysToSendReports = 
+                new DaysWhenSendReports(workSelectedDays, ShiftDaysBackOfSendingFromLastWorkDay, today.LastDayOfMonth().Day);
             DaysOfSendingMail daysOfSendingMail = daysToSendReports.GetDays();
 
-            logger.Trace("SelectMailingDoAction: "+ 
+            logger.Info("SelectMailingDoAction: "+ 
                 startDayOfCurrentMonth[0] + "-"+ startDayOfCurrentMonth[1] + "-" + startDayOfCurrentMonth[2] + 
                 " - " +
                 lastDayOfCurrentMonth[0] + "-" + lastDayOfCurrentMonth[1] + "-" + lastDayOfCurrentMonth[2]
                 );
-            
+            logger.Info("SelectMailingDoAction: all of daysOfSendingMail: " +
+                daysOfSendingMail.START_OF_MONTH + ", " + daysOfSendingMail.MIDDLE_OF_MONTH + ", "  +
+                ", " + daysOfSendingMail.LAST_WORK_DAY_OF_MONTH + ", " + daysOfSendingMail.END_OF_MONTH
+                );
             HashSet<MailingStructure> mailingList = new HashSet<MailingStructure>();
 
             using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
@@ -7636,6 +7604,17 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                                         _status = status,
                                         _dayReport = dayReport
                                     });
+                                }
+                                else if (status == "активная")
+                                {
+                                    logger.Warn("SelectMailingDoAction: не добавлена рассылка" +
+                                        recipient + "| " +
+                                        gproupsReport + "| " +
+                                        nameReport + "| " +
+                                        period + "| " +
+                                        typeReport + "| " +
+                                        dayReport + "| " 
+                                        );
                                 }
                             }
                         }

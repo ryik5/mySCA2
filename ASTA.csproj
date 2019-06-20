@@ -178,7 +178,7 @@
     <Compile Include="ActiveDirectoryMakeUsersList.cs" />
     <Compile Include="AdditionalClasses.cs" />
     <Compile Include="AssemblyInfo1.cs" />
-    <Compile Include="ExcelInfo.cs" />
+    <Compile Include="Garbage.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>

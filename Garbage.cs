@@ -8,6 +8,77 @@ namespace ASTA
 {
 
 
+    /*
+
+     using in a method:
+     {
+     DataTable dt = DbSqlJob.GetTable();
+
+     var category_Data = dt.AsEnumerable()
+         .GroupBy(row => row.Field<string>("Категория"))
+         .Select(cat => new {
+             Category_Name = cat.Key,
+             Category_Count = cat.Count()
+         });
+     }
+
+     public static class DbSqlJob
+ {
+     private static string DB_PATH = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "testbase.mdf");
+     private static string CONNECT_STRING = string.Format(
+                           @"Data Source=.\SQLEXPRESS;AttachDbFilename={0};" +
+                           "Integrated Security=True;Connect Timeout=30;User Instance=True", DB_PATH);
+     public static DataTable GetTable()
+     {
+         DataTable dt = new DataTable();
+         using (System.Data.SqlClient.SqlDataAdapter adapter = new System.Data.SqlClient.SqlDataAdapter("SELECT * FROM Table_1", CONNECT_STRING))
+         {
+             adapter.Fill(dt);
+         }
+         return dt;
+     }
+ }*/
+
+
+    //todo
+    /*
+     const string connStr = "server=localhost;user=root; database=test;password=;";
+using (MySqlConnection conn = new MySqlConnection(connStr))
+{
+string sql = "SELECT Text FROM Kody WHERE Kod=@Kod";
+MySqlCommand comand = new MySqlCommand(sql, conn);
+command.Parameters.AddWithValue("@Kod", textBox1.Text);
+conn.Open();
+string name = comand.ExecuteScalar().ToString();
+label1.Text = name;
+}
+*/
+    /*
+        interface IDBParameter
+        {
+            string DBName { get; set; }
+            string TableName { get; set; }
+            string DBConnectionString { get; set; }
+            string DBQuery { get; set; }
+            void Execute();
+        }
+        */
+
+    //todo
+    /*
+     const string connStr = "server=localhost;user=root; database=test;password=;";
+using (MySqlConnection conn = new MySqlConnection(connStr))
+{
+string sql = "SELECT Text FROM Kody WHERE Kod=@Kod";
+MySqlCommand comand = new MySqlCommand(sql, conn);
+command.Parameters.AddWithValue("@Kod", textBox1.Text);
+conn.Open();
+string name = comand.ExecuteScalar().ToString();
+label1.Text = name;
+}
+*/
+
+
     /// <summary>
     /// ///////////////////////Export to Excel///////////////////
     /// </summary>
@@ -174,4 +245,5 @@ namespace ASTA
     sheetData.Select(Type.Missing); 
 
          */
+
 }
