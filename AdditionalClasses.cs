@@ -9,77 +9,6 @@ using System.Windows.Forms;
 namespace ASTA
 {
 
-    /*
-
-     using in a method:
-     {
-     DataTable dt = DbSqlJob.GetTable();
-
-     var category_Data = dt.AsEnumerable()
-         .GroupBy(row => row.Field<string>("Категория"))
-         .Select(cat => new {
-             Category_Name = cat.Key,
-             Category_Count = cat.Count()
-         });
-     }
-
-     public static class DbSqlJob
- {
-     private static string DB_PATH = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "testbase.mdf");
-     private static string CONNECT_STRING = string.Format(
-                           @"Data Source=.\SQLEXPRESS;AttachDbFilename={0};" +
-                           "Integrated Security=True;Connect Timeout=30;User Instance=True", DB_PATH);
-     public static DataTable GetTable()
-     {
-         DataTable dt = new DataTable();
-         using (System.Data.SqlClient.SqlDataAdapter adapter = new System.Data.SqlClient.SqlDataAdapter("SELECT * FROM Table_1", CONNECT_STRING))
-         {
-             adapter.Fill(dt);
-         }
-         return dt;
-     }
- }*/
-
-
-    //todo
-    /*
-     const string connStr = "server=localhost;user=root; database=test;password=;";
-using (MySqlConnection conn = new MySqlConnection(connStr))
-{
-string sql = "SELECT Text FROM Kody WHERE Kod=@Kod";
-MySqlCommand comand = new MySqlCommand(sql, conn);
-command.Parameters.AddWithValue("@Kod", textBox1.Text);
-conn.Open();
-string name = comand.ExecuteScalar().ToString();
-label1.Text = name;
-}
-*/
-    /*
-        interface IDBParameter
-        {
-            string DBName { get; set; }
-            string TableName { get; set; }
-            string DBConnectionString { get; set; }
-            string DBQuery { get; set; }
-            void Execute();
-        }
-        */
-
-    //todo
-    /*
-     const string connStr = "server=localhost;user=root; database=test;password=;";
-using (MySqlConnection conn = new MySqlConnection(connStr))
-{
-string sql = "SELECT Text FROM Kody WHERE Kod=@Kod";
-MySqlCommand comand = new MySqlCommand(sql, conn);
-command.Parameters.AddWithValue("@Kod", textBox1.Text);
-conn.Open();
-string name = comand.ExecuteScalar().ToString();
-label1.Text = name;
-}
-*/
-
-
     class ParameterConfig
     {
         public string parameterName;
@@ -809,20 +738,19 @@ label1.Text = name;
         public int START_OF_MONTH;
         public int MIDDLE_OF_MONTH;
         public int LAST_WORK_DAY_OF_MONTH;
-    }
-    
-    interface IDaysSendReports
-    {
-         DaysOfSendingMail GetDays();
+        public int END_OF_MONTH;
     }
 
-    public class DaysToSendReports : IDaysSendReports
+    public class DaysWhenSendReports
     {
-        public DaysToSendReports(string[] workDays, int ShiftDaysBackOfSendingFromLastWorkDay) { SetSendDays(workDays, ShiftDaysBackOfSendingFromLastWorkDay); }
+        public DaysWhenSendReports(string[] workDays, int ShiftDaysBackOfSendingFromLastWorkDay, int lastDayInMonth)
+        { SetSendDays(workDays, ShiftDaysBackOfSendingFromLastWorkDay, lastDayInMonth); }
         DaysOfSendingMail daysOfSendingMail = new DaysOfSendingMail();
 
-        void SetSendDays(string[] workDays, int ShiftDaysBackOfSendingFromLastWorkDay)
+        void SetSendDays(string[] workDays, int ShiftDaysBackOfSendingFromLastWorkDay, int lastDayInMonth)
         {
+            daysOfSendingMail.START_OF_MONTH = 1;
+            daysOfSendingMail.END_OF_MONTH = 28;
             int daySelected = 0;
             if (workDays.Length == 0) throw new RankException();
             foreach (string day in workDays)
@@ -833,14 +761,13 @@ label1.Text = name;
             //look for last work day
             if (Int32.TryParse(workDays[workDays.Length - 1].Remove(0, 8), out daySelected))
             {
-                daysOfSendingMail.LAST_WORK_DAY_OF_MONTH = daySelected- ShiftDaysBackOfSendingFromLastWorkDay;
+                daysOfSendingMail.LAST_WORK_DAY_OF_MONTH = daySelected - ShiftDaysBackOfSendingFromLastWorkDay;
             }
             else
             {
-                daysOfSendingMail.LAST_WORK_DAY_OF_MONTH = 28- ShiftDaysBackOfSendingFromLastWorkDay;
+                daysOfSendingMail.LAST_WORK_DAY_OF_MONTH = 28 - ShiftDaysBackOfSendingFromLastWorkDay;
             }
-            daysOfSendingMail.START_OF_MONTH = 1;
-            daysOfSendingMail.MIDDLE_OF_MONTH = daysOfSendingMail.LAST_WORK_DAY_OF_MONTH / 2 + 1;
+            daysOfSendingMail.MIDDLE_OF_MONTH = daysOfSendingMail.LAST_WORK_DAY_OF_MONTH / 2 ;
         }
 
         public DaysOfSendingMail GetDays()
