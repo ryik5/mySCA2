@@ -948,6 +948,9 @@
   <data name="AddParameterInConfigItem.Text" xml:space="preserve">
     <value>Добавить параметр в конфигурацию</value>
   </data>
+  <data name="AddParameterInConfigItem.ToolTipText" xml:space="preserve">
+    <value>Если параметр был, то изменить сохраненный</value>
+  </data>
   <data name="ConfigurationItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>357, 22</value>
   </data>

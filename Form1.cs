@@ -3942,7 +3942,7 @@ namespace ASTA
             List<string> daysBolded = new List<string>();
 
             List<string> daysListBolded = new List<string>();
-            List<string> daysListWorked = new List<string>();
+            List<string> daysListWorkedInDB = new List<string>();
 
             var oneDay = TimeSpan.FromDays(1);
             var twoDays = TimeSpan.FromDays(2);
@@ -3953,6 +3953,15 @@ namespace ASTA
 
             myMonthCalendar.MaxSelectionCount = 60;
             myMonthCalendar.SelectionRange = new SelectionRange(mySelectedStartDay, mySelectedEndDay);
+
+            //whole range of days in the selection period
+            List<string> wholeSelectedDays = new List<string>();
+            for (var myDate = myMonthCalendar.SelectionStart; myDate <= myMonthCalendar.SelectionEnd; myDate += oneDay)
+            {
+                wholeSelectedDays.Add(myDate.ToYYYYMMDD());
+            }
+            logger.Trace("SeekAnualDays, wholeSelectedDays amount:" + wholeSelectedDays.Count);
+
 
             for (int year = -1; year < 1; year++)
             {
@@ -4072,38 +4081,42 @@ namespace ASTA
             daysListBolded.Sort();
             logger.Trace("SeekAnualDays, daysListBolded:" + daysListBolded.ToArray().Length);
 
-            //Add works days in List 'daysListWorked'
+            //Add works days in List 'daysListWorkedInDB'
             foreach (string myDate in ReturnBoldedDaysFromDB(person.NAV, @"Рабочий"))
             {
-                daysListWorked.Add(myDate);
+                daysListWorkedInDB.Add(myDate);
                 logger.Trace("SeekAnualDays, Removed worked day from bolded: " + myDate);
             }
-            daysListWorked.Sort();
-            logger.Trace("SeekAnualDays, daysListWorked:" + daysListWorked.ToArray().Length);
+            daysListWorkedInDB.Sort();
+            logger.Trace("SeekAnualDays, daysListWorkedInDB:" + daysListWorkedInDB.ToArray().Length);
 
-            //whole range of days in the selection period
-            List<string> wholeSelectedDays = new List<string>();
-            for (var myDate = myMonthCalendar.SelectionStart; myDate <= myMonthCalendar.SelectionEnd; myDate += oneDay)
-            {
-                wholeSelectedDays.Add(myDate.ToYYYYMMDD());
-            }
-            logger.Trace("SeekAnualDays, days:" + wholeSelectedDays.Count);
+            List<string> tmpWholeSelectedDays = wholeSelectedDays;
+            List<string> tmpDaysListBolded = daysListBolded;
+            
+            //add current bolded days
+            tmpDaysListBolded.AddRange(daysListBolded);
+            //sort list
+            tmpDaysListBolded.Sort();
+            //except from list the  worked days of the local db
+            tmpDaysListBolded.Except(daysListWorkedInDB);
 
-            List<string> tmp = wholeSelectedDays.Except(daysListBolded).ToList();
-            tmp.Sort();
-            string[] result = tmp.Union(daysListWorked).ToArray();
-            workDays = result;
+            //get only worked days within the selected period
+            List<string> tmp = tmpWholeSelectedDays.Except(tmpDaysListBolded).ToList();
 
-            logger.Trace("SeekAnualDays, amount worked days:" + result.Length);
-            foreach (string str in result)
+          //  string[] result = tmp.Union(daysListWorkedInDB).ToArray();
+            workDays = tmp.ToArray();
+
+            logger.Trace("SeekAnualDays, amount worked days:" + workDays.Length);
+            foreach (string str in workDays)
             { logger.Trace("SeekAnualDays, worked day: " + str); }
 
-            result = daysListBolded.Except(daysListWorked).ToArray();
-            logger.Trace("SeekAnualDays, amount bolded days:" + result.Length);
-            foreach (string str in result)
+
+            boldedDays = wholeSelectedDays.Except(tmp).ToArray();
+            logger.Trace("SeekAnualDays, amount bolded days:" + boldedDays.Length);
+            foreach (string str in boldedDays)
             { logger.Trace("SeekAnualDays, bolded day: " + str); }
 
-            foreach (var day in result)
+            foreach (var day in boldedDays)
             {
                 if (delRow && dt != null)
                 {
@@ -4114,7 +4127,6 @@ namespace ASTA
 
             if (dt != null)
             { dt.AcceptChanges(); }
-            boldedDays = result;
 
             daysBolded.Sort();
 
@@ -7547,6 +7559,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                 );
             dtEmpty = null;
             personEmpty = null;
+
             DaysWhenSendReports daysToSendReports = 
                 new DaysWhenSendReports(workSelectedDays, ShiftDaysBackOfSendingFromLastWorkDay, today.LastDayOfMonth().Day);
             DaysOfSendingMail daysOfSendingMail = daysToSendReports.GetDays();
@@ -7558,7 +7571,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                 );
             logger.Info("SelectMailingDoAction: all of daysOfSendingMail: " +
                 daysOfSendingMail.START_OF_MONTH + ", " + daysOfSendingMail.MIDDLE_OF_MONTH + ", "  +
-                ", " + daysOfSendingMail.LAST_WORK_DAY_OF_MONTH + ", " + daysOfSendingMail.END_OF_MONTH
+                daysOfSendingMail.LAST_WORK_DAY_OF_MONTH + ", " + daysOfSendingMail.END_OF_MONTH
                 );
             HashSet<MailingStructure> mailingList = new HashSet<MailingStructure>();
 
@@ -7588,7 +7601,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
 
                                 int dayToSendReport = ReturnNumberStrongNameDayOfSendingReports(dayReport,daysOfSendingMail);
 
-                                logger.Trace("DayReport: " + dayReportInDB+" "+ dayReport+" "+ dayToSendReport);
+                                logger.Trace("DayReport: " + dayReportInDB+" "+ dayReport+ "| dayToSendReport: " + dayToSendReport+ "| today.Day: " + today.Day);
 
                                 if (status == "активная" && dayToSendReport == today.Day)
                                 {
@@ -7607,7 +7620,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                                 }
                                 else if (status == "активная")
                                 {
-                                    logger.Warn("SelectMailingDoAction: не добавлена рассылка" +
+                                    logger.Trace("SelectMailingDoAction: не добавлена рассылка: " +
                                         recipient + "| " +
                                         gproupsReport + "| " +
                                         nameReport + "| " +
@@ -7927,7 +7940,16 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                                 titleOfbodyMail = "с " + reportStartDay.Split(' ')[0] + " по " + reportLastDay.Split(' ')[0];
                                 _toolStripStatusLabelSetText(StatusLabel2, "Выполняю отправку отчета адресату: " + recipientEmail);
 
-                                SendEmail(senderEmail, recipientEmail, titleOfbodyMail, description, filePathExcelReport, Properties.Resources.LogoRYIK, productName);
+
+                                //test of sending
+                                logger.Trace("GetRegistrationAndSendReport, SendEmail succesful: "+
+                                    senderEmail +"| "+ recipientEmail + "| " + 
+                                    titleOfbodyMail + "| " + description + "| " +
+                                    filePathExcelReport + "| " + productName + "| " 
+                                    );
+
+                                // for mailing test only it should be commented   
+                              //  SendEmail(senderEmail, recipientEmail, titleOfbodyMail, description, filePathExcelReport, Properties.Resources.LogoRYIK, productName);
 
                                 _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
                                 _toolStripStatusLabelSetText(StatusLabel2, DateTime.Now.ToYYYYMMDDHHMM() + " Отчет '" + nameReport + "'(" + groupName + ") подготовлен и отправлен " + recipientEmail);

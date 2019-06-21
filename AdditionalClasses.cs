@@ -750,7 +750,7 @@ namespace ASTA
         void SetSendDays(string[] workDays, int ShiftDaysBackOfSendingFromLastWorkDay, int lastDayInMonth)
         {
             daysOfSendingMail.START_OF_MONTH = 1;
-            daysOfSendingMail.END_OF_MONTH = 28;
+            daysOfSendingMail.END_OF_MONTH = lastDayInMonth;
             int daySelected = 0;
             if (workDays.Length == 0) throw new RankException();
             foreach (string day in workDays)
@@ -767,7 +767,7 @@ namespace ASTA
             {
                 daysOfSendingMail.LAST_WORK_DAY_OF_MONTH = 28 - ShiftDaysBackOfSendingFromLastWorkDay;
             }
-            daysOfSendingMail.MIDDLE_OF_MONTH = daysOfSendingMail.LAST_WORK_DAY_OF_MONTH / 2 ;
+            daysOfSendingMail.MIDDLE_OF_MONTH = daysOfSendingMail.END_OF_MONTH / 2;
         }
 
         public DaysOfSendingMail GetDays()
