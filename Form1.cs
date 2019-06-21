@@ -122,12 +122,12 @@ namespace ASTA
         //   static string mailServerRegistry = "";
         static string mailServerDB = "";
         static int mailServerSMTPPort = 25;
-       static string mailServerSMTPPortDB = "";
+        static string mailServerSMTPPortDB = "";
         static string mailServerUserName = "";
-     //   static string mailServerUserNameRegistry = "";
+        //   static string mailServerUserNameRegistry = "";
         static string mailServerUserNameDB = "";
         static string mailServerUserPassword = "";
-     //   static string mailServerUserPasswordRegistry = "";
+        //   static string mailServerUserPasswordRegistry = "";
         static string mailServerUserPasswordDB = "";
 
         //Page of "Settings' Programm"
@@ -526,7 +526,7 @@ namespace ASTA
             sServer1UserName = sServer1UserNameRegistry?.Length > 0 ? sServer1UserNameRegistry : sServer1UserNameDB;
             sServer1UserPassword = sServer1UserPasswordRegistry?.Length > 0 ? sServer1UserPasswordRegistry : sServer1UserPasswordDB;
 
-            mailServer = mailServerDB?.Length > 0 ? mailServerDB : "";            
+            mailServer = mailServerDB?.Length > 0 ? mailServerDB : "";
             Int32.TryParse(mailServerSMTPPortDB, out mailServerSMTPPort);
             mailServerUserName = mailServerUserNameDB?.Length > 0 ? mailServerUserNameDB : "";
             mailServerUserPassword = mailServerUserPasswordDB?.Length > 0 ? mailServerUserPasswordDB : "";
@@ -740,7 +740,7 @@ namespace ASTA
 
 
                 //loading parameters
-              //  listParameters = new List<ParameterConfig>();
+                //  listParameters = new List<ParameterConfig>();
 
                 ParameterOfConfigurationInSQLiteDB parameters = new ParameterOfConfigurationInSQLiteDB(databasePerson);
 
@@ -783,9 +783,9 @@ namespace ASTA
                 try { sServer1UserNameRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey?.GetValue("SKDUser")?.ToString(), btsMess1, btsMess2).ToString(); } catch { }
                 try { sServer1UserPasswordRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey?.GetValue("SKDUserPassword")?.ToString(), btsMess1, btsMess2).ToString(); } catch { }
 
-              //  try { mailServerRegistry = EvUserKey?.GetValue("MailServer")?.ToString(); } catch { logger.Warn("Registry GetValue Mail"); }
-              //  try { mailServerUserNameRegistry = EvUserKey?.GetValue("MailUser")?.ToString(); } catch { }
-              //  try { mailServerUserPasswordRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey?.GetValue("MailUserPassword")?.ToString(), btsMess1, btsMess2).ToString(); } catch { }
+                //  try { mailServerRegistry = EvUserKey?.GetValue("MailServer")?.ToString(); } catch { logger.Warn("Registry GetValue Mail"); }
+                //  try { mailServerUserNameRegistry = EvUserKey?.GetValue("MailUser")?.ToString(); } catch { }
+                //  try { mailServerUserPasswordRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey?.GetValue("MailUserPassword")?.ToString(), btsMess1, btsMess2).ToString(); } catch { }
 
                 try { mysqlServerRegistry = EvUserKey?.GetValue("MySQLServer")?.ToString(); } catch { logger.Warn("Registry GetValue MySQL"); }
                 try { mysqlServerUserNameRegistry = EvUserKey?.GetValue("MySQLUser")?.ToString(); } catch { }
@@ -921,7 +921,7 @@ namespace ASTA
             periodCombo.SelectedIndexChanged += new EventHandler(ListBox_SelectedIndexChanged);
             textBoxSettings16.KeyPress += new KeyPressEventHandler(textboxDate_KeyPress);
 
-          //  textBoxSettings16.TextChanged += new EventHandler(textboxDate_textChanged);
+            //  textBoxSettings16.TextChanged += new EventHandler(textboxDate_textChanged);
             checkBox1.CheckStateChanged += new EventHandler(checkBox1_CheckStateChanged);
             textBoxSettings16.BringToFront();
             labelSettings9.BringToFront();
@@ -1421,7 +1421,7 @@ namespace ASTA
                 _MenuItemEnabled(SettingsMenuItem, true);
             }
             _ProgressBar1Stop();
-      //      _toolStripStatusLabelSetText(StatusLabel2, "Завершена работа");
+            //      _toolStripStatusLabelSetText(StatusLabel2, "Завершена работа");
         }
 
         private void DoListsFioGroupsMailings()  //  GetDataFromRemoteServers()  ImportTablePeopleToTableGroupsInLocalDB()
@@ -1711,7 +1711,7 @@ namespace ASTA
                                         depBoss = departmentFromDictionary?._departmentBossCode;
                                     }
 
-                                  //  depName = departments.First((x) => x._departmentId == personFromServer?.DepartmentId)?._departmentDescription;
+                                    //  depName = departments.First((x) => x._departmentId == personFromServer?.DepartmentId)?._departmentDescription;
                                     personFromServer.Department = depName ?? personFromServer?.DepartmentId;
 
                                     //  depBoss = departments.First((x) => x._departmentId == personFromServer?.DepartmentId)?._departmentBossCode;
@@ -3595,7 +3595,7 @@ namespace ASTA
                         sqlCommand.Parameters.Add("@NAV", DbType.String).Value = nav;
                         sqlCommand.Parameters.Add("@DayType", DbType.String).Value = dayType;
                         sqlCommand.Parameters.Add("@DayDescription", DbType.String).Value = textBoxGroupDescription.Text.Trim();
-                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value =DateTimeToYYYYMMDD();
+                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTimeToYYYYMMDD();
                         try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
                     }
                 }
@@ -4092,7 +4092,7 @@ namespace ASTA
 
             List<string> tmpWholeSelectedDays = wholeSelectedDays;
             List<string> tmpDaysListBolded = daysListBolded;
-            
+
             //add current bolded days
             tmpDaysListBolded.AddRange(daysListBolded);
             //sort list
@@ -4103,7 +4103,7 @@ namespace ASTA
             //get only worked days within the selected period
             List<string> tmp = tmpWholeSelectedDays.Except(tmpDaysListBolded).ToList();
 
-          //  string[] result = tmp.Union(daysListWorkedInDB).ToArray();
+            //  string[] result = tmp.Union(daysListWorkedInDB).ToArray();
             workDays = tmp.ToArray();
 
             logger.Trace("SeekAnualDays, amount worked days:" + workDays.Length);
@@ -4153,7 +4153,7 @@ namespace ASTA
         {
             List<string> boldedDays = new List<string>();
             string sqlQuery = null;
-            if (nav.Length ==6)
+            if (nav.Length == 6)
             {
                 sqlQuery = "SELECT DayBolded FROM BoldedDates WHERE (NAV LIKE '" + nav + "' OR  NAV LIKE '0') AND DayType LIKE '" + dayType + "';";
             }
@@ -4182,7 +4182,7 @@ namespace ASTA
             }
             return boldedDays;
         }
-        
+
         private void QueryDeleteDataFromDataTable(ref DataTable dt, string queryFull, string NAVcode) //Delete data from the Table of the DB by NAV (both parameters are string)
         {
             DataRow[] rows = new DataRow[1];
@@ -4201,7 +4201,7 @@ namespace ASTA
             dt.AcceptChanges();
             rows = null;
         }
-       
+
 
         /*
         private void SeekAnualDays(ref DataTable dt, ref PersonFull person, bool delRow, int[] startOfPeriod, int[] endOfPeriod, ref string[] boldedDays, ref string[] workDays)//   //Exclude Anual Days from the table "PersonTemp" DB
@@ -5531,7 +5531,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
             "Value AS 'Данные', Description AS 'Описание', DateCreated AS 'Дата создания/модификации'",
             " ORDER BY ParameterName asc, DateCreated desc; ");
         }
-        
+
         private void SettingsProgrammItem_Click(object sender, EventArgs e)
         { MakeFormSettings(); }
 
@@ -5906,10 +5906,10 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                 };
                 toolTip1.SetToolTip(textBoxSettings16, tooltip16);
 
-                
+
                 textBoxSettings16.KeyPress += new KeyPressEventHandler(textboxDate_KeyPress);
-              //  textBoxSettings16.KeyPress += new KeyPressEventHandler(textBoxSettings16_KeyPress);
-              //  textBoxSettings16.TextChanged += new EventHandler(textboxDate_textChanged);
+                //  textBoxSettings16.KeyPress += new KeyPressEventHandler(textBoxSettings16_KeyPress);
+                //  textBoxSettings16.TextChanged += new EventHandler(textboxDate_textChanged);
             }
 
             labelServer1?.BringToFront();
@@ -6086,9 +6086,9 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                         try { EvUserKey.SetValue("SKDUser", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(sServer1UserName, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
                         try { EvUserKey.SetValue("SKDUserPassword", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(sServer1UserPassword, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
 
-                     //   try { EvUserKey.SetValue("MailServer", mailServer, Microsoft.Win32.RegistryValueKind.String); } catch { }
-                    //    try { EvUserKey.SetValue("MailUser", mailServerUserName, Microsoft.Win32.RegistryValueKind.String); } catch { }
-                     //   try { EvUserKey.SetValue("MailUserPassword", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(mailServerUserPassword, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
+                        //   try { EvUserKey.SetValue("MailServer", mailServer, Microsoft.Win32.RegistryValueKind.String); } catch { }
+                        //    try { EvUserKey.SetValue("MailUser", mailServerUserName, Microsoft.Win32.RegistryValueKind.String); } catch { }
+                        //   try { EvUserKey.SetValue("MailUserPassword", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(mailServerUserPassword, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
 
                         try { EvUserKey.SetValue("MySQLServer", mysqlServer, Microsoft.Win32.RegistryValueKind.String); } catch { }
                         try { EvUserKey.SetValue("MySQLUser", mysqlServerUserName, Microsoft.Win32.RegistryValueKind.String); } catch { }
@@ -6603,7 +6603,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                                 else { editedCell = "Упрощенный"; }
 
                                 ExecuteSql("UPDATE 'Mailing' SET TypeReport='" + editedCell + "' WHERE RecipientEmail='" + dgSeek.values[0]
-                                  + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1] 
+                                  + "' AND NameReport='" + dgSeek.values[2] + "' AND GroupsReport ='" + dgSeek.values[1]
                                   + "' AND Period='" + dgSeek.values[4] + "' AND DayReport='" + dgSeek.values[7]
                                   + "' AND Status ='" + dgSeek.values[5] + "' AND Description ='" + dgSeek.values[3] + "';", databasePerson);
                                 break;
@@ -6777,9 +6777,9 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                     dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
                         @"Наименование", @"Описание", @"День отправки отчета", @"Период", @"Тип отчета", @"Получатель"});
 
-                    mRightClick.MenuItems.Add(new MenuItem(@"Выполнить активные рассылки по всем у кого: тип отчета - " + dgSeek.values[4] +" за "+ dgSeek.values[3]+ " на "+ dgSeek.values[2], SendAllReportsInSelectedPeriod));
+                    mRightClick.MenuItems.Add(new MenuItem(@"Выполнить активные рассылки по всем у кого: тип отчета - " + dgSeek.values[4] + " за " + dgSeek.values[3] + " на " + dgSeek.values[2], SendAllReportsInSelectedPeriod));
                     mRightClick.MenuItems.Add("-");
-                    mRightClick.MenuItems.Add(new MenuItem(@"Выполнить рассылку:   " + dgSeek.values[0] + "(" + dgSeek.values[1] + ") для "+ dgSeek.values[5], DoMainAction));
+                    mRightClick.MenuItems.Add(new MenuItem(@"Выполнить рассылку:   " + dgSeek.values[0] + "(" + dgSeek.values[1] + ") для " + dgSeek.values[5], DoMainAction));
                     mRightClick.MenuItems.Add("-");
                     mRightClick.MenuItems.Add(new MenuItem(@"Создать новую рассылку", PrepareForMakingFormMailing));
                     mRightClick.MenuItems.Add(new MenuItem(@"Клонировать рассылку:   " + dgSeek.values[0] + "(" + dgSeek.values[1] + ")", MakeCloneMailing));
@@ -7054,12 +7054,12 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                         _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + dgSeek.values[2]);
 
                         ExecuteSql("UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToYYYYMMDDHHMM()
-                            + "' WHERE RecipientEmail='" + dgSeek.values[0]+ "' AND GroupsReport ='" + dgSeek.values[1]
+                            + "' WHERE RecipientEmail='" + dgSeek.values[0] + "' AND GroupsReport ='" + dgSeek.values[1]
                             + "' AND NameReport='" + dgSeek.values[2] + "' AND Description ='" + dgSeek.values[3]
                             + "' AND Period='" + dgSeek.values[4] + "' AND Status='" + dgSeek.values[5]
                             + "' AND TypeReport='" + dgSeek.values[6] + "' AND DayReport ='" + dgSeek.values[7]
                             + "';", databasePerson);
-                        
+
                         MailingAction("sendEmail", dgSeek.values[0], mailServerUserName,
                             dgSeek.values[1], dgSeek.values[2], dgSeek.values[3], dgSeek.values[4],
                             dgSeek.values[5], dgSeek.values[6], dgSeek.values[7]);
@@ -7128,7 +7128,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
             logger.Trace("SendAllReportsInSelectedPeriod: активные отчеты " + dgSeek.values[6] + " за " + dgSeek.values[4] +
                 startDayOfCurrentMonth[0] + "-" + startDayOfCurrentMonth[1] + "-" + startDayOfCurrentMonth[2] +
                 " - " +
-                lastDayOfCurrentMonth[0] + "-" + lastDayOfCurrentMonth[1] + "-" + lastDayOfCurrentMonth[2]+ " на дату - "+ dgSeek.values[7]
+                lastDayOfCurrentMonth[0] + "-" + lastDayOfCurrentMonth[1] + "-" + lastDayOfCurrentMonth[2] + " на дату - " + dgSeek.values[7]
                 );
 
             HashSet<MailingStructure> mailingList = new HashSet<MailingStructure>();
@@ -7162,13 +7162,13 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                                 int dayToSendReport = ReturnNumberStrongNameDayOfSendingReports(dayReport, daysOfSendingMail);
 
                                 logger.Trace("DayReport: " + dayReportInDB + " " + dayReport + " " + dayToSendReport);
-                                
-                            if (
-                                    status == "Активная" && 
-                                    typeReport==dgSeek.values[6] && 
-                                    period == dgSeek.values[4] && 
-                                    dayReportInDB==dgSeek.values[7]
-                                    )
+
+                                if (
+                                        status == "Активная" &&
+                                        typeReport == dgSeek.values[6] &&
+                                        period == dgSeek.values[4] &&
+                                        dayReportInDB == dgSeek.values[7]
+                                        )
                                 {
                                     mailingList.Add(new MailingStructure()
                                     {
@@ -7328,11 +7328,11 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                  SelectMailingDoAction();
              }, null, timeToGo, System.Threading.Timeout.InfiniteTimeSpan);
         }
-        */        
-        
-            
-            
-         //---  Start. Schedule Functions ---//
+        */
+
+
+
+        //---  Start. Schedule Functions ---//
 
         private void ModeAppItem_Click(object sender, EventArgs e)  //ModeApp()
         { SwitchAppMode(); }
@@ -7543,7 +7543,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
             string period = "";
             string status = "";
             string typeReport = "";
-            string dayReport ="";
+            string dayReport = "";
             string str = "";
 
             DataTable dtEmpty = new DataTable();
@@ -7551,7 +7551,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
             var today = DateTime.Today;
 
             int[] startDayOfCurrentMonth = { today.Year, today.Month, 1 };
-            int[] lastDayOfCurrentMonth = { today.Year, today.Month, today.LastDayOfMonth().Day};
+            int[] lastDayOfCurrentMonth = { today.Year, today.Month, today.LastDayOfMonth().Day };
 
             SeekAnualDays(ref dtEmpty, ref personEmpty, false,
                 startDayOfCurrentMonth, lastDayOfCurrentMonth,
@@ -7560,17 +7560,17 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
             dtEmpty = null;
             personEmpty = null;
 
-            DaysWhenSendReports daysToSendReports = 
+            DaysWhenSendReports daysToSendReports =
                 new DaysWhenSendReports(workSelectedDays, ShiftDaysBackOfSendingFromLastWorkDay, today.LastDayOfMonth().Day);
             DaysOfSendingMail daysOfSendingMail = daysToSendReports.GetDays();
 
-            logger.Info("SelectMailingDoAction: "+ 
-                startDayOfCurrentMonth[0] + "-"+ startDayOfCurrentMonth[1] + "-" + startDayOfCurrentMonth[2] + 
+            logger.Info("SelectMailingDoAction: " +
+                startDayOfCurrentMonth[0] + "-" + startDayOfCurrentMonth[1] + "-" + startDayOfCurrentMonth[2] +
                 " - " +
                 lastDayOfCurrentMonth[0] + "-" + lastDayOfCurrentMonth[1] + "-" + lastDayOfCurrentMonth[2]
                 );
             logger.Info("SelectMailingDoAction: all of daysOfSendingMail: " +
-                daysOfSendingMail.START_OF_MONTH + ", " + daysOfSendingMail.MIDDLE_OF_MONTH + ", "  +
+                daysOfSendingMail.START_OF_MONTH + ", " + daysOfSendingMail.MIDDLE_OF_MONTH + ", " +
                 daysOfSendingMail.LAST_WORK_DAY_OF_MONTH + ", " + daysOfSendingMail.END_OF_MONTH
                 );
             HashSet<MailingStructure> mailingList = new HashSet<MailingStructure>();
@@ -7599,9 +7599,9 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                                 string dayReportInDB = record["DayReport"]?.ToString()?.Trim()?.ToUpper();
                                 dayReport = ReturnStrongNameDayOfSendingReports(dayReportInDB);
 
-                                int dayToSendReport = ReturnNumberStrongNameDayOfSendingReports(dayReport,daysOfSendingMail);
+                                int dayToSendReport = ReturnNumberStrongNameDayOfSendingReports(dayReport, daysOfSendingMail);
 
-                                logger.Trace("DayReport: " + dayReportInDB+" "+ dayReport+ "| dayToSendReport: " + dayToSendReport+ "| today.Day: " + today.Day);
+                                logger.Trace("DayReport: " + dayReportInDB + " " + dayReport + "| dayToSendReport: " + dayToSendReport + "| today.Day: " + today.Day);
 
                                 if (status == "активная" && dayToSendReport == today.Day)
                                 {
@@ -7626,7 +7626,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                                         nameReport + "| " +
                                         period + "| " +
                                         typeReport + "| " +
-                                        dayReport + "| " 
+                                        dayReport + "| "
                                         );
                                 }
                             }
@@ -7668,12 +7668,12 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
 
             _ProgressBar1Stop();
         }
-        
+
 
         private void UpdateMailingInDB()
         {
             _ProgressBar1Start();
-            
+
             string sender = "";
             string recipient = "";
             string gproupsReport = "";
@@ -7764,35 +7764,35 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
             return string.Join("_", filename.Split(System.IO.Path.GetInvalidFileNameChars()));
         }
 
-      /*  private string SelectWholeMonthWithTime(DateTime dt) //format of result: "1971-01-01 00:00:00|1971-01-31 23:59:59" // 'yyyy-MM-dd HH:mm:SS'
-        {
-            string result = "";
-           // var dt = DateTime.Now;
+        /*  private string SelectWholeMonthWithTime(DateTime dt) //format of result: "1971-01-01 00:00:00|1971-01-31 23:59:59" // 'yyyy-MM-dd HH:mm:SS'
+          {
+              string result = "";
+             // var dt = DateTime.Now;
 
-       //     var currentMonth = new DateTime(dt.Year, dt.Month, dt.Day);
+         //     var currentMonth = new DateTime(dt.Year, dt.Month, dt.Day);
 
-            result =
-                dt.FirstDayOfMonth().ToYYYYMMDD() + " 00:00:00" +
-                "|" +
-                dt.LastDayOfMonth().ToYYYYMMDD() + " 23:59:59";
+              result =
+                  dt.FirstDayOfMonth().ToYYYYMMDD() + " 00:00:00" +
+                  "|" +
+                  dt.LastDayOfMonth().ToYYYYMMDD() + " 23:59:59";
 
-            return result;
-        }*/
+              return result;
+          }*/
 
-       /* private string SelectWholePreviousMonthWithTime() //format of result: "1971-01-01 00:00:00|1971-01-31 23:59:59" // 'yyyy-MM-dd HH:mm:SS'
-        {
-            string result = "";
-            var dt = DateTime.Now;
-          //  var previousMonth = new DateTime(dt.Year, dt.Month, 1).AddDays(-1);
+        /* private string SelectWholePreviousMonthWithTime() //format of result: "1971-01-01 00:00:00|1971-01-31 23:59:59" // 'yyyy-MM-dd HH:mm:SS'
+         {
+             string result = "";
+             var dt = DateTime.Now;
+           //  var previousMonth = new DateTime(dt.Year, dt.Month, 1).AddDays(-1);
 
-            result = 
-                previousMonth.FirstDayOfMonth().ToYYYYMMDD() + " 00:00:00" +
-                "|" +
-                previousMonth.LastDayOfMonth().ToYYYYMMDD() + " 23:59:59";
+             result = 
+                 previousMonth.FirstDayOfMonth().ToYYYYMMDD() + " 00:00:00" +
+                 "|" +
+                 previousMonth.LastDayOfMonth().ToYYYYMMDD() + " 23:59:59";
 
-            return result;
-        }*/
-        
+             return result;
+         }*/
+
         private string SelectedDatetimePickersPeriodMonth() //format of result: "1971-01-01 00:00:00|1971-01-31 23:59:59" // 'yyyy-MM-dd HH:mm:SS'
         {
             return _dateTimePickerStart() + "|" + _dateTimePickerEnd();
@@ -7821,7 +7821,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                         if (bServer1Exist)
                         {
                             GetRegistrationAndSendReport(groupsReport, nameReport, description, period, status, typeReport, dayReport, true, recipientEmail, senderEmail);
-                            logger.Info("MailingAction: Задача по подготовке и отправке отчета '"+ nameReport+"' выполнена ");
+                            logger.Info("MailingAction: Задача по подготовке и отправке отчета '" + nameReport + "' выполнена ");
                         }
                         break;
                     }
@@ -7847,11 +7847,11 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
             {
                 selectedDate = new DateTime(dtCurrentDate.Year, dtCurrentDate.Month, 1).AddDays(-1);
             }
- 
-               reportStartDay = selectedDate.FirstDayOfMonth().ToYYYYMMDD() + " 00:00:00";
-              reportLastDay = selectedDate.LastDayOfMonth().ToYYYYMMDD() + " 23:59:59";
 
-            if (!period.ToLower().Contains("предыдущ")&&!period.ToLower().Contains("текущ"))
+            reportStartDay = selectedDate.FirstDayOfMonth().ToYYYYMMDD() + " 00:00:00";
+            reportLastDay = selectedDate.LastDayOfMonth().ToYYYYMMDD() + " 23:59:59";
+
+            if (!period.ToLower().Contains("предыдущ") && !period.ToLower().Contains("текущ"))
             {
                 reportStartDay = SelectedDatetimePickersPeriodMonth().Split('|')[0];
                 reportLastDay = SelectedDatetimePickersPeriodMonth().Split('|')[1];
@@ -7940,16 +7940,16 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                                 titleOfbodyMail = "с " + reportStartDay.Split(' ')[0] + " по " + reportLastDay.Split(' ')[0];
                                 _toolStripStatusLabelSetText(StatusLabel2, "Выполняю отправку отчета адресату: " + recipientEmail);
 
+                                // for mailing test only it should be commented   
+                                SendEmail(senderEmail, recipientEmail, titleOfbodyMail, description, filePathExcelReport, Properties.Resources.LogoRYIK, productName);
+
 
                                 //test of sending
-                                logger.Trace("GetRegistrationAndSendReport, SendEmail succesful: "+
-                                    senderEmail +"| "+ recipientEmail + "| " + 
+                                logger.Trace("GetRegistrationAndSendReport, SendEmail succesful: " +
+                                    senderEmail + "| " + recipientEmail + "| " +
                                     titleOfbodyMail + "| " + description + "| " +
-                                    filePathExcelReport + "| " + productName + "| " 
+                                    filePathExcelReport + "| " + productName + "| "
                                     );
-
-                                // for mailing test only it should be commented   
-                              //  SendEmail(senderEmail, recipientEmail, titleOfbodyMail, description, filePathExcelReport, Properties.Resources.LogoRYIK, productName);
 
                                 _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
                                 _toolStripStatusLabelSetText(StatusLabel2, DateTime.Now.ToYYYYMMDDHHMM() + " Отчет '" + nameReport + "'(" + groupName + ") подготовлен и отправлен " + recipientEmail);
@@ -8048,30 +8048,30 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                 }
             }
         }
-/*
-        private void WaitSeconds(int seconds)
-        {
-            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-            sw.Start();
+        /*
+                private void WaitSeconds(int seconds)
+                {
+                    System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+                    sw.Start();
 
-            //No need to risk overflowing an int
-            while (true)
-            {
-                //No need to count iterations, just set them
-                //Really need to account for CPU speed, etc. though, as a
-                //CPU twice as fast runs this loop twice as many times,
-                //while a slow one may greatly overshoot the desired time
-                //interval. Iterations too high = overshoot, too low = excessive overhead 
-                System.Threading.SpinWait(100000);
+                    //No need to risk overflowing an int
+                    while (true)
+                    {
+                        //No need to count iterations, just set them
+                        //Really need to account for CPU speed, etc. though, as a
+                        //CPU twice as fast runs this loop twice as many times,
+                        //while a slow one may greatly overshoot the desired time
+                        //interval. Iterations too high = overshoot, too low = excessive overhead 
+                        System.Threading.SpinWait(100000);
 
-                //No need to stop the stopwatch, simply "mark the lap"
-                if (sw.ElapsedMilliseconds > seconds * 1000)
-                    break;
-            }
+                        //No need to stop the stopwatch, simply "mark the lap"
+                        if (sw.ElapsedMilliseconds > seconds * 1000)
+                            break;
+                    }
 
-            sw.Stop();
-        }*/
-           
+                    sw.Stop();
+                }*/
+
         private static void SendCompletedCallback(object sender, System.ComponentModel.AsyncCompletedEventArgs e)     //for async sending
         {
             // Get the unique identifier for this asynchronous operation.
@@ -9042,7 +9042,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
             { return DateTime.Parse(date).ToYYYYMMDDHHMM(); }
             else { return DateTime.Now.ToYYYYMMDDHHMM(); }
         }
-                     
+
         private string ConvertSecondsToStringHHMM(int seconds)
         {
             string result;
@@ -9143,7 +9143,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
 
             return (60 * 60 * Convert.ToInt32(hours) + 60 * Convert.ToInt32(minutes) + Convert.ToInt32(seconds));
         }
- 
+
         private int[] ConvertStringDateToIntArray(string dateYYYYmmDD) //date "YYYY-MM-DD HH:MM" to  int[] { 1970, 1, 1 }
         {
             int[] result = new int[] { 1970, 1, 1 };
