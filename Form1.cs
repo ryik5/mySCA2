@@ -3927,6 +3927,23 @@ namespace ASTA
 
 
 
+
+        /// <summary>
+        /// //////////////
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <param name="person"></param>
+        /// <param name="delRow"></param>
+        /// <param name="startOfPeriod"></param>
+        /// <param name="endOfPeriod"></param>
+        /// <param name="boldedDays"></param>
+        /// <param name="workDays"></param>
+        
+
+        //todo 
+        ////////// - --- - -  will ReWrite code --
+        ///// will remove garbage list and not needed vars
+
         private void SeekAnualDays(ref DataTable dt, ref PersonFull person, bool delRow, int[] startOfPeriod, int[] endOfPeriod, ref string[] boldedDays, ref string[] workDays)//   //Exclude Anual Days from the table "PersonTemp" DB
         {
             //Trace
@@ -7942,8 +7959,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
 
                                 // for mailing test only it should be commented   
                                 SendEmail(senderEmail, recipientEmail, titleOfbodyMail, description, filePathExcelReport, Properties.Resources.LogoRYIK, productName);
-
-
+                                
                                 //test of sending
                                 logger.Trace("GetRegistrationAndSendReport, SendEmail succesful: " +
                                     senderEmail + "| " + recipientEmail + "| " +
