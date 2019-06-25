@@ -776,16 +776,23 @@ namespace ASTA
         }
     }
 
-    //todo
-    //replace using:
-    /*
-        TimeConvertor timeConvertor1 = new TimeConvertor { Seconds = 115 };
-        TimeStore timer = timeConvertor1;
-        Console.WriteLine($"{timer.Hours}:{timer.Minutes}:{timer.Seconds}"); // 0:1:55
- 
-        TimeConvertor timeConvertor2 = (TimeConvertor)timer;
-        Console.WriteLine(timeConvertor2.Seconds);  //115
-        
+
+
+    //todo replace
+    //using:         
+    public class TestTimeConvertor
+    {
+        public void testConvertor()
+        {
+            TimeConvertor timeConvertor1 = new TimeConvertor { Seconds = 115 };
+            TimeStore timer = timeConvertor1;
+            Console.WriteLine($"{timer.Hours}/d2:{timer.Minutes}/d2:{timer.Seconds}/d2"); // 0:1:55
+
+            TimeConvertor timeConvertor2 = (TimeConvertor)timer;
+            Console.WriteLine(timeConvertor2.Seconds);  //115
+        }
+    }
+
     class TimeStore
     {
         public int Hours { get; set; }
@@ -819,7 +826,8 @@ namespace ASTA
             return new TimeStore { Hours = h, Minutes = m, Seconds = s };
         }
     }
-    */
+    
+
     static class DateTimeExtensions
     {
         public static DateTime LastDayOfMonth(this DateTime date)
@@ -850,6 +858,15 @@ namespace ASTA
         public static string ToYYYYMMDDHHMM(this DateTime dateTime)
         {
             return DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+        }
+
+        public static string ToYYYYMMDDHHMMSS(this DateTime dateTime)
+        {
+            return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+        }
+        public static string ToYYYYMMDDHHMMSSmmm(this DateTime dateTime)
+        {
+            return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
         }
     }
 
