@@ -4025,23 +4025,24 @@ namespace ASTA
                 monthWhenWillBeEaster = 4;
                 dayWhenWillBeEaster = f - 9;
             }
-            DateTime dayBolded = new DateTime(startOfPeriod[0], monthWhenWillBeEaster, dayWhenWillBeEaster).AddDays(13);
-            logger.Trace("SeekAnualDays,AddBoldedDate Easter: " + dayBolded.ToYYYYMMDD());
+            DateTime dayOff = new DateTime(startOfPeriod[0], monthWhenWillBeEaster, dayWhenWillBeEaster).AddDays(13);
+            logger.Trace("SeekAnualDays, AddDayOff Easter ady: " + dayOff.ToYYYYMMDD());
 
-            switch ((int)dayBolded.DayOfWeek)
+            switch ((int)dayOff.DayOfWeek)
             {
                 case (int)Day.Sunday:
-                    daysListBolded.Add(dayBolded.AddDays(1).ToYYYYMMDD());
-                    logger.Trace("SeekAnualDays,AddBoldedDate EasterNext day: " + dayBolded.AddDays(1).ToYYYYMMDD());
+                    daysListBolded.Add(dayOff.AddDays(1).ToYYYYMMDD());
+                    logger.Trace("SeekAnualDays,AddDayOff Next day after Easter day: " + dayOff.AddDays(1).ToYYYYMMDD());
                     break;
                 case (int)Day.Saturday:
-                    daysListBolded.Add(dayBolded.AddDays(2).ToYYYYMMDD());
-                    logger.Trace("SeekAnualDays,AddBoldedDate EasterNextNext day: " + dayBolded.AddDays(2).ToYYYYMMDD());
+                    daysListBolded.Add(dayOff.AddDays(2).ToYYYYMMDD());
+                    logger.Trace("SeekAnualDays,AddDayOff Next 2nd day afer Easter day: " + dayOff.AddDays(2).ToYYYYMMDD());
                     break;
                 default:
                     break;
             }
 
+            DateTime dayBolded;
             foreach (string dayAdditional in ReturnBoldedDaysFromDB(person.NAV, @"Выходной")) // or - Рабочий
             {
                 daysListBolded.Add(DateTime.Parse(dayAdditional).ToYYYYMMDD());
@@ -4110,17 +4111,21 @@ namespace ASTA
             List<string> tmpWholeSelectedDays = wholeSelectedDays;
             List<string> tmpDaysListBolded = daysListBolded;
 
+            //-----
+            //todo - will check and delete next functions - "addrange and sort"
             //add current bolded days
             tmpDaysListBolded.AddRange(daysListBolded);
             //sort list
             tmpDaysListBolded.Sort();
+            //-----
+
+
             //except from list the  worked days of the local db
             tmpDaysListBolded.Except(daysListWorkedInDB);
 
             //get only worked days within the selected period
             List<string> tmp = tmpWholeSelectedDays.Except(tmpDaysListBolded).ToList();
 
-            //  string[] result = tmp.Union(daysListWorkedInDB).ToArray();
             workDays = tmp.ToArray();
 
             logger.Trace("SeekAnualDays, amount worked days:" + workDays.Length);
@@ -8064,29 +8069,30 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                 }
             }
         }
-        /*
-                private void WaitSeconds(int seconds)
-                {
-                    System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-                    sw.Start();
 
-                    //No need to risk overflowing an int
-                    while (true)
-                    {
-                        //No need to count iterations, just set them
-                        //Really need to account for CPU speed, etc. though, as a
-                        //CPU twice as fast runs this loop twice as many times,
-                        //while a slow one may greatly overshoot the desired time
-                        //interval. Iterations too high = overshoot, too low = excessive overhead 
-                        System.Threading.SpinWait(100000);
+        private async void testSpinToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            int num = 0;
+            Int32.TryParse(textBoxGroup.Text, out num);
+            await Task.Run(() => MessageBox.Show("seconds: " + num + "\nfrequencies: " + System.Diagnostics.Stopwatch.Frequency.ToString()));
 
-                        //No need to stop the stopwatch, simply "mark the lap"
-                        if (sw.ElapsedMilliseconds > seconds * 1000)
-                            break;
-                    }
 
-                    sw.Stop();
-                }*/
+            StartStopTimer startStopTimer = new StartStopTimer(num);
+
+            startStopTimer.WaitTime1();
+            await Task.Run(() => MessageBox.Show("1\n" + startStopTimer.GetTime1()));
+
+            startStopTimer.WaitTime2();
+            await Task.Run(() => MessageBox.Show("2\n" + startStopTimer.GetTime2()));
+
+            startStopTimer.WaitTime3();
+            await Task.Run(() => MessageBox.Show("3\n" + startStopTimer.GetTime3()));
+
+            startStopTimer.WaitTime4();
+            await Task.Run(() => MessageBox.Show("4\n" + startStopTimer.GetTime4()));
+        }
+
+        
 
         private static void SendCompletedCallback(object sender, System.ComponentModel.AsyncCompletedEventArgs e)     //for async sending
         {
@@ -8104,39 +8110,42 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
 
         private static System.Net.Mail.AlternateView getEmbeddedImage(string period, string department, Bitmap bmp, string messageAfterPicture)
         {
+            StringBuilder sb = new StringBuilder();
+            System.Net.Mail.LinkedResource res = null;
+
             //convert embedded resources into memorystream
             Bitmap b = new Bitmap(bmp, new Size(50, 50));
             ImageConverter ic = new ImageConverter();
             Byte[] ba = (Byte[])ic.ConvertTo(b, typeof(Byte[]));
             System.IO.MemoryStream logo = new System.IO.MemoryStream(ba);
-
-            System.Net.Mail.LinkedResource res = new System.Net.Mail.LinkedResource(logo, "image/jpeg");
+            res = new System.Net.Mail.LinkedResource(logo, "image/jpeg");
             res.ContentId = Guid.NewGuid().ToString();
 
-            string message = @"<style type = 'text/css'> A {text - decoration: none;}</ style >" +
-                @"<p><font size='3' color='black' face='Arial'>Здравствуйте,</p>Во вложении «Отчет по учету рабочего времени сотрудников».<p>" +
+            sb.Append(@"<style type = 'text/css'> A {text - decoration: none;}</ style >");
+            sb.Append(@"<p><font size='3' color='black' face='Arial'>Здравствуйте,</p>Во вложении «Отчет по учету рабочего времени сотрудников».<p>");
 
-                @"<b>Период: </b>" +
-                period +
+            sb.Append(@"<b>Период: </b>");
+            sb.Append(period);
 
-                @"<br/><b>Подразделение: </b>'" +
-                department +
-                @"'<br/><p>Уважаемые руководители,</p><p>согласно Приказу ГК АИС «О функционировании процессов кадрового делопроизводства»,<br/><br/>" +
-                @"<b>Внесите,</b> пожалуйста, <b>до конца текущего месяца</b> по сотрудникам подразделения " +
-                @"информацию о командировках, больничных, отпусках, прогулах и т.п. <b>на сайт</b> www.ais .<br/><br/>" +
-                @"Руководители <b>подразделений</b> ЦОК, <b>не отображающихся на сайте,<br/>вышлите, </b>пожалуйста, <b>Табель</b> учета рабочего времени<br/>" +
-                @"<b>в отдел компенсаций и льгот до последнего рабочего дня месяца.</b><br/></p>" +
-                @"<font size='3' color='black' face='Arial'>С, Уважением,<br/>" +
-                NAME_OF_SENDER_REPORTS +
-                @"</font><br/><br/><font size='2' color='black' face='Arial'><i>" +
-                @"Данное сообщение и отчет созданы автоматически<br/>программой по учету рабочего времени сотрудников." +
-                @"</i></font><br/><font size='1' color='red' face='Arial'><br/>" +
-                DateTime.Now.ToYYYYMMDDHHMM() +
-                @"</font></p><hr><img alt='ASTA' src='cid:" +
-                res.ContentId +
-                @"'/><br/><a href='mailto:ryik.yuri@gmail.com'>_</a>";
+            sb.Append(@"<br/><b>Подразделение: </b>'");
+            sb.Append(department);
+            sb.Append(@"'<br/><p>Уважаемые руководители,</p><p>согласно Приказу ГК АИС «О функционировании процессов кадрового делопроизводства»,<br/><br/>");
+            sb.Append(@"<b>Внесите,</b> пожалуйста, <b>до конца текущего месяца</b> по сотрудникам подразделения ");
+            sb.Append(@"информацию о командировках, больничных, отпусках, прогулах и т.п. <b>на сайт</b> www.ais .<br/><br/>");
+            sb.Append(@"Руководители <b>подразделений</b> ЦОК, <b>не отображающихся на сайте,<br/>вышлите, </b>пожалуйста, <b>Табель</b> учета рабочего времени<br/>");
+            sb.Append(@"<b>в отдел компенсаций и льгот до последнего рабочего дня месяца.</b><br/></p>");
+            sb.Append(@"<font size='3' color='black' face='Arial'>С, Уважением,<br/>");
+            sb.Append(NAME_OF_SENDER_REPORTS);
+            sb.Append(@"</font><br/><br/><font size='2' color='black' face='Arial'><i>");
+            sb.Append(@"Данное сообщение и отчет созданы автоматически<br/>программой по учету рабочего времени сотрудников.");
+            sb.Append(@"</i></font><br/><font size='1' color='red' face='Arial'><br/>");
+            sb.Append(DateTime.Now.ToYYYYMMDDHHMM());
+            sb.Append(@"</font></p>");
+            sb.Append(@"<hr><img alt='ASTA' src='cid:");
+            sb.Append(res.ContentId);
+            sb.Append(@"'/><br/><a href='mailto:ryik.yuri@gmail.com'>_</a>");
 
-            System.Net.Mail.AlternateView alternateView = System.Net.Mail.AlternateView.CreateAlternateViewFromString(message, null, System.Net.Mime.MediaTypeNames.Text.Html);
+            System.Net.Mail.AlternateView alternateView = System.Net.Mail.AlternateView.CreateAlternateViewFromString(sb.ToString(), null, System.Net.Mime.MediaTypeNames.Text.Html);
             alternateView.LinkedResources.Add(res);
             return alternateView;
         }
@@ -9180,6 +9189,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
 
             return result;
         }
+
         //---- End. Convertors of data types ----//
     }
 }
