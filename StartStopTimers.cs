@@ -1,0 +1,155 @@
+﻿using System;
+
+namespace ASTA
+{
+
+    interface IStartStopTimer
+    {
+        void WaitTime();
+        string GetTime();
+    }
+
+    class StartStopTimerA : IStartStopTimer
+    {
+        int _seconds = 0;
+        string time1 = "";
+        string time2 = "";
+
+        public StartStopTimerA(int seconds)
+        {
+            _seconds = seconds;
+        }
+
+        public void WaitTime() //MiserableLoad HighPrecision
+        {
+            time1 = DateTime.Now.ToYYYYMMDDHHMMSSmmm();
+            WaitSeconds(_seconds);
+            time2 = DateTime.Now.ToYYYYMMDDHHMMSSmmm();
+        }
+
+        public string GetTime()
+        {
+            return time1 + "\n" + time2;
+        }
+
+        private void WaitSeconds(int seconds) //high precision timer
+        {
+            System.Threading.Thread.Sleep(seconds * 1000);
+        }
+    }
+
+    class StartStopTimerB : IStartStopTimer
+    {
+        int _seconds = 0;
+        string time1 = "";
+        string time2 = "";
+
+        public StartStopTimerB(int seconds)
+        {
+            _seconds = seconds;
+        }
+
+        public void WaitTime()//LowLoad has problem
+        {
+            time1 = DateTime.Now.ToYYYYMMDDHHMMSSmmm();
+            WaitSeconds(_seconds);
+            time2 = DateTime.Now.ToYYYYMMDDHHMMSSmmm();
+        }
+
+        public string GetTime()
+        {
+            return time1 + "\n" + time2;
+        }
+
+        private void WaitSeconds(int seconds) //high precision timer
+        {
+            System.Threading.Thread.SpinWait(seconds * 26000000);
+        }
+    }
+
+    class StartStopTimerC : IStartStopTimer
+    {
+        int _seconds = 0;
+        string time1 = "";
+        string time2 = "";
+
+        public StartStopTimerC(int seconds)
+        {
+            _seconds = seconds;
+        }
+
+        public void WaitTime() //MidleLoad not Precision
+        {
+            time1 = DateTime.Now.ToYYYYMMDDHHMMSSmmm();
+            WaitSeconds(_seconds);
+            time2 = DateTime.Now.ToYYYYMMDDHHMMSSmmm();
+        }
+
+        public string GetTime()
+        {
+            return time1 + "\n" + time2;
+        }
+
+        private void WaitSeconds(int seconds) //high precision timer
+        {
+            //No need to risk overflowing an int
+            //No need to count iterations, just set them
+            //Really need to account for CPU speed, etc. though, as a
+            //CPU twice as fast runs this loop twice as many times,
+            //while a slow one may greatly overshoot the desired time
+            //interval. Iterations too high = overshoot, too low = excessive overhead 
+
+            System.Threading.SpinWait swt = new System.Threading.SpinWait();
+
+            while (swt.Count < seconds * 10000)
+            {
+                // The NextSpinWillYield property returns true if
+                // calling sw.SpinOnce() will result in yielding the
+                // processor instead of simply spinning.
+                swt.SpinOnce();
+            }
+        }
+    }
+
+    class StartStopTimerD : IStartStopTimer
+    {
+        int _seconds = 0;
+        string time1 = "";
+        string time2 = "";
+
+        public StartStopTimerD(int seconds)
+        {
+            _seconds = seconds;
+        }
+
+        public void WaitTime() //HighLoad HighPrecision
+        {
+            time1 = DateTime.Now.ToYYYYMMDDHHMMSSmmm();
+            WaitSeconds(_seconds);
+            time2 = DateTime.Now.ToYYYYMMDDHHMMSSmmm();
+        }
+
+        public string GetTime()
+        {
+            return time1 + "\n" + time2;
+        }
+
+        private void WaitSeconds(int seconds) //high precision timer
+        {
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
+
+            //No need to risk overflowing an int
+            while (true)
+            {
+                //No need to stop the stopwatch, simply "mark the lap"
+                if (sw.ElapsedMilliseconds >= seconds * 1000)
+                {
+                    break;
+                }
+            }
+            sw.Stop();
+        }
+    }
+
+}

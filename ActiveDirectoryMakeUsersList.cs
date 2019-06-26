@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.DirectoryServices.AccountManagement;
 using System.DirectoryServices;
 using System;
+using System.Linq;
 
 namespace ASTA
 {
@@ -14,21 +15,21 @@ namespace ASTA
         string Password { get; set; }    // пароль
     }
 
-    public class UserADAuthorization : IUserAD
+    class UserADAuthorization : IUserAD
     {
         public string Name { get; set; }       // имя
         public string Domain { get; set; }      // домен
         public string Password { get; set; }    // пароль
         public string DomainPath { get; set; }    // URI сервера
 
-         public static UserADAuthorizationBuilder Build()
-         {
-             return new UserADAuthorizationBuilder();
-         }
+        public static UserADAuthorizationBuilder Build()
+        {
+            return new UserADAuthorizationBuilder();
+        }
 
         public override string ToString()
         {
-            return Name+"\t"+Domain+ "\t" + Password + "\t" + DomainPath;
+            return Name + "\t" + Domain + "\t" + Password + "\t" + DomainPath;
         }
 
         public override bool Equals(object obj)
@@ -49,7 +50,7 @@ namespace ASTA
         }
     }
 
-    public class UserADAuthorizationBuilder
+    class UserADAuthorizationBuilder
     {
         private UserADAuthorization user;
         public UserADAuthorizationBuilder()
@@ -87,8 +88,8 @@ namespace ASTA
             return builder.user;
         }
     }
-    
-    public class ActiveDirectoryGetData
+
+    class ActiveDirectoryGetData
     {
         static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         UserADAuthorization UserADAuthorization;
@@ -119,10 +120,10 @@ namespace ASTA
             // if (isValid)
             {
                 using (var context = new PrincipalContext(
-                    ContextType.Domain, 
-                    UserADAuthorization.DomainPath, 
-                    "OU=Domain Users,DC=" + UserADAuthorization.Domain.Split('.')[0] + ",DC=" + UserADAuthorization.Domain.Split('.')[1], 
-                    UserADAuthorization.Name, 
+                    ContextType.Domain,
+                    UserADAuthorization.DomainPath,
+                    "OU=Domain Users,DC=" + UserADAuthorization.Domain.Split('.')[0] + ",DC=" + UserADAuthorization.Domain.Split('.')[1],
+                    UserADAuthorization.Name,
                     UserADAuthorization.Password))
                 {
                     using (var searcher = new PrincipalSearcher(new UserPrincipal(context)))
@@ -147,11 +148,12 @@ namespace ASTA
 
                                     //todo 
                                     //fill 
-                                    staffAD.Add(new StaffAD {
-                                        mail= de?.Properties["mail"]?.Value?.ToString(),
-                                        fio= de?.Properties["displayName"]?.Value?.ToString(),
-                                        login= de?.Properties["sAMAccountName"]?.Value?.ToString(),
-                                        code= de?.Properties["extensionAttribute1"]?.Value?.ToString()
+                                    staffAD.Add(new StaffAD
+                                    {
+                                        mail = de?.Properties["mail"]?.Value?.ToString(),
+                                        fio = de?.Properties["displayName"]?.Value?.ToString(),
+                                        login = de?.Properties["sAMAccountName"]?.Value?.ToString(),
+                                        code = de?.Properties["extensionAttribute1"]?.Value?.ToString()
                                     });
 
                                     logger.Trace(
@@ -182,27 +184,27 @@ namespace ASTA
         }
 
 
-/*
-        // it sometimes doesn't work correctly
-        static bool ValidateCredentials(UserADAuthorization userADAuthorization)
-        {
-            IntPtr token;
-            bool success = NativeMethods.LogonUser(
-                userADAuthorization.Name,
-                userADAuthorization.Domain,
-                userADAuthorization.Password,
-                NativeMethods.LogonType.Interactive,
-                NativeMethods.LogonProvider.Default,
-                out token);
-            if (token != IntPtr.Zero) NativeMethods.CloseHandle(token);
-            return success;
-        }*/
+        /*
+                // it sometimes doesn't work correctly
+                static bool ValidateCredentials(UserADAuthorization userADAuthorization)
+                {
+                    IntPtr token;
+                    bool success = NativeMethods.LogonUser(
+                        userADAuthorization.Name,
+                        userADAuthorization.Domain,
+                        userADAuthorization.Password,
+                        NativeMethods.LogonType.Interactive,
+                        NativeMethods.LogonProvider.Default,
+                        out token);
+                    if (token != IntPtr.Zero) NativeMethods.CloseHandle(token);
+                    return success;
+                }*/
     }
 
     class ListStaffSender    // Originator
     {
         private List<StaffAD> staffAD = new List<StaffAD>();
-              
+
         public void RestoreListStaff(StaffMemento memento)  // восстановление состояния
         {
             staffAD = memento.staffAD;
@@ -213,8 +215,8 @@ namespace ASTA
             return staffAD;
         }
     }
-     
-    public class StaffMemento    // Memento// сохранить список
+
+    class StaffMemento    // Memento// сохранить список
     {
         public List<StaffAD> staffAD { get; private set; }
 
@@ -233,21 +235,22 @@ namespace ASTA
         }
     }
 
-    public class StaffAD
+    class StaffAD : IComparable<StaffAD>
     {
         public string mail;
         public string login;
         public string code;
         public string fio;
 
+        //Для возможности поиска дубляжного значения
         public override string ToString()
         {
-            return mail + "\t" + login + "\t" + code + "\t" + fio;
+            return fio + "\t" + code + "\t" + login + "\t" + mail;
         }
 
         public override bool Equals(object obj)
         {
-            if (obj == null)
+            if (obj == null || !(obj is StaffAD))
                 return false;
 
             StaffAD df = obj as StaffAD;
@@ -261,9 +264,50 @@ namespace ASTA
         {
             return ToString().GetHashCode();
         }
+
+        //реализация для выполнения сортировки
+        int IComparable<StaffAD>.CompareTo(StaffAD next)
+        {
+            return new StaffADComparer().Compare(this, next);
+        }
+
+        public string CompareTo(StaffAD next)
+        {
+            return next.CompareTo(this);
+        }
     }
 
+    //реализация для выполнения сортировки
+    class StaffADComparer : IComparer<StaffAD>
+    {
+        public int Compare(StaffAD x, StaffAD y)
+        {
+            return this.CompareTwoStaffADs(x, y);
+        }
 
+        public int CompareTwoStaffADs(StaffAD x, StaffAD y)
+        {
+            string a = x.fio + x.code;
+            string b = y.fio + y.code;
+
+            string[] words = { a, b };
+            Array.Sort(words);
+            // string[] res = words.OrderBy(word => word).ToArray();
+
+            if (words[0] != a)
+            {
+                return 1;
+            }
+            else if (a == b)
+            {
+                return 0;
+            }
+            else
+            {
+                return -1;
+            }
+        }
+    }
 
     /*
     // it sometimes doesn't work correctly

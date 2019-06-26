@@ -1329,8 +1329,10 @@ namespace ASTA
 
 
 
-        private void testADToolStripMenuItem_Click(object sender, EventArgs e)
-        { GetUsersFromAD(); }
+        private async void testADToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            await Task.Run(() => GetUsersFromAD());
+        }
 
         private void GetUsersFromAD()
         {
@@ -1359,22 +1361,25 @@ namespace ASTA
 
             if (user?.Length > 0 && password?.Length > 0 && domain?.Length > 0 && server?.Length > 0)
             {
+                _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные из домена: " + domain);
+
                 ad = new ActiveDirectoryGetData(user, domain, password, server);
                 staffListStore.Story.Push(ad.SaveListStaff());
                 listStaffSender.RestoreListStaff(staffListStore.Story.Pop());
 
                 staffAD = listStaffSender.GetListStaff();
-
+                staffAD.Sort();
                 logger.Trace("GetUsersFromAD: Store list ");
                 //передать дальше в обработку:
                 foreach (var person in staffAD)
                 {
                     logger.Trace(person?.fio + " |" + person?.login + " |" + person?.code + " |" + person?.mail);
                 }
+                _toolStripStatusLabelSetText(StatusLabel2, "Из домена " + domain + " получено " + staffAD.Count + " ФИО сотрудников");
             }
             else
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Ошибка доступа к домену!");
+                _toolStripStatusLabelSetText(StatusLabel2, "Ошибка доступа к домену " + domain);
                 logger.Error("user: " + user + "| domain: " + domain + "| password: " + password + "| server: " + server);
                 _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
             }
@@ -3938,7 +3943,7 @@ namespace ASTA
         /// <param name="endOfPeriod"></param>
         /// <param name="boldedDays"></param>
         /// <param name="workDays"></param>
-        
+
 
         //todo 
         ////////// - --- - -  will ReWrite code --
@@ -7786,34 +7791,6 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
             return string.Join("_", filename.Split(System.IO.Path.GetInvalidFileNameChars()));
         }
 
-        /*  private string SelectWholeMonthWithTime(DateTime dt) //format of result: "1971-01-01 00:00:00|1971-01-31 23:59:59" // 'yyyy-MM-dd HH:mm:SS'
-          {
-              string result = "";
-             // var dt = DateTime.Now;
-
-         //     var currentMonth = new DateTime(dt.Year, dt.Month, dt.Day);
-
-              result =
-                  dt.FirstDayOfMonth().ToYYYYMMDD() + " 00:00:00" +
-                  "|" +
-                  dt.LastDayOfMonth().ToYYYYMMDD() + " 23:59:59";
-
-              return result;
-          }*/
-
-        /* private string SelectWholePreviousMonthWithTime() //format of result: "1971-01-01 00:00:00|1971-01-31 23:59:59" // 'yyyy-MM-dd HH:mm:SS'
-         {
-             string result = "";
-             var dt = DateTime.Now;
-           //  var previousMonth = new DateTime(dt.Year, dt.Month, 1).AddDays(-1);
-
-             result = 
-                 previousMonth.FirstDayOfMonth().ToYYYYMMDD() + " 00:00:00" +
-                 "|" +
-                 previousMonth.LastDayOfMonth().ToYYYYMMDD() + " 23:59:59";
-
-             return result;
-         }*/
 
         private string SelectedDatetimePickersPeriodMonth() //format of result: "1971-01-01 00:00:00|1971-01-31 23:59:59" // 'yyyy-MM-dd HH:mm:SS'
         {
@@ -7962,14 +7939,17 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                                 titleOfbodyMail = "с " + reportStartDay.Split(' ')[0] + " по " + reportLastDay.Split(' ')[0];
                                 _toolStripStatusLabelSetText(StatusLabel2, "Выполняю отправку отчета адресату: " + recipientEmail);
 
-                                // for mailing test only it should be commented   
+
+                                //test
+                                // it should be commented only for test mailing     
                                 SendEmail(senderEmail, recipientEmail, titleOfbodyMail, description, filePathExcelReport, Properties.Resources.LogoRYIK, productName);
-                                
-                                //test of sending
+
+
+
+
                                 logger.Trace("GetRegistrationAndSendReport, SendEmail succesful: " +
-                                    senderEmail + "| " + recipientEmail + "| " +
-                                    titleOfbodyMail + "| " + description + "| " +
-                                    filePathExcelReport + "| " + productName + "| "
+                                    senderEmail + "| " + recipientEmail + "| " + titleOfbodyMail + "| " +
+                                    description + "| " + filePathExcelReport + "| " + productName + "| "
                                     );
 
                                 _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
@@ -8070,29 +8050,32 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
             }
         }
 
-        private async void testSpinToolStripMenuItem_Click(object sender, EventArgs e)
+        private void testSpinToolStripMenuItem_Click(object sender, EventArgs e)
         {
             int num = 0;
             Int32.TryParse(textBoxGroup.Text, out num);
-            await Task.Run(() => MessageBox.Show("seconds: " + num + "\nfrequencies: " + System.Diagnostics.Stopwatch.Frequency.ToString()));
+            Task.Run(() => MessageBox.Show("seconds: " + num + "\nfrequencies: " + System.Diagnostics.Stopwatch.Frequency.ToString()));
 
 
-            StartStopTimer startStopTimer = new StartStopTimer(num);
+            IStartStopTimer startStopTimerA = new StartStopTimerA(num);
 
-            startStopTimer.WaitTime1();
-            await Task.Run(() => MessageBox.Show("1\n" + startStopTimer.GetTime1()));
+            startStopTimerA.WaitTime();
+            Task.Run(() => MessageBox.Show("1\n" + startStopTimerA.GetTime()));
 
-            startStopTimer.WaitTime2();
-            await Task.Run(() => MessageBox.Show("2\n" + startStopTimer.GetTime2()));
+            IStartStopTimer startStopTimerB = new StartStopTimerB(num);
+            startStopTimerB.WaitTime();
+            Task.Run(() => MessageBox.Show("2\n" + startStopTimerB.GetTime()));
 
-            startStopTimer.WaitTime3();
-            await Task.Run(() => MessageBox.Show("3\n" + startStopTimer.GetTime3()));
+            IStartStopTimer startStopTimerC = new StartStopTimerC(num);
+            startStopTimerC.WaitTime();
+            Task.Run(() => MessageBox.Show("3\n" + startStopTimerC.GetTime()));
 
-            startStopTimer.WaitTime4();
-            await Task.Run(() => MessageBox.Show("4\n" + startStopTimer.GetTime4()));
+            IStartStopTimer startStopTimerD = new StartStopTimerD(num);
+            startStopTimerD.WaitTime();
+            Task.Run(() => MessageBox.Show("4\n" + startStopTimerD.GetTime()));
         }
 
-        
+
 
         private static void SendCompletedCallback(object sender, System.ComponentModel.AsyncCompletedEventArgs e)     //for async sending
         {
