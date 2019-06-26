@@ -7952,13 +7952,13 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                                     description + "| " + filePathExcelReport + "| " + productName + "| "
                                     );
 
-                                _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
                                 _toolStripStatusLabelSetText(StatusLabel2, DateTime.Now.ToYYYYMMDDHHMM() + " Отчет '" + nameReport + "'(" + groupName + ") подготовлен и отправлен " + recipientEmail);
+                                _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
                             }
                             else
                             {
-                                _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
                                 _toolStripStatusLabelSetText(StatusLabel2, DateTime.Now.ToYYYYMMDDHHMM() + " Ошибка экспорта в файл отчета: " + nameReport + "(" + groupName + ")");
+                                _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
                             }
                         }
                     }
