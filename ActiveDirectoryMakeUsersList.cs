@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.DirectoryServices.AccountManagement;
 using System.DirectoryServices;
 using System;
+using System.Linq;
 
 namespace ASTA
 {
@@ -14,7 +15,7 @@ namespace ASTA
         string Password { get; set; }    // пароль
     }
 
-    public class UserADAuthorization : IUserAD
+    class UserADAuthorization : IUserAD
     {
         public string Name { get; set; }       // имя
         public string Domain { get; set; }      // домен
@@ -49,7 +50,7 @@ namespace ASTA
         }
     }
 
-    public class UserADAuthorizationBuilder
+    class UserADAuthorizationBuilder
     {
         private UserADAuthorization user;
         public UserADAuthorizationBuilder()
@@ -88,7 +89,7 @@ namespace ASTA
         }
     }
 
-    public class ActiveDirectoryGetData
+    class ActiveDirectoryGetData
     {
         static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         UserADAuthorization UserADAuthorization;
@@ -215,7 +216,7 @@ namespace ASTA
         }
     }
 
-    public class StaffMemento    // Memento// сохранить список
+    class StaffMemento    // Memento// сохранить список
     {
         public List<StaffAD> staffAD { get; private set; }
 
@@ -234,21 +235,22 @@ namespace ASTA
         }
     }
 
-    public class StaffAD
+    class StaffAD : IComparable<StaffAD>
     {
         public string mail;
         public string login;
         public string code;
         public string fio;
 
+        //Для возможности поиска дубляжного значения
         public override string ToString()
         {
-            return mail + "\t" + login + "\t" + code + "\t" + fio;
+            return fio + "\t" + code + "\t" + login + "\t" + mail;
         }
 
         public override bool Equals(object obj)
         {
-            if (obj == null)
+            if (obj == null || !(obj is StaffAD))
                 return false;
 
             StaffAD df = obj as StaffAD;
@@ -262,9 +264,50 @@ namespace ASTA
         {
             return ToString().GetHashCode();
         }
+
+        //реализация для выполнения сортировки
+        int IComparable<StaffAD>.CompareTo(StaffAD next)
+        {
+            return new StaffADComparer().Compare(this, next);
+        }
+
+        public string CompareTo(StaffAD next)
+        {
+            return next.CompareTo(this);
+        }
     }
 
+    //реализация для выполнения сортировки
+    class StaffADComparer : IComparer<StaffAD>
+    {
+        public int Compare(StaffAD x, StaffAD y)
+        {
+            return this.CompareTwoStaffADs(x, y);
+        }
 
+        public int CompareTwoStaffADs(StaffAD x, StaffAD y)
+        {
+            string a = x.fio + x.code;
+            string b = y.fio + y.code;
+
+            string[] words = { a, b };
+            Array.Sort(words);
+            // string[] res = words.OrderBy(word => word).ToArray();
+
+            if (words[0] != a)
+            {
+                return 1;
+            }
+            else if (a == b)
+            {
+                return 0;
+            }
+            else
+            {
+                return -1;
+            }
+        }
+    }
 
     /*
     // it sometimes doesn't work correctly
