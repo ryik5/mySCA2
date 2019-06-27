@@ -435,8 +435,8 @@ namespace ASTA
             myFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
             strVersion = myFileVersionInfo.Comments + " ver." + myFileVersionInfo.FileVersion + " " + myFileVersionInfo.LegalCopyright;
             productName = myFileVersionInfo.ProductName;
-
-            StatusLabel1.Text = myFileVersionInfo.ProductName + " ver." + myFileVersionInfo.FileVersion + " " + myFileVersionInfo.LegalCopyright;
+            string status = myFileVersionInfo.ProductName + " ver." + myFileVersionInfo.FileVersion + " " + myFileVersionInfo.LegalCopyright;
+            StatusLabel1.Text = status;
             StatusLabel1.Alignment = ToolStripItemAlignment.Right;
             StatusLabel2.Text = " Начните работу с кнопки - \"Получить ФИО\"";
 
@@ -552,19 +552,21 @@ namespace ASTA
             dtPersonRegistrationsFullList = dtPeople.Clone();  //Copy only structure(Name of columns)
             dtPeopleGroup = dtPeople.Clone();  //Copy only structure(Name of columns)
 
-            logger.Info("Программа " + productName + " полностью загружена....");
+            logger.Info("");
+            logger.Info("Программа " + status + " полностью загружена....");
+            logger.Info("");
 
             if (currentModeAppManual)
             {
                 nameOfLastTableFromDB = "ListFIO";
                 SeekAndShowMembersOfGroup("");
-                logger.Info("Программа запущена в интерактивном режиме....");
+                logger.Info("Программа запущена в интерактивном режиме...");
             }
             else
             {
                 _controlEnable(comboBoxFio, false);
                 nameOfLastTableFromDB = "Mailing";
-                logger.Info(productName + " включен автоматический режим....");
+                logger.Info("Стартовый режим - автоматический...");
 
                 ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
                 "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
