@@ -3,6 +3,35 @@ using System.Security.Cryptography;
 
 namespace ASTA
 {
+
+    /*
+           //TestCryptionItem_Click
+           
+            string original = "Here is some data to encrypt!";
+            MessageBox.Show("Original:   " + original);
+
+            using (RijndaelManaged myRijndael = new RijndaelManaged())
+            {
+                myRijndael.Key = btsMess1;
+                myRijndael.IV = btsMess2;
+                // Encrypt the string to an array of bytes.
+                byte[] encrypted = EncryptionDecryptionCriticalData.EncryptStringToBytes(original, myRijndael.Key, myRijndael.IV);
+
+                StringBuilder s = new StringBuilder();
+                foreach (byte item in encrypted)
+                {
+                    s.Append(item.ToString("X2") + " ");
+                }
+                MessageBox.Show("Encrypted:   " + s);
+
+                // Decrypt the bytes to a string.
+                string decrypted = EncryptionDecryptionCriticalData.DecryptStringFromBytes(encrypted, btsMess1, btsMess2);
+
+                //Display the original data and the decrypted data.
+                MessageBox.Show("Decrypted:    " + decrypted);
+            }
+ 
+      */
     class EncryptDecrypt
     {
         /*

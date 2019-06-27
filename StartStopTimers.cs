@@ -2,7 +2,31 @@
 
 namespace ASTA
 {
+    /* использование
+                 int num = 0;
+            Int32.TryParse(textBoxGroup.Text, out num);
+            Task.Run(() => MessageBox.Show("seconds: " + num + "\nfrequencies: " + System.Diagnostics.Stopwatch.Frequency.ToString()));
 
+
+            IStartStopTimer startStopTimerA = new StartStopTimerA(num);
+
+            startStopTimerA.WaitTime();
+            Task.Run(() => MessageBox.Show("1\n" + startStopTimerA.GetTime()));
+
+            IStartStopTimer startStopTimerB = new StartStopTimerB(num);
+            startStopTimerB.WaitTime();
+            Task.Run(() => MessageBox.Show("2\n" + startStopTimerB.GetTime()));
+
+            IStartStopTimer startStopTimerC = new StartStopTimerC(num);
+            startStopTimerC.WaitTime();
+            Task.Run(() => MessageBox.Show("3\n" + startStopTimerC.GetTime()));
+
+            IStartStopTimer startStopTimerD = new StartStopTimerD(num);
+            startStopTimerD.WaitTime();
+            Task.Run(() => MessageBox.Show("4\n" + startStopTimerD.GetTime()));
+
+         */
+         /*
     interface IStartStopTimer
     {
         void WaitTime();
@@ -151,5 +175,5 @@ namespace ASTA
             sw.Stop();
         }
     }
-
+    */
 }
