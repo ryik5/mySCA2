@@ -246,7 +246,6 @@ namespace ASTA
                                   new DataColumn(PLACE_EMPLOYEE,typeof(string)),//12
                                   new DataColumn(DATE_REGISTRATION,typeof(string)),//13
                                   new DataColumn(TIME_REGISTRATION,typeof(int)), //15
-                               //   new DataColumn(@"Реальное время ухода",typeof(int)), //18
                                   new DataColumn(SERVER_SKD,typeof(string)), //19
                                   new DataColumn(NAME_CHECKPOINT,typeof(string)), //20
                                   new DataColumn(DIRECTION_WAY,typeof(string)), //21
@@ -263,8 +262,6 @@ namespace ASTA
                                   new DataColumn(DAY_OF_WEEK,typeof(string)),                 //32
                                   new DataColumn(EMPLOYEE_SICK_LEAVE,typeof(string)),                 //33
                                   new DataColumn(EMPLOYEE_ABSENCE,typeof(string)),     //34
-                             //     new DataColumn(@"Код",typeof(string)),                        //35
-                              //    new DataColumn(@"Вышестоящая группа",typeof(string)),         //36
                                   new DataColumn(GROUP_DECRIPTION,typeof(string)),            //37
                                   new DataColumn(EMPLOYEE_SHIFT_COMMENT,typeof(string)),                 //38
                                   new DataColumn(EMPLOYEE_POSITION,typeof(string)),                 //39
@@ -286,7 +283,6 @@ namespace ASTA
                                   PLACE_EMPLOYEE,//12
                                   DATE_REGISTRATION,//13
                                   TIME_REGISTRATION, //15
-                                //  @"Реальное время ухода", //18
                                   SERVER_SKD, //19
                                   NAME_CHECKPOINT, //20
                                   DIRECTION_WAY, //21
@@ -303,8 +299,6 @@ namespace ASTA
                                   DAY_OF_WEEK,                    //32
                                   EMPLOYEE_SICK_LEAVE,                    //33
                                   EMPLOYEE_ABSENCE,      //34
-                               //   @"Код",                           //35
-                              //    @"Вышестоящая группа",            //36
                                   GROUP_DECRIPTION,                //37
                                   EMPLOYEE_SHIFT_COMMENT,      //38
                                   EMPLOYEE_POSITION,                    //39
@@ -346,7 +340,6 @@ namespace ASTA
                             N_ID,               //10
                             DATE_REGISTRATION,         //12
                             TIME_REGISTRATION,        //15
-                           // @"Реальное время ухода",     //18
                             SERVER_SKD,               //19
                             NAME_CHECKPOINT,        //20
                             DIRECTION_WAY,      //21
@@ -361,8 +354,6 @@ namespace ASTA
                             DAY_OF_WEEK,                    //32
                             EMPLOYEE_SICK_LEAVE,                    //33
                             EMPLOYEE_ABSENCE,      //34
-                         //   @"Код",                           //35
-                        //    @"Вышестоящая группа",            //36
                             EMPLOYEE_SHIFT_COMMENT,                    //38
                             GROUP_DECRIPTION,                //37
                             EMPLOYEE_HOOKY
@@ -373,7 +364,6 @@ namespace ASTA
                 TIMEIN,//6
                 TIMEOUT,//9
                 TIME_REGISTRATION, //15
-             //   @"Реальное время ухода", //18
                 SERVER_SKD, //19
                 NAME_CHECKPOINT, //20
                 DIRECTION_WAY, //21
@@ -386,8 +376,6 @@ namespace ASTA
                 DAY_OF_WEEK,  //32
                 EMPLOYEE_SICK_LEAVE,  //33
                 EMPLOYEE_ABSENCE,      //34
-            //    @"Код",         //35
-              //  @"Вышестоящая группа",            //36
                 GROUP_DECRIPTION,                //37
                 EMPLOYEE_HOOKY                   //43
         };
@@ -2931,6 +2919,8 @@ namespace ASTA
 
         private void GetNamePoints() //Get names of the pass by points
         {
+            logger.Trace("GetNamePoints");
+
             passByPoints = new List<PassByPoint>();
             if (databasePerson.Exists)
             {
@@ -2951,7 +2941,7 @@ namespace ASTA
                                 if (record["id"]?.ToString()?.Trim()?.Length > 0 && record["name"]?.ToString()?.Trim()?.Length > 0)
                                 {
                                     name = record["name"].ToString().Trim();
-                                    if (name.Contains("выход"))
+                                    if (name.ToLower().Contains("выход"))
                                     { direction = "Выход"; }
                                     else
                                     { direction = "Вход"; }
@@ -2969,6 +2959,10 @@ namespace ASTA
                     }
                 }
                 stringConnection = query = name = direction = null;
+            }
+            foreach (var tmp in passByPoints)
+            {
+                logger.Trace(tmp._id + " " + tmp._name + " " + tmp._direction);
             }
         }
 
@@ -3233,6 +3227,7 @@ namespace ASTA
                     sqlConnection.Open();
 
                     query = "Select id, tabnum FROM OBJ_PERSON where tabnum like '" + person.NAV + "';";
+                    logger.Trace(query);
                     using (var cmd = new System.Data.SqlClient.SqlCommand(query, sqlConnection))
                     {
                         using (var reader = cmd.ExecuteReader())
@@ -3250,8 +3245,9 @@ namespace ASTA
                         }
                     }
 
-                    // PassByPoint
+                    //list of users id and their id cards
                     query = "Select id, tabnum FROM OBJ_PERSON where tabnum like '" + person.NAV + "';";
+                    logger.Trace(query);
                     using (var cmd = new System.Data.SqlClient.SqlCommand(query, sqlConnection))
                     {
                         using (var reader = cmd.ExecuteReader())
@@ -3269,9 +3265,11 @@ namespace ASTA
                         }
                     }
 
+                    // Passes By Points
                     query = "SELECT param0, param1, objid, objtype, CONVERT(varchar, date, 120) AS date, CONVERT(varchar, PROTOCOL.time, 114) AS time FROM protocol " +
                        " where objtype like 'ABC_ARC_READER' AND param1 like '" + stringIdCardIntellect + "' AND date >= '" + startDay + "' AND date <= '" + endDay + "' " +
                        " ORDER BY date ASC";
+                    logger.Trace(query);
                     using (var cmd = new System.Data.SqlClient.SqlCommand(query, sqlConnection))
                     {
                         using (var reader = cmd.ExecuteReader())
@@ -3282,7 +3280,7 @@ namespace ASTA
                                 {
                                     if (record["param0"]?.ToString()?.Trim()?.Length > 0 && record["param1"]?.ToString()?.Length > 0)
                                     {
-                                        logger.Trace(person.NAV);
+                                        //  logger.Trace(person.NAV);
                                         stringDataNew = record["date"]?.ToString()?.Trim()?.Split(' ')[0];
                                         person.idCard = Convert.ToInt32(record["param1"].ToString().Trim());
                                         seconds = ConvertStringTimeHHMMToSeconds(record["time"]?.ToString()?.Trim());
@@ -3310,7 +3308,7 @@ namespace ASTA
                                         rowPerson[SERVER_SKD] = sServer1;
                                         rowPerson[NAME_CHECKPOINT] = namePoint;
                                         rowPerson[DIRECTION_WAY] = direction;
-
+                                        logger.Trace(rowPerson[FIO] + " " + stringDataNew + " " + seconds + " " + namePoint + " " + direction);
                                         rowPerson[DESIRED_TIME_IN] = person.ControlInHHMM;
                                         rowPerson[DESIRED_TIME_OUT] = person.ControlOutHHMM;
                                         rowPerson[REAL_TIME_IN] = ConvertSecondsToStringHHMM(seconds);
@@ -4763,292 +4761,303 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
 
         private void DrawRegistration(ref PersonFull personDraw)  // Visualisation of registration
         {
-            try
+            //  int iPanelBorder = 2;
+            int iShiftStart = 300;
+            int iShiftHeightAll = 36;
+
+            int iOffsetBetweenHorizontalLines = 19; //смещение между горизонтальными линиями
+            int iOffsetBetweenVerticalLines = 60; //смещение между "часовыми" линиями
+            int iNumbersOfHoursInDay = 24;        //количество часов в сутках(количество вертикальных часовых линий)
+
+            int iHeightLineWork = 4; //толщина линии рабочего времени на графике
+            int pointDrawYfor_rects = 44; //начальное смещение линии рабочего графика
+
+            int iHeightLineRealWork = 14; //толщина линии фактически отработанного веремени на графике
+            int pointDrawYfor_rectsReal = 39; // начальное смещение линии отработанного графика
+
+            int iWidthRects = 2; // ширина прямоугольников = время нахождение в рабочей зоне(минимальное)
+            int iLenghtRect = 0; //количество  входов-выходов в рабочие дни для всех отобранных людей для  анализа регистраций входа-выхода
+
+            //constant for a person
+            string fio = personDraw.FIO;
+            string nav = personDraw.NAV;
+            string group = personDraw.GroupPerson;
+            string dayRegistration = "";
+            string directionPass = ""; //string pointName = "";
+            int minutesIn = 0;     // время входа в минутах планируемое
+            int minutesInFact = 0;     // время выхода в минутах фактическое
+            int minutesOut = 0;    // время входа в минутах планируемое
+            int minutesOutFact = 0;    // время выхода в минутах фактическое
+
+            //variable for a person
+            string dayPrevious = "";      //дата в предыдущей выборке
+            string directionPrevious = "";
+            int timePrevious = 0;
+            logger.Trace("DrawRegistration: " + group + " " + fio + " " + nav);
+            logger.Trace("DrawRegistration,dtPersonTempAllColumns: " + dtPersonTempAllColumns.Rows.Count);
+            //select and distinct dataRow
+            var rowsPersonRegistrationsForDraw = dtPersonTempAllColumns.Clone();
+            if (group?.Length > 0)
+            { rowsPersonRegistrationsForDraw = dtPersonTempAllColumns.Select("[Группа] = '" + group + "'").CopyToDataTable(); }
+            else if (nav?.Length == 6)
+            { rowsPersonRegistrationsForDraw = dtPersonTempAllColumns.Select("[NAV-код] = '" + nav + "'").CopyToDataTable(); }
+            else if (nav?.Length != 6 && fio?.Length > 1)
+            { rowsPersonRegistrationsForDraw = dtPersonTempAllColumns.Select("[Фамилия Имя Отчество] = '" + fio + "'").CopyToDataTable(); }
+            logger.Trace("DrawRegistration,rowsPersonRegistrationsForDraw.Rows.Count: " + rowsPersonRegistrationsForDraw.Rows.Count);
+
+            //select and count unique NAV-codes - the number of selected people
+            HashSet<string> hsNAV = new HashSet<string>(); //unique NAV-codes
+            foreach (DataRow row in rowsPersonRegistrationsForDraw.Rows)
+            { hsNAV.Add(row[CODE].ToString()); }
+            string[] arrayNAVs = hsNAV.ToArray(); //unique NAV-codes
+            int countNAVs = arrayNAVs.Count(); //the number of selected people
+            numberPeopleInLoading = countNAVs;
+            logger.Trace("DrawRegistration,countNAVs: " + countNAVs);
+
+            //count max number of events in-out all of selected people (the group or a single person)
+            //It needs to prevent the error "index of scope"
+            DataTable dtEmpty = new DataTable();
+            SeekAnualDays(ref dtEmpty, ref personDraw, false,
+                _dateTimePickerReturnArray(dateTimePickerStart),
+                _dateTimePickerReturnArray(dateTimePickerEnd),
+                ref myBoldedDates, ref workSelectedDays);
+            dtEmpty.Dispose();
+
+            foreach (DataRow row in rowsPersonRegistrationsForDraw.Rows)
             {
-                //  int iPanelBorder = 2;
-                int iMinutesInHour = 60;
-                int iShiftStart = 300;
-                int iStringHeight = 19;
-                int iShiftHeightAll = 36;
-
-                int iLenghtRect = 0; //количество  входов-выходов в рабочие дни для всех отобранных людей для  анализа регистраций входа-выхода
-
-                //constant for a person
-                string fio = personDraw.FIO;
-                string nav = personDraw.NAV;
-                string group = personDraw.GroupPerson;
-                string dayRegistration = "";
-                string directionPass = ""; //string pointName = "";
-                int minutesIn = 0;     // время входа в минутах планируемое
-                int minutesInFact = 0;     // время выхода в минутах фактическое
-                int minutesOut = 0;    // время входа в минутах планируемое
-                int minutesOutFact = 0;    // время выхода в минутах фактическое
-
-                //variable for a person
-                string dayPrevious = "";      //дата в предыдущей выборке
-                string directionPrevious = "";
-                int timePrevious = 0;
-                logger.Trace("DrawRegistration: " + group + " " + fio + " " + nav);
-                logger.Trace("DrawRegistration,dtPersonTempAllColumns: " + dtPersonTempAllColumns.Rows.Count);
-                //select and distinct dataRow
-                var rowsPersonRegistrationsForDraw = dtPersonTempAllColumns.Clone();
-                if (group?.Length > 0)
-                { rowsPersonRegistrationsForDraw = dtPersonTempAllColumns.Select("[Группа] = '" + group + "'").CopyToDataTable(); }
-                else if (nav?.Length == 6)
-                { rowsPersonRegistrationsForDraw = dtPersonTempAllColumns.Select("[NAV-код] = '" + nav + "'").CopyToDataTable(); }
-                else if (nav?.Length != 6 && fio?.Length > 1)
-                { rowsPersonRegistrationsForDraw = dtPersonTempAllColumns.Select("[Фамилия Имя Отчество] = '" + fio + "'").CopyToDataTable(); }
-                logger.Trace("DrawRegistration,rowsPersonRegistrationsForDraw.Rows.Count: " + rowsPersonRegistrationsForDraw.Rows.Count);
-
-                //select and count unique NAV-codes - the number of selected people
-                HashSet<string> hsNAV = new HashSet<string>(); //unique NAV-codes
-                foreach (DataRow row in rowsPersonRegistrationsForDraw.Rows)
-                { hsNAV.Add(row[CODE].ToString()); }
-                string[] arrayNAVs = hsNAV.ToArray(); //unique NAV-codes
-                int countNAVs = arrayNAVs.Count(); //the number of selected people
-                numberPeopleInLoading = countNAVs;
-                logger.Trace("DrawRegistration,countNAVs: " + countNAVs);
-
-                //count max number of events in-out all of selected people (the group or a single person)
-                //It needs to prevent the error "index of scope"
-                DataTable dtEmpty = new DataTable();
-                SeekAnualDays(ref dtEmpty, ref personDraw, false,
-                    _dateTimePickerReturnArray(dateTimePickerStart),
-                    _dateTimePickerReturnArray(dateTimePickerEnd),
-                    ref myBoldedDates, ref workSelectedDays);
-                dtEmpty.Dispose();
-
-                foreach (DataRow row in rowsPersonRegistrationsForDraw.Rows)
+                for (int k = 0; k < workSelectedDays.Length; k++)
                 {
-                    for (int k = 0; k < workSelectedDays.Length; k++)
-                    {
-                        if (workSelectedDays[k].Length == 10 && row[DATE_REGISTRATION].ToString().Contains(workSelectedDays[k]))  //если приход пришел в рабочий день - считаем
-                        { iLenghtRect++; }
-                    }
+                    if (workSelectedDays[k].Length == 10 && row[DATE_REGISTRATION].ToString().Contains(workSelectedDays[k]))  //если приход пришел в рабочий день - считаем
+                    { iLenghtRect++; }
                 }
-                logger.Trace("DrawRegistration,iLenghtRect: " + iLenghtRect);
+            }
+            logger.Trace("DrawRegistration,iLenghtRect: " + iLenghtRect);
 
-                panelView.Height = iShiftHeightAll + iStringHeight * workSelectedDays.Count() * countNAVs;
-                // panelView.AutoScroll = false;
-                // panelView.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-                // panelView.Anchor = AnchorStyles.Bottom;
-                // panelView.Anchor = AnchorStyles.Left;
-                // panelView.Dock = DockStyle.None;
-                _panelResume(panelView);
+            panelView.Height = iShiftHeightAll + iOffsetBetweenHorizontalLines * workSelectedDays.Count() * countNAVs;
+            // panelView.AutoScroll = false;
+            // panelView.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            // panelView.Anchor = AnchorStyles.Bottom;
+            // panelView.Anchor = AnchorStyles.Left;
+            // panelView.Dock = DockStyle.None;
+            _panelResume(panelView);
 
-                //   bmp?.Dispose();
-                pictureBox1?.Dispose();
-                if (panelView.Controls.Count > 1)
-                { panelView.Controls.RemoveAt(1); }
+            //   bmp?.Dispose();
+            pictureBox1?.Dispose();
+            if (panelView.Controls.Count > 1)
+            { panelView.Controls.RemoveAt(1); }
 
-                pictureBox1 = new PictureBox
+            pictureBox1 = new PictureBox
+            {
+                //    Location = new Point(0, 0),
+                SizeMode = PictureBoxSizeMode.AutoSize,
+                Size = new Size(
+                    iShiftStart + iNumbersOfHoursInDay * iOffsetBetweenVerticalLines,
+                    iShiftHeightAll + iOffsetBetweenHorizontalLines * workSelectedDays.Count() * countNAVs
+                // (iShiftStart + iNumbersOfHoursInDay * iOffsetBetweenVerticalLines + 2) / 2 // 1740 на 870 - 24 часа и 43 строчки
+                // 2 * (iShiftStart + iNumbersOfHoursInDay * iOffsetBetweenVerticalLines + 2) / 5  //1740 на 696 - 24 часа и 34 строчки
+                ),
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            //comment next row if it needs to set the PictureBox at the Center of panelview
+            bmp = new Bitmap(pictureBox1.Width, pictureBox1.Height);
+
+
+            // Start of the Block with Drawing //
+            //---------------------------------------------------------------//
+            var font = new Font("Courier", 10, FontStyle.Regular);
+            using (Graphics gr = Graphics.FromImage(bmp))
+            {
+                var myBrushWorkHour = new SolidBrush(Color.Gray);
+                var myBrushRealWorkHour = new SolidBrush(clrRealRegistration);
+                var myBrushAxis = new SolidBrush(Color.Black);
+                var pointForN_A = new PointF(0, iOffsetBetweenHorizontalLines);
+                var pointForN_B = new PointF(200, iOffsetBetweenHorizontalLines);
+
+                var axis = new Pen(Color.Black);
+
+                Rectangle[] rectsReal = new Rectangle[iLenghtRect]; //количество пересечений
+                Rectangle[] rectsRealMark = new Rectangle[iLenghtRect];
+                Rectangle[] rects = new Rectangle[workSelectedDays.Length * countNAVs];
+
+                int irectsTempReal = 0;
+
+                int numberRectangle_rectsRealMark = 0;
+                int numberRectangle_rects = 0;
+
+
+                foreach (string singleNav in arrayNAVs)
                 {
-                    //    Location = new Point(0, 0),
-                    SizeMode = PictureBoxSizeMode.AutoSize,
-                    Size = new Size(
-                        iShiftStart + 24 * iMinutesInHour,
-                        iShiftHeightAll + iStringHeight * workSelectedDays.Count() * countNAVs
-                    // (iShiftStart + 24 * iMinutesInHour + 2) / 2 // 1740 на 870 - 24 часа и 43 строчки
-                    // 2 * (iShiftStart + 24 * iMinutesInHour + 2) / 5  //1740 на 696 - 24 часа и 34 строчки
-                    ),
-                    BorderStyle = BorderStyle.FixedSingle
-                };
-                //comment next row if it needs to set the PictureBox at the Center of panelview
-                bmp = new Bitmap(pictureBox1.Width, pictureBox1.Height);
+                    logger.Trace("DrawRegistration,draw: " + singleNav);
 
-
-                // Start of the Block with Drawing //
-                //---------------------------------------------------------------//
-                var font = new Font("Courier", 10, FontStyle.Regular);
-                using (Graphics gr = Graphics.FromImage(bmp))
-                {
-                    var myBrushWorkHour = new SolidBrush(Color.Gray);
-                    var myBrushRealWorkHour = new SolidBrush(clrRealRegistration);
-                    var myBrushAxis = new SolidBrush(Color.Black);
-                    var pointForN_A = new PointF(0, iStringHeight);
-                    var pointForN_B = new PointF(200, iStringHeight);
-
-                    var axis = new Pen(Color.Black);
-
-                    Rectangle[] rectsReal = new Rectangle[iLenghtRect]; //количество пересечений
-                    Rectangle[] rectsRealMark = new Rectangle[iLenghtRect];
-                    Rectangle[] rects = new Rectangle[workSelectedDays.Length * countNAVs];
-
-                    int irectsTempReal = 0;
-
-                    int numberRectangle_rectsRealMark = 0;
-                    int numberRectangle_rects = 0;
-
-                    int pointDrawYfor_rectsReal = 39;
-                    int pointDrawYfor_rects = 42;
-
-                    foreach (string singleNav in arrayNAVs)
+                    foreach (string workDay in workSelectedDays)
                     {
-                        logger.Trace("DrawRegistration,draw: " + singleNav);
-
-                        foreach (string workDay in workSelectedDays)
+                        foreach (DataRow row in rowsPersonRegistrationsForDraw.Rows)
                         {
-                            foreach (DataRow row in rowsPersonRegistrationsForDraw.Rows)
+                            nav = row[CODE].ToString();
+                            dayRegistration = row[DATE_REGISTRATION].ToString();
+
+
+                            if (singleNav.Contains(nav) && dayRegistration.Contains(workDay))
                             {
-                                nav = row[CODE].ToString();
-                                dayRegistration = row[DATE_REGISTRATION].ToString();
+                                fio = row[FIO].ToString();
+                                minutesIn = (int)ConvertStringTimeHHMMToDecimalArray(row[DESIRED_TIME_IN].ToString())[3];
+                                minutesInFact = (int)ConvertStringTimeHHMMToDecimalArray(row[REAL_TIME_IN].ToString())[3];
+                                minutesOut = (int)ConvertStringTimeHHMMToDecimalArray(row[DESIRED_TIME_OUT].ToString())[3];
+                                minutesOutFact = (int)ConvertStringTimeHHMMToDecimalArray(row[REAL_TIME_OUT].ToString())[3];
+                                directionPass = row[DIRECTION_WAY].ToString().ToLower();
 
+                                //pass by a point
+                                rectsRealMark[numberRectangle_rectsRealMark] = new Rectangle(
+                                iShiftStart + minutesInFact,             /* X */
+                                pointDrawYfor_rectsReal,                 /* Y */
+                                iWidthRects,                             /* width */
+                                iHeightLineRealWork                      /* height */
+                                );
 
-                                if (singleNav.Contains(nav) && dayRegistration.Contains(workDay))
+                                //being of the current person in the workplace
+                                if (directionPass.Contains("вход"))
                                 {
-                                    fio = row[FIO].ToString();
-                                    minutesIn = (int)ConvertStringTimeHHMMToDecimalArray(row[DESIRED_TIME_IN].ToString())[3];
-                                    minutesInFact = (int)ConvertStringTimeHHMMToDecimalArray(row[REAL_TIME_IN].ToString())[3];
-                                    minutesOut = (int)ConvertStringTimeHHMMToDecimalArray(row[DESIRED_TIME_OUT].ToString())[3];
-                                    minutesOutFact = (int)ConvertStringTimeHHMMToDecimalArray(row[REAL_TIME_OUT].ToString())[3];
-                                    directionPass = row[DIRECTION_WAY].ToString().ToLower();
-
-                                    //pass by a point
-                                    rectsRealMark[numberRectangle_rectsRealMark] = new Rectangle(
-                                    iShiftStart + minutesInFact,             /* X */
-                                    pointDrawYfor_rectsReal,                 /* Y */
-                                    2,                                       /* width */
-                                    14                                       /* height */
-                                    );
-
-                                    //being of the current person in the workplace
-                                    if (directionPass.Contains("вход"))
+                                    timePrevious = minutesInFact;
+                                    dayPrevious = dayRegistration;
+                                    directionPrevious = directionPass;
+                                }
+                                else if (directionPass.Contains("выход") && directionPrevious.Contains("вход") && dayPrevious.Contains(dayRegistration))
+                                {
+                                    if (minutesInFact > timePrevious)
                                     {
+                                        rectsReal[irectsTempReal] = new Rectangle(
+                                                iShiftStart + timePrevious,
+                                                pointDrawYfor_rectsReal,
+                                                minutesInFact - timePrevious,
+                                                14);                //height
+
+                                        irectsTempReal++;
                                         timePrevious = minutesInFact;
                                         dayPrevious = dayRegistration;
                                         directionPrevious = directionPass;
                                     }
-                                    else if (directionPass.Contains("выход") && directionPrevious.Contains("вход") && dayPrevious.Contains(dayRegistration))
-                                    {
-                                        if (minutesInFact > timePrevious)
-                                        {
-                                            rectsReal[irectsTempReal] = new Rectangle(
-                                                    iShiftStart + timePrevious,
-                                                    pointDrawYfor_rectsReal,
-                                                    minutesInFact - timePrevious,
-                                                    14);                //height
-
-                                            irectsTempReal++;
-                                            timePrevious = minutesInFact;
-                                            dayPrevious = dayRegistration;
-                                            directionPrevious = directionPass;
-                                        }
-                                    }
-
-                                    numberRectangle_rectsRealMark++;
                                 }
+
+                                numberRectangle_rectsRealMark++;
                             }
-
-                            //work shift
-                            rects[numberRectangle_rects] = new Rectangle(
-                               iShiftStart + minutesIn,                     /* X */
-                               pointDrawYfor_rects,                         /* Y */
-                               minutesOut - minutesIn,                      /* width */
-                               6                                            /* height */
-                               );
-
-                            pointDrawYfor_rectsReal += 19;
-                            pointDrawYfor_rects += 19;
-                            numberRectangle_rects++;
                         }
 
-                        //place the current FIO and days in visualisation
-                        foreach (string workDay in workSelectedDays)
-                        {
-                            pointForN_A.Y += iStringHeight;
-                            gr.DrawString(
-                                workDay + " (" + ShortFIO(fio) + ")",
-                                font,
-                                myBrushAxis,
-                                pointForN_A); //Paint workdays and people' FIO
-                        }
+                        //work shift
+                        rects[numberRectangle_rects] = new Rectangle(
+                           iShiftStart + minutesIn,                     /* X */
+                           pointDrawYfor_rects,                         /* Y */
+                           minutesOut - minutesIn,                      /* width */
+                           iHeightLineWork                              /* height */
+                           );
+
+                        pointDrawYfor_rectsReal += iOffsetBetweenHorizontalLines;
+                        pointDrawYfor_rects += iOffsetBetweenHorizontalLines;
+                        numberRectangle_rects++;
                     }
 
-                    //Fill with rectangles RealWork
-                    gr.FillRectangles(myBrushRealWorkHour, rectsReal);
-
-                    // Fill rectangles WorkTime shit
-                    gr.FillRectangles(myBrushWorkHour, rects);
-
-                    //Fill All Mark at Passthrow Points
-                    gr.FillRectangles(myBrushRealWorkHour, rectsRealMark); //draw the real first come of the person
-
-                    //Draw axes for days 
-                    for (int k = 0; k < workSelectedDays.Length * countNAVs; k++)
+                    //place the current FIO and days in visualisation
+                    foreach (string workDay in workSelectedDays)
                     {
-                        pointForN_B.Y += iStringHeight;
-                        gr.DrawLine(
-                            axis,
-                            new Point(0, iShiftHeightAll + k * iStringHeight),
-                            new Point(pictureBox1.Width, iShiftHeightAll + k * iStringHeight));
-                    }
-
-                    //Draw other axes
-                    gr.DrawString(
-                        "Время, часы:",
-                        font,
-                        SystemBrushes.WindowText,
-                        new Point(iShiftStart - 110, iStringHeight / 4));
-                    gr.DrawString("Дата (ФИО)",
-                        font,
-                        SystemBrushes.WindowText,
-                        new Point(10, iStringHeight));
-                    gr.DrawLine(
-                        axis, new Point(0, 0),
-                        new Point(iShiftStart, iShiftHeightAll));
-                    gr.DrawLine(
-                        axis,
-                        new Point(iShiftStart, 0),
-                        new Point(iShiftStart, iShiftHeightAll));
-
-                    for (int k = 0; k <= 23; k++)
-                    {
-                        gr.DrawLine(
-                            axis,
-                            new Point(iShiftStart + k * iMinutesInHour, iShiftHeightAll),
-                            new Point(iShiftStart + k * iMinutesInHour, Convert.ToInt32(pictureBox1.Height)));
+                        pointForN_A.Y += iOffsetBetweenHorizontalLines;
                         gr.DrawString(
-                            Convert.ToString(k),
+                            workDay + " (" + ShortFIO(fio) + ")",
                             font,
-                            SystemBrushes.WindowText,
-                            new Point(320 + k * iMinutesInHour, iStringHeight));
+                            myBrushAxis,
+                            pointForN_A); //Paint workdays and people' FIO
                     }
+                }
+
+                //Fill with rectangles RealWork
+                gr.FillRectangles(myBrushRealWorkHour, rectsReal);
+
+                //Fill All Mark at Passthrow Points
+                gr.FillRectangles(myBrushRealWorkHour, rectsRealMark); //draw the real first come of the person
+
+                // Fill rectangles WorkTime shit
+                gr.FillRectangles(myBrushWorkHour, rects);
+
+                //Draw axes for days 
+                for (int k = 0; k < workSelectedDays.Length * countNAVs; k++)
+                {
+                    pointForN_B.Y += iOffsetBetweenHorizontalLines;
                     gr.DrawLine(
                         axis,
-                        new Point(iShiftStart + 24 * iMinutesInHour, iShiftHeightAll),
-                        new Point(iShiftStart + 24 * iMinutesInHour, Convert.ToInt32(pictureBox1.Height)));
-
-                    axis.Dispose();
-                    myBrushAxis = null;
-                    rectsReal = null;
-                    rects = null;
-                    myBrushRealWorkHour = null;
-                    myBrushWorkHour = null;
-                    sLastSelectedElement = "DrawRegistration";
+                        new Point(0, iShiftHeightAll + k * iOffsetBetweenHorizontalLines),
+                        new Point(pictureBox1.Width, iShiftHeightAll + k * iOffsetBetweenHorizontalLines));
                 }
-                //---------------------------------------------------------------//
-                // End of the Block with Drawing //
 
+                //Draw other axes
+                gr.DrawString(
+                    "Время, часы:",
+                    font,
+                    SystemBrushes.WindowText,
+                    new Point(iShiftStart - 110, iOffsetBetweenHorizontalLines / 4));
+                gr.DrawString("Дата (ФИО)",
+                    font,
+                    SystemBrushes.WindowText,
+                    new Point(10, iOffsetBetweenHorizontalLines));
+                gr.DrawLine(
+                    axis, new Point(0, 0),
+                    new Point(iShiftStart, iShiftHeightAll));
+                gr.DrawLine(
+                    axis,
+                    new Point(iShiftStart, 0),
+                    new Point(iShiftStart, iShiftHeightAll));
 
-                pictureBox1.Image = bmp;
-                pictureBox1.Refresh();
-                panelView.Controls.Add(pictureBox1);
-                _RefreshPictureBox(pictureBox1, bmp);
-                panelViewResize(numberPeopleInLoading);
+                for (int k = 0; k < iNumbersOfHoursInDay; k++)
+                {
+                    gr.DrawLine(
+                        axis,
+                        new Point(iShiftStart + k * iOffsetBetweenVerticalLines, iShiftHeightAll),
+                        new Point(iShiftStart + k * iOffsetBetweenVerticalLines, Convert.ToInt32(pictureBox1.Height)));
+                    gr.DrawString(
+                        Convert.ToString(k),
+                        font,
+                        SystemBrushes.WindowText,
+                        new Point(320 + k * iOffsetBetweenVerticalLines, iOffsetBetweenHorizontalLines));
+                }
+                gr.DrawLine(
+                    axis,
+                    new Point(iShiftStart + iNumbersOfHoursInDay * iOffsetBetweenVerticalLines, iShiftHeightAll),
+                    new Point(iShiftStart + iNumbersOfHoursInDay * iOffsetBetweenVerticalLines, Convert.ToInt32(pictureBox1.Height)));
 
-                fio = null; nav = null; dayRegistration = null; directionPass = null;
-                font.Dispose(); hsNAV = null;
+                axis.Dispose();
+                myBrushAxis = null;
+                rectsReal = null;
+                rects = null;
+                myBrushRealWorkHour = null;
+                myBrushWorkHour = null;
+                sLastSelectedElement = "DrawRegistration";
             }
-            catch (Exception expt) { logger.Info(expt.ToString()); }
+            //---------------------------------------------------------------//
+            // End of the Block with Drawing //
+
+
+            pictureBox1.Image = bmp;
+            pictureBox1.Refresh();
+            panelView.Controls.Add(pictureBox1);
+            _RefreshPictureBox(pictureBox1, bmp);
+            panelViewResize(numberPeopleInLoading);
+
+            fio = null; nav = null; dayRegistration = null; directionPass = null;
+            font.Dispose(); hsNAV = null;
         }
 
         private void DrawFullWorkedPeriodRegistration(ref PersonFull personDraw)  // Draw the whole period registration
         {
             //  int iPanelBorder = 2;
-            int iMinutesInHour = 60;
             int iShiftStart = 300;
-            int iStringHeight = 19;
             int iShiftHeightAll = 36;
+
+            int iOffsetBetweenHorizontalLines = 19; //смещение между горизонтальными линиями
+            int iOffsetBetweenVerticalLines = 60; //смещение между "часовыми" линиями
+            int iNumbersOfHoursInDay = 24;        //количество часов в сутках(количество вертикальных часовых линий)
+
+            int iHeightLineWork = 4; //толщина линии рабочего времени на графике
+            int pointDrawYfor_rects = 44; //начальное смещение линии рабочего графика
+
+            int iHeightLineRealWork = 14; //толщина линии фактически отработанного веремени на графике
+            int pointDrawYfor_rectsReal = 39; // начальное смещение линии отработанного графика
 
             int iLenghtRect = 0; //количество  входов-выходов в рабочие дни для всех отобранных людей для  анализа регистраций входа-выхода
 
@@ -5097,7 +5106,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                 }
             }
 
-            panelView.Height = iShiftHeightAll + iStringHeight * workSelectedDays.Count() * countNAVs;
+            panelView.Height = iShiftHeightAll + iOffsetBetweenHorizontalLines * workSelectedDays.Count() * countNAVs;
             // panelView.AutoScroll = false;
             // panelView.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             // panelView.Anchor = AnchorStyles.Bottom;
@@ -5115,10 +5124,10 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                 //Location = new Point(0, 0),
                 SizeMode = PictureBoxSizeMode.AutoSize,
                 Size = new Size(
-                    iShiftStart + 24 * iMinutesInHour,
-                    iShiftHeightAll + iStringHeight * workSelectedDays.Count() * countNAVs
-                // (iShiftStart + 24 * iMinutesInHour + 2) / 2 // 1740 на 870 - 24 часа и 43 строчки
-                // 2 * (iShiftStart + 24 * iMinutesInHour + 2) / 5  //1740 на 696 - 24 часа и 34 строчки
+                    iShiftStart + iNumbersOfHoursInDay * iOffsetBetweenVerticalLines,
+                    iShiftHeightAll + iOffsetBetweenHorizontalLines * workSelectedDays.Count() * countNAVs
+                // (iShiftStart + iNumbersOfHoursInDay * iOffsetBetweenVerticalLines + 2) / 2 // 1740 на 870 - 24 часа и 43 строчки
+                // 2 * (iShiftStart + iNumbersOfHoursInDay * iOffsetBetweenVerticalLines + 2) / 5  //1740 на 696 - 24 часа и 34 строчки
                 ),
                 BorderStyle = BorderStyle.FixedSingle
             };
@@ -5134,8 +5143,8 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                 var myBrushWorkHour = new SolidBrush(Color.Gray);
                 var myBrushRealWorkHour = new SolidBrush(clrRealRegistration);
                 var myBrushAxis = new SolidBrush(Color.Black);
-                var pointForN_A = new PointF(0, iStringHeight);
-                var pointForN_B = new PointF(200, iStringHeight);
+                var pointForN_A = new PointF(0, iOffsetBetweenHorizontalLines);
+                var pointForN_B = new PointF(200, iOffsetBetweenHorizontalLines);
 
                 var axis = new Pen(Color.Black);
 
@@ -5144,9 +5153,6 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
 
                 int numberRectangle_rectsRealMark = 0;
                 int numberRectangle_rects = 0;
-
-                int pointDrawYfor_rectsReal = 39;
-                int pointDrawYfor_rects = 42;
 
                 foreach (string singleNav in arrayNAVs)
                 {
@@ -5170,8 +5176,8 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                                 rectsRealMark[numberRectangle_rectsRealMark] = new Rectangle(
                                 iShiftStart + minutesInFact,             /* X */
                                 pointDrawYfor_rectsReal,                 /* Y */
-                                minutesOutFact - minutesInFact,           /* width */
-                                14                                       /* height */
+                                minutesOutFact - minutesInFact,          /* width */
+                                iHeightLineRealWork                      /* height */
                                 );
 
                                 numberRectangle_rectsRealMark++;
@@ -5183,18 +5189,18 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                            iShiftStart + minutesIn,                     /* X */
                            pointDrawYfor_rects,                         /* Y */
                            minutesOut - minutesIn,                      /* width */
-                           6                                            /* height */
+                           iHeightLineWork                              /* height */
                            );
 
-                        pointDrawYfor_rectsReal += 19;
-                        pointDrawYfor_rects += 19;
+                        pointDrawYfor_rectsReal += iOffsetBetweenHorizontalLines;
+                        pointDrawYfor_rects += iOffsetBetweenHorizontalLines;
                         numberRectangle_rects++;
                     }
 
                     //place the current FIO and days in visualisation
                     foreach (string workDay in workSelectedDays)
                     {
-                        pointForN_A.Y += iStringHeight;
+                        pointForN_A.Y += iOffsetBetweenHorizontalLines;
                         gr.DrawString(
                             workDay + " (" + ShortFIO(fio) + ")",
                             font,
@@ -5212,11 +5218,11 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                 //Draw axes for days 
                 for (int k = 0; k < workSelectedDays.Length * countNAVs; k++)
                 {
-                    pointForN_B.Y += iStringHeight;
+                    pointForN_B.Y += iOffsetBetweenHorizontalLines;
                     gr.DrawLine(
                         axis,
-                        new Point(0, iShiftHeightAll + k * iStringHeight),
-                        new Point(pictureBox1.Width, iShiftHeightAll + k * iStringHeight));
+                        new Point(0, iShiftHeightAll + k * iOffsetBetweenHorizontalLines),
+                        new Point(pictureBox1.Width, iShiftHeightAll + k * iOffsetBetweenHorizontalLines));
                 }
 
                 //Draw other axes
@@ -5224,11 +5230,11 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                     "Время, часы:",
                     font,
                     SystemBrushes.WindowText,
-                    new Point(iShiftStart - 110, iStringHeight / 4));
+                    new Point(iShiftStart - 110, iOffsetBetweenHorizontalLines / 4));
                 gr.DrawString("Дата (ФИО)",
                     font,
                     SystemBrushes.WindowText,
-                    new Point(10, iStringHeight));
+                    new Point(10, iOffsetBetweenHorizontalLines));
                 gr.DrawLine(
                     axis, new Point(0, 0),
                     new Point(iShiftStart, iShiftHeightAll));
@@ -5237,22 +5243,22 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                     new Point(iShiftStart, 0),
                     new Point(iShiftStart, iShiftHeightAll));
 
-                for (int k = 0; k <= 23; k++)
+                for (int k = 0; k < iNumbersOfHoursInDay; k++)
                 {
                     gr.DrawLine(
                         axis,
-                        new Point(iShiftStart + k * iMinutesInHour, iShiftHeightAll),
-                        new Point(iShiftStart + k * iMinutesInHour, Convert.ToInt32(pictureBox1.Height)));
+                        new Point(iShiftStart + k * iOffsetBetweenVerticalLines, iShiftHeightAll),
+                        new Point(iShiftStart + k * iOffsetBetweenVerticalLines, Convert.ToInt32(pictureBox1.Height)));
                     gr.DrawString(
                         Convert.ToString(k),
                         font,
                         SystemBrushes.WindowText,
-                        new Point(320 + k * iMinutesInHour, iStringHeight));
+                        new Point(320 + k * iOffsetBetweenVerticalLines, iOffsetBetweenHorizontalLines));
                 }
                 gr.DrawLine(
                     axis,
-                    new Point(iShiftStart + 24 * iMinutesInHour, iShiftHeightAll),
-                    new Point(iShiftStart + 24 * iMinutesInHour, Convert.ToInt32(pictureBox1.Height)));
+                    new Point(iShiftStart + iNumbersOfHoursInDay * iOffsetBetweenVerticalLines, iShiftHeightAll),
+                    new Point(iShiftStart + iNumbersOfHoursInDay * iOffsetBetweenVerticalLines, Convert.ToInt32(pictureBox1.Height)));
 
                 axis.Dispose();
                 myBrushAxis = null;
@@ -5312,15 +5318,15 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
 
         private void panelViewResize(int numberPeople) //Change PanelView
         {
-            int iStringHeight = 19;
+            int iOffsetBetweenHorizontalLines = 19;
             int iShiftHeightAll = 36;
             switch (sLastSelectedElement)
             {
                 case "DrawFullWorkedPeriodRegistration":
-                    _panelSetHeight(panelView, iShiftHeightAll + iStringHeight * workSelectedDays.Length * numberPeople); //Fixed size of Picture. If need autosize - disable this row
+                    _panelSetHeight(panelView, iShiftHeightAll + iOffsetBetweenHorizontalLines * workSelectedDays.Length * numberPeople); //Fixed size of Picture. If need autosize - disable this row
                     break;
                 case "DrawRegistration":
-                    _panelSetHeight(panelView, iShiftHeightAll + iStringHeight * workSelectedDays.Length * numberPeople); //Fixed size of Picture. If need autosize - disable this row
+                    _panelSetHeight(panelView, iShiftHeightAll + iOffsetBetweenHorizontalLines * workSelectedDays.Length * numberPeople); //Fixed size of Picture. If need autosize - disable this row
                     break;
                 default:
                     _panelSetAnchor(panelView, (AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top));
@@ -8050,31 +8056,6 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
             }
         }
 
-        private void testSpinToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            int num = 0;
-            Int32.TryParse(textBoxGroup.Text, out num);
-            Task.Run(() => MessageBox.Show("seconds: " + num + "\nfrequencies: " + System.Diagnostics.Stopwatch.Frequency.ToString()));
-
-
-            IStartStopTimer startStopTimerA = new StartStopTimerA(num);
-
-            startStopTimerA.WaitTime();
-            Task.Run(() => MessageBox.Show("1\n" + startStopTimerA.GetTime()));
-
-            IStartStopTimer startStopTimerB = new StartStopTimerB(num);
-            startStopTimerB.WaitTime();
-            Task.Run(() => MessageBox.Show("2\n" + startStopTimerB.GetTime()));
-
-            IStartStopTimer startStopTimerC = new StartStopTimerC(num);
-            startStopTimerC.WaitTime();
-            Task.Run(() => MessageBox.Show("3\n" + startStopTimerC.GetTime()));
-
-            IStartStopTimer startStopTimerD = new StartStopTimerD(num);
-            startStopTimerD.WaitTime();
-            Task.Run(() => MessageBox.Show("4\n" + startStopTimerD.GetTime()));
-        }
-
 
 
         private static void SendCompletedCallback(object sender, System.ComponentModel.AsyncCompletedEventArgs e)     //for async sending
@@ -8134,41 +8115,6 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
         }
 
         //---  End. Schedule Functions ---//
-
-
-
-
-        //---  Start. Block Encryption-Decryption ---//  
-
-        private void TestCryptionItem_Click(object sender, EventArgs e)
-        {
-            string original = "Here is some data to encrypt!";
-            MessageBox.Show("Original:   " + original);
-
-            using (RijndaelManaged myRijndael = new RijndaelManaged())
-            {
-                myRijndael.Key = btsMess1;
-                myRijndael.IV = btsMess2;
-                // Encrypt the string to an array of bytes.
-                byte[] encrypted = EncryptionDecryptionCriticalData.EncryptStringToBytes(original, myRijndael.Key, myRijndael.IV);
-
-                StringBuilder s = new StringBuilder();
-                foreach (byte item in encrypted)
-                {
-                    s.Append(item.ToString("X2") + " ");
-                }
-                MessageBox.Show("Encrypted:   " + s);
-
-                // Decrypt the bytes to a string.
-                string decrypted = EncryptionDecryptionCriticalData.DecryptStringFromBytes(encrypted, btsMess1, btsMess2);
-
-                //Display the original data and the decrypted data.
-                MessageBox.Show("Decrypted:    " + decrypted);
-            }
-        }
-
-        //---  End. Block Encryption-Decryption ---//  
-
 
 
 
