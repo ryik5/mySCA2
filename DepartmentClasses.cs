@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ASTA
-{
-    
+{    
     interface IDepartment
     {
         string _departmentId { get; set; }
@@ -14,7 +9,7 @@ namespace ASTA
         string _departmentBossCode { get; set; }
     }
 
-    class Department : IDepartment
+    class DepartmentClasses : IDepartment
     {
         public string _departmentId { get; set; }
         public string _departmentDescription { get; set; }
@@ -30,7 +25,7 @@ namespace ASTA
             if (obj == null)
                 return false;
 
-            Department df = obj as Department;
+            DepartmentClasses df = obj as DepartmentClasses;
             if ((Object)df == null)
                 return false;
 

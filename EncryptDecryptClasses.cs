@@ -32,7 +32,7 @@ namespace ASTA
             }
  
       */
-    class EncryptDecrypt
+    class EncryptDecryptClasses
     {
         /*
             string plainText = "Hello, World!";            

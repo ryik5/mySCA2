@@ -59,7 +59,7 @@ namespace ASTA
 
         //collecting of data
         static List<PassByPoint> passByPoints = new List<PassByPoint>(); //List byPass points 
-        static List<Person> listFIO = new List<Person>(); // List of FIO and identity of data
+        static List<PersonClasses> listFIO = new List<PersonClasses>(); // List of FIO and identity of data
 
         //Controls "NumUpDown"
         decimal numUpHourStart = 9;
@@ -494,7 +494,7 @@ namespace ASTA
             numUpDownMinuteEnd.Value = 0;
 
             PersonOrGroupItem.Text = WORK_WITH_A_PERSON;
-            toolTip1.SetToolTip(textBoxGroup, "Создать группу");
+            toolTip1.SetToolTip(textBoxGroup, "Создать или добавить в группу");
             toolTip1.SetToolTip(textBoxGroupDescription, "Изменить описание группы");
             StatusLabel2.Text = "";
 
@@ -614,7 +614,7 @@ namespace ASTA
         private void TryMakeDB()
         {
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'ConfigDB' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, ParameterName TEXT, Value TEXT, Description TEXT, DateCreated TEXT, IsPassword TEXT, IsExample TEXT, UNIQUE ('ParameterName', 'IsExample') ON CONFLICT REPLACE);", databasePerson);
-            ExecuteSql("CREATE TABLE IF NOT EXISTS 'PeopleGroupDesciption' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, GroupPerson TEXT, GroupPersonDescription TEXT, AmountStaffInDepartment TEXT, Recipient TEXT, UNIQUE ('GroupPerson') ON CONFLICT REPLACE);", databasePerson);
+            ExecuteSql("CREATE TABLE IF NOT EXISTS 'PeopleGroupDescription' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, GroupPerson TEXT, GroupPersonDescription TEXT, AmountStaffInDepartment TEXT, Recipient TEXT, UNIQUE ('GroupPerson') ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'PeopleGroup' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, FIO TEXT, NAV TEXT, GroupPerson TEXT, ControllingHHMM TEXT, ControllingOUTHHMM TEXT, " +
                     "Shift TEXT, Comment TEXT, Department TEXT, PositionInDepartment TEXT, DepartmentId TEXT, City TEXT, Boss TEXT, UNIQUE ('FIO', 'NAV', 'GroupPerson', 'DepartmentId') ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'ListOfWorkTimeShifts' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, NAV TEXT, DayStartShift TEXT, " +
@@ -637,7 +637,7 @@ namespace ASTA
         private void UpdateTableOfDB()
         {
             TryUpdateStructureSqlDB("ConfigDB", "ParameterName TEXT, Value TEXT, Description TEXT, DateCreated TEXT, IsPassword TEXT, IsExample TEXT", databasePerson);
-            TryUpdateStructureSqlDB("PeopleGroupDesciption", "GroupPerson TEXT, GroupPersonDescription TEXT, AmountStaffInDepartment TEXT, Recipient TEXT", databasePerson);
+            TryUpdateStructureSqlDB("PeopleGroupDescription", "GroupPerson TEXT, GroupPersonDescription TEXT, AmountStaffInDepartment TEXT, Recipient TEXT", databasePerson);
             TryUpdateStructureSqlDB("PeopleGroup", "FIO TEXT, NAV TEXT, GroupPerson TEXT, ControllingHHMM TEXT, ControllingOUTHHMM TEXT, " +
                     "Shift TEXT, Comment TEXT, Department TEXT, PositionInDepartment TEXT, DepartmentId TEXT, City TEXT, Boss TEXT", databasePerson);
             TryUpdateStructureSqlDB("ListOfWorkTimeShifts", "NAV TEXT, DayStartShift TEXT, MoStart REAL,MoEnd REAL, TuStart REAL,TuEnd REAL, WeStart REAL,WeEnd REAL, ThStart REAL,ThEnd REAL, FrStart REAL,FrEnd REAL, " +
@@ -1466,10 +1466,10 @@ namespace ASTA
             string dayStartShift = "";
             string dayStartShift_ = "";
 
-            listFIO = new List<Person>();
+            listFIO = new List<PersonClasses>();
             //  HashSet<Department> departments = new HashSet<Department>(); //check
-            Dictionary<string, Department> departments = new Dictionary<string, Department>();
-            Department departmentFromDictionary;
+            Dictionary<string, DepartmentClasses> departments = new Dictionary<string, DepartmentClasses>();
+            DepartmentClasses departmentFromDictionary;
 
             _comboBoxClr(comboBoxFio);
             _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю данные с " + sServer1 + ". Ждите окончания процесса...");
@@ -1522,7 +1522,7 @@ namespace ASTA
                                 groupName = record?["name"]?.ToString()?.Trim();
                                 if (groupName?.Length > 0 && idGroup?.Length > 0 && !departments.ContainsKey(idGroup))
                                 {
-                                    departments.Add(idGroup, new Department()
+                                    departments.Add(idGroup, new DepartmentClasses()
                                     {
                                         _departmentId = idGroup,
                                         _departmentDescription = groupName,
@@ -1550,7 +1550,7 @@ namespace ASTA
                                     groupName = record["parent_id"]?.ToString()?.Trim();
                                     nav = record["tabnum"]?.ToString()?.Trim()?.ToUpper();
 
-                                    departmentFromDictionary = new Department();
+                                    departmentFromDictionary = new DepartmentClasses();
                                     //  depName = departments.First((x) => x._departmentId == groupName)?._departmentDescription;
                                     if (departments.TryGetValue(groupName, out departmentFromDictionary))
                                     {
@@ -1573,7 +1573,7 @@ namespace ASTA
 
                                     dataTablePeople.Rows.Add(row);
 
-                                    listFIO.Add(new Person { FIO = fio, NAV = nav });
+                                    listFIO.Add(new PersonClasses { FIO = fio, NAV = nav });
                                     //    listCodesWithIdCard.Add(nav);
 
                                     _ProgressWork1Step();
@@ -1608,7 +1608,7 @@ namespace ASTA
 
                                 if (reader?.GetString(@"name")?.Length > 0 && idGroup?.Length > 0 && !departments.ContainsKey(idGroup))
                                 {
-                                    departments.Add(idGroup, new Department()
+                                    departments.Add(idGroup, new DepartmentClasses()
                                     {
                                         _departmentId = idGroup,
                                         _departmentDescription = reader.GetString(@"name"),
@@ -1698,7 +1698,7 @@ namespace ASTA
                                     personFromServer.NAV = reader.GetString(@"code")?.Trim()?.ToUpper()?.Replace('C', 'S');
                                     personFromServer.DepartmentId = reader.GetString(@"department")?.Trim();
 
-                                    departmentFromDictionary = new Department();
+                                    departmentFromDictionary = new DepartmentClasses();
                                     //  depName = departments.First((x) => x._departmentId == groupName)?._departmentDescription;
                                     if (departments.TryGetValue(personFromServer?.DepartmentId, out departmentFromDictionary))
                                     {
@@ -1763,7 +1763,7 @@ namespace ASTA
                                         dataTablePeople.Rows.Add(row);
                                     }
 
-                                    listFIO.Add(new Person { FIO = personFromServer.FIO, NAV = personFromServer.NAV });
+                                    listFIO.Add(new PersonClasses { FIO = personFromServer.FIO, NAV = personFromServer.NAV });
 
                                     _ProgressWork1Step();
                                 }
@@ -1801,7 +1801,7 @@ namespace ASTA
 
             // HashSet<DepartmentFull> groups = new HashSet<DepartmentFull>();
             Dictionary<string, DepartmentFull> groups = new Dictionary<string, DepartmentFull>();
-            HashSet<Department> departmentsUniq = new HashSet<Department>();
+            HashSet<DepartmentClasses> departmentsUniq = new HashSet<DepartmentClasses>();
             HashSet<DepartmentFull> departmentsEmailUniq = new HashSet<DepartmentFull>();
             _ProgressWork1Step();
 
@@ -1874,7 +1874,7 @@ namespace ASTA
             {
                 if (strDepartment.Value?._departmentId?.Length > 0)
                 {
-                    departmentsUniq.Add(new Department
+                    departmentsUniq.Add(new DepartmentClasses
                     {
                         _departmentId = strDepartment.Value._departmentId,
                         _departmentDescription = strDepartment.Value._departmentDescription,
@@ -1945,7 +1945,7 @@ namespace ASTA
                         depDescr = deprtment._departmentDescription;
 
                         depBoss = deprtment._departmentBossCode?.Length > 0 ? deprtment._departmentBossCode : "Default_Recepient_code_From_Db";
-                        using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroupDesciption' (GroupPerson, GroupPersonDescription, Recipient) " +
+                        using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroupDescription' (GroupPerson, GroupPersonDescription, Recipient) " +
                                                "VALUES (@GroupPerson, @GroupPersonDescription, @Recipient)", sqlConnection))
                         {
                             command.Parameters.Add("@GroupPerson", DbType.String).Value = depName;
@@ -2369,7 +2369,7 @@ namespace ASTA
                 using (var connection = new SQLiteConnection($"Data Source={fileInfo};Version=3;"))
                 {
                     connection.Open();
-                    using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroupDesciption' (GroupPerson, GroupPersonDescription) " +
+                    using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroupDescription' (GroupPerson, GroupPersonDescription) " +
                                             "VALUES (@GroupPerson, @GroupPersonDescription )", connection))
                     {
                         command.Parameters.Add("@GroupPerson", DbType.String).Value = nameGroup;
@@ -2391,9 +2391,9 @@ namespace ASTA
             groupBoxProperties.Visible = false;
             dataGridView1.Visible = false;
 
-            UpdateAmountAndRecepientOfPeopleGroupDesciption();
+            UpdateAmountAndRecepientOfPeopleGroupDescription();
 
-            ShowDataTableDbQuery(databasePerson, "PeopleGroupDesciption",
+            ShowDataTableDbQuery(databasePerson, "PeopleGroupDescription",
                 "SELECT GroupPerson AS 'Группа', GroupPersonDescription AS 'Описание группы', AmountStaffInDepartment AS 'Колличество сотрудников в группе', Recipient AS '" + RECEPIENTS_OF_REPORTS + "' ", " group by GroupPerson ORDER BY GroupPerson asc; ");
 
             LoadDataItem.BackColor = Color.PaleGreen;
@@ -2412,9 +2412,9 @@ namespace ASTA
             PersonOrGroupItem.Text = WORK_WITH_A_PERSON;
         }
 
-        private void UpdateAmountAndRecepientOfPeopleGroupDesciption()
+        private void UpdateAmountAndRecepientOfPeopleGroupDescription()
         {
-            logger.Trace("UpdateAmountAndRecepientOfPeopleGroupDesciption");
+            logger.Trace("UpdateAmountAndRecepientOfPeopleGroupDescription");
             List<string> groupsUncount = new List<string>();
             List<AmountMembersOfGroup> amounts = new List<AmountMembersOfGroup>();
             HashSet<string> groupsUniq = new HashSet<string>();
@@ -2431,11 +2431,11 @@ namespace ASTA
                     SQLiteCommand sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
 
-                    //set to empty for amounts and recepients in the PeopleGroupDesciption
-                    query = "UPDATE 'PeopleGroupDesciption' SET AmountStaffInDepartment='0';";
+                    //set to empty for amounts and recepients in the PeopleGroupDescription
+                    query = "UPDATE 'PeopleGroupDescription' SET AmountStaffInDepartment='0';";
                     using (var command = new SQLiteCommand(query, sqlConnection))
                     { command.ExecuteNonQuery(); }
-                    query = "UPDATE 'PeopleGroupDesciption' SET Recipient='';";
+                    query = "UPDATE 'PeopleGroupDescription' SET Recipient='';";
                     using (var command = new SQLiteCommand(query, sqlConnection))
                     { command.ExecuteNonQuery(); }
                     logger.Trace(query);
@@ -2464,7 +2464,7 @@ namespace ASTA
                         }
                     }
 
-                    query = "SELECT GroupPerson FROM PeopleGroupDesciption;";
+                    query = "SELECT GroupPerson FROM PeopleGroupDescription;";
                     logger.Trace(query);
                     using (var sqlCommand = new SQLiteCommand(query, sqlConnection))
                     {
@@ -2521,12 +2521,12 @@ namespace ASTA
                     {
                         foreach (var group in amounts.ToArray())
                         {
-                            query = "UPDATE 'PeopleGroupDesciption' SET AmountStaffInDepartment='" + group._amountMembers + "' WHERE GroupPerson like '" + group._groupName + "';";
+                            query = "UPDATE 'PeopleGroupDescription' SET AmountStaffInDepartment='" + group._amountMembers + "' WHERE GroupPerson like '" + group._groupName + "';";
                             logger.Trace(query);
                             using (var command = new SQLiteCommand(query, sqlConnection))
                             { command.ExecuteNonQuery(); }
 
-                            query = "UPDATE 'PeopleGroupDesciption' SET Recipient='" + group._emails + "' WHERE GroupPerson like '" + group._groupName + "';";
+                            query = "UPDATE 'PeopleGroupDescription' SET Recipient='" + group._emails + "' WHERE GroupPerson like '" + group._groupName + "';";
                             logger.Trace(query);
                             using (var command = new SQLiteCommand(query, sqlConnection))
                             { command.ExecuteNonQuery(); }
@@ -2547,7 +2547,7 @@ namespace ASTA
         private void SearchMembersSelectedGroup()
         {
             DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
-            if (nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "PeopleGroupDesciption")
+            if (nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "PeopleGroupDescription")
             {
                 dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { GROUP });
                 SeekAndShowMembersOfGroup(dgSeek.values[0]);
@@ -2632,7 +2632,7 @@ namespace ASTA
         {
             dtPeopleListLoaded?.Clear();
             dtPeopleListLoaded = dtPeople.Copy();
-            HashSet<Department> departmentsUniq = new HashSet<Department>();
+            HashSet<DepartmentClasses> departmentsUniq = new HashSet<DepartmentClasses>();
 
             ImportTextToTable(dtPeopleListLoaded, ref departmentsUniq);
             WritePeopleInLocalDB(databasePerson.ToString(), dtPeopleListLoaded);
@@ -2640,7 +2640,7 @@ namespace ASTA
             departmentsUniq = null;
         }
 
-        private void ImportTextToTable(DataTable dt, ref HashSet<Department> departmentsUniq) //Fill dtPeople
+        private void ImportTextToTable(DataTable dt, ref HashSet<DepartmentClasses> departmentsUniq) //Fill dtPeople
         {
             List<string> listRows = LoadDataIntoList();
 
@@ -2679,7 +2679,7 @@ namespace ASTA
                             row[DEPARTMENT_ID] = "";
                             row[EMPLOYEE_POSITION] = cell[4];
 
-                            departmentsUniq.Add(new Department
+                            departmentsUniq.Add(new DepartmentClasses
                             {
                                 _departmentId = cell[2],
                                 _departmentDescription = cell[3],
@@ -2781,14 +2781,14 @@ namespace ASTA
             }
         }
 
-        private void ImportListGroupsDescriptionInLocalDB(string pathToPersonDB, HashSet<Department> departmentsUniq) //use listGroups
+        private void ImportListGroupsDescriptionInLocalDB(string pathToPersonDB, HashSet<DepartmentClasses> departmentsUniq) //use listGroups
         {
             using (var connection = new SQLiteConnection($"Data Source={pathToPersonDB};Version=3;"))
             {
                 connection.Open();
                 SQLiteCommand commandTransaction = new SQLiteCommand("begin", connection);
                 commandTransaction.ExecuteNonQuery();
-                using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroupDesciption' (GroupPerson, GroupPersonDescription, Recipient) " +
+                using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroupDescription' (GroupPerson, GroupPersonDescription, Recipient) " +
                                         "VALUES (@GroupPerson, @GroupPersonDescription ,@Recipient)", connection))
                 {
                     foreach (var group in departmentsUniq)
@@ -2854,10 +2854,10 @@ namespace ASTA
         {
             string group = _textBoxReturnText(textBoxGroup);
             string groupDescription = _textBoxReturnText(textBoxGroupDescription);
-            DataGridViewSeekValuesInSelectedRow dgSeek;
+            logger.Trace("AddPersonToGroup: group " + group);
             if (_dataGridView1CurrentRowIndex() > -1)
             {
-                dgSeek = new DataGridViewSeekValuesInSelectedRow();
+                DataGridViewSeekValuesInSelectedRow  dgSeek = new DataGridViewSeekValuesInSelectedRow();
                 dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
                  FIO, CODE, DEPARTMENT, EMPLOYEE_POSITION,
                  DESIRED_TIME_IN, DESIRED_TIME_OUT,
@@ -2869,11 +2869,12 @@ namespace ASTA
                     connection.Open();
                     if (group?.Length > 0)
                     {
-                        using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroupDesciption' (GroupPerson) " +
-                                                "VALUES (@GroupPerson )", connection))
+                        using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroupDescription' (GroupPerson, GroupPersonDescription) " +
+                                                "VALUES (@GroupPerson, @GroupPersonDescription)", connection))
                         {
-                            command.Parameters.Add("@GroupPerson", DbType.String).Value = group;
-                            try { command.ExecuteNonQuery(); } catch { }
+                            sqlCommand.Parameters.Add("@GroupPerson", DbType.String).Value = group;
+                            sqlCommand.Parameters.Add("@GroupPersonDescription", DbType.String).Value = groupDescription;
+                            try { sqlCommand.ExecuteNonQuery(); } catch (Exception ept) { logger.Warn("PeopleGroupDescription" + ept.ToString()); }
                         }
                     }
 
@@ -2885,15 +2886,16 @@ namespace ASTA
                             sqlCommand.Parameters.Add("@FIO", DbType.String).Value = dgSeek.values[0];
                             sqlCommand.Parameters.Add("@NAV", DbType.String).Value = dgSeek.values[1];
                             sqlCommand.Parameters.Add("@GroupPerson", DbType.String).Value = group;
+                            sqlCommand.Parameters.Add("@ControllingHHMM", DbType.String).Value = dgSeek.values[4];
+                            sqlCommand.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = dgSeek.values[5];
                             sqlCommand.Parameters.Add("@Department", DbType.String).Value = dgSeek.values[2];
-                            sqlCommand.Parameters.Add("@DepartmentId", DbType.String).Value = dgSeek.values[8];
                             sqlCommand.Parameters.Add("@PositionInDepartment", DbType.String).Value = dgSeek.values[3];
+                            sqlCommand.Parameters.Add("@Comment", DbType.String).Value = "";
+                            sqlCommand.Parameters.Add("@DepartmentId", DbType.String).Value = dgSeek.values[8];
                             sqlCommand.Parameters.Add("@City", DbType.String).Value = dgSeek.values[9];
                             sqlCommand.Parameters.Add("@Boss", DbType.String).Value = dgSeek.values[6];
                             sqlCommand.Parameters.Add("@Shift", DbType.String).Value = dgSeek.values[7];
-                            sqlCommand.Parameters.Add("@ControllingHHMM", DbType.String).Value = dgSeek.values[4];
-                            sqlCommand.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = dgSeek.values[5];
-                            try { sqlCommand.ExecuteNonQuery(); } catch { }
+                            try { sqlCommand.ExecuteNonQuery(); } catch (Exception ept) { logger.Warn("PeopleGroup: " + ept.ToString()); }
                         }
                         StatusLabel2.Text = "\"" + ShortFIO(dgSeek.values[0]) + "\"" + " добавлен в группу \"" + group + "\"";
                         _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
@@ -2909,14 +2911,14 @@ namespace ASTA
                         _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
                     }
                 }
-
             }
+
             SeekAndShowMembersOfGroup(group);
 
             labelGroup.BackColor = SystemColors.Control;
             PersonOrGroupItem.Text = WORK_WITH_A_PERSON;
             nameOfLastTableFromDB = "PeopleGroup";
-            group = groupDescription = null; dgSeek = null;
+            group = groupDescription = null; 
         }
 
         private void GetNamePoints() //Get names of the pass by points
@@ -3128,7 +3130,7 @@ namespace ASTA
             }
             _ProgressWork1Step();
 
-            if ((nameOfLastTableFromDB == "PeopleGroupDesciption" || nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "Mailing" ||
+            if ((nameOfLastTableFromDB == "PeopleGroupDescription" || nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "Mailing" ||
                 nameOfLastTableFromDB == "ListFIO" || doPostAction == "sendEmail") && nameGroup.Length > 0)
             {
                 _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по группе " + nameGroup);
@@ -3552,7 +3554,7 @@ namespace ASTA
             EditAnualDaysItem.Text = DAY_OFF_AND_WORK;
             EditAnualDaysItem.ToolTipText = DAY_OFF_AND_WORK_EDIT;
 
-            toolTip1.SetToolTip(textBoxGroup, "Создать группу");
+            toolTip1.SetToolTip(textBoxGroup, "Создать или добавить в группу");
             toolTip1.SetToolTip(textBoxGroupDescription, "Изменить описание группы");
             labelGroup.Text = "Группа";
             textBoxGroup.Text = "";
@@ -3684,7 +3686,7 @@ namespace ASTA
 
             dtPersonTemp?.Clear();
 
-            if ((nameOfLastTableFromDB == "PeopleGroupDesciption" || nameOfLastTableFromDB == "PeopleGroup") && nameGroup.Length > 0)
+            if ((nameOfLastTableFromDB == "PeopleGroupDescription" || nameOfLastTableFromDB == "PeopleGroup") && nameGroup.Length > 0)
             {
                 dtPeopleGroup.Clear();
                 LoadGroupMembersFromDbToDataTable(nameGroup, ref dtPeopleGroup);
@@ -4599,7 +4601,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                 logger.Info("-= Очистика локальной базы от всех полученных, сгенерированных, сохраненных и введенных данных =-");
 
                 DeleteTable(databasePerson, "PeopleGroup");
-                DeleteTable(databasePerson, "PeopleGroupDesciption");
+                DeleteTable(databasePerson, "PeopleGroupDescription");
                 DeleteTable(databasePerson, "TechnicalInfo");
                 DeleteTable(databasePerson, "BoldedDates");
                 DeleteTable(databasePerson, "ConfigDB");
@@ -5479,7 +5481,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
             {
                 sqlConnection.Open();
                 using (var sqlCommand = new SQLiteCommand(
-                    "SELECT GroupPerson FROM PeopleGroupDesciption;", sqlConnection))
+                    "SELECT GroupPerson FROM PeopleGroupDescription;", sqlConnection))
                 {
                     using (var sqlReader = sqlCommand.ExecuteReader())
                     {
@@ -6334,9 +6336,9 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
         private void textBoxGroupDescription_TextChanged(object sender, EventArgs e)
         {
             if (textBoxGroupDescription.Text.Trim().Length > 0)
-            { StatusLabel2.Text = @"Создать группу: " + textBoxGroup.Text.Trim().ToString() + "(" + textBoxGroupDescription.Text.Trim() + ")"; }
+            { StatusLabel2.Text = @"Создать или добавить в группу: " + textBoxGroup.Text.Trim().ToString() + "(" + textBoxGroupDescription.Text.Trim() + ")"; }
             else
-            { StatusLabel2.Text = @"Создать группу: " + textBoxGroup.Text.Trim().ToString(); }
+            { StatusLabel2.Text = @"Создать или добавить в группу: " + textBoxGroup.Text.Trim().ToString(); }
         }
 
         private void textBoxGroup_TextChanged(object sender, EventArgs e)
@@ -6347,11 +6349,11 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                 CreateGroupItem.Enabled = true;
                 if (textBoxGroupDescription.Text.Trim().Length > 0)
                 {
-                    StatusLabel2.Text = @"Создать группу: " + textBoxGroup.Text.Trim().ToString() + "(" + textBoxGroupDescription.Text.Trim() + ")";
+                    StatusLabel2.Text = @"Создать или добавить в группу: " + textBoxGroup.Text.Trim().ToString() + "(" + textBoxGroupDescription.Text.Trim() + ")";
                 }
                 else
                 {
-                    StatusLabel2.Text = @"Создать группу: " + textBoxGroup.Text.Trim().ToString();
+                    StatusLabel2.Text = @"Создать или добавить в группу: " + textBoxGroup.Text.Trim().ToString();
                 }
             }
             else
@@ -6439,7 +6441,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                         //   "NAV AS '"+DAY_USED_BY+"', DayDescription AS 'Описание', DateCreated AS '"+DAY_ADDED+"'",
                         //    " ORDER BY DayBolded desc, NAV asc; ");
                     }
-                    else if (nameOfLastTableFromDB == "PeopleGroupDesciption")
+                    else if (nameOfLastTableFromDB == "PeopleGroupDescription")
                     {
                         dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
                              GROUP,   GROUP_DECRIPTION
@@ -6606,7 +6608,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                         nameOfLastTableFromDB = "PeopleGroup";
                         StatusLabel2.Text = @"Обновлено время прихода " + ShortFIO(fio) + " в группе: " + group;
                     }
-                    else if (nameOfLastTableFromDB == @"PeopleGroupDesciption")
+                    else if (nameOfLastTableFromDB == @"PeopleGroupDescription")
                     {
                         dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
                              GROUP, GROUP_DECRIPTION });
@@ -6779,19 +6781,19 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
         private void dataGridView1_MouseClick(object sender, MouseEventArgs e)
         {
             int currentMouseOverRow = dataGridView1.HitTest(e.X, e.Y).RowIndex;
+            
             if (e.Button == MouseButtons.Right && currentMouseOverRow > -1)
             {
+                string txtboxGroup = _textBoxReturnText(textBoxGroup);
+                string txtboxGroupDescription = _textBoxReturnText(textBoxGroupDescription);
+
                 ContextMenu mRightClick = new ContextMenu();
                 DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
                 string recepient = "";
-                if (nameOfLastTableFromDB == @"PeopleGroupDesciption")
+                if (nameOfLastTableFromDB == @"PeopleGroupDescription")
                 {
                     dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { GROUP, GROUP_DECRIPTION, RECEPIENTS_OF_REPORTS });
 
-                    mRightClick.MenuItems.Add(new MenuItem(text: "&Загрузить данные регистраций группы: '" + dgSeek.values[1] +
-                        "' за " + _dateTimePickerStartReturnMonth(), onClick: GetDataItem_Click));
-                    mRightClick.MenuItems.Add(new MenuItem(text: "Загрузить данные регистраций группы: '" + dgSeek.values[1] +
-                        "' за " + _dateTimePickerStartReturnMonth() + " и &подготовить отчет", onClick: DoReportByRightClick));
                     if (dgSeek.values[2]?.Length > 0)
                     {
                         recepient = dgSeek.values[2];
@@ -6801,7 +6803,11 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                         recepient = mailServerUserName;
                     }
 
-                    mRightClick.MenuItems.Add(new MenuItem(text: "Загрузить данные регистраций группы: '" + dgSeek.values[1] +
+                    mRightClick.MenuItems.Add(new MenuItem(text: "&Загрузить входы-выходы сотрудников группы: '" + dgSeek.values[1] +
+                        "' за " + _dateTimePickerStartReturnMonth(), onClick: GetDataItem_Click));
+                    mRightClick.MenuItems.Add(new MenuItem(text: "Загрузить  входы-выходы сотрудников группы: '" + dgSeek.values[1] +
+                        "' за " + _dateTimePickerStartReturnMonth() + " и &подготовить отчет", onClick: DoReportByRightClick));
+                    mRightClick.MenuItems.Add(new MenuItem(text: "Загрузить входы-выходы сотрудников группы: '" + dgSeek.values[1] +
                         "' за " + _dateTimePickerStartReturnMonth() + " и &отправить отчет адресату: " + recepient, onClick: DoReportAndEmailByRightClick));
                     mRightClick.MenuItems.Add("-");
                     mRightClick.MenuItems.Add(new MenuItem(text: "&Удалить группу: '" + dgSeek.values[0] + "'(" + dgSeek.values[1] + ")", onClick: DeleteCurrentRow));
@@ -6836,15 +6842,24 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                 else if (nameOfLastTableFromDB == @"PeopleGroup" || nameOfLastTableFromDB == @"ListFIO")
                 {
                     dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
-                    FIO, CODE, DEPARTMENT, EMPLOYEE_POSITION, CHIEF_ID, EMPLOYEE_SHIFT, DEPARTMENT_ID, PLACE_EMPLOYEE
+                        FIO, CODE, DEPARTMENT,
+                        EMPLOYEE_POSITION, CHIEF_ID, EMPLOYEE_SHIFT,
+                        DEPARTMENT_ID, PLACE_EMPLOYEE, GROUP
                     });
 
-                    _textBoxSetText(textBoxGroup, "");
+                    if (string.Compare(dgSeek.values[8], txtboxGroup) != 0 && txtboxGroup?.Length > 0) //добавить пункт меню если в текстбоксе группа другая
+                    {
+                        mRightClick.MenuItems.Add(new MenuItem(text: "Добавить '" + dgSeek.values[0] +
+                            "' в группу '" + txtboxGroup + "'", onClick: AddPersonToGroupItem_Click));
+                        mRightClick.MenuItems.Add("-");
+                    }
 
-                    mRightClick.MenuItems.Add(new MenuItem(text: "&Загрузить данные регистраций сотрудника: '" + dgSeek.values[0] +
+                    //  _textBoxSetText(textBoxGroup, "");
+
+                    mRightClick.MenuItems.Add(new MenuItem(text: "&Загрузить входы-выходы в офис: '" + dgSeek.values[0] +
                         "' за " + _dateTimePickerStartReturnMonth(), onClick: GetDataItem_Click));
                     mRightClick.MenuItems.Add("-");
-                    mRightClick.MenuItems.Add(new MenuItem("&Удалить сотрудника из данной группы", DeleteCurrentRow));
+                    mRightClick.MenuItems.Add(new MenuItem("&Удалить '" + dgSeek.values[0] + "' из группы '" + txtboxGroup + "'", DeleteCurrentRow));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
                 else if (nameOfLastTableFromDB == @"BoldedDates")
@@ -6853,7 +6868,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                         DAY_DATE, DAY_USED_BY, DAY_TYPE });
 
                     string dayType = "";
-                    if (textBoxGroup?.Text?.Trim()?.Length == 0 || textBoxGroup?.Text?.ToLower()?.Trim() == "выходной")
+                    if (txtboxGroup?.Length == 0 || txtboxGroup?.ToLower() == "выходной")
                     { dayType = "Выходной"; }
                     else { dayType = "Рабочий"; }
 
@@ -6989,7 +7004,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer.exe", " /select, " + filePathExcelReport)); // //System.Reflection.Assembly.GetExecutingAssembly().Location)
 
             _ProgressBar1Stop();
-            nameOfLastTableFromDB = "PeopleGroupDesciption";
+            nameOfLastTableFromDB = "PeopleGroupDescription";
         }
 
         private void MakeCloneMailing(object sender, EventArgs e) //MakeCloneMailing()
@@ -7069,7 +7084,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
 
             switch (nameOfLastTableFromDB)
             {
-                case "PeopleGroupDesciption":
+                case "PeopleGroupDescription":
                     {
                         break;
                     }
@@ -7166,7 +7181,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                 lastDayOfCurrentMonth[0] + "-" + lastDayOfCurrentMonth[1] + "-" + lastDayOfCurrentMonth[2] + " на дату - " + dgSeek.values[7]
                 );
 
-            HashSet<MailingStructure> mailingList = new HashSet<MailingStructure>();
+            HashSet<MailingStructureClasses> mailingList = new HashSet<MailingStructureClasses>();
 
             using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
             {
@@ -7205,7 +7220,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                                         dayReportInDB == dgSeek.values[7]
                                         )
                                 {
-                                    mailingList.Add(new MailingStructure()
+                                    mailingList.Add(new MailingStructureClasses()
                                     {
                                         _sender = sender,
                                         _recipient = recipient,
@@ -7224,7 +7239,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                 }
             }
 
-            foreach (MailingStructure mailng in mailingList)
+            foreach (MailingStructureClasses mailng in mailingList)
             {
                 _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
 
@@ -7271,15 +7286,15 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
 
             switch (nameOfLastTableFromDB)
             {
-                case "PeopleGroupDesciption":
+                case "PeopleGroupDescription":
                     {
                         dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { GROUP });
 
                         DeleteDataTableQueryParameters(databasePerson, "PeopleGroup", "GroupPerson", dgSeek.values[0], "", "", "", "");
-                        DeleteDataTableQueryParameters(databasePerson, "PeopleGroupDesciption", "GroupPerson", dgSeek.values[0], "", "", "", "");
+                        DeleteDataTableQueryParameters(databasePerson, "PeopleGroupDescription", "GroupPerson", dgSeek.values[0], "", "", "", "");
 
-                        UpdateAmountAndRecepientOfPeopleGroupDesciption();
-                        ShowDataTableDbQuery(databasePerson, "PeopleGroupDesciption", "SELECT GroupPerson AS 'Группа', GroupPersonDescription AS 'Описание группы', AmountStaffInDepartment AS 'Колличество сотрудников в группе' ", " group by GroupPerson ORDER BY GroupPerson asc; ");
+                        UpdateAmountAndRecepientOfPeopleGroupDescription();
+                        ShowDataTableDbQuery(databasePerson, "PeopleGroupDescription", "SELECT GroupPerson AS 'Группа', GroupPersonDescription AS 'Описание группы', AmountStaffInDepartment AS 'Колличество сотрудников в группе' ", " group by GroupPerson ORDER BY GroupPerson asc; ");
                         _toolStripStatusLabelSetText(StatusLabel2, "Удалена группа: " + dgSeek.values[0] + "| Всего групп: " + _dataGridView1RowsCount());
                         MembersGroupItem.Enabled = true;
                         break;
@@ -7295,10 +7310,10 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                         { SeekAndShowMembersOfGroup(group); }
                         else
                         {
-                            DeleteDataTableQueryParameters(databasePerson, "PeopleGroupDesciption", "GroupPerson", dgSeek.values[1], "", "", "", "");
+                            DeleteDataTableQueryParameters(databasePerson, "PeopleGroupDescription", "GroupPerson", dgSeek.values[1], "", "", "", "");
 
-                            UpdateAmountAndRecepientOfPeopleGroupDesciption();
-                            ShowDataTableDbQuery(databasePerson, "PeopleGroupDesciption", "SELECT GroupPerson AS 'Группа', GroupPersonDescription AS 'Описание группы', AmountStaffInDepartment AS 'Колличество сотрудников в группе' ", " group by GroupPerson ORDER BY GroupPerson asc; ");
+                            UpdateAmountAndRecepientOfPeopleGroupDescription();
+                            ShowDataTableDbQuery(databasePerson, "PeopleGroupDescription", "SELECT GroupPerson AS 'Группа', GroupPersonDescription AS 'Описание группы', AmountStaffInDepartment AS 'Колличество сотрудников в группе' ", " group by GroupPerson ORDER BY GroupPerson asc; ");
                         }
 
                         textBoxGroup.BackColor = Color.White;
@@ -7608,7 +7623,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                 daysOfSendingMail.START_OF_MONTH + ", " + daysOfSendingMail.MIDDLE_OF_MONTH + ", " +
                 daysOfSendingMail.LAST_WORK_DAY_OF_MONTH + ", " + daysOfSendingMail.END_OF_MONTH
                 );
-            HashSet<MailingStructure> mailingList = new HashSet<MailingStructure>();
+            HashSet<MailingStructureClasses> mailingList = new HashSet<MailingStructureClasses>();
 
             using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
             {
@@ -7640,7 +7655,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
 
                                 if (status == "активная" && dayToSendReport == today.Day)
                                 {
-                                    mailingList.Add(new MailingStructure()
+                                    mailingList.Add(new MailingStructureClasses()
                                     {
                                         _sender = sender,
                                         _recipient = recipient,
@@ -7670,7 +7685,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                 }
             }
 
-            foreach (MailingStructure mailng in mailingList)
+            foreach (MailingStructureClasses mailng in mailingList)
             {
                 _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
 
@@ -7720,7 +7735,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
             string dayReport = "";
             string str = "";
 
-            HashSet<MailingStructure> mailingList = new HashSet<MailingStructure>();
+            HashSet<MailingStructureClasses> mailingList = new HashSet<MailingStructureClasses>();
 
             using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
             {
@@ -7748,7 +7763,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
 
                                 dayReport = ReturnStrongNameDayOfSendingReports(dayReportInDB);
 
-                                mailingList.Add(new MailingStructure()
+                                mailingList.Add(new MailingStructureClasses()
                                 {
                                     _sender = sender,
                                     _recipient = recipient,
@@ -7766,7 +7781,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                 }
             }
 
-            foreach (MailingStructure mailng in mailingList)
+            foreach (MailingStructureClasses mailng in mailingList)
             {
                 str = "UPDATE 'Mailing' SET DayReport='" + mailng._dayReport +
                     "' WHERE RecipientEmail='" + mailng._recipient +
@@ -8327,9 +8342,9 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
         {
             string tBox = "";
             if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { tBox = txtBox?.Text?.ToString()?.Trim(); }));
+                Invoke(new MethodInvoker(delegate { tBox = txtBox?.Text?.Trim(); }));
             else
-                tBox = txtBox?.Text?.ToString()?.Trim();
+                tBox = txtBox?.Text?.Trim();
             return tBox;
         }
 

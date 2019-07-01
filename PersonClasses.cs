@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ASTA
 {
@@ -13,7 +10,7 @@ namespace ASTA
         string NAV { get; set; }
     }
 
-    class Person : IPerson, IComparable<Person>
+    class PersonClasses : IPerson, IComparable<PersonClasses>
     {
         public string FIO { get; set; }
         public string NAV { get; set; }
@@ -28,7 +25,7 @@ namespace ASTA
             if (obj == null)
                 return false;
 
-            Person df = obj as Person;
+            PersonClasses df = obj as PersonClasses;
             if ((Object)df == null)
                 return false;
 
@@ -41,25 +38,25 @@ namespace ASTA
         }
 
         //реализация для выполнения сортировки
-        int IComparable<Person>.CompareTo(Person next)
+        int IComparable<PersonClasses>.CompareTo(PersonClasses next)
         {
             return new PersonComparer().Compare(this, next);
         }
 
-        string CompareTo(Person next)
+        string CompareTo(PersonClasses next)
         {
             return next.CompareTo(this);
         }
     }
 
-    class PersonComparer : IComparer<Person>
+    class PersonComparer : IComparer<PersonClasses>
     {
-        public int Compare(Person x, Person y)
+        public int Compare(PersonClasses x, PersonClasses y)
         {
             return this.CompareTwoPerson(x, y);
         }
 
-        public int CompareTwoPerson(Person x, Person y)
+        public int CompareTwoPerson(PersonClasses x, PersonClasses y)
         {
             string a = x.FIO + x.NAV;
             string b = y.FIO + y.NAV;
