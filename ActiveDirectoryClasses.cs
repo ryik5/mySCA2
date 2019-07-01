@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.DirectoryServices.AccountManagement;
 using System.DirectoryServices;
 using System;
-using System.Linq;
 
 namespace ASTA
 {
-
     interface IUserAD
     {
         string Name { get; set; }        // имя

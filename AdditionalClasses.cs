@@ -1,8 +1,7 @@
 ﻿using System;
 
 namespace ASTA
-{
-    
+{    
     class PassByPoint
     {
         public string _id;
