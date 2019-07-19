@@ -2,36 +2,6 @@
 
 namespace ASTA
 {    
-    class PassByPoint
-    {
-        public string _id;
-        public string _name;
-        public string _direction;
-        public string _server;
-
-        public override string ToString()
-        {
-            return _id + "\t" + _name + "\t" + _direction + "\t" + _server;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null)
-                return false;
-
-            PassByPoint df = obj as PassByPoint;
-            if ((Object)df == null)
-                return false;
-
-            return this.ToString() == df.ToString();
-        }
-
-        public override int GetHashCode()
-        {
-            return ToString().GetHashCode();
-        }
-    }
-
     class OutReasons
     {
         public string _id;
@@ -116,32 +86,4 @@ namespace ASTA
         public string _Comment;
     }
 
-    class AmountMembersOfGroup
-    {
-        public int _amountMembers;
-        public string _groupName;
-        public string _emails;
-
-        public override string ToString()
-        {
-            return _amountMembers + "\t" + _groupName + "\t" + _emails;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null)
-                return false;
-
-            AmountMembersOfGroup df = obj as AmountMembersOfGroup;
-            if ((Object)df == null)
-                return false;
-
-            return this.ToString() == df.ToString();
-        }
-        public override int GetHashCode()
-        {
-            return ToString().GetHashCode();
-        }
-    }
-    
 }

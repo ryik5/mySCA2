@@ -10,7 +10,7 @@ namespace ASTA
         string NAV { get; set; }
     }
 
-    class PersonClasses : IPerson, IComparable<PersonClasses>
+    class Person : IPerson, IComparable<Person>
     {
         public string FIO { get; set; }
         public string NAV { get; set; }
@@ -25,7 +25,7 @@ namespace ASTA
             if (obj == null)
                 return false;
 
-            PersonClasses df = obj as PersonClasses;
+            Person df = obj as Person;
             if ((Object)df == null)
                 return false;
 
@@ -38,25 +38,25 @@ namespace ASTA
         }
 
         //реализация для выполнения сортировки
-        int IComparable<PersonClasses>.CompareTo(PersonClasses next)
+        int IComparable<Person>.CompareTo(Person next)
         {
             return new PersonComparer().Compare(this, next);
         }
 
-        string CompareTo(PersonClasses next)
+        string CompareTo(Person next)
         {
             return next.CompareTo(this);
         }
     }
 
-    class PersonComparer : IComparer<PersonClasses>
+    class PersonComparer : IComparer<Person>
     {
-        public int Compare(PersonClasses x, PersonClasses y)
+        public int Compare(Person x, Person y)
         {
             return this.CompareTwoPerson(x, y);
         }
 
-        public int CompareTwoPerson(PersonClasses x, PersonClasses y)
+        public int CompareTwoPerson(Person x, Person y)
         {
             string a = x.FIO + x.NAV;
             string b = y.FIO + y.NAV;
@@ -82,19 +82,24 @@ namespace ASTA
     class PersonFull : IPerson
     {
         public int idCard;//= 0
+
         public string FIO { get; set; }//= ""
         public string NAV { get; set; }//= ""
-        public string Department;//= ""
-        public string DepartmentId;//= ""
-        public string DepartmentBossCode;//= ""
+
         public string PositionInDepartment;//= ""
         public string GroupPerson;//= ""
         public string City;//= ""
+
+        public string Department;//= ""
+        public string DepartmentId;//= ""
+        public string DepartmentBossCode;//= ""
+
         public int ControlInSeconds;//= 32460
         public int ControlOutSeconds;// =64800
         public string ControlInHHMM;//= "09:00"
         public string ControlOutHHMM;//= "18:00"
-        public string Shift;//= ""
+
+        public string Shift;//= ""   /* персональный график*/
         public string Comment;//= ""
 
         public override string ToString()

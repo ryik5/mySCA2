@@ -9,7 +9,7 @@ namespace ASTA
         string _departmentBossCode { get; set; }
     }
 
-    class DepartmentClasses : IDepartment
+    class Department : IDepartment
     {
         public string _departmentId { get; set; }
         public string _departmentDescription { get; set; }
@@ -25,7 +25,7 @@ namespace ASTA
             if (obj == null)
                 return false;
 
-            DepartmentClasses df = obj as DepartmentClasses;
+            Department df = obj as Department;
             if ((Object)df == null)
                 return false;
 
