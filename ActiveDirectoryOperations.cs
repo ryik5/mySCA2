@@ -3,17 +3,11 @@ using System.Collections.Generic;
 using System.DirectoryServices.AccountManagement;
 using System.DirectoryServices;
 using System;
+using System.Runtime.InteropServices;
 
 namespace ASTA
 {
-    interface IUserAD
-    {
-        string Name { get; set; }        // имя
-        string Domain { get; set; }      // домен
-        string Password { get; set; }    // пароль
-    }
-
-    class UserADAuthorization : IUserAD
+    class UserADAuthorization 
     {
         public string Name { get; set; }       // имя
         public string Domain { get; set; }      // домен
@@ -91,7 +85,7 @@ namespace ASTA
     {
         static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         UserADAuthorization UserADAuthorization;
-        //  bool isValid = false;
+        bool isValid = false;
 
         List<StaffAD> staffAD = new List<StaffAD>();
 
@@ -104,8 +98,8 @@ namespace ASTA
                 .SetDomainPath(_domainPath)
                 .Build();
 
-            // isValid = ValidateCredentials(UserADAuthorization); 
-            // logger.Info("Доступ к домену '" + UserADAuthorization.Domain + "' предоставлен: " + isValid);
+           // isValid = ValidateCredentials(UserADAuthorization);
+           //  logger.Trace("!Test only!  "+"Доступ к домену '" + UserADAuthorization.Domain + "' предоставлен: " + isValid);
 
             GetDataAD(ref staffAD);
         }
@@ -126,54 +120,37 @@ namespace ASTA
                 {
                     using (var searcher = new PrincipalSearcher(new UserPrincipal(context)))
                     {
-                        string mail, code, decription;
+                        string _mail, _login, _fio, _code, _decription;
                         foreach (var result in searcher.FindAll())
                         {
                             DirectoryEntry de = result.GetUnderlyingObject() as DirectoryEntry;
 
-                            mail = de?.Properties["mail"]?.Value?.ToString()?.Trim();
-                            code = de?.Properties["extensionAttribute1"]?.Value?.ToString()?.Trim();
-                            try
-                            {
-                                decription = de.Properties["description"].Value.ToString().ToLower().Trim();
-                            }
-                            catch { decription = ""; }
+                            _mail = de?.Properties["mail"]?.Value?.ToString();
+                            _code = de?.Properties["extensionAttribute1"]?.Value?.ToString();
+                            _decription = de?.Properties["description"]?.Value?.ToString()?.Trim()?.ToLower();
 
-                            try
+                            if (_mail != null && _code?.Length > 0 && _mail.Contains("@") && !object.Equals(_decription, "dismiss")) //
                             {
-                                if (code?.Length > 0 && mail.Contains("@") && !decription.Equals("dismiss")) //
+                                _login = de?.Properties["sAMAccountName"]?.Value?.ToString();
+                                _fio = de?.Properties["displayName"]?.Value?.ToString();
+
+                                staffAD.Add(new StaffAD
                                 {
+                                    mail = _mail,
+                                    login = _login,
+                                    code = _code,
+                                    fio = _fio
+                                });
 
-                                    //todo 
-                                    //fill 
-                                    staffAD.Add(new StaffAD
-                                    {
-                                        mail = de?.Properties["mail"]?.Value?.ToString(),
-                                        fio = de?.Properties["displayName"]?.Value?.ToString(),
-                                        login = de?.Properties["sAMAccountName"]?.Value?.ToString(),
-                                        code = de?.Properties["extensionAttribute1"]?.Value?.ToString()
-                                    });
-
-                                    logger.Trace(
-                                         de?.Properties["mail"]?.Value + "| " +
-                                          // de?.Properties["mailNickname"]?.Value + "| " +
-                                          de?.Properties["sAMAccountName"]?.Value + "| " +
-                                          de?.Properties["extensionAttribute1"]?.Value + "| " +
-                                          de?.Properties["displayName"]?.Value
-                                         );
-                                }
+                                logger.Trace(_mail + "| " + _login + "| " + _code + "| " + _fio);
                             }
-                            catch { }
                         }
 
                         logger.Info("ActiveDirectoryGetData,GetDataAD: finished");
                     }
                 }
             }
-            //   else
-            //  {
             logger.Trace("ActiveDirectoryGetData: User: '" + UserADAuthorization.Name + "' |Password: '" + UserADAuthorization.Password + "' |Domain: '" + UserADAuthorization.Domain + "' |DomainURI: '" + UserADAuthorization.DomainPath + "'");
-            //   }
         }
 
         public StaffMemento SaveListStaff()
@@ -181,22 +158,20 @@ namespace ASTA
             return new StaffMemento(staffAD);
         }
 
-
-        /*
-                // it sometimes doesn't work correctly
-                static bool ValidateCredentials(UserADAuthorization userADAuthorization)
-                {
-                    IntPtr token;
-                    bool success = NativeMethods.LogonUser(
-                        userADAuthorization.Name,
-                        userADAuthorization.Domain,
-                        userADAuthorization.Password,
-                        NativeMethods.LogonType.Interactive,
-                        NativeMethods.LogonProvider.Default,
-                        out token);
-                    if (token != IntPtr.Zero) NativeMethods.CloseHandle(token);
-                    return success;
-                }*/
+        // it sometimes doesn't work correctly
+        static bool ValidateCredentials(UserADAuthorization userADAuthorization)
+        {
+            IntPtr token;
+            bool success = NativeMethods.LogonUser(
+                userADAuthorization.Name,
+                userADAuthorization.Domain,
+                userADAuthorization.Password,
+                NativeMethods.LogonType.Interactive,
+                NativeMethods.LogonProvider.Default,
+                out token);
+            if (token != IntPtr.Zero) NativeMethods.CloseHandle(token);
+            return success;
+        }
     }
 
     class ListStaffSender    // Originator
@@ -307,7 +282,7 @@ namespace ASTA
         }
     }
 
-    /*
+    
     // it sometimes doesn't work correctly
     /// <summary>
     /// Implements P/Invoke Interop calls to the operating system.
@@ -421,5 +396,5 @@ namespace ASTA
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static extern bool CloseHandle(IntPtr handle);
     }
-    */
+    
 }

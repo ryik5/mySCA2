@@ -58,8 +58,8 @@ namespace ASTA
         int iCounterLine = 0;
 
         //collecting of data
-        static List<PassByPoint> passByPoints = new List<PassByPoint>(); //List byPass points 
-        static List<PersonClasses> listFIO = new List<PersonClasses>(); // List of FIO and identity of data
+        static List<SideOfPassagePoint> listSidesOfPassagePoint = new List<SideOfPassagePoint>(); //List byPass points 
+        static List<Person> listFIO = new List<Person>(); // List of FIO and identity of data
 
         //Controls "NumUpDown"
         decimal numUpHourStart = 9;
@@ -272,91 +272,91 @@ namespace ASTA
                 };
         readonly string[] arrayAllColumnsDataTablePeople =
             {
-                                  NPP,//0
-                                  FIO,//1
-                                  CODE,//2
-                                  GROUP,//3
-                                  TIMEIN,//6
-                                  TIMEOUT,//9
-                                  N_ID, //10
-                                  DEPARTMENT,//11
-                                  PLACE_EMPLOYEE,//12
-                                  DATE_REGISTRATION,//13
-                                  TIME_REGISTRATION, //15
-                                  SERVER_SKD, //19
-                                  NAME_CHECKPOINT, //20
-                                  DIRECTION_WAY, //21
-                                  DESIRED_TIME_IN,//22
-                                  DESIRED_TIME_OUT,//23
-                                  REAL_TIME_IN,//24
-                                  REAL_TIME_OUT, //25
-                                  EMPLOYEE_TIME_SPENT, //26
-                                  EMPLOYEE_PLAN_TIME_WORKED, //27
-                                  EMPLOYEE_BEING_LATE,                    //28
-                                  EMPLOYEE_EARLY_DEPARTURE,                 //29
-                                  EMPLOYEE_VACATION,                 //30
-                                  EMPLOYEE_TRIP,                 //31
-                                  DAY_OF_WEEK,                    //32
-                                  EMPLOYEE_SICK_LEAVE,                    //33
-                                  EMPLOYEE_ABSENCE,      //34
-                                  GROUP_DECRIPTION,                //37
-                                  EMPLOYEE_SHIFT_COMMENT,      //38
-                                  EMPLOYEE_POSITION,                    //39
-                                  EMPLOYEE_SHIFT,                    //40
-                                  EMPLOYEE_HOOKY,   //41
-                                  DEPARTMENT_ID,                     //42
-                                  @"Руководитель (код)"                     //43
+                 NPP,//0
+                 FIO,//1
+                 CODE,//2
+                 GROUP,//3
+                 TIMEIN,//6
+                 TIMEOUT,//9
+                 N_ID, //10
+                 DEPARTMENT,//11
+                 PLACE_EMPLOYEE,//12
+                 DATE_REGISTRATION,//13
+                 TIME_REGISTRATION, //15
+                 SERVER_SKD, //19
+                 NAME_CHECKPOINT, //20
+                 DIRECTION_WAY, //21
+                 DESIRED_TIME_IN,//22
+                 DESIRED_TIME_OUT,//23
+                 REAL_TIME_IN,//24
+                 REAL_TIME_OUT, //25
+                 EMPLOYEE_TIME_SPENT, //26
+                 EMPLOYEE_PLAN_TIME_WORKED, //27
+                 EMPLOYEE_BEING_LATE,                    //28
+                 EMPLOYEE_EARLY_DEPARTURE,                 //29
+                 EMPLOYEE_VACATION,                 //30
+                 EMPLOYEE_TRIP,                 //31
+                 DAY_OF_WEEK,                    //32
+                 EMPLOYEE_SICK_LEAVE,                    //33
+                 EMPLOYEE_ABSENCE,      //34
+                 GROUP_DECRIPTION,                //37
+                 EMPLOYEE_SHIFT_COMMENT,      //38
+                 EMPLOYEE_POSITION,                    //39
+                 EMPLOYEE_SHIFT,                    //40
+                 EMPLOYEE_HOOKY,   //41
+                 DEPARTMENT_ID,                     //42
+                 CHIEF_ID                     //43
         };
         readonly string[] orderColumnsFinacialReport =
             {
-                                  FIO,//1
-                                  CODE,//2
-                                  DEPARTMENT,//11
-                                  PLACE_EMPLOYEE,//12
-                                 // DEPARTMENT_ID,                     //42
-                                  DATE_REGISTRATION,//12
-                                  DAY_OF_WEEK,                    //32
-                                  DESIRED_TIME_IN,//22
-                                  DESIRED_TIME_OUT,//23
-                                  REAL_TIME_IN,//24
-                                  REAL_TIME_OUT, //25
-                                  EMPLOYEE_PLAN_TIME_WORKED, //27
-                                  EMPLOYEE_BEING_LATE,                    //28
-                                  EMPLOYEE_EARLY_DEPARTURE,                 //29
-                                  EMPLOYEE_VACATION,                 //30
-                                  EMPLOYEE_HOOKY,    //41
-                                 //EMPLOYEE_TRIP,                 //31
-                                  EMPLOYEE_SICK_LEAVE,                    //33
-                                  EMPLOYEE_ABSENCE,      //34
-                                  EMPLOYEE_SHIFT_COMMENT,                    //38
-                                  EMPLOYEE_POSITION,                    //39
-                                  EMPLOYEE_SHIFT                    //40
+                 FIO,//1
+                 CODE,//2
+                 DEPARTMENT,//11
+                 PLACE_EMPLOYEE,//12
+                 // DEPARTMENT_ID,                     //42
+                 DATE_REGISTRATION,//12
+                 DAY_OF_WEEK,                    //32
+                 DESIRED_TIME_IN,//22
+                 DESIRED_TIME_OUT,//23
+                 REAL_TIME_IN,//24
+                 REAL_TIME_OUT, //25
+                 EMPLOYEE_PLAN_TIME_WORKED, //27
+                 EMPLOYEE_BEING_LATE,                    //28
+                 EMPLOYEE_EARLY_DEPARTURE,                 //29
+                 EMPLOYEE_VACATION,                 //30
+                 EMPLOYEE_HOOKY,    //41
+                 //EMPLOYEE_TRIP,                 //31
+                 EMPLOYEE_SICK_LEAVE,                    //33
+                 EMPLOYEE_ABSENCE,      //34
+                 EMPLOYEE_SHIFT_COMMENT,                    //38
+                 EMPLOYEE_POSITION,                    //39
+                 EMPLOYEE_SHIFT                    //40
         };
         readonly string[] arrayHiddenColumnsFIO =
             {
-                                  NPP,//0
-                            TIMEIN,            //6
-                            TIMEOUT,              //9
-                            N_ID,               //10
-                            DATE_REGISTRATION,         //12
-                            TIME_REGISTRATION,        //15
-                            SERVER_SKD,               //19
-                            NAME_CHECKPOINT,        //20
-                            DIRECTION_WAY,      //21
-                            REAL_TIME_IN,//24
-                            REAL_TIME_OUT, //25
-                            EMPLOYEE_TIME_SPENT, //26
-                            EMPLOYEE_PLAN_TIME_WORKED, //27
-                            EMPLOYEE_BEING_LATE,                   //28
-                            EMPLOYEE_EARLY_DEPARTURE,              //29
-                            EMPLOYEE_VACATION,           //30
-                            EMPLOYEE_TRIP,                 //31
-                            DAY_OF_WEEK,                    //32
-                            EMPLOYEE_SICK_LEAVE,                    //33
-                            EMPLOYEE_ABSENCE,      //34
-                            EMPLOYEE_SHIFT_COMMENT,                    //38
-                            GROUP_DECRIPTION,                //37
-                            EMPLOYEE_HOOKY
+                 NPP,//0
+                 TIMEIN,            //6
+                 TIMEOUT,              //9
+                 N_ID,               //10
+                 DATE_REGISTRATION,         //12
+                 TIME_REGISTRATION,        //15
+                 SERVER_SKD,               //19
+                 NAME_CHECKPOINT,        //20
+                 DIRECTION_WAY,      //21
+                 REAL_TIME_IN,//24
+                 REAL_TIME_OUT, //25
+                 EMPLOYEE_TIME_SPENT, //26
+                 EMPLOYEE_PLAN_TIME_WORKED, //27
+                 EMPLOYEE_BEING_LATE,                   //28
+                 EMPLOYEE_EARLY_DEPARTURE,              //29
+                 EMPLOYEE_VACATION,           //30
+                 EMPLOYEE_TRIP,                 //31
+                 DAY_OF_WEEK,                    //32
+                 EMPLOYEE_SICK_LEAVE,                    //33
+                 EMPLOYEE_ABSENCE,      //34
+                 EMPLOYEE_SHIFT_COMMENT,                    //38
+                 GROUP_DECRIPTION,                //37
+                 EMPLOYEE_HOOKY
         };
         readonly string[] nameHidenColumnsArray =
             {
@@ -367,6 +367,40 @@ namespace ASTA
                 SERVER_SKD, //19
                 NAME_CHECKPOINT, //20
                 DIRECTION_WAY, //21
+                EMPLOYEE_TIME_SPENT, //26
+                EMPLOYEE_PLAN_TIME_WORKED, //27
+                EMPLOYEE_BEING_LATE,                    //28
+                EMPLOYEE_EARLY_DEPARTURE,                 //29
+                EMPLOYEE_VACATION,              //30
+                EMPLOYEE_TRIP,                 //31
+                DAY_OF_WEEK,  //32
+                EMPLOYEE_SICK_LEAVE,  //33
+                EMPLOYEE_ABSENCE,      //34
+                GROUP_DECRIPTION,                //37
+                EMPLOYEE_HOOKY                   //43
+        };
+
+        readonly string[] nameHidenColumnsArrayLastRegistration =
+             {
+                NPP,//0
+                TIMEIN,//6
+                TIMEOUT,//9
+                TIME_REGISTRATION, //15
+                SERVER_SKD, //19
+              //  NAME_CHECKPOINT, //20
+              //  DIRECTION_WAY, //21
+
+                N_ID, //10
+                GROUP,//3
+                REAL_TIME_OUT, //25
+                EMPLOYEE_SHIFT_COMMENT,      //38
+                DEPARTMENT_ID,                     //42
+                DESIRED_TIME_IN,//22
+                DESIRED_TIME_OUT,//23
+                EMPLOYEE_SHIFT,                    //38
+                PLACE_EMPLOYEE,//12
+                CHIEF_ID,                     //43
+
                 EMPLOYEE_TIME_SPENT, //26
                 EMPLOYEE_PLAN_TIME_WORKED, //27
                 EMPLOYEE_BEING_LATE,                    //28
@@ -1279,27 +1313,19 @@ namespace ASTA
         private void CheckAliveIntellectServer(string serverName, string userName, string userPasswords) //Check alive the SKD Intellect-server and its DB's 'intellect'
         {
             bServer1Exist = false;
-            string stringConnection;
+            string stringConnection = "Data Source=" + serverName + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + userName + ";Password=" + userPasswords + "; Connect Timeout=5";
+            string query = "SELECT database_id FROM sys.databases WHERE Name ='intellect' ";
+            logger.Trace("CheckAliveIntellectServer: " + stringConnection);
+            logger.Trace("CheckAliveIntellectServer: " + query);
+
             _toolStripStatusLabelSetText(StatusLabel2, "Проверка доступности " + serverName + ". Ждите окончания процесса...");
-
-            stringConnection = "Data Source=" + serverName + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + userName + ";Password=" + userPasswords + "; Connect Timeout=5";
-
+            
             try
             {
-                logger.Trace("CheckAliveIntellectServer: " + stringConnection);
-                using (var sqlConnection = new System.Data.SqlClient.SqlConnection(stringConnection))
+                using (SqlDbTableReader sqlDbTableReader = new SqlDbTableReader(stringConnection))
                 {
-                    sqlConnection.Open();
-                    string query = "SELECT database_id FROM sys.databases WHERE Name ='intellect' ";
-                    logger.Trace("CheckAliveIntellectServer: " + query);
-
-                    using (var sqlCommand = new System.Data.SqlClient.SqlCommand(query, sqlConnection))
-                    {
-                        using (var sqlReader = sqlCommand.ExecuteReader())
-                        {
-                            bServer1Exist = true;
-                        }
-                    }
+                    System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetDataFromDB(query);
+                    bServer1Exist = true;
                 }
             }
             catch (Exception expt)
@@ -1466,10 +1492,10 @@ namespace ASTA
             string dayStartShift = "";
             string dayStartShift_ = "";
 
-            listFIO = new List<PersonClasses>();
+            listFIO = new List<Person>();
             //  HashSet<Department> departments = new HashSet<Department>(); //check
-            Dictionary<string, DepartmentClasses> departments = new Dictionary<string, DepartmentClasses>();
-            DepartmentClasses departmentFromDictionary;
+            Dictionary<string, Department> departments = new Dictionary<string, Department>();
+            Department departmentFromDictionary;
 
             _comboBoxClr(comboBoxFio);
             _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю данные с " + sServer1 + ". Ждите окончания процесса...");
@@ -1505,272 +1531,252 @@ namespace ASTA
             try
             {
                 // import users and group from SCA server
-                using (var sqlConnection = new System.Data.SqlClient.SqlConnection(stringConnection))
+                query = "SELECT id,level_id,name,owner_id,parent_id,region_id,schedule_id FROM OBJ_DEPARTMENT";
+                using (SqlDbTableReader sqlDbTableReader = new SqlDbTableReader(stringConnection))
                 {
-                    sqlConnection.Open();
+                    System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetDataFromDB(query);
 
                     //import group from SCA server
-                    query = "SELECT id,level_id,name,owner_id,parent_id,region_id,schedule_id FROM OBJ_DEPARTMENT";
-                    logger.Trace(query);
-                    using (var sqlCommand = new System.Data.SqlClient.SqlCommand(query, sqlConnection))
+                    foreach (DbDataRecord record in sqlData)
                     {
-                        using (var sqlReader = sqlCommand.ExecuteReader())
+
+                        idGroup = record["id"]?.ToString()?.Trim();
+                        groupName = record?["name"]?.ToString()?.Trim();
+                        if (groupName?.Length > 0 && idGroup?.Length > 0 && !departments.ContainsKey(idGroup))
                         {
-                            foreach (DbDataRecord record in sqlReader)
+                            departments.Add(idGroup, new Department()
                             {
-                                idGroup = record["id"]?.ToString()?.Trim();
-                                groupName = record?["name"]?.ToString()?.Trim();
-                                if (groupName?.Length > 0 && idGroup?.Length > 0 && !departments.ContainsKey(idGroup))
-                                {
-                                    departments.Add(idGroup, new DepartmentClasses()
-                                    {
-                                        _departmentId = idGroup,
-                                        _departmentDescription = groupName,
-                                        _departmentBossCode = sServer1
-                                    });
-                                }
-                                _ProgressWork1Step();
-                            }
+                                _departmentId = idGroup,
+                                _departmentDescription = groupName,
+                                _departmentBossCode = sServer1
+                            });
                         }
+                        _ProgressWork1Step();
                     }
 
-                    //import users from с SCA server
-                    query = "SELECT id, name, surname, patronymic, post, tabnum, parent_id, facility_code, card FROM OBJ_PERSON WHERE is_locked = '0' AND facility_code NOT LIKE '' AND card NOT LIKE '' ";
-                    logger.Trace(query);
-                    using (var sqlCommand = new System.Data.SqlClient.SqlCommand(query, sqlConnection))
+                }
+                //import users from с SCA server
+                query = "SELECT id, name, surname, patronymic, post, tabnum, parent_id, facility_code, card FROM OBJ_PERSON WHERE is_locked = '0' AND facility_code NOT LIKE '' AND card NOT LIKE '' ";
+                logger.Trace(query);
+                using (SqlDbTableReader sqlDbTableReader = new SqlDbTableReader(stringConnection))
+                {
+                    System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetDataFromDB(query);
+                    foreach (DbDataRecord record in sqlData)
                     {
-                        using (var sqlReader = sqlCommand.ExecuteReader())
+                        if (record["name"]?.ToString()?.Trim()?.Length > 0)
                         {
-                            foreach (DbDataRecord record in sqlReader)
+                            row = dataTablePeople.NewRow();
+                            fio = (record["name"]?.ToString()?.Trim() + " " + record["surname"]?.ToString()?.Trim() + " " + record["patronymic"]?.ToString()?.Trim()).Replace(@"  ", @" ");
+                            groupName = record["parent_id"]?.ToString()?.Trim();
+                            nav = record["tabnum"]?.ToString()?.Trim()?.ToUpper();
+
+                            departmentFromDictionary = new Department();
+                            //  depName = departments.First((x) => x._departmentId == groupName)?._departmentDescription;
+                            if (departments.TryGetValue(groupName, out departmentFromDictionary))
                             {
-                                if (record["name"]?.ToString()?.Trim()?.Length > 0)
-                                {
-                                    row = dataTablePeople.NewRow();
-                                    fio = (record["name"]?.ToString()?.Trim() + " " + record["surname"]?.ToString()?.Trim() + " " + record["patronymic"]?.ToString()?.Trim()).Replace(@"  ", @" ");
-                                    groupName = record["parent_id"]?.ToString()?.Trim();
-                                    nav = record["tabnum"]?.ToString()?.Trim()?.ToUpper();
-
-                                    departmentFromDictionary = new DepartmentClasses();
-                                    //  depName = departments.First((x) => x._departmentId == groupName)?._departmentDescription;
-                                    if (departments.TryGetValue(groupName, out departmentFromDictionary))
-                                    {
-                                        depName = departmentFromDictionary._departmentDescription;
-                                    }
-                                    else { depName = ""; }
-
-                                    row[N_ID] = Convert.ToInt32(record["id"]?.ToString()?.Trim());
-                                    row[FIO] = fio;
-                                    row[CODE] = nav;
-
-                                    row[GROUP] = groupName;
-                                    row[DEPARTMENT] = depName;
-                                    row[DEPARTMENT_ID] = sServer1.IndexOf('.') > -1 ? sServer1.Remove(sServer1.IndexOf('.')) : sServer1;
-
-                                    row[EMPLOYEE_POSITION] = record["post"]?.ToString()?.Trim();
-
-                                    row[DESIRED_TIME_IN] = timeStart;
-                                    row[DESIRED_TIME_OUT] = timeEnd;
-
-                                    dataTablePeople.Rows.Add(row);
-
-                                    listFIO.Add(new PersonClasses { FIO = fio, NAV = nav });
-                                    //    listCodesWithIdCard.Add(nav);
-
-                                    _ProgressWork1Step();
-                                }
+                                depName = departmentFromDictionary._departmentDescription;
                             }
+                            else { depName = ""; }
+
+                            row[N_ID] = Convert.ToInt32(record["id"]?.ToString()?.Trim());
+                            row[FIO] = fio;
+                            row[CODE] = nav;
+
+                            row[GROUP] = groupName;
+                            row[DEPARTMENT] = depName;
+                            row[DEPARTMENT_ID] = sServer1.IndexOf('.') > -1 ? sServer1.Remove(sServer1.IndexOf('.')) : sServer1;
+
+                            row[EMPLOYEE_POSITION] = record["post"]?.ToString()?.Trim();
+
+                            row[DESIRED_TIME_IN] = timeStart;
+                            row[DESIRED_TIME_OUT] = timeEnd;
+
+                            dataTablePeople.Rows.Add(row);
+
+                            listFIO.Add(new Person { FIO = fio, NAV = nav });
+                            //    listCodesWithIdCard.Add(nav);
+
+                            _ProgressWork1Step();
                         }
                     }
                 }
 
                 // import users, shifts and group from web DB
                 int tmpSeconds = 0;
+                groupName = mysqlServer;
                 _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...");
 
-                groupName = mysqlServer;
 
+                // import departments from web DB
                 stringConnection = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60"; //Allow Zero Datetime=true;
                 logger.Trace(stringConnection);
-                using (var sqlConnection = new MySql.Data.MySqlClient.MySqlConnection(stringConnection))
+                query = "SELECT id, parent_id, name, boss_code FROM dep_struct ORDER by id";
+                logger.Trace(query);
+                using (MySqlDbTableReader mysqlDbTableReader = new MySqlDbTableReader(stringConnection))
                 {
-                    sqlConnection.Open();
-
-                    // import departments from web DB
-                    query = "SELECT id, parent_id, name, boss_code FROM dep_struct ORDER by id";
-                    logger.Trace(query);
-                    using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
+                    MySql.Data.MySqlClient.MySqlDataReader mysqlData = mysqlDbTableReader.GetData(query);
+                    while (mysqlData.Read())
                     {
-                        using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                idGroup = reader?.GetString(@"id");
+                        idGroup = mysqlData?.GetString(@"id");
 
-                                if (reader?.GetString(@"name")?.Length > 0 && idGroup?.Length > 0 && !departments.ContainsKey(idGroup))
-                                {
-                                    departments.Add(idGroup, new DepartmentClasses()
-                                    {
-                                        _departmentId = idGroup,
-                                        _departmentDescription = reader.GetString(@"name"),
-                                        _departmentBossCode = reader?.GetString(@"boss_code")
-                                    });
-                                }
-                                _ProgressWork1Step();
-                            }
+                        if (mysqlData?.GetString(@"name")?.Length > 0 && idGroup?.Length > 0 && !departments.ContainsKey(idGroup))
+                        {
+                            departments.Add(idGroup, new Department()
+                            {
+                                _departmentId = idGroup,
+                                _departmentDescription = mysqlData.GetString(@"name"),
+                                _departmentBossCode = mysqlData?.GetString(@"boss_code")
+                            });
                         }
+                        _ProgressWork1Step();
                     }
+                }
 
-                    // import individual shifts of people from web DB
-                    query = "Select code,start_date,mo_start,mo_end,tu_start,tu_end,we_start,we_end,th_start,th_end,fr_start,fr_end, " +
-                                    "sa_start,sa_end,su_start,su_end,comment FROM work_time ORDER by start_date";
-                    logger.Trace(query);
-                    using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
+                // import individual shifts of people from web DB
+                query = "Select code,start_date,mo_start,mo_end,tu_start,tu_end,we_start,we_end,th_start,th_end,fr_start,fr_end, " +
+                                "sa_start,sa_end,su_start,su_end,comment FROM work_time ORDER by start_date";
+                logger.Trace(query);
+                using (MySqlDbTableReader mysqlDbTableReader = new MySqlDbTableReader(stringConnection))
+                {
+                    MySql.Data.MySqlClient.MySqlDataReader mysqlData = mysqlDbTableReader.GetData(query);
+                    while (mysqlData.Read())
                     {
-                        using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
+                        if (mysqlData.GetString(@"code")?.Length > 0)
                         {
-                            while (reader.Read())
-                            {
-                                if (reader.GetString(@"code")?.Length > 0)
-                                {
-                                    try { dayStartShift = DateTimeToYYYYMMDD(reader.GetMySqlDateTime(@"start_date").ToString()); }
-                                    catch
-                                    { dayStartShift = DateTimeToYYYYMMDD("1980-01-01"); }
+                            try { dayStartShift = DateTimeToYYYYMMDD(mysqlData.GetMySqlDateTime(@"start_date").ToString()); }
+                            catch
+                            { dayStartShift = DateTimeToYYYYMMDD("1980-01-01"); }
 
-                                    peopleShifts.Add(new PeopleShift()
-                                    {
-                                        _nav = reader.GetString(@"code").Replace('C', 'S'),
-                                        _dayStartShift = dayStartShift,
-                                        _MoStart = Convert.ToInt32(reader.GetString(@"mo_start")),
-                                        _MoEnd = Convert.ToInt32(reader.GetString(@"mo_end")),
-                                        _TuStart = Convert.ToInt32(reader.GetString(@"tu_start")),
-                                        _TuEnd = Convert.ToInt32(reader.GetString(@"tu_end")),
-                                        _WeStart = Convert.ToInt32(reader.GetString(@"we_start")),
-                                        _WeEnd = Convert.ToInt32(reader.GetString(@"we_end")),
-                                        _ThStart = Convert.ToInt32(reader.GetString(@"th_start")),
-                                        _ThEnd = Convert.ToInt32(reader.GetString(@"th_end")),
-                                        _FrStart = Convert.ToInt32(reader.GetString(@"fr_start")),
-                                        _FrEnd = Convert.ToInt32(reader.GetString(@"fr_end")),
-                                        _SaStart = Convert.ToInt32(reader.GetString(@"sa_start")),
-                                        _SaEnd = Convert.ToInt32(reader.GetString(@"sa_end")),
-                                        _SuStart = Convert.ToInt32(reader.GetString(@"su_start")),
-                                        _SuEnd = Convert.ToInt32(reader.GetString(@"su_end")),
-                                        _Status = "",
-                                        _Comment = reader.GetString(@"comment")
-                                    });
-                                    _ProgressWork1Step();
-                                }
-                            }
+                            peopleShifts.Add(new PeopleShift()
+                            {
+                                _nav = mysqlData.GetString(@"code").Replace('C', 'S'),
+                                _dayStartShift = dayStartShift,
+                                _MoStart = Convert.ToInt32(mysqlData.GetString(@"mo_start")),
+                                _MoEnd = Convert.ToInt32(mysqlData.GetString(@"mo_end")),
+                                _TuStart = Convert.ToInt32(mysqlData.GetString(@"tu_start")),
+                                _TuEnd = Convert.ToInt32(mysqlData.GetString(@"tu_end")),
+                                _WeStart = Convert.ToInt32(mysqlData.GetString(@"we_start")),
+                                _WeEnd = Convert.ToInt32(mysqlData.GetString(@"we_end")),
+                                _ThStart = Convert.ToInt32(mysqlData.GetString(@"th_start")),
+                                _ThEnd = Convert.ToInt32(mysqlData.GetString(@"th_end")),
+                                _FrStart = Convert.ToInt32(mysqlData.GetString(@"fr_start")),
+                                _FrEnd = Convert.ToInt32(mysqlData.GetString(@"fr_end")),
+                                _SaStart = Convert.ToInt32(mysqlData.GetString(@"sa_start")),
+                                _SaEnd = Convert.ToInt32(mysqlData.GetString(@"sa_end")),
+                                _SuStart = Convert.ToInt32(mysqlData.GetString(@"su_start")),
+                                _SuEnd = Convert.ToInt32(mysqlData.GetString(@"su_end")),
+                                _Status = "",
+                                _Comment = mysqlData.GetString(@"comment")
+                            });
+                            _ProgressWork1Step();
                         }
-                    }
-
-                    try
-                    {
-                        dayStartShift = peopleShifts.FindLast((x) => x._nav == "0")._dayStartShift;
-                        dayStartShift_ = "Общий график с " + dayStartShift;
-
-                        tmpSeconds = peopleShifts.FindLast((x) => x._nav == "0" && x._dayStartShift == dayStartShift)._MoStart;
-                        timeStart = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
-
-                        tmpSeconds = peopleShifts.FindLast((x) => x._nav == "0" && x._dayStartShift == dayStartShift)._MoEnd;
-                        timeEnd = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
-
-                        logger.Trace("Общий график с " + dayStartShift);
-                    }
-                    catch { }
-
-                    // import people from web DB
-                    query = "Select code, family_name, first_name, last_name, vacancy, department, boss_id, city FROM personal " + confitionToLoad;//where hidden=0
-                    logger.Trace(query);
-                    using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
-                    {
-                        using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
+                        try
                         {
-                            while (reader.Read())
+                            dayStartShift = peopleShifts.FindLast((x) => x._nav == "0")._dayStartShift;
+                            dayStartShift_ = "Общий график с " + dayStartShift;
+
+                            tmpSeconds = peopleShifts.FindLast((x) => x._nav == "0" && x._dayStartShift == dayStartShift)._MoStart;
+                            timeStart = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
+
+                            tmpSeconds = peopleShifts.FindLast((x) => x._nav == "0" && x._dayStartShift == dayStartShift)._MoEnd;
+                            timeEnd = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
+
+                            logger.Trace("Общий график с " + dayStartShift);
+                        }
+                        catch {/*nothing todo on any errors */ }
+                    }
+                }
+                // import people from web DB
+                query = "Select code, family_name, first_name, last_name, vacancy, department, boss_id, city FROM personal " + confitionToLoad;//where hidden=0
+                logger.Trace(query);
+                using (MySqlDbTableReader mysqlDbTableReader = new MySqlDbTableReader(stringConnection))
+                {
+                    MySql.Data.MySqlClient.MySqlDataReader mysqlData = mysqlDbTableReader.GetData(query);
+                    while (mysqlData.Read())
+                    {
+                        if (mysqlData.GetString(@"family_name")?.Trim()?.Length > 0)
+                        {
+                            row = dataTablePeople.NewRow();
+                            personFromServer = new PersonFull();
+
+                            fio = (mysqlData.GetString(@"family_name")?.Trim() + " " + mysqlData.GetString(@"first_name")?.Trim() + " " + mysqlData.GetString(@"last_name")?.Trim())?.Replace(@"  ", @" ");
+
+                            personFromServer.FIO = fio.Replace("&acute;", "'");
+                            personFromServer.NAV = mysqlData.GetString(@"code")?.Trim()?.ToUpper()?.Replace('C', 'S');
+                            personFromServer.DepartmentId = mysqlData.GetString(@"department")?.Trim();
+
+                            departmentFromDictionary = new Department();
+                            //  depName = departments.First((x) => x._departmentId == groupName)?._departmentDescription;
+                            if (departments.TryGetValue(personFromServer?.DepartmentId, out departmentFromDictionary))
                             {
-                                if (reader.GetString(@"family_name")?.Trim()?.Length > 0)
-                                {
-                                    row = dataTablePeople.NewRow();
-                                    personFromServer = new PersonFull();
-
-                                    fio = (reader.GetString(@"family_name")?.Trim() + " " + reader.GetString(@"first_name")?.Trim() + " " + reader.GetString(@"last_name")?.Trim())?.Replace(@"  ", @" ");
-
-                                    personFromServer.FIO = fio.Replace("&acute;", "'");
-                                    personFromServer.NAV = reader.GetString(@"code")?.Trim()?.ToUpper()?.Replace('C', 'S');
-                                    personFromServer.DepartmentId = reader.GetString(@"department")?.Trim();
-
-                                    departmentFromDictionary = new DepartmentClasses();
-                                    //  depName = departments.First((x) => x._departmentId == groupName)?._departmentDescription;
-                                    if (departments.TryGetValue(personFromServer?.DepartmentId, out departmentFromDictionary))
-                                    {
-                                        depName = departmentFromDictionary?._departmentDescription;
-                                        depBoss = departmentFromDictionary?._departmentBossCode;
-                                    }
-
-                                    //  depName = departments.First((x) => x._departmentId == personFromServer?.DepartmentId)?._departmentDescription;
-                                    personFromServer.Department = depName ?? personFromServer?.DepartmentId;
-
-                                    //  depBoss = departments.First((x) => x._departmentId == personFromServer?.DepartmentId)?._departmentBossCode;
-                                    personFromServer.DepartmentBossCode = depBoss?.Length > 0 ? depBoss : reader.GetString(@"boss_id")?.Trim();
-
-                                    personFromServer.City = reader.GetString(@"city")?.Trim();
-
-                                    personFromServer.PositionInDepartment = reader.GetString(@"vacancy")?.Trim();
-                                    personFromServer.GroupPerson = groupName;
-
-                                    personFromServer.Shift = dayStartShift_;
-
-                                    personFromServer.ControlInHHMM = timeStart;
-                                    personFromServer.ControlOutHHMM = timeEnd;
-
-                                    dayStartShift = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._dayStartShift;
-                                    if (dayStartShift?.Length > 0)
-                                    {
-                                        personFromServer.Shift = "Индивидуальный график с " + dayStartShift;
-
-                                        tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoStart;
-                                        personFromServer.ControlInHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
-
-                                        tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoEnd;
-                                        personFromServer.ControlOutHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
-
-                                        personFromServer.Comment = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._Comment;
-
-                                        logger.Trace("Индивидуальный график с " + dayStartShift + " " + personFromServer.NAV + " " + personFromServer.Comment);
-                                    }
-                                    row[FIO] = personFromServer.FIO;
-                                    row[CODE] = personFromServer.NAV;
-
-                                    row[GROUP] = personFromServer.GroupPerson;
-                                    row[PLACE_EMPLOYEE] = personFromServer.City;
-
-                                    row[DEPARTMENT] = personFromServer.Department;
-                                    row[DEPARTMENT_ID] = personFromServer.DepartmentId;
-                                    row[EMPLOYEE_POSITION] = personFromServer.PositionInDepartment;
-                                    row[CHIEF_ID] = personFromServer.DepartmentBossCode;
-
-                                    row[EMPLOYEE_SHIFT] = personFromServer.Shift;
-
-                                    row[DESIRED_TIME_IN] = personFromServer.ControlInHHMM;
-                                    row[DESIRED_TIME_OUT] = personFromServer.ControlOutHHMM;
-
-                                    /////////////////////
-                                    // If need only people with idCard - 
-                                    // should uncomment next string with "if (listCodesWithIdCard....."
-                                    /////////////////////
-
-                                    // if (listCodesWithIdCard.IndexOf(personFromServer.NAV) != -1)
-                                    {
-                                        dataTablePeople.Rows.Add(row);
-                                    }
-
-                                    listFIO.Add(new PersonClasses { FIO = personFromServer.FIO, NAV = personFromServer.NAV });
-
-                                    _ProgressWork1Step();
-                                }
+                                depName = departmentFromDictionary?._departmentDescription;
+                                depBoss = departmentFromDictionary?._departmentBossCode;
                             }
+
+                            //  depName = departments.First((x) => x._departmentId == personFromServer?.DepartmentId)?._departmentDescription;
+                            personFromServer.Department = depName ?? personFromServer?.DepartmentId;
+
+                            //  depBoss = departments.First((x) => x._departmentId == personFromServer?.DepartmentId)?._departmentBossCode;
+                            personFromServer.DepartmentBossCode = depBoss?.Length > 0 ? depBoss : mysqlData.GetString(@"boss_id")?.Trim();
+
+                            personFromServer.City = mysqlData.GetString(@"city")?.Trim();
+
+                            personFromServer.PositionInDepartment = mysqlData.GetString(@"vacancy")?.Trim();
+                            personFromServer.GroupPerson = groupName;
+
+                            personFromServer.Shift = dayStartShift_;
+
+                            personFromServer.ControlInHHMM = timeStart;
+                            personFromServer.ControlOutHHMM = timeEnd;
+
+                            dayStartShift = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._dayStartShift;
+                            if (dayStartShift?.Length > 0)
+                            {
+                                personFromServer.Shift = "Индивидуальный график с " + dayStartShift;
+
+                                tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoStart;
+                                personFromServer.ControlInHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
+
+                                tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._MoEnd;
+                                personFromServer.ControlOutHHMM = ConvertSecondsTimeToStringHHMMArray(tmpSeconds)[2];
+
+                                personFromServer.Comment = peopleShifts.FindLast((x) => x._nav == personFromServer.NAV)._Comment;
+
+                                logger.Trace("Индивидуальный график с " + dayStartShift + " " + personFromServer.NAV + " " + personFromServer.Comment);
+                            }
+                            row[FIO] = personFromServer.FIO;
+                            row[CODE] = personFromServer.NAV;
+
+                            row[GROUP] = personFromServer.GroupPerson;
+                            row[PLACE_EMPLOYEE] = personFromServer.City;
+
+                            row[DEPARTMENT] = personFromServer.Department;
+                            row[DEPARTMENT_ID] = personFromServer.DepartmentId;
+                            row[EMPLOYEE_POSITION] = personFromServer.PositionInDepartment;
+                            row[CHIEF_ID] = personFromServer.DepartmentBossCode;
+
+                            row[EMPLOYEE_SHIFT] = personFromServer.Shift;
+
+                            row[DESIRED_TIME_IN] = personFromServer.ControlInHHMM;
+                            row[DESIRED_TIME_OUT] = personFromServer.ControlOutHHMM;
+
+                            /////////////////////
+                            // If need only people with idCard - 
+                            // should uncomment next string with "if (listCodesWithIdCard....."
+                            /////////////////////
+
+                            // if (listCodesWithIdCard.IndexOf(personFromServer.NAV) != -1)
+                            {
+                                dataTablePeople.Rows.Add(row);
+                            }
+
+                            listFIO.Add(new Person { FIO = personFromServer.FIO, NAV = personFromServer.NAV });
+
+                            _ProgressWork1Step();
                         }
                     }
                 }
+
                 dataTablePeople.AcceptChanges();
                 logger.Trace("departments.count: " + departments.Count);
                 _toolStripStatusLabelSetText(StatusLabel2, "ФИО и наименования департаментов получены.");
@@ -1801,7 +1807,7 @@ namespace ASTA
 
             // HashSet<DepartmentFull> groups = new HashSet<DepartmentFull>();
             Dictionary<string, DepartmentFull> groups = new Dictionary<string, DepartmentFull>();
-            HashSet<DepartmentClasses> departmentsUniq = new HashSet<DepartmentClasses>();
+            HashSet<Department> departmentsUniq = new HashSet<Department>();
             HashSet<DepartmentFull> departmentsEmailUniq = new HashSet<DepartmentFull>();
             _ProgressWork1Step();
 
@@ -1874,7 +1880,7 @@ namespace ASTA
             {
                 if (strDepartment.Value?._departmentId?.Length > 0)
                 {
-                    departmentsUniq.Add(new DepartmentClasses
+                    departmentsUniq.Add(new Department
                     {
                         _departmentId = strDepartment.Value._departmentId,
                         _departmentDescription = strDepartment.Value._departmentDescription,
@@ -2632,7 +2638,7 @@ namespace ASTA
         {
             dtPeopleListLoaded?.Clear();
             dtPeopleListLoaded = dtPeople.Copy();
-            HashSet<DepartmentClasses> departmentsUniq = new HashSet<DepartmentClasses>();
+            HashSet<Department> departmentsUniq = new HashSet<Department>();
 
             ImportTextToTable(dtPeopleListLoaded, ref departmentsUniq);
             WritePeopleInLocalDB(databasePerson.ToString(), dtPeopleListLoaded);
@@ -2640,7 +2646,7 @@ namespace ASTA
             departmentsUniq = null;
         }
 
-        private void ImportTextToTable(DataTable dt, ref HashSet<DepartmentClasses> departmentsUniq) //Fill dtPeople
+        private void ImportTextToTable(DataTable dt, ref HashSet<Department> departmentsUniq) //Fill dtPeople
         {
             List<string> listRows = LoadDataIntoList();
 
@@ -2679,7 +2685,7 @@ namespace ASTA
                             row[DEPARTMENT_ID] = "";
                             row[EMPLOYEE_POSITION] = cell[4];
 
-                            departmentsUniq.Add(new DepartmentClasses
+                            departmentsUniq.Add(new Department
                             {
                                 _departmentId = cell[2],
                                 _departmentDescription = cell[3],
@@ -2781,7 +2787,7 @@ namespace ASTA
             }
         }
 
-        private void ImportListGroupsDescriptionInLocalDB(string pathToPersonDB, HashSet<DepartmentClasses> departmentsUniq) //use listGroups
+        private void ImportListGroupsDescriptionInLocalDB(string pathToPersonDB, HashSet<Department> departmentsUniq) //use listGroups
         {
             using (var connection = new SQLiteConnection($"Data Source={pathToPersonDB};Version=3;"))
             {
@@ -2857,7 +2863,7 @@ namespace ASTA
             logger.Trace("AddPersonToGroup: group " + group);
             if (_dataGridView1CurrentRowIndex() > -1)
             {
-                DataGridViewSeekValuesInSelectedRow  dgSeek = new DataGridViewSeekValuesInSelectedRow();
+                DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
                 dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
                  FIO, CODE, DEPARTMENT, EMPLOYEE_POSITION,
                  DESIRED_TIME_IN, DESIRED_TIME_OUT,
@@ -2918,59 +2924,118 @@ namespace ASTA
             labelGroup.BackColor = SystemColors.Control;
             PersonOrGroupItem.Text = WORK_WITH_A_PERSON;
             nameOfLastTableFromDB = "PeopleGroup";
-            group = groupDescription = null; 
+            group = groupDescription = null;
         }
 
-        private void GetNamePoints() //Get names of the pass by points
+        private void GetNamesOfPassagePoints() //Get names of the pass by points
         {
             logger.Trace("GetNamePoints");
 
-            passByPoints = new List<PassByPoint>();
+            listSidesOfPassagePoint = new List<SideOfPassagePoint>();
             if (databasePerson.Exists)
             {
                 string stringConnection = @"Data Source=" + sServer1 + @"\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + @";Password=" + sServer1UserPassword + @"; Connect Timeout=60";
-                string query;
-                string name;
-                string direction;
-                using (var sqlConnection = new System.Data.SqlClient.SqlConnection(stringConnection))
-                {
-                    sqlConnection.Open();
-                    query = "Select id, name FROM OBJ_ABC_ARC_READER;";
-                    using (var sqlCommand = new System.Data.SqlClient.SqlCommand(query, sqlConnection))
-                    {
-                        using (var sqlReader = sqlCommand.ExecuteReader())
-                        {
-                            foreach (DbDataRecord record in sqlReader)
-                            {
-                                if (record["id"]?.ToString()?.Trim()?.Length > 0 && record["name"]?.ToString()?.Trim()?.Length > 0)
-                                {
-                                    name = record["name"].ToString().Trim();
-                                    if (name.ToLower().Contains("выход"))
-                                    { direction = "Выход"; }
-                                    else
-                                    { direction = "Вход"; }
+                string query = "Select id, name FROM OBJ_ABC_ARC_READER;";
+                string idPoint, namePoint, direction;
 
-                                    passByPoints.Add(new PassByPoint
-                                    {
-                                        _id = record["id"].ToString().Trim(),
-                                        _server = sServer1,
-                                        _name = name,
-                                        _direction = direction
-                                    });
-                                }
-                            }
+                using (SqlDbTableReader sqlDbTableReader = new SqlDbTableReader(stringConnection))
+                using (System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetDataFromDB(query))
+                {
+                    foreach (DbDataRecord record in sqlData)
+                    {
+                        namePoint = record?["name"]?.ToString()?.Trim();
+                        idPoint = record["id"]?.ToString()?.Trim();
+                        if (idPoint?.Length > 0 && namePoint?.Length > 0)
+                        {
+                            if (namePoint.ToLower().Contains("выход"))
+                            { direction = "Выход"; }
+                            else
+                            { direction = "Вход"; }
+
+                            listSidesOfPassagePoint.Add(new SideOfPassagePoint
+                            {
+                                _idPoint = idPoint,
+                                _connectedToServer = sServer1,
+                                _namePoint = namePoint,
+                                _direction = direction
+                            });
                         }
                     }
                 }
-                stringConnection = query = name = direction = null;
             }
-            foreach (var tmp in passByPoints)
+            foreach (var tmp in listSidesOfPassagePoint)
             {
-                logger.Trace(tmp._id + " " + tmp._name + " " + tmp._direction);
+                logger.Trace(tmp._idPoint + " " + tmp._namePoint + " " + tmp._direction);
             }
         }
 
-        private async void GetDataItem_Click(object sender, EventArgs e) //GetData()
+
+        private void LoadLastIputsOutputs_Click(object sender, EventArgs e)
+        {
+            DateTime today = DateTime.Today;
+            dateTimePickerStart.Value = DateTime.Parse(today.Year + "-" + today.Month + "-" + today.Day + " 00:00:00");
+            dateTimePickerEnd.Value = DateTime.Parse(today.Year + "-" + today.Month + "-" + today.Day + " 23:59:59");
+
+            //Clear work tables
+            dtPersonRegistrationsFullList.Clear();
+
+            logger.Trace("GetData: " + "@SKD" + " " + _dateTimePickerStart() + " " + _dateTimePickerEnd());
+
+            GetNamesOfPassagePoints();  //Get names of the points
+            GetRegistrations("@SKD", _dateTimePickerStart(), _dateTimePickerEnd(), "");
+
+            dtPersonTemp = dtPersonRegistrationsFullList.Clone();
+            dtPersonTempAllColumns = dtPersonRegistrationsFullList.Copy(); //store all columns
+
+            // Order of collumns
+            var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(nameHidenColumnsArrayLastRegistration).ToArray(); //take distinct data
+            dtPersonTemp = GetDistinctRecords(dtPersonTempAllColumns, namesDistinctColumnsArray);
+            DataView dv = dtPersonTemp.DefaultView;
+            dv.Sort = "[Фактич. время прихода ЧЧ:ММ] DESC";
+            DataTable sortedDT = dv.ToTable();
+
+            ShowDatatableOnDatagridview(sortedDT, nameHidenColumnsArrayLastRegistration, "LastIputsOutputs");
+
+            namesDistinctColumnsArray = null;
+
+            stimerPrev = "";
+            _ProgressBar1Stop();
+        }
+
+        private void PaintRowsItem_Click(object sender, EventArgs e) 
+        { PaintRowsWithCodeOPerson(); }
+
+        private void PaintRowsWithCodeOPerson()
+        {
+            DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
+            dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
+                        FIO, CODE, DEPARTMENT
+                    });
+            string code = dgSeek.values[1];
+
+            foreach (DataGridViewRow row in dataGridView1.Rows)
+            {
+                try
+                {
+                    if (row.Cells[CODE].Value.ToString() == code)
+                        row.DefaultCellStyle.BackColor = Color.Red;
+                    else
+                        row.DefaultCellStyle.BackColor = Color.White;
+                }
+                catch
+                {
+                    // здесь можно отреагировать на неправильные данные, а можно ничего не делать
+                }
+            }
+        }
+
+        private void GetDataItem_Click(object sender, EventArgs e) //GetDataItem()
+        {
+                string group = _textBoxReturnText(textBoxGroup);
+            GetDataItem(group);
+        }
+
+        private async void GetDataItem(string _group) //GetData()
         {
             _ProgressBar1Start();
 
@@ -2991,7 +3056,13 @@ namespace ASTA
 
             if (bServer1Exist)
             {
-                await Task.Run(() => GetData());
+                reportStartDay = _dateTimePickerStart().Split(' ')[0];
+                reportLastDay = _dateTimePickerEnd().Split(' ')[0];
+
+              //  reportStartDay = selectedDate.FirstDayOfMonth().ToYYYYMMDD() + " 00:00:00";
+               // reportLastDay = selectedDate.LastDayOfMonth().ToYYYYMMDD() + " 23:59:59";
+
+                await Task.Run(() => GetData(_group, reportStartDay, reportLastDay));
 
                 _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
                 _MenuItemBackColorChange(LoadDataItem, SystemColors.Control);
@@ -3032,18 +3103,22 @@ namespace ASTA
             }
         }
 
-        private void GetData()
+        private void GetData(string _group, string _reportStartDay, string _reportLastDay)
         {
-            string group = _textBoxReturnText(textBoxGroup);
-
             //Clear work tables
             dtPersonRegistrationsFullList.Clear();
-            reportStartDay = _dateTimePickerStart().Split(' ')[0];
-            reportLastDay = _dateTimePickerEnd().Split(' ')[0];
-            logger.Trace("GetData: " + group + " " + reportStartDay + " " + reportLastDay);
+            dtPeople.DefaultView.Sort = "[Группа], [Фамилия Имя Отчество], [Дата регистрации], [Время регистрации], [Фактич. время прихода ЧЧ:ММ], [Фактич. время ухода ЧЧ:ММ] ASC";
 
-            GetNamePoints();  //Get names of the points
-            GetRegistrations(group, _dateTimePickerStart(), _dateTimePickerEnd(), "");
+            //Clone default column name and structure from 'dtPeople' to other DataTables
+            dtPersonTemp = dtPeople.Clone();  //Copy only structure(Name of columns)
+            dtPersonRegistrationsFullList = dtPeople.Clone();  //Copy only structure(Name of columns)
+            dtPeopleGroup = dtPeople.Clone();  //Copy only structure(Name of columns)
+
+
+            logger.Trace("GetData: " + _group + " " + _reportStartDay + " " + _reportStartDay);
+
+            GetNamesOfPassagePoints();  //Get names of the points
+            GetRegistrations(_group, _dateTimePickerStart(), _dateTimePickerEnd(), "");
 
             dtPersonTemp = dtPersonRegistrationsFullList.Clone();
             dtPersonTempAllColumns = dtPersonRegistrationsFullList.Copy(); //store all columns
@@ -3067,66 +3142,60 @@ namespace ASTA
                 { _id = "0", _hourly = 1, _name = @"Unknow", _visibleName = @"Неизвестная" }
             };
 
-            string query = "";
+
             string stringConnection = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;pooling = false; convert zero datetime=True;Connect Timeout=60";
             logger.Trace(stringConnection);
-            using (var sqlConnection = new MySql.Data.MySqlClient.MySqlConnection(stringConnection))
+            string query = "Select id, name,hourly, visibled_name FROM out_reasons";
+            logger.Trace(query);
+            using (MySqlDbTableReader mysqlDbTableReader = new MySqlDbTableReader(stringConnection))
             {
-                sqlConnection.Open();
-                query = "Select id, name,hourly, visibled_name FROM out_reasons";
-                logger.Trace(query);
+                MySql.Data.MySqlClient.MySqlDataReader mysqlData = mysqlDbTableReader.GetData(query);
 
-                using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
+                while (mysqlData.Read())
                 {
-                    using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
+                    if (mysqlData?.GetString(@"id")?.Length > 0 && mysqlData?.GetString(@"name")?.Length > 0)
                     {
-                        while (reader.Read())
+                        outResons.Add(new OutReasons()
                         {
-                            if (reader?.GetString(@"id")?.Length > 0 && reader?.GetString(@"name")?.Length > 0)
-                            {
-                                outResons.Add(new OutReasons()
-                                {
-                                    _id = reader.GetString(@"id"),
-                                    _hourly = Convert.ToInt32(reader.GetString(@"hourly")),
-                                    _name = reader.GetString(@"name"),
-                                    _visibleName = reader.GetString(@"visibled_name")
-                                });
-                            }
-                        }
+                            _id = mysqlData.GetString(@"id"),
+                            _hourly = Convert.ToInt32(mysqlData.GetString(@"hourly")),
+                            _name = mysqlData.GetString(@"name"),
+                            _visibleName = mysqlData.GetString(@"visibled_name")
+                        });
                     }
                 }
-                _ProgressWork1Step();
+            }
+            _ProgressWork1Step();
 
-                string date = "";
-                string resonId = "";
-                query = "Select * FROM out_users where reason_date >= '" + startDate.Split(' ')[0] + "' AND reason_date <= '" + endDate.Split(' ')[0] + "' ";
-                logger.Trace(query);
-                using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
+
+            string date = "";
+            string resonId = "";
+            query = "Select * FROM out_users where reason_date >= '" + startDate.Split(' ')[0] + "' AND reason_date <= '" + endDate.Split(' ')[0] + "' ";
+            logger.Trace(query);
+            using (MySqlDbTableReader mysqlDbTableReader = new MySqlDbTableReader(stringConnection))
+            {
+                MySql.Data.MySqlClient.MySqlDataReader mysqlData = mysqlDbTableReader.GetData(query);
+
+                while (mysqlData.Read())
                 {
-                    using (MySql.Data.MySqlClient.MySqlDataReader reader = cmd.ExecuteReader())
+                    if (mysqlData?.GetString(@"reason_id")?.Length > 0 && mysqlData?.GetString(@"user_code")?.Length > 0)
                     {
-                        while (reader.Read())
-                        {
-                            if (reader?.GetString(@"reason_id")?.Length > 0 && reader?.GetString(@"user_code")?.Length > 0)
-                            {
-                                resonId = outResons.Find((x) => x._id == reader.GetString(@"reason_id"))._id;
-                                try { date = DateTimeToYYYYMMDD(reader.GetString(@"reason_date")); } catch { date = ""; }
+                        resonId = outResons.Find((x) => x._id == mysqlData.GetString(@"reason_id"))._id;
+                        try { date = DateTimeToYYYYMMDD(mysqlData.GetString(@"reason_date")); } catch { date = ""; }
 
-                                outPerson.Add(new OutPerson()
-                                {
-                                    _reason_id = resonId,
-                                    _nav = reader.GetString(@"user_code").ToUpper()?.Replace('C', 'S'),
-                                    _date = date,
-                                    _from = ConvertStringsTimeToSeconds(reader.GetString(@"from_hour"), reader.GetString(@"from_min")),
-                                    _to = ConvertStringsTimeToSeconds(reader.GetString(@"to_hour"), reader.GetString(@"to_min")),
-                                    _hourly = 0
-                                });
-                            }
-                        }
+                        outPerson.Add(new OutPerson()
+                        {
+                            _reason_id = resonId,
+                            _nav = mysqlData.GetString(@"user_code").ToUpper()?.Replace('C', 'S'),
+                            _date = date,
+                            _from = ConvertStringsTimeToSeconds(mysqlData.GetString(@"from_hour"), mysqlData.GetString(@"from_min")),
+                            _to = ConvertStringsTimeToSeconds(mysqlData.GetString(@"to_hour"), mysqlData.GetString(@"to_min")),
+                            _hourly = 0
+                        });
                     }
+
+                    logger.Trace("Всего с " + startDate.Split(' ')[0] + " по " + endDate.Split(' ')[0] + " на сайте есть - " + outPerson.Count + " записей с отсутствиями");
                 }
-                sqlConnection.Close();
-                logger.Trace("Всего с " + startDate.Split(' ')[0] + " по " + endDate.Split(' ')[0] + " на сайте есть - " + outPerson.Count + " записей с отсутствиями");
             }
             _ProgressWork1Step();
 
@@ -3226,106 +3295,97 @@ namespace ASTA
             try
             {
                 stringConnection = @"Data Source=" + sServer1 + @"\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + @";Password=" + sServer1UserPassword + @";Connect Timeout=240";
-                using (var sqlConnection = new System.Data.SqlClient.SqlConnection(stringConnection))
+                query = "Select id, tabnum FROM OBJ_PERSON where tabnum like '" + person.NAV + "';";
+                logger.Trace(query);
+
+                using (SqlDbTableReader sqlDbTableReader = new SqlDbTableReader(stringConnection))
                 {
-                    sqlConnection.Open();
-
-                    query = "Select id, tabnum FROM OBJ_PERSON where tabnum like '" + person.NAV + "';";
-                    logger.Trace(query);
-                    using (var cmd = new System.Data.SqlClient.SqlCommand(query, sqlConnection))
+                    System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetDataFromDB(query);
+                    foreach (DbDataRecord record in sqlData)
                     {
-                        using (var reader = cmd.ExecuteReader())
+                        if (record?["tabnum"]?.ToString()?.Trim() == person.NAV)
                         {
-                            foreach (DbDataRecord record in reader)
+                            stringIdCardIntellect = record["id"].ToString().Trim();
+                            person.idCard = Convert.ToInt32(record["id"].ToString().Trim());
+                            break;
+                        }
+                        _ProgressWork1Step();
+                    }
+                }
+
+                //list of users id and their id cards
+                query = "Select id, tabnum FROM OBJ_PERSON where tabnum like '" + person.NAV + "';";
+                logger.Trace(query);
+                using (SqlDbTableReader sqlDbTableReader = new SqlDbTableReader(stringConnection))
+                {
+                    System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetDataFromDB(query);
+                    foreach (DbDataRecord record in sqlData)
+                    {
+                        if (record?["tabnum"]?.ToString()?.Trim() == person.NAV)
+                        {
+                            stringIdCardIntellect = record["id"].ToString().Trim();
+                            person.idCard = Convert.ToInt32(record["id"].ToString().Trim());
+                            break;
+                        }
+                        _ProgressWork1Step();
+                    }
+                }
+
+                // Passes By Points
+                query = "SELECT param0, param1, objid, objtype, CONVERT(varchar, date, 120) AS date, CONVERT(varchar, PROTOCOL.time, 114) AS time FROM protocol " +
+                   " where objtype like 'ABC_ARC_READER' AND param1 like '" + stringIdCardIntellect + "' AND date >= '" + startDay + "' AND date <= '" + endDay + "' " +
+                   " ORDER BY date ASC";
+                logger.Trace(query);
+                using (SqlDbTableReader sqlDbTableReader = new SqlDbTableReader(stringConnection))
+                {
+                    System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetDataFromDB(query);
+                    foreach (DbDataRecord record in sqlData)
+                    {
+                        try
+                        {
+                            if (record["param0"]?.ToString()?.Trim()?.Length > 0 && record["param1"]?.ToString()?.Length > 0)
                             {
-                                if (record?["tabnum"]?.ToString()?.Trim() == person.NAV)
-                                {
-                                    stringIdCardIntellect = record["id"].ToString().Trim();
-                                    person.idCard = Convert.ToInt32(record["id"].ToString().Trim());
-                                    break;
-                                }
+                                //  logger.Trace(person.NAV);
+                                stringDataNew = record["date"]?.ToString()?.Trim()?.Split(' ')[0];
+                                person.idCard = Convert.ToInt32(record["param1"].ToString().Trim());
+                                seconds = ConvertStringTimeHHMMToSeconds(record["time"]?.ToString()?.Trim());
+                                fullPointName = record["objid"]?.ToString()?.Trim();
+
+                                namePoint = listSidesOfPassagePoint.Find((x) => x._idPoint == fullPointName)._namePoint;
+                                direction = listSidesOfPassagePoint.Find((x) => x._idPoint == fullPointName)._direction;
+
+                                personWorkedDays.Add(stringDataNew);
+
+                                rowPerson = dtTarget.NewRow();
+                                rowPerson[FIO] = record["param0"].ToString().Trim();
+                                rowPerson[CODE] = person.NAV;
+                                rowPerson[N_ID] = record["param1"].ToString().Trim();
+                                rowPerson[GROUP] = person.GroupPerson;
+                                rowPerson[DEPARTMENT] = person.Department;
+                                rowPerson[EMPLOYEE_POSITION] = person.PositionInDepartment;
+                                rowPerson[PLACE_EMPLOYEE] = person.City;
+                                rowPerson[EMPLOYEE_SHIFT] = person.Shift;
+
+                                //day of registration. real data
+                                rowPerson[DATE_REGISTRATION] = stringDataNew;
+                                rowPerson[TIME_REGISTRATION] = seconds;
+
+                                rowPerson[SERVER_SKD] = sServer1;
+                                rowPerson[NAME_CHECKPOINT] = namePoint;
+                                rowPerson[DIRECTION_WAY] = direction;
+                                logger.Trace(rowPerson[FIO] + " " + stringDataNew + " " + seconds + " " + namePoint + " " + direction);
+                                rowPerson[DESIRED_TIME_IN] = person.ControlInHHMM;
+                                rowPerson[DESIRED_TIME_OUT] = person.ControlOutHHMM;
+                                rowPerson[REAL_TIME_IN] = ConvertSecondsToStringHHMM(seconds);
+
+                                dtTarget.Rows.Add(rowPerson);
+
                                 _ProgressWork1Step();
                             }
                         }
+                        catch (Exception expt) { logger.Warn("GetPersonRegistrationFromServer " + expt.ToString()); }
                     }
 
-                    //list of users id and their id cards
-                    query = "Select id, tabnum FROM OBJ_PERSON where tabnum like '" + person.NAV + "';";
-                    logger.Trace(query);
-                    using (var cmd = new System.Data.SqlClient.SqlCommand(query, sqlConnection))
-                    {
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            foreach (DbDataRecord record in reader)
-                            {
-                                if (record?["tabnum"]?.ToString()?.Trim() == person.NAV)
-                                {
-                                    stringIdCardIntellect = record["id"].ToString().Trim();
-                                    person.idCard = Convert.ToInt32(record["id"].ToString().Trim());
-                                    break;
-                                }
-                                _ProgressWork1Step();
-                            }
-                        }
-                    }
-
-                    // Passes By Points
-                    query = "SELECT param0, param1, objid, objtype, CONVERT(varchar, date, 120) AS date, CONVERT(varchar, PROTOCOL.time, 114) AS time FROM protocol " +
-                       " where objtype like 'ABC_ARC_READER' AND param1 like '" + stringIdCardIntellect + "' AND date >= '" + startDay + "' AND date <= '" + endDay + "' " +
-                       " ORDER BY date ASC";
-                    logger.Trace(query);
-                    using (var cmd = new System.Data.SqlClient.SqlCommand(query, sqlConnection))
-                    {
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            foreach (DbDataRecord record in reader)
-                            {
-                                try
-                                {
-                                    if (record["param0"]?.ToString()?.Trim()?.Length > 0 && record["param1"]?.ToString()?.Length > 0)
-                                    {
-                                        //  logger.Trace(person.NAV);
-                                        stringDataNew = record["date"]?.ToString()?.Trim()?.Split(' ')[0];
-                                        person.idCard = Convert.ToInt32(record["param1"].ToString().Trim());
-                                        seconds = ConvertStringTimeHHMMToSeconds(record["time"]?.ToString()?.Trim());
-                                        fullPointName = record["objid"]?.ToString()?.Trim();
-
-                                        namePoint = passByPoints.Find((x) => x._id == fullPointName)._name;
-                                        direction = passByPoints.Find((x) => x._id == fullPointName)._direction;
-
-                                        personWorkedDays.Add(stringDataNew);
-
-                                        rowPerson = dtTarget.NewRow();
-                                        rowPerson[FIO] = record["param0"].ToString().Trim();
-                                        rowPerson[CODE] = person.NAV;
-                                        rowPerson[N_ID] = record["param1"].ToString().Trim();
-                                        rowPerson[GROUP] = person.GroupPerson;
-                                        rowPerson[DEPARTMENT] = person.Department;
-                                        rowPerson[EMPLOYEE_POSITION] = person.PositionInDepartment;
-                                        rowPerson[PLACE_EMPLOYEE] = person.City;
-                                        rowPerson[EMPLOYEE_SHIFT] = person.Shift;
-
-                                        //day of registration. real data
-                                        rowPerson[DATE_REGISTRATION] = stringDataNew;
-                                        rowPerson[TIME_REGISTRATION] = seconds;
-
-                                        rowPerson[SERVER_SKD] = sServer1;
-                                        rowPerson[NAME_CHECKPOINT] = namePoint;
-                                        rowPerson[DIRECTION_WAY] = direction;
-                                        logger.Trace(rowPerson[FIO] + " " + stringDataNew + " " + seconds + " " + namePoint + " " + direction);
-                                        rowPerson[DESIRED_TIME_IN] = person.ControlInHHMM;
-                                        rowPerson[DESIRED_TIME_OUT] = person.ControlOutHHMM;
-                                        rowPerson[REAL_TIME_IN] = ConvertSecondsToStringHHMM(seconds);
-
-                                        dtTarget.Rows.Add(rowPerson);
-
-                                        _ProgressWork1Step();
-                                    }
-                                }
-                                catch (Exception expt) { logger.Warn("GetPersonRegistrationFromServer " + expt.ToString()); }
-                            }
-                        }
-                    }
                 }
 
                 stringDataNew = null; query = null; stringConnection = null;
@@ -3455,8 +3515,6 @@ namespace ASTA
                     {
                         foreach (DbDataRecord record in sqlReader)
                         {
-                            //      try
-                            //     {
                             if (record[@"FIO"]?.ToString()?.Length > 0 && record[@"NAV"]?.ToString()?.Length > 0)
                             {
                                 dataRow = peopleGroup.NewRow();
@@ -3477,8 +3535,6 @@ namespace ASTA
 
                                 peopleGroup.Rows.Add(dataRow);
                             }
-                            //        }
-                            //   catch { }
                         }
                     }
                 }
@@ -6777,11 +6833,13 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
             cell = null;
         }
 
+        //LastIputsOutputs
+
         //right click of mouse on the datagridview
         private void dataGridView1_MouseClick(object sender, MouseEventArgs e)
         {
             int currentMouseOverRow = dataGridView1.HitTest(e.X, e.Y).RowIndex;
-            
+
             if (e.Button == MouseButtons.Right && currentMouseOverRow > -1)
             {
                 string txtboxGroup = _textBoxReturnText(textBoxGroup);
@@ -6813,6 +6871,23 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                     mRightClick.MenuItems.Add(new MenuItem(text: "&Удалить группу: '" + dgSeek.values[0] + "'(" + dgSeek.values[1] + ")", onClick: DeleteCurrentRow));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
+
+                else if (nameOfLastTableFromDB == @"LastIputsOutputs")
+                {
+                    dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
+                        FIO, CODE, DEPARTMENT
+                    });
+
+                    mRightClick.MenuItems.Add(new MenuItem(text: "Подсветить все входы-выходы '" + dgSeek.values[0]+ "'",
+                       onClick: PaintRowsItem_Click));
+                    
+                    mRightClick.MenuItems.Add("-");
+                    mRightClick.MenuItems.Add(new MenuItem(text: "&Загрузить входы-выходы '" + dgSeek.values[0] +
+                    "' за " + _dateTimePickerStartReturnMonth(), onClick: GetDataItem_Click));
+                    mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
+                }
+
+
                 else if (nameOfLastTableFromDB == @"Mailing")
                 {
                     dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
@@ -7181,7 +7256,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                 lastDayOfCurrentMonth[0] + "-" + lastDayOfCurrentMonth[1] + "-" + lastDayOfCurrentMonth[2] + " на дату - " + dgSeek.values[7]
                 );
 
-            HashSet<MailingStructureClasses> mailingList = new HashSet<MailingStructureClasses>();
+            HashSet<Mailing> mailingList = new HashSet<Mailing>();
 
             using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
             {
@@ -7220,7 +7295,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                                         dayReportInDB == dgSeek.values[7]
                                         )
                                 {
-                                    mailingList.Add(new MailingStructureClasses()
+                                    mailingList.Add(new Mailing()
                                     {
                                         _sender = sender,
                                         _recipient = recipient,
@@ -7239,7 +7314,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                 }
             }
 
-            foreach (MailingStructureClasses mailng in mailingList)
+            foreach (Mailing mailng in mailingList)
             {
                 _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
 
@@ -7623,7 +7698,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                 daysOfSendingMail.START_OF_MONTH + ", " + daysOfSendingMail.MIDDLE_OF_MONTH + ", " +
                 daysOfSendingMail.LAST_WORK_DAY_OF_MONTH + ", " + daysOfSendingMail.END_OF_MONTH
                 );
-            HashSet<MailingStructureClasses> mailingList = new HashSet<MailingStructureClasses>();
+            HashSet<Mailing> mailingList = new HashSet<Mailing>();
 
             using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
             {
@@ -7655,7 +7730,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
 
                                 if (status == "активная" && dayToSendReport == today.Day)
                                 {
-                                    mailingList.Add(new MailingStructureClasses()
+                                    mailingList.Add(new Mailing()
                                     {
                                         _sender = sender,
                                         _recipient = recipient,
@@ -7685,7 +7760,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                 }
             }
 
-            foreach (MailingStructureClasses mailng in mailingList)
+            foreach (Mailing mailng in mailingList)
             {
                 _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
 
@@ -7735,7 +7810,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
             string dayReport = "";
             string str = "";
 
-            HashSet<MailingStructureClasses> mailingList = new HashSet<MailingStructureClasses>();
+            HashSet<Mailing> mailingList = new HashSet<Mailing>();
 
             using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
             {
@@ -7763,7 +7838,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
 
                                 dayReport = ReturnStrongNameDayOfSendingReports(dayReportInDB);
 
-                                mailingList.Add(new MailingStructureClasses()
+                                mailingList.Add(new Mailing()
                                 {
                                     _sender = sender,
                                     _recipient = recipient,
@@ -7781,7 +7856,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                 }
             }
 
-            foreach (MailingStructureClasses mailng in mailingList)
+            foreach (Mailing mailng in mailingList)
             {
                 str = "UPDATE 'Mailing' SET DayReport='" + mailng._dayReport +
                     "' WHERE RecipientEmail='" + mailng._recipient +
@@ -7859,7 +7934,7 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
             PersonFull person = new PersonFull();
             DateTime selectedDate = DateTime.Today;
 
-            GetNamePoints();  //Get names of the registration' points
+            GetNamesOfPassagePoints();  //Get names of the Passage Points
 
             if (period.ToLower().Contains("текущ"))
             {
@@ -9135,6 +9210,12 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
 
             return result;
         }
+
+        private void SettingsMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
 
         //---- End. Convertors of data types ----//
     }

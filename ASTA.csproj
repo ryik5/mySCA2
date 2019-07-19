@@ -175,14 +175,15 @@
     <Compile Include="AboutBox1.Designer.cs">
       <DependentUpon>AboutBox1.cs</DependentUpon>
     </Compile>
-    <Compile Include="ActiveDirectoryClasses.cs" />
-    <Compile Include="AdditionalClasses.cs" />
+    <Compile Include="ActiveDirectoryOperations.cs" />
+    <Compile Include="AmountMembersOfGroup.cs" />
+    <Compile Include="PeopleShiftsAndOutResons.cs" />
     <Compile Include="AssemblyInfo1.cs" />
     <Compile Include="DataGridViewSeekValuesInSelectedRow.cs" />
     <Compile Include="DataTableExtensions.cs" />
     <Compile Include="DateTimeExtensions.cs" />
-    <Compile Include="DepartmentClasses.cs" />
-    <Compile Include="EncryptDecryptClasses.cs" />
+    <Compile Include="Department.cs" />
+    <Compile Include="EncryptDecrypt.cs" />
     <Compile Include="Garbage.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
@@ -190,9 +191,10 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
-    <Compile Include="MailingStructureClasses.cs" />
+    <Compile Include="InputOutput.cs" />
+    <Compile Include="Mailing.cs" />
     <Compile Include="ParameterOfConfiguration.cs" />
-    <Compile Include="PersonClasses.cs" />
+    <Compile Include="Person.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -205,6 +207,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="SqlDbTableReader.cs" />
     <Compile Include="StartStopTimers.cs" />
     <Compile Include="TimeConvertor.cs" />
   </ItemGroup>

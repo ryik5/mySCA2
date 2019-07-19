@@ -2,7 +2,7 @@
 
 namespace ASTA
 {
-    class MailingStructureClasses
+    class Mailing
     {
         public string _sender;
         public string _recipient;
@@ -23,10 +23,10 @@ namespace ASTA
 
         public override bool Equals(object obj)
         {
-            if (obj == null || !(obj is MailingStructureClasses))
+            if (obj == null || !(obj is Mailing))
                 return false;
 
-            MailingStructureClasses df = obj as MailingStructureClasses;
+            Mailing df = obj as Mailing;
             if ((Object)df == null)
                 return false;
 
