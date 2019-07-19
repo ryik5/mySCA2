@@ -3032,6 +3032,10 @@ namespace ASTA
         private void GetDataItem_Click(object sender, EventArgs e) //GetDataItem()
         {
                 string group = _textBoxReturnText(textBoxGroup);
+
+            DateTime today = DateTime.Today;
+            dateTimePickerStart.Value = DateTime.Parse(today.Year + "-" + today.Month + "-01" + " 00:00:00");
+
             GetDataItem(group);
         }
 
@@ -6513,7 +6517,11 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                             comboBoxFio.SelectedIndex = comboBoxFio.FindString(textBoxFIO.Text);
                         }
                     }
-                    else if (nameOfLastTableFromDB == "ListFIO" || nameOfLastTableFromDB == "PeopleGroup" || nameOfLastTableFromDB == "PersonRegistrationsList")
+                    else if (
+                        nameOfLastTableFromDB == "ListFIO" || 
+                        nameOfLastTableFromDB == "PeopleGroup" || 
+                        nameOfLastTableFromDB == "PersonRegistrationsList"|| 
+                        nameOfLastTableFromDB == "LastIputsOutputs")
                     {
                         dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
                                 GROUP, FIO, CODE,
@@ -6871,7 +6879,6 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                     mRightClick.MenuItems.Add(new MenuItem(text: "&Удалить группу: '" + dgSeek.values[0] + "'(" + dgSeek.values[1] + ")", onClick: DeleteCurrentRow));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
-
                 else if (nameOfLastTableFromDB == @"LastIputsOutputs")
                 {
                     dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
@@ -6886,8 +6893,6 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                     "' за " + _dateTimePickerStartReturnMonth(), onClick: GetDataItem_Click));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
-
-
                 else if (nameOfLastTableFromDB == @"Mailing")
                 {
                     dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
