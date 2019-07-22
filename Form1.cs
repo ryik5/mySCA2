@@ -1468,6 +1468,7 @@ namespace ASTA
                 var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(arrayHiddenColumnsFIO).ToArray(); //take distinct data
                 dtPersonTemp = GetDistinctRecords(dtTempIntermediate, namesDistinctColumnsArray);
                 ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenColumnsFIO, "ListFIO");
+                _MenuItemTextSet(loadLastIputsOutputsItem, "Отобразить последние входы-выходы");
                 _toolStripStatusLabelSetText(StatusLabel2, "Списки ФИО и департаментов получены.");
                 namesDistinctColumnsArray = null;
             }
@@ -2058,6 +2059,7 @@ namespace ASTA
         private void listFioItem_Click(object sender, EventArgs e) //ListFioReturn()
         {
             nameOfLastTableFromDB = "ListFIO";
+            _MenuItemTextSet(loadLastIputsOutputsItem, "Отобразить последние входы-выходы");
             _controlEnable(comboBoxFio, true);
             SeekAndShowMembersOfGroup("");
         }
@@ -2970,7 +2972,19 @@ namespace ASTA
         }
 
 
-        private void LoadLastIputsOutputs_Click(object sender, EventArgs e)
+        private void LoadLastIputsOutputs_Click(object sender, EventArgs e) //LoadLastIputsOutputs()
+        {
+            LoadLastIputsOutputs();
+        }
+
+        private void LoadLastIputsOutputs_Update_Click(object sender, EventArgs e) //LoadLastIputsOutputs()
+        {
+            nameOfLastTableFromDB = "ListFIO"; //Reset last name of table to List FIO
+            _MenuItemTextSet(loadLastIputsOutputsItem, "Отобразить последние входы-выходы");
+            LoadLastIputsOutputs();
+        }
+
+        private void LoadLastIputsOutputs()
         {
             DateTime today = DateTime.Today;
             dateTimePickerStart.Value = DateTime.Parse(today.Year + "-" + today.Month + "-" + today.Day + " 00:00:00");
@@ -3619,8 +3633,9 @@ namespace ASTA
             labelGroup.Text = "Группа";
             textBoxGroup.Text = "";
 
-            StatusLabel2.ForeColor = Color.Black;
-            _toolStripStatusLabelSetText(StatusLabel2, @"Завершен 'Режим работы с праздниками и выходными'");
+            _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
+            _toolStripStatusLabelSetText(StatusLabel2, @"Завершен 'Режим редактирования в локальной БД дат праздников и выходных'");
+            _MenuItemTextSet(loadLastIputsOutputsItem, "Отобразить последние входы-выходы");
 
             nameOfLastTableFromDB = "ListFIO";
             SeekAndShowMembersOfGroup("");
@@ -6528,9 +6543,11 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                                 DESIRED_TIME_IN, DESIRED_TIME_OUT
                             });
 
+                        
                         textBoxGroup.Text = dgSeek.values[0];
                         textBoxFIO.Text = dgSeek.values[1];
                         textBoxNav.Text = dgSeek.values[2];
+                        _MenuItemTextSet(loadLastIputsOutputsItem, "Отобразить последние входы-выходы '" + dgSeek.values[1] + "'"); //Отобразить последние входы-выходы
 
                         StatusLabel2.Text = @"Выбрана группа: " + dgSeek.values[0] +
                             @" |Курсор на: " + ShortFIO(dgSeek.values[1]);
@@ -6841,8 +6858,6 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
             cell = null;
         }
 
-        //LastIputsOutputs
-
         //right click of mouse on the datagridview
         private void dataGridView1_MouseClick(object sender, MouseEventArgs e)
         {
@@ -6885,11 +6900,13 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
                         FIO, CODE, DEPARTMENT
                     });
 
-                    mRightClick.MenuItems.Add(new MenuItem(text: "Подсветить все входы-выходы '" + dgSeek.values[0]+ "'",
+                    mRightClick.MenuItems.Add(new MenuItem(text: "&Обновить данные о регистрации последних входах-выходах всех сотрудников",
+                       onClick: LoadLastIputsOutputs_Update_Click));
+
+                    mRightClick.MenuItems.Add(new MenuItem(text: "&Подсветить все входы-выходы '" + dgSeek.values[0] + "'",
                        onClick: PaintRowsItem_Click));
-                    
                     mRightClick.MenuItems.Add("-");
-                    mRightClick.MenuItems.Add(new MenuItem(text: "&Загрузить входы-выходы '" + dgSeek.values[0] +
+                    mRightClick.MenuItems.Add(new MenuItem(text: "&Загрузить данные регистраций входов-выходов '" + dgSeek.values[0] +
                     "' за " + _dateTimePickerStartReturnMonth(), onClick: GetDataItem_Click));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
