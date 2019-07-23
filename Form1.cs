@@ -199,11 +199,12 @@ namespace ASTA
         const string NPP = @"№ п/п";
         const string FIO = @"Фамилия Имя Отчество";
         const string CODE = @"NAV-код";
-        const string GROUP = @"Группа";
+        const string GROUP = @"Группа"; 
         const string GROUP_DECRIPTION = @"Описание группы";
         const string TIMEIN = @"Время прихода";
         const string TIMEOUT = @"Время ухода";
         const string N_ID = @"№ пропуска";
+        const string N_ID_STRING = @"Пропуск";
         const string DEPARTMENT = @"Отдел";
         const string DEPARTMENT_ID = @"Отдел (id)";
         const string PLACE_EMPLOYEE = @"Местонахождение сотрудника";
@@ -214,8 +215,8 @@ namespace ASTA
         const string DIRECTION_WAY = @"Направление прохода";
         const string DESIRED_TIME_IN = @"Учетное время прихода ЧЧ:ММ";
         const string DESIRED_TIME_OUT = @"Учетное время ухода ЧЧ:ММ";
-        const string REAL_TIME_IN = @"Фактич. время прихода ЧЧ:ММ";
-        const string REAL_TIME_OUT = @"Фактич. время ухода ЧЧ:ММ";
+        const string REAL_TIME_IN = @"Фактич. время прихода ЧЧ:ММ:СС";
+        const string REAL_TIME_OUT = @"Фактич. время ухода ЧЧ:ММ:СС";
         const string DAY_OF_WEEK = @"День недели";
         const string CHIEF_ID = @"Руководитель (код)";
         const string EMPLOYEE_POSITION = @"Должность";
@@ -230,6 +231,15 @@ namespace ASTA
         const string EMPLOYEE_EARLY_DEPARTURE = @"Ранний уход ЧЧ:ММ";
         const string EMPLOYEE_PLAN_TIME_WORKED = @"Отработанное время ЧЧ:ММ";
         const string EMPLOYEE_TIME_SPENT = @"Реальное отработанное время";
+        const string CARD_ALLOWED_EVENT = @"Событие точки доступа";
+        Dictionary<string, string> CARD_ACTION_STATE = new Dictionary<string, string>()
+        {
+            {"ACCESS_IN", "Успешный проход" },
+            {"NOACCESS_CARD",  "Неизвестная карта" },
+            {"NOACCESS_LEVEL", "Доступ не разрешен" },
+            {"RQ_NOACC_CARD" , "Запрос"}
+        };
+                
 
         //DataTables with people data
         DataTable dtPeople = new DataTable("People");
@@ -239,36 +249,38 @@ namespace ASTA
                                   new DataColumn(FIO,typeof(string)),//1
                                   new DataColumn(CODE,typeof(string)),//2
                                   new DataColumn(GROUP,typeof(string)),//3
-                                  new DataColumn(TIMEIN,typeof(int)),//6
-                                  new DataColumn(TIMEOUT,typeof(int)),//9
-                                  new DataColumn(N_ID,typeof(int)), //10
-                                  new DataColumn(DEPARTMENT,typeof(string)),//11
-                                  new DataColumn(PLACE_EMPLOYEE,typeof(string)),//12
-                                  new DataColumn(DATE_REGISTRATION,typeof(string)),//13
-                                  new DataColumn(TIME_REGISTRATION,typeof(int)), //15
-                                  new DataColumn(SERVER_SKD,typeof(string)), //19
-                                  new DataColumn(NAME_CHECKPOINT,typeof(string)), //20
-                                  new DataColumn(DIRECTION_WAY,typeof(string)), //21
-                                  new DataColumn(DESIRED_TIME_IN,typeof(string)),//22
-                                  new DataColumn(DESIRED_TIME_OUT,typeof(string)),//23
-                                  new DataColumn(REAL_TIME_IN,typeof(string)),//24
-                                  new DataColumn(REAL_TIME_OUT,typeof(string)), //25
-                                  new DataColumn(EMPLOYEE_TIME_SPENT,typeof(int)), //26
-                                  new DataColumn(EMPLOYEE_PLAN_TIME_WORKED,typeof(string)), //27
-                                  new DataColumn(EMPLOYEE_BEING_LATE,typeof(string)),                    //28
-                                  new DataColumn(EMPLOYEE_EARLY_DEPARTURE,typeof(string)),                 //29
-                                  new DataColumn(EMPLOYEE_VACATION,typeof(string)),                 //30
-                                  new DataColumn(EMPLOYEE_TRIP,typeof(string)),                 //31
-                                  new DataColumn(DAY_OF_WEEK,typeof(string)),                 //32
-                                  new DataColumn(EMPLOYEE_SICK_LEAVE,typeof(string)),                 //33
-                                  new DataColumn(EMPLOYEE_ABSENCE,typeof(string)),     //34
-                                  new DataColumn(GROUP_DECRIPTION,typeof(string)),            //37
-                                  new DataColumn(EMPLOYEE_SHIFT_COMMENT,typeof(string)),                 //38
-                                  new DataColumn(EMPLOYEE_POSITION,typeof(string)),                 //39
-                                  new DataColumn(EMPLOYEE_SHIFT,typeof(string)),                 //40
-                                  new DataColumn(EMPLOYEE_HOOKY,typeof(string)),                 //41
-                                  new DataColumn(DEPARTMENT_ID,typeof(string)), //42
-                                  new DataColumn(CHIEF_ID,typeof(string)) //43
+                                  new DataColumn(TIMEIN,typeof(int)),//4
+                                  new DataColumn(TIMEOUT,typeof(int)),//5
+                                  new DataColumn(N_ID,typeof(int)), //6
+                                  new DataColumn(N_ID_STRING,typeof(string)), //6
+                                  new DataColumn(DEPARTMENT,typeof(string)),//7
+                                  new DataColumn(PLACE_EMPLOYEE,typeof(string)),//8
+                                  new DataColumn(DATE_REGISTRATION,typeof(string)),//9
+                                  new DataColumn(TIME_REGISTRATION,typeof(int)), //10
+                                  new DataColumn(REAL_TIME_IN,typeof(string)),//16
+                                  new DataColumn(REAL_TIME_OUT,typeof(string)), //17
+                                  new DataColumn(SERVER_SKD,typeof(string)), //11
+                                  new DataColumn(NAME_CHECKPOINT,typeof(string)), //12
+                                  new DataColumn(DIRECTION_WAY,typeof(string)), //13
+                                  new DataColumn(DESIRED_TIME_IN,typeof(string)),//14
+                                  new DataColumn(DESIRED_TIME_OUT,typeof(string)),//15
+                                  new DataColumn(EMPLOYEE_TIME_SPENT,typeof(int)), //18
+                                  new DataColumn(EMPLOYEE_PLAN_TIME_WORKED,typeof(string)), //19
+                                  new DataColumn(EMPLOYEE_BEING_LATE,typeof(string)),                    //20
+                                  new DataColumn(EMPLOYEE_EARLY_DEPARTURE,typeof(string)),                 //21
+                                  new DataColumn(EMPLOYEE_VACATION,typeof(string)),                 //22
+                                  new DataColumn(EMPLOYEE_TRIP,typeof(string)),                 //23
+                                  new DataColumn(DAY_OF_WEEK,typeof(string)),                 //24
+                                  new DataColumn(EMPLOYEE_SICK_LEAVE,typeof(string)),                 //25
+                                  new DataColumn(EMPLOYEE_ABSENCE,typeof(string)),     //26
+                                  new DataColumn(GROUP_DECRIPTION,typeof(string)),            //27
+                                  new DataColumn(EMPLOYEE_SHIFT_COMMENT,typeof(string)),                 //28
+                                  new DataColumn(EMPLOYEE_POSITION,typeof(string)),                 //29
+                                  new DataColumn(EMPLOYEE_SHIFT,typeof(string)),                 //30
+                                  new DataColumn(EMPLOYEE_HOOKY,typeof(string)),                 //31
+                                  new DataColumn(DEPARTMENT_ID,typeof(string)), //32
+                                  new DataColumn(CHIEF_ID,typeof(string)), //33
+                                  new DataColumn(CARD_ALLOWED_EVENT,typeof(string)) //34
                 };
         readonly string[] arrayAllColumnsDataTablePeople =
             {
@@ -276,36 +288,38 @@ namespace ASTA
                  FIO,//1
                  CODE,//2
                  GROUP,//3
-                 TIMEIN,//6
-                 TIMEOUT,//9
-                 N_ID, //10
-                 DEPARTMENT,//11
-                 PLACE_EMPLOYEE,//12
-                 DATE_REGISTRATION,//13
-                 TIME_REGISTRATION, //15
-                 SERVER_SKD, //19
-                 NAME_CHECKPOINT, //20
-                 DIRECTION_WAY, //21
-                 DESIRED_TIME_IN,//22
-                 DESIRED_TIME_OUT,//23
-                 REAL_TIME_IN,//24
-                 REAL_TIME_OUT, //25
-                 EMPLOYEE_TIME_SPENT, //26
-                 EMPLOYEE_PLAN_TIME_WORKED, //27
-                 EMPLOYEE_BEING_LATE,                    //28
-                 EMPLOYEE_EARLY_DEPARTURE,                 //29
-                 EMPLOYEE_VACATION,                 //30
-                 EMPLOYEE_TRIP,                 //31
-                 DAY_OF_WEEK,                    //32
-                 EMPLOYEE_SICK_LEAVE,                    //33
-                 EMPLOYEE_ABSENCE,      //34
-                 GROUP_DECRIPTION,                //37
-                 EMPLOYEE_SHIFT_COMMENT,      //38
-                 EMPLOYEE_POSITION,                    //39
-                 EMPLOYEE_SHIFT,                    //40
-                 EMPLOYEE_HOOKY,   //41
-                 DEPARTMENT_ID,                     //42
-                 CHIEF_ID                     //43
+                 TIMEIN,//4
+                 TIMEOUT,//5
+                 N_ID, //6
+                 N_ID_STRING,
+                 DEPARTMENT,//7
+                 PLACE_EMPLOYEE,//8
+                 DATE_REGISTRATION,//9
+                 TIME_REGISTRATION, //10
+                 REAL_TIME_IN,                      //17
+                 REAL_TIME_OUT,                     //18
+                 SERVER_SKD,                        //11
+                 NAME_CHECKPOINT,                   //12
+                 DIRECTION_WAY,                     //13              
+                 CARD_ALLOWED_EVENT,                //14
+                 DESIRED_TIME_IN,                   //15
+                 DESIRED_TIME_OUT,                  //16
+                 EMPLOYEE_TIME_SPENT,               //19
+                 EMPLOYEE_PLAN_TIME_WORKED,         //20
+                 EMPLOYEE_BEING_LATE,               //21
+                 EMPLOYEE_EARLY_DEPARTURE,          //22
+                 EMPLOYEE_VACATION,                 //23
+                 EMPLOYEE_TRIP,                     //24
+                 DAY_OF_WEEK,                       //25
+                 EMPLOYEE_SICK_LEAVE,               //26
+                 EMPLOYEE_ABSENCE,                  //27
+                 GROUP_DECRIPTION,                  //28
+                 EMPLOYEE_SHIFT_COMMENT,            //29
+                 EMPLOYEE_POSITION,                 //30
+                 EMPLOYEE_SHIFT,                    //31
+                 EMPLOYEE_HOOKY,                    //32
+                 DEPARTMENT_ID,                     //33
+                 CHIEF_ID                           //34
         };
         readonly string[] orderColumnsFinacialReport =
             {
@@ -313,7 +327,6 @@ namespace ASTA
                  CODE,//2
                  DEPARTMENT,//11
                  PLACE_EMPLOYEE,//12
-                 // DEPARTMENT_ID,                     //42
                  DATE_REGISTRATION,//12
                  DAY_OF_WEEK,                    //32
                  DESIRED_TIME_IN,//22
@@ -325,7 +338,6 @@ namespace ASTA
                  EMPLOYEE_EARLY_DEPARTURE,                 //29
                  EMPLOYEE_VACATION,                 //30
                  EMPLOYEE_HOOKY,    //41
-                 //EMPLOYEE_TRIP,                 //31
                  EMPLOYEE_SICK_LEAVE,                    //33
                  EMPLOYEE_ABSENCE,      //34
                  EMPLOYEE_SHIFT_COMMENT,                    //38
@@ -338,6 +350,7 @@ namespace ASTA
                  TIMEIN,            //6
                  TIMEOUT,              //9
                  N_ID,               //10
+                 N_ID_STRING,
                  DATE_REGISTRATION,         //12
                  TIME_REGISTRATION,        //15
                  SERVER_SKD,               //19
@@ -356,11 +369,13 @@ namespace ASTA
                  EMPLOYEE_ABSENCE,      //34
                  EMPLOYEE_SHIFT_COMMENT,                    //38
                  GROUP_DECRIPTION,                //37
-                 EMPLOYEE_HOOKY
+                 EMPLOYEE_HOOKY,
+                 CARD_ALLOWED_EVENT
         };
         readonly string[] nameHidenColumnsArray =
             {
                 NPP,//0
+                N_ID_STRING,
                 TIMEIN,//6
                 TIMEOUT,//9
                 TIME_REGISTRATION, //15
@@ -377,7 +392,8 @@ namespace ASTA
                 EMPLOYEE_SICK_LEAVE,  //33
                 EMPLOYEE_ABSENCE,      //34
                 GROUP_DECRIPTION,                //37
-                EMPLOYEE_HOOKY                   //43
+                EMPLOYEE_HOOKY,                   //43
+                CARD_ALLOWED_EVENT
         };
 
         readonly string[] nameHidenColumnsArrayLastRegistration =
@@ -387,8 +403,6 @@ namespace ASTA
                 TIMEOUT,//9
                 TIME_REGISTRATION, //15
                 SERVER_SKD, //19
-              //  NAME_CHECKPOINT, //20
-              //  DIRECTION_WAY, //21
 
                 N_ID, //10
                 GROUP,//3
@@ -397,21 +411,23 @@ namespace ASTA
                 DEPARTMENT_ID,                     //42
                 DESIRED_TIME_IN,//22
                 DESIRED_TIME_OUT,//23
-                EMPLOYEE_SHIFT,                    //38
+                
                 PLACE_EMPLOYEE,//12
+                DEPARTMENT,
                 CHIEF_ID,                     //43
-
+                EMPLOYEE_SHIFT,                    //38
+                EMPLOYEE_POSITION,
                 EMPLOYEE_TIME_SPENT, //26
                 EMPLOYEE_PLAN_TIME_WORKED, //27
                 EMPLOYEE_BEING_LATE,                    //28
                 EMPLOYEE_EARLY_DEPARTURE,                 //29
                 EMPLOYEE_VACATION,              //30
                 EMPLOYEE_TRIP,                 //31
-                DAY_OF_WEEK,  //32
                 EMPLOYEE_SICK_LEAVE,  //33
                 EMPLOYEE_ABSENCE,      //34
-                GROUP_DECRIPTION,                //37
-                EMPLOYEE_HOOKY                   //43
+                EMPLOYEE_HOOKY,                   //43
+                DAY_OF_WEEK,  //32
+                GROUP_DECRIPTION                //37
         };
         static List<OutReasons> outResons = new List<OutReasons>();
         static List<OutPerson> outPerson = new List<OutPerson>();
@@ -579,7 +595,9 @@ namespace ASTA
 
             //Prepare DataTables
             dtPeople.Columns.AddRange(dcPeople);
-            dtPeople.DefaultView.Sort = "[Группа], [Фамилия Имя Отчество], [Дата регистрации], [Время регистрации], [Фактич. время прихода ЧЧ:ММ], [Фактич. время ухода ЧЧ:ММ] ASC";
+            
+            dtPeople.DefaultView.Sort = GROUP+", "+ FIO + ", " + DATE_REGISTRATION + ", " + TIME_REGISTRATION + ", " + REAL_TIME_IN + ", " + REAL_TIME_OUT + " ASC";
+           // dtPeople.DefaultView.Sort = "[Группа], [Фамилия Имя Отчество], [Дата регистрации], [Время регистрации], [Фактич. время прихода ЧЧ:ММ:СС], [Фактич. время ухода ЧЧ:ММ:СС] ASC";
 
             //Clone default column name and structure from 'dtPeople' to other DataTables
             dtPersonTemp = dtPeople.Clone();  //Copy only structure(Name of columns)
@@ -2088,7 +2106,10 @@ namespace ASTA
             reportExcelReady = false;
             dataTable.SetColumnsOrder(orderColumnsFinacialReport);
             DataView viewExport = new DataView(dataTable);
-            viewExport.Sort = "[Фамилия Имя Отчество], [Дата регистрации] ASC";
+
+            viewExport.Sort =  FIO + ", " + DATE_REGISTRATION + " ASC";
+
+           // viewExport.Sort = "[Фамилия Имя Отчество], [Дата регистрации] ASC";
             DataTable dtExport = viewExport.ToTable();
 
             logger.Trace("В таблице " + dataTable.TableName + " столбцов всего - " + dtExport.Columns.Count + ", строк - " + dtExport.Rows.Count);
@@ -2970,8 +2991,7 @@ namespace ASTA
                 logger.Trace(tmp._idPoint + " " + tmp._namePoint + " " + tmp._direction);
             }
         }
-
-
+        
         private void LoadLastIputsOutputs_Click(object sender, EventArgs e) //LoadLastIputsOutputs()
         {
             LoadLastIputsOutputs();
@@ -2984,37 +3004,93 @@ namespace ASTA
             LoadLastIputsOutputs();
         }
 
-        private void LoadLastIputsOutputs()
+        
+        private async void LoadLastIputsOutputs()
         {
+            _ProgressBar1Start();
+            await Task.Run(() => CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword));
+
+          //  CollectionInputsOutputs collectionInputsOutputs = new CollectionInputsOutputs();
             DateTime today = DateTime.Today;
-            dateTimePickerStart.Value = DateTime.Parse(today.Year + "-" + today.Month + "-" + today.Day + " 00:00:00");
-            dateTimePickerEnd.Value = DateTime.Parse(today.Year + "-" + today.Month + "-" + today.Day + " 23:59:59");
+            string startDay = today.Year + "-" + today.Month + "-" + today.Day + " 00:00:00";
+            string endDay = today.Year + "-" + today.Month + "-" + today.Day + " 23:59:59";
+            string date, fullPointName, fio, action, action_descr, fac, card; int seconds;
+            int idCard = 0; string idCardDescr;
 
             //Clear work tables
             dtPersonRegistrationsFullList.Clear();
+            DataRow rowPerson;
 
-            logger.Trace("GetData: " + "@SKD" + " " + _dateTimePickerStart() + " " + _dateTimePickerEnd());
+            //Get names of the points
+            GetNamesOfPassagePoints();
 
-            GetNamesOfPassagePoints();  //Get names of the points
-            GetRegistrations("@SKD", _dateTimePickerStart(), _dateTimePickerEnd(), "");
+            string stringConnection = @"Data Source=" + sServer1 + @"\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + @";Password=" + sServer1UserPassword + @";Connect Timeout=240";
 
-            dtPersonTemp = dtPersonRegistrationsFullList.Clone();
-            dtPersonTempAllColumns = dtPersonRegistrationsFullList.Copy(); //store all columns
+            logger.Trace(stringConnection);
+            string query = "SELECT p.param0 as param0, p.param1 as param1, p.action as action, p.objid as objid, p.objtype, " +
+                " pe.tabnum as nav, pe.facility_code as fac, pe.card as card, " +
+                " CONVERT(varchar, p.date, 120) AS date, CONVERT(varchar, p.time, 114) AS time " +
+                " FROM protocol p " +
+                " LEFT JOIN OBJ_PERSON pe ON  p.param1=pe.id " +
+                " where p.objtype like 'ABC_ARC_READER' AND p.param0 like '%%' AND date >= '" + startDay + "' AND date <= '" + endDay + "' " +
+                " ORDER BY p.time DESC";
+            logger.Trace(query);
+
+
+            using (SqlDbTableReader sqlDbTableReader = new SqlDbTableReader(stringConnection))
+            {
+                System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetDataFromDB(query);
+                foreach (DbDataRecord record in sqlData)
+                {
+                    fullPointName = record["objid"]?.ToString()?.Trim();
+                    seconds = ConvertStringTimeHHMMToSeconds(record["time"]?.ToString()?.Trim());
+                    date = record["date"]?.ToString()?.Trim()?.Split(' ')[0];
+                    fio = record["param0"]?.ToString()?.Trim();
+                    idCard = 0;
+                    Int32.TryParse(record["param1"]?.ToString()?.Trim(), out idCard);
+                    fac = record["fac"]?.ToString()?.Trim();
+                    card = record["card"]?.ToString()?.Trim();
+
+                    action = record["action"]?.ToString()?.Trim();
+                    action_descr = null;
+                    CARD_ACTION_STATE.TryGetValue(record["action"]?.ToString()?.Trim(), out action_descr);
+
+                    idCardDescr = idCard != 0 ? "№" + idCard + " (" + fac + "," + card + ")" : "Пропуск не зарегистрирован";
+                    rowPerson = dtPersonRegistrationsFullList.NewRow();
+                    rowPerson[FIO] = fio?.Length > 0 ? fio : sServer1;
+                    rowPerson[CODE] = record["nav"]?.ToString()?.Trim();
+
+                    rowPerson[N_ID_STRING] = action_descr != null ? idCardDescr : "Сервисное сообщение";
+                    rowPerson[DATE_REGISTRATION] = date;
+                    rowPerson[TIME_REGISTRATION] = seconds;
+                    rowPerson[CARD_ALLOWED_EVENT] = action_descr ?? action;
+                    rowPerson[SERVER_SKD] = sServer1;
+                    rowPerson[NAME_CHECKPOINT] = listSidesOfPassagePoint.Find((x) => x._idPoint == fullPointName)._namePoint;
+                    rowPerson[DIRECTION_WAY] = listSidesOfPassagePoint.Find((x) => x._idPoint == fullPointName)._direction;
+                    rowPerson[REAL_TIME_IN] = ConvertSecondsToStringHHMMSS(seconds);
+
+                    dtPersonRegistrationsFullList.Rows.Add(rowPerson);
+
+                    logger.Trace(rowPerson[FIO] + " " + date + " " + seconds + " " + rowPerson[NAME_CHECKPOINT] + " " + rowPerson[DIRECTION_WAY] + " " + record["action"]?.ToString()?.Trim() + " " + action);
+                    _ProgressWork1Step();
+
+                }
+            }
+
+            _ProgressWork1Step();
 
             // Order of collumns
             var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(nameHidenColumnsArrayLastRegistration).ToArray(); //take distinct data
-            dtPersonTemp = GetDistinctRecords(dtPersonTempAllColumns, namesDistinctColumnsArray);
-            DataView dv = dtPersonTemp.DefaultView;
-            dv.Sort = "[Фактич. время прихода ЧЧ:ММ] DESC";
+            DataView dv = GetDistinctRecords(dtPersonRegistrationsFullList, namesDistinctColumnsArray).DefaultView;
+            dv.Sort = REAL_TIME_IN + " DESC";
             DataTable sortedDT = dv.ToTable();
 
             ShowDatatableOnDatagridview(sortedDT, nameHidenColumnsArrayLastRegistration, "LastIputsOutputs");
 
-            namesDistinctColumnsArray = null;
-
             stimerPrev = "";
             _ProgressBar1Stop();
         }
+        
 
         private void PaintRowsItem_Click(object sender, EventArgs e) 
         { PaintRowsWithCodeOPerson(); }
@@ -3026,20 +3102,21 @@ namespace ASTA
                         FIO, CODE, DEPARTMENT
                     });
             string code = dgSeek.values[1];
+            string fio = dgSeek.values[0];
+            string nameCollumn = CODE;
+            string lookFor = code;
+            if (code == null || code.Trim().Length == 0)
+            {
+                nameCollumn = FIO;
+                lookFor = fio;
+            }
 
             foreach (DataGridViewRow row in dataGridView1.Rows)
             {
-                try
-                {
-                    if (row.Cells[CODE].Value.ToString() == code)
-                        row.DefaultCellStyle.BackColor = Color.Red;
-                    else
-                        row.DefaultCellStyle.BackColor = Color.White;
-                }
-                catch
-                {
-                    // здесь можно отреагировать на неправильные данные, а можно ничего не делать
-                }
+                if (row?.Cells[nameCollumn]?.Value?.ToString() == lookFor)
+                    row.DefaultCellStyle.BackColor = Color.Red;
+                else
+                    row.DefaultCellStyle.BackColor = Color.White;
             }
         }
 
@@ -3125,7 +3202,10 @@ namespace ASTA
         {
             //Clear work tables
             dtPersonRegistrationsFullList.Clear();
-            dtPeople.DefaultView.Sort = "[Группа], [Фамилия Имя Отчество], [Дата регистрации], [Время регистрации], [Фактич. время прихода ЧЧ:ММ], [Фактич. время ухода ЧЧ:ММ] ASC";
+
+            dtPeople.DefaultView.Sort = GROUP + ", " + FIO + ", " + DATE_REGISTRATION + ", " + TIME_REGISTRATION + ", " + REAL_TIME_IN + ", " + REAL_TIME_OUT + " ASC";
+
+           // dtPeople.DefaultView.Sort = "[Группа], [Фамилия Имя Отчество], [Дата регистрации], [Время регистрации], [Фактич. время прихода ЧЧ:ММ:СС], [Фактич. время ухода ЧЧ:ММ:СС] ASC";
 
             //Clone default column name and structure from 'dtPeople' to other DataTables
             dtPersonTemp = dtPeople.Clone();  //Copy only structure(Name of columns)
@@ -3299,7 +3379,6 @@ namespace ASTA
             string stringConnection = "";
             string query = "";
             HashSet<string> personWorkedDays = new HashSet<string>();
-            string stringIdCardIntellect = "";
 
             string[] cellData;
             string namePoint = "";
@@ -3309,31 +3388,15 @@ namespace ASTA
             string fullPointName = "";
             int seconds = 0;
 
-            //is looking for a NAV and an idCard
+            //look for a NAV and an idCard
             try
             {
                 stringConnection = @"Data Source=" + sServer1 + @"\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + @";Password=" + sServer1UserPassword + @";Connect Timeout=240";
-                query = "Select id, tabnum FROM OBJ_PERSON where tabnum like '" + person.NAV + "';";
-                logger.Trace(query);
-
-                using (SqlDbTableReader sqlDbTableReader = new SqlDbTableReader(stringConnection))
-                {
-                    System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetDataFromDB(query);
-                    foreach (DbDataRecord record in sqlData)
-                    {
-                        if (record?["tabnum"]?.ToString()?.Trim() == person.NAV)
-                        {
-                            stringIdCardIntellect = record["id"].ToString().Trim();
-                            person.idCard = Convert.ToInt32(record["id"].ToString().Trim());
-                            break;
-                        }
-                        _ProgressWork1Step();
-                    }
-                }
-
                 //list of users id and their id cards
                 query = "Select id, tabnum FROM OBJ_PERSON where tabnum like '" + person.NAV + "';";
                 logger.Trace(query);
+
+                //is looking for the idCard of the person's NAV
                 using (SqlDbTableReader sqlDbTableReader = new SqlDbTableReader(stringConnection))
                 {
                     System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetDataFromDB(query);
@@ -3341,17 +3404,16 @@ namespace ASTA
                     {
                         if (record?["tabnum"]?.ToString()?.Trim() == person.NAV)
                         {
-                            stringIdCardIntellect = record["id"].ToString().Trim();
                             person.idCard = Convert.ToInt32(record["id"].ToString().Trim());
                             break;
                         }
                         _ProgressWork1Step();
                     }
                 }
-
+                
                 // Passes By Points
                 query = "SELECT param0, param1, objid, objtype, CONVERT(varchar, date, 120) AS date, CONVERT(varchar, PROTOCOL.time, 114) AS time FROM protocol " +
-                   " where objtype like 'ABC_ARC_READER' AND param1 like '" + stringIdCardIntellect + "' AND date >= '" + startDay + "' AND date <= '" + endDay + "' " +
+                   " where objtype like 'ABC_ARC_READER' AND param1 like '" + person.idCard + "' AND date >= '" + startDay + "' AND date <= '" + endDay + "' " +
                    " ORDER BY date ASC";
                 logger.Trace(query);
                 using (SqlDbTableReader sqlDbTableReader = new SqlDbTableReader(stringConnection))
@@ -3377,7 +3439,7 @@ namespace ASTA
                                 rowPerson = dtTarget.NewRow();
                                 rowPerson[FIO] = record["param0"].ToString().Trim();
                                 rowPerson[CODE] = person.NAV;
-                                rowPerson[N_ID] = record["param1"].ToString().Trim();
+                                rowPerson[N_ID] = person.idCard;
                                 rowPerson[GROUP] = person.GroupPerson;
                                 rowPerson[DEPARTMENT] = person.Department;
                                 rowPerson[EMPLOYEE_POSITION] = person.PositionInDepartment;
@@ -3391,26 +3453,29 @@ namespace ASTA
                                 rowPerson[SERVER_SKD] = sServer1;
                                 rowPerson[NAME_CHECKPOINT] = namePoint;
                                 rowPerson[DIRECTION_WAY] = direction;
-                                logger.Trace(rowPerson[FIO] + " " + stringDataNew + " " + seconds + " " + namePoint + " " + direction);
                                 rowPerson[DESIRED_TIME_IN] = person.ControlInHHMM;
                                 rowPerson[DESIRED_TIME_OUT] = person.ControlOutHHMM;
-                                rowPerson[REAL_TIME_IN] = ConvertSecondsToStringHHMM(seconds);
+                                rowPerson[REAL_TIME_IN] = ConvertSecondsToStringHHMMSS(seconds);
 
                                 dtTarget.Rows.Add(rowPerson);
 
+                                logger.Trace(rowPerson[FIO] + " " + stringDataNew + " " + seconds + " " + namePoint + " " + direction);
                                 _ProgressWork1Step();
                             }
                         }
-                        catch (Exception expt) { logger.Warn("GetPersonRegistrationFromServer " + expt.ToString()); }
+                        catch (DbException expt)
+                        { logger.Warn(@"Ошибка доступа к данным БД: " + expt.ToString()); }
+                        catch (Exception expt) { logger.Warn("GetPersonRegistrationFromServer: " + expt.ToString()); }
                     }
-
                 }
 
                 stringDataNew = null; query = null; stringConnection = null;
                 _ProgressWork1Step();
             }
-            catch (Exception Expt)
-            { MessageBox.Show(Expt.ToString(), @"Сервер не доступен, или неправильная авторизация", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+            catch (DbException expt)
+            { logger.Warn(@"Ошибка доступа к данным БД: " + expt.ToString()); }
+            catch (Exception expt)
+            { logger.Warn(@"GetPersonRegistrationFromServer: " + expt.ToString()); }
 
             // рабочие дни в которые отсутствовал данная персона
             foreach (string day in workSelectedDays.Except(personWorkedDays))
@@ -3476,7 +3541,7 @@ namespace ASTA
 
             rowPerson = null;
             namePoint = null; direction = null;
-            stringIdCardIntellect = null; cellData = new string[1];
+            cellData = new string[1];
         }
 
         private string DayOfWeekRussian(string dayEnglish) //return a day of week as the same short name in Russian 
@@ -3885,15 +3950,15 @@ namespace ASTA
 
                         //take and convert a real time coming into a string timearray
                         rowDtStoring[TIME_REGISTRATION] = firstRegistrationInDay;              //("Время регистрации", typeof(decimal)), //15
-                        rowDtStoring[REAL_TIME_IN] = ConvertSecondsToStringHHMM(firstRegistrationInDay);  //("Фактич. время прихода ЧЧ:ММ", typeof(string)),//24
+                        rowDtStoring[REAL_TIME_IN] = ConvertSecondsToStringHHMMSS(firstRegistrationInDay);  //("Фактич. время прихода ЧЧ:ММ:СС", typeof(string)),//24
 
                         // rowDtStoring[@"Реальное время ухода"] = lastRegistrationInDay;                 //("Реальное время ухода", typeof(decimal)), //18
-                        rowDtStoring[REAL_TIME_OUT] = ConvertSecondsToStringHHMM(lastRegistrationInDay);     //("Фактич. время ухода ЧЧ:ММ", typeof(string)), //25
+                        rowDtStoring[REAL_TIME_OUT] = ConvertSecondsToStringHHMMSS(lastRegistrationInDay);     //("Фактич. время ухода ЧЧ:ММ", typeof(string)), //25
 
                         //worked out times
                         workedSeconds = lastRegistrationInDay - firstRegistrationInDay;
                         rowDtStoring[EMPLOYEE_TIME_SPENT] = workedSeconds;                                  // ("Реальное отработанное время", typeof(decimal)), //26
-                        //  rowDtStoring[@"Отработанное время ЧЧ:ММ"] = ConvertSecondsToStringHHMM(workedSeconds);  //("Отработанное время ЧЧ:ММ", typeof(string)), //27
+                        //  rowDtStoring[@"Отработанное время ЧЧ:ММ"] = ConvertSecondsToStringHHMMSS(workedSeconds);  //("Отработанное время ЧЧ:ММ", typeof(string)), //27
                         logger.Trace("FilterRegistrationsOfPerson: " + person.NAV + "| " + rowDtStoring[DATE_REGISTRATION]?.ToString() + " " + firstRegistrationInDay + " - " + lastRegistrationInDay);
 
                         //todo 
@@ -3901,7 +3966,7 @@ namespace ASTA
                         if (firstRegistrationInDay > (person.ControlInSeconds + offsetTimeIn) && firstRegistrationInDay != 0) // "Опоздание ЧЧ:ММ", typeof(bool)),           //28
                         {
                             if (typeReport == "Полный")
-                            { rowDtStoring[EMPLOYEE_BEING_LATE] = ConvertSecondsToStringHHMM(firstRegistrationInDay - person.ControlInSeconds); }
+                            { rowDtStoring[EMPLOYEE_BEING_LATE] = ConvertSecondsToStringHHMMSS(firstRegistrationInDay - person.ControlInSeconds); }
                             else if (typeReport == "Упрощенный")
                             { rowDtStoring[EMPLOYEE_BEING_LATE] = "1"; }
                         }
@@ -3909,7 +3974,7 @@ namespace ASTA
                         if (lastRegistrationInDay < (person.ControlOutSeconds - offsetTimeOut) && lastRegistrationInDay != 0)  // "Ранний уход ЧЧ:ММ", typeof(bool)),                 //29
                         {
                             if (typeReport == "Полный")
-                            { rowDtStoring[EMPLOYEE_EARLY_DEPARTURE] = ConvertSecondsToStringHHMM(person.ControlOutSeconds - lastRegistrationInDay); }
+                            { rowDtStoring[EMPLOYEE_EARLY_DEPARTURE] = ConvertSecondsToStringHHMMSS(person.ControlOutSeconds - lastRegistrationInDay); }
                             else if (typeReport == "Упрощенный")
                             { rowDtStoring[EMPLOYEE_EARLY_DEPARTURE] = "1"; }
                         }
@@ -9118,6 +9183,17 @@ logger.Trace("SeekAnualDays, result bolded:" + result.Length);
             int minutes = (seconds % 3600) / 60;
 
             result = string.Format("{0:d2}:{1:d2}", hours, minutes);
+            return result;
+        }
+
+        private string ConvertSecondsToStringHHMMSS(int seconds)
+        {
+            string result;
+            int hours = seconds / 3600;
+            int minutes = (seconds % 3600) / 60;
+            int sec = seconds - hours * 3600 - minutes * 60;
+
+            result = string.Format("{0:d2}:{1:d2}:{2:d2}", hours, minutes,sec);
             return result;
         }
 
