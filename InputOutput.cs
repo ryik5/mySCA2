@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 
 namespace ASTA
 {
-    /*
+    
     class InputOutputOfPerson
     {
         public int idCard { get; set; }
         public string fio { get; set; }
-        public string dateTime { get; set; }
+        public string date { get; set; }
+        public string time { get; set; }
         public string action { get; set; }
         public SideOfPassagePoint sideOfPassagePoint { get; set; }
 
@@ -38,9 +39,15 @@ namespace ASTA
             inputOutputOfPerson.fio = fio;
             return this;
         }
-        public InputOutputOfPersonBuilder SetDateTime(string datetime)
+        public InputOutputOfPersonBuilder SetDate(string date)
         {
-            inputOutputOfPerson.dateTime = datetime;
+            inputOutputOfPerson.date = date;
+            return this;
+        }
+
+        public InputOutputOfPersonBuilder SetTime(string time)
+        {
+            inputOutputOfPerson.time = time;
             return this;
         }
 
@@ -73,34 +80,29 @@ namespace ASTA
 
         public CollectionInputsOutputs()
         {
-            SetInputsOutputs();
+            listInputsOutputs = new List<InputOutputOfPerson>();
         }
 
-        public void InputOutputAdd(string _fio, string _action, int _idCard, string _datetime, SideOfPassagePoint _sideOfPassagePoint)
+        public void Add(string _fio, string _action, int _idCard, string _date, string _time, SideOfPassagePoint _sideOfPassagePoint)
         {
             inputOutputOfPerson = new InputOutputOfPersonBuilder()
                 .SetFIO(_fio)
                 .SetIdCard(_idCard)
                 .SetAction(_action)
-                .SetDateTime(_datetime)
+                .SetDate(_date)
+                .SetTime(_time)
                 .SetSideOfPassagePoint(_sideOfPassagePoint)
                 .Build();
 
             listInputsOutputs.Add(inputOutputOfPerson);
         }
 
-        private void SetInputsOutputs()
-        {
-            listInputsOutputs = new List<InputOutputOfPerson>();
-        }
-
-        public List<InputOutputOfPerson> GetInputsOutputs()
+        public List<InputOutputOfPerson> Get()
         {
             return listInputsOutputs;
         }
-
     }
-    */
+    
 
     class PassagePoint
     {
@@ -157,5 +159,87 @@ namespace ASTA
             return ToString().GetHashCode();
         }
     }
+
+    class SideOfPassagePointBuilder
+    {
+        private SideOfPassagePoint sideOfPassagePoint;
+        public SideOfPassagePointBuilder()
+        {
+            sideOfPassagePoint = new SideOfPassagePointBuilder();
+        }
+
+        public SideOfPassagePointBuilder SetIdPoint(string idPoint)
+        {
+            sideOfPassagePoint._idPoint = idPoint;
+            return this;
+        }
+
+        public SideOfPassagePointBuilder SetNamePoint(string namePoint)
+        {
+            sideOfPassagePoint._namePoint = namePoint;
+            return this;
+        }
+
+        public SideOfPassagePointBuilder SetDirection(string direction)
+        {
+            sideOfPassagePoint._direction = direction;
+            return this;
+        }
+
+        public SideOfPassagePointBuilder SetServer(string server)
+        {
+            sideOfPassagePoint._connectedToServer = server;
+            return this;
+        }
+
+        public SideOfPassagePoint Build()
+        {
+            return sideOfPassagePoint;
+        }
+
+        public static implicit operator SideOfPassagePoint(SideOfPassagePointBuilder builder)
+        {
+            return builder.sideOfPassagePoint;
+        }
+    }
+
+    class CollectionSideOfPassagePoints
+    {
+        SideOfPassagePoint sideOfPassagePoint;
+        Dictionary<string, SideOfPassagePoint> listSideOfPassagePoints;
+
+        public CollectionSideOfPassagePoints()
+        {
+            listSideOfPassagePoints = new Dictionary<string, SideOfPassagePoint>();
+        }
+
+        public void Add(string _idPoint, string _namePoint, string _direction, string _connectedToServer)
+        {
+            sideOfPassagePoint = new SideOfPassagePointBuilder()
+                .SetIdPoint(_idPoint)
+                .SetNamePoint(_namePoint)
+                .SetDirection(_direction)
+                .SetServer(_connectedToServer)
+                .Build();
+
+            if (_idPoint != null && !listSideOfPassagePoints.ContainsKey(_idPoint))
+                listSideOfPassagePoints.Add(_idPoint, sideOfPassagePoint);
+        }
+
+        public Dictionary<string, SideOfPassagePoint> GetCollection()
+        {
+            return listSideOfPassagePoints;
+        }
+
+        public SideOfPassagePoint GetSideOfPassagePoint(string _idPoint)
+        {
+            sideOfPassagePoint = new SideOfPassagePoint();
+            listSideOfPassagePoints.TryGetValue(_idPoint, out sideOfPassagePoint);
+
+            return sideOfPassagePoint;
+        }
+    }
+
+
 
 }

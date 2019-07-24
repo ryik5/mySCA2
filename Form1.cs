@@ -449,6 +449,7 @@ namespace ASTA
         Color textBoxFIOCurrentBackColor;
         Color textBoxNavCurrentBackColor;
 
+        CollectionSideOfPassagePoints collectionSideOfPassagePoints;
 
         public WinFormASTA()
         { InitializeComponent(); }
@@ -2954,6 +2955,8 @@ namespace ASTA
         {
             logger.Trace("GetNamePoints");
 
+            collectionSideOfPassagePoints = new CollectionSideOfPassagePoints();
+
             listSidesOfPassagePoint = new List<SideOfPassagePoint>();
             if (databasePerson.Exists)
             {
@@ -2966,15 +2969,21 @@ namespace ASTA
                 {
                     foreach (DbDataRecord record in sqlData)
                     {
+
                         namePoint = record?["name"]?.ToString()?.Trim();
                         idPoint = record["id"]?.ToString()?.Trim();
+                        if (namePoint?.ToLower().Contains("выход") == true)
+                        { direction = "Выход"; }
+                        else
+                        { direction = "Вход"; }
+
                         if (idPoint?.Length > 0 && namePoint?.Length > 0)
                         {
-                            if (namePoint.ToLower().Contains("выход"))
-                            { direction = "Выход"; }
-                            else
-                            { direction = "Вход"; }
+                            collectionSideOfPassagePoints.Add(idPoint, namePoint, direction, sServer1);
 
+
+
+                            //test only
                             listSidesOfPassagePoint.Add(new SideOfPassagePoint
                             {
                                 _idPoint = idPoint,
@@ -2982,6 +2991,7 @@ namespace ASTA
                                 _namePoint = namePoint,
                                 _direction = direction
                             });
+
                         }
                     }
                 }
@@ -3004,13 +3014,111 @@ namespace ASTA
             LoadLastIputsOutputs();
         }
 
-        
+
         private async void LoadLastIputsOutputs()
         {
             _ProgressBar1Start();
             await Task.Run(() => CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword));
 
-          //  CollectionInputsOutputs collectionInputsOutputs = new CollectionInputsOutputs();
+            CollectionInputsOutputs collectionInputsOutputs = new CollectionInputsOutputs();
+            DateTime today = DateTime.Today;
+            string startDay = today.Year + "-" + today.Month + "-" + today.Day + " 00:00:00";
+            string endDay = today.Year + "-" + today.Month + "-" + today.Day + " 23:59:59";
+            string time, date, fullPointName, fio, action, action_descr, fac, card; int seconds;
+            int idCard = 0; string idCardDescr;
+
+            //Clear work tables
+         //   dtPersonRegistrationsFullList.Clear();
+         //   DataRow rowPerson;
+
+            //Get names of the points
+            GetNamesOfPassagePoints();
+
+            
+
+            string stringConnection = @"Data Source=" + sServer1 + @"\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + @";Password=" + sServer1UserPassword + @";Connect Timeout=240";
+
+            logger.Trace(stringConnection);
+            string query = "SELECT p.param0 as param0, p.param1 as param1, p.action as action, p.objid as objid, p.objtype, " +
+                " pe.tabnum as nav, pe.facility_code as fac, pe.card as card, " +
+                " CONVERT(varchar, p.date, 120) AS date, CONVERT(varchar, p.time, 114) AS time " +
+                " FROM protocol p " +
+                " LEFT JOIN OBJ_PERSON pe ON  p.param1=pe.id " +
+                " where p.objtype like 'ABC_ARC_READER' AND p.param0 like '%%' AND date >= '" + startDay + "' AND date <= '" + endDay + "' " +
+                " ORDER BY p.time DESC";
+            logger.Trace(query);
+
+            SideOfPassagePoint sideOfPassagePoint;
+
+            using (SqlDbTableReader sqlDbTableReader = new SqlDbTableReader(stringConnection))
+            {
+                System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetDataFromDB(query);
+                foreach (DbDataRecord record in sqlData)
+                {
+                    sideOfPassagePoint = new SideOfPassagePoint();
+                    fullPointName = record["objid"]?.ToString()?.Trim();
+
+                    sideOfPassagePoint = collectionSideOfPassagePoints.GetSideOfPassagePoint(fullPointName);
+
+                    time = record["time"]?.ToString()?.Trim();
+                    seconds = ConvertStringTimeHHMMToSeconds(record["time"]?.ToString()?.Trim());
+                    date = record["date"]?.ToString()?.Trim()?.Split(' ')[0];
+                    fio = record["param0"]?.ToString()?.Trim();
+                    idCard = 0;
+                    Int32.TryParse(record["param1"]?.ToString()?.Trim(), out idCard);
+                    fac = record["fac"]?.ToString()?.Trim();
+                    card = record["card"]?.ToString()?.Trim();
+
+                    action = record["action"]?.ToString()?.Trim();
+                    action_descr = null;
+                    CARD_ACTION_STATE.TryGetValue(record["action"]?.ToString()?.Trim(), out action_descr);
+
+                    idCardDescr = idCard != 0 ? "№" + idCard + " (" + fac + "," + card + ")" : "Пропуск не зарегистрирован";
+
+                    collectionInputsOutputs.Add();
+
+
+                    rowPerson = dtPersonRegistrationsFullList.NewRow();
+
+                    rowPerson[FIO] = fio?.Length > 0 ? fio : sServer1;
+                    rowPerson[CODE] = record["nav"]?.ToString()?.Trim();
+
+                    rowPerson[N_ID_STRING] = action_descr != null ? idCardDescr : "Сервисное сообщение";
+                    rowPerson[DATE_REGISTRATION] = date;
+                    rowPerson[TIME_REGISTRATION] = seconds;
+                    rowPerson[CARD_ALLOWED_EVENT] = action_descr ?? action;
+                    rowPerson[SERVER_SKD] = sServer1;
+                    rowPerson[NAME_CHECKPOINT] = listSidesOfPassagePoint.Find((x) => x._idPoint == fullPointName)._namePoint;
+                    rowPerson[DIRECTION_WAY] = listSidesOfPassagePoint.Find((x) => x._idPoint == fullPointName)._direction;
+                    rowPerson[REAL_TIME_IN] = ConvertSecondsToStringHHMMSS(seconds);
+
+                    dtPersonRegistrationsFullList.Rows.Add(rowPerson);
+
+                    logger.Trace(rowPerson[FIO] + " " + date + " " + seconds + " " + rowPerson[NAME_CHECKPOINT] + " " + rowPerson[DIRECTION_WAY] + " " + record["action"]?.ToString()?.Trim() + " " + action);
+                    _ProgressWork1Step();
+
+                }
+            }
+
+            _ProgressWork1Step();
+
+            // Order of collumns
+            var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(nameHidenColumnsArrayLastRegistration).ToArray(); //take distinct data
+            DataView dv = GetDistinctRecords(dtPersonRegistrationsFullList, namesDistinctColumnsArray).DefaultView;
+            dv.Sort = REAL_TIME_IN + " DESC";
+            DataTable sortedDT = dv.ToTable();
+
+            ShowDatatableOnDatagridview(sortedDT, nameHidenColumnsArrayLastRegistration, "LastIputsOutputs");
+
+            stimerPrev = "";
+            _ProgressBar1Stop();
+        }
+
+       /* private async void LoadLastIputsOutputs()
+        {
+            _ProgressBar1Start();
+            await Task.Run(() => CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword));
+
             DateTime today = DateTime.Today;
             string startDay = today.Year + "-" + today.Month + "-" + today.Day + " 00:00:00";
             string endDay = today.Year + "-" + today.Month + "-" + today.Day + " 23:59:59";
@@ -3056,7 +3164,9 @@ namespace ASTA
                     CARD_ACTION_STATE.TryGetValue(record["action"]?.ToString()?.Trim(), out action_descr);
 
                     idCardDescr = idCard != 0 ? "№" + idCard + " (" + fac + "," + card + ")" : "Пропуск не зарегистрирован";
+
                     rowPerson = dtPersonRegistrationsFullList.NewRow();
+
                     rowPerson[FIO] = fio?.Length > 0 ? fio : sServer1;
                     rowPerson[CODE] = record["nav"]?.ToString()?.Trim();
 
@@ -3090,7 +3200,7 @@ namespace ASTA
             stimerPrev = "";
             _ProgressBar1Stop();
         }
-        
+        */
 
         private void PaintRowsItem_Click(object sender, EventArgs e) 
         { PaintRowsWithCodeOPerson(); }
