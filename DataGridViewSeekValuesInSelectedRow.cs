@@ -61,7 +61,7 @@ namespace ASTA
             }
             else
             {
-                throw new IndexOutOfRangeException("Taken collumns more then 10!");
+              return;
             }
         }
     }
