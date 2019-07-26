@@ -188,12 +188,15 @@ namespace ASTA
 
         OpenFileDialog openFileDialog1 = new OpenFileDialog();
         List<string> listGroups = new List<string>();
+        int countGroups = 0;
+        int countUsers = 0;
+        int countMailers = 0;
 
         int numberPeopleInLoading = 1;
         string stimerPrev = "";
         string stimerCurr = "Ждите!";
 
-        static List<StaffAD> staffAD = new List<StaffAD>(); //Users of AD. Got data from Domain
+        static List<ADUser> ADUsers = new List<ADUser>(); //Users of AD. Got data from Domain
 
         //Names of collumns
         const string NPP = @"№ п/п";
@@ -1370,7 +1373,6 @@ namespace ASTA
         }
 
 
-
         private async void testADToolStripMenuItem_Click(object sender, EventArgs e)
         {
             await Task.Run(() => GetUsersFromAD());
@@ -1384,10 +1386,8 @@ namespace ASTA
             string domain = null;
             string server = null;
 
-            ActiveDirectoryGetData ad;
-            StaffListStore staffListStore = new StaffListStore();
-            ListStaffSender listStaffSender = new ListStaffSender();
-            staffAD = new List<StaffAD>();
+            ActiveDirectoryData ad;
+            ADUsers = new List<ADUser>();
 
             listParameters = new List<ParameterConfig>();
             ParameterOfConfigurationInSQLiteDB parameters = new ParameterOfConfigurationInSQLiteDB(databasePerson);
@@ -1405,30 +1405,48 @@ namespace ASTA
             {
                 _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные из домена: " + domain);
 
-                ad = new ActiveDirectoryGetData(user, domain, password, server);
-                staffListStore.Story.Push(ad.SaveListStaff());
-                listStaffSender.RestoreListStaff(staffListStore.Story.Pop());
+                ad = new ActiveDirectoryData(user, domain, password, server);
+                ad.ADUsersCollection.CollectionChanged += Users_CollectionChanged;
+                ADUsers = ad.GetADUsers().ToList();
+                ADUsers.Sort();
 
-                staffAD = listStaffSender.GetListStaff();
-                staffAD.Sort();
-                logger.Trace("GetUsersFromAD: Store list ");
+                logger.Trace("GetUsersFromAD: count users in list: " + ADUsers.Count);
+
                 //передать дальше в обработку:
-                foreach (var person in staffAD)
+                foreach (var person in ADUsers)
                 {
-                    logger.Trace(person?.fio + " |" + person?.login + " |" + person?.code + " |" + person?.mail);
+                    logger.Trace(person?.fio + " |" + person?.login + " |" + person?.code + " |" + person?.mail + " |" + person?.lastLogon);
                 }
-                _toolStripStatusLabelSetText(StatusLabel2, "Из домена " + domain + " получено " + staffAD.Count + " ФИО сотрудников");
+                countUsers = ADUsers.Count;
+                _toolStripStatusLabelSetText(StatusLabel2, "Из домена " + domain + " получено " + countUsers + " ФИО сотрудников");
             }
             else
             {
                 _toolStripStatusLabelSetText(StatusLabel2, "Ошибка доступа к домену " + domain);
-                logger.Error("user: " + user + "| domain: " + domain + "| password: " + password + "| server: " + server);
+                logger.Error("It hasn't access to AD: user: " + user + "| domain: " + domain + "| password: " + password + "| server: " + server);
                 _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
             }
-            parameters = null; listParameters = null; listStaffSender = null; staffListStore = null; ad = null;
-            user = password = domain = server = null;
+            parameters = null; listParameters = null; ad = null;
         }
 
+        //уведомление о количестве и последнем полученном из AD пользователей
+        private void Users_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            switch (e.Action)
+            {
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Add: // если добавление
+                    ADUser newUser = e.NewItems[0] as ADUser;
+                    stimerPrev = "Получено из AD: " + newUser.id + " пользователей, последний: " + ShortFIO(newUser.fio);
+                    break;
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Remove: // если удаление
+                    ADUser oldUser = e.OldItems[0] as ADUser;
+                    break;
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Replace: // если замена
+                    ADUser replacedUser = e.OldItems[0] as ADUser;
+                    ADUser replacingUser = e.NewItems[0] as ADUser;
+                    break;
+            }
+        }
         private async void GetFio_Click(object sender, EventArgs e)  //DoListsFioGroupsMailings()
         {
             _ProgressBar1Start();
@@ -1468,11 +1486,14 @@ namespace ASTA
                 _MenuItemEnabled(SettingsMenuItem, true);
             }
             _ProgressBar1Stop();
-            //      _toolStripStatusLabelSetText(StatusLabel2, "Завершена работа");
         }
 
         private void DoListsFioGroupsMailings()  //  GetDataFromRemoteServers()  ImportTablePeopleToTableGroupsInLocalDB()
         {
+            countGroups = 0;
+            countUsers = 0;
+            countMailers = 0;
+
             if (currentAction != @"sendEmail")
             { _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные с серверов..."); }
             GetUsersFromAD();
@@ -1495,7 +1516,7 @@ namespace ASTA
                 dtPersonTemp = GetDistinctRecords(dtTempIntermediate, namesDistinctColumnsArray);
                 ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenColumnsFIO, "ListFIO");
                 _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить последние входы-выходы");
-                _toolStripStatusLabelSetText(StatusLabel2, "Списки ФИО и департаментов получены.");
+                _toolStripStatusLabelSetText(StatusLabel2, "Записано в локальную базу: " + countUsers + " ФИО, " + countGroups + " групп и " + countMailers + " рассылок");
                 namesDistinctColumnsArray = null;
             }
         }
@@ -1844,7 +1865,7 @@ namespace ASTA
             foreach (var dr in dataTablePeople.AsEnumerable())
             {
                 depId = dr[DEPARTMENT_ID]?.ToString();
-                depBossEmail = staffAD.Find((x) => x.code == dr[CHIEF_ID]?.ToString())?.mail;
+                depBossEmail = ADUsers.Find((x) => x.code == dr[CHIEF_ID]?.ToString())?.mail;
                 if (depId?.Length > 0 && !groups.ContainsKey("@" + depId))
                 {
                     if (depId == skdName && iSKD < 1)
@@ -2070,8 +2091,11 @@ namespace ASTA
                     sqlCommand1 = new SQLiteCommand("end", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
 
-                    logger.Info("Записано групп: " + departmentsUniq?.ToArray()?.Distinct()?.Count());
-                    logger.Info("Записано рассылок: " + departmentsEmailUniq?.ToArray()?.Distinct()?.Count());
+                    Int32.TryParse(departmentsUniq?.ToArray()?.Distinct()?.Count().ToString(), out countGroups);
+                    Int32.TryParse(departmentsEmailUniq?.ToArray()?.Distinct()?.Count().ToString(), out countMailers);
+
+                    logger.Info("Записано групп: " + countGroups);
+                    logger.Info("Записано рассылок: " + countMailers);
                 }
             }
 
@@ -2821,7 +2845,10 @@ namespace ASTA
                 if (_comboBoxCountItems(comboBoxFio) > 0)
                 { _comboBoxSelectIndex(comboBoxFio, 0); }
                 _ProgressWork1Step();
-                logger.Info("Записано ФИО: " + listFIO.Count);
+
+                Int32.TryParse(listFIO.Count.ToString(), out countUsers);
+
+                logger.Info("Записано ФИО: " + countUsers);
             }
         }
 
