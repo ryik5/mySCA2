@@ -34,13 +34,16 @@ namespace ASTA
         readonly byte[] btsMess2 = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
 
         //Все константы в локальной базе данных
+        //todo
+        //преобразовать в дикшенери сущностей с дефолтовыми значениями и описаниями параметров
         static string[] allParametersOfConfig = new string[] {
                 @"SKDServer" , @"SKDUser", @"SKDUserPassword",
                 @"MySQLServer", @"MySQLUser", @"MySQLUserPassword",
                 @"MailServer", @"MailUser", @"MailUserPassword",
                 @"DEFAULT_DAY_OF_SENDING_REPORT", @"MailServerSMTPport",
                 @"DomainOfUser", @"ServerURI", @"UserName", @"UserPassword",
-                @"clrRealRegistration", @"ShiftDaysBackOfSendingFromLastWorkDay"
+                @"clrRealRegistration", @"ShiftDaysBackOfSendingFromLastWorkDay",
+                @"JobReportsReceiver"
             };
 
         string nameOfLastTable = "PersonRegistrationsList";
@@ -58,7 +61,6 @@ namespace ASTA
         int iCounterLine = 0;
 
         //collecting of data
-    //    static List<SideOfPassagePoint> listSidesOfPassagePoint = new List<SideOfPassagePoint>(); //List byPass points 
         static List<Person> listFIO = new List<Person>(); // List of FIO and identity of data
 
         //Controls "NumUpDown"
@@ -83,7 +85,7 @@ namespace ASTA
         string filePathExcelReport;
 
         //mailing
-        const string NAME_OF_SENDER_REPORTS = "Отдел компенсаций и льгот";
+        const string NAME_OF_SENDER_REPORTS = @"Отдел компенсаций и льгот";
         const string START_OF_MONTH = @"START_OF_MONTH";
         const string MIDDLE_OF_MONTH = @"MIDDLE_OF_MONTH";
         const string END_OF_MONTH = @"END_OF_MONTH";
@@ -119,16 +121,15 @@ namespace ASTA
         Label labelMailServerUserPassword;
         TextBox textBoxMailServerUserPassword;
         static string mailServer = "";
-        //   static string mailServerRegistry = "";
         static string mailServerDB = "";
         static int mailServerSMTPPort = 25;
         static string mailServerSMTPPortDB = "";
-        static string mailServerUserName = "";
-        //   static string mailServerUserNameRegistry = "";
-        static string mailServerUserNameDB = "";
-        static string mailServerUserPassword = "";
-        //   static string mailServerUserPasswordRegistry = "";
-        static string mailServerUserPasswordDB = "";
+        static string mailsOfSenderOfName = "";
+        static string mailsOfSenderOfNameDB = "";
+        static string mailsOfSenderOfPassword = "";
+        static string mailsOfSenderOfPasswordDB = "";
+
+        static string mailJobReportsOfNameOfReceiver = ""; //Receiver of job reports
 
         //Page of "Settings' Programm"
         bool bServer1Exist = false;
@@ -204,25 +205,28 @@ namespace ASTA
         const string CODE = @"NAV-код";
         const string GROUP = @"Группа"; 
         const string GROUP_DECRIPTION = @"Описание группы";
-        const string TIMEIN = @"Время прихода";
-        const string TIMEOUT = @"Время ухода";
-        const string N_ID = @"№ пропуска";
-        const string N_ID_STRING = @"Пропуск";
+        const string PLACE_EMPLOYEE = @"Местонахождение сотрудника";
         const string DEPARTMENT = @"Отдел";
         const string DEPARTMENT_ID = @"Отдел (id)";
-        const string PLACE_EMPLOYEE = @"Местонахождение сотрудника";
+        const string CHIEF_ID = @"Руководитель (код)";
+        const string EMPLOYEE_POSITION = @"Должность";
+
+        const string DESIRED_TIME_IN = @"Учетное время прихода ЧЧ:ММ";
+        const string DESIRED_TIME_OUT = @"Учетное время ухода ЧЧ:ММ";
+
+        const string N_ID = @"№ пропуска";
+        const string N_ID_STRING = @"Пропуск";
         const string DATE_REGISTRATION = @"Дата регистрации";
+        const string DAY_OF_WEEK = @"День недели";
         const string TIME_REGISTRATION = @"Время регистрации";
+        
         const string SERVER_SKD = @"Сервер СКД";
         const string NAME_CHECKPOINT = @"Имя точки прохода";
         const string DIRECTION_WAY = @"Направление прохода";
-        const string DESIRED_TIME_IN = @"Учетное время прихода ЧЧ:ММ";
-        const string DESIRED_TIME_OUT = @"Учетное время ухода ЧЧ:ММ";
+
         const string REAL_TIME_IN = @"Фактич. время прихода ЧЧ:ММ:СС";
         const string REAL_TIME_OUT = @"Фактич. время ухода ЧЧ:ММ:СС";
-        const string DAY_OF_WEEK = @"День недели";
-        const string CHIEF_ID = @"Руководитель (код)";
-        const string EMPLOYEE_POSITION = @"Должность";
+
         const string EMPLOYEE_SHIFT = @"График";
         const string EMPLOYEE_SHIFT_COMMENT = @"Комментарии (командировка, на выезде, согласованное отсутствие…….)";
         const string EMPLOYEE_HOOKY = @"Прогул (отпуск за свой счет)";
@@ -234,8 +238,9 @@ namespace ASTA
         const string EMPLOYEE_EARLY_DEPARTURE = @"Ранний уход ЧЧ:ММ";
         const string EMPLOYEE_PLAN_TIME_WORKED = @"Отработанное время ЧЧ:ММ";
         const string EMPLOYEE_TIME_SPENT = @"Реальное отработанное время";
-        const string CARD_ALLOWED_EVENT = @"Событие точки доступа";
-        Dictionary<string, string> CARD_ACTION_STATE = new Dictionary<string, string>()
+       
+        const string CARD_STATE = @"Событие точки доступа";
+        Dictionary<string, string> CARD_REGISTERED_ACTION = new Dictionary<string, string>()
         {
             {"ACCESS_IN", "Успешный проход" },
             {"NOACCESS_CARD",  "Неизвестная карта" },
@@ -244,55 +249,12 @@ namespace ASTA
         };
                 
 
-        //DataTables with people data
-        DataTable dtPeople = new DataTable("People");
-        DataColumn[] dcPeople =
-           {
-                                  new DataColumn(NPP,typeof(int)),//0
-                                  new DataColumn(FIO,typeof(string)),//1
-                                  new DataColumn(CODE,typeof(string)),//2
-                                  new DataColumn(GROUP,typeof(string)),//3
-                                  new DataColumn(TIMEIN,typeof(int)),//4
-                                  new DataColumn(TIMEOUT,typeof(int)),//5
-                                  new DataColumn(N_ID,typeof(int)), //6
-                                  new DataColumn(N_ID_STRING,typeof(string)), //6
-                                  new DataColumn(DEPARTMENT,typeof(string)),//7
-                                  new DataColumn(PLACE_EMPLOYEE,typeof(string)),//8
-                                  new DataColumn(DATE_REGISTRATION,typeof(string)),//9
-                                  new DataColumn(TIME_REGISTRATION,typeof(int)), //10
-                                  new DataColumn(REAL_TIME_IN,typeof(string)),//16
-                                  new DataColumn(REAL_TIME_OUT,typeof(string)), //17
-                                  new DataColumn(SERVER_SKD,typeof(string)), //11
-                                  new DataColumn(NAME_CHECKPOINT,typeof(string)), //12
-                                  new DataColumn(DIRECTION_WAY,typeof(string)), //13
-                                  new DataColumn(DESIRED_TIME_IN,typeof(string)),//14
-                                  new DataColumn(DESIRED_TIME_OUT,typeof(string)),//15
-                                  new DataColumn(EMPLOYEE_TIME_SPENT,typeof(int)), //18
-                                  new DataColumn(EMPLOYEE_PLAN_TIME_WORKED,typeof(string)), //19
-                                  new DataColumn(EMPLOYEE_BEING_LATE,typeof(string)),                    //20
-                                  new DataColumn(EMPLOYEE_EARLY_DEPARTURE,typeof(string)),                 //21
-                                  new DataColumn(EMPLOYEE_VACATION,typeof(string)),                 //22
-                                  new DataColumn(EMPLOYEE_TRIP,typeof(string)),                 //23
-                                  new DataColumn(DAY_OF_WEEK,typeof(string)),                 //24
-                                  new DataColumn(EMPLOYEE_SICK_LEAVE,typeof(string)),                 //25
-                                  new DataColumn(EMPLOYEE_ABSENCE,typeof(string)),     //26
-                                  new DataColumn(GROUP_DECRIPTION,typeof(string)),            //27
-                                  new DataColumn(EMPLOYEE_SHIFT_COMMENT,typeof(string)),                 //28
-                                  new DataColumn(EMPLOYEE_POSITION,typeof(string)),                 //29
-                                  new DataColumn(EMPLOYEE_SHIFT,typeof(string)),                 //30
-                                  new DataColumn(EMPLOYEE_HOOKY,typeof(string)),                 //31
-                                  new DataColumn(DEPARTMENT_ID,typeof(string)), //32
-                                  new DataColumn(CHIEF_ID,typeof(string)), //33
-                                  new DataColumn(CARD_ALLOWED_EVENT,typeof(string)) //34
-                };
         readonly string[] arrayAllColumnsDataTablePeople =
             {
                  NPP,//0
                  FIO,//1
                  CODE,//2
                  GROUP,//3
-                 TIMEIN,//4
-                 TIMEOUT,//5
                  N_ID, //6
                  N_ID_STRING,
                  DEPARTMENT,//7
@@ -304,7 +266,7 @@ namespace ASTA
                  SERVER_SKD,                        //11
                  NAME_CHECKPOINT,                   //12
                  DIRECTION_WAY,                     //13              
-                 CARD_ALLOWED_EVENT,                //14
+                 CARD_STATE,                //14
                  DESIRED_TIME_IN,                   //15
                  DESIRED_TIME_OUT,                  //16
                  EMPLOYEE_TIME_SPENT,               //19
@@ -350,8 +312,6 @@ namespace ASTA
         readonly string[] arrayHiddenColumnsFIO =
             {
                  NPP,//0
-                 TIMEIN,            //6
-                 TIMEOUT,              //9
                  N_ID,               //10
                  N_ID_STRING,
                  DATE_REGISTRATION,         //12
@@ -373,14 +333,12 @@ namespace ASTA
                  EMPLOYEE_SHIFT_COMMENT,                    //38
                  GROUP_DECRIPTION,                //37
                  EMPLOYEE_HOOKY,
-                 CARD_ALLOWED_EVENT
+                 CARD_STATE
         };
         readonly string[] nameHidenColumnsArray =
             {
                 NPP,//0
                 N_ID_STRING,
-                TIMEIN,//6
-                TIMEOUT,//9
                 TIME_REGISTRATION, //15
                 SERVER_SKD, //19
                 NAME_CHECKPOINT, //20
@@ -396,14 +354,11 @@ namespace ASTA
                 EMPLOYEE_ABSENCE,      //34
                 GROUP_DECRIPTION,                //37
                 EMPLOYEE_HOOKY,                   //43
-                CARD_ALLOWED_EVENT
+                CARD_STATE
         };
-
         readonly string[] nameHidenColumnsArrayLastRegistration =
              {
                 NPP,//0
-                TIMEIN,//6
-                TIMEOUT,//9
                 TIME_REGISTRATION, //15
                 SERVER_SKD, //19
 
@@ -432,16 +387,56 @@ namespace ASTA
                 DAY_OF_WEEK,  //32
                 GROUP_DECRIPTION                //37
         };
+
         static List<OutReasons> outResons = new List<OutReasons>();
         static List<OutPerson> outPerson = new List<OutPerson>();
         static List<PeopleShift> peopleShifts = new List<PeopleShift>();
 
+        //DataTables with people data
+        DataTable dtPeople = new DataTable("People");
+        DataColumn[] dcPeople =
+           {
+                                  new DataColumn(NPP,typeof(int)),//0
+                                  new DataColumn(FIO,typeof(string)),//1
+                                  new DataColumn(CODE,typeof(string)),//2
+                                  new DataColumn(GROUP,typeof(string)),//3
+                                  new DataColumn(N_ID,typeof(int)), //6
+                                  new DataColumn(N_ID_STRING,typeof(string)), //6
+                                  new DataColumn(DEPARTMENT,typeof(string)),//7
+                                  new DataColumn(PLACE_EMPLOYEE,typeof(string)),//8
+                                  new DataColumn(DATE_REGISTRATION,typeof(string)),//9
+                                  new DataColumn(TIME_REGISTRATION,typeof(int)), //10
+                                  new DataColumn(REAL_TIME_IN,typeof(string)),//16
+                                  new DataColumn(REAL_TIME_OUT,typeof(string)), //17
+                                  new DataColumn(SERVER_SKD,typeof(string)), //11
+                                  new DataColumn(NAME_CHECKPOINT,typeof(string)), //12
+                                  new DataColumn(DIRECTION_WAY,typeof(string)), //13
+                                  new DataColumn(DESIRED_TIME_IN,typeof(string)),//14
+                                  new DataColumn(DESIRED_TIME_OUT,typeof(string)),//15
+                                  new DataColumn(EMPLOYEE_TIME_SPENT,typeof(int)), //18
+                                  new DataColumn(EMPLOYEE_PLAN_TIME_WORKED,typeof(string)), //19
+                                  new DataColumn(EMPLOYEE_BEING_LATE,typeof(string)),                    //20
+                                  new DataColumn(EMPLOYEE_EARLY_DEPARTURE,typeof(string)),                 //21
+                                  new DataColumn(EMPLOYEE_VACATION,typeof(string)),                 //22
+                                  new DataColumn(EMPLOYEE_TRIP,typeof(string)),                 //23
+                                  new DataColumn(DAY_OF_WEEK,typeof(string)),                 //24
+                                  new DataColumn(EMPLOYEE_SICK_LEAVE,typeof(string)),                 //25
+                                  new DataColumn(EMPLOYEE_ABSENCE,typeof(string)),     //26
+                                  new DataColumn(GROUP_DECRIPTION,typeof(string)),            //27
+                                  new DataColumn(EMPLOYEE_SHIFT_COMMENT,typeof(string)),                 //28
+                                  new DataColumn(EMPLOYEE_POSITION,typeof(string)),                 //29
+                                  new DataColumn(EMPLOYEE_SHIFT,typeof(string)),                 //30
+                                  new DataColumn(EMPLOYEE_HOOKY,typeof(string)),                 //31
+                                  new DataColumn(DEPARTMENT_ID,typeof(string)), //32
+                                  new DataColumn(CHIEF_ID,typeof(string)), //33
+                                  new DataColumn(CARD_STATE,typeof(string)) //34
+                };
         static DataTable dtPersonTemp = new DataTable("PersonTemp");
         static DataTable dtPersonTempAllColumns = new DataTable("PersonTempAllColumns");
         static DataTable dtPersonRegistrationsFullList = new DataTable("PersonRegistrationsFullList");
         static DataTable dtPeopleGroup = new DataTable("PeopleGroup");
         static DataTable dtPeopleListLoaded = new DataTable("PeopleLoaded");
-        static DataTable dtTempIntermediate; //temporary DT
+       // static DataTable dtTempIntermediate; //temporary DT
 
         //Color of Person's Control elements which depend on the selected MenuItem  
         Color labelGroupCurrentBackColor;
@@ -564,7 +559,7 @@ namespace ASTA
             //read last saved parameters from db and Registry and set their into variables
             logger.Info("Загружаю настройки программы...");
 
-            LoadPrevioslySavedParameters();
+            LoadPreviouslySavedParameters();
 
             sServer1 = sServer1Registry?.Length > 0 ? sServer1Registry : sServer1DB;
             sServer1UserName = sServer1UserNameRegistry?.Length > 0 ? sServer1UserNameRegistry : sServer1UserNameDB;
@@ -572,8 +567,8 @@ namespace ASTA
 
             mailServer = mailServerDB?.Length > 0 ? mailServerDB : "";
             Int32.TryParse(mailServerSMTPPortDB, out mailServerSMTPPort);
-            mailServerUserName = mailServerUserNameDB?.Length > 0 ? mailServerUserNameDB : "";
-            mailServerUserPassword = mailServerUserPasswordDB?.Length > 0 ? mailServerUserPasswordDB : "";
+            mailsOfSenderOfName = mailsOfSenderOfNameDB?.Length > 0 ? mailsOfSenderOfNameDB : "";
+            mailsOfSenderOfPassword = mailsOfSenderOfPasswordDB?.Length > 0 ? mailsOfSenderOfPasswordDB : "";
 
             mysqlServer = mysqlServerRegistry?.Length > 0 ? mysqlServerRegistry : mysqlServerDB;
             mysqlServerUserName = mysqlServerUserNameRegistry?.Length > 0 ? mysqlServerUserNameRegistry : mysqlServerUserNameDB;
@@ -745,13 +740,11 @@ namespace ASTA
             LastDateStarted = null; CurrentUser = null; FreeRam = null;
         }
 
-        private void LoadPrevioslySavedParameters()   //Select Previous Data from DB and write it into the combobox and Parameters
+        private void LoadPreviouslySavedParameters()   //Select Previous Data from DB and write it into the combobox and Parameters
         {
             string modeApp = "";
             int iCombo = 0;
             int numberOfFio = 0;
-
-            //  numberOfFio = CountRowInTableDB("PeopleGroup");
 
             if (databasePerson.Exists)
             {
@@ -793,8 +786,6 @@ namespace ASTA
 
 
                 //loading parameters
-                //  listParameters = new List<ParameterConfig>();
-
                 ParameterOfConfigurationInSQLiteDB parameters = new ParameterOfConfigurationInSQLiteDB(databasePerson);
 
                 listParameters = parameters.GetParameters("%%").FindAll(x => x?.isExample == "no"); //load only real data
@@ -813,16 +804,17 @@ namespace ASTA
                 sServer1DB = GetValueOfConfigParameter(listParameters, @"SKDServer", null);
                 sServer1UserNameDB = GetValueOfConfigParameter(listParameters, @"SKDUser", null);
                 sServer1UserPasswordDB = GetValueOfConfigParameter(listParameters, @"SKDUserPassword", null, true);
-
-
+                
                 mysqlServerDB = GetValueOfConfigParameter(listParameters, @"MySQLServer", null);
                 mysqlServerUserNameDB = GetValueOfConfigParameter(listParameters, @"MySQLUser", null);
                 mysqlServerUserPasswordDB = GetValueOfConfigParameter(listParameters, @"MySQLUserPassword", null, true);
 
                 mailServerDB = GetValueOfConfigParameter(listParameters, @"MailServer", null);
                 mailServerSMTPPortDB = GetValueOfConfigParameter(listParameters, @"MailServerSMTPport", null);
-                mailServerUserNameDB = GetValueOfConfigParameter(listParameters, @"MailUser", null);
-                mailServerUserPasswordDB = GetValueOfConfigParameter(listParameters, @"MailUserPassword", null, true);
+                mailsOfSenderOfNameDB = GetValueOfConfigParameter(listParameters, @"MailUser", null);
+                mailsOfSenderOfPasswordDB = GetValueOfConfigParameter(listParameters, @"MailUserPassword", null, true);
+
+                mailJobReportsOfNameOfReceiver = GetValueOfConfigParameter(listParameters, @"JobReportsReceiver", null, true);
 
                 listParameters = null;
                 parameters = null;
@@ -1498,7 +1490,7 @@ namespace ASTA
             { _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные с серверов..."); }
             GetUsersFromAD();
 
-            dtTempIntermediate = dtPeople.Clone();
+            DataTable dtTempIntermediate = dtPeople.Clone();
             GetDataFromRemoteServers(dtTempIntermediate, peopleShifts);
 
             if (currentAction != @"sendEmail")
@@ -1519,6 +1511,7 @@ namespace ASTA
                 _toolStripStatusLabelSetText(StatusLabel2, "Записано в локальную базу: " + countUsers + " ФИО, " + countGroups + " групп и " + countMailers + " рассылок");
                 namesDistinctColumnsArray = null;
             }
+            dtTempIntermediate?.Dispose();
         }
 
         //Get the list of registered users
@@ -1541,7 +1534,6 @@ namespace ASTA
             string dayStartShift_ = "";
 
             listFIO = new List<Person>();
-            //  HashSet<Department> departments = new HashSet<Department>(); //check
             Dictionary<string, Department> departments = new Dictionary<string, Department>();
             Department departmentFromDictionary;
 
@@ -2030,7 +2022,7 @@ namespace ASTA
                             using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'Mailing' (SenderEmail, RecipientEmail, GroupsReport, NameReport, Description, Period, Status, DateCreated, SendingLastDate, TypeReport, DayReport)" +
                                " VALUES (@SenderEmail, @RecipientEmail, @GroupsReport, @NameReport, @Description, @Period, @Status, @DateCreated, @SendingLastDate, @TypeReport, @DayReport)", sqlConnection))
                             {
-                                sqlCommand.Parameters.Add("@SenderEmail", DbType.String).Value = mailServerUserName;
+                                sqlCommand.Parameters.Add("@SenderEmail", DbType.String).Value = mailsOfSenderOfName;
                                 sqlCommand.Parameters.Add("@RecipientEmail", DbType.String).Value = recipientEmail;
                                 sqlCommand.Parameters.Add("@GroupsReport", DbType.String).Value = depName;
                                 sqlCommand.Parameters.Add("@NameReport", DbType.String).Value = depName;
@@ -3125,7 +3117,7 @@ namespace ASTA
                     //look for action with idCard
                     action = record["action"]?.ToString()?.Trim();
                     action_descr = null;
-                    if (CARD_ACTION_STATE.TryGetValue(action, out action_descr))
+                    if (CARD_REGISTERED_ACTION.TryGetValue(action, out action_descr))
                     { action = "Сервисное сообщение"; }
                     else if (fio == sServer1)
                     { action_descr = action; }
@@ -3197,7 +3189,7 @@ namespace ASTA
 
                      action = record["action"]?.ToString()?.Trim();
                      action_descr = null;
-                     CARD_ACTION_STATE.TryGetValue(record["action"]?.ToString()?.Trim(), out action_descr);
+                     CARD_REGISTERED_ACTION.TryGetValue(record["action"]?.ToString()?.Trim(), out action_descr);
 
                      idCardDescr = idCard != 0 ? "№" + idCard + " (" + fac + "," + card + ")" : "Пропуск не зарегистрирован";
 
@@ -3209,7 +3201,7 @@ namespace ASTA
                      rowPerson[N_ID_STRING] = action_descr != null ? idCardDescr : "Сервисное сообщение";
                      rowPerson[DATE_REGISTRATION] = date;
                      rowPerson[TIME_REGISTRATION] = seconds;
-                     rowPerson[CARD_ALLOWED_EVENT] = action_descr ?? action;
+                     rowPerson[CARD_STATE] = action_descr ?? action;
                      rowPerson[SERVER_SKD] = sServer1;
                      rowPerson[NAME_CHECKPOINT] = listSidesOfPassagePoint.Find((x) => x._idPoint == fullPointName)._namePoint;
                      rowPerson[DIRECTION_WAY] = listSidesOfPassagePoint.Find((x) => x._idPoint == fullPointName)._direction;
@@ -3992,6 +3984,8 @@ namespace ASTA
 
             string nameGroup = _textBoxReturnText(textBoxGroup);
 
+            //todo dubble
+            // check need - DataTable dtTempIntermediate
             DataTable dtTempIntermediate = dtPeople.Clone();
             dtPersonTempAllColumns = dtPeople.Clone();
             PersonFull person = new PersonFull()
@@ -5851,8 +5845,8 @@ namespace ASTA
                 "Имя пользователя", sServer1UserName, "Имя администратора \"sa\" SQL-сервера",
                 "Пароль", sServer1UserPassword, "Пароль администратора \"sa\" SQL-сервера \"Server\"",
                 "Почтовый сервер", mailServer, "Имя почтового сервера \"Mail Server\" в виде - NameOfServer.Domain.Subdomain",
-                "e-mail пользователя", mailServerUserName, "E-mail отправителя рассылок виде - User.Name@MailServer.Domain.Subdomain",
-                "Пароль", mailServerUserPassword, "Пароль E-mail отправителя почты",
+                "e-mail пользователя", mailsOfSenderOfName, "E-mail отправителя рассылок виде - User.Name@MailServer.Domain.Subdomain",
+                "Пароль", mailsOfSenderOfPassword, "Пароль E-mail отправителя почты",
                 "", new List<string>(), "",
                 "", new List<string>(), "",
                 "", new List<string>(), "",
@@ -6320,8 +6314,8 @@ namespace ASTA
         private void ButtonPropertiesSave_MailingSave(object sender, EventArgs e) //SaveProperties()
         {
             string recipientEmail = _textBoxReturnText(textBoxServer1UserName);
-            string senderEmail = mailServerUserName;
-            if (mailServerUserName.Length == 0)
+            string senderEmail = mailsOfSenderOfName;
+            if (mailsOfSenderOfName.Length == 0)
             { senderEmail = _textBoxReturnText(textBoxServer1); }
             string nameReport = _textBoxReturnText(textBoxMailServerName);
             string description = _textBoxReturnText(textBoxMailServerUserName);
@@ -6374,8 +6368,8 @@ namespace ASTA
                 sServer1UserPassword = password;
 
                 mailServer = sMailServer;
-                mailServerUserName = sMailUser;
-                mailServerUserPassword = sMailUserPassword;
+                mailsOfSenderOfName = sMailUser;
+                mailsOfSenderOfPassword = sMailUserPassword;
 
                 mysqlServer = sMySqlServer;
                 mysqlServerUserName = sMySqlServerUser;
@@ -6388,10 +6382,6 @@ namespace ASTA
                         try { EvUserKey.SetValue("SKDServer", sServer1, Microsoft.Win32.RegistryValueKind.String); } catch { }
                         try { EvUserKey.SetValue("SKDUser", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(sServer1UserName, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
                         try { EvUserKey.SetValue("SKDUserPassword", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(sServer1UserPassword, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
-
-                        //   try { EvUserKey.SetValue("MailServer", mailServer, Microsoft.Win32.RegistryValueKind.String); } catch { }
-                        //    try { EvUserKey.SetValue("MailUser", mailServerUserName, Microsoft.Win32.RegistryValueKind.String); } catch { }
-                        //   try { EvUserKey.SetValue("MailUserPassword", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(mailServerUserPassword, btsMess1, btsMess2), Microsoft.Win32.RegistryValueKind.String); } catch { }
 
                         try { EvUserKey.SetValue("MySQLServer", mysqlServer, Microsoft.Win32.RegistryValueKind.String); } catch { }
                         try { EvUserKey.SetValue("MySQLUser", mysqlServerUserName, Microsoft.Win32.RegistryValueKind.String); } catch { }
@@ -6438,14 +6428,14 @@ namespace ASTA
                     resultSaving += parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
                     parameterOfConfiguration = new ParameterOfConfigurationBuilder().
                         SetParameterName("MailUser").
-                        SetParameterValue(mailServerUserName).
+                        SetParameterValue(mailsOfSenderOfName).
                         SetParameterDescription("Senders E-Mail").
                         IsPassword(false).
                         SetIsExample("no");
                     resultSaving += parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
                     parameterOfConfiguration = new ParameterOfConfigurationBuilder().
                         SetParameterName("MailUserPassword").
-                        SetParameterValue(mailServerUserPassword).
+                        SetParameterValue(mailsOfSenderOfPassword).
                         SetParameterDescription("Password of sender of e-mails").
                         IsPassword(true).
                         SetIsExample("no");
@@ -7098,9 +7088,9 @@ namespace ASTA
                     {
                         recepient = dgSeek.values[2];
                     }
-                    else if (mailServerUserName?.Length > 0)
+                    else if (mailsOfSenderOfName?.Length > 0)
                     {
-                        recepient = mailServerUserName;
+                        recepient = mailsOfSenderOfName;
                     }
 
                     mRightClick.MenuItems.Add(new MenuItem(text: "&Загрузить входы-выходы сотрудников группы: '" + dgSeek.values[1] +
@@ -7287,14 +7277,14 @@ namespace ASTA
             {
                 foreach (string recepient in dgSeek.values[2].Split(';'))
                 {
-                    MailingAction("sendEmail", recepient.Trim(), mailServerUserName,
+                    MailingAction("sendEmail", recepient.Trim(), mailsOfSenderOfName,
                  dgSeek.values[0], dgSeek.values[0], dgSeek.values[1], SelectedDatetimePickersPeriodMonth(), "Активная", "Упрощенный", DateTime.Now.ToYYYYMMDDHHMM());
                     _ProgressBar1Stop();
                 }
             }
-            else if (mailServerUserName?.Length > 0)
+            else if (mailsOfSenderOfName?.Length > 0)
             {
-                MailingAction("sendEmail", mailServerUserName, mailServerUserName,
+                MailingAction("sendEmail", mailsOfSenderOfName, mailsOfSenderOfName,
              dgSeek.values[0], dgSeek.values[0], dgSeek.values[1], SelectedDatetimePickersPeriodMonth(), "Активная", "Упрощенный", DateTime.Now.ToYYYYMMDDHHMM());
                 _ProgressBar1Stop();
             }
@@ -7335,7 +7325,7 @@ namespace ASTA
                 @"Получатель", @"Отчет по группам", @"Наименование", @"Описание", @"Период"});
 
             SaveMailing(
-               dgSeek.values[0], mailServerUserName, dgSeek.values[1], dgSeek.values[2] + "_1",
+               dgSeek.values[0], mailsOfSenderOfName, dgSeek.values[1], dgSeek.values[2] + "_1",
                dgSeek.values[3] + "_1", dgSeek.values[4], "Неактивная", DateTime.Now.ToYYYYMMDDHHMM(), "", "Копия", DEFAULT_DAY_OF_SENDING_REPORT);
 
             ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
@@ -7428,7 +7418,7 @@ namespace ASTA
                             + "' AND TypeReport='" + dgSeek.values[6] + "' AND DayReport ='" + dgSeek.values[7]
                             + "';", databasePerson);
 
-                        MailingAction("sendEmail", dgSeek.values[0], mailServerUserName,
+                        MailingAction("sendEmail", dgSeek.values[0], mailsOfSenderOfName,
                             dgSeek.values[1], dgSeek.values[2], dgSeek.values[3], dgSeek.values[4],
                             dgSeek.values[5], dgSeek.values[6], dgSeek.values[7]);
 
@@ -7466,6 +7456,8 @@ namespace ASTA
             currentAction = "sendEmail";
             DoListsFioGroupsMailings();
 
+            //todo
+            //убрать отправителя из базы, использовать ТОЛЬКО глобального отправителя отчетов
             string sender = "";
             string recipient = "";
             string gproupsReport = "";
@@ -7511,10 +7503,14 @@ namespace ASTA
                     {
                         foreach (DbDataRecord record in reader)
                         {
-                            if (record["SenderEmail"]?.ToString()?.Length > 0 &&
+                            if (
+                                record["SenderEmail"]?.ToString()?.Length > 0 &&
                                 record["RecipientEmail"]?.ToString()?.Length > 0 &&
-                                record["DayReport"]?.ToString()?.Trim()?.ToUpper() == dgSeek.values[7])
+                                record["DayReport"]?.ToString()?.Trim()?.ToUpper() == dgSeek.values[7]
+                                )
                             {
+                                //todo
+                                //убрать отправителя из базы, использовать ТОЛЬКО глобального отправителя отчетов
                                 sender = record["SenderEmail"].ToString();
                                 recipient = record["RecipientEmail"].ToString();
                                 gproupsReport = record["GroupsReport"].ToString();
@@ -7560,7 +7556,6 @@ namespace ASTA
             foreach (Mailing mailng in mailingList)
             {
                 _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
-
                 _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + mailng._nameReport);
 
                 str = "UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToYYYYMMDDHHMM() +
@@ -7574,7 +7569,7 @@ namespace ASTA
                 ExecuteSql(str, databasePerson);
                 GetRegistrationAndSendReport(
                     mailng._groupsReport, mailng._nameReport, mailng._descriptionReport, mailng._period, mailng._status,
-                    mailng._typeReport, mailng._dayReport, true, mailng._recipient, mailServerUserName);
+                    mailng._typeReport, mailng._dayReport, true, mailng._recipient, mailsOfSenderOfName);
 
                 _ProgressWork1Step();
             }
@@ -8020,7 +8015,7 @@ namespace ASTA
                 ExecuteSql(str, databasePerson);
                 GetRegistrationAndSendReport(
                     mailng._groupsReport, mailng._nameReport, mailng._descriptionReport, mailng._period, mailng._status,
-                    mailng._typeReport, mailng._dayReport, true, mailng._recipient, mailServerUserName);
+                    mailng._typeReport, mailng._dayReport, true, mailng._recipient, mailsOfSenderOfName);
 
                 _ProgressWork1Step();
             }
@@ -8146,7 +8141,7 @@ namespace ASTA
             {
                 case "saveEmail":
                     {
-                        SaveMailing(mailServerUserName, senderEmail, groupsReport, nameReport, description, period, status, DateTime.Now.ToYYYYMMDDHHMM(), "", typeReport, dayReport);
+                        SaveMailing(mailsOfSenderOfName, senderEmail, groupsReport, nameReport, description, period, status, DateTime.Now.ToYYYYMMDDHHMM(), "", typeReport, dayReport);
 
                         ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
                         "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
@@ -8286,7 +8281,7 @@ namespace ASTA
                                 SendEmail(senderEmail, recipientEmail, titleOfbodyMail, description, filePathExcelReport + @".xlsx", Properties.Resources.LogoRYIK, productName);
 
                                 
-
+                                //добавлять информацию об отчетах в объект-класс.
                                 logger.Trace("GetRegistrationAndSendReport, SendEmail succesful: " +
                                     senderEmail + "| " + recipientEmail + "| " + titleOfbodyMail + "| " +
                                     description + "| " + filePathExcelReport + @".xlsx" + "| " + productName + "| "
