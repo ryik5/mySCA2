@@ -175,6 +175,7 @@
     <Compile Include="AboutBox1.Designer.cs">
       <DependentUpon>AboutBox1.cs</DependentUpon>
     </Compile>
+    <Compile Include="ActiveDi.cs" />
     <Compile Include="ActiveDirectoryOperations.cs" />
     <Compile Include="AmountMembersOfGroup.cs" />
     <Compile Include="PeopleShiftsAndOutResons.cs" />

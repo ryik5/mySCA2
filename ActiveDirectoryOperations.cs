@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.DirectoryServices.AccountManagement;
 using System;
-using System.Runtime.InteropServices;
+using System.Linq;
+//using System.Runtime.InteropServices;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
+//using System.Collections.Specialized;
 using System.DirectoryServices;
 
 namespace ASTA
@@ -15,11 +16,6 @@ namespace ASTA
         public string Domain { get; set; }      // домен
         public string Password { get; set; }    // пароль
         public string DomainPath { get; set; }    // URI сервера
-
-        /*  public static UserADAuthorizationBuilder Build()
-          {
-              return new UserADAuthorizationBuilder();
-          }*/
 
         public override string ToString()
         {
@@ -46,13 +42,14 @@ namespace ASTA
 
     class ActiveDirectoryData
     {
-        static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+        static NLog.Logger logger;
         UserADAuthorization UserADAuthorization;
 
-        public ObservableCollection<ADUser> ADUsersCollection = new ObservableCollection<ADUser>();
+        public ObservableCollection<ADUser> ADUsersCollection;
 
         public ActiveDirectoryData(string _user, string _domain, string _password, string _domainPath)
         {
+            logger = NLog.LogManager.GetCurrentClassLogger();
             UserADAuthorization = new UserADAuthorization()
             {
                 Name = _user,
@@ -69,7 +66,7 @@ namespace ASTA
         public ObservableCollection<ADUser> GetADUsers()
         {
             logger.Trace(UserADAuthorization.DomainPath);
-           int  userCount = 0;
+            int userCount = 0;
             // sometimes doesn't work correctly
             // if (isValid)
             {
@@ -77,10 +74,9 @@ namespace ASTA
                     ContextType.Domain,
                     UserADAuthorization.DomainPath,
 
-                    //Get users from 'OU=Domain Users' only should be uncommented next string 
-                    //if wanted to get the whole list objects of the domain next string should be commented
-
+                    /*1. look starting for users from 'OU=Domain Users' */
                     //"OU=Domain Users,DC=" + UserADAuthorization.Domain.Split('.')[0] + ",DC=" + UserADAuthorization.Domain.Split('.')[1],
+                    /* 2. if need to start from the root of the domain  - previous string should be commented */
 
                     UserADAuthorization.Name,
                     UserADAuthorization.Password))
@@ -93,26 +89,37 @@ namespace ASTA
                             string _mail = null, _login = null, _fio = null, _code = null,
                                 _decription = null, _lastLogon = null,
                                 _mailNickName = null, _mailServer = null, _department = null,
-                                _stateAccount = null, _sid = null, _guid = null;
-
+                                _stateAccount = null, stateUAC = null, _sid = null, _guid = null;
+                            UACAccountState statesUACOfAccount;
+                            int sumOfUACStatesOfPerson = 0;
                             foreach (var result in searcher.FindAll())
                             {
                                 using (DirectoryEntry de = result.GetUnderlyingObject() as DirectoryEntry)
                                 {
-                                    _mail = de?.Properties["mail"]?.Value?.ToString();
-                                    _code = de?.Properties["extensionAttribute1"]?.Value?.ToString();
-                                    _decription = de?.Properties["description"]?.Value?.ToString()?.Trim()?.ToLower();
-                                    _login = de?.Properties["sAMAccountName"]?.Value?.ToString();
+                                    _login = de?.Properties["sAMAccountName"]?.Value?.ToString() ?? string.Empty;
+                                    _mail = de?.Properties["mail"]?.Value?.ToString() ?? string.Empty;
+                                    _code = de?.Properties["extensionAttribute1"]?.Value?.ToString() ?? string.Empty;
+                                    _decription = de?.Properties["description"]?.Value?.ToString()?.Trim()?.ToLower() ?? string.Empty;
 
-                                    // get all logins
-                                     if (_login?.Length > 0)
-                                    // get only alive logins
-                                 //   if (_login?.Length > 0 && _mail != null && _mail.Contains("@") && _code?.Length > 0 &&
-                                  //      (!object.Equals(_decription, "dismiss") | !object.Equals(_decription, "fwd")))
+                                    stateUAC = de?.Properties["userAccountControl"]?.Value?.ToString() ?? string.Empty;
+                                    sumOfUACStatesOfPerson = 0;
+                                    int.TryParse(stateUAC, out sumOfUACStatesOfPerson);
+                                    statesUACOfAccount = new UACAccountState(sumOfUACStatesOfPerson);
+                                    _stateAccount = "uac(" + sumOfUACStatesOfPerson + "): " + statesUACOfAccount.GetUACStatesOfAccount();
+
+                                    //look for accounts with alive logins only
+                                    // if (_login?.Length > 0)
+                                    //look for accounts with alive logins had email and a code only
+                                    if (_login?.Length > 0 &&       //user's info must be had a login
+                                        _mail.Contains("@") &&      //user's info must be had an email
+                                        _code?.Length > 0 &&        //user's info must be had a code
+                                        !_stateAccount.Contains("ACCOUNTDISABLE") && //a disabled account do not write in the collection 
+                                      (!_decription.Contains("dismiss") | !!_decription.Contains("fwd"))//object.Equals(_decription,
+                                      )
                                     {
                                         foundUser = UserPrincipalExtended.FindByIdentity(context, IdentityType.SamAccountName, _login);
 
-                                        _fio = foundUser?.DisplayName?.ToString();
+                                        _fio = foundUser?.DisplayName?.ToString() ?? string.Empty;
 
                                         DateTime dt = DateTime.Parse("1970-01-01");
                                         DateTime.TryParse(foundUser?.LastLogon?.ToString(), out dt);
@@ -120,21 +127,23 @@ namespace ASTA
 
                                         dt = DateTime.Parse("2200-01-01");
 
-                                        _mailNickName = foundUser?.MailNickname;
-                                        _department = foundUser?.Department;
-                                        _mailServer = foundUser?.MailServerName;
+                                        _mailNickName = foundUser?.MailNickname ?? string.Empty;
+                                        _department = foundUser?.Department ?? string.Empty;
+                                        _mailServer = foundUser?.MailServerName ?? string.Empty;
 
-                                        _stateAccount = foundUser?.StateAccount.ToString();
-                                        _sid = de?.Properties["sAMAccountName"]?.Value?.ToString();
-                                        _guid = foundUser?.Guid?.ToString();
+                                        // stateUAC = foundUser?.StateAccount.ToString() ?? string.Empty;
+
+                                        // _sid = foundUser?.Sid?.ToString();
+                                        // _guid = foundUser?.Guid?.ToString();
+
                                         userCount += 1;
                                         ADUsersCollection.Add(new ADUser
                                         {
                                             id = userCount,
                                             login = _login,
                                             stateAccount = _stateAccount,
-                                            sid = _sid,
-                                            guid = _guid,
+                                            // sid = _sid,
+                                            // guid = _guid,
                                             mail = _mail,
                                             mailNickName = _mailNickName,
                                             mailServer = _mailServer,
@@ -148,7 +157,9 @@ namespace ASTA
                                 }
                             }
                             logger.Trace("ActiveDirectoryGetData,GetDataAD from -= finished =-");
+                            statesUACOfAccount = null;
                         }
+                        foundUser.Dispose();
                     }
                 }
             }
@@ -200,7 +211,6 @@ namespace ASTA
         public string sid;
         public string guid;
 
-
         //Для возможности поиска дубляжного значения
         public override string ToString()
         {
@@ -236,6 +246,7 @@ namespace ASTA
         {
             return next.CompareTo(this);
         }
+
     }
 
     //additional class для выполнения сортировки
@@ -273,7 +284,7 @@ namespace ASTA
 
     [DirectoryRdnPrefix("CN")]
     [DirectoryObjectClass("user")]
-    public class UserPrincipalExtended : UserPrincipal
+    class UserPrincipalExtended : UserPrincipal
     {
         public UserPrincipalExtended(PrincipalContext context) : base(context) { }
 
@@ -301,7 +312,6 @@ namespace ASTA
                                                          identityType,
                                                          identityValue);
         }
-
 
         //additional(Extended) properties
         #region custom attributes
@@ -410,13 +420,13 @@ namespace ASTA
         }
 
         [DirectoryProperty("userAccountControl")]
-        public string StateAccount
+        public int StateAccount
         {
             get
             {
                 if (ExtensionGet("userAccountControl").Length != 1)
-                    return null;
-                return ((Int32)ExtensionGet("userAccountControl")[0]).ToString();
+                    return -1;
+                return (int)ExtensionGet("userAccountControl")[0];
             }
             set
             {
@@ -424,12 +434,14 @@ namespace ASTA
             }
         }
 
-
         #endregion
+
+
     }
 
     class UACAccountState
     {
+        // existed acc.states in the string and digital forms
         const int DONT_EXPIRE_PASSWORD = 65536;
         const int NORMAL_ACCOUNT = 512;
         const int PASSWD_CANT_CHANGE = 64;
@@ -437,140 +449,76 @@ namespace ASTA
         const int LOCKOUT = 16;
         const int HOMEDIR_REQUIRED = 8;
         const int ACCOUNTDISABLE = 2;
+        const int NOPE = 0;
 
-        int _flag;
-        public UACAccountState(int flag) { _flag = flag; }
+        Dictionary<int, string> dicOfUACs;//dictionary with all of existed acc.states in the digital and string forms
+        static int[] statesUAC; //all of existed acc.states in the digital forms
+        int shiftStart; //next position in digital form to calculate acc.states
+        int sumOfUACStates; //sum all of existed acc.states
+        int numberOfUACStates; //number all of existed acc.states
+        int indexOfFoundState; //index of last found acc.state
+        int _flag; //sum of UAC states of Person's account in AD
+        static string _result; //decomposition information of Account states
 
-        public void GetStatus(int number )
+        public UACAccountState(int sumOfStates)
         {
-            int res = 0;
-            if (number> DONT_EXPIRE_PASSWORD)
+            dicOfUACs = new Dictionary<int, string>()
             {
-                res = number - DONT_EXPIRE_PASSWORD;
-                if()
+                [DONT_EXPIRE_PASSWORD] = " DONT_EXPIRE_PASSWORD",
+                [NORMAL_ACCOUNT] = "NORMAL_ACCOUNT",
+                [PASSWD_CANT_CHANGE] = "PASSWD_CANT_CHANGE",
+                [PASSWD_NOTREQD] = "PASSWD_NOTREQD",
+                [LOCKOUT] = "LOCKOUT",
+                [HOMEDIR_REQUIRED] = "HOMEDIR_REQUIRED",
+                [ACCOUNTDISABLE] = "ACCOUNTDISABLE",
+                [NOPE] = "NOPE"
+            };
+            statesUAC = new int[] { //length=8
+                NOPE, ACCOUNTDISABLE, HOMEDIR_REQUIRED, LOCKOUT, PASSWD_NOTREQD,
+             PASSWD_CANT_CHANGE, NORMAL_ACCOUNT, DONT_EXPIRE_PASSWORD
+            };
+            sumOfUACStates = statesUAC.Sum();
+            numberOfUACStates = statesUAC.Length;
+            indexOfFoundState = numberOfUACStates - 1;
+            shiftStart = NOPE;
+            _flag = sumOfStates;
+            _result = string.Empty;
+        }
+
+        public string GetUACStatesOfAccount()
+        {
+            return GetStatesOfAccount(_flag);
+        }
+
+        private string GetStatesOfAccount(int sumStatesOfPerson) //state: /1st st. state=66050  /2nd st. state=514  /3rd st. state=2
+        {
+            bool foundUAC = false;
+
+            if (sumStatesOfPerson == 0 || sumStatesOfPerson > sumOfUACStates)
+                return _result;
+
+            for (int k = 0; k < numberOfUACStates; k++)//number: /1st st.= 66050  /2nd st. =514  /3rd st. =2
+            {
+                if (sumStatesOfPerson < statesUAC[k])  //k: /1st st. k>7 /2nd st. k=7 /3rd st. k=1
+                {
+                    indexOfFoundState = k - 1; //indexOfFoundState: /2nd st.  =6  /3rd st.  =1
+                    foundUAC = true;  //foundUAC: /2nd st.,3rd st.   = true
+                    break;
+                }
             }
+            _result += dicOfUACs[statesUAC[indexOfFoundState]];  //_result:  /1st st. ="65536 "  /2nd st. ="65536 512 " /3rd st. ="65536 512 2 "
+            shiftStart = sumStatesOfPerson - statesUAC[indexOfFoundState]; //shiftStart: /1st st. 66050-65536=514  /2nd st. 514-512=2
 
-            
+            if (!foundUAC || shiftStart != NOPE)
+            {
+                _result += "|";  //_result:  /1st st. ="65536 "  /2nd st. ="65536 512 " /3rd st. ="65536 512 2 "
+                GetStatesOfAccount(shiftStart);  //shiftStart: /1st st. 514 /2nd stage  =2
+                return _result;
+            }
+            else
+                return _result;
         }
+
     }
 
-
-
-
-    /*class NativeMethods*/
-    /*
-    // it sometimes doesn't work correctly
-    /// <summary>
-    /// Implements P/Invoke Interop calls to the operating system.
-    /// </summary>
-    internal static class NativeMethods
-    {
-        /// <summary>
-        /// The type of logon operation to perform.
-        /// </summary>
-        internal enum LogonType :int
-        {
-            /// <summary>
-            /// This logon type is intended for users who will be interactively using the computer, such as a user being logged on by a terminal server, remote shell, or similar process. This logon type has the additional expense of caching logon information for disconnected operations; therefore, it is inappropriate for some client/server applications, such as a mail server.
-            /// </summary>
-            Interactive = 2,
-
-            /// <summary>
-            /// This logon type is intended for high performance servers to authenticate plaintext passwords. The LogonUser function does not cache credentials for this logon type.
-            /// </summary>
-            Network = 3,
-
-            /// <summary>
-            /// This logon type is intended for batch servers, where processes may be executing on behalf of a user without their direct intervention. This type is also for higher performance servers that process many plaintext authentication attempts at a time, such as mail or web servers.
-            /// </summary>
-            Batch = 4,
-
-            /// <summary>
-            /// Indicates a service-type logon. The account provided must have the service privilege enabled.
-            /// </summary>
-            Service = 5,
-
-            /// <summary>
-            /// This logon type is for GINA DLLs that log on users who will be
-            /// interactively using the computer.
-            /// This logon type can generate a unique audit record that shows
-            /// when the workstation was unlocked.
-            /// </summary>
-            Unlock = 7,
-
-            /// <summary>
-            /// This logon type preserves the name and password in the authentication package, which allows the server to make connections to other network servers while impersonating the client. A server can accept plaintext credentials from a client, call LogonUser, verify that the user can access the system across the network, and still communicate with other servers.
-            /// </summary>
-            NetworkCleartext = 8,
-
-            /// <summary>
-            /// This logon type allows the caller to clone its current token and specify new credentials for outbound connections. The new logon session has the same local identifier but uses different credentials for other network connections.
-            /// This logon type is supported only by the LOGON32_PROVIDER_WINNT50 logon provider.
-            /// </summary>
-            NewCredentials = 9
-        }
-
-        /// <summary>
-        /// Specifies the logon provider.
-        /// </summary>
-        internal enum LogonProvider :int
-        {
-            /// <summary>
-            /// Use the standard logon provider for the system.
-            /// The default security provider is negotiate, unless you pass
-            /// NULL for the domain name and the user name is not in UPN format.
-            /// In this case, the default provider is NTLM.
-            /// NOTE: Windows 2000/NT:   The default security provider is NTLM.
-            /// </summary>
-            Default = 0,
-
-            /// <summary>
-            /// Use this provider if you'll be authenticating against a Windows
-            /// NT 3.51 domain controller (uses the NT 3.51 logon provider).
-            /// </summary>
-            WinNT35 = 1,
-
-            /// <summary>
-            /// Use the NTLM logon provider.
-            /// </summary>
-            WinNT40 = 2,
-
-            /// <summary>
-            /// Use the negotiate logon provider.
-            /// </summary>
-            WinNT50 = 3
-        }
-
-        /// <summary>
-        /// Logs on the user.
-        /// </summary>
-        /// <param name="userName">Name of the user.</param>
-        /// <param name="domain">The domain.</param>
-        /// <param name="password">The password.</param>
-        /// <param name="logonType">Type of the logon.</param>
-        /// <param name="logonProvider">The logon provider.</param>
-        /// <param name="token">The token.</param>
-        /// <returns>True if the function succeeds, false if the function fails.
-        /// To get extended error information, call GetLastError.</returns>
-        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool LogonUser(
-            string userName,
-            string domain,
-            string password,
-            LogonType logonType,
-            LogonProvider logonProvider,
-            out IntPtr token);
-
-        /// <summary>
-        /// Closes the handle.
-        /// </summary>
-        /// <param name="handle">The handle.</param>
-        /// <returns>True if the function succeeds, false if the function fails.
-        /// To get extended error information, call GetLastError.</returns>
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool CloseHandle(IntPtr handle);
-    }
-   */
 }
