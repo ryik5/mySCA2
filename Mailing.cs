@@ -4,7 +4,6 @@ namespace ASTA
 {
     class Mailing
     {
-        public string _sender;
         public string _recipient;
         public string _groupsReport;
         public string _nameReport;
@@ -16,7 +15,7 @@ namespace ASTA
 
         public override string ToString()
         {
-            return _sender + "\t" + _recipient + "\t" +
+            return _recipient + "\t" +
                 _groupsReport + "\t" + _nameReport + "\t" + _descriptionReport + "\t" + _period + "\t" +
                 _status + "\t" + _typeReport + "\t" + _dayReport;
         }
