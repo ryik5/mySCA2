@@ -26,13 +26,13 @@ namespace ASTA
             Task.Run(() => MessageBox.Show("4\n" + startStopTimerD.GetTime()));
 
          */
-         /*
+         
     interface IStartStopTimer
     {
         void WaitTime();
         string GetTime();
     }
-
+/*
     class StartStopTimerA : IStartStopTimer
     {
         int _seconds = 0;
@@ -90,14 +90,14 @@ namespace ASTA
             System.Threading.Thread.SpinWait(seconds * 26000000);
         }
     }
-
-    class StartStopTimerC : IStartStopTimer
+    */
+    class StartStopTimer : IStartStopTimer
     {
         int _seconds = 0;
         string time1 = "";
         string time2 = "";
 
-        public StartStopTimerC(int seconds)
+        public StartStopTimer(int seconds)
         {
             _seconds = seconds;
         }
@@ -134,7 +134,7 @@ namespace ASTA
             }
         }
     }
-
+    /*
     class StartStopTimerD : IStartStopTimer
     {
         int _seconds = 0;

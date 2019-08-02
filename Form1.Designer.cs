@@ -66,6 +66,7 @@
             this.Separator9 = new System.Windows.Forms.ToolStripSeparator();
             this.LoadDataItem = new System.Windows.Forms.ToolStripMenuItem();
             this.LoadLastInputsOutputsItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.LoadInputsOutputsItem = new System.Windows.Forms.ToolStripMenuItem();
             this.Separator10 = new System.Windows.Forms.ToolStripSeparator();
             this.TableExportToExcelItem = new System.Windows.Forms.ToolStripMenuItem();
             this.TableModeItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -123,7 +124,7 @@
             this.groupBoxTimeEnd = new System.Windows.Forms.GroupBox();
             this.labelHourEnd = new System.Windows.Forms.Label();
             this.labelMinuteEnd = new System.Windows.Forms.Label();
-            this.LoadInputsOutputsItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.StopActiveMailingItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownHourStart)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownMinuteStart)).BeginInit();
@@ -431,6 +432,12 @@
             resources.ApplyResources(this.LoadLastInputsOutputsItem, "LoadLastInputsOutputsItem");
             this.LoadLastInputsOutputsItem.Click += new System.EventHandler(this.LoadLastIputsOutputs_Click);
             // 
+            // LoadInputsOutputsItem
+            // 
+            this.LoadInputsOutputsItem.Name = "LoadInputsOutputsItem";
+            resources.ApplyResources(this.LoadInputsOutputsItem, "LoadInputsOutputsItem");
+            this.LoadInputsOutputsItem.Click += new System.EventHandler(this.LoadInputsOutputsItem_Click);
+            // 
             // Separator10
             // 
             this.Separator10.Name = "Separator10";
@@ -570,6 +577,7 @@
             this.MailingsExceptItem,
             this.ModeItem,
             this.TestToSendAllMailingsItem,
+            this.StopActiveMailingItem,
             this.Separator2,
             this.EditAnualDaysItem,
             this.AddAnualDateItem,
@@ -813,11 +821,11 @@
             resources.ApplyResources(this.labelMinuteEnd, "labelMinuteEnd");
             this.labelMinuteEnd.Name = "labelMinuteEnd";
             // 
-            // LoadInputsOutputsItem
+            // StopActiveMailingItem
             // 
-            this.LoadInputsOutputsItem.Name = "LoadInputsOutputsItem";
-            resources.ApplyResources(this.LoadInputsOutputsItem, "LoadInputsOutputsItem");
-            this.LoadInputsOutputsItem.Click += new System.EventHandler(this.LoadInputsOutputsItem_Click);
+            this.StopActiveMailingItem.Name = "StopActiveMailingItem";
+            resources.ApplyResources(this.StopActiveMailingItem, "StopActiveMailingItem");
+            this.StopActiveMailingItem.Click += new System.EventHandler(this.StopActiveMailingItem_Click);
             // 
             // WinFormASTA
             // 
@@ -962,6 +970,7 @@
         private System.Windows.Forms.ToolStripMenuItem AddParameterInConfigItem;
         private System.Windows.Forms.ToolStripMenuItem LoadLastInputsOutputsItem;
         private System.Windows.Forms.ToolStripMenuItem LoadInputsOutputsItem;
+        private System.Windows.Forms.ToolStripMenuItem StopActiveMailingItem;
     }
 }
 

@@ -94,7 +94,7 @@ namespace ASTA
         static bool sent = false;
         static string DEFAULT_DAY_OF_SENDING_REPORT = @"END_OF_MONTH";
         static int ShiftDaysBackOfSendingFromLastWorkDay = 3; //shift back of sending email before a last working day within the month
-        static bool mailSent = false; //the flag of sending data
+        static bool mailStopSent = false; //the global flag of stop to send data
         const string RECEPIENTS_OF_REPORTS = @"Получатель рассылки";
 
 
@@ -129,7 +129,11 @@ namespace ASTA
         static string mailsOfSenderOfPassword = "";
         static string mailsOfSenderOfPasswordDB = "";
 
+        MailServer _mailServer;
+
         static string mailJobReportsOfNameOfReceiver = ""; //Receiver of job reports
+       static List<Mailing> resultOfSendingReports = new List<Mailing>();
+       static System.Net.Mail.LinkedResource mailLogo;
 
         //Page of "Settings' Programm"
         bool bServer1Exist = false;
@@ -638,6 +642,16 @@ namespace ASTA
 
             string day = string.Format("{0:d4}-{1:d2}-{2:d2}", dateTimePickerStart.Value.Year, dateTimePickerStart.Value.Month, dateTimePickerStart.Value.Day);
             _MenuItemTextSet(LoadInputsOutputsItem, "Отобразить входы-выходы за "+ day);
+
+
+            //e-mail logo
+            //convert embedded resources into memory stream to attach at an email
+            Bitmap b = new Bitmap(bmp, new Size(50, 50));
+            ImageConverter ic = new ImageConverter();
+            Byte[] ba = (Byte[])ic.ConvertTo(b, typeof(Byte[]));
+            System.IO.MemoryStream logo = new System.IO.MemoryStream(ba);
+            mailLogo = new System.Net.Mail.LinkedResource(logo, "image/jpeg");
+            mailLogo.ContentId = Guid.NewGuid().ToString(); //myAppLogo for email's reports
         }
 
 
@@ -683,7 +697,7 @@ namespace ASTA
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'BoldedDates' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, DayBolded TEXT, NAV TEXT, DayType TEXT, DayDescription TEXT, DateCreated TEXT);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'LastTakenPeopleComboList' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, ComboList TEXT, " +
                     "DateCreated TEXT, UNIQUE ('ComboList') ON CONFLICT REPLACE);", databasePerson);
-            ExecuteSql("CREATE TABLE IF NOT EXISTS 'Mailing' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, SenderEmail TEXT, " +
+            ExecuteSql("CREATE TABLE IF NOT EXISTS 'Mailing' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "RecipientEmail TEXT, GroupsReport TEXT, NameReport TEXT, Description TEXT, Period TEXT, Status TEXT, SendingLastDate TEXT, TypeReport TEXT, DayReport TEXT, DateCreated TEXT" +
                     ", UNIQUE ('RecipientEmail', 'GroupsReport', 'NameReport', 'Description', 'Period', 'TypeReport', 'DayReport') ON CONFLICT REPLACE);", databasePerson);
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'MailingException' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, RecipientEmail TEXT, NameReport TEXT, Description TEXT, DayReport TEXT, DateCreated TEXT" +
@@ -703,7 +717,7 @@ namespace ASTA
             TryUpdateStructureSqlDB("TechnicalInfo", "PCName TEXT, POName TEXT, POVersion TEXT, LastDateStarted TEXT, CurrentUser TEXT, FreeRam TEXT, GuidAppication TEXT", databasePerson);
             TryUpdateStructureSqlDB("BoldedDates", "DayBolded TEXT, NAV TEXT, DayType TEXT, DayDescription TEXT, DateCreated TEXT", databasePerson);
             TryUpdateStructureSqlDB("LastTakenPeopleComboList", "ComboList TEXT, DateCreated TEXT", databasePerson);
-            TryUpdateStructureSqlDB("Mailing", "SenderEmail TEXT, RecipientEmail TEXT, GroupsReport TEXT, NameReport TEXT, Description TEXT, Period TEXT, Status TEXT, SendingLastDate TEXT, TypeReport TEXT, DayReport TEXT, DateCreated TEXT", databasePerson);
+            TryUpdateStructureSqlDB("Mailing", "RecipientEmail TEXT, GroupsReport TEXT, NameReport TEXT, Description TEXT, Period TEXT, Status TEXT, SendingLastDate TEXT, TypeReport TEXT, DayReport TEXT, DateCreated TEXT", databasePerson);
             TryUpdateStructureSqlDB("MailingException", "RecipientEmail TEXT, NameReport TEXT, Description TEXT, DayReport TEXT, DateCreated TEXT", databasePerson);
             TryUpdateStructureSqlDB("SelectedCitytoLoadFromWeb", "City TEXT, DateCreated TEXT", databasePerson);
         }
@@ -1331,7 +1345,7 @@ namespace ASTA
         }
 
 
-        private void CheckAliveIntellectServer(string serverName, string userName, string userPasswords) //Check alive the SKD Intellect-server and its DB's 'intellect'
+        private async Task CheckAliveIntellectServer(string serverName, string userName, string userPasswords) //Check alive the SKD Intellect-server and its DB's 'intellect'
         {
             bServer1Exist = false;
             string stringConnection = "Data Source=" + serverName + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + userName + ";Password=" + userPasswords + "; Connect Timeout=5";
@@ -1418,7 +1432,6 @@ namespace ASTA
                 logger.Error("It hasn't access to AD: user: " + user + "| domain: " + domain + "| password: " + password + "| server: " + server);
                 _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
             }
-            parameters = null; listParameters = null; ad = null;
         }
 
         //уведомление о количестве и последнем полученном из AD пользователей
@@ -1439,6 +1452,7 @@ namespace ASTA
                     break;
             }
         }
+
         private async void GetFio_Click(object sender, EventArgs e)  //DoListsFioGroupsMailings()
         {
             _ProgressBar1Start();
@@ -1452,11 +1466,11 @@ namespace ASTA
             _MenuItemEnabled(GetFioItem, false);
             _controlEnable(dataGridView1, false);
 
-            await Task.Run(() => CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword));
+            await Task.Run(() => CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword).GetAwaiter());
 
             if (bServer1Exist)
             {
-                await Task.Run(() => DoListsFioGroupsMailings());
+                await Task.Run(() => DoListsFioGroupsMailings().GetAwaiter());
 
                 _MenuItemVisible(listFioItem, true);
                 _MenuItemEnabled(SettingsMenuItem, true);
@@ -1480,7 +1494,7 @@ namespace ASTA
             _ProgressBar1Stop();
         }
 
-        private void DoListsFioGroupsMailings()  //  GetDataFromRemoteServers()  ImportTablePeopleToTableGroupsInLocalDB()
+        private async Task DoListsFioGroupsMailings()  //  GetDataFromRemoteServers()  ImportTablePeopleToTableGroupsInLocalDB()
         {
             countGroups = 0;
             countUsers = 0;
@@ -2019,10 +2033,9 @@ namespace ASTA
 
                         if (depName.StartsWith("@") && recipientEmail.Contains('@'))
                         {
-                            using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'Mailing' (SenderEmail, RecipientEmail, GroupsReport, NameReport, Description, Period, Status, DateCreated, SendingLastDate, TypeReport, DayReport)" +
-                               " VALUES (@SenderEmail, @RecipientEmail, @GroupsReport, @NameReport, @Description, @Period, @Status, @DateCreated, @SendingLastDate, @TypeReport, @DayReport)", sqlConnection))
+                            using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'Mailing' (RecipientEmail, GroupsReport, NameReport, Description, Period, Status, DateCreated, SendingLastDate, TypeReport, DayReport)" +
+                               " VALUES (@RecipientEmail, @GroupsReport, @NameReport, @Description, @Period, @Status, @DateCreated, @SendingLastDate, @TypeReport, @DayReport)", sqlConnection))
                             {
-                                sqlCommand.Parameters.Add("@SenderEmail", DbType.String).Value = mailsOfSenderOfName;
                                 sqlCommand.Parameters.Add("@RecipientEmail", DbType.String).Value = recipientEmail;
                                 sqlCommand.Parameters.Add("@GroupsReport", DbType.String).Value = depName;
                                 sqlCommand.Parameters.Add("@NameReport", DbType.String).Value = depName;
@@ -2116,7 +2129,7 @@ namespace ASTA
             DateTime today = DateTime.Now;
             filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), "InputOutputs " + DateTime.Now.ToString("yyyyMMdd_HHmmss"));
 
-            await Task.Run(() => ExportDatatableSelectedColumnsToExcel(dtPersonTemp, "InputOutputsOfStaff", ref filePathExcelReport));
+            await Task.Run(() => ExportDatatableSelectedColumnsToExcel(dtPersonTemp, "InputOutputsOfStaff", filePathExcelReport).GetAwaiter());
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer.exe", " /select, " + filePathExcelReport + @".xlsx")); // //System.Reflection.Assembly.GetExecutingAssembly().Location)
 
             _MenuItemEnabled(FunctionMenuItem, true);
@@ -2126,25 +2139,54 @@ namespace ASTA
             _ProgressBar1Stop();
         }
 
-        private void ExportDatatableSelectedColumnsToExcel(DataTable dataTable, string nameReport, ref string filePath)  //Export DataTable to Excel 
+        private string MakeNameFile(string fileName)
         {
-            string pathToFile = filePath;
-            if (System.IO.File.Exists(filePath + @".xlsx"))
+            string pathToFile = fileName;
+            if (System.IO.File.Exists(fileName + @".xlsx"))
             {
-                pathToFile = filePath + "_1";
+                pathToFile = fileName + "_1";
+                MakeNameFile(pathToFile);
             }
 
+            return pathToFile;
+        }
+
+        private async Task ExportDatatableSelectedColumnsToExcel(DataTable dataTable, string nameReport, string filePath)  //Export DataTable to Excel 
+        {
+            string pathToFile = MakeNameFile(filePath);
+
             reportExcelReady = false;
-            
+
             // Order of collumns
-             dataTable.SetColumnsOrder(orderColumnsFinacialReport);
-           DataView dv = dataTable.DefaultView;
-            dv.Sort = FIO + ", " + DATE_REGISTRATION + " ASC";
-            DataTable dtExport = dv.ToTable();
-                       
+            dataTable.SetColumnsOrder(orderColumnsFinacialReport);
+            DataView dv = dataTable.DefaultView;
+            DataTable dtExport;
+            try
+            {
+                dv.Sort = DEPARTMENT + ", " + FIO + ", " + DATE_REGISTRATION + " ASC";
+                dtExport = dv.ToTable();
+            }
+            catch
+            {
+                dv.Sort = GROUP + ", " + FIO + ", " + DATE_REGISTRATION + " ASC";
+                dtExport = dv.ToTable();
+            }
+
             logger.Trace("В таблице " + dataTable.TableName + " столбцов всего - " + dtExport.Columns.Count + ", строк - " + dtExport.Rows.Count);
             _toolStripStatusLabelSetText(StatusLabel2, "Генерирую Excel-файл по отчету: '" + nameReport + "'");
             _ProgressWork1Step();
+
+            Microsoft.Office.Interop.Excel.Application excel = new Microsoft.Office.Interop.Excel.Application
+            {
+                Visible = false, //делаем объект не видимым
+                DisplayAlerts = false, //не отображать диалоги о перезаписи
+                SheetsInNewWorkbook = 1//количество листов в книге
+            };
+
+            Microsoft.Office.Interop.Excel.Workbooks workbooks = excel.Workbooks;
+            excel.Workbooks.Add(); //добавляем книгу
+            Microsoft.Office.Interop.Excel.Workbook workbook = workbooks[1];
+            Microsoft.Office.Interop.Excel.Worksheet sheet = workbook.Worksheets.get_Item(1);
 
             try
             {
@@ -2162,17 +2204,6 @@ namespace ASTA
                 int rows = 1;
                 int rowsInTable = dtExport.Rows.Count;
                 int columnsInTable = indexColumns.Length - 1; // p.Length;
-                Microsoft.Office.Interop.Excel.Application excel = new Microsoft.Office.Interop.Excel.Application
-                {
-                    Visible = false, //делаем объект не видимым
-                    DisplayAlerts = false, //не отображать диалоги о перезаписи
-                    SheetsInNewWorkbook = 1//количество листов в книге
-                };
-                Microsoft.Office.Interop.Excel.Workbooks workbooks = excel.Workbooks;
-                excel.Workbooks.Add(); //добавляем книгу
-                Microsoft.Office.Interop.Excel.Workbook workbook = workbooks[1];
-                Microsoft.Office.Interop.Excel.Worksheet sheet = workbook.Worksheets.get_Item(1);
-
                 sheet.Name = nameReport;
                 //sheet.Names.Add("next", "=" + Path.GetFileNameWithoutExtension(filePathExcelReport) + "!$A$1", true, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
                 _ProgressWork1Step();
@@ -2300,46 +2331,46 @@ namespace ASTA
                 range.AutoFilter(1, Type.Missing, Microsoft.Office.Interop.Excel.XlAutoFilterOperator.xlAnd, Type.Missing, true);
 
                 //save document
-                workbook.SaveAs(pathToFile + @".xlsx",
-                    Microsoft.Office.Interop.Excel.XlFileFormat.xlWorkbookDefault,
-                    System.Reflection.Missing.Value, System.Reflection.Missing.Value,
-                    true, false, //save without asking
-                    Microsoft.Office.Interop.Excel.XlSaveAsAccessMode.xlExclusive,
-                    Microsoft.Office.Interop.Excel.XlSaveConflictResolution.xlLocalSessionChanges, System.Reflection.Missing.Value,
-                    System.Reflection.Missing.Value, System.Reflection.Missing.Value,
-                    System.Reflection.Missing.Value
-                    );
-
-                //close document
-                workbook.Close(false, System.Reflection.Missing.Value, System.Reflection.Missing.Value);
-                workbooks.Close();
-                _ProgressWork1Step();
-
-                //clear temporary objects
-                releaseObject(range);
-                releaseObject(rangeColumnName);
-                releaseObject(sheet);
-                releaseObject(workbook);
-                releaseObject(workbooks);
-                excel.Quit();
-                releaseObject(excel);
-                indexColumns = null;
-                nameColumns = null;
-
+                workbook.SaveAs(pathToFile + @".xlsx", 
+                    Microsoft.Office.Interop.Excel.XlFileFormat.xlOpenXMLWorkbook, 
+                    System.Reflection.Missing.Value, System.Reflection.Missing.Value, 
+                    false, false, 
+                    Microsoft.Office.Interop.Excel.XlSaveAsAccessMode.xlNoChange,
+                    Microsoft.Office.Interop.Excel.XlSaveConflictResolution.xlUserResolution, true,
+                    System.Reflection.Missing.Value, System.Reflection.Missing.Value, 
+                    System.Reflection.Missing.Value);
                 _ProgressWork1Step();
 
                 _toolStripStatusLabelSetText(StatusLabel2, "Отчет сохранен в файл: " + pathToFile + @".xlsx");
+
                 filePath = pathToFile;
                 _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
                 reportExcelReady = true;
+                releaseObject(range);
+                releaseObject(rangeColumnName);
             }
             catch (Exception expt)
             {
                 _toolStripStatusLabelSetText(StatusLabel2, "Ошибка генерации файла. Проверьте наличие установленного Excel");
                 logger.Error("ExportDatatableSelectedColumnsToExcel - " + expt.ToString());
             }
-            dv?.Dispose(); 
-            dtExport?.Dispose();
+            finally
+            {
+                //close document
+                workbook.Close(false, System.Reflection.Missing.Value, System.Reflection.Missing.Value);
+                workbooks.Close();
+
+                //clear temporary objects
+                releaseObject(sheet);
+                releaseObject(workbook);
+                releaseObject(workbooks);
+                excel.Quit();
+                releaseObject(excel);
+
+                dv?.Dispose();
+                dtExport?.Dispose();
+            }
+                _ProgressWork1Step();
 
             sLastSelectedElement = "ExportExcel";
         }
@@ -3062,7 +3093,7 @@ namespace ASTA
         private  void LoadIputsOutputs(string wholeDay)
         {
             _ProgressBar1Start();
-            CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword);
+            CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword).GetAwaiter();
 
             CollectionInputsOutputs collectionInputsOutputs = new CollectionInputsOutputs();
 
@@ -3310,7 +3341,7 @@ namespace ASTA
         {
             _ProgressBar1Start();
 
-            await Task.Run(() => CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword));
+            await Task.Run(() => CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword).GetAwaiter());
 
             _changeControlBackColor(groupBoxPeriod, SystemColors.Control);
             _changeControlBackColor(groupBoxTimeStart, SystemColors.Control);
@@ -5797,10 +5828,9 @@ namespace ASTA
                     SQLiteCommand sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
 
-                    using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'Mailing' (SenderEmail, RecipientEmail, GroupsReport, NameReport, Description, Period, Status, DateCreated, SendingLastDate, TypeReport, DayReport)" +
-                               " VALUES (@SenderEmail, @RecipientEmail, @GroupsReport, @NameReport, @Description, @Period, @Status, @DateCreated, @SendingLastDate, @TypeReport, @DayReport)", sqlConnection))
+                    using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'Mailing' (RecipientEmail, GroupsReport, NameReport, Description, Period, Status, DateCreated, SendingLastDate, TypeReport, DayReport)" +
+                               " VALUES (@RecipientEmail, @GroupsReport, @NameReport, @Description, @Period, @Status, @DateCreated, @SendingLastDate, @TypeReport, @DayReport)", sqlConnection))
                     {
-                        sqlCommand.Parameters.Add("@SenderEmail", DbType.String).Value = senderEmail;
                         sqlCommand.Parameters.Add("@RecipientEmail", DbType.String).Value = recipientEmail;
                         sqlCommand.Parameters.Add("@GroupsReport", DbType.String).Value = groupsReport;
                         sqlCommand.Parameters.Add("@NameReport", DbType.String).Value = nameReport;
@@ -6356,7 +6386,7 @@ namespace ASTA
             string sMySqlServerUser = _textBoxReturnText(textBoxmysqlServerUserName);
             string sMySqlServerUserPassword = _textBoxReturnText(textBoxmysqlServerUserPassword);
 
-            CheckAliveIntellectServer(server, user, password);
+            CheckAliveIntellectServer(server, user, password).GetAwaiter();
 
             if (bServer1Exist)
             {
@@ -7098,7 +7128,7 @@ namespace ASTA
                     mRightClick.MenuItems.Add(new MenuItem(text: "Загрузить  входы-выходы сотрудников группы: '" + dgSeek.values[1] +
                         "' за " + _dateTimePickerStartReturnMonth() + " и &подготовить отчет", onClick: DoReportByRightClick));
                     mRightClick.MenuItems.Add(new MenuItem(text: "Загрузить входы-выходы сотрудников группы: '" + dgSeek.values[1] +
-                        "' за " + _dateTimePickerStartReturnMonth() + " и &отправить отчет адресату: " + recepient, onClick: DoReportAndEmailByRightClick));
+                        "' за " + _dateTimePickerStartReturnMonth() + " и &отправить: " + recepient, onClick: DoReportAndEmailByRightClick));
                     mRightClick.MenuItems.Add("-");
                     mRightClick.MenuItems.Add(new MenuItem(text: "&Удалить группу: '" + dgSeek.values[0] + "'(" + dgSeek.values[1] + ")", onClick: DeleteCurrentRow));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
@@ -7263,24 +7293,27 @@ namespace ASTA
         }
 
 
-        private void DoReportAndEmailByRightClick(object sender, EventArgs e)
-        { DoReportAndEmailByRightClick(); }
+        private async void DoReportAndEmailByRightClick(object sender, EventArgs e)
+        {
+            
+            dataGridView1.ReadOnly = true;
+          await Task.Run (()=> DoReportAndEmailByRightClick().GetAwaiter());
+        }
 
-        private void DoReportAndEmailByRightClick()
+        private async Task DoReportAndEmailByRightClick()
         {
             DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
             dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] { GROUP, GROUP_DECRIPTION, RECEPIENTS_OF_REPORTS });
+            resultOfSendingReports = new List<Mailing>();
 
             _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет по группе" + dgSeek.values[0]);
 
             if (dgSeek.values[2]?.Length > 0)
             {
-                foreach (string recepient in dgSeek.values[2].Split(';'))
-                {
-                    MailingAction("sendEmail", recepient.Trim(), mailsOfSenderOfName,
-                 dgSeek.values[0], dgSeek.values[0], dgSeek.values[1], SelectedDatetimePickersPeriodMonth(), "Активная", "Упрощенный", DateTime.Now.ToYYYYMMDDHHMM());
+                    MailingAction(
+                        "sendEmail", dgSeek.values[2].Replace(';', ',').Trim(), mailsOfSenderOfName,
+                        dgSeek.values[0], dgSeek.values[0], dgSeek.values[1], SelectedDatetimePickersPeriodMonth(), "Активная", "Упрощенный", DateTime.Now.ToYYYYMMDDHHMM());
                     _ProgressBar1Stop();
-                }
             }
             else if (mailsOfSenderOfName?.Length > 0)
             {
@@ -7294,6 +7327,8 @@ namespace ASTA
                 _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange); //Color.PaleGreen
                 logger.Trace("DoReportAndEmailByRightClick, an unexisted recepient for the report: " + dgSeek.values[0]);
             }
+            MakeAndSendAdminReportAsync();//.GetAwaiter();
+            nameOfLastTable = "PeopleGroupDescription";
         }
 
         private void DoReportByRightClick(object sender, EventArgs e)
@@ -7307,10 +7342,13 @@ namespace ASTA
             _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет по группе" + dgSeek.values[0]);
             logger.Trace("DoReportByRightClick: " + dgSeek.values[0]);
 
+            resultOfSendingReports = new List<Mailing>(); //  MakeAndSendAdminReportAsync().GetAwaiter();
+
             GetRegistrationAndSendReport(dgSeek.values[0], dgSeek.values[0], dgSeek.values[1], SelectedDatetimePickersPeriodMonth(), "Активная", "Полный", DateTime.Now.ToYYYYMMDDHHMM(), false, "", "");
 
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer.exe", " /select, " + filePathExcelReport + @".xlsx")); // //System.Reflection.Assembly.GetExecutingAssembly().Location)
 
+            MakeAndSendAdminReportAsync();//.GetAwaiter();
             _ProgressBar1Stop();
             nameOfLastTable = "PeopleGroupDescription";
         }
@@ -7383,10 +7421,12 @@ namespace ASTA
             " ORDER BY RecipientEmail asc, DateCreated desc; ");
         }
 
-        private void DoMainAction(object sender, EventArgs e) //DoMainAction()
-        { DoMainAction(); }
+        private async void DoMainAction(object sender, EventArgs e) //DoMainAction()
+        {
+         await Task.Run(()=>  DoMainAction().GetAwaiter());
+        }
 
-        private void DoMainAction()
+        private async Task DoMainAction()
         {
             _ProgressBar1Start();
 
@@ -7404,6 +7444,7 @@ namespace ASTA
                     {
                         //текущий режим работы приложения
                         currentAction = "sendEmail";
+                        resultOfSendingReports = new List<Mailing>();
 
                         DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
                         dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
@@ -7426,11 +7467,13 @@ namespace ASTA
                             dgSeek.values[0] + "|" + dgSeek.values[1] + "|" + dgSeek.values[2] + "|" +
                             dgSeek.values[3] + "|" + dgSeek.values[4] + "|" + dgSeek.values[5] + "|" +
                             dgSeek.values[6] + "|" + dgSeek.values[7]);
-
+                        
                         ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
                         "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
                         "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
                         " ORDER BY RecipientEmail asc, DateCreated desc; ");
+
+                        MakeAndSendAdminReportAsync();//.GetAwaiter();
                         break;
                     }
                 default:
@@ -7440,12 +7483,14 @@ namespace ASTA
             _ProgressBar1Stop();
         }
 
-        private void SendAllReportsInSelectedPeriod(object sender, EventArgs e) //DoMainAction()
+        private void SendAllReportsInSelectedPeriod(object sender, EventArgs e) //SendAllReportsInSelectedPeriod()
         { SendAllReportsInSelectedPeriod(); }
 
         private void SendAllReportsInSelectedPeriod()
         {
             _ProgressBar1Start();
+
+            resultOfSendingReports = new List<Mailing>();
 
             DataGridViewSeekValuesInSelectedRow dgSeek = new DataGridViewSeekValuesInSelectedRow();
             dgSeek.FindValuesInCurrentRow(dataGridView1, new string[] {
@@ -7454,11 +7499,8 @@ namespace ASTA
             _toolStripStatusLabelSetText(StatusLabel2, "Готовлю все активные рассылки с отчетами " + dgSeek.values[6] + " за " + dgSeek.values[4] + " на " + dgSeek.values[7]);
 
             currentAction = "sendEmail";
-            DoListsFioGroupsMailings();
+            DoListsFioGroupsMailings().GetAwaiter();
 
-            //todo
-            //убрать отправителя из базы, использовать ТОЛЬКО глобального отправителя отчетов
-            string sender = "";
             string recipient = "";
             string gproupsReport = "";
             string nameReport = "";
@@ -7486,9 +7528,9 @@ namespace ASTA
             DaysOfSendingMail daysOfSendingMail = daysToSendReports.GetDays();
 
             logger.Trace("SendAllReportsInSelectedPeriod: активные отчеты " + dgSeek.values[6] + " за " + dgSeek.values[4] +
-                startDayOfCurrentMonth[0] + "-" + startDayOfCurrentMonth[1] + "-" + startDayOfCurrentMonth[2] +
-                " - " +
-                lastDayOfCurrentMonth[0] + "-" + lastDayOfCurrentMonth[1] + "-" + lastDayOfCurrentMonth[2] + " на дату - " + dgSeek.values[7]
+                startDayOfCurrentMonth[0] + "-" + startDayOfCurrentMonth[1] + "-" + startDayOfCurrentMonth[2] + " - " +
+                lastDayOfCurrentMonth[0] + "-" + lastDayOfCurrentMonth[1] + "-" + lastDayOfCurrentMonth[2] + 
+                " на дату - " + dgSeek.values[7]
                 );
 
             HashSet<Mailing> mailingList = new HashSet<Mailing>();
@@ -7504,14 +7546,10 @@ namespace ASTA
                         foreach (DbDataRecord record in reader)
                         {
                             if (
-                                record["SenderEmail"]?.ToString()?.Length > 0 &&
                                 record["RecipientEmail"]?.ToString()?.Length > 0 &&
                                 record["DayReport"]?.ToString()?.Trim()?.ToUpper() == dgSeek.values[7]
                                 )
                             {
-                                //todo
-                                //убрать отправителя из базы, использовать ТОЛЬКО глобального отправителя отчетов
-                                sender = record["SenderEmail"].ToString();
                                 recipient = record["RecipientEmail"].ToString();
                                 gproupsReport = record["GroupsReport"].ToString();
                                 nameReport = record["NameReport"].ToString();
@@ -7536,7 +7574,6 @@ namespace ASTA
                                 {
                                     mailingList.Add(new Mailing()
                                     {
-                                        _sender = sender,
                                         _recipient = recipient,
                                         _groupsReport = gproupsReport,
                                         _nameReport = nameReport,
@@ -7581,7 +7618,7 @@ namespace ASTA
             "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
             " ORDER BY RecipientEmail asc, DateCreated desc; ");
 
-            mailingList = null;
+            MakeAndSendAdminReportAsync();//.GetAwaiter();
 
             _ProgressBar1Stop();
         }
@@ -7764,9 +7801,9 @@ namespace ASTA
             { currentModeAppManual = true; }
         }
 
-        private async void ExecuteAutoMode(bool manualMode) //InitScheduleTask()
+        private void ExecuteAutoMode(bool manualMode) //InitScheduleTask()
         {
-            await Task.Run(() => InitScheduleTask(manualMode));
+             Task.Run(() => InitScheduleTask(manualMode));
         }
 
         public void InitScheduleTask(bool manualMode) //ScheduleTask()
@@ -7807,7 +7844,7 @@ namespace ASTA
                 {
                     _toolStripStatusLabelSetText(StatusLabel2, "Ведется работа по подготовке отчетов " + DateTime.Now.ToYYYYMMDDHHMM());
                     _toolStripStatusLabelBackColor(StatusLabel2, Color.LightPink);
-                    CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword);
+                    CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword).GetAwaiter();
                     SelectMailingDoAction();
                     sent = true;
                     logger.Info("MailingAction: Все задачи по подготовке и отправке отчетов завершены...");
@@ -7829,9 +7866,14 @@ namespace ASTA
             }
         }
 
-        private async void TestToSendAllMailingsItem_Click(object sender, EventArgs e) //SelectMailingDoAction()
+        private void TestToSendAllMailingsItem_Click(object sender, EventArgs e) //SelectMailingDoAction()
         {
-            await Task.Run(() => CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword));
+            TestToSendAllMailings().GetAwaiter();
+        }
+
+        private async Task TestToSendAllMailings()
+        {
+            await Task.Run(() => CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword).GetAwaiter());
             await Task.Run(() => UpdateMailingInDB());
             await Task.Run(() => SelectMailingDoAction());
         }
@@ -7896,9 +7938,12 @@ namespace ASTA
             _ProgressBar1Start();
 
             currentAction = "sendEmail";
-            DoListsFioGroupsMailings();
 
-            string sender = "";
+             resultOfSendingReports = new List<Mailing>();
+            HashSet<Mailing> mailingList = new HashSet<Mailing>();
+
+            DoListsFioGroupsMailings().GetAwaiter();
+
             string recipient = "";
             string gproupsReport = "";
             string nameReport = "";
@@ -7928,15 +7973,13 @@ namespace ASTA
             DaysOfSendingMail daysOfSendingMail = daysToSendReports.GetDays();
 
             logger.Info("SelectMailingDoAction: " +
-                startDayOfCurrentMonth[0] + "-" + startDayOfCurrentMonth[1] + "-" + startDayOfCurrentMonth[2] +
-                " - " +
+                startDayOfCurrentMonth[0] + "-" + startDayOfCurrentMonth[1] + "-" + startDayOfCurrentMonth[2] + " - " +
                 lastDayOfCurrentMonth[0] + "-" + lastDayOfCurrentMonth[1] + "-" + lastDayOfCurrentMonth[2]
                 );
             logger.Info("SelectMailingDoAction: all of daysOfSendingMail: " +
                 daysOfSendingMail.START_OF_MONTH + ", " + daysOfSendingMail.MIDDLE_OF_MONTH + ", " +
                 daysOfSendingMail.LAST_WORK_DAY_OF_MONTH + ", " + daysOfSendingMail.END_OF_MONTH
                 );
-            HashSet<Mailing> mailingList = new HashSet<Mailing>();
 
             using (var sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
             {
@@ -7948,9 +7991,8 @@ namespace ASTA
                     {
                         foreach (DbDataRecord record in reader)
                         {
-                            if (record["SenderEmail"]?.ToString()?.Length > 0 && record["RecipientEmail"]?.ToString()?.Length > 0)
+                            if (record["RecipientEmail"]?.ToString()?.Length > 0)
                             {
-                                sender = record["SenderEmail"].ToString();
                                 recipient = record["RecipientEmail"].ToString();
                                 gproupsReport = record["GroupsReport"].ToString();
                                 nameReport = record["NameReport"].ToString();
@@ -7970,7 +8012,6 @@ namespace ASTA
                                 {
                                     mailingList.Add(new Mailing()
                                     {
-                                        _sender = sender,
                                         _recipient = recipient,
                                         _groupsReport = gproupsReport,
                                         _nameReport = nameReport,
@@ -8001,7 +8042,6 @@ namespace ASTA
             foreach (Mailing mailng in mailingList)
             {
                 _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
-
                 _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + mailng._nameReport);
 
                 str = "UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToYYYYMMDDHHMM() +
@@ -8027,7 +8067,7 @@ namespace ASTA
             "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
             " ORDER BY RecipientEmail asc, DateCreated desc; ");
 
-            mailingList = null;
+            MakeAndSendAdminReportAsync();//.GetAwaiter();
 
             _ProgressBar1Stop();
         }
@@ -8037,7 +8077,6 @@ namespace ASTA
         {
             _ProgressBar1Start();
 
-            string sender = "";
             string recipient = "";
             string gproupsReport = "";
             string nameReport = "";
@@ -8060,9 +8099,8 @@ namespace ASTA
                     {
                         foreach (DbDataRecord record in reader)
                         {
-                            if (record["SenderEmail"]?.ToString()?.Length > 0 && record["RecipientEmail"]?.ToString()?.Length > 0)
+                            if (record["RecipientEmail"]?.ToString()?.Length > 0)
                             {
-                                sender = record["SenderEmail"].ToString();
                                 recipient = record["RecipientEmail"].ToString();
                                 gproupsReport = record["GroupsReport"].ToString();
                                 nameReport = record["NameReport"].ToString();
@@ -8078,7 +8116,6 @@ namespace ASTA
 
                                 mailingList.Add(new Mailing()
                                 {
-                                    _sender = sender,
                                     _recipient = recipient,
                                     _groupsReport = gproupsReport,
                                     _nameReport = nameReport,
@@ -8151,13 +8188,13 @@ namespace ASTA
                     }
                 case "sendEmail":
                     {
-                        CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword);
+                        CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword).GetAwaiter();
 
                         if (bServer1Exist)
-                        {
+                        {           
                             GetRegistrationAndSendReport(groupsReport, nameReport, description, period, status, typeReport, dayReport, true, recipientEmail, senderEmail);
                             logger.Info("MailingAction: Задача по подготовке и отправке отчета '" + nameReport + "' выполнена ");
-                        }
+                                }
                         break;
                     }
                 default:
@@ -8227,7 +8264,8 @@ namespace ASTA
 
                     foreach (DataRow row in dtPeopleGroup.Rows)
                     {
-                        if (row[FIO]?.ToString()?.Length > 0 && (row[GROUP]?.ToString() == nameGroup || (@"@" + row[DEPARTMENT_ID]?.ToString()) == nameGroup))
+                        if (row[FIO]?.ToString()?.Length > 0 && 
+                            (row[GROUP]?.ToString() == nameGroup || (@"@" + row[DEPARTMENT_ID]?.ToString()) == nameGroup))
                         {
                             person = new PersonFull()
 
@@ -8266,7 +8304,7 @@ namespace ASTA
                         filePathExcelReport = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(filePathApplication), illegal);
 
                         logger.Trace("Подготавливаю отчет: " + filePathExcelReport + @".xlsx");
-                        ExportDatatableSelectedColumnsToExcel(dtPersonTemp, nameReport, ref filePathExcelReport);
+                        ExportDatatableSelectedColumnsToExcel(dtPersonTemp, nameReport, filePathExcelReport).GetAwaiter();
 
                         if (sendReport)
                         {
@@ -8275,17 +8313,17 @@ namespace ASTA
                                 titleOfbodyMail = "с " + reportStartDay.Split(' ')[0] + " по " + reportLastDay.Split(' ')[0];
                                 _toolStripStatusLabelSetText(StatusLabel2, "Выполняю отправку отчета адресату: " + recipientEmail);
 
+                                //for test preparing reports - must commented next string     
+                                string adresses = recipientEmail.Replace(';', ',');
 
-                                //test
-                                // it should be commented only for test mailing     
-                                SendEmail(senderEmail, recipientEmail, titleOfbodyMail, description, filePathExcelReport + @".xlsx", Properties.Resources.LogoRYIK, productName);
-
-                                
-                                //добавлять информацию об отчетах в объект-класс.
-                                logger.Trace("GetRegistrationAndSendReport, SendEmail succesful: " +
-                                    senderEmail + "| " + recipientEmail + "| " + titleOfbodyMail + "| " +
-                                    description + "| " + filePathExcelReport + @".xlsx" + "| " + productName + "| "
-                                    );
+                                foreach (var oneAddress in adresses.Split(','))
+                                {
+                                    SendEmailAsync(oneAddress.Trim(), titleOfbodyMail, description, filePathExcelReport + @".xlsx", productName).GetAwaiter();
+                                    logger.Trace("GetRegistrationAndSendReport, SendEmail succesfull: From:" +
+                                        mailsOfSenderOfName + "| To: " + oneAddress + "| Subject: " + titleOfbodyMail + "| " +
+                                        description + "| attached: " + filePathExcelReport + @".xlsx"
+                                        );
+                                }
 
                                 _toolStripStatusLabelSetText(StatusLabel2, DateTime.Now.ToYYYYMMDDHHMM() + " Отчет '" + nameReport + "'(" + groupName + ") подготовлен и отправлен " + recipientEmail);
                                 _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
@@ -8308,23 +8346,148 @@ namespace ASTA
 
             dtTempIntermediate?.Dispose();
             dtPersonTemp?.Clear();
-            selectedPeriod = null;
-            nameGroup = null;
         }
 
-        private async static void SendEmail(string sender, string recipient, string period, string department, string pathToFile, Bitmap myLogo, string messageAfterPicture) //Compose and send e-mail
+        //Compose and send e-mail
+        private static async Task SendEmailAsync(string to, string period, string department, string pathToFile, string messageAfterPicture)
         {
+            StartStopTimer timer1sec = new StartStopTimer(1);
+            //    mailStopSent = false;
             // string startupPath = AppDomain.CurrentDomain.RelativeSearchPath;
             // string path = System.IO.Path.Combine(startupPath, "HtmlTemplates", "NotifyTemplate.html");
             // string body = System.IO.File.ReadAllText(path);
-
             // адрес smtp-сервера и порт, с которого будем отправлять письмо
             using (System.Net.Mail.SmtpClient smtpClient = new System.Net.Mail.SmtpClient(mailServer, mailServerSMTPPort))
             {
-                smtpClient.EnableSsl = false; // I get error with "true"
+                smtpClient.EnableSsl = false; // I got error with "true"
                 smtpClient.DeliveryMethod = System.Net.Mail.SmtpDeliveryMethod.Network;
                 smtpClient.UseDefaultCredentials = false;
-                smtpClient.Timeout = 50000;
+                smtpClient.Timeout = 10000;
+
+                {
+                    logger.Trace("SendEmail: Try to send From:" + mailsOfSenderOfName + "| To:" + to + "| " + period + "| " + department + "|" + pathToFile + "|" + messageAfterPicture);
+                    logger.Trace("SendEmail: file=" + (pathToFile.Length > 0) + ", admin=" + to.Equals(mailJobReportsOfNameOfReceiver));
+
+                    // создаем объект сообщения
+                    using (System.Net.Mail.MailMessage newMail = new System.Net.Mail.MailMessage())
+                    {
+                        // письмо представляет код html
+                        newMail.IsBodyHtml = true;
+                        newMail.BodyEncoding = Encoding.UTF8;
+
+                        if (pathToFile.Length > 0)
+                        {
+                            newMail.AlternateViews.Add(GetStandartReportMessageOfBody(period, department, messageAfterPicture));
+                            // тема письма
+                            newMail.Subject = "Отчет по посещаемости за период: " + period;
+                            // отправитель - устанавливаем адрес и отображаемое в письме имя
+                            newMail.From = new System.Net.Mail.MailAddress(mailsOfSenderOfName, NAME_OF_SENDER_REPORTS);
+                            newMail.ReplyToList.Add(mailsOfSenderOfName);
+
+                            // отправитель - устанавливаем адрес и отображаемое в письме имя
+                            //   newMail.ReplyToList.Add(mailsOfSenderOfName);                  
+                            // newMail.Bcc.Add("user@mail.com.ua");      // Скрытая копия
+
+                            // кому отправляем
+                            newMail.To.Add(new System.Net.Mail.MailAddress(to));
+                            // Добавляем проверку успешности отправки
+                            //   smtpClient.SendCompleted += new System.Net.Mail.SendCompletedEventHandler(SendCompletedCallback);
+                            // добавляем вложение
+                            newMail.Attachments.Add(new System.Net.Mail.Attachment(pathToFile));
+
+                            // логин и пароль
+                            smtpClient.Credentials = new System.Net.NetworkCredential(mailsOfSenderOfName.Split('@')[0], "");
+                            Object token = newMail;
+                            // отправка письма
+                            int attempts = 1;
+                            bool sending = true;
+                            while (sending|| attempts>0)
+                            {
+                                try
+                                {
+                                    // async sending method sometimes has a problem with sending emails
+                                    // a default MS Exch Server blocks the action of mass sending emails
+                                    // smtpClient.SendAsync(newMail, userState);
+                                    smtpClient.SendCompleted += (s, e) =>
+                                    {
+                                      //  token = (string)e.UserState;
+
+                                        string res = null;
+                                        res += "Cancelled: " + e.Cancelled + "\n";
+
+                                        if (e.Error != null)
+                                        { res += "Send error to " +  e.Error.ToString() + "\n"; }//token + "|" +
+
+                                        resultOfSendingReports.Add(new Mailing
+                                        {
+                                            _recipient = to,
+                                            _nameReport = pathToFile,
+                                            _descriptionReport = department,
+                                            _period = period,
+                                            _status = res
+                                        });
+
+                                        MessageBox.Show(res);
+                                        sending = false;
+                                        mailStopSent = false;
+                                          smtpClient.Dispose();
+                                           newMail.Dispose();
+                                    };
+
+                                    //  smtpClient.SendAsync(newMail, token);
+                                   // smtpClient.SendMailAsync(newMail).Wait(1000);
+                                    smtpClient.Send(newMail);
+
+                                    logger.Info("SendEmail:  To:" + to + "|" + department + "|" + period + " |" + pathToFile + " - Ok");
+
+                                    sending = false;
+                                    timer1sec.WaitTime();
+                                }
+                                catch (Exception expt) // "Error sending the email"
+                                {
+                                    logger.Error("SendEmail, Error to send: " + to + " |by: " + mailServer + ":" + mailServerSMTPPort + " " + expt.Message);
+
+                                    resultOfSendingReports.Add(new Mailing
+                                    {
+                                        _recipient = to,
+                                        _nameReport = pathToFile,
+                                        _descriptionReport = mailServer + ":" + mailServerSMTPPort,
+                                        _period = period,
+                                        _status = "Error: " + expt.Message
+                                    });
+
+                                    if (expt.Message.Contains("Unknown user"))
+                                    {
+                                        smtpClient.SendAsyncCancel(); //stop sending
+                                        sending = false;
+                                    }
+                                    else
+                                    {
+                                        timer1sec.WaitTime();
+                                    }
+                                }
+                            }
+                            smtpClient.Dispose();
+                            newMail.Dispose();
+                            timer1sec.WaitTime();
+                        }
+                    }
+                }
+            }
+        }
+
+        private  void MakeAndSendAdminReportAsync()
+        {
+            using (System.Net.Mail.SmtpClient smtpClient = new System.Net.Mail.SmtpClient("mail-d.corp.ais", 25))
+            {
+                string period = DateTime.Now.ToYYYYMMDD();
+                smtpClient.EnableSsl = false; // I got error with "true"
+                smtpClient.DeliveryMethod = System.Net.Mail.SmtpDeliveryMethod.Network;
+                smtpClient.UseDefaultCredentials = false;
+                smtpClient.Timeout = 10000;
+
+                logger.Trace("SendEmail: Try to send From:" + mailsOfSenderOfName + "| To:" + mailJobReportsOfNameOfReceiver + "| " + period);
+
                 // создаем объект сообщения
                 using (System.Net.Mail.MailMessage newMail = new System.Net.Mail.MailMessage())
                 {
@@ -8332,88 +8495,95 @@ namespace ASTA
                     newMail.IsBodyHtml = true;
                     newMail.BodyEncoding = Encoding.UTF8;
 
-                    newMail.AlternateViews.Add(getEmbeddedImage(period, department, myLogo, messageAfterPicture));
-                    // отправитель - устанавливаем адрес и отображаемое в письме имя
-                    newMail.From = new System.Net.Mail.MailAddress(sender, NAME_OF_SENDER_REPORTS);
+                    newMail.Subject = "Результат отправки отчетов за " + period;
+                    newMail.AlternateViews.Add(MakeAdminMailingReport(period, resultOfSendingReports));
 
                     // отправитель - устанавливаем адрес и отображаемое в письме имя
-                    newMail.ReplyToList.Add(sender);
-
-                    // Скрытая копия
-                    // newMail.Bcc.Add("ry@ais.com.ua");
+                    newMail.From = new System.Net.Mail.MailAddress(mailsOfSenderOfName, NAME_OF_SENDER_REPORTS);
 
                     // кому отправляем
-                    newMail.To.Add(new System.Net.Mail.MailAddress(recipient));
-                    // тема письма
-                    newMail.Subject = "Отчет по посещаемости за период: " + period;
-                    // Проверка успешности отправки
-                    smtpClient.SendCompleted += new System.Net.Mail.SendCompletedEventHandler(SendCompletedCallback);
-                    // добавляем вложение
-                    newMail.Attachments.Add(new System.Net.Mail.Attachment(pathToFile));
+                    newMail.To.Add(new System.Net.Mail.MailAddress(mailJobReportsOfNameOfReceiver));
+                    // Добавляем проверку успешности отправки
+                  //  smtpClient.SendCompleted += new System.Net.Mail.SendCompletedEventHandler(SendCompletedCallback);
                     // логин и пароль
-                    smtpClient.Credentials = new System.Net.NetworkCredential(sender.Split('@')[0], "");
+                    smtpClient.Credentials = new System.Net.NetworkCredential(mailsOfSenderOfName.Split('@')[0], "");
+                    Object token = newMail;
 
-                    // отправка письма
-                    int attempts = 5;
-                    do
+                    try
                     {
-                        try
+                        smtpClient.SendCompleted += (s, e) =>
                         {
-                            // async sending method sometimes has a problem with sending emails
-                            // a default MS Exch Server blocks the action of mass sending emails
-                            // smtpClient.SendAsync(newMail);
-                            smtpClient.Send(newMail);
-                            logger.Info("SendEmail: " + recipient + " " + mailServer + ":" + mailServerSMTPPort + " - Ok");
-                            attempts = 0;
-                        }
-                        catch (Exception expt)
-                        {
-                            logger.Info("SendEmail, mailserver: " + mailServer + ", mailServerSMTPPort: " + mailServerSMTPPort);
-                            logger.Error("SendEmail, Error: " + expt.Message);
-                            await Task.Delay(60000);
-                            attempts--;
-                        }
+                           // token = (string)e.UserState;
 
-                        if (mailSent == false)
-                        {
-                            smtpClient.SendAsyncCancel();
-                        }
+                            string res = null;
+                            //    res += "Sent to: " + to + "\n";
+                            res += "Cancelled: " + e.Cancelled + "\n";
+
+                            if (e.Error != null)
+                            { res += "Send error to " +  e.Error.ToString() + "\n"; }//+ token + "|"
+
+
+                            logger.Trace("SendEmail, AdminReport: To: "+ mailJobReportsOfNameOfReceiver+" | " + 
+                                period + " sent result: "+ res);
+
+                            smtpClient.Dispose();
+                            newMail.Dispose();
+                        };
+
+                        // smtpClient.SendAsync(newMail, token);
+                        // smtpClient.SendMailAsync(newMail).Wait(1000);
+                        smtpClient.Send(newMail);
+                        // logger.Trace("SendEmail, AdminReport: " + period + " sent successfull");
                     }
-                    while (attempts > 0);
-
+                    catch (Exception expt)
+                    {
+                        smtpClient.SendAsyncCancel(); //stop sending
+                        logger.Trace("SendEmail Error: To:" + mailJobReportsOfNameOfReceiver + "|period:" + period + "| reports count: " + resultOfSendingReports.Count);
+                        logger.Error("SendEmail,  Error of sending AdminReport To: " + mailJobReportsOfNameOfReceiver + "| message: " + expt.Message);
+                    }
                 }
             }
         }
 
 
-
-        private static void SendCompletedCallback(object sender, System.ComponentModel.AsyncCompletedEventArgs e)     //for async sending
+        private void StopActiveMailingItem_Click(object sender, EventArgs e) // остановить активные рассылки
         {
-            // Get the unique identifier for this asynchronous operation.
-            String token = (string)e.UserState;
-
-            if (e.Cancelled)
-            { logger.Info("Send canceled " + token); }
-            if (e.Error != null)
-            { logger.Info("Send error " + e.Error.ToString()); }
+            if (mailStopSent)
+            {
+                mailStopSent = false;
+                _MenuItemBackColorChange(StopActiveMailingItem, SystemColors.Control);
+            }
             else
-            { logger.Info("Message sent"); }
-            mailSent = true;
+            {
+                mailStopSent = true;
+                _MenuItemBackColorChange(StopActiveMailingItem, Color.DarkOrange);
+            }
         }
 
-        private static System.Net.Mail.AlternateView getEmbeddedImage(string period, string department, Bitmap bmp, string messageAfterPicture)
+      /*  private  static void SendCompletedCallback(object sender, System.ComponentModel.AsyncCompletedEventArgs e)     //for async sending
+        {
+
+            //Get the Original MailMessage object
+          //  System.Net.Mail.MailMessage mail = (System.Net.Mail.MailMessage)e.UserState;
+            //write out the subject
+          //  string subject = mail.Subject.ToString();
+          //  string recepient = mail.To.ToString();
+
+            // Get the unique identifier for this asynchronous operation.
+           String token = (string)e.UserState;
+
+            if (e.Cancelled)
+            { logger.Warn("Send canceled " + token); }
+            if (e.Error != null)
+            { logger.Warn("Send error to " + token + "|" +  e.Error.ToString()); }
+            else
+            { logger.Trace("Message sent to " ); }
+            mailStopSent = true;
+        }*/
+
+        private static System.Net.Mail.AlternateView GetStandartReportMessageOfBody(string period, string department, string messageAfterPicture)
         {
             StringBuilder sb = new StringBuilder();
-            System.Net.Mail.LinkedResource res = null;
-
-            //convert embedded resources into memorystream
-            Bitmap b = new Bitmap(bmp, new Size(50, 50));
-            ImageConverter ic = new ImageConverter();
-            Byte[] ba = (Byte[])ic.ConvertTo(b, typeof(Byte[]));
-            System.IO.MemoryStream logo = new System.IO.MemoryStream(ba);
-            res = new System.Net.Mail.LinkedResource(logo, "image/jpeg");
-            res.ContentId = Guid.NewGuid().ToString();
-
             sb.Append(@"<style type = 'text/css'> A {text - decoration: none;}</ style >");
             sb.Append(@"<p><font size='3' color='black' face='Arial'>Здравствуйте,</p>Во вложении «Отчет по учету рабочего времени сотрудников».<p>");
 
@@ -8435,11 +8605,61 @@ namespace ASTA
             sb.Append(DateTime.Now.ToYYYYMMDDHHMM());
             sb.Append(@"</font></p>");
             sb.Append(@"<hr><img alt='ASTA' src='cid:");
-            sb.Append(res.ContentId);
+            sb.Append(mailLogo.ContentId);
             sb.Append(@"'/><br/><a href='mailto:ryik.yuri@gmail.com'>_</a>");
 
             System.Net.Mail.AlternateView alternateView = System.Net.Mail.AlternateView.CreateAlternateViewFromString(sb.ToString(), null, System.Net.Mime.MediaTypeNames.Text.Html);
-            alternateView.LinkedResources.Add(res);
+            alternateView.LinkedResources.Add(mailLogo);
+            return alternateView;
+        }
+
+        private static System.Net.Mail.AlternateView MakeAdminMailingReport(string period, List<Mailing> reportOfResultSending)
+        {
+            int order = 0;
+            StringBuilder sb = new StringBuilder();
+            sb.Append(@"<style type = 'text/css'> A {text - decoration: none;}</ style >");
+            sb.Append(@"<p><font size='4' color='black' face='Arial'>Здравствуйте,</p><p>Результаты отправки отчетов</p>");
+
+            sb.Append(@"<b>Дата: </b>");
+            sb.Append(period);
+            sb.Append(@"<p><b>Результат отправки "+ reportOfResultSending.Count + @" отчета/отчетов:</b></p><p>");
+
+            foreach (var mailing in reportOfResultSending)
+            {
+                order += 1;
+                if (
+                    mailing._status.ToLower().Contains("error") || mailing._status.ToLower().Contains("not been sent")
+                    )
+                {
+                    sb.Append(@"<font size='2' color='red' face='Arial'>");
+                    sb.Append(
+                        order + @". Получатель: " + mailing._recipient +
+                        @", " + mailing._descriptionReport +
+                        @", " + mailing._status + @"</font><br/>");
+                }
+                else
+                {
+                    sb.Append(@"<font size='2' color='black' face='Arial'>");
+                    sb.Append(
+                        order + @". Получатель: " + mailing._recipient +
+                        @", отчет по группе " + mailing._descriptionReport +
+                        @", доставлен: " + mailing._status + @" </font><br/>");
+                }
+            }
+
+            sb.Append(@"</p><font size='2' color='black' face='Arial'>С, Уважением,<br/>");
+            sb.Append(NAME_OF_SENDER_REPORTS);
+            sb.Append(@"</font><br/><br/><font size='1' color='black' face='Arial'><i>");
+            sb.Append(@"Данное сообщение и отчет созданы автоматически<br/>программой по учету рабочего времени сотрудников.");
+            sb.Append(@"</i></font><br/><font size='1' color='red' face='Arial'><br/>");
+            sb.Append(DateTime.Now.ToYYYYMMDDHHMM());
+            sb.Append(@"</font></p>");
+            sb.Append(@"<hr><img alt='ASTA' src='cid:");
+            sb.Append(mailLogo.ContentId);
+            sb.Append(@"'/><br/><a href='mailto:ryik.yuri@gmail.com'>_</a>");
+
+            System.Net.Mail.AlternateView alternateView = System.Net.Mail.AlternateView.CreateAlternateViewFromString(sb.ToString(), null, System.Net.Mime.MediaTypeNames.Text.Html);
+            alternateView.LinkedResources.Add(mailLogo);
             return alternateView;
         }
 
@@ -8520,7 +8740,9 @@ namespace ASTA
             e.Graphics.DrawString((sender as ComboBox).Items[e.Index].ToString(), font, textColor, e.Bounds);
         }
 
-        private void RemoveClickEvent(Button b) //clear all Click events in the button
+
+        //clear all registered Click events on the selected button
+        private void RemoveClickEvent(Button b)
         {
             System.Reflection.FieldInfo f1 = typeof(Control).GetField("EventClick",
                 System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
@@ -9549,6 +9771,7 @@ namespace ASTA
         {
 
         }
+
 
 
 
