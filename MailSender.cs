@@ -4,11 +4,105 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
+using MimeKit;
 
 namespace ASTA
 {
-    class EmailsSender
-    {/*
+
+    class MailSender
+    {
+        MailServer _mailServer;
+        MailUser _from;
+        MailUser _to;
+        public string Status { get; private set; }
+
+        public MailSender()
+        { }
+
+        public MailSender(MailServer mailServer)
+        {
+            _mailServer = mailServer;
+        }
+
+        public void SetFrom(MailUser from)
+        {
+            if (string.IsNullOrWhiteSpace(from.GetEmail())||!from.GetEmail().Contains('@'))
+            {
+                throw new ArgumentException("no 'From' address provided!");
+            }
+            _from = from;
+        }
+        public void SetTo(MailUser to)
+        {
+            if (string.IsNullOrWhiteSpace(to.GetEmail()) || !to.GetEmail().Contains('@'))
+            {
+                throw new ArgumentException("no 'To' address provided!");
+            }
+            Status = string.Empty;
+            _to = to;
+        }
+        public void SetServer(MailServer mailServer)
+        {
+            if (string.IsNullOrWhiteSpace(mailServer.GetName()))
+            {
+                throw new ArgumentException("no Server's name provided!");
+            }
+
+            if (mailServer.GetPort() < 0)
+            {
+                throw new ArgumentException("no Server's port provided!");
+            }
+
+            _mailServer = mailServer;
+        }
+
+        public async Task SendEmailAsync(string subject, BodyBuilder bodyOfMessage)
+        {
+            if ((string.IsNullOrEmpty(_mailServer.ToString()) ||
+                string.IsNullOrEmpty(_from.ToString()) ||
+                string.IsNullOrEmpty(_to.ToString())) && !_from.GetEmail().Contains('@') && !_to.GetEmail().Contains('@'))
+            {
+                throw new ArgumentException("no needed data provided!");
+            }
+            MailKit.Net.Smtp.SmtpClient client;
+
+            MimeMessage emailMessage = new MimeMessage();
+            emailMessage.From.Add(new MailboxAddress(_from.GetName(), _from.GetEmail()));
+            emailMessage.To.Add(new MailboxAddress(_to.GetEmail()));
+            emailMessage.Subject = subject;
+            emailMessage.Body = bodyOfMessage.ToMessageBody();
+            emailMessage.Headers[HeaderId.DispositionNotificationTo] =
+                new MailboxAddress(_from.GetName(), _from.GetEmail()).ToString(true); //request a notification when the message is read by the user
+
+            using (client = new MailKit.Net.Smtp.SmtpClient(new MailKit.ProtocolLogger("smtp.log", false))) //
+            {
+                client.Timeout = (int)TimeSpan.FromSeconds(10).TotalMilliseconds;
+                try
+                {
+                    // For demo-purposes, accept all SSL certificates (in case the server supports STARTTLS)
+                    client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+                    await client.ConnectAsync(_mailServer.GetName(), _mailServer.GetPort(), false).ConfigureAwait(false);
+                    client.AuthenticationMechanisms.Remove("XOAUTH2");
+                    // Note: only needed if the SMTP server requires authentication
+                    // client.AuthenticateAsync(_from.GetEmail(),"password").ConfigureAwait(false);
+                    client.MessageSent += OnMessageSent;
+                    await client.SendAsync(emailMessage).ConfigureAwait(false);  //client.SendAsync(emailMessage).ConfigureAwait(false)
+                }
+                catch (Exception e)
+                {
+                    Status = _to.GetEmail() + " - " + e.Message;
+                }
+                await client.DisconnectAsync(true).ConfigureAwait(false);
+            }
+            client.Dispose();
+        }
+
+        void OnMessageSent(object sender, MailKit.MessageSentEventArgs e)
+        {
+            Status = e.Message.To + " - OK";
+        }
+
+        /*
         System.Net.Mail.LinkedResource mailLogo;
         private void SetMail()
         {
@@ -255,71 +349,9 @@ namespace ASTA
         }
 
         */
+
     }
 
+  
 
-
-    class MailServer
-    {
-        private MailServer mailServer;
-        private int _mailServerPort;
-        private string _mailServerName;
-        public MailServer(string name, int port)
-        {
-            _mailServerPort = port;
-            _mailServerName = name;
-        }
-        public void SetServer()
-        {
-            mailServer = new MailServer(_mailServerName, _mailServerPort);
-        }
-
-        public MailServer GetServer()
-        {
-            return mailServer;
-        }
-    }
-
-    class MailSender
-    {
-        private MailSender mailSender;
-        private string _senderEmail;
-        private string _senderName;
-        public MailSender(string name, string email)
-        {
-            _senderName = name ?? string.Empty;
-            _senderEmail = email ?? string.Empty;
-        }
-        public void SetSender()
-        {
-            mailSender = new MailSender(_senderName, _senderEmail);
-        }
-
-        public MailSender GetSender()
-        {
-            if (_senderEmail.Contains('@') && _senderName.Length > 0)
-                return mailSender;
-            else
-                return null;
-        }
-
-        public string GetName()
-        {
-            return _senderName;
-        }
-        public string GetEmail()
-        {
-            return _senderEmail;
-        }
-
-        public void SetName(string name)
-        {
-            _senderName = name ?? string.Empty;
-        }
-
-        public void SetEmail(string email)
-        {
-            _senderEmail = email ?? string.Empty;
-        }
-    }
 }
