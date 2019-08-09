@@ -222,7 +222,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Include="SqlDbTableReader.cs" />
+    <Compile Include="DbControls.cs" />
     <Compile Include="StartStopTimers.cs" />
     <Compile Include="TimeConvertor.cs" />
   </ItemGroup>

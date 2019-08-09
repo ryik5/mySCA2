@@ -163,6 +163,7 @@ namespace ASTA
             ParameterConfig parameterConfig = new ParameterConfig() { parameterName = "", parameterDescription = "", parameterValue = "", isPassword = false, isExample = "no" };
 
             string value = ""; string valueTmp = ""; string name = ""; string decrypt = "";
+
             if (databasePerson.Exists)
             {
                 using (SQLiteConnection sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
@@ -173,7 +174,7 @@ namespace ASTA
                     {
                         using (SQLiteCommand sqlCommand = sqlConnection.CreateCommand())
                         {
-                            if (parameter.Length > 0 && parameter != "%%")
+                            if (parameter?.Length > 0 && parameter != "%%")
                             {
                                 sqlCommand.CommandText = @"Select ParameterName, Value, Description, DateCreated, IsPassword, IsExample from ConfigDB where ParameterName=@parameter";
                                 sqlCommand.Parameters.Add(new SQLiteParameter("@parameter") { Value = parameter });
@@ -183,7 +184,9 @@ namespace ASTA
                                 sqlCommand.CommandText = @"Select ParameterName, Value, Description, DateCreated, IsPassword, IsExample from ConfigDB";
                             }
                             sqlCommand.CommandType = System.Data.CommandType.Text;
+
                             logger.Trace("ParameterOfConfigurationInSQLiteDB: " + sqlCommand.CommandText);
+
                             using (SQLiteDataReader reader = sqlCommand.ExecuteReader())
                             {
                                 while (reader.Read())
