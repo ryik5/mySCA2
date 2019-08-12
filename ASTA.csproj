@@ -180,6 +180,7 @@
     <EmbeddedResource Include="RYIK.ico" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AAA.cs" />
     <Compile Include="AboutBox1.cs">
       <SubType>Form</SubType>
     </Compile>

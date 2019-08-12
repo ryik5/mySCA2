@@ -31,14 +31,11 @@ namespace ASTA
 
         //logging
         static NLog.Logger logger;
-
-        static string method; //name of current method 
-                              // method = System.Reflection.MethodBase.GetCurrentMethod().Name;
+        static string method = System.Reflection.MethodBase.GetCurrentMethod().Name;
                               // logger.Trace("-= " + method + " =-");
-        static System.Diagnostics.FileVersionInfo myFileVersionInfo= System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
-         string guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения// получаем GIUD приложения
-         string productName = myFileVersionInfo.ProductName;
-
+        static System.Diagnostics.FileVersionInfo myFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
+        string guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения// получаем GIUD приложения
+        string productName = myFileVersionInfo.ProductName;
         // taskbar and logo
         static Bitmap bmpLogo = Properties.Resources.LogoRYIK;
         NotifyIcon notifyIcon = new NotifyIcon();
@@ -46,12 +43,17 @@ namespace ASTA
         bool buttonAboutForm;
         static Byte[] byteLogo;
 
+
         static readonly string myRegKey = @"SOFTWARE\RYIK\ASTA";
+        static readonly byte[] btsMess1 = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
+        static readonly byte[] btsMess2 = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
+        
         static readonly System.IO.FileInfo databasePerson = new System.IO.FileInfo(@".\main.db");
         static readonly string sqLiteLocalConnectionString = string.Format("Data Source = {0}; Version=3;", databasePerson); ////$"Data Source={databasePerson.FullName};Version=3;"
 
-        static readonly byte[] btsMess1 = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
-        static readonly byte[] btsMess2 = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
+        static string sqlServerConnectionString;// = "Data Source=" + serverName + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + userName + ";Password=" + userPasswords + "; Connect Timeout=5";
+        static string mysqlServerConnectionStringDB1;//@"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60";
+        static string mysqlServerConnectionStringDB2;//@"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60";
 
         //todo
         //Все константы в локальную БД
@@ -468,7 +470,7 @@ namespace ASTA
         Color textBoxNavCurrentBackColor;
 
         CollectionSideOfPassagePoints collectionSideOfPassagePoints;
-
+    
         public WinFormASTA()
         { InitializeComponent(); }
 
@@ -574,11 +576,10 @@ namespace ASTA
 
             logger.Trace("TryMakeDB");
             TryMakeDB().GetAwaiter().GetResult();
-            logger.Trace("UpdateTableOfDB");
-            UpdateTableOfDB().GetAwaiter().GetResult();
 
-            logger.Trace("SetTechInfoIntoDB");
-       //      ;
+            //don't use
+            // logger.Trace("UpdateTableOfDB");
+            // UpdateTableOfDB().GetAwaiter().GetResult();
 
             //read last saved parameters from db and Registry and set their into variables
             logger.Info("Загружаю настройки программы...");
@@ -625,8 +626,8 @@ namespace ASTA
             }
             else
             {
-                _controlEnable(comboBoxFio, false);
                 nameOfLastTable = "Mailing";
+                _controlEnable(comboBoxFio, false);
                 logger.Info("Стартовый режим - автоматический...");
 
                 ShowDataTableDbQuery(databasePerson, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
@@ -670,8 +671,9 @@ namespace ASTA
 
 
             //todo
-            //fex bug
-           // SetTechInfoIntoDB().GetAwaiter().GetResult();
+            //need to fix bug
+            logger.Trace("SetTechInfoIntoDB");
+            SetTechInfoIntoDB();
         }
 
 
@@ -704,10 +706,7 @@ namespace ASTA
         }
 
         private async Task TryMakeDB()
-        {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
-
+        {       
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'ConfigDB' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, ParameterName TEXT, Value TEXT, Description TEXT, DateCreated TEXT, IsPassword TEXT, IsExample TEXT" +
                     ", UNIQUE ('ParameterName', 'IsExample') ON CONFLICT REPLACE);")
                     .GetAwaiter().GetResult();
@@ -742,12 +741,10 @@ namespace ASTA
                     ", UNIQUE ('City') ON CONFLICT REPLACE);")
                     .GetAwaiter().GetResult();
         }
-
-        private async Task UpdateTableOfDB()
+        
+        //don't use
+       /* private async Task UpdateTableOfDB()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
-
             TryUpdateStructureSqlDB("ConfigDB",
                                     "ParameterName TEXT, Value TEXT, Description TEXT, DateCreated TEXT, IsPassword TEXT, IsExample TEXT"
                     ).GetAwaiter().GetResult();
@@ -781,12 +778,11 @@ namespace ASTA
                                     "City TEXT, DateCreated TEXT"
                 ).GetAwaiter().GetResult();
         }
-
-        private async Task SetTechInfoIntoDB() //Write Technical Info in DB 
+        */
+        private void SetTechInfoIntoDB() //Write Technical Info in DB 
         {
             string result = string.Empty;
             string query = null;
-            SQLiteCommand sqlCommand = null;
             if (databasePerson.Exists)
             {
                 query = "INSERT OR REPLACE INTO 'TechnicalInfo' (PCName, POName, POVersion, LastDateStarted, CurrentUser, FreeRam, GuidAppication) " +
@@ -796,25 +792,25 @@ namespace ASTA
                 {
                     using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter._sqlConnection))
                     {
-                        sqlCommand.Parameters.Add("@PCName", DbType.String).Value = Environment.MachineName + "|" + Environment.OSVersion;
-                        sqlCommand.Parameters.Add("@POName", DbType.String).Value = myFileVersionInfo.FileName + "(" + myFileVersionInfo.ProductName + ")";
-                        sqlCommand.Parameters.Add("@POVersion", DbType.String).Value = myFileVersionInfo.FileVersion;
-                        sqlCommand.Parameters.Add("@LastDateStarted", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
-                        sqlCommand.Parameters.Add("@CurrentUser", DbType.String).Value = Environment.UserName;
-                        sqlCommand.Parameters.Add("@FreeRam", DbType.String).Value = "RAM: " + Environment.WorkingSet.ToString();
-                        sqlCommand.Parameters.Add("@GuidAppication", DbType.String).Value = guid;
+                        SqlQuery.Parameters.Add("@PCName", DbType.String).Value = Environment.MachineName + "|" + Environment.OSVersion;
+                        SqlQuery.Parameters.Add("@POName", DbType.String).Value = myFileVersionInfo.FileName + "(" + myFileVersionInfo.ProductName + ")";
+                        SqlQuery.Parameters.Add("@POVersion", DbType.String).Value = myFileVersionInfo.FileVersion;
+                        SqlQuery.Parameters.Add("@LastDateStarted", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
+                        SqlQuery.Parameters.Add("@CurrentUser", DbType.String).Value = Environment.UserName;
+                        SqlQuery.Parameters.Add("@FreeRam", DbType.String).Value = "RAM: " + Environment.WorkingSet.ToString();
+                        SqlQuery.Parameters.Add("@GuidAppication", DbType.String).Value = guid;
 
                         dbWriter.ExecuteQuery(SqlQuery);
-                        result += dbWriter.Status;
+                        result = dbWriter.Status;
                     }
                 }
             }
+            logger.Trace("SetTechInfoIntoDB: query: " + query + "\n" + result);//method = System.Reflection.MethodBase.GetCurrentMethod().Name;
         }
 
         private async Task LoadPreviouslySavedParameters()   //Select Previous Data from DB and write it into the combobox and Parameters
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace("-= LoadPreviouslySavedParameters =-");
 
             string modeApp = "";
             int iCombo = 0;
@@ -842,8 +838,7 @@ namespace ASTA
 
                 try { modeApp = EvUserKey?.GetValue("ModeApp")?.ToString(); } catch { logger.Warn("Registry GetValue ModeApp"); }
             }
-
-
+            
             //Get data from local DB
             if (databasePerson.Exists)
             {
@@ -852,7 +847,6 @@ namespace ASTA
                 using (SqLiteDbReader dbReader = new SqLiteDbReader(sqLiteLocalConnectionString, databasePerson))
                 {
                     System.Data.SQLite.SQLiteDataReader data = null;
-
                     query = "SELECT ComboList FROM LastTakenPeopleComboList;";
                     try
                     {
@@ -876,7 +870,7 @@ namespace ASTA
                             catch (Exception expt) { logger.Info(expt.ToString()); }
                         }
                     }
-                    logger.Trace("LoadPreviouslySavedParameters: query:" + query + "\n" + count + " rows loaded from 'LastTakenPeopleComboList'");
+                    logger.Trace("LoadPreviouslySavedParameters: query: " + query + "\n" + count + " rows loaded from 'LastTakenPeopleComboList'");
 
                     query = "SELECT FIO FROM PeopleGroup;";
                     count = 0;
@@ -898,7 +892,6 @@ namespace ASTA
 
                 //loading parameters
                 ParameterOfConfigurationInSQLiteDB parameters = new ParameterOfConfigurationInSQLiteDB(databasePerson);
-
                 listParameters = parameters.GetParameters("%%").FindAll(x => x?.isExample == "no"); //load only real data
 
                 DEFAULT_DAY_OF_SENDING_REPORT = GetValueOfConfigParameter(listParameters, @"DEFAULT_DAY_OF_SENDING_REPORT", END_OF_MONTH);
@@ -942,6 +935,12 @@ namespace ASTA
                 mysqlServer = mysqlServerRegistry?.Length > 0 ? mysqlServerRegistry : mysqlServerDB;
                 mysqlServerUserName = mysqlServerUserNameRegistry?.Length > 0 ? mysqlServerUserNameRegistry : mysqlServerUserNameDB;
                 mysqlServerUserPassword = mysqlServerUserPasswordRegistry?.Length > 0 ? mysqlServerUserPasswordRegistry : mysqlServerUserPasswordDB;
+                
+
+                sqlServerConnectionString = "Data Source=" + sServer1 + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=30";
+                mysqlServerConnectionStringDB1 = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60";
+                mysqlServerConnectionStringDB2 = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60";
+
 
                 clrRealRegistration = clrRealRegistrationRegistry != Color.PaleGreen ? clrRealRegistrationRegistry : Color.PaleGreen;
             }
@@ -964,7 +963,7 @@ namespace ASTA
 
             _comboBoxSelectIndex(comboBoxFio, 0);
 
-            logger.Info(nameof(modeApp) + " - " + modeApp + ", " + nameof(currentModeAppManual) + " - " + currentModeAppManual);
+            logger.Trace("LoadPreviouslySavedParameters: " + nameof(modeApp) + " - " + modeApp + ", " + nameof(currentModeAppManual) + " - " + currentModeAppManual);
         }
 
         private string GetValueOfConfigParameter(List<ParameterConfig> listOfParameters, string nameParameter, string defaultValue, bool pass = false)
@@ -1212,26 +1211,22 @@ namespace ASTA
 
         private async Task ExecuteSql(string SqlQuery) //Prepare DB and execute of SQL Query
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
-
             string result = string.Empty;
             if (databasePerson.Exists)
             {
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, databasePerson))
                 {
                     dbWriter.ExecuteQuery(SqlQuery);
-                    result = dbWriter.Status;
+                    result += dbWriter.Status;
                 }
             }
-            logger.Info("ExecuteSql: query: " + SqlQuery + "\n" + result);
+            logger.Trace("ExecuteSql: query: " + SqlQuery + "\nresult - " + result);
         }
 
-        private async Task TryUpdateStructureSqlDB(string tableName, string listColumnsWithType) //Update Table in DB and execute of SQL Query
-        {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
 
+        //don't use
+      /*  private async Task TryUpdateStructureSqlDB(string tableName, string listColumnsWithType) //Update Table in DB and execute of SQL Query
+        {
             string result = string.Empty;
             if (databasePerson.Exists)
             {
@@ -1247,8 +1242,11 @@ namespace ASTA
                     }
                 }
             }
-            logger.Info("TryUpdateStructureSqlDB: tablename: " + tableName + "\n" + result);
-        }
+            logger.Trace("TryUpdateStructureSqlDB: tablename: " + tableName + "\nresult - " + result);
+        }*/
+
+
+
 
         //void ShowDataTableDbQuery(
         private void ShowDataTableDbQuery(System.IO.FileInfo databasePerson, string myTable, string mySqlQuery, string mySqlWhere) //Query data from the Table of the DB
@@ -1301,9 +1299,6 @@ namespace ASTA
 
         private async Task ExecuteQueryOnLocalDB(System.IO.FileInfo databasePerson, string query) //Delete All data from the selected Table of the DB (both parameters are string)
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
-
             string result = string.Empty;
             if (databasePerson.Exists)
             {
@@ -1317,118 +1312,112 @@ namespace ASTA
                 }
             }
 
-            logger.Info("ExecuteQueryOnLocalDB: query: " + query + "| result: " + result);
+            logger.Trace("ExecuteQueryOnLocalDB: query: " + query + "| result: " + result);
         }
 
-        private async Task DeleteDataTableQueryParameters(System.IO.FileInfo databasePerson, string myTable, string mySqlParameter1, string mySqlData1,
-            string mySqlParameter2 = "", string mySqlData2 = "", string mySqlParameter3 = "", string mySqlData3 = "",
-            string mySqlParameter4 = "", string mySqlData4 = "", string mySqlParameter5 = "", string mySqlData5 = "", string mySqlParameter6 = "", string mySqlData6 = "") //Delete data from the Table of the DB by NAV (both parameters are string)
+        private async Task DeleteDataTableQueryParameters(System.IO.FileInfo databasePerson, string myTable, string sqlParameter1, string sqlData1,
+            string sqlParameter2 = "", string sqlData2 = "", string sqlParameter3 = "", string sqlData3 = "",
+            string sqlParameter4 = "", string sqlData4 = "", string sqlParameter5 = "", string sqlData5 = "", string sqlParameter6 = "", string sqlData6 = "") //Delete data from the Table of the DB by NAV (both parameters are string)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
 
             string result = string.Empty;
-            string query = "DELETE FROM '" + myTable + "' Where " + mySqlParameter1 + "= @" + mySqlParameter1 +
-                           " AND " + mySqlParameter2 + "= @" + mySqlParameter2 + " AND " + mySqlParameter3 + "= @" + mySqlParameter3 +
-                           " AND " + mySqlParameter4 + "= @" + mySqlParameter4 + " AND " + mySqlParameter5 + "= @" + mySqlParameter5 +
-                           " AND " + mySqlParameter6 + "= @" + mySqlParameter6 + ";";
+            string query = "DELETE FROM '" + myTable + "' Where " + sqlParameter1 + "= @" + sqlParameter1 +
+                           " AND " + sqlParameter2 + "= @" + sqlParameter2 + " AND " + sqlParameter3 + "= @" + sqlParameter3 +
+                           " AND " + sqlParameter4 + "= @" + sqlParameter4 + " AND " + sqlParameter5 + "= @" + sqlParameter5 +
+                           " AND " + sqlParameter6 + "= @" + sqlParameter6 + ";";
 
             if (databasePerson.Exists)
             {
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, databasePerson))
                 {
                     SQLiteCommand sqlCommand = null;
-                    if (mySqlParameter1.Length > 0 && mySqlParameter2.Length > 0 && mySqlParameter3.Length > 0 && mySqlParameter4.Length > 0
-                    && mySqlParameter5.Length > 0 && mySqlParameter6.Length > 0)
+                    if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0 && sqlParameter4.Length > 0
+                    && sqlParameter5.Length > 0 && sqlParameter6.Length > 0)
                     {
                         sqlCommand = new SQLiteCommand(query, dbWriter._sqlConnection);
 
-                        sqlCommand.Parameters.Add("@" + mySqlParameter1, DbType.String).Value = mySqlData1;
-                        sqlCommand.Parameters.Add("@" + mySqlParameter2, DbType.String).Value = mySqlData2;
-                        sqlCommand.Parameters.Add("@" + mySqlParameter3, DbType.String).Value = mySqlData3;
-                        sqlCommand.Parameters.Add("@" + mySqlParameter4, DbType.String).Value = mySqlData4;
-                        sqlCommand.Parameters.Add("@" + mySqlParameter5, DbType.String).Value = mySqlData5;
-                        sqlCommand.Parameters.Add("@" + mySqlParameter6, DbType.String).Value = mySqlData6;
+                        sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
+                        sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
+                        sqlCommand.Parameters.Add("@" + sqlParameter3, DbType.String).Value = sqlData3;
+                        sqlCommand.Parameters.Add("@" + sqlParameter4, DbType.String).Value = sqlData4;
+                        sqlCommand.Parameters.Add("@" + sqlParameter5, DbType.String).Value = sqlData5;
+                        sqlCommand.Parameters.Add("@" + sqlParameter6, DbType.String).Value = sqlData6;
                     }
-                    else if (mySqlParameter1.Length > 0 && mySqlParameter2.Length > 0 && mySqlParameter3.Length > 0 && mySqlParameter4.Length > 0
-                        && mySqlParameter5.Length > 0)
+                    else if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0 && sqlParameter4.Length > 0
+                        && sqlParameter5.Length > 0)
                     {
-                        query = "DELETE FROM '" + myTable + "' Where " + mySqlParameter1 + "= @" + mySqlParameter1 +
-                            " AND " + mySqlParameter2 + "= @" + mySqlParameter2 + " AND " + mySqlParameter3 + "= @" + mySqlParameter3 +
-                            " AND " + mySqlParameter4 + "= @" + mySqlParameter4 + " AND " + mySqlParameter5 + "= @" + mySqlParameter5 + ";";
+                        query = "DELETE FROM '" + myTable + "' Where " + sqlParameter1 + "= @" + sqlParameter1 +
+                            " AND " + sqlParameter2 + "= @" + sqlParameter2 + " AND " + sqlParameter3 + "= @" + sqlParameter3 +
+                            " AND " + sqlParameter4 + "= @" + sqlParameter4 + " AND " + sqlParameter5 + "= @" + sqlParameter5 + ";";
 
                         sqlCommand = new SQLiteCommand(query, dbWriter._sqlConnection);
-                        sqlCommand.Parameters.Add("@" + mySqlParameter1, DbType.String).Value = mySqlData1;
-                        sqlCommand.Parameters.Add("@" + mySqlParameter2, DbType.String).Value = mySqlData2;
-                        sqlCommand.Parameters.Add("@" + mySqlParameter3, DbType.String).Value = mySqlData3;
-                        sqlCommand.Parameters.Add("@" + mySqlParameter4, DbType.String).Value = mySqlData4;
-                        sqlCommand.Parameters.Add("@" + mySqlParameter5, DbType.String).Value = mySqlData5;
+                        sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
+                        sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
+                        sqlCommand.Parameters.Add("@" + sqlParameter3, DbType.String).Value = sqlData3;
+                        sqlCommand.Parameters.Add("@" + sqlParameter4, DbType.String).Value = sqlData4;
+                        sqlCommand.Parameters.Add("@" + sqlParameter5, DbType.String).Value = sqlData5;
                     }
-                    else if (mySqlParameter1.Length > 0 && mySqlParameter2.Length > 0 && mySqlParameter3.Length > 0 && mySqlParameter4.Length > 0)
+                    else if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0 && sqlParameter4.Length > 0)
                     {
-                        sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where " + mySqlParameter1 + "= @" + mySqlParameter1 +
-                            " AND " + mySqlParameter2 + "= @" + mySqlParameter2 + " AND " + mySqlParameter3 + "= @" + mySqlParameter3 +
-                            " AND " + mySqlParameter4 + "= @" + mySqlParameter4 + ";");
-                        sqlCommand.Parameters.Add("@" + mySqlParameter1, DbType.String).Value = mySqlData1;
-                        sqlCommand.Parameters.Add("@" + mySqlParameter2, DbType.String).Value = mySqlData2;
-                        sqlCommand.Parameters.Add("@" + mySqlParameter3, DbType.String).Value = mySqlData3;
-                        sqlCommand.Parameters.Add("@" + mySqlParameter4, DbType.String).Value = mySqlData4;
+                        sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where " + sqlParameter1 + "= @" + sqlParameter1 +
+                            " AND " + sqlParameter2 + "= @" + sqlParameter2 + " AND " + sqlParameter3 + "= @" + sqlParameter3 +
+                            " AND " + sqlParameter4 + "= @" + sqlParameter4 + ";");
+                        sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
+                        sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
+                        sqlCommand.Parameters.Add("@" + sqlParameter3, DbType.String).Value = sqlData3;
+                        sqlCommand.Parameters.Add("@" + sqlParameter4, DbType.String).Value = sqlData4;
                     }
-                    else if (mySqlParameter1.Length > 0 && mySqlParameter2.Length > 0 && mySqlParameter3.Length > 0)
+                    else if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0)
                     {
-                        query = "DELETE FROM '" + myTable + "' Where " + mySqlParameter1 + "= @" +
-                            mySqlParameter1 + " AND " + mySqlParameter2 + "= @" + mySqlParameter2 + " AND " +
-                            mySqlParameter3 + "= @" + mySqlParameter3 + ";";
+                        query = "DELETE FROM '" + myTable + "' Where " + sqlParameter1 + "= @" +
+                            sqlParameter1 + " AND " + sqlParameter2 + "= @" + sqlParameter2 + " AND " +
+                            sqlParameter3 + "= @" + sqlParameter3 + ";";
 
                         sqlCommand = new SQLiteCommand(query, dbWriter._sqlConnection);
-                        sqlCommand.Parameters.Add("@" + mySqlParameter1, DbType.String).Value = mySqlData1;
-                        sqlCommand.Parameters.Add("@" + mySqlParameter2, DbType.String).Value = mySqlData2;
-                        sqlCommand.Parameters.Add("@" + mySqlParameter3, DbType.String).Value = mySqlData3;
+                        sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
+                        sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
+                        sqlCommand.Parameters.Add("@" + sqlParameter3, DbType.String).Value = sqlData3;
 
                     }
-                    else if (mySqlParameter1.Length > 0 && mySqlParameter2.Length > 0)
+                    else if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0)
                     {
-                        query = "DELETE FROM '" + myTable + "' Where " + mySqlParameter1 + "= @" + mySqlParameter1 + " AND " +
-                            mySqlParameter2 + "= @" + mySqlParameter2 + ";";
+                        query = "DELETE FROM '" + myTable + "' Where " + sqlParameter1 + "= @" + sqlParameter1 + " AND " +
+                            sqlParameter2 + "= @" + sqlParameter2 + ";";
 
                         sqlCommand = new SQLiteCommand(query, dbWriter._sqlConnection);
-                        sqlCommand.Parameters.Add("@" + mySqlParameter1, DbType.String).Value = mySqlData1;
-                        sqlCommand.Parameters.Add("@" + mySqlParameter2, DbType.String).Value = mySqlData2;
+                        sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
+                        sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
                     }
-                    else if (mySqlParameter1.Length > 0)
+                    else if (sqlParameter1.Length > 0)
                     {
-                        query = "DELETE FROM '" + myTable + "' Where " + mySqlParameter1 + "= @" + mySqlParameter1 + ";";
+                        query = "DELETE FROM '" + myTable + "' Where " + sqlParameter1 + "= @" + sqlParameter1 + ";";
 
                         sqlCommand = new SQLiteCommand(query, dbWriter._sqlConnection);
-                        sqlCommand.Parameters.Add("@" + mySqlParameter1, DbType.String).Value = mySqlData1;
+                        sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
                     }
                     dbWriter.ExecuteQuery(sqlCommand);
                     result += dbWriter.Status;
                 }
             }
 
-            logger.Info("DeleteDataTableQueryParameters: query: " + query + "| result: " + result);
+            logger.Trace(method+": query: " + query + "| result: " + result);
         }
 
 
         private async Task CheckAliveIntellectServer(string serverName, string userName, string userPasswords) //Check alive the SKD Intellect-server and its DB's 'intellect'
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
-
-            bServer1Exist = false;
-            string stringConnection = "Data Source=" + serverName + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + userName + ";Password=" + userPasswords + "; Connect Timeout=5";
-            string query = "SELECT database_id FROM sys.databases WHERE Name ='intellect' ";
-            logger.Trace("CheckAliveIntellectServer: " + stringConnection);
-            logger.Trace("CheckAliveIntellectServer: " + query);
+            logger.Trace("-= CheckAliveIntellectServer =-");
 
             _toolStripStatusLabelSetText(StatusLabel2, "Проверка доступности " + serverName + ". Ждите окончания процесса...");
+            bServer1Exist = false;
 
-            System.Data.SqlClient.SqlDataReader sqlData;
+            string query = "SELECT database_id FROM sys.databases WHERE Name ='intellect' ";
+            
             SqlDbReader sqlDbTableReader = null;
             try
             {
-                using (sqlDbTableReader = new SqlDbReader(stringConnection))
+                using (sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
                 {
                     sqlDbTableReader.GetData(query);
                     bServer1Exist = true;
@@ -1441,10 +1430,9 @@ namespace ASTA
             }
             finally
             {
-                sqlData = null;
 
                 if (sqlDbTableReader != null)
-                { sqlDbTableReader?.CloseConnection(); }
+                { sqlDbTableReader?.Dispose(); }
                 sqlDbTableReader = null;
             }
 
@@ -1453,6 +1441,7 @@ namespace ASTA
                 _toolStripStatusLabelSetText(StatusLabel2, "Ошибка доступа к " + serverName + " SQL БД СКД-сервера!");
                 _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
             }
+            logger.Trace("CheckAliveIntellectServer: query: " + query + "| result: " + bServer1Exist);
         }
 
 
@@ -1619,7 +1608,7 @@ namespace ASTA
 
             PersonFull personFromServer = new PersonFull();
             DataRow row;
-            string stringConnection;
+           // string stringConnection;
             string query;
             string fio = "";
             string nav = "";
@@ -1639,15 +1628,15 @@ namespace ASTA
 
             _comboBoxClr(comboBoxFio);
             _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю данные с " + sServer1 + ". Ждите окончания процесса...");
-            stringConnection = "Data Source=" + sServer1 + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=60";
-            logger.Trace(stringConnection);
+           // stringConnection = "Data Source=" + sServer1 + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=60";
+          //  logger.Trace(stringConnection);
 
             string confitionToLoad = "";
             using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
             {
                 sqlConnection.Open();
 
-                _toolStripStatusLabelSetText(StatusLabel2, "Формирую запрос для получения списка ФИО из MySQL базы...");
+                _toolStripStatusLabelSetText(StatusLabel2, "Получаю из локальной базы список городов для загрузки списка ФИО из MySQL базы...");
                 using (var sqlCommand = new SQLiteCommand("SELECT City FROM SelectedCityToLoadFromWeb;", sqlConnection))
                 {
                     using (var reader = sqlCommand.ExecuteReader())
@@ -1672,7 +1661,7 @@ namespace ASTA
             {
                 // import users and group from SCA server
                 query = "SELECT id,level_id,name,owner_id,parent_id,region_id,schedule_id FROM OBJ_DEPARTMENT";
-                using (SqlDbReader sqlDbTableReader = new SqlDbReader(stringConnection))
+                using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
                 {
                     System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetData(query);
 
@@ -1698,7 +1687,7 @@ namespace ASTA
                 //import users from с SCA server
                 query = "SELECT id, name, surname, patronymic, post, tabnum, parent_id, facility_code, card FROM OBJ_PERSON WHERE is_locked = '0' AND facility_code NOT LIKE '' AND card NOT LIKE '' ";
                 logger.Trace(query);
-                using (SqlDbReader sqlDbTableReader = new SqlDbReader(stringConnection))
+                using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
                 {
                     System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetData(query);
                     foreach (DbDataRecord record in sqlData)
@@ -1748,11 +1737,11 @@ namespace ASTA
 
 
                 // import departments from web DB
-                stringConnection = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60"; //Allow Zero Datetime=true;
-                logger.Trace(stringConnection);
+                //stringConnection = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60"; //Allow Zero Datetime=true;
+                logger.Trace(mysqlServerConnectionStringDB1);
                 query = "SELECT id, parent_id, name, boss_code FROM dep_struct ORDER by id";
                 logger.Trace(query);
-                using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(stringConnection))
+                using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionStringDB1))
                 {
                     MySql.Data.MySqlClient.MySqlDataReader mysqlData = mysqlDbTableReader.GetData(query);
                     while (mysqlData.Read())
@@ -1776,7 +1765,7 @@ namespace ASTA
                 query = "Select code,start_date,mo_start,mo_end,tu_start,tu_end,we_start,we_end,th_start,th_end,fr_start,fr_end, " +
                                 "sa_start,sa_end,su_start,su_end,comment FROM work_time ORDER by start_date";
                 logger.Trace(query);
-                using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(stringConnection))
+                using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionStringDB1))
                 {
                     MySql.Data.MySqlClient.MySqlDataReader mysqlData = mysqlDbTableReader.GetData(query);
                     while (mysqlData.Read())
@@ -1829,7 +1818,7 @@ namespace ASTA
                 // import people from web DB
                 query = "Select code, family_name, first_name, last_name, vacancy, department, boss_id, city FROM personal " + confitionToLoad;//where hidden=0
                 logger.Trace(query);
-                using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(stringConnection))
+                using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionStringDB1))
                 {
                     MySql.Data.MySqlClient.MySqlDataReader mysqlData = mysqlDbTableReader.GetData(query);
                     while (mysqlData.Read())
@@ -1928,7 +1917,7 @@ namespace ASTA
                 _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
             }
 
-            stringConnection = query = fio = nav = groupName = depName = depBoss = timeStart = timeEnd = dayStartShift = dayStartShift_ = confitionToLoad = null;
+            query = fio = nav = groupName = depName = depBoss = timeStart = timeEnd = dayStartShift = dayStartShift_ = confitionToLoad = null;
             row = null; departments = null; departmentFromDictionary = null; personFromServer = null;
             //  listCodesWithIdCard = null;
         }
@@ -2063,7 +2052,7 @@ namespace ASTA
                     var sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
 
-                    logger.Trace("Готовлю списки исключений из рассылок...");
+                    logger.Info("Готовлю списки исключений из рассылок...");
                     query = "SELECT RecipientEmail FROM MailingException;";
                     logger.Trace(query);
                     string dbRecordTemp;
@@ -2086,7 +2075,7 @@ namespace ASTA
                     sqlCommand1 = new SQLiteCommand("end", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
 
-                    logger.Trace("Записываю новые группы ...");
+                    logger.Info("Записываю новые группы ...");
                     sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
                     foreach (var deprtment in departmentsUniq.ToList().Distinct())
@@ -2110,7 +2099,7 @@ namespace ASTA
                     sqlCommand1 = new SQLiteCommand("end", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
 
-                    logger.Trace("Записываю новые рассылки по группам с учетом исключений...");
+                    logger.Info("Записываю новые рассылки по группам с учетом исключений...");
                     string recipientEmail = "";
                     sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
@@ -2147,7 +2136,7 @@ namespace ASTA
                     sqlCommand1 = new SQLiteCommand("end", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
 
-                    logger.Trace("Записываю новые индивидуальные графики...");
+                    logger.Info("Записываю новые индивидуальные графики...");
                     sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
                     foreach (var shift in peopleShifts?.ToArray())
@@ -2923,86 +2912,86 @@ namespace ASTA
             { MessageBox.Show("выбранный файл пустой, или \nне подходит для импорта."); }
         }
 
+            //Write people in local DB
         private void WritePeopleInLocalDB(string pathToPersonDB, DataTable dtSource) //use listGroups /add reserv1 reserv2
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
-
-            using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
+            logger.Trace("WritePeopleInLocalDB: table - " + dtSource + ", row - " + dtSource.Rows.Count);
+            
+            string result = string.Empty;
+            string query = null;
+            if (databasePerson.Exists)
             {
-                sqlConnection.Open();
-                logger.Trace("WritePeopleInLocalDB: " + dtSource + " " + dtSource.Rows.Count);
-                //Write people in local DB
-                SQLiteCommand sqlCommandTransaction = new SQLiteCommand("begin", sqlConnection);
-                sqlCommandTransaction.ExecuteNonQuery();
-                foreach (var dr in dtSource.AsEnumerable())
+                query = "INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Department, PositionInDepartment, DepartmentId, City, Boss) " +
+                        "VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Comment, @Department, @PositionInDepartment, @DepartmentId, @City, @Boss)";
+
+                using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, databasePerson))
                 {
-                    if (dr[FIO]?.ToString()?.Length > 0 && dr[CODE]?.ToString()?.Length > 0)
+                    result = string.Empty;
+                    dbWriter.ExecuteQueryBegin();
+                    foreach (var dr in dtSource.AsEnumerable())
                     {
-                        using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Department, PositionInDepartment, DepartmentId, City, Boss) " +
-                                " VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Comment, @Department, @PositionInDepartment, @DepartmentId, @City, @Boss)", sqlConnection))
+                        if (dr[FIO]?.ToString()?.Length > 0 && dr[CODE]?.ToString()?.Length > 0)
                         {
-                            sqlCommand.Parameters.Add("@FIO", DbType.String).Value = dr[FIO]?.ToString();
-                            sqlCommand.Parameters.Add("@NAV", DbType.String).Value = dr[CODE]?.ToString();
-
-                            sqlCommand.Parameters.Add("@GroupPerson", DbType.String).Value = dr[GROUP]?.ToString();
-                            sqlCommand.Parameters.Add("@Department", DbType.String).Value = dr[DEPARTMENT]?.ToString();
-                            sqlCommand.Parameters.Add("@DepartmentId", DbType.String).Value = dr[DEPARTMENT_ID].ToString();
-                            sqlCommand.Parameters.Add("@PositionInDepartment", DbType.String).Value = dr[EMPLOYEE_POSITION]?.ToString();
-                            sqlCommand.Parameters.Add("@City", DbType.String).Value = dr[PLACE_EMPLOYEE]?.ToString();
-                            sqlCommand.Parameters.Add("@Boss", DbType.String).Value = dr[CHIEF_ID]?.ToString();
-
-                            sqlCommand.Parameters.Add("@ControllingHHMM", DbType.String).Value = dr[DESIRED_TIME_IN]?.ToString();
-                            sqlCommand.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = dr[DESIRED_TIME_OUT]?.ToString();
-
-                            sqlCommand.Parameters.Add("@Shift", DbType.String).Value = dr[EMPLOYEE_SHIFT]?.ToString();
-                            sqlCommand.Parameters.Add("@Comment", DbType.String).Value = dr[EMPLOYEE_SHIFT_COMMENT]?.ToString();
-
-                            try
-                            { sqlCommand.ExecuteNonQuery(); }
-                            catch (Exception expt)
+                            using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter._sqlConnection))
                             {
-                                logger.Info("ImportTablePeopleToTableGroupsInLocalDB: ошибка записи в базу: " + dr[FIO] + "\n" + dr[CODE] + "\n" + expt.ToString());
+                                SqlQuery.Parameters.Add("@FIO", DbType.String).Value = dr[FIO]?.ToString();
+                                SqlQuery.Parameters.Add("@NAV", DbType.String).Value = dr[CODE]?.ToString();
+
+                                SqlQuery.Parameters.Add("@GroupPerson", DbType.String).Value = dr[GROUP]?.ToString();
+                                SqlQuery.Parameters.Add("@Department", DbType.String).Value = dr[DEPARTMENT]?.ToString();
+                                SqlQuery.Parameters.Add("@DepartmentId", DbType.String).Value = dr[DEPARTMENT_ID].ToString();
+                                SqlQuery.Parameters.Add("@PositionInDepartment", DbType.String).Value = dr[EMPLOYEE_POSITION]?.ToString();
+                                SqlQuery.Parameters.Add("@City", DbType.String).Value = dr[PLACE_EMPLOYEE]?.ToString();
+                                SqlQuery.Parameters.Add("@Boss", DbType.String).Value = dr[CHIEF_ID]?.ToString();
+
+                                SqlQuery.Parameters.Add("@ControllingHHMM", DbType.String).Value = dr[DESIRED_TIME_IN]?.ToString();
+                                SqlQuery.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = dr[DESIRED_TIME_OUT]?.ToString();
+
+                                SqlQuery.Parameters.Add("@Shift", DbType.String).Value = dr[EMPLOYEE_SHIFT]?.ToString();
+                                SqlQuery.Parameters.Add("@Comment", DbType.String).Value = dr[EMPLOYEE_SHIFT_COMMENT]?.ToString();
+
+                                dbWriter.ExecuteQueryForBulkStepByStep(SqlQuery);
+                                result += dbWriter.Status;
+                                _ProgressWork1Step();
                             }
                         }
                     }
-                }
+                    logger.Trace(method + ": query: " + query + "\nresult: " + result);//method = System.Reflection.MethodBase.GetCurrentMethod().Name;
+                    dbWriter.ExecuteQueryEnd();
 
-                sqlCommandTransaction = new SQLiteCommand("end", sqlConnection);
-                sqlCommandTransaction.ExecuteNonQuery();
-
-
-                logger.Trace("Записываю списки в базу и контролы...");
-                sqlCommandTransaction = new SQLiteCommand("begin", sqlConnection);
-                sqlCommandTransaction.ExecuteNonQuery();
-                foreach (var str in listFIO)
-                {
-                    if (str.FIO?.Length > 0 && str.NAV?.Length > 0)
+                    result = string.Empty;
+                    dbWriter.ExecuteQueryBegin();
+                    query = "INSERT OR REPLACE INTO 'LastTakenPeopleComboList' (ComboList) VALUES (@ComboList)";
+                    foreach (var str in listFIO)
                     {
-                        using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'LastTakenPeopleComboList' (ComboList) VALUES (@ComboList)", sqlConnection))
+                        if (str.FIO?.Length > 0 && str.NAV?.Length > 0)
                         {
-                            sqlCommand.Parameters.Add("@ComboList", DbType.String).Value = str.FIO + "|" + str.NAV;
-                            try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
-                            _ProgressWork1Step();
+                            using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter._sqlConnection))
+                            {
+                                SqlQuery.Parameters.Add("@ComboList", DbType.String).Value = str.FIO + "|" + str.NAV;
+
+                                dbWriter.ExecuteQueryForBulkStepByStep(SqlQuery);
+                                result += dbWriter.Status;
+                                _ProgressWork1Step();
+                            }
                         }
                     }
+                    logger.Trace(method + ": query: " + query + "\nresult:" + result);//method = System.Reflection.MethodBase.GetCurrentMethod().Name;
+                    dbWriter.ExecuteQueryEnd();
                 }
-                sqlCommandTransaction = new SQLiteCommand("end", sqlConnection);
-                sqlCommandTransaction.ExecuteNonQuery();
-                sqlCommandTransaction?.Dispose();
-                sqlConnection.Close();
-
-                foreach (var str in listFIO)
-                { _comboBoxAdd(comboBoxFio, str.FIO + "|" + str.NAV); }
-                _ProgressWork1Step();
-                if (_comboBoxCountItems(comboBoxFio) > 0)
-                { _comboBoxSelectIndex(comboBoxFio, 0); }
-                _ProgressWork1Step();
-
-                Int32.TryParse(listFIO.Count.ToString(), out countUsers);
-
-                logger.Info("Записано ФИО: " + countUsers);
             }
+
+            foreach (var str in listFIO)
+            { _comboBoxAdd(comboBoxFio, str.FIO + "|" + str.NAV); }
+            _ProgressWork1Step();
+            if (_comboBoxCountItems(comboBoxFio) > 0)
+            { _comboBoxSelectIndex(comboBoxFio, 0); }
+            _ProgressWork1Step();
+
+            Int32.TryParse(listFIO.Count.ToString(), out countUsers);
+            logger.Info("Записано ФИО: " + countUsers);
         }
 
         private void ImportListGroupsDescriptionInLocalDB(string pathToPersonDB, HashSet<Department> departmentsUniq) //use listGroups
@@ -3010,24 +2999,35 @@ namespace ASTA
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
-            using (var connection = new SQLiteConnection(sqLiteLocalConnectionString))
+
+            string result = string.Empty;
+            string query = null;
+            if (databasePerson.Exists)
             {
-                connection.Open();
-                SQLiteCommand commandTransaction = new SQLiteCommand("begin", connection);
-                commandTransaction.ExecuteNonQuery();
-                using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroupDescription' (GroupPerson, GroupPersonDescription, Recipient) " +
-                                        "VALUES (@GroupPerson, @GroupPersonDescription ,@Recipient)", connection))
+                query = "INSERT OR REPLACE INTO 'PeopleGroupDescription' (GroupPerson, GroupPersonDescription, Recipient) " +
+                                        "VALUES (@GroupPerson, @GroupPersonDescription, @Recipient)";
+
+                using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, databasePerson))
                 {
+                    dbWriter.ExecuteQueryBegin();
                     foreach (var group in departmentsUniq)
                     {
-                        command.Parameters.Add("@GroupPerson", DbType.String).Value = group._departmentId;
-                        command.Parameters.Add("@GroupPersonDescription", DbType.String).Value = group._departmentDescription;
-                        command.Parameters.Add("@Recipient", DbType.String).Value = group._departmentBossCode;
-                        try { command.ExecuteNonQuery(); } catch { }
+                        if (group?._departmentId?.Length > 0)
+                        {
+                            using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter._sqlConnection))
+                            {
+                                SqlQuery.Parameters.Add("@GroupPerson", DbType.String).Value = group._departmentId;
+                                SqlQuery.Parameters.Add("@GroupPersonDescription", DbType.String).Value = group._departmentDescription;
+                                SqlQuery.Parameters.Add("@Recipient", DbType.String).Value = group._departmentBossCode;
+
+                                dbWriter.ExecuteQueryForBulkStepByStep(SqlQuery);
+                                result += dbWriter.Status;
+                            }
+                        }
                     }
+                    dbWriter.ExecuteQueryEnd();
+                    logger.Info(method + ": query: " + query + "\n" + result);//method = System.Reflection.MethodBase.GetCurrentMethod().Name;
                 }
-                commandTransaction = new SQLiteCommand("end", connection);
-                commandTransaction.ExecuteNonQuery();
             }
         }
 
@@ -3600,11 +3600,11 @@ namespace ASTA
             };
 
 
-            string stringConnection = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;pooling = false; convert zero datetime=True;Connect Timeout=60";
-            logger.Trace(stringConnection);
+           // string stringConnection = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;pooling = false; convert zero datetime=True;Connect Timeout=60";
+          //  logger.Trace(stringConnection);
             string query = "Select id, name,hourly, visibled_name FROM out_reasons";
             logger.Trace(query);
-            using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(stringConnection))
+            using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionStringDB1))
             {
                 MySql.Data.MySqlClient.MySqlDataReader mysqlData = mysqlDbTableReader.GetData(query);
 
@@ -3629,7 +3629,7 @@ namespace ASTA
             string resonId = "";
             query = "Select * FROM out_users where reason_date >= '" + startDate.Split(' ')[0] + "' AND reason_date <= '" + endDate.Split(' ')[0] + "' ";
             logger.Trace(query);
-            using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(stringConnection))
+            using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionStringDB1))
             {
                 MySql.Data.MySqlClient.MySqlDataReader mysqlData = mysqlDbTableReader.GetData(query);
 
@@ -3723,8 +3723,6 @@ namespace ASTA
 
                 _toolStripStatusLabelSetText(StatusLabel2, "Данные с СКД по \"" + ShortFIO(_textBoxReturnText(textBoxFIO)) + "\" получены!");
             }
-
-            query = null; stringConnection = null;
         }
 
         private void GetPersonRegistrationFromServer(ref DataTable dtTarget, PersonFull person, string startDay, string endDay)
@@ -5042,7 +5040,7 @@ namespace ASTA
             GC.Collect();
 
             TryMakeDB().GetAwaiter().GetResult();
-            UpdateTableOfDB().GetAwaiter().GetResult();
+        //    UpdateTableOfDB().GetAwaiter().GetResult();
 
             DataTable dt = new DataTable();
             _dataGridViewSource(dt);
@@ -5057,9 +5055,7 @@ namespace ASTA
 
         private async void ClearGotReportsRecreateTables()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
-
+            logger.Trace("-= ClearGotReportsRecreateTables =-");
             logger.Info("-= Очистика от отчетов и полученных данных =-");
 
             ExecuteQueryOnLocalDB(databasePerson, "DELETE FROM 'LastTakenPeopleComboList';").GetAwaiter().GetResult();
@@ -5075,7 +5071,7 @@ namespace ASTA
             _comboBoxClr(comboBoxFio);
 
             TryMakeDB().GetAwaiter().GetResult();
-            UpdateTableOfDB().GetAwaiter().GetResult();
+         //   UpdateTableOfDB().GetAwaiter().GetResult();
 
             using (DataTable dt = new DataTable())
             {
@@ -5090,10 +5086,26 @@ namespace ASTA
             await Task.Run(() => ReCreateDB());
         }
 
+        private void VacuumDB(string dbPath)
+        {
+            SQLiteConnectionStringBuilder builder =
+                new SQLiteConnectionStringBuilder();
+            builder.DataSource = dbPath;
+            builder.PageSize = 4096;
+            builder.UseUTF16Encoding = true;
+
+            using (SQLiteConnection conn = new SQLiteConnection(builder.ConnectionString))
+            {
+                conn.Open();
+
+                SQLiteCommand vacuum = new SQLiteCommand(@"VACUUM", conn);
+                vacuum.ExecuteNonQuery();
+            } 
+        }
+
         private async void ReCreateDB()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace("-= ReCreateDB =-");
 
             if (databasePerson.Exists)
             {
@@ -5108,7 +5120,7 @@ namespace ASTA
                 ExecuteQueryOnLocalDB(databasePerson, "DROP Table if exists 'ConfigDB';").GetAwaiter().GetResult();
                 ExecuteQueryOnLocalDB(databasePerson, "DROP Table if exists 'LastTakenPeopleComboList';").GetAwaiter().GetResult();
 
-                ExecuteQueryOnLocalDB(databasePerson, "vacuum;").GetAwaiter().GetResult();
+                VacuumDB(sqLiteLocalConnectionString);
 
                 ClearFilesInApplicationFolders(@"*.xlsx", "Excel-файлов");
                 ClearFilesInApplicationFolders(@"*.log", "логов");
@@ -5121,12 +5133,12 @@ namespace ASTA
                 _comboBoxClr(comboBoxFio);
 
                 TryMakeDB().GetAwaiter().GetResult();
-                UpdateTableOfDB().GetAwaiter().GetResult();
+               // UpdateTableOfDB().GetAwaiter().GetResult();
             }
             else
             {
                 TryMakeDB().GetAwaiter().GetResult();
-                UpdateTableOfDB().GetAwaiter().GetResult();
+              //  UpdateTableOfDB().GetAwaiter().GetResult();
             }
 
             DataTable dt = new DataTable();
@@ -6758,6 +6770,10 @@ namespace ASTA
             {
                 GetInfoSetup();
             }
+            sqlServerConnectionString = "Data Source=" + sServer1 + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=30";
+            mysqlServerConnectionStringDB1 = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60";
+            mysqlServerConnectionStringDB2 = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60";
+
             server = user = password = sMailServer = sMailUser = sMailUserPassword = sMySqlServer = sMySqlServerUser = sMySqlServerUserPassword = null;
         }
 
@@ -7338,12 +7354,9 @@ namespace ASTA
             }
         }
 
+            DataGridViewCell cell;
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
-
-            DataGridViewCell cell;
             if (_dataGridView1ColumnCount() > 0 && _dataGridView1RowsCount() > 0)
             {
                 if (
@@ -7357,7 +7370,7 @@ namespace ASTA
                     cell.ToolTipText = "Для установки нового значения нажмите F2,\nвнесите новое значение,\nа затем нажмите Enter";
                 }
             }
-            cell = null;
+          //  cell = null;
         }
 
         //right click of mouse on the datagridview
