@@ -16,26 +16,42 @@ namespace ASTA
     }
 
 
+    //SQL
     class SqlDbReader : IDisposable
     {
         System.Data.SqlClient.SqlConnection _sqlConnection;
         System.Data.SqlClient.SqlCommand _sqlCommand;
+        string _dbConnectionString;
 
         public SqlDbReader(string dbConnectionString)
         {
-            if (dbConnectionString?.Length > 0)
+            _dbConnectionString = dbConnectionString;
+
+            CheckDB(_dbConnectionString);
+            ConnectToDB(_dbConnectionString);
+        }
+
+        public void CheckDB(string dbConnectionString)
+        {
+            if (dbConnectionString?.Trim()?.Length > 0)
             {
-                ConnectToDB(dbConnectionString);
-            }
-            else
-            {
-                new NullReferenceException();
+                throw new System.ArgumentException("Connection string can not be empty or short", "dbConnectionString");
             }
         }
 
-        private void ConnectToDB(string dbConnectionString)
+        public string GetConnectionString()
         {
-            _sqlConnection = new System.Data.SqlClient.SqlConnection(dbConnectionString);
+            return _dbConnectionString;
+        }
+
+        public void ConnectToDB(string dbConnectionString)
+        {
+            if (_sqlConnection != null)
+            {
+                Dispose();
+            }
+            _dbConnectionString = dbConnectionString;
+            _sqlConnection = new System.Data.SqlClient.SqlConnection(_dbConnectionString);
             _sqlConnection.Open();
         }
 
@@ -63,6 +79,8 @@ namespace ASTA
         }
     }
 
+
+    //MySQL
     class MySqlDbReader : IDisposable
     {
         MySql.Data.MySqlClient.MySqlConnection sqlConnection;
@@ -147,15 +165,24 @@ namespace ASTA
         }
     }
 
+
+    //SQLite
     class SQLiteDbBase : DBConnector, IDisposable
     {
         public System.Data.SQLite.SQLiteConnection _sqlConnection;
         public System.Data.SQLite.SQLiteCommand _sqlCommand;
+        string _dbConnectionString;
 
         public SQLiteDbBase(string dbConnectionString, System.IO.FileInfo dbFileInfo)
         {
-            CheckDB(dbConnectionString, dbFileInfo);
-            ConnectToDB(dbConnectionString);
+            _dbConnectionString = dbConnectionString;
+            CheckDB(_dbConnectionString, dbFileInfo);
+            ConnectToDB(_dbConnectionString);
+        }
+
+        public string GetConnectionString()
+        {
+            return _dbConnectionString;
         }
 
         public virtual void CheckDB(string dbConnectionString, System.IO.FileInfo dbFileInfo)
@@ -165,7 +192,7 @@ namespace ASTA
                 throw new System.ArgumentException("DB is not Exist", "dbFileInfo");
             }
 
-            if (dbConnectionString?.Length < 1)
+            if (dbConnectionString?.Trim()?.Length < 1)
             {
                 throw new System.ArgumentException("Connection string can not be Empty or short", "dbConnectionString");
             }
@@ -189,7 +216,7 @@ namespace ASTA
             }
         }
 
-        public virtual void Dispose()
+        public override void Dispose()
         { CloseConnection(); }
     }
 
@@ -221,7 +248,7 @@ namespace ASTA
     class SqLiteDbWriter : SQLiteDbBase, IDisposable
     {
         public string Status { get; private set; }
-
+        string temporaryResult;
         public SqLiteDbWriter(string dbConnectionString, System.IO.FileInfo dbFileInfo) :
             base(dbConnectionString, dbFileInfo)
         { }
@@ -244,8 +271,35 @@ namespace ASTA
 
             sqlCommand1 = new System.Data.SQLite.SQLiteCommand("end", _sqlConnection);
             sqlCommand1.ExecuteNonQuery();
-
         }
+
+        public void ExecuteQueryForBulkStepByStep(System.Data.SQLite.SQLiteCommand sqlCommand)
+        {
+            temporaryResult = "Ok";
+            if (sqlCommand == null)
+            {
+                temporaryResult = "Error. The SQLCommand can not be empty or null!";
+                new ArgumentNullException();
+            }
+
+            try { sqlCommand.ExecuteNonQuery(); }
+            catch (Exception expt) { temporaryResult = expt.Message; }
+            Status += temporaryResult;
+        }
+
+        public void ExecuteQueryBegin()
+        {
+            Status = string.Empty;
+            var sqlCommand1 = new System.Data.SQLite.SQLiteCommand("begin", _sqlConnection);
+            sqlCommand1.ExecuteNonQuery();
+        }
+
+        public void ExecuteQueryEnd()
+        {
+            var sqlCommand1 = new System.Data.SQLite.SQLiteCommand("end", _sqlConnection);
+            sqlCommand1.ExecuteNonQuery();
+        }
+
 
         public void ExecuteQuery(string query)
         {
