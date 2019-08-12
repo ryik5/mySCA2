@@ -32,7 +32,7 @@ namespace ASTA
         //logging
         static NLog.Logger logger;
         static string method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-                              // logger.Trace("-= " + method + " =-");
+        // logger.Trace("-= " + method + " =-");
         static System.Diagnostics.FileVersionInfo myFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
         string guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения// получаем GIUD приложения
         string productName = myFileVersionInfo.ProductName;
@@ -47,7 +47,7 @@ namespace ASTA
         static readonly string myRegKey = @"SOFTWARE\RYIK\ASTA";
         static readonly byte[] btsMess1 = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
         static readonly byte[] btsMess2 = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
-        
+
         static readonly System.IO.FileInfo databasePerson = new System.IO.FileInfo(@".\main.db");
         static readonly string sqLiteLocalConnectionString = string.Format("Data Source = {0}; Version=3;", databasePerson); ////$"Data Source={databasePerson.FullName};Version=3;"
 
@@ -470,7 +470,7 @@ namespace ASTA
         Color textBoxNavCurrentBackColor;
 
         CollectionSideOfPassagePoints collectionSideOfPassagePoints;
-    
+
         public WinFormASTA()
         { InitializeComponent(); }
 
@@ -706,7 +706,7 @@ namespace ASTA
         }
 
         private async Task TryMakeDB()
-        {       
+        {
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'ConfigDB' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, ParameterName TEXT, Value TEXT, Description TEXT, DateCreated TEXT, IsPassword TEXT, IsExample TEXT" +
                     ", UNIQUE ('ParameterName', 'IsExample') ON CONFLICT REPLACE);")
                     .GetAwaiter().GetResult();
@@ -741,44 +741,44 @@ namespace ASTA
                     ", UNIQUE ('City') ON CONFLICT REPLACE);")
                     .GetAwaiter().GetResult();
         }
-        
+
         //don't use
-       /* private async Task UpdateTableOfDB()
-        {
-            TryUpdateStructureSqlDB("ConfigDB",
-                                    "ParameterName TEXT, Value TEXT, Description TEXT, DateCreated TEXT, IsPassword TEXT, IsExample TEXT"
-                    ).GetAwaiter().GetResult();
-            TryUpdateStructureSqlDB("PeopleGroupDescription",
-                                    "GroupPerson TEXT, GroupPersonDescription TEXT, AmountStaffInDepartment TEXT, Recipient TEXT"
-                    ).GetAwaiter().GetResult();
-            TryUpdateStructureSqlDB("PeopleGroup",
-                                    "FIO TEXT, NAV TEXT, GroupPerson TEXT, ControllingHHMM TEXT, ControllingOUTHHMM TEXT, " +
-                                    "Shift TEXT, Comment TEXT, Department TEXT, PositionInDepartment TEXT, DepartmentId TEXT, City TEXT, Boss TEXT"
-                    ).GetAwaiter().GetResult();
-            TryUpdateStructureSqlDB("ListOfWorkTimeShifts",
-                                    "NAV TEXT, DayStartShift TEXT, MoStart REAL,MoEnd REAL, TuStart REAL,TuEnd REAL, WeStart REAL,WeEnd REAL, ThStart REAL,ThEnd REAL, FrStart REAL,FrEnd REAL, " +
-                                    "SaStart REAL,SaEnd REAL, SuStart REAL,SuEnd REAL, Status Text, Comment TEXT, DayInputed TEXT"
-                ).GetAwaiter().GetResult();
-            TryUpdateStructureSqlDB("TechnicalInfo",
-                                    "PCName TEXT, POName TEXT, POVersion TEXT, LastDateStarted TEXT, CurrentUser TEXT, FreeRam TEXT, GuidAppication TEXT"
-                ).GetAwaiter().GetResult();
-            TryUpdateStructureSqlDB("BoldedDates",
-                                    "DayBolded TEXT, NAV TEXT, DayType TEXT, DayDescription TEXT, DateCreated TEXT"
-                ).GetAwaiter().GetResult();
-            TryUpdateStructureSqlDB("LastTakenPeopleComboList",
-                                    "ComboList TEXT, DateCreated TEXT"
-                ).GetAwaiter().GetResult();
-            TryUpdateStructureSqlDB("Mailing",
-                                    "RecipientEmail TEXT, GroupsReport TEXT, NameReport TEXT, Description TEXT, Period TEXT, Status TEXT, SendingLastDate TEXT, TypeReport TEXT, DayReport TEXT, DateCreated TEXT"
-                ).GetAwaiter().GetResult();
-            TryUpdateStructureSqlDB("MailingException",
-                                    "RecipientEmail TEXT, NameReport TEXT, Description TEXT, DayReport TEXT, DateCreated TEXT"
-                ).GetAwaiter().GetResult();
-            TryUpdateStructureSqlDB("SelectedCitytoLoadFromWeb",
-                                    "City TEXT, DateCreated TEXT"
-                ).GetAwaiter().GetResult();
-        }
-        */
+        /* private async Task UpdateTableOfDB()
+         {
+             TryUpdateStructureSqlDB("ConfigDB",
+                                     "ParameterName TEXT, Value TEXT, Description TEXT, DateCreated TEXT, IsPassword TEXT, IsExample TEXT"
+                     ).GetAwaiter().GetResult();
+             TryUpdateStructureSqlDB("PeopleGroupDescription",
+                                     "GroupPerson TEXT, GroupPersonDescription TEXT, AmountStaffInDepartment TEXT, Recipient TEXT"
+                     ).GetAwaiter().GetResult();
+             TryUpdateStructureSqlDB("PeopleGroup",
+                                     "FIO TEXT, NAV TEXT, GroupPerson TEXT, ControllingHHMM TEXT, ControllingOUTHHMM TEXT, " +
+                                     "Shift TEXT, Comment TEXT, Department TEXT, PositionInDepartment TEXT, DepartmentId TEXT, City TEXT, Boss TEXT"
+                     ).GetAwaiter().GetResult();
+             TryUpdateStructureSqlDB("ListOfWorkTimeShifts",
+                                     "NAV TEXT, DayStartShift TEXT, MoStart REAL,MoEnd REAL, TuStart REAL,TuEnd REAL, WeStart REAL,WeEnd REAL, ThStart REAL,ThEnd REAL, FrStart REAL,FrEnd REAL, " +
+                                     "SaStart REAL,SaEnd REAL, SuStart REAL,SuEnd REAL, Status Text, Comment TEXT, DayInputed TEXT"
+                 ).GetAwaiter().GetResult();
+             TryUpdateStructureSqlDB("TechnicalInfo",
+                                     "PCName TEXT, POName TEXT, POVersion TEXT, LastDateStarted TEXT, CurrentUser TEXT, FreeRam TEXT, GuidAppication TEXT"
+                 ).GetAwaiter().GetResult();
+             TryUpdateStructureSqlDB("BoldedDates",
+                                     "DayBolded TEXT, NAV TEXT, DayType TEXT, DayDescription TEXT, DateCreated TEXT"
+                 ).GetAwaiter().GetResult();
+             TryUpdateStructureSqlDB("LastTakenPeopleComboList",
+                                     "ComboList TEXT, DateCreated TEXT"
+                 ).GetAwaiter().GetResult();
+             TryUpdateStructureSqlDB("Mailing",
+                                     "RecipientEmail TEXT, GroupsReport TEXT, NameReport TEXT, Description TEXT, Period TEXT, Status TEXT, SendingLastDate TEXT, TypeReport TEXT, DayReport TEXT, DateCreated TEXT"
+                 ).GetAwaiter().GetResult();
+             TryUpdateStructureSqlDB("MailingException",
+                                     "RecipientEmail TEXT, NameReport TEXT, Description TEXT, DayReport TEXT, DateCreated TEXT"
+                 ).GetAwaiter().GetResult();
+             TryUpdateStructureSqlDB("SelectedCitytoLoadFromWeb",
+                                     "City TEXT, DateCreated TEXT"
+                 ).GetAwaiter().GetResult();
+         }
+         */
         private void SetTechInfoIntoDB() //Write Technical Info in DB 
         {
             string result = string.Empty;
@@ -838,7 +838,7 @@ namespace ASTA
 
                 try { modeApp = EvUserKey?.GetValue("ModeApp")?.ToString(); } catch { logger.Warn("Registry GetValue ModeApp"); }
             }
-            
+
             //Get data from local DB
             if (databasePerson.Exists)
             {
@@ -935,7 +935,7 @@ namespace ASTA
                 mysqlServer = mysqlServerRegistry?.Length > 0 ? mysqlServerRegistry : mysqlServerDB;
                 mysqlServerUserName = mysqlServerUserNameRegistry?.Length > 0 ? mysqlServerUserNameRegistry : mysqlServerUserNameDB;
                 mysqlServerUserPassword = mysqlServerUserPasswordRegistry?.Length > 0 ? mysqlServerUserPasswordRegistry : mysqlServerUserPasswordDB;
-                
+
 
                 sqlServerConnectionString = "Data Source=" + sServer1 + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=30";
                 mysqlServerConnectionStringDB1 = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60";
@@ -1225,25 +1225,25 @@ namespace ASTA
 
 
         //don't use
-      /*  private async Task TryUpdateStructureSqlDB(string tableName, string listColumnsWithType) //Update Table in DB and execute of SQL Query
-        {
-            string result = string.Empty;
-            if (databasePerson.Exists)
-            {
-                using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, databasePerson))
-                {
-                    foreach (string column in listColumnsWithType.Split(','))
-                    {
-                        using (SQLiteCommand SqlQuery = new SQLiteCommand("ALTER TABLE " + tableName + " ADD COLUMN " + column, dbWriter._sqlConnection))
-                        {
-                            dbWriter.ExecuteQuery(SqlQuery);
-                            result += dbWriter.Status;
-                        }
-                    }
-                }
-            }
-            logger.Trace("TryUpdateStructureSqlDB: tablename: " + tableName + "\nresult - " + result);
-        }*/
+        /*  private async Task TryUpdateStructureSqlDB(string tableName, string listColumnsWithType) //Update Table in DB and execute of SQL Query
+          {
+              string result = string.Empty;
+              if (databasePerson.Exists)
+              {
+                  using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, databasePerson))
+                  {
+                      foreach (string column in listColumnsWithType.Split(','))
+                      {
+                          using (SQLiteCommand SqlQuery = new SQLiteCommand("ALTER TABLE " + tableName + " ADD COLUMN " + column, dbWriter._sqlConnection))
+                          {
+                              dbWriter.ExecuteQuery(SqlQuery);
+                              result += dbWriter.Status;
+                          }
+                      }
+                  }
+              }
+              logger.Trace("TryUpdateStructureSqlDB: tablename: " + tableName + "\nresult - " + result);
+          }*/
 
 
 
@@ -1401,7 +1401,7 @@ namespace ASTA
                 }
             }
 
-            logger.Trace(method+": query: " + query + "| result: " + result);
+            logger.Trace(method + ": query: " + query + "| result: " + result);
         }
 
 
@@ -1413,7 +1413,7 @@ namespace ASTA
             bServer1Exist = false;
 
             string query = "SELECT database_id FROM sys.databases WHERE Name ='intellect' ";
-            
+
             SqlDbReader sqlDbTableReader = null;
             try
             {
@@ -1608,7 +1608,7 @@ namespace ASTA
 
             PersonFull personFromServer = new PersonFull();
             DataRow row;
-           // string stringConnection;
+            // string stringConnection;
             string query;
             string fio = "";
             string nav = "";
@@ -1628,8 +1628,8 @@ namespace ASTA
 
             _comboBoxClr(comboBoxFio);
             _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю данные с " + sServer1 + ". Ждите окончания процесса...");
-           // stringConnection = "Data Source=" + sServer1 + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=60";
-          //  logger.Trace(stringConnection);
+            // stringConnection = "Data Source=" + sServer1 + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=60";
+            //  logger.Trace(stringConnection);
 
             string confitionToLoad = "";
             using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
@@ -2912,13 +2912,13 @@ namespace ASTA
             { MessageBox.Show("выбранный файл пустой, или \nне подходит для импорта."); }
         }
 
-            //Write people in local DB
+        //Write people in local DB
         private void WritePeopleInLocalDB(string pathToPersonDB, DataTable dtSource) //use listGroups /add reserv1 reserv2
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
             logger.Trace("WritePeopleInLocalDB: table - " + dtSource + ", row - " + dtSource.Rows.Count);
-            
+
             string result = string.Empty;
             string query = null;
             if (databasePerson.Exists)
@@ -3600,8 +3600,8 @@ namespace ASTA
             };
 
 
-           // string stringConnection = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;pooling = false; convert zero datetime=True;Connect Timeout=60";
-          //  logger.Trace(stringConnection);
+            // string stringConnection = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;pooling = false; convert zero datetime=True;Connect Timeout=60";
+            //  logger.Trace(stringConnection);
             string query = "Select id, name,hourly, visibled_name FROM out_reasons";
             logger.Trace(query);
             using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionStringDB1))
@@ -5040,7 +5040,7 @@ namespace ASTA
             GC.Collect();
 
             TryMakeDB().GetAwaiter().GetResult();
-        //    UpdateTableOfDB().GetAwaiter().GetResult();
+            //    UpdateTableOfDB().GetAwaiter().GetResult();
 
             DataTable dt = new DataTable();
             _dataGridViewSource(dt);
@@ -5071,7 +5071,7 @@ namespace ASTA
             _comboBoxClr(comboBoxFio);
 
             TryMakeDB().GetAwaiter().GetResult();
-         //   UpdateTableOfDB().GetAwaiter().GetResult();
+            //   UpdateTableOfDB().GetAwaiter().GetResult();
 
             using (DataTable dt = new DataTable())
             {
@@ -5100,7 +5100,7 @@ namespace ASTA
 
                 SQLiteCommand vacuum = new SQLiteCommand(@"VACUUM", conn);
                 vacuum.ExecuteNonQuery();
-            } 
+            }
         }
 
         private async void ReCreateDB()
@@ -5133,12 +5133,12 @@ namespace ASTA
                 _comboBoxClr(comboBoxFio);
 
                 TryMakeDB().GetAwaiter().GetResult();
-               // UpdateTableOfDB().GetAwaiter().GetResult();
+                // UpdateTableOfDB().GetAwaiter().GetResult();
             }
             else
             {
                 TryMakeDB().GetAwaiter().GetResult();
-              //  UpdateTableOfDB().GetAwaiter().GetResult();
+                //  UpdateTableOfDB().GetAwaiter().GetResult();
             }
 
             DataTable dt = new DataTable();
@@ -7354,7 +7354,7 @@ namespace ASTA
             }
         }
 
-            DataGridViewCell cell;
+        DataGridViewCell cell;
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
             if (_dataGridView1ColumnCount() > 0 && _dataGridView1RowsCount() > 0)
@@ -7370,7 +7370,7 @@ namespace ASTA
                     cell.ToolTipText = "Для установки нового значения нажмите F2,\nвнесите новое значение,\nа затем нажмите Enter";
                 }
             }
-          //  cell = null;
+            //  cell = null;
         }
 
         //right click of mouse on the datagridview

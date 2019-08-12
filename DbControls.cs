@@ -273,34 +273,6 @@ namespace ASTA
             sqlCommand1.ExecuteNonQuery();
         }
 
-        public void ExecuteQueryForBulkStepByStep(System.Data.SQLite.SQLiteCommand sqlCommand)
-        {
-            temporaryResult = "Ok";
-            if (sqlCommand == null)
-            {
-                temporaryResult = "Error. The SQLCommand can not be empty or null!";
-                new ArgumentNullException();
-            }
-
-            try { sqlCommand.ExecuteNonQuery(); }
-            catch (Exception expt) { temporaryResult = expt.Message; }
-            Status += temporaryResult;
-        }
-
-        public void ExecuteQueryBegin()
-        {
-            Status = string.Empty;
-            var sqlCommand1 = new System.Data.SQLite.SQLiteCommand("begin", _sqlConnection);
-            sqlCommand1.ExecuteNonQuery();
-        }
-
-        public void ExecuteQueryEnd()
-        {
-            var sqlCommand1 = new System.Data.SQLite.SQLiteCommand("end", _sqlConnection);
-            sqlCommand1.ExecuteNonQuery();
-        }
-
-
         public void ExecuteQuery(string query)
         {
             Status = "Ok";
@@ -317,6 +289,34 @@ namespace ASTA
                 catch (Exception expt) { Status = expt.Message; }
             }
         }
+
+        public void ExecuteQueryBegin()
+        {
+            Status = string.Empty;
+            var sqlCommand1 = new System.Data.SQLite.SQLiteCommand("begin", _sqlConnection);
+            sqlCommand1.ExecuteNonQuery();
+        }
+
+        public void ExecuteQueryEnd()
+        {
+            var sqlCommand1 = new System.Data.SQLite.SQLiteCommand("end", _sqlConnection);
+            sqlCommand1.ExecuteNonQuery();
+        }
+     
+        public void ExecuteQueryForBulkStepByStep(System.Data.SQLite.SQLiteCommand sqlCommand)
+        {
+            temporaryResult = "Ok";
+            if (sqlCommand == null)
+            {
+                temporaryResult = "Error. The SQLCommand can not be empty or null!";
+                new ArgumentNullException();
+            }
+
+            try { sqlCommand.ExecuteNonQuery(); }
+            catch (Exception expt) { temporaryResult = expt.Message; }
+            Status += temporaryResult;
+        }
+   
     }
 
 }
