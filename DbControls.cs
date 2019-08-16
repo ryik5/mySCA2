@@ -21,7 +21,7 @@ namespace ASTA
     {
         System.Data.SqlClient.SqlConnection _sqlConnection;
         System.Data.SqlClient.SqlCommand _sqlCommand;
-        string _dbConnectionString;
+       static string _dbConnectionString;
 
         public SqlDbReader(string dbConnectionString)
         {
@@ -33,7 +33,7 @@ namespace ASTA
 
         public void CheckDB(string dbConnectionString)
         {
-            if (dbConnectionString?.Trim()?.Length > 0)
+            if (dbConnectionString?.Trim()?.Length  <1)
             {
                 throw new System.ArgumentException("Connection string can not be empty or short", "dbConnectionString");
             }
