@@ -1414,10 +1414,9 @@ namespace ASTA
 
             string query = "SELECT database_id FROM sys.databases WHERE Name ='intellect' ";
 
-            SqlDbReader sqlDbTableReader = null;
             try
             {
-                using (sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
+                using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
                 {
                     sqlDbTableReader.GetData(query);
                     bServer1Exist = true;
@@ -1425,15 +1424,7 @@ namespace ASTA
             }
             catch (Exception expt)
             {
-                bServer1Exist = false;
                 logger.Info(expt.ToString());
-            }
-            finally
-            {
-
-                if (sqlDbTableReader != null)
-                { sqlDbTableReader?.Dispose(); }
-                sqlDbTableReader = null;
             }
 
             if (!bServer1Exist)
@@ -6573,6 +6564,7 @@ namespace ASTA
 
             _controlDispose(labelSettings16);
             _controlDispose(textBoxSettings16);
+            
         }
 
         private void buttonPropertiesSave_Click(object sender, EventArgs e) //SaveProperties()
@@ -8072,23 +8064,6 @@ namespace ASTA
         //---  End.  DatagridView functions ---//
 
 
-
-        /*
-        // SetUpTimer(new TimeSpan(1, 1, 0, 0)); //runs on 1st at 1:00:00 
-        private void SetUpTimer(TimeSpan alertTime)
-        {
-            DateTime current = DateTime.Now;
-            TimeSpan timeToGo = alertTime - current.TimeOfDay;
-            if (timeToGo < TimeSpan.Zero)
-            {
-                return;//time already passed 
-            }
-            timer = new System.Threading.Timer(x =>
-             {
-                 SelectMailingDoAction();
-             }, null, timeToGo, System.Threading.Timeout.InfiniteTimeSpan);
-        }
-        */
 
 
 
@@ -9701,12 +9676,18 @@ namespace ASTA
                 Invoke(new MethodInvoker(delegate
                 {
                     if (control != null)
-                        control.Dispose();
+                    {
+                        groupBoxProperties?.Controls?.Remove(control);
+                        control?.Dispose();
+                    }
                 }));
             else
             {
                 if (control != null)
-                    control.Dispose();
+                {
+                    groupBoxProperties?.Controls?.Remove(control);
+                    control?.Dispose();
+                }
             }
         }
 
@@ -9820,16 +9801,6 @@ namespace ASTA
             bool convertOk = Int32.TryParse(str, out result);
             return result;
         }
-
-        /*
-        string stime1 = "18:40";
-        string stime2 = "19:35";
-        DateTime t1 = DateTime.Parse(stime1);
-        DateTime t2 = DateTime.Parse(stime2);
-        TimeSpan ts = t2 - t1;
-        int minutes = (int)ts.TotalMinutes;
-        int seconds = (int)ts.TotalSeconds;
-        */
 
         private decimal ConvertDecimalSeparatedTimeToDecimal(decimal decimalHour, decimal decimalMinute)
         {

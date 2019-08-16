@@ -2,6 +2,14 @@
 
 namespace ASTA
 {
+
+         
+    interface IStartStopTimer
+    {
+        void WaitTime();
+        string GetTime();
+    }
+
     /* использование
                  int num = 0;
             Int32.TryParse(textBoxGroup.Text, out num);
@@ -26,71 +34,94 @@ namespace ASTA
             Task.Run(() => MessageBox.Show("4\n" + startStopTimerD.GetTime()));
 
          */
-         
-    interface IStartStopTimer
-    {
-        void WaitTime();
-        string GetTime();
-    }
-/*
-    class StartStopTimerA : IStartStopTimer
-    {
-        int _seconds = 0;
-        string time1 = "";
-        string time2 = "";
 
-        public StartStopTimerA(int seconds)
+    /*
+// SetUpTimer(new TimeSpan(1, 1, 0, 0)); //runs on 1st at 1:00:00 
+private void SetUpTimer(TimeSpan alertTime)
+{
+DateTime current = DateTime.Now;
+TimeSpan timeToGo = alertTime - current.TimeOfDay;
+if (timeToGo < TimeSpan.Zero)
+{
+    return;//time already passed 
+}
+timer = new System.Threading.Timer(x =>
+ {
+     SelectMailingDoAction();
+ }, null, timeToGo, System.Threading.Timeout.InfiniteTimeSpan);
+}
+*/
+
+
+    /*
+string stime1 = "18:40";
+string stime2 = "19:35";
+DateTime t1 = DateTime.Parse(stime1);
+DateTime t2 = DateTime.Parse(stime2);
+TimeSpan ts = t2 - t1;
+int minutes = (int)ts.TotalMinutes;
+int seconds = (int)ts.TotalSeconds;
+*/
+
+    /*
+        class StartStopTimerA : IStartStopTimer
         {
-            _seconds = seconds;
+            int _seconds = 0;
+            string time1 = "";
+            string time2 = "";
+
+            public StartStopTimerA(int seconds)
+            {
+                _seconds = seconds;
+            }
+
+            public void WaitTime() //MiserableLoad HighPrecision
+            {
+                time1 = DateTime.Now.ToYYYYMMDDHHMMSSmmm();
+                WaitSeconds(_seconds);
+                time2 = DateTime.Now.ToYYYYMMDDHHMMSSmmm();
+            }
+
+            public string GetTime()
+            {
+                return time1 + "\n" + time2;
+            }
+
+            private void WaitSeconds(int seconds) //high precision timer
+            {
+                System.Threading.Thread.Sleep(seconds * 1000);
+            }
         }
 
-        public void WaitTime() //MiserableLoad HighPrecision
+        class StartStopTimerB : IStartStopTimer
         {
-            time1 = DateTime.Now.ToYYYYMMDDHHMMSSmmm();
-            WaitSeconds(_seconds);
-            time2 = DateTime.Now.ToYYYYMMDDHHMMSSmmm();
-        }
+            int _seconds = 0;
+            string time1 = "";
+            string time2 = "";
 
-        public string GetTime()
-        {
-            return time1 + "\n" + time2;
-        }
+            public StartStopTimerB(int seconds)
+            {
+                _seconds = seconds;
+            }
 
-        private void WaitSeconds(int seconds) //high precision timer
-        {
-            System.Threading.Thread.Sleep(seconds * 1000);
-        }
-    }
+            public void WaitTime()//LowLoad has problem
+            {
+                time1 = DateTime.Now.ToYYYYMMDDHHMMSSmmm();
+                WaitSeconds(_seconds);
+                time2 = DateTime.Now.ToYYYYMMDDHHMMSSmmm();
+            }
 
-    class StartStopTimerB : IStartStopTimer
-    {
-        int _seconds = 0;
-        string time1 = "";
-        string time2 = "";
+            public string GetTime()
+            {
+                return time1 + "\n" + time2;
+            }
 
-        public StartStopTimerB(int seconds)
-        {
-            _seconds = seconds;
+            private void WaitSeconds(int seconds) //high precision timer
+            {
+                System.Threading.Thread.SpinWait(seconds * 26000000);
+            }
         }
-
-        public void WaitTime()//LowLoad has problem
-        {
-            time1 = DateTime.Now.ToYYYYMMDDHHMMSSmmm();
-            WaitSeconds(_seconds);
-            time2 = DateTime.Now.ToYYYYMMDDHHMMSSmmm();
-        }
-
-        public string GetTime()
-        {
-            return time1 + "\n" + time2;
-        }
-
-        private void WaitSeconds(int seconds) //high precision timer
-        {
-            System.Threading.Thread.SpinWait(seconds * 26000000);
-        }
-    }
-    */
+        */
     class StartStopTimer : IStartStopTimer
     {
         int _seconds = 0;
