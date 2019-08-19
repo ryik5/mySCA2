@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace ASTA
@@ -21,7 +22,7 @@ namespace ASTA
     {
         System.Data.SqlClient.SqlConnection _sqlConnection;
         System.Data.SqlClient.SqlCommand _sqlCommand;
-       static string _dbConnectionString;
+        static string _dbConnectionString;
 
         public SqlDbReader(string dbConnectionString)
         {
@@ -33,7 +34,7 @@ namespace ASTA
 
         public void CheckDB(string dbConnectionString)
         {
-            if (dbConnectionString?.Trim()?.Length  <1)
+            if (dbConnectionString?.Trim()?.Length < 1)
             {
                 throw new System.ArgumentException("Connection string can not be empty or short", "dbConnectionString");
             }
@@ -302,7 +303,7 @@ namespace ASTA
             var sqlCommand1 = new System.Data.SQLite.SQLiteCommand("end", _sqlConnection);
             sqlCommand1.ExecuteNonQuery();
         }
-     
+
         public void ExecuteQueryForBulkStepByStep(System.Data.SQLite.SQLiteCommand sqlCommand)
         {
             temporaryResult = "Ok";
@@ -316,7 +317,8 @@ namespace ASTA
             catch (Exception expt) { temporaryResult = expt.Message; }
             Status += temporaryResult;
         }
-   
+
     }
+
 
 }
