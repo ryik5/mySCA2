@@ -575,7 +575,7 @@ namespace ASTA
             CheckExistLocalDB(databasePerson);
 
             logger.Trace("TryMakeDB");
-            TryMakeDB().GetAwaiter().GetResult();
+         //   TryMakeDB();
 
             //don't use
             // logger.Trace("UpdateTableOfDB");
@@ -705,8 +705,11 @@ namespace ASTA
             Application.Exit();
         }
 
-        private async Task TryMakeDB()
+
+        private void TryMakeDB()
         {
+            MakeLocalDb();
+            /*
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'ConfigDB' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, ParameterName TEXT, Value TEXT, Description TEXT, DateCreated TEXT, IsPassword TEXT, IsExample TEXT" +
                     ", UNIQUE ('ParameterName', 'IsExample') ON CONFLICT REPLACE);")
                     .GetAwaiter().GetResult();
@@ -739,7 +742,85 @@ namespace ASTA
                     .GetAwaiter().GetResult();
             ExecuteSql("CREATE TABLE IF NOT EXISTS 'SelectedCityToLoadFromWeb' ('Id' INTEGER PRIMARY KEY AUTOINCREMENT, City TEXT, DateCreated TEXT" +
                     ", UNIQUE ('City') ON CONFLICT REPLACE);")
-                    .GetAwaiter().GetResult();
+                    .GetAwaiter().GetResult();*/
+        }
+
+        private void MakeLocalDb()
+        {
+            bool _busy;
+            string query=string.Empty;
+            int i = 0;
+
+            Cursor = Cursors.WaitCursor;
+                _busy = true;
+            try
+            {
+                using (OpenFileDialog openFileDialog1 = new OpenFileDialog())
+                {
+                    openFileDialog1.FileName = "";
+                    openFileDialog1.Filter = "Текстовые файлы (*.sql)|*.sql|All files (*.*)|*.*";
+                    DialogResult res = openFileDialog1.ShowDialog();
+                    if (res == DialogResult.Cancel)
+                        return;
+
+                    string fpath = openFileDialog1.FileName;
+                    string s;
+
+                    if (fpath?.Length < 1)
+                    {
+                        MessageBox.Show("Did not select File!");
+                    }
+                    else
+                    {
+                        try
+                        {
+                            var Coder = Encoding.GetEncoding(1251);
+                            using (System.IO.StreamReader Reader = new System.IO.StreamReader(fpath, Coder))
+                            {
+                                StatusLabel1.Text = "Обрабатываю файл:  " + fpath;
+                                while ((s = Reader.ReadLine()) != null)
+                                {
+                                    if (s?.Trim().Length > 0)
+                                    {
+                                        i++;
+                                        if (s.StartsWith("CREATE TABLE"))
+                                        { query = s.Trim(); }
+                                        else { query += s.Trim(); }
+
+                                        if (s.EndsWith(";"))
+                                        {
+                                            ExecuteSql(query).GetAwaiter().GetResult();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception expt) { logger.Warn("Error was happened on: " + query + " \n" + expt.ToString()); }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MethodInvoker mi1 = delegate
+                {
+                    MessageBox.Show(this,
+                        ex.Message,
+                        "Extraction Failed",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                };
+                this.Invoke(mi1);
+            }
+            finally
+            {
+                _busy = false;
+                MethodInvoker mi2 = delegate
+                {
+                    Cursor = Cursors.Default;
+                };
+                this.Invoke(mi2);
+            }
+
         }
 
         //don't use
@@ -1223,7 +1304,7 @@ namespace ASTA
             logger.Trace("ExecuteSql: query: " + SqlQuery + "\nresult - " + result);
         }
 
-
+        //todo it in other way
         //don't use
         /*  private async Task TryUpdateStructureSqlDB(string tableName, string listColumnsWithType) //Update Table in DB and execute of SQL Query
           {
@@ -1245,8 +1326,107 @@ namespace ASTA
               logger.Trace("TryUpdateStructureSqlDB: tablename: " + tableName + "\nresult - " + result);
           }*/
 
+            
+        private void GetSQLiteDbScheme()
+        {
+            StringBuilder sb = new StringBuilder();
+            System.Windows.Forms.OpenFileDialog openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
 
+            bool _busy;
 
+         //   DialogResult res = openFileDialog1.ShowDialog(this);
+         //   if (res == DialogResult.Cancel)
+        //        return;
+
+            string fpath = databasePerson.FullName.ToString(); //openFileDialog1.FileName;
+
+            
+            Cursor = Cursors.WaitCursor;
+            System.Threading.Thread worker = new System.Threading.Thread(new System.Threading.ThreadStart(delegate
+            {
+                _busy = true;
+                try
+                {
+                    SQLiteConnectionStringBuilder builder = new SQLiteConnectionStringBuilder();
+                    builder.DataSource = fpath;
+                    builder.PageSize = 4096;
+                    builder.UseUTF16Encoding = true;
+                    using (SQLiteConnection conn = new SQLiteConnection(builder.ConnectionString))
+                    {
+                        conn.Open();
+
+                        SQLiteCommand count = new SQLiteCommand(
+                            @"SELECT COUNT(*) FROM SQLITE_MASTER", conn);
+                        long num = (long)count.ExecuteScalar();
+
+                        int step = 0;
+                        SQLiteCommand query = new SQLiteCommand(
+                            @"SELECT * FROM SQLITE_MASTER", conn);
+                        using (SQLiteDataReader reader = query.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                step++;
+
+                                string type = (string)reader["type"];
+                                string name = (string)reader["name"];
+                                string tblName = (string)reader["tbl_name"];
+
+                                // Ignore SQLite internal indexes and tables
+                                if (name.StartsWith("sqlite_"))
+                                    continue;
+                                if (reader["sql"] == DBNull.Value)
+                                    continue;
+
+                                string sql = (string)reader["sql"];
+
+                                MethodInvoker mi = delegate
+                                {
+                                    //   pbrProgress.Value = (int)(100.0 * step / num);
+                                    sb.Append(sql + ";\r\n\r\n");
+                                    // rtbSQL.AppendText(sql + ";\r\n\r\n");
+                                };
+                                this.Invoke(mi);
+                            } // while
+                        } // using
+                    } // using
+
+                    MethodInvoker mi3 = delegate
+                    {
+                        MessageBox.Show(this,
+                            sb.ToString(),
+                            "SQLite Scheme: "+ fpath,
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+                        logger.Info("SQLite Scheme: " + fpath);
+                        logger.Info(sb.ToString());
+                    };
+                    this.Invoke(mi3);
+                }
+                catch (Exception ex)
+                {
+                    MethodInvoker mi1 = delegate
+                    {
+                        MessageBox.Show(this,
+                            ex.Message,
+                            "Extraction Failed",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                    };
+                    this.Invoke(mi1);
+                }
+                finally
+                {
+                    _busy = false;
+                    MethodInvoker mi2 = delegate
+                    {
+                        Cursor = Cursors.Default;
+                    };
+                    this.Invoke(mi2);
+                }
+            }));
+            worker.Start();
+        }
 
         //void ShowDataTableDbQuery(
         private void ShowDataTableDbQuery(System.IO.FileInfo databasePerson, string myTable, string mySqlQuery, string mySqlWhere) //Query data from the Table of the DB
@@ -5030,7 +5210,7 @@ namespace ASTA
 
             GC.Collect();
 
-            TryMakeDB().GetAwaiter().GetResult();
+            TryMakeDB();
             //    UpdateTableOfDB().GetAwaiter().GetResult();
 
             DataTable dt = new DataTable();
@@ -5061,7 +5241,7 @@ namespace ASTA
 
             _comboBoxClr(comboBoxFio);
 
-            TryMakeDB().GetAwaiter().GetResult();
+            TryMakeDB();
             //   UpdateTableOfDB().GetAwaiter().GetResult();
 
             using (DataTable dt = new DataTable())
@@ -5123,12 +5303,12 @@ namespace ASTA
 
                 _comboBoxClr(comboBoxFio);
 
-                TryMakeDB().GetAwaiter().GetResult();
+                TryMakeDB();
                 // UpdateTableOfDB().GetAwaiter().GetResult();
             }
             else
             {
-                TryMakeDB().GetAwaiter().GetResult();
+                TryMakeDB();
                 //  UpdateTableOfDB().GetAwaiter().GetResult();
             }
 
@@ -9997,6 +10177,16 @@ namespace ASTA
         private void SettingsMenuItem_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void getCurrentSchemeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            GetSQLiteDbScheme();
+        }
+
+        private void rectreateDBToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MakeLocalDb();
         }
 
         //---- End. Convertors of data types ----//
