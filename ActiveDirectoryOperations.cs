@@ -89,7 +89,7 @@ namespace ASTA
                             string _mail = null, _login = null, _fio = null, _code = null,
                                 _decription = null, _lastLogon = null,
                                 _mailNickName = null, _mailServer = null, _department = null,
-                                _stateAccount = null, stateUAC = null, _sid = null, _guid = null;
+                                _stateAccount = null, stateUAC = null;
                             UACAccountState statesUACOfAccount;
                             int sumOfUACStatesOfPerson = 0;
                             foreach (var result in searcher.FindAll())
@@ -208,15 +208,12 @@ namespace ASTA
         public string fio;
         public string department;
         public string stateAccount;
-        public string sid;
-        public string guid;
 
         //Для возможности поиска дубляжного значения
         public override string ToString()
         {
             return fio + "\t" + department + "\t" + code + "\t" +
-                mail + "\t" + login + "\t" + stateAccount + "\t" + description + "\t" + lastLogon + "\t" +
-                sid + "\t" + guid;
+                mail + "\t" + login + "\t" + stateAccount + "\t" + description + "\t" + lastLogon + "\t";
         }
 
         public override bool Equals(object obj)

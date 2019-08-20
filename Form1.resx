@@ -997,13 +997,13 @@
     <value>357, 22</value>
   </data>
   <data name="getCurrentSchemeToolStripMenuItem.Text" xml:space="preserve">
-    <value>Тест-проверка локальной базы. Схема данных</value>
+    <value>Схема данных локальной БД</value>
   </data>
   <data name="rectreateDBToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>357, 22</value>
   </data>
   <data name="rectreateDBToolStripMenuItem.Text" xml:space="preserve">
-    <value>Rectreate DB</value>
+    <value>Создать локальную БД из sql-запроса</value>
   </data>
   <data name="SettingsMenuItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>79, 20</value>

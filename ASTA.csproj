@@ -160,6 +160,9 @@
     <None Include=".vs\v14\.suo" />
     <None Include="app.config" />
     <None Include="App.config" />
+    <Content Include="ASTA.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="NLog.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -180,7 +183,6 @@
     <EmbeddedResource Include="RYIK.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AAA.cs" />
     <Compile Include="AboutBox1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -190,6 +192,11 @@
     <Compile Include="ActiveDi.cs" />
     <Compile Include="ActiveDirectoryOperations.cs" />
     <Compile Include="AmountMembersOfGroup.cs" />
+    <Compile Include="DbColumn.cs" />
+    <Compile Include="DbIndex.cs" />
+    <Compile Include="DbSchema.cs" />
+    <Compile Include="DbTable.cs" />
+    <Compile Include="DbUpgradeException.cs" />
     <Compile Include="MailServer.cs" />
     <Compile Include="MailSender.cs" />
     <Compile Include="MailUser.cs" />
