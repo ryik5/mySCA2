@@ -208,12 +208,12 @@ namespace ASTA
         public override void CloseConnection()
         {
             if (_sqlCommand != null)
-            { _sqlCommand.Dispose(); }
+            { _sqlCommand?.Dispose(); }
 
             if (_sqlConnection != null)
             {
-                _sqlConnection.Close();
-                _sqlConnection.Dispose();
+               try { _sqlConnection?.Close();
+                 _sqlConnection?.Dispose(); } catch { }
             }
         }
 
@@ -318,6 +318,21 @@ namespace ASTA
             Status += temporaryResult;
         }
 
+        public void ExecuteQueryForBulkStepByStep(string query)
+        {
+            temporaryResult = "Ok";
+            if (query?.Length == 0)
+            {
+                temporaryResult = "Error. The SQLCommand can not be empty or null!";
+                new ArgumentNullException();
+            }
+            using (var sqlCommand = new System.Data.SQLite.SQLiteCommand(query, _sqlConnection))
+            {
+                try { sqlCommand.ExecuteNonQuery(); }
+                catch (Exception expt) { temporaryResult = expt.Message; }
+            }
+          Status += temporaryResult;
+        }
     }
 
 
