@@ -50,108 +50,133 @@ namespace ASTA
         {
             return new ParameterOfConfigurationBuilder();
         }
+
+        public override string ToString()
+        {
+            return ParameterName + "\t" + ParameterValue + "\t" + ParameterDescription + "\t" + isExample + "\t" + isPassword;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            ParameterOfConfiguration df = obj as ParameterOfConfiguration;
+            if ((Object)df == null)
+                return false;
+
+            return this.ToString() == df.ToString();
+        }
+
+        public override int GetHashCode()
+        {
+            return ToString().GetHashCode();
+        }
     }
 
     class ParameterOfConfigurationBuilder
     {
-        private ParameterOfConfiguration parameterOfConfiguration;
+        private ParameterOfConfiguration _parameterOfConfiguration;
 
         public ParameterOfConfigurationBuilder()
         {
-            parameterOfConfiguration = new ParameterOfConfiguration();
+            _parameterOfConfiguration = new ParameterOfConfiguration();
         }
         public ParameterOfConfigurationBuilder SetParameterName(string name)
         {
-            parameterOfConfiguration.ParameterName = name;
+            _parameterOfConfiguration.ParameterName = name;
             return this;
         }
         public ParameterOfConfigurationBuilder SetParameterValue(string name)
         {
-            parameterOfConfiguration.ParameterValue = name;
+            _parameterOfConfiguration.ParameterValue = name;
             return this;
         }
         public ParameterOfConfigurationBuilder SetParameterDescription(string name)
         {
-            parameterOfConfiguration.ParameterDescription = name;
+            _parameterOfConfiguration.ParameterDescription = name;
             return this;
         }
         public ParameterOfConfigurationBuilder SetIsExample(string name)
         {
-            parameterOfConfiguration.isExample = name;
+            _parameterOfConfiguration.isExample = name;
             return this;
         }
         public ParameterOfConfigurationBuilder IsPassword(bool state)
         {
-            parameterOfConfiguration.isPassword = state;
+            _parameterOfConfiguration.isPassword = state;
             return this;
         }
 
         public static implicit operator ParameterOfConfiguration(ParameterOfConfigurationBuilder parameter)
         {
-            return parameter.parameterOfConfiguration;
+            return parameter._parameterOfConfiguration;
         }
     }
 
     class ParameterOfConfigurationInSQLiteDB
     {
-        ParameterOfConfiguration parameterOfConfiguration;
-        System.IO.FileInfo databasePerson;
+        ParameterOfConfiguration _parameterOfConfiguration;
+        System.IO.FileInfo _databasePerson;
 
         static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
-        readonly byte[] btsMess1 = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
-        readonly byte[] btsMess2 = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
+        readonly byte[] keyEncryption = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
+        readonly byte[] keyDencryption = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
 
-        public ParameterOfConfigurationInSQLiteDB(System.IO.FileInfo _databasePerson)
+        public ParameterOfConfigurationInSQLiteDB(System.IO.FileInfo fileinfoOfMainDB)
         {
-            databasePerson = _databasePerson;
+            _databasePerson = fileinfoOfMainDB;
         }
 
-        public string SaveParameter(ParameterOfConfiguration _parameterOfConfiguration)
+        public string SaveParameter(ParameterOfConfiguration parameterOfConfiguration)
         {
-            parameterOfConfiguration = _parameterOfConfiguration;
+            _parameterOfConfiguration = parameterOfConfiguration;
 
-            if (parameterOfConfiguration.ParameterName == null || parameterOfConfiguration.ParameterName.Length == 0)
+            if (_parameterOfConfiguration.ParameterName == null || _parameterOfConfiguration.ParameterName.Length == 0)
                 throw new ArgumentNullException("any of Parameters should have a name");
 
-            if (databasePerson.Exists)
+            if (_databasePerson.Exists)
             {
-                using (SQLiteConnection sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+                using (SQLiteConnection sqlConnection = new SQLiteConnection($"Data Source={_databasePerson};Version=3;"))
                 {
                     sqlConnection.Open();
 
                     SQLiteCommand sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
                     string ParameterValueSave = "";
-                    if (parameterOfConfiguration.isPassword)
+                    if (_parameterOfConfiguration.isPassword)
                     {
                         ParameterValueSave =
-                            (parameterOfConfiguration.ParameterValue == null || parameterOfConfiguration.ParameterValue.Length == 0) ?
+                            (_parameterOfConfiguration.ParameterValue == null || _parameterOfConfiguration.ParameterValue.Length == 0) ?
                             "" :
-                            EncryptionDecryptionCriticalData.EncryptStringToBase64Text(parameterOfConfiguration.ParameterValue, btsMess1, btsMess2);
+                            EncryptionDecryptionCriticalData.EncryptStringToBase64Text(_parameterOfConfiguration.ParameterValue, keyEncryption, keyDencryption);
                     }
                     else
-                    { ParameterValueSave = parameterOfConfiguration.ParameterValue; }
+                    { ParameterValueSave = _parameterOfConfiguration.ParameterValue; }
 
                     using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'ConfigDB' (ParameterName, Value, Description, DateCreated, IsPassword, IsExample)" +
                                " VALUES (@ParameterName, @Value, @Description, @DateCreated, @IsPassword, @IsExample)", sqlConnection))
                     {
-                        sqlCommand.Parameters.Add("@ParameterName", DbType.String).Value = parameterOfConfiguration.ParameterName;
+                        sqlCommand.Parameters.Add("@ParameterName", DbType.String).Value = _parameterOfConfiguration.ParameterName;
                         sqlCommand.Parameters.Add("@Value", DbType.String).Value = ParameterValueSave;
-                        sqlCommand.Parameters.Add("@Description", DbType.String).Value = parameterOfConfiguration.ParameterDescription;
+                        sqlCommand.Parameters.Add("@Description", DbType.String).Value = _parameterOfConfiguration.ParameterDescription;
                         sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
-                        sqlCommand.Parameters.Add("@IsPassword", DbType.Boolean).Value = parameterOfConfiguration.isPassword;
-                        sqlCommand.Parameters.Add("@IsExample", DbType.String).Value = parameterOfConfiguration.isExample;
+                        sqlCommand.Parameters.Add("@IsPassword", DbType.Boolean).Value = _parameterOfConfiguration.isPassword;
+                        sqlCommand.Parameters.Add("@IsExample", DbType.String).Value = _parameterOfConfiguration.isExample;
                         try { sqlCommand.ExecuteNonQuery(); } catch { }
                     }
                     sqlCommand1 = new SQLiteCommand("end", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
                 }
-                return parameterOfConfiguration.ParameterName + " (" + parameterOfConfiguration.ParameterValue + ")" + " - was saved!";
+                if (_parameterOfConfiguration?.ParameterValue?.Length == 0)
+                    return _parameterOfConfiguration.ParameterName +  " - was saved in DB, but value is empty!";
+                else
+                    return _parameterOfConfiguration.ParameterName + " (" + _parameterOfConfiguration.ParameterValue + ")" + " - was saved in DB!";
             }
             else
             {
-                return parameterOfConfiguration.ParameterName + " - wasn't saved!\n" + databasePerson.ToString() + " is not exist!";
+                return _parameterOfConfiguration.ParameterName + " - wasn't saved!\nDB: " + _databasePerson.ToString() + " is not exist!";
             }
 
         }
@@ -164,9 +189,9 @@ namespace ASTA
 
             string value = ""; string valueTmp = ""; string name = ""; string decrypt = "";
 
-            if (databasePerson.Exists)
+            if (_databasePerson.Exists)
             {
-                using (SQLiteConnection sqlConnection = new SQLiteConnection($"Data Source={databasePerson};Version=3;"))
+                using (SQLiteConnection sqlConnection = new SQLiteConnection($"Data Source={_databasePerson};Version=3;"))
                 {
                     sqlConnection.Open();
 
@@ -200,7 +225,7 @@ namespace ASTA
                                         valueTmp = reader["Value"]?.ToString();
                                         if (decrypt == "1" && valueTmp?.Length > 0)
                                         {
-                                            value = EncryptionDecryptionCriticalData.DecryptBase64ToString(valueTmp, btsMess1, btsMess2);
+                                            value = EncryptionDecryptionCriticalData.DecryptBase64ToString(valueTmp, keyEncryption, keyDencryption);
                                             parameterConfig.isPassword = true;
                                         }
                                         else
@@ -215,15 +240,15 @@ namespace ASTA
                                         parameterConfig.isExample = reader["IsExample"]?.ToString();
 
                                         parametersConfig.Add(parameterConfig);
-                                        logger.Trace("ParameterOfConfigurationInSQLiteDB, add: " + name);
+                                        logger.Trace("Parameter read from DB: " + name);
                                     }
                                 }
                             }
                         }
                     }
-                    catch (Exception exc)
+                    catch (Exception expt)
                     {
-                        logger.Trace("ParameterOfConfigurationInSQLiteDB, error: " + exc.ToString());
+                        logger.Trace("ParameterOfConfigurationInSQLiteDB, error: " + expt.ToString());
                     }
                 }
             }
