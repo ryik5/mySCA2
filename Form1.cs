@@ -10023,35 +10023,37 @@ namespace ASTA
         private async Task AutoUpdate()
         {
             AutoUpdater.CheckForUpdateEvent += AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
+            
             //Check updates frequently
             System.Timers.Timer timer = new System.Timers.Timer
             {
-                Interval = 1 * 60 * 1000,       // 1 * 60 * 1000 // interval of checking is a minute
+                Interval = 1 * 60 * 1000,       // 1 * 60 * 1000 // set an interval of checking within a minute
                 SynchronizingObject = this
             };
             timer.Elapsed += delegate
             {
-                //Basic Authetication for XML, Update file and Change Log
-                // BasicAuthentication basicAuthentication = new BasicAuthentication("myUserName", "myPassword");
-                // AutoUpdater.BasicAuthXML = AutoUpdater.BasicAuthDownload = AutoUpdater.BasicAuthChangeLog = basicAuthentication;
-
                 //https://archive.codeplex.com/?p=autoupdaterdotnet
                 //https://github.com/ravibpatel/AutoUpdater.NET
                 //http://www.cyberforum.ru/csharp-beginners/thread2169711.html
 
-                //  AutoUpdater.CheckForUpdateEvent += AutoUpdaterOnCheckForUpdateEvent; //check manualy only
-                //  AutoUpdater.ReportErrors = true; // will show error message, if there is no update available or if it can't get to the XML file from web server.
+                //Basic Authetication for XML, Update file and Change Log
+                // BasicAuthentication basicAuthentication = new BasicAuthentication("myUserName", "myPassword");
+                // AutoUpdater.BasicAuthXML = AutoUpdater.BasicAuthDownload = AutoUpdater.BasicAuthChangeLog = basicAuthentication;
+
+                // AutoUpdater.CheckForUpdateEvent += AutoUpdaterOnCheckForUpdateEvent; //check manualy only
+                // AutoUpdater.ReportErrors = true; // will show error message, if there is no update available or if it can't get to the XML file from web server.
                 // AutoUpdater.CheckForUpdateEvent -= AutoUpdaterOnAutoCheckForUpdateEvent;
+                // AutoUpdater.RemindLaterTimeSpan = RemindLaterFormat.Minutes;
+                // AutoUpdater.RemindLaterAt = 1;
+                // AutoUpdater.ApplicationExitEvent += ApplicationExit;
+
+                logger.Trace(@"Update URL: " + appUpdateURL);
 
                 AutoUpdater.RunUpdateAsAdmin = false;
                 AutoUpdater.UpdateMode = Mode.ForcedDownload;
                 AutoUpdater.Mandatory = true;
-                //  AutoUpdater.RemindLaterTimeSpan = RemindLaterFormat.Minutes;
-                //  AutoUpdater.RemindLaterAt = 1;
                 AutoUpdater.DownloadPath = appUpdateFolder;
-                logger.Trace(@"Update URL: " + appUpdateURL);
 
-                //   AutoUpdater.ApplicationExitEvent += ApplicationExit;
                 AutoUpdater.Start(appUpdateURL, System.Reflection.Assembly.GetEntryAssembly());
                 //AutoUpdater.Start("ftp://kv-sb-server.corp.ais/Common/ASTA/ASTA.xml", new NetworkCredential("FtpUserName", "FtpPassword")); //download from FTP
             };
