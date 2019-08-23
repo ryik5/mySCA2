@@ -987,23 +987,35 @@
   <data name="Separator7.Size" type="System.Drawing.Size, System.Drawing">
     <value>354, 6</value>
   </data>
-  <data name="testADToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+  <data name="GetADUsersItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>357, 22</value>
   </data>
-  <data name="testADToolStripMenuItem.Text" xml:space="preserve">
-    <value>Тест получения данных с домена</value>
+  <data name="GetADUsersItem.Text" xml:space="preserve">
+    <value>Получить список AD users</value>
   </data>
-  <data name="getCurrentSchemeToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+  <data name="AutoupdateItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>357, 22</value>
   </data>
-  <data name="getCurrentSchemeToolStripMenuItem.Text" xml:space="preserve">
-    <value>Схема данных локальной БД</value>
+  <data name="AutoupdateItem.Text" xml:space="preserve">
+    <value>Проверить обновления ПО</value>
   </data>
-  <data name="rectreateDBToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+  <data name="GetCurrentSchemeItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>357, 22</value>
   </data>
-  <data name="rectreateDBToolStripMenuItem.Text" xml:space="preserve">
+  <data name="GetCurrentSchemeItem.Text" xml:space="preserve">
+    <value>Схема локальной БД</value>
+  </data>
+  <data name="CreateDBItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>357, 22</value>
+  </data>
+  <data name="CreateDBItem.Text" xml:space="preserve">
     <value>Создать локальную БД из sql-запроса</value>
+  </data>
+  <data name="RefreshConfigInMainDBItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>357, 22</value>
+  </data>
+  <data name="RefreshConfigInMainDBItem.Text" xml:space="preserve">
+    <value>Обновить конфигурацию в локальной БД</value>
   </data>
   <data name="SettingsMenuItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>79, 20</value>
@@ -1953,10 +1965,34 @@
   <data name="&gt;&gt;Separator7.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripSeparator, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;testADToolStripMenuItem.Name" xml:space="preserve">
-    <value>testADToolStripMenuItem</value>
+  <data name="&gt;&gt;GetADUsersItem.Name" xml:space="preserve">
+    <value>GetADUsersItem</value>
   </data>
-  <data name="&gt;&gt;testADToolStripMenuItem.Type" xml:space="preserve">
+  <data name="&gt;&gt;GetADUsersItem.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AutoupdateItem.Name" xml:space="preserve">
+    <value>AutoupdateItem</value>
+  </data>
+  <data name="&gt;&gt;AutoupdateItem.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;GetCurrentSchemeItem.Name" xml:space="preserve">
+    <value>GetCurrentSchemeItem</value>
+  </data>
+  <data name="&gt;&gt;GetCurrentSchemeItem.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;CreateDBItem.Name" xml:space="preserve">
+    <value>CreateDBItem</value>
+  </data>
+  <data name="&gt;&gt;CreateDBItem.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;RefreshConfigInMainDBItem.Name" xml:space="preserve">
+    <value>RefreshConfigInMainDBItem</value>
+  </data>
+  <data name="&gt;&gt;RefreshConfigInMainDBItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;HelpMenuItem.Name" xml:space="preserve">
@@ -1988,18 +2024,6 @@
   </data>
   <data name="&gt;&gt;timer1.Type" xml:space="preserve">
     <value>System.Windows.Forms.Timer, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;getCurrentSchemeToolStripMenuItem.Name" xml:space="preserve">
-    <value>getCurrentSchemeToolStripMenuItem</value>
-  </data>
-  <data name="&gt;&gt;getCurrentSchemeToolStripMenuItem.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;rectreateDBToolStripMenuItem.Name" xml:space="preserve">
-    <value>rectreateDBToolStripMenuItem</value>
-  </data>
-  <data name="&gt;&gt;rectreateDBToolStripMenuItem.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;$this.Name" xml:space="preserve">
     <value>WinFormASTA</value>

@@ -29,9 +29,9 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(WinFormASTA));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.comboBoxFio = new System.Windows.Forms.ComboBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
@@ -106,7 +106,11 @@
             this.ClearRegistryItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ClearAllItem = new System.Windows.Forms.ToolStripMenuItem();
             this.Separator7 = new System.Windows.Forms.ToolStripSeparator();
-            this.testADToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.GetADUsersItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.AutoupdateItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.GetCurrentSchemeItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.CreateDBItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.RefreshConfigInMainDBItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpAboutItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SetupItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -124,8 +128,6 @@
             this.groupBoxTimeEnd = new System.Windows.Forms.GroupBox();
             this.labelHourEnd = new System.Windows.Forms.Label();
             this.labelMinuteEnd = new System.Windows.Forms.Label();
-            this.getCurrentSchemeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.rectreateDBToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownHourStart)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownMinuteStart)).BeginInit();
@@ -144,20 +146,20 @@
             // dataGridView1
             // 
             this.dataGridView1.AllowUserToOrderColumns = true;
-            dataGridViewCellStyle7.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
-            dataGridViewCellStyle7.SelectionForeColor = System.Drawing.Color.SteelBlue;
-            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle7;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.Color.SteelBlue;
+            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle3;
             resources.ApplyResources(this.dataGridView1, "dataGridView1");
             this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dataGridView1.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedHeaders;
-            dataGridViewCellStyle8.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle8.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle8.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            dataGridViewCellStyle8.ForeColor = System.Drawing.Color.Black;
-            dataGridViewCellStyle8.SelectionBackColor = System.Drawing.Color.LightBlue;
-            dataGridViewCellStyle8.SelectionForeColor = System.Drawing.Color.DarkSlateGray;
-            dataGridViewCellStyle8.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle8;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.Color.LightBlue;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.Color.DarkSlateGray;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnF2;
             this.dataGridView1.Name = "dataGridView1";
@@ -587,9 +589,11 @@
             this.ClearRegistryItem,
             this.ClearAllItem,
             this.Separator7,
-            this.testADToolStripMenuItem,
-            this.getCurrentSchemeToolStripMenuItem,
-            this.rectreateDBToolStripMenuItem});
+            this.GetADUsersItem,
+            this.AutoupdateItem,
+            this.GetCurrentSchemeItem,
+            this.CreateDBItem,
+            this.RefreshConfigInMainDBItem});
             this.SettingsMenuItem.Name = "SettingsMenuItem";
             resources.ApplyResources(this.SettingsMenuItem, "SettingsMenuItem");
             // 
@@ -704,11 +708,35 @@
             this.Separator7.Name = "Separator7";
             resources.ApplyResources(this.Separator7, "Separator7");
             // 
-            // testADToolStripMenuItem
+            // GetADUsersItem
             // 
-            this.testADToolStripMenuItem.Name = "testADToolStripMenuItem";
-            resources.ApplyResources(this.testADToolStripMenuItem, "testADToolStripMenuItem");
-            this.testADToolStripMenuItem.Click += new System.EventHandler(this.testADToolStripMenuItem_Click);
+            this.GetADUsersItem.Name = "GetADUsersItem";
+            resources.ApplyResources(this.GetADUsersItem, "GetADUsersItem");
+            this.GetADUsersItem.Click += new System.EventHandler(this.GetADUsersItem_Click);
+            // 
+            // AutoupdateItem
+            // 
+            this.AutoupdateItem.Name = "AutoupdateItem";
+            resources.ApplyResources(this.AutoupdateItem, "AutoupdateItem");
+            this.AutoupdateItem.Click += new System.EventHandler(this.AutoupdatItem_Click);
+            // 
+            // GetCurrentSchemeItem
+            // 
+            this.GetCurrentSchemeItem.Name = "GetCurrentSchemeItem";
+            resources.ApplyResources(this.GetCurrentSchemeItem, "GetCurrentSchemeItem");
+            this.GetCurrentSchemeItem.Click += new System.EventHandler(this.GetCurrentSchemeItem_Click);
+            // 
+            // CreateDBItem
+            // 
+            this.CreateDBItem.Name = "CreateDBItem";
+            resources.ApplyResources(this.CreateDBItem, "CreateDBItem");
+            this.CreateDBItem.Click += new System.EventHandler(this.CreateDBItem_Click);
+            // 
+            // RefreshConfigInMainDBItem
+            // 
+            this.RefreshConfigInMainDBItem.Name = "RefreshConfigInMainDBItem";
+            resources.ApplyResources(this.RefreshConfigInMainDBItem, "RefreshConfigInMainDBItem");
+            this.RefreshConfigInMainDBItem.Click += new System.EventHandler(this.RefreshConfigInMainDBItem_Click);
             // 
             // HelpMenuItem
             // 
@@ -821,18 +849,6 @@
             // 
             resources.ApplyResources(this.labelMinuteEnd, "labelMinuteEnd");
             this.labelMinuteEnd.Name = "labelMinuteEnd";
-            // 
-            // getCurrentSchemeToolStripMenuItem
-            // 
-            this.getCurrentSchemeToolStripMenuItem.Name = "getCurrentSchemeToolStripMenuItem";
-            resources.ApplyResources(this.getCurrentSchemeToolStripMenuItem, "getCurrentSchemeToolStripMenuItem");
-            this.getCurrentSchemeToolStripMenuItem.Click += new System.EventHandler(this.getCurrentSchemeToolStripMenuItem_Click);
-            // 
-            // rectreateDBToolStripMenuItem
-            // 
-            this.rectreateDBToolStripMenuItem.Name = "rectreateDBToolStripMenuItem";
-            resources.ApplyResources(this.rectreateDBToolStripMenuItem, "rectreateDBToolStripMenuItem");
-            this.rectreateDBToolStripMenuItem.Click += new System.EventHandler(this.rectreateDBToolStripMenuItem_Click);
             // 
             // WinFormASTA
             // 
@@ -973,12 +989,14 @@
         private System.Windows.Forms.ToolStripMenuItem TestToSendAllMailingsItem;
         private System.Windows.Forms.ToolStripMenuItem SelectedToLoadCityItem;
         private System.Windows.Forms.ToolStripMenuItem ConfigurationItem;
-        private System.Windows.Forms.ToolStripMenuItem testADToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem GetADUsersItem;
         private System.Windows.Forms.ToolStripMenuItem AddParameterInConfigItem;
         private System.Windows.Forms.ToolStripMenuItem LoadLastInputsOutputsItem;
         private System.Windows.Forms.ToolStripMenuItem LoadInputsOutputsItem;
-        private System.Windows.Forms.ToolStripMenuItem getCurrentSchemeToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem rectreateDBToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem GetCurrentSchemeItem;
+        private System.Windows.Forms.ToolStripMenuItem CreateDBItem;
+        private System.Windows.Forms.ToolStripMenuItem AutoupdateItem;
+        private System.Windows.Forms.ToolStripMenuItem RefreshConfigInMainDBItem;
     }
 }
 
