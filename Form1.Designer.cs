@@ -128,6 +128,7 @@
             this.groupBoxTimeEnd = new System.Windows.Forms.GroupBox();
             this.labelHourEnd = new System.Windows.Forms.Label();
             this.labelMinuteEnd = new System.Windows.Forms.Label();
+            this.UploadApplicationItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownHourStart)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownMinuteStart)).BeginInit();
@@ -593,7 +594,8 @@
             this.AutoupdateItem,
             this.GetCurrentSchemeItem,
             this.CreateDBItem,
-            this.RefreshConfigInMainDBItem});
+            this.RefreshConfigInMainDBItem,
+            this.UploadApplicationItem});
             this.SettingsMenuItem.Name = "SettingsMenuItem";
             resources.ApplyResources(this.SettingsMenuItem, "SettingsMenuItem");
             // 
@@ -850,6 +852,12 @@
             resources.ApplyResources(this.labelMinuteEnd, "labelMinuteEnd");
             this.labelMinuteEnd.Name = "labelMinuteEnd";
             // 
+            // UploadApplicationItem
+            // 
+            this.UploadApplicationItem.Name = "UploadApplicationItem";
+            resources.ApplyResources(this.UploadApplicationItem, "UploadApplicationItem");
+            this.UploadApplicationItem.Click += new System.EventHandler(this.UploadApplicationItem_Click);
+            // 
             // WinFormASTA
             // 
             resources.ApplyResources(this, "$this");
@@ -997,6 +1005,7 @@
         private System.Windows.Forms.ToolStripMenuItem CreateDBItem;
         private System.Windows.Forms.ToolStripMenuItem AutoupdateItem;
         private System.Windows.Forms.ToolStripMenuItem RefreshConfigInMainDBItem;
+        private System.Windows.Forms.ToolStripMenuItem UploadApplicationItem;
     }
 }
 

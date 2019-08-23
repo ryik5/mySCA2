@@ -37,13 +37,18 @@ namespace ASTA
         //System settings
         readonly static System.Diagnostics.FileVersionInfo appFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
         readonly static string appName = appFileVersionInfo.ProductName;
+        readonly static string appNameXML = appName + @".xml";
+        readonly static string appNameZIP = appName + @".zip";
+
         readonly static string appVersionAssembly = System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString();
         readonly static string appCopyright = appFileVersionInfo.LegalCopyright;
 
         readonly static string appFilePath = Application.ExecutablePath;
+
         readonly static string appFolderPath = System.IO.Path.GetDirectoryName(appFilePath); //Environment.CurrentDirectory
         readonly static string appFolderTempPath = System.IO.Path.Combine(appFolderPath, "Temp");
-        readonly static string appUpdateFolder = System.IO.Path.Combine(appFolderPath, "Update");
+        readonly static string appFolderUpdatePath = System.IO.Path.Combine(appFolderPath, "Update");
+        readonly static string appFolderBackUpPath = System.IO.Path.Combine(appFolderPath, "Backup");
         readonly static string[] appAllFiles = new string[] {
                 @"ASTA.exe" , @"NLog.config", @"AutoUpdater.NET.dll",
                 @"ASTA.sql", @"Google.Protobuf.dll", @"NLog.dll",
@@ -53,31 +58,31 @@ namespace ASTA
                 @"x64\SQLite.Interop.dll", @"x86\SQLite.Interop.dll"
             };
         static string appQueryCreatingDB = System.IO.Path.Combine(appFolderPath, System.IO.Path.GetFileNameWithoutExtension(appFilePath) + @".sql");
+
         static string appUpdateFolderURL = @"file://kv-sb-server.corp.ais/Common/ASTA/";
-        static string appUpdateURL = appUpdateFolderURL + @"ASTA.xml";
+        static string appUpdateURL = appUpdateFolderURL + appNameXML;
+
+        static string appUpdateFolderURI = @"\\kv-sb-server.corp.ais\Common\ASTA\";
+        static string appUpdateURI = appUpdateFolderURI + appNameXML;
+        static bool uploadingUpdate = false;
+        static bool uploadUpdateError = false;
+
         string guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения// получаем GIUD приложения
-
-        static string statusBar = appName + " ver." + appVersionAssembly + " " + appCopyright;
-
-
-        // taskbar and logo
-        static Bitmap bmpLogo = Properties.Resources.LogoRYIK;
-        NotifyIcon notifyIcon = new NotifyIcon();
-        ContextMenu contextMenu;
-        bool buttonAboutForm;
-        static Byte[] byteLogo;
-
 
         readonly static string appRegistryKey = @"SOFTWARE\RYIK\ASTA";
         readonly static byte[] keyEncryption = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
         readonly static byte[] keyDencryption = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
 
         readonly static System.IO.FileInfo dbApplication = new System.IO.FileInfo(@".\main.db");
+        readonly static string appDbPath = dbApplication.FullName;
+        readonly static string appDbName = System.IO.Path.GetFileName(appDbPath);
+
         readonly static string sqLiteLocalConnectionString = string.Format("Data Source = {0}; Version=3;", dbApplication); ////$"Data Source={dbApplication.FullName};Version=3;"
 
         static string sqlServerConnectionString;// = "Data Source=" + serverName + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + userName + ";Password=" + userPasswords + "; Connect Timeout=5";
         static string mysqlServerConnectionStringDB1;//@"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60";
         static string mysqlServerConnectionStringDB2;//@"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60";
+
 
         //todo
         //Все константы в локальную БД
@@ -91,13 +96,24 @@ namespace ASTA
                 @"DEFAULT_DAY_OF_SENDING_REPORT", @"MailServerSMTPport",
                 @"DomainOfUser", @"ServerURI", @"UserName", @"UserPassword",
                 @"clrRealRegistration", @"ShiftDaysBackOfSendingFromLastWorkDay",
-                @"JobReportsReceiver", @"appUpdateFolderURL"
+                @"JobReportsReceiver", @"appUpdateFolderURL",@"appUpdateFolderURI"
             };
 
         static string sLastSelectedElement = "MainForm";
         static string nameOfLastTable = "PersonRegistrationsList";
         static string currentAction = "";
         static bool currentModeAppManual = true;
+
+        static string statusBar = appName + " ver." + appVersionAssembly + " " + appCopyright;
+
+        // taskbar and logo
+        static Bitmap bmpLogo = Properties.Resources.LogoRYIK;
+        NotifyIcon notifyIcon = new NotifyIcon();
+        ContextMenu contextMenu;
+        bool buttonAboutForm;
+        static Byte[] byteLogo;
+
+
 
         int iCounterLine = 0;
 
@@ -504,6 +520,8 @@ namespace ASTA
 
         private async void Form1Load()
         {
+            var today = DateTime.Today;
+
             logger = NLog.LogManager.GetCurrentClassLogger();
             logger.Info("");
             logger.Info("Test Info message");
@@ -516,13 +534,14 @@ namespace ASTA
 
             //Clear temporary folder
             ClearItemsInApplicationFolders(appFolderTempPath);
-            ClearItemsInApplicationFolders(appUpdateFolder);
+            ClearItemsInApplicationFolders(appFolderUpdatePath);
 
             //create temporary folder if they are not existed
-            System.IO.Directory.CreateDirectory(appUpdateFolder);
+            System.IO.Directory.CreateDirectory(appFolderUpdatePath);
             System.IO.Directory.CreateDirectory(appFolderTempPath);
+            System.IO.Directory.CreateDirectory(appFolderBackUpPath);
 
-            var today = DateTime.Today;
+
 
             logger.Info("Настраиваю интерфейс....");
 
@@ -533,31 +552,16 @@ namespace ASTA
             notifyIcon.BalloonTipText = @"Developed by ©Yuri Ryabchenko";
             notifyIcon.ShowBalloonTip(500);
 
+            this.Text = appFileVersionInfo.Comments;
+            notifyIcon.Text = appName + "\nv." + appFileVersionInfo.FileVersion + "\n" + appFileVersionInfo.CompanyName;
 
-            currentModeAppManual = true;
-            _MenuItemTextSet(ModeItem, "Включить режим автоматических e-mail рассылок");
-            _menuItemTooltipSet(ModeItem, "Включен интерактивный режим. Все рассылки остановлены.");
-
-            /*
-            //todo
-            string ver1 = appFileVersionInfo.FileVersion;
-            string ver3 = Application.ProductVersion;
-            System.Version thisVersion = new System.Version(Application.ProductVersion);
-            System.Version remoteVersion = new System.Version("1.0.2.37");
-            if (remoteVersion > thisVersion)
-            {
-                //обновляемся
-            }*/
-
-
+            //write ver of application on the disk
             System.Xml.XmlDocument doc = new System.Xml.XmlDocument();
-            //(1) the xml declaration is recommended, but not mandatory
-            System.Xml.XmlDeclaration xmlDeclaration = doc.CreateXmlDeclaration("1.0", "UTF-8", null);
+            System.Xml.XmlDeclaration xmlDeclaration = doc.CreateXmlDeclaration("1.0", "UTF-8", null);   //the xml declaration is recommended, but not mandatory
             System.Xml.XmlElement root = doc.DocumentElement;
             doc.InsertBefore(xmlDeclaration, root);
 
-            //(2) string.Empty makes cleaner code
-            System.Xml.XmlElement item = doc.CreateElement(string.Empty, "item", string.Empty);
+            System.Xml.XmlElement item = doc.CreateElement(string.Empty, "item", string.Empty);     //string.Empty makes cleaner code
             doc.AppendChild(item);
 
             System.Xml.XmlElement versionAssemblyInXML = doc.CreateElement(string.Empty, "version", string.Empty);
@@ -565,15 +569,12 @@ namespace ASTA
             versionAssemblyInXML.AppendChild(versionInXML);
             item.AppendChild(versionAssemblyInXML);
 
-            //todo
-            //"urlZip"
             System.Xml.XmlElement urlZip = doc.CreateElement(string.Empty, "url", string.Empty);
-            System.Xml.XmlText urlText = doc.CreateTextNode(appUpdateFolderURL + appName + @".zip"); //
+            System.Xml.XmlText urlText = doc.CreateTextNode(appUpdateFolderURL + appNameZIP); //
             urlZip.AppendChild(urlText);
             item.AppendChild(urlZip);
 
-            //todo
-            /*
+            /* //todo
             System.Xml.XmlElement changelog = doc.CreateElement(string.Empty, "changelog", string.Empty);
             System.Xml.XmlText changelogText = doc.CreateTextNode(appUpdateFolderURL + "urlLog");
             changelog.AppendChild(changelogText);
@@ -586,27 +587,38 @@ namespace ASTA
             item.AppendChild(checksum);
             */
 
-            doc.Save(appName + @".xml");
+            doc.Save(appNameXML);
 
 
 
-
-            //Make archeive all of files application
-            string zipPath = appName + @".zip";
-            if (!System.IO.File.Exists(zipPath))
+            //Make archive from *.exe and libs of application
+            if (System.IO.File.Exists(appNameZIP))
             {
-                MakeZip(appAllFiles, zipPath);
+                System.IO.File.Move(appNameZIP, System.IO.Path.Combine(appFolderBackUpPath, appName + "." + GetSafeFilename(today.ToYYYYMMDDHHMMSS(), "") + @".zip"));
             }
+            MakeZip(appAllFiles, appNameZIP);
 
+            ClearItemsInApplicationFolders(appFolderTempPath);
+            System.IO.Directory.CreateDirectory(appFolderTempPath);
 
+            //Make archive from main DB of application
+            string zipPath = appDbName + "." + GetSafeFilename(today.ToYYYYMMDDHHMMSS(), "") + @".zip";
+            string[] fillesToZip = { appDbName };
+         //   if (!System.IO.File.Exists(zipPath))
+            {
+                MakeZip(fillesToZip, zipPath);
+            }
+            System.IO.File.Move(zipPath, System.IO.Path.Combine(appFolderBackUpPath, System.IO.Path.GetFileName(zipPath)));
 
-
+            ClearItemsInApplicationFolders(appFolderTempPath);
+            System.IO.Directory.CreateDirectory(appFolderTempPath);
 
 
             //Check local DB Configuration
+            logger.Trace("Check Local DB");
             if (!System.IO.File.Exists(dbApplication.FullName))
             {
-                logger.Trace("TryMakeDB");
+                logger.Info("Создаю файл локальной DB");
                 SQLiteConnection.CreateFile(dbApplication.FullName);
             }
 
@@ -614,34 +626,31 @@ namespace ASTA
             bool currentDbEmpty = schemaDB?.Tables?.Count == 0;
             logger.Trace("current db has: " + schemaDB?.Tables?.Count + " tables");
             foreach (var table in schemaDB.Tables)
-            {
-                logger.Trace("the table is existed: " + table.Key);
-            }
+            { logger.Trace("the table is existed: " + table.Key); }
 
             string txtSQLs = String.Join(" ", ReadTXTFile(appQueryCreatingDB)); //List<string> -> a single string
             DbSchema schemaTXT = DbSchema.ParseSql(txtSQLs);
             logger.Trace("txtSQL is wanted to make: " + schemaTXT?.Tables?.Count + " tables from: " + appQueryCreatingDB);
 
             foreach (var table in schemaTXT.Tables)
-            {
-                logger.Trace("the table is wanted: " + table.Key);
-            }
-            bool equalDB = schemaTXT.Equals(schemaDB);
+            { logger.Trace("the table is wanted: " + table.Key); }
 
-            logger.Info("Схема конфигурации текущей БД  " + equalDB + " схеме загруженной с файла: " + appQueryCreatingDB);
+            bool equalDB = schemaTXT.Equals(schemaDB);
+            if (equalDB) { logger.Info("Схема конфигурации текущей БД соответствует схеме загруженной с файла: " + appQueryCreatingDB); }
+            else { logger.Info("Схема конфигурации текущей БД Отличается от схеме загруженной с файла: " + appQueryCreatingDB); }
 
             if (currentDbEmpty || !equalDB || schemaDB?.Tables?.Count < schemaTXT?.Tables?.Count)
             {
-                logger.Warn("The current db scheme is is not equal to the scheme loaded from: " + appQueryCreatingDB);
-                logger.Trace("appQueryCreatingDB: " + appQueryCreatingDB);
+                logger.Info("Заполняю схему локальной DB");
                 TryMakeLocalDB(appQueryCreatingDB);
             }
+            logger.Trace("tables in loaded DB: " + schemaDB?.Tables?.Count + ", " + " must be tables: " + schemaTXT?.Tables?.Count);
 
 
             //Refresh Configuration of the application
-            // RefreshConfigOfApplicationInMainDB();
+             RefreshConfigOfApplicationInMainDB();
 
-            logger.Trace("tables in loaded DB: " + schemaDB?.Tables?.Count + ", " + " must be tables: " + schemaTXT?.Tables?.Count);
+            { 
             /*  MethodInvoker mi = delegate
               {
                   schemaDB = DbSchema.LoadDB(dbApplication.FullName);
@@ -665,81 +674,79 @@ namespace ASTA
                   }
               };
               Task.Run(() => mi.Invoke());*/
+        }
 
 
+            {
+                currentModeAppManual = true;
+                _MenuItemTextSet(ModeItem, "Включить режим автоматических e-mail рассылок");
+                _menuItemTooltipSet(ModeItem, "Включен интерактивный режим. Все рассылки остановлены.");
 
 
+                StatusLabel1.Text = statusBar;
+                StatusLabel1.Alignment = ToolStripItemAlignment.Right;
+                StatusLabel2.Text = " Начните работу с кнопки - \"Получить ФИО\"";
+
+                contextMenu = new ContextMenu();  //Context Menu on notify Icon
+                notifyIcon.ContextMenu = contextMenu;
+                contextMenu.MenuItems.Add("About", AboutSoft);
+                contextMenu.MenuItems.Add("-", AboutSoft);
+                contextMenu.MenuItems.Add("Exit", ApplicationExit);
+
+                EditAnualDaysItem.Text = DAY_OFF_AND_WORK;
+                EditAnualDaysItem.ToolTipText = DAY_OFF_AND_WORK_EDIT;
+
+                _MenuItemEnabled(AddAnualDateItem, false);
+
+                //todo
+                //rewrite to access from other threads
+                MembersGroupItem.Enabled = false;
+                AddPersonToGroupItem.Enabled = false;
+                CreateGroupItem.Enabled = false;
+                DeleteGroupItem.Visible = false;
+                DeletePersonFromGroupItem.Visible = false;
+                CheckBoxesFiltersAll_Enable(false);
+                TableModeItem.Visible = false;
+                VisualModeItem.Visible = false;
+                ChangeColorMenuItem.Visible = false;
+                TableExportToExcelItem.Visible = false;
+                listFioItem.Visible = false;
+                dataGridView1.ShowCellToolTips = true;
+                groupBoxProperties.Visible = false;
+
+                comboBoxFio.DrawMode = DrawMode.OwnerDrawFixed;
+                comboBoxFio.DrawItem += new DrawItemEventHandler(ComboBox_DrawItem);
+
+                GetFioItem.BackColor = Color.LightSkyBlue;
+                HelpAboutItem.BackColor = Color.PaleGreen;
+                ExitItem.BackColor = Color.DarkOrange;
+                DeleteGroupItem.BackColor = Color.DarkOrange;
+
+                //Set up Starting values
+                dateTimePickerStart.CustomFormat = "yyyy-MM-dd";
+                dateTimePickerEnd.CustomFormat = "yyyy-MM-dd";
+                dateTimePickerStart.Format = DateTimePickerFormat.Custom;
+                dateTimePickerEnd.Format = DateTimePickerFormat.Custom;
+                dateTimePickerStart.MinDate = DateTime.Parse("2016-01-01");
+                dateTimePickerEnd.MinDate = DateTime.Parse("2016-01-01");
+                dateTimePickerStart.MaxDate = today;
+                dateTimePickerEnd.MaxDate = DateTime.Parse("2025-12-31");
+                dateTimePickerStart.Value = DateTime.Parse(today.Year + "-" + today.Month + "-01");
+                dateTimePickerEnd.Value = today.LastDayOfMonth();
 
 
-            StatusLabel1.Text = statusBar;
-            StatusLabel1.Alignment = ToolStripItemAlignment.Right;
-            StatusLabel2.Text = " Начните работу с кнопки - \"Получить ФИО\"";
+                numUpDownHourStart.Value = 9;
+                numUpDownMinuteStart.Value = 0;
+                numUpDownHourEnd.Value = 18;
+                numUpDownMinuteEnd.Value = 0;
 
-            contextMenu = new ContextMenu();  //Context Menu on notify Icon
-            notifyIcon.ContextMenu = contextMenu;
-            contextMenu.MenuItems.Add("About", AboutSoft);
-            contextMenu.MenuItems.Add("-", AboutSoft);
-            contextMenu.MenuItems.Add("Exit", ApplicationExit);
+                _MenuItemTextSet(PersonOrGroupItem, WORK_WITH_A_PERSON);
+                toolTip1.SetToolTip(textBoxGroup, "Создать или добавить в группу");
+                toolTip1.SetToolTip(textBoxGroupDescription, "Изменить описание группы");
+                _toolStripStatusLabelSetText(StatusLabel2, "");
+            }
 
-            this.Text = appFileVersionInfo.Comments;
-            notifyIcon.Text = appName + "\nv." + appFileVersionInfo.FileVersion + "\n" + appFileVersionInfo.CompanyName;
-
-            EditAnualDaysItem.Text = DAY_OFF_AND_WORK;
-            EditAnualDaysItem.ToolTipText = DAY_OFF_AND_WORK_EDIT;
-
-            _MenuItemEnabled(AddAnualDateItem, false);
-
-            //todo
-            //rewrite to access from other threads
-            MembersGroupItem.Enabled = false;
-            AddPersonToGroupItem.Enabled = false;
-            CreateGroupItem.Enabled = false;
-            DeleteGroupItem.Visible = false;
-            DeletePersonFromGroupItem.Visible = false;
-            CheckBoxesFiltersAll_Enable(false);
-            TableModeItem.Visible = false;
-            VisualModeItem.Visible = false;
-            ChangeColorMenuItem.Visible = false;
-            TableExportToExcelItem.Visible = false;
-            listFioItem.Visible = false;
-            dataGridView1.ShowCellToolTips = true;
-            groupBoxProperties.Visible = false;
-
-            comboBoxFio.DrawMode = DrawMode.OwnerDrawFixed;
-            comboBoxFio.DrawItem += new DrawItemEventHandler(ComboBox_DrawItem);
-
-            GetFioItem.BackColor = Color.LightSkyBlue;
-            HelpAboutItem.BackColor = Color.PaleGreen;
-            ExitItem.BackColor = Color.DarkOrange;
-            DeleteGroupItem.BackColor = Color.DarkOrange;
-
-            //Set up Starting values
-            dateTimePickerStart.CustomFormat = "yyyy-MM-dd";
-            dateTimePickerEnd.CustomFormat = "yyyy-MM-dd";
-            dateTimePickerStart.Format = DateTimePickerFormat.Custom;
-            dateTimePickerEnd.Format = DateTimePickerFormat.Custom;
-            dateTimePickerStart.MinDate = DateTime.Parse("2016-01-01");
-            dateTimePickerEnd.MinDate = DateTime.Parse("2016-01-01");
-            dateTimePickerStart.MaxDate = today;
-            dateTimePickerEnd.MaxDate = DateTime.Parse("2025-12-31");
-            dateTimePickerStart.Value = DateTime.Parse(today.Year + "-" + today.Month + "-01");
-            dateTimePickerEnd.Value = today.LastDayOfMonth();
-
-
-            numUpDownHourStart.Value = 9;
-            numUpDownMinuteStart.Value = 0;
-            numUpDownHourEnd.Value = 18;
-            numUpDownMinuteEnd.Value = 0;
-
-            _MenuItemTextSet(PersonOrGroupItem, WORK_WITH_A_PERSON);
-            toolTip1.SetToolTip(textBoxGroup, "Создать или добавить в группу");
-            toolTip1.SetToolTip(textBoxGroupDescription, "Изменить описание группы");
-            _toolStripStatusLabelSetText(StatusLabel2, "");
-
-
-
-
-
+                       
 
             if (!currentDbEmpty)
             {
@@ -774,11 +781,6 @@ namespace ASTA
             dtPersonTemp = dtPeople.Clone();  //Copy only structure(Name of columns)
             dtPersonRegistrationsFullList = dtPeople.Clone();  //Copy only structure(Name of columns)
             dtPeopleGroup = dtPeople.Clone();  //Copy only structure(Name of columns)
-
-            logger.Info("");
-            logger.Info("Программа " + statusBar + " полностью загружена....");
-            logger.Info("");
-
 
             if (currentModeAppManual)
             {
@@ -827,20 +829,23 @@ namespace ASTA
             SetTechInfoIntoDB();
 
 
+            //Run Autoupdate function
+            Task.Run(() => AutoUpdate());
+
+
             //create e-mail logo
             Bitmap b = new Bitmap(bmpLogo, new Size(50, 50));
             ImageConverter ic = new ImageConverter();
             byteLogo = (Byte[])ic.ConvertTo(b, typeof(Byte[]));
-
             //convert embedded resources into memory stream to attach at an email
             // System.IO.MemoryStream logo = new System.IO.MemoryStream(byteLogo);
             // mailLogo = new System.Net.Mail.LinkedResource(logo, "image/jpeg");
             // mailLogo.ContentId = Guid.NewGuid().ToString(); //myAppLogo for email's reports
 
 
-            //Run Autoupdate function
-
-            Task.Run(() => AutoUpdate());
+            logger.Info("");
+            logger.Info("Программа " + statusBar + " полностью загружена....");
+            logger.Info("");
         }
 
 
@@ -919,10 +924,10 @@ namespace ASTA
                             }//while
                         }
                     }
-                    catch (Exception expt)
+                    catch (Exception err)
                     {
                         readOk = false;
-                        logger.Warn("Can not read the file: " + fpath + " \nException: " + expt.ToString());
+                        logger.Warn("Can not read the file: " + fpath + " \nException: " + err.ToString());
                     }
                 }
                 if (!readOk)
@@ -1064,7 +1069,7 @@ namespace ASTA
                                     count++;
                                 }
                             }
-                            catch (Exception expt) { logger.Info(expt.ToString()); }
+                            catch (Exception err) { logger.Info(err.ToString()); }
                         }
                     }
                     logger.Trace("LoadPreviouslySavedParameters: query: " + query + "\n" + count + " rows loaded from 'LastTakenPeopleComboList'");
@@ -1180,12 +1185,15 @@ namespace ASTA
 
         private void RefreshConfigOfApplicationInMainDB()    //add not existed parameters into ConfigTable in the Main Local DB
         {
+            _toolStripStatusLabelSetText(StatusLabel2, "Проверяю список параметров конфигурации локальной БД...");
+
             ParameterOfConfigurationInSQLiteDB configInDB = new ParameterOfConfigurationInSQLiteDB(dbApplication);
             ParameterOfConfiguration parameterOfConfiguration = null;
-            listParameters = configInDB.GetParameters("%%").FindAll(x => x.isExample != "no");
+            listParameters = configInDB.GetParameters("%%");//.FindAll(x => x.isExample == "no");//update work parameters
 
             foreach (string sParameter in allParametersOfConfig)
             {
+                logger.Trace("looking for: " +sParameter+" in local DB");
                 if (!listParameters.Any(x => x?.parameterName == sParameter))
                 {
                     parameterOfConfiguration = new ParameterOfConfigurationBuilder().
@@ -1196,12 +1204,13 @@ namespace ASTA
                         SetIsExample("yes");
 
                     string resultSaving = configInDB.SaveParameter(parameterOfConfiguration);
-                    logger.Trace("Parameter of Configuration - " + resultSaving);
+                    logger.Info("Попытка добавить новый параметр в конфигурацию: " + resultSaving);
                 }
             }
             listParameters = null;
             parameterOfConfiguration = null;
             configInDB = null;
+           _toolStripStatusLabelSetText(StatusLabel2, "Обновление параметров конфигурации локальной БД завершено");
         }
 
         private void AddParameterInConfigItem_Click(object sender, EventArgs e)
@@ -1602,9 +1611,9 @@ namespace ASTA
                     bServer1Exist = true;
                 }
             }
-            catch (Exception expt)
+            catch (Exception err)
             {
-                logger.Error("server: " + serverName + "|user: " + userName + "|password: " + userPasswords + "\n" + expt.ToString());
+                logger.Error("server: " + serverName + "|user: " + userName + "|password: " + userPasswords + "\n" + err.ToString());
             }
 
             if (!bServer1Exist)
@@ -2081,9 +2090,9 @@ namespace ASTA
                 logger.Trace("departments.count: " + departments.Count);
                 _toolStripStatusLabelSetText(StatusLabel2, "ФИО и наименования департаментов получены.");
             }
-            catch (Exception expt)
+            catch (Exception err)
             {
-                logger.Info("Возникла ошибка во время получения и обработки данных с серверов: " + expt.ToString());
+                logger.Info("Возникла ошибка во время получения и обработки данных с серверов: " + err.ToString());
                 _toolStripStatusLabelSetText(StatusLabel2, "Возникла ошибка во время получения данных с серверов.");
                 _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
             }
@@ -2338,7 +2347,7 @@ namespace ASTA
                                 sqlCommand.Parameters.Add("@Status", DbType.String).Value = shift._Status;
                                 sqlCommand.Parameters.Add("@Comment", DbType.String).Value = shift._Comment;
                                 sqlCommand.Parameters.Add("@DayInputed", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
-                                try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                try { sqlCommand.ExecuteNonQuery(); } catch (Exception err) { MessageBox.Show(err.ToString()); }
                                 _ProgressWork1Step();
                             }
                         }
@@ -2495,7 +2504,7 @@ namespace ASTA
                     Microsoft.Office.Interop.Excel.Range rangeColumnB = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(EMPLOYEE_EARLY_DEPARTURE)) + 1)];
                     rangeColumnB.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
-                catch (Exception expt) { logger.Warn("Нарушения: " + expt.ToString()); }
+                catch (Exception err) { logger.Warn("Нарушения: " + err.ToString()); }
                 _ProgressWork1Step();
 
                 try
@@ -2503,28 +2512,28 @@ namespace ASTA
                     Microsoft.Office.Interop.Excel.Range rangeColumnC = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Отпуск")) + 1)];
                     rangeColumnC.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
-                catch (Exception expt) { logger.Warn("Отпуск: " + expt.ToString()); }
+                catch (Exception err) { logger.Warn("Отпуск: " + err.ToString()); }
 
                 try
                 {
                     Microsoft.Office.Interop.Excel.Range rangeColumnD = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(EMPLOYEE_HOOKY)) + 1)];
                     rangeColumnD.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
-                catch (Exception expt) { logger.Warn("Отгул: " + expt.ToString()); }
+                catch (Exception err) { logger.Warn("Отгул: " + err.ToString()); }
 
                 try
                 {
                     Microsoft.Office.Interop.Excel.Range rangeColumnE = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(EMPLOYEE_SICK_LEAVE)) + 1)];
                     rangeColumnE.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
-                catch (Exception expt) { logger.Warn("Больничный: " + expt.ToString()); }
+                catch (Exception err) { logger.Warn("Больничный: " + err.ToString()); }
 
                 try
                 {
                     Microsoft.Office.Interop.Excel.Range rangeColumnF = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(EMPLOYEE_ABSENCE)) + 1)];
                     rangeColumnF.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
-                catch (Exception expt) { logger.Warn("Отсутствовал: " + expt.ToString()); }
+                catch (Exception err) { logger.Warn("Отсутствовал: " + err.ToString()); }
                 _ProgressWork1Step();
 
                 //first row
@@ -2605,10 +2614,10 @@ namespace ASTA
                 releaseObject(range);
                 releaseObject(rangeColumnName);
             }
-            catch (Exception expt)
+            catch (Exception err)
             {
                 _toolStripStatusLabelSetText(StatusLabel2, "Ошибка генерации файла. Проверьте наличие установленного Excel");
-                logger.Error("ExportDatatableSelectedColumnsToExcel - " + expt.ToString());
+                logger.Error("ExportDatatableSelectedColumnsToExcel - " + err.ToString());
             }
             finally
             {
@@ -3836,19 +3845,19 @@ namespace ASTA
                                 _ProgressWork1Step();
                             }
                         }
-                        catch (DbException expt)
-                        { logger.Warn(@"Ошибка доступа к данным БД: " + expt.ToString()); }
-                        catch (Exception expt) { logger.Warn("GetPersonRegistrationFromServer: " + expt.ToString()); }
+                        catch (DbException dbexpt)
+                        { logger.Warn(@"Ошибка доступа к данным БД: " + dbexpt.ToString()); }
+                        catch (Exception err) { logger.Warn("GetPersonRegistrationFromServer: " + err.ToString()); }
                     }
                 }
 
                 stringDataNew = null; query = null; stringConnection = null;
                 _ProgressWork1Step();
             }
-            catch (DbException expt)
-            { logger.Warn(@"Ошибка доступа к данным БД: " + expt.ToString()); }
-            catch (Exception expt)
-            { logger.Warn(@"GetPersonRegistrationFromServer: " + expt.ToString()); }
+            catch (DbException dbexpt)
+            { logger.Warn(@"Ошибка доступа к данным БД: " + dbexpt.ToString()); }
+            catch (Exception err)
+            { logger.Warn(@"GetPersonRegistrationFromServer: " + err.ToString()); }
 
             // рабочие дни в которые отсутствовал данная персона
             foreach (string day in workSelectedDays.Except(personWorkedDays))
@@ -4128,7 +4137,7 @@ namespace ASTA
                         sqlCommand.Parameters.Add("@DayType", DbType.String).Value = dayType;
                         sqlCommand.Parameters.Add("@DayDescription", DbType.String).Value = textBoxGroupDescription.Text.Trim();
                         sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTimeToYYYYMMDD();
-                        try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                        try { sqlCommand.ExecuteNonQuery(); } catch (Exception err) { MessageBox.Show(err.ToString()); }
                     }
                 }
             }
@@ -4464,7 +4473,7 @@ namespace ASTA
 
                 allWorkedDaysPerson = null;
             }
-            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            catch (Exception err) { MessageBox.Show(err.ToString()); }
 
             hsDays = null;
             rowDtStoring = null;
@@ -4755,8 +4764,8 @@ namespace ASTA
                 foreach (var row in rows)
                 { row.Delete(); }
             }
-            catch (Exception expt)
-            { logger.Warn(expt.ToString()); }
+            catch (Exception err)
+            { logger.Warn(err.ToString()); }
             dt.AcceptChanges();
             rows = null;
         }
@@ -4841,13 +4850,12 @@ namespace ASTA
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
-
             foreach (string dirPath in files)
             {
                 if (dirPath.Contains(@"\"))
                 {
                     try { System.IO.Directory.CreateDirectory(dirPath.Replace(dirPath, appFolderTempPath + @"\" + dirPath.Remove(dirPath.IndexOf('\\')))); }
-                    catch (Exception expt) { logger.Trace(expt.Message); }
+                    catch (Exception err) { logger.Trace(dirPath + " - " + err.Message); }
                 }
             }
             foreach (var file in files)
@@ -4856,11 +4864,10 @@ namespace ASTA
                 {
                     System.IO.File.Copy(file, appFolderTempPath + @"\" + file, true);
                 }
-                catch (Exception expt) { logger.Trace(expt.Message); }
+                catch (Exception err) { logger.Trace(file + " - " + err.Message); }
             }
 
             System.IO.Compression.ZipFile.CreateFromDirectory(appFolderTempPath, fullNameZip, System.IO.Compression.CompressionLevel.Fastest, false);
-
         }
 
         //----- Clearing. Start ---------//
@@ -5055,11 +5062,11 @@ namespace ASTA
                     EvUserKey?.DeleteSubKey("ModeApp");
                 }
             }
-            catch (Exception expt)
+            catch (Exception err)
             {
                 _toolStripStatusLabelSetText(StatusLabel2, "Ошибки с доступом у реестру на запись. Данные не удалены.");
                 _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange); //Color.PaleGreen
-                logger.Warn("ClearRegistryData: " + expt.ToString());
+                logger.Warn("ClearRegistryData: " + err.ToString());
             }
         }
         //----- Clearing. End ---------//
@@ -5078,7 +5085,7 @@ namespace ASTA
                 personSelected.ControlInHHMM = ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourStart), _numUpDownReturn(numUpDownMinuteStart));
                 personSelected.ControlOutHHMM = ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourEnd), _numUpDownReturn(numUpDownMinuteEnd));
             }
-            catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+            catch (Exception err) { MessageBox.Show(err.ToString()); }
         }
 
 
@@ -5140,7 +5147,7 @@ namespace ASTA
                     }
                 }
             }
-            catch (Exception expt) { logger.Info("VisualItem_Click: " + expt.ToString()); }
+            catch (Exception err) { logger.Info("VisualItem_Click: " + err.ToString()); }
 
             if (personVisual.FIO.Length == 0)
             {
@@ -5794,7 +5801,7 @@ namespace ASTA
                         sqlCommand.Parameters.Add("@ParameterName", DbType.String).Value = "clrRealRegistration";
                         sqlCommand.Parameters.Add("@Value", DbType.String).Value = clrRealRegistration.Name;
                         sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
-                        try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                        try { sqlCommand.ExecuteNonQuery(); } catch (Exception err) { MessageBox.Show(err.ToString()); }
                     }
                 }
             }
@@ -6557,7 +6564,7 @@ namespace ASTA
                         logger.Info("CreateSubKey: Данные в реестре сохранены");
                     }
                 }
-                catch (Exception expt) { logger.Error("CreateSubKey: Ошибки с доступом на запись в реестр. Данные сохранены не корректно. " + expt.ToString()); }
+                catch (Exception err) { logger.Error("CreateSubKey: Ошибки с доступом на запись в реестр. Данные сохранены не корректно. " + err.ToString()); }
 
                 {
                     string resultSaving = "";
@@ -6963,9 +6970,9 @@ namespace ASTA
                         }
                     }
                 }
-                catch (Exception expt)
+                catch (Exception err)
                 {
-                    MessageBox.Show(expt.ToString());
+                    MessageBox.Show(err.ToString());
                 }
             }
         }
@@ -7027,7 +7034,7 @@ namespace ASTA
                                 sqlCommand.Parameters.Add("@DayType", DbType.String).Value = dayType;
                                 sqlCommand.Parameters.Add("@DayDescription", DbType.String).Value = textBoxGroupDescription.Text.Trim();
                                 sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTimeToYYYYMMDD();
-                                try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                                try { sqlCommand.ExecuteNonQuery(); } catch (Exception err) { MessageBox.Show(err.ToString()); }
                             }
                         }
                     }
@@ -7484,7 +7491,7 @@ namespace ASTA
                     {
                         sqlCommand.Parameters.Add("@City", DbType.String).Value = "City";
                         sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
-                        try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                        try { sqlCommand.ExecuteNonQuery(); } catch (Exception err) { MessageBox.Show(err.ToString()); }
                     }
                 }
             }
@@ -7626,7 +7633,7 @@ namespace ASTA
                         sqlCommand.Parameters.Add("@GroupsReport", DbType.String).Value = "";
                         sqlCommand.Parameters.Add("@Description", DbType.String).Value = "example";
                         sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
-                        try { sqlCommand.ExecuteNonQuery(); } catch (Exception expt) { MessageBox.Show(expt.ToString()); }
+                        try { sqlCommand.ExecuteNonQuery(); } catch (Exception err) { MessageBox.Show(err.ToString()); }
                     }
                 }
             }
@@ -7986,17 +7993,17 @@ namespace ASTA
                     using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(appRegistryKey))
                     {
                         EvUserKey.SetValue("ModeApp", "0", Microsoft.Win32.RegistryValueKind.String);
-                        logger.Info("Save ModeApp in Registry. Данные в реестре сохранены");
+                        logger.Info("Ключ ModeApp в Registry сохранен");
                     }
 
                     using (Microsoft.Win32.RegistryKey EvUserKey =
                          Microsoft.Win32.Registry.CurrentUser.CreateSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run\"))
                     {
                         EvUserKey.SetValue(appName, "\"" + Application.ExecutablePath + "\"");
-                        logger.Info("Save AutoRun App in Registry. Данные в реестре сохранены");
+                        logger.Info("Ключ AutoRun App в Registry сохранен");
                     }
                 }
-                catch (Exception expt) { logger.Warn("Save ModeApp,AutoRun in Registry. Последний режим работы не сохранен. " + expt); }
+                catch (Exception err) { logger.Warn("Save ModeApp,AutoRun in Registry. Последний режим работы не сохранен. " + err); }
                 ExecuteAutoMode(true);
             }
             else
@@ -8013,17 +8020,17 @@ namespace ASTA
                     using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(appRegistryKey))
                     {
                         EvUserKey.SetValue("ModeApp", "1", Microsoft.Win32.RegistryValueKind.String);
-                        logger.Info("Change ModeApp in Registry. Данные в реестре сохранены");
+                        logger.Info("Ключ ModeApp в Registry сохранен");
                     }
 
                     using (Microsoft.Win32.RegistryKey EvUserKey =
                         Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run\", true))
                     {
                         EvUserKey.DeleteValue(appName);
-                        logger.Info("Delete AutoRun App from Registry. Ключ удален");
+                        logger.Info("Ключ AutoRun App из Registry удален.");
                     }
                 }
-                catch (Exception expt) { logger.Warn("Delete ModeApp from Registry. Ошибка удаления ключа. " + expt); }
+                catch (Exception err) { logger.Warn("Ошибка удаления ключа AutoRun App из Registry. " + err.ToString()); }
                 ExecuteAutoMode(false);
             }
 
@@ -8041,7 +8048,7 @@ namespace ASTA
 
         public void InitScheduleTask(bool manualMode) //ScheduleTask()
         {
-            long interval = 20 * 1000; //20 sek
+            long interval = 50 * 1000; //20 sek
             if (manualMode)
             {
                 _MenuItemTextSet(ModeItem, "Выключить режим e-mail рассылок");
@@ -8406,9 +8413,9 @@ namespace ASTA
             _ProgressBar1Stop();
         }
 
-        public string GetSafeFilename(string filename)
+        public string GetSafeFilename(string filename, string splitter = "_")
         {
-            return string.Join("_", filename.Split(System.IO.Path.GetInvalidFileNameChars()));
+            return string.Join(splitter, filename.Split(System.IO.Path.GetInvalidFileNameChars()));
         }
 
 
@@ -9908,6 +9915,12 @@ namespace ASTA
             return result;
         }
 
+        //---- End. Convertors of data types ----//
+
+
+
+
+
         private void GetCurrentSchemeItem_Click(object sender, EventArgs e)
         {
             GetSQLiteDbScheme();
@@ -10023,11 +10036,11 @@ namespace ASTA
         private async Task AutoUpdate()
         {
             AutoUpdater.CheckForUpdateEvent += AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
-            
+
             //Check updates frequently
             System.Timers.Timer timer = new System.Timers.Timer
             {
-                Interval = 1 * 60 * 1000,       // 1 * 60 * 1000 // set an interval of checking within a minute
+                Interval = 1*60 * 60 * 1000,       // 1 * 60 * 1000 // set an interval of checking within a minute
                 SynchronizingObject = this
             };
             timer.Elapsed += delegate
@@ -10046,16 +10059,22 @@ namespace ASTA
                 // AutoUpdater.RemindLaterTimeSpan = RemindLaterFormat.Minutes;
                 // AutoUpdater.RemindLaterAt = 1;
                 // AutoUpdater.ApplicationExitEvent += ApplicationExit;
+                if (!uploadingUpdate)
+                {
+                    logger.Trace(@"Update URL: " + appUpdateURL);
 
-                logger.Trace(@"Update URL: " + appUpdateURL);
+                    AutoUpdater.RunUpdateAsAdmin = false;
+                    AutoUpdater.UpdateMode = Mode.ForcedDownload;
+                    AutoUpdater.Mandatory = true;
+                    AutoUpdater.DownloadPath = appFolderUpdatePath;
 
-                AutoUpdater.RunUpdateAsAdmin = false;
-                AutoUpdater.UpdateMode = Mode.ForcedDownload;
-                AutoUpdater.Mandatory = true;
-                AutoUpdater.DownloadPath = appUpdateFolder;
-
-                AutoUpdater.Start(appUpdateURL, System.Reflection.Assembly.GetEntryAssembly());
-                //AutoUpdater.Start("ftp://kv-sb-server.corp.ais/Common/ASTA/ASTA.xml", new NetworkCredential("FtpUserName", "FtpPassword")); //download from FTP
+                    AutoUpdater.Start(appUpdateURL, System.Reflection.Assembly.GetEntryAssembly());
+                    //AutoUpdater.Start("ftp://kv-sb-server.corp.ais/Common/ASTA/ASTA.xml", new NetworkCredential("FtpUserName", "FtpPassword")); //download from FTP
+                }
+                else
+                {
+                    logger.Info(@"Update suspended: Now it is going on upload a new ver of application ");
+                }
             };
             timer.Start();
         }
@@ -10080,7 +10099,7 @@ namespace ASTA
                             logger.Info("");
                             logger.Trace("-= Update =-");
                             logger.Trace("...");
-                            logger.Info(@"    new update with ver." + xmlnode[0].InnerText + @" was completly downloaded.");
+                            logger.Info(@"    new update "+appName+" ver." + xmlnode[0].InnerText + @" was found.");
                             logger.Trace("...");
                             logger.Trace("-= Update =-");
                             logger.Info("");
@@ -10107,67 +10126,92 @@ namespace ASTA
             }
         }
 
-        /*
-        private void AutoUpdaterOnCheckForUpdateEvent(UpdateInfoEventArgs args)
+
+        private async void UploadApplicationItem_Click(object sender, EventArgs e) //Uploading()
         {
-            if (args != null)
+           Task.Run(()=> Uploading());
+        }
+
+        private async void Uploading() //UploadApplicationToShare()
+        {
+            uploadingUpdate = true;
+            uploadUpdateError = false;
+            _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
+
+            Func<Task>[] tasks =
             {
-                if (args.IsUpdateAvailable)
-                {
-                    DialogResult dialogResult;
-                    if (args.Mandatory)
-                    {
-                        dialogResult =
-                            MessageBox.Show(
-                                $@"There is new version {args.CurrentVersion} available. You are using version {args.InstalledVersion}. This is required update. Press Ok to begin updating the application.", @"Update Available",
-                                MessageBoxButtons.OK,
-                                MessageBoxIcon.Information);
-                    }
-                    else
-                    {
-                        dialogResult =
-                            MessageBox.Show(
-                                $@"There is new version {args.CurrentVersion} available. You are using version {
-                                        args.InstalledVersion
-                                    }. Do you want to update the application now?", @"Update Available",
-                                MessageBoxButtons.YesNo,
-                                MessageBoxIcon.Information);
-                    }
+                ()=>UploadApplicationToShare(appNameZIP, appUpdateFolderURI + appNameZIP),
+                () => UploadApplicationToShare(appFolderPath + @"\" + appNameXML, appUpdateFolderURI + appNameXML)
+            };
 
-                    // Uncomment the following line if you want to show standard update dialog instead.
-                    // AutoUpdater.ShowUpdateForm();
+            await InvokeAsync(tasks, maxDegreeOfParallelism: 2);
 
-                    if (dialogResult.Equals(DialogResult.Yes) || dialogResult.Equals(DialogResult.OK))
-                    {
-                        try
-                        {
-                            if (AutoUpdater.DownloadUpdate())
-                            {
-                               ApplicationExit;
-                            }
-                        }
-                        catch (Exception exception)
-                        {
-                            MessageBox.Show(exception.Message, exception.GetType().ToString(), MessageBoxButtons.OK,
-                                MessageBoxIcon.Error);
-                        }
-                    }
-                }
-                else
-                {
-                    MessageBox.Show(@"There is no update available please try again later.", @"No update available",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
+            uploadingUpdate = false;
+            if (uploadUpdateError)
+            {
+                _toolStripStatusLabelSetText(StatusLabel2, "Загрузка файлов завершилась неудачно -> " + appUpdateFolderURI);
+                _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
             }
             else
             {
-                MessageBox.Show(
-                        @"There is a problem reaching update server please check your internet connection and try again later.",
-                        @"Update check failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                _toolStripStatusLabelSetText(StatusLabel2, "Загрузка файлов завершена -> " + appUpdateFolderURI);
             }
         }
-        */
+        
+        private async Task UploadApplicationToShare(string source, string target)
+        {
+            MethodInvoker mi1 = delegate
+            {
+                _toolStripStatusLabelSetText(StatusLabel2, "Идет загрузка файла -> " + target);
+                try
+                {
+                    // var fileByte = System.IO.File.ReadAllBytes(source);
+                    // System.IO.File.WriteAllBytes(target, fileByte);
+                    try { System.IO.File.Delete(target); } catch { logger.Info("файл предварительно не удален: " + target); } //@"\\server\folder\Myfile.txt"
 
-        //---- End. Convertors of data types ----//
+                    System.IO.File.Copy(source, target, true); //@"\\server\folder\Myfile.txt"
+                    logger.Info("Uploaded: " + source + " -> " + target);
+                }
+                catch (Exception err)
+                {
+                    uploadUpdateError = true;
+                    _toolStripStatusLabelSetText(StatusLabel2, "Ошибка загрузки файла " + target);
+                    logger.Warn("Uploaded error: " + source + " -> " + target + "\n" + err.ToString());
+                }
+            };
+
+            this.Invoke(mi1);
+        }
+
+
+        static async Task InvokeAsync(IEnumerable<Func<Task>> taskFactories, int maxDegreeOfParallelism)
+        {
+            Queue<Func<Task>> queue = new Queue<Func<Task>>(taskFactories);
+
+            if (queue.Count == 0)
+            {
+                return;
+            }
+
+            List<Task> tasksInFlight = new List<Task>(maxDegreeOfParallelism);
+
+            do
+            {
+                while (tasksInFlight.Count < maxDegreeOfParallelism && queue.Count != 0)
+                {
+                    Func<Task> taskFactory = queue.Dequeue();
+
+                    tasksInFlight.Add(taskFactory());
+                }
+
+                Task completedTask = await Task.WhenAny(tasksInFlight).ConfigureAwait(false);
+
+                // Propagate exceptions. In-flight tasks will be abandoned if this throws.
+                await completedTask.ConfigureAwait(false);
+
+                tasksInFlight.Remove(completedTask);
+            }
+            while (queue.Count != 0 || tasksInFlight.Count != 0);
+        }
     }
 }

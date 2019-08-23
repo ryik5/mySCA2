@@ -10,6 +10,50 @@ namespace ASTA
         string GetTime();
     }
 
+    class StartStopTimer : IStartStopTimer
+    {
+        int _seconds = 0;
+        string time1 = "";
+        string time2 = "";
+
+        public StartStopTimer(int seconds)
+        {
+            _seconds = seconds;
+        }
+
+        public void WaitTime() //MidleLoad not Precision
+        {
+            time1 = DateTime.Now.ToYYYYMMDDHHMMSSmmm();
+            WaitSeconds(_seconds);
+            time2 = DateTime.Now.ToYYYYMMDDHHMMSSmmm();
+        }
+
+        public string GetTime()
+        {
+            return time1 + "\n" + time2;
+        }
+
+        private void WaitSeconds(int seconds) //high precision timer
+        {
+            //No need to risk overflowing an int
+            //No need to count iterations, just set them
+            //Really need to account for CPU speed, etc. though, as a
+            //CPU twice as fast runs this loop twice as many times,
+            //while a slow one may greatly overshoot the desired time
+            //interval. Iterations too high = overshoot, too low = excessive overhead 
+
+            System.Threading.SpinWait swt = new System.Threading.SpinWait();
+
+            while (swt.Count < seconds * 10000)
+            {
+                // The NextSpinWillYield property returns true if
+                // calling sw.SpinOnce() will result in yielding the
+                // processor instead of simply spinning.
+                swt.SpinOnce();
+            }
+        }
+    }
+
     /* использование
                  int num = 0;
             Int32.TryParse(textBoxGroup.Text, out num);
@@ -122,49 +166,6 @@ int seconds = (int)ts.TotalSeconds;
             }
         }
         */
-    class StartStopTimer : IStartStopTimer
-    {
-        int _seconds = 0;
-        string time1 = "";
-        string time2 = "";
-
-        public StartStopTimer(int seconds)
-        {
-            _seconds = seconds;
-        }
-
-        public void WaitTime() //MidleLoad not Precision
-        {
-            time1 = DateTime.Now.ToYYYYMMDDHHMMSSmmm();
-            WaitSeconds(_seconds);
-            time2 = DateTime.Now.ToYYYYMMDDHHMMSSmmm();
-        }
-
-        public string GetTime()
-        {
-            return time1 + "\n" + time2;
-        }
-
-        private void WaitSeconds(int seconds) //high precision timer
-        {
-            //No need to risk overflowing an int
-            //No need to count iterations, just set them
-            //Really need to account for CPU speed, etc. though, as a
-            //CPU twice as fast runs this loop twice as many times,
-            //while a slow one may greatly overshoot the desired time
-            //interval. Iterations too high = overshoot, too low = excessive overhead 
-
-            System.Threading.SpinWait swt = new System.Threading.SpinWait();
-
-            while (swt.Count < seconds * 10000)
-            {
-                // The NextSpinWillYield property returns true if
-                // calling sw.SpinOnce() will result in yielding the
-                // processor instead of simply spinning.
-                swt.SpinOnce();
-            }
-        }
-    }
     /*
     class StartStopTimerD : IStartStopTimer
     {

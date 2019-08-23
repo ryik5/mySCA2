@@ -240,7 +240,7 @@ namespace ASTA
                                         parameterConfig.isExample = reader["IsExample"]?.ToString();
 
                                         parametersConfig.Add(parameterConfig);
-                                        logger.Trace("Parameter read from DB: " + name);
+                                        logger.Trace("Read a parameter from DB: " + name);
                                     }
                                 }
                             }
