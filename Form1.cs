@@ -586,13 +586,18 @@ namespace ASTA
             System.Xml.XmlText changelogText = doc.CreateTextNode(appUpdateFolderURL + "urlLog");
             changelog.AppendChild(changelogText);
             item.AppendChild(changelog);
-
+            
             System.Xml.XmlElement checksum = doc.CreateElement(string.Empty, "checksum", string.Empty);
             checksum.InnerXml = "algorithm = \"MD5\"";
             System.Xml.XmlText checksumText = doc.CreateTextNode("checksumText");
             checksum.AppendChild(checksumText);
             item.AppendChild(checksum);
+             */
+             /*
+            <changelog>https://github.com/ravibpatel/AutoUpdater.NET/releases</changelog>
+            <checksum algorithm="MD5">Update file Checksum</checksum>
             */
+            
 
             doc.Save(appNameXML);
 
@@ -1928,9 +1933,9 @@ namespace ASTA
                     {
                         if (mysqlData.GetString(@"code")?.Length > 0)
                         {
-                            try { dayStartShift = DateTimeToYYYYMMDD(mysqlData.GetMySqlDateTime(@"start_date").ToString()); }
+                            try { dayStartShift = DateTime.Parse( mysqlData.GetMySqlDateTime(@"start_date").ToString()).ToYYYYMMDD(); }
                             catch
-                            { dayStartShift = DateTimeToYYYYMMDD("1980-01-01"); }
+                            { dayStartShift = DateTime.Parse("1980-01-01").ToYYYYMMDD(); }
 
                             peopleShifts.Add(new PeopleShift()
                             {
@@ -3637,7 +3642,7 @@ namespace ASTA
                     if (mysqlData?.GetString(@"reason_id")?.Length > 0 && mysqlData?.GetString(@"user_code")?.Length > 0)
                     {
                         resonId = outResons.Find((x) => x._id == mysqlData.GetString(@"reason_id"))._id;
-                        try { date = DateTimeToYYYYMMDD(mysqlData.GetString(@"reason_date")); } catch { date = ""; }
+                        try { date =DateTime.Parse(mysqlData.GetString(@"reason_date")).ToYYYYMMDD(); } catch { date = ""; }
 
                         outPerson.Add(new OutPerson()
                         {
@@ -4116,7 +4121,7 @@ namespace ASTA
                         sqlCommand.Parameters.Add("@NAV", DbType.String).Value = nav;
                         sqlCommand.Parameters.Add("@DayType", DbType.String).Value = dayType;
                         sqlCommand.Parameters.Add("@DayDescription", DbType.String).Value = textBoxGroupDescription.Text.Trim();
-                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTimeToYYYYMMDD();
+                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value =DateTime.Now.ToYYYYMMDD();
                         try { sqlCommand.ExecuteNonQuery(); } catch (Exception err) { MessageBox.Show(err.ToString()); }
                     }
                 }
@@ -6802,15 +6807,14 @@ namespace ASTA
         {
             LoadDataItem.Enabled = true;
             LoadDataItem.BackColor = Color.PaleGreen;
+            dateTimePickerEnd.MinDate = dateTimePickerStart.Value;
 
-            string day = string.Format("{0:d4}-{1:d2}-{2:d2}", dateTimePickerStart.Value.Year, dateTimePickerStart.Value.Month, dateTimePickerStart.Value.Day);
-            dateTimePickerEnd.MinDate = DateTime.Parse(day);
-
-            _MenuItemTextSet(LoadInputsOutputsItem, "Отобразить входы-выходы за " + day);
+             string day = string.Format("{0:d4}-{1:d2}-{2:d2}", dateTimePickerStart.Value.Year, dateTimePickerStart.Value.Month, dateTimePickerStart.Value.Day);
+           _MenuItemTextSet(LoadInputsOutputsItem, "Отобразить входы-выходы за " + day);
         }
 
         private void dateTimePickerEnd_CloseUp(object sender, EventArgs e)
-        { dateTimePickerStart.MaxDate = DateTime.Parse(dateTimePickerEnd.Value.Year + "-" + dateTimePickerEnd.Value.Month + "-" + dateTimePickerEnd.Value.Day); }
+        { dateTimePickerStart.MaxDate = dateTimePickerEnd.Value; }
 
         private void PersonOrGroupItem_Click(object sender, EventArgs e) //PersonOrGroup()
         { PersonOrGroup(); }
@@ -7013,7 +7017,7 @@ namespace ASTA
                                 sqlCommand.Parameters.Add("@NAV", DbType.String).Value = nav;
                                 sqlCommand.Parameters.Add("@DayType", DbType.String).Value = dayType;
                                 sqlCommand.Parameters.Add("@DayDescription", DbType.String).Value = textBoxGroupDescription.Text.Trim();
-                                sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTimeToYYYYMMDD();
+                                sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDD();
                                 try { sqlCommand.ExecuteNonQuery(); } catch (Exception err) { MessageBox.Show(err.ToString()); }
                             }
                         }
@@ -9746,13 +9750,6 @@ namespace ASTA
             try { sFullNameOnly += " " + stmp[2].Substring(0, 1) + @"."; } catch { }
             stmp = new string[1];
             return sFullNameOnly;
-        }
-
-        public string DateTimeToYYYYMMDD(string date = "")
-        {
-            if (date.Length > 0)
-            { return DateTime.Parse(date).ToYYYYMMDD(); }
-            else { return DateTime.Now.ToYYYYMMDD(); }
         }
 
         private string ConvertSecondsToStringHHMM(int seconds)
