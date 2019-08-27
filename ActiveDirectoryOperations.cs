@@ -1,85 +1,53 @@
 ﻿//Reference: System.DirectoryServices.AccountManagement
-using System.Collections.Generic;
 using System.DirectoryServices.AccountManagement;
 using System;
 using System.Linq;
-//using System.Runtime.InteropServices;
 using System.Collections.ObjectModel;
-//using System.Collections.Specialized;
 using System.DirectoryServices;
 
 namespace ASTA
 {
-    class UserADAuthorization
-    {
-        public string Name { get; set; }       // имя
-        public string Domain { get; set; }      // домен
-        public string Password { get; set; }    // пароль
-        public string DomainPath { get; set; }    // URI сервера
-
-        public override string ToString()
-        {
-            return Name + "\t" + Domain + "\t" + Password + "\t" + DomainPath;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null)
-                return false;
-
-            UserADAuthorization df = obj as UserADAuthorization;
-            if ((Object)df == null)
-                return false;
-
-            return this.ToString() == df.ToString();
-        }
-
-        public override int GetHashCode()
-        {
-            return ToString().GetHashCode();
-        }
-    }
-
-    class ActiveDirectoryData
+   
+    class ADData
     {
         static NLog.Logger logger;
-        UserADAuthorization UserADAuthorization;
+        ADUserAuthorization _ADUserAuthorization;
 
         public ObservableCollection<ADUser> ADUsersCollection;
 
-        public ActiveDirectoryData(string _user, string _domain, string _password, string _domainPath)
+        public ADData(string _user, string _domain, string _password, string _domainPath)
         {
             logger = NLog.LogManager.GetCurrentClassLogger();
-            UserADAuthorization = new UserADAuthorization()
+            _ADUserAuthorization = new ADUserAuthorization()
             {
                 Name = _user,
                 Password = _password,
                 Domain = _domain,
                 DomainPath = _domainPath
             };
-
-            // isValid = ValidateCredentials(UserADAuthorization);
-            //  logger.Trace("!Test only!  "+"Доступ к домену '" + UserADAuthorization.Domain + "' предоставлен: " + isValid);
+                 
+            // isValid = ValidateCredentials(_ADUserAuthorization);       // it sometimes doesn't work correctly
+            //  logger.Trace("!Test only!  "+"Доступ к домену '" + _ADUserAuthorization.Domain + "' предоставлен: " + isValid);
             ADUsersCollection = new ObservableCollection<ADUser>();
         }
 
         public ObservableCollection<ADUser> GetADUsers()
         {
-            logger.Trace(UserADAuthorization.DomainPath);
+            logger.Trace(_ADUserAuthorization.DomainPath);
             int userCount = 0;
-            // sometimes doesn't work correctly
-            // if (isValid)
+       
+            // if (isValid)     //it sometimes doesn't work correctly
             {
                 using (var context = new PrincipalContext(
                     ContextType.Domain,
-                    UserADAuthorization.DomainPath,
+                    _ADUserAuthorization.DomainPath,
 
                     /*1. look starting for users from 'OU=Domain Users' */
-                    //"OU=Domain Users,DC=" + UserADAuthorization.Domain.Split('.')[0] + ",DC=" + UserADAuthorization.Domain.Split('.')[1],
+                    //"OU=Domain Users,DC=" + _ADUserAuthorization.Domain.Split('.')[0] + ",DC=" + _ADUserAuthorization.Domain.Split('.')[1],
                     /* 2. if need to start from the root of the domain  - previous string should be commented */
 
-                    UserADAuthorization.Name,
-                    UserADAuthorization.Password))
+                    _ADUserAuthorization.Name,
+                    _ADUserAuthorization.Password))
                 {
                     using (var UserExt = new UserPrincipalExtended(context))
                     {
@@ -130,9 +98,6 @@ namespace ASTA
                                         _mailNickName = foundUser?.MailNickname ?? string.Empty;
                                         _department = foundUser?.Department ?? string.Empty;
                                         _mailServer = foundUser?.MailServerName ?? string.Empty;
-
-                                        // stateUAC = foundUser?.StateAccount.ToString() ?? string.Empty;
-
                                         // _sid = foundUser?.Sid?.ToString();
                                         // _guid = foundUser?.Guid?.ToString();
 
@@ -163,7 +128,7 @@ namespace ASTA
                     }
                 }
             }
-            logger.Info("ActiveDirectoryGetData, counted users: " + userCount);
+            logger.Trace("ActiveDirectoryGetData, counted users: " + userCount);
             foreach (var user in ADUsersCollection)
             {
                 logger.Trace(
@@ -171,7 +136,6 @@ namespace ASTA
                    user.login + "| " + user.code + "| " + user.fio + "| " + user.department + "| " + user.description + "| " +
                    user.lastLogon + "| " + user.stateAccount);
             }
-            //   logger.Trace("ActiveDirectoryGetData: User: '" + UserADAuthorization.Name + "' |Password: '" + UserADAuthorization.Password + "' |Domain: '" + UserADAuthorization.Domain + "' |DomainURI: '" + UserADAuthorization.DomainPath + "'");
             return ADUsersCollection;
         }
 
@@ -179,7 +143,7 @@ namespace ASTA
         /*class NativeMethods*/
         /*
         // it sometimes doesn't work correctly
-        static bool ValidateCredentials(UserADAuthorization userADAuthorization)
+        static bool ValidateCredentials(_ADUserAuthorization userADAuthorization)
         {
             IntPtr token;
             bool success = NativeMethods.LogonUser(
@@ -193,193 +157,6 @@ namespace ASTA
             return success;
         }*/
     }
-
-    class SendToFileShare
-    {
-        private SendToFileShare( string fileName, ADUser user, string pathNetworkShare)
-        {
-           // string networkShareLocation = @"\\your\network\share\";
-
-            var path = $"{pathNetworkShare}{fileName}"; //$"{pathNetworkShare}{fileName}.pdf";
-            var fileByte= System.IO.File.ReadAllBytes(fileName);
-            //Credentials for the account that has write-access. Probably best to store these in a web.config file.
-            var domain = user.domain;
-            var userID =user.login;
-            var password =user.password;
-
-
-            if (ImpersonateUser(domain, userID, password) == true)
-            {
-                //write the PDF to the share:
-                System.IO.File.WriteAllBytes(path, fileByte);
-            }
-            else
-            {
-                //Could not authenticate account. Something is up.
-                //Log or something.
-            }
-        }
-
-        /// <summary>
-        /// Impersonates the given user during the session.
-        /// </summary>
-        /// <param name="domain">The domain.</param>
-        /// <param name="userName">Name of the user.</param>
-        /// <param name="password">The password.</param>
-        /// <returns></returns>
-        private bool ImpersonateUser(string domain, string userName, string password)
-        {
-            System.Security.Principal.WindowsIdentity tempWindowsIdentity;
-            IntPtr token = IntPtr.Zero;
-            IntPtr tokenDuplicate = IntPtr.Zero;
-
-            if (RevertToSelf())
-            {
-                if (LogonUserA(userName, domain, password, LOGON32_LOGON_INTERACTIVE,
-                    LOGON32_PROVIDER_DEFAULT, ref token) != 0)
-                {
-                    if (DuplicateToken(token, 2, ref tokenDuplicate) != 0)
-                    {
-                        tempWindowsIdentity = new System.Security.Principal.WindowsIdentity(tokenDuplicate);
-                        impersonationContext = tempWindowsIdentity.Impersonate();
-                        if (impersonationContext != null)
-                        {
-                            CloseHandle(token);
-                            CloseHandle(tokenDuplicate);
-                            return true;
-                        }
-                    }
-                }
-            }
-            if (token != IntPtr.Zero)
-                CloseHandle(token);
-            if (tokenDuplicate != IntPtr.Zero)
-                CloseHandle(tokenDuplicate);
-            return false;
-        }
-
-        /// <summary>
-        /// Undoes the current impersonation.
-        /// </summary>
-        private void undoImpersonation()
-        {
-            impersonationContext.Undo();
-        }
-
-
-        #region Impersionation global variables
-        public const int LOGON32_LOGON_INTERACTIVE = 2;
-        public const int LOGON32_PROVIDER_DEFAULT = 0;
-
-        System.Security.Principal.WindowsImpersonationContext impersonationContext;
-
-        [System.Runtime.InteropServices.DllImport("advapi32.dll")]
-        public static extern int LogonUserA(String lpszUserName,
-            String lpszDomain,
-            String lpszPassword,
-            int dwLogonType,
-            int dwLogonProvider,
-            ref IntPtr phToken);
-        [System.Runtime.InteropServices.DllImport("advapi32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto, SetLastError = true)]
-        public static extern int DuplicateToken(IntPtr hToken,
-            int impersonationLevel,
-            ref IntPtr hNewToken);
-
-        [System.Runtime.InteropServices.DllImport("advapi32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto, SetLastError = true)]
-        public static extern bool RevertToSelf();
-
-        [System.Runtime.InteropServices.DllImport("kernel32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto)]
-        public static extern bool CloseHandle(IntPtr handle);
-        #endregion
-    }
-
-    class ADUser : IComparable<ADUser>
-    {
-        public int id;
-        public string domain;
-        public string login;
-        public string password;
-        public string code;
-        public string mailNickName;
-        public string mail;
-        public string mailServer;
-        public string description;
-        public string lastLogon;
-        public string fio;
-        public string department;
-        public string stateAccount;
-
-        //Для возможности поиска дубляжного значения
-        public override string ToString()
-        {
-            return fio + "\t" + department + "\t" + code + "\t" +
-                mail + "\t" + login + "\t" + stateAccount + "\t" 
-                + description + "\t" + lastLogon + "\t" 
-                + domain + "\t" + password;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj == null || !(obj is ADUser))
-                return false;
-
-            ADUser df = obj as ADUser;
-            if ((Object)df == null)
-                return false;
-
-            return this.ToString() == df.ToString();
-        }
-
-        public override int GetHashCode()
-        {
-            return ToString().GetHashCode();
-        }
-
-        //реализация для выполнения сортировки
-        int IComparable<ADUser>.CompareTo(ADUser next)
-        {
-            return new ADUsersComparer().Compare(this, next);
-        }
-
-        public string CompareTo(ADUser next)
-        {
-            return next.CompareTo(this);
-        }
-
-    }
-
-    //additional class для выполнения сортировки
-    class ADUsersComparer : IComparer<ADUser>
-    {
-        public int Compare(ADUser x, ADUser y)
-        {
-            return this.CompareTwoStaffADs(x, y);
-        }
-
-        public int CompareTwoStaffADs(ADUser x, ADUser y)
-        {
-            string a = x.fio + x.login;
-            string b = y.fio + y.login;
-
-            string[] words = { a, b };
-            Array.Sort(words);
-
-            if (words[0] != a)
-            {
-                return 1;
-            }
-            else if (a == b)
-            {
-                return 0;
-            }
-            else
-            {
-                return -1;
-            }
-        }
-    }
-
-
 
     [DirectoryRdnPrefix("CN")]
     [DirectoryObjectClass("user")]
@@ -550,7 +327,7 @@ namespace ASTA
         const int ACCOUNTDISABLE = 2;
         const int NOPE = 0;
 
-        Dictionary<int, string> dicOfUACs;//dictionary with all of existed acc.states in the digital and string forms
+        System.Collections.Generic.Dictionary<int, string> dicOfUACs;//dictionary with all of existed acc.states in the digital and string forms
         static int[] statesUAC; //all of existed acc.states in the digital forms
         int shiftStart; //next position in digital form to calculate acc.states
         int sumOfUACStates; //sum all of existed acc.states
@@ -561,7 +338,7 @@ namespace ASTA
 
         public UACAccountState(int sumOfStates)
         {
-            dicOfUACs = new Dictionary<int, string>()
+            dicOfUACs = new System.Collections.Generic.Dictionary<int, string>()
             {
                 [DONT_EXPIRE_PASSWORD] = " DONT_EXPIRE_PASSWORD",
                 [NORMAL_ACCOUNT] = "NORMAL_ACCOUNT",
@@ -619,5 +396,6 @@ namespace ASTA
         }
 
     }
+
 
 }

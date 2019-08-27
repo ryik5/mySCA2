@@ -1641,7 +1641,7 @@ namespace ASTA
             string domain = null;
             string server = null;
 
-            ActiveDirectoryData ad;
+            ADData ad;
             ADUsers = new List<ADUser>();
 
             listParameters = new List<ParameterConfig>();
@@ -1660,7 +1660,7 @@ namespace ASTA
             {
                 _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные из домена: " + domain);
 
-                ad = new ActiveDirectoryData(user, domain, password, server);
+                ad = new ADData(user, domain, password, server);
                 ad.ADUsersCollection.CollectionChanged += Users_CollectionChanged;
                 ADUsers = ad.GetADUsers().ToList();
                 ADUsers.Sort();
@@ -8085,14 +8085,14 @@ namespace ASTA
                 DateTime dd = DateTime.Now;
                 if (dd.Hour == 4 && dd.Minute == 10 && sent == false) //do something at Hour 2 and 5 minute //dd.Day == 1 && 
                 {
-                    _toolStripStatusLabelSetText(StatusLabel2, "Ведется работа по подготовке отчетов " + DateTime.Now.ToYYYYMMDDHHMM());
+                    _toolStripStatusLabelSetText(StatusLabel2, "Ведется работа по подготовке отчетов " + DateTime.Now.ToYYYYMMDDHHMM()+" ...");
                     _toolStripStatusLabelBackColor(StatusLabel2, Color.LightPink);
                     CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword).GetAwaiter().GetResult();
                     SelectMailingDoAction();
                     sent = true;
-                    logger.Info("ScheduleTask: Все задачи по подготовке и отправке отчетов завершены...");
+                    _toolStripStatusLabelSetText(StatusLabel2, "Все задачи по подготовке и отправке отчетов завершены.");
                     logger.Info("");
-                    logger.Info("---/  " + DateTimeToYYYYMMDDHHMM() + "  /---");
+                    logger.Info("---/  " +DateTime.Now.ToYYYYMMDDHHMMSS() + "  /---");
                 }
                 else
                 {
@@ -8220,11 +8220,8 @@ namespace ASTA
                 new DaysWhenSendReports(workSelectedDays, ShiftDaysBackOfSendingFromLastWorkDay, today.LastDayOfMonth().Day);
             DaysOfSendingMail daysOfSendingMail = daysToSendReports.GetDays();
 
-            logger.Info("SelectMailingDoAction: " +
-                startDayOfCurrentMonth[0] + "-" + startDayOfCurrentMonth[1] + "-" + startDayOfCurrentMonth[2] + " - " +
-                lastDayOfCurrentMonth[0] + "-" + lastDayOfCurrentMonth[1] + "-" + lastDayOfCurrentMonth[2]
-                );
-            logger.Info("SelectMailingDoAction: all of daysOfSendingMail: " +
+            logger.Trace("SelectMailingDoAction: all of daysOfSendingMail within the selected period: " + startDayOfCurrentMonth[0] + "-" + startDayOfCurrentMonth[1] + "-" + startDayOfCurrentMonth[2] + " - " +
+                lastDayOfCurrentMonth[0] + "-" + lastDayOfCurrentMonth[1] + "-" + lastDayOfCurrentMonth[2]+": "+
                 daysOfSendingMail.START_OF_MONTH + ", " + daysOfSendingMail.MIDDLE_OF_MONTH + ", " +
                 daysOfSendingMail.LAST_WORK_DAY_OF_MONTH + ", " + daysOfSendingMail.END_OF_MONTH
                 );
@@ -8287,29 +8284,35 @@ namespace ASTA
                 }
             }
 
-            foreach (Mailing mailng in mailingList)
+            if (mailingList.Count > 0)
             {
-                _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
-                _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + mailng._nameReport);
+                logger.Info("Выполняю сбор данных регистраций и рассылку отчетов за период: " +
+                        startDayOfCurrentMonth[0] + "-" + startDayOfCurrentMonth[1] + "-" + startDayOfCurrentMonth[2] + " - " +
+                        lastDayOfCurrentMonth[0] + "-" + lastDayOfCurrentMonth[1] + "-" + lastDayOfCurrentMonth[2]
+                        );
 
-                str = "UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToYYYYMMDDHHMM() +
-                    "' WHERE RecipientEmail='" + mailng._recipient +
-                    "' AND NameReport='" + mailng._nameReport +
-                    "' AND Period='" + mailng._period +
-                    "' AND Status='" + mailng._status +
-                    "' AND TypeReport='" + mailng._typeReport +
-                    "' AND GroupsReport ='" + mailng._groupsReport + "';";
-                logger.Trace(str);
-                ExecuteSqlAsync(str).GetAwaiter().GetResult();
-                GetRegistrationAndSendReport(
-                    mailng._groupsReport, mailng._nameReport, mailng._descriptionReport, mailng._period, mailng._status,
-                    mailng._typeReport, mailng._dayReport, true, mailng._recipient, mailsOfSenderOfName);
+                foreach (Mailing mailng in mailingList)
+                {
+                    _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
+                    _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + mailng._nameReport);
 
-                _ProgressWork1Step();
+                    str = "UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToYYYYMMDDHHMM() +
+                        "' WHERE RecipientEmail='" + mailng._recipient +
+                        "' AND NameReport='" + mailng._nameReport +
+                        "' AND Period='" + mailng._period +
+                        "' AND Status='" + mailng._status +
+                        "' AND TypeReport='" + mailng._typeReport +
+                        "' AND GroupsReport ='" + mailng._groupsReport + "';";
+                    logger.Trace(str);
+                    ExecuteSqlAsync(str).GetAwaiter().GetResult();
+                    GetRegistrationAndSendReport(
+                        mailng._groupsReport, mailng._nameReport, mailng._descriptionReport, mailng._period, mailng._status,
+                        mailng._typeReport, mailng._dayReport, true, mailng._recipient, mailsOfSenderOfName);
+
+                    _ProgressWork1Step();
+                }
+                logger.Info("SelectMailingDoAction: Перечень задач по подготовке и отправке отчетов завершен...");
             }
-
-            logger.Info("SelectMailingDoAction: Перечень задач по подготовке и отправке отчетов завершен...");
-
             ShowDataTableDbQuery(dbApplication, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
             "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
             "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
@@ -9160,13 +9163,21 @@ namespace ASTA
 
         private string _dateTimePickerSet(DateTimePicker dateTimePicker, int year, int month, int day) //add string into  from other threads
         {
+            DateTime dt=DateTime.Now;
+
             string result = "";
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
-                { dateTimePicker.Value = DateTime.Parse(year + "-" + month + "-" + day); }
+                {
+                    DateTime.TryParse(year + "-" + month + "-" + day, out dt);
+                    dateTimePicker.Value = dt;
+                }
                 ));
             else
-            { dateTimePicker.Value = DateTime.Parse(year + "-" + month + "-" + day); }
+            {
+                DateTime.TryParse(year + "-" + month + "-" + day, out dt);
+                dateTimePicker.Value = dt;
+            }
             return result;
         }
 
@@ -9175,10 +9186,14 @@ namespace ASTA
             DateTime result = DateTime.Now;
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
-                { result = dateTimePicker.Value; }
+                {
+                    result = dateTimePicker.Value;
+                }
                 ));
             else
-            { result = dateTimePicker.Value; }
+            {
+                result = dateTimePicker.Value;
+            }
             return result;
         }
 
@@ -9748,13 +9763,6 @@ namespace ASTA
             else { return DateTime.Now.ToYYYYMMDD(); }
         }
 
-        public string DateTimeToYYYYMMDDHHMM(string date = "")
-        {
-            if (date.Length > 0)
-            { return DateTime.Parse(date).ToYYYYMMDDHHMM(); }
-            else { return DateTime.Now.ToYYYYMMDDHHMM(); }
-        }
-
         private string ConvertSecondsToStringHHMM(int seconds)
         {
             string result;
@@ -10040,7 +10048,7 @@ namespace ASTA
             //Check updates frequently
             System.Timers.Timer timer = new System.Timers.Timer
             {
-                Interval = 1*60 * 60 * 1000,       // 1 * 60 * 1000 // set an interval of checking within a minute
+                Interval = 1*60 * 60 * 1000,       // 1 * 60 * 1000 // it sets the interval of checking equal at a minute
                 SynchronizingObject = this
             };
             timer.Elapsed += delegate
