@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Resources;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -17,7 +18,7 @@ using System.Runtime.InteropServices;
 // Установка значения False в параметре ComVisible делает типы в этой сборке невидимыми 
 // для COM-компонентов.  Если необходим доступ к типу в этой сборке из 
 // COM, следует установить атрибут ComVisible в TRUE для этого типа.
-[assembly: ComVisible(false)]
+[assembly: ComVisible(true)]
 
 // Следующий GUID служит для идентификации библиотеки типов, если этот проект будет видимым для COM
 [assembly: Guid("f3f30221-af78-42c2-badd-c7bb6ee4b22f")]
@@ -29,5 +30,7 @@ using System.Runtime.InteropServices;
 //   Номер сборки
 //      Редакция
 //
-[assembly: AssemblyVersion("3.9.5.101")]
-[assembly: AssemblyFileVersion("3.7.11.81")]
+[assembly: AssemblyVersion("3.9.5.105")]
+[assembly: AssemblyFileVersion("3.7.11.82")]
+[assembly: NeutralResourcesLanguage("ru")]
+

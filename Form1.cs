@@ -104,7 +104,7 @@ namespace ASTA
         static string currentAction = "";
         static bool currentModeAppManual = true;
 
-        static string statusBar = appName + " ver." + appVersionAssembly + " " + appCopyright;
+        static string statusBar = appName + " ver." + appVersionAssembly + " by " + appCopyright;
 
         // taskbar and logo
         static Bitmap bmpLogo = Properties.Resources.LogoRYIK;
@@ -523,33 +523,40 @@ namespace ASTA
             var today = DateTime.Today;
 
             logger = NLog.LogManager.GetCurrentClassLogger();
-            logger.Info("");
-            logger.Info("Test Info message");
-            logger.Trace("Test1 Trace message");
-            logger.Debug("Test2 Debug message");
-            logger.Warn("Test3 Warn message");
-            logger.Error("Test4 Error message");
-            logger.Fatal("Test5 Fatal message");
-            logger.Info("");
 
-            //Clear temporary folder
-            ClearItemsInApplicationFolders(appFolderTempPath);
-            ClearItemsInApplicationFolders(appFolderUpdatePath);
-
-            //create temporary folder if they are not existed
-            System.IO.Directory.CreateDirectory(appFolderUpdatePath);
-            System.IO.Directory.CreateDirectory(appFolderTempPath);
-            System.IO.Directory.CreateDirectory(appFolderBackUpPath);
-
+            //Шапка начала лога
+            {
+                logger.Info("");
+                logger.Info("");
+                logger.Info("-= " + statusBar + " =-");
+                logger.Info("");
+                logger.Info("");
+            }
+            //Блок проверки уровня настройки логгирования
+            {
+                logger.Info("Test Info message");
+                logger.Trace("Test1 Trace message");
+                logger.Debug("Test2 Debug message");
+                logger.Warn("Test3 Warn message");
+                logger.Error("Test4 Error message");
+                logger.Fatal("Test5 Fatal message");
+            }
+            //Clear temporary folder 
+            {
+                ClearItemsInApplicationFolders(appFolderTempPath);
+                ClearItemsInApplicationFolders(appFolderUpdatePath);
+                System.IO.Directory.CreateDirectory(appFolderUpdatePath);
+                System.IO.Directory.CreateDirectory(appFolderTempPath);
+                System.IO.Directory.CreateDirectory(appFolderBackUpPath);
+            }
 
 
             logger.Info("Настраиваю интерфейс....");
-
             bmpLogo = Properties.Resources.LogoRYIK;
             this.Icon = Icon.FromHandle(bmpLogo.GetHicon());
             notifyIcon.Icon = this.Icon;
             notifyIcon.Visible = true;
-            notifyIcon.BalloonTipText = @"Developed by ©Yuri Ryabchenko";
+            notifyIcon.BalloonTipText = "Developed by " + appCopyright;
             notifyIcon.ShowBalloonTip(500);
 
             this.Text = appFileVersionInfo.Comments;
@@ -650,33 +657,7 @@ namespace ASTA
             //Refresh Configuration of the application
              RefreshConfigOfApplicationInMainDB();
 
-            { 
-            /*  MethodInvoker mi = delegate
-              {
-                  schemaDB = DbSchema.LoadDB(dbApplication.FullName);
-                  if (schemaDB?.Tables?.Count < schemaTXT?.Tables?.Count || schemaDB?.Tables?.Count == 0)
-                  {
-                      MessageBox.Show(
-                        this,
-                        "Local DB is not existed!\n'ASTA.sql' is corrupted too!\nASTA will not work correctly!",
-                        "Local DB loading failed",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Error);
-                  }
-                  else if (schemaTXT?.Tables?.Count == 0)
-                  {
-                      MessageBox.Show(
-                        this,
-                        "Can not to check the local DB.\n'ASTA.sql' is corrupted.\nASTA couldn't work correctly.\nIn the local DB is '" + schemaDB?.Tables?.Count + "' tables",
-                        "Checking Local DB is failed",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Exclamation);
-                  }
-              };
-              Task.Run(() => mi.Invoke());*/
-        }
-
-
+            //Настройка отображаемых пунктов меню и других элементов интерфеса
             {
                 currentModeAppManual = true;
                 _MenuItemTextSet(ModeItem, "Включить режим автоматических e-mail рассылок");
@@ -745,8 +726,7 @@ namespace ASTA
                 toolTip1.SetToolTip(textBoxGroupDescription, "Изменить описание группы");
                 _toolStripStatusLabelSetText(StatusLabel2, "");
             }
-
-                       
+                                   
 
             if (!currentDbEmpty)
             {
@@ -844,7 +824,7 @@ namespace ASTA
 
 
             logger.Info("");
-            logger.Info("Программа " + statusBar + " полностью загружена....");
+            logger.Info("Загрузка и настройка интерфейса ПО завершена....");
             logger.Info("");
         }
 
@@ -908,8 +888,8 @@ namespace ASTA
 
                         fpath = openFileDialog1.FileName;
                     }
-                    logger.Trace("ReadTXTFile");
 
+                    logger.Trace("ReadTXTFile");
                     _toolStripStatusLabelSetText(StatusLabel2, "Читаю файл: " + fpath);
                     try
                     {
@@ -932,8 +912,7 @@ namespace ASTA
                 }
                 if (!readOk)
                 {
-                    _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
-                    _toolStripStatusLabelSetText(StatusLabel2, "Не могу прочитать файл: " + fpath);
+                    _toolStripStatusLabelSetText(StatusLabel2, "Не могу прочитать файл: " + fpath,true);
                 }
                 else
                 {
@@ -1613,14 +1592,9 @@ namespace ASTA
             }
             catch (Exception err)
             {
-                logger.Error("server: " + serverName + "|user: " + userName + "|password: " + userPasswords + "\n" + err.ToString());
+                _toolStripStatusLabelSetText(StatusLabel2, "Ошибка доступа к " + serverName + " SQL БД СКД-сервера!",true,"server: " + serverName + "|user: " + userName + "|password: " + userPasswords + "\n" + err.ToString());
             }
 
-            if (!bServer1Exist)
-            {
-                _toolStripStatusLabelSetText(StatusLabel2, "Ошибка доступа к " + serverName + " SQL БД СКД-сервера!");
-                _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
-            }
             logger.Trace("CheckAliveIntellectServer: query: " + query + "| result: " + bServer1Exist);
         }
 
@@ -1677,9 +1651,11 @@ namespace ASTA
             }
             else
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Ошибка доступа к домену " + domain);
-                logger.Error("It hasn't access to AD: user: " + user + "| domain: " + domain + "| password: " + password + "| server: " + server);
-                _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
+                _toolStripStatusLabelSetText(
+                    StatusLabel2, 
+                    "Ошибка доступа к домену " + domain,
+                    true, 
+                    "It hasn't access to AD: user: " + user + "| domain: " + domain + "| password: " + password + "| server: " + server);
             }
         }
 
@@ -2092,9 +2068,11 @@ namespace ASTA
             }
             catch (Exception err)
             {
-                logger.Info("Возникла ошибка во время получения и обработки данных с серверов: " + err.ToString());
-                _toolStripStatusLabelSetText(StatusLabel2, "Возникла ошибка во время получения данных с серверов.");
-                _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
+                _toolStripStatusLabelSetText(
+                    StatusLabel2, 
+                    "Возникла ошибка во время получения данных с серверов.", 
+                    true,                      err.ToString()
+                    );
             }
 
             query = fio = nav = groupName = depName = depBoss = timeStart = timeEnd = dayStartShift = dayStartShift_ = confitionToLoad = null;
@@ -2616,8 +2594,10 @@ namespace ASTA
             }
             catch (Exception err)
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Ошибка генерации файла. Проверьте наличие установленного Excel");
-                logger.Error("ExportDatatableSelectedColumnsToExcel - " + err.ToString());
+                _toolStripStatusLabelSetText(
+                    StatusLabel2, 
+                    "Ошибка генерации файла. Проверьте наличие установленного Excel", 
+                    true,                    "| ExportDatatableSelectedColumnsToExcel: " + err.ToString());
             }
             finally
             {
@@ -5064,9 +5044,9 @@ namespace ASTA
             }
             catch (Exception err)
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Ошибки с доступом у реестру на запись. Данные не удалены.");
-                _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange); //Color.PaleGreen
-                logger.Warn("ClearRegistryData: " + err.ToString());
+                _toolStripStatusLabelSetText(StatusLabel2,
+                    "Ошибки с доступом у реестру на запись. Данные не удалены.",
+                    true, "| ClearRegistryData: " + err.ToString());
             }
         }
         //----- Clearing. End ---------//
@@ -7543,9 +7523,11 @@ namespace ASTA
             }
             else
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Попытка отправить отчет " + dgSeek.values[0] + " не существующему получателю");
-                _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange); //Color.PaleGreen
-                logger.Trace("DoReportAndEmailByRightClick, the report was attempted to send to nonexistent user: " + dgSeek.values[0]);
+                _toolStripStatusLabelSetText(
+                    StatusLabel2,
+                    "Попытка отправить отчет " + dgSeek.values[0] + " не существующему получателю",
+                    true,
+                    "DoReportAndEmailByRightClick, the report was attempted to send to non existent user: " + dgSeek.values[0]);
             }
 
             _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
@@ -7738,6 +7720,7 @@ namespace ASTA
             logger.Trace("-= " + method + " =-");
 
             _ProgressBar1Start();
+            
 
             resultOfSendingReports = new List<Mailing>();
 
@@ -7841,7 +7824,6 @@ namespace ASTA
 
             foreach (Mailing mailng in mailingList)
             {
-                _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
                 _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + mailng._nameReport);
 
                 str = "UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToYYYYMMDDHHMM() +
@@ -8293,7 +8275,6 @@ namespace ASTA
 
                 foreach (Mailing mailng in mailingList)
                 {
-                    _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
                     _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + mailng._nameReport);
 
                     str = "UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToYYYYMMDDHHMM() +
@@ -8593,15 +8574,21 @@ namespace ASTA
                             }
                             else
                             {
-                                _toolStripStatusLabelSetText(StatusLabel2, DateTime.Now.ToYYYYMMDDHHMM() + " Ошибка экспорта в файл отчета: " + nameReport + "(" + groupName + ")");
-                                _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
+                                _toolStripStatusLabelSetText(
+                                    StatusLabel2, 
+                                    DateTime.Now.ToYYYYMMDDHHMM() + " Ошибка экспорта в файл отчета: " + nameReport + "(" + groupName + ")",
+                                    true
+                                    );
                             }
                         }
                     }
                     else
                     {
-                        _toolStripStatusLabelSetText(StatusLabel2, DateTime.Now.ToYYYYMMDDHHMM() + "Ошибка получения данных для отчета: " + nameReport);
-                        _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
+                        _toolStripStatusLabelSetText(
+                            StatusLabel2, 
+                            DateTime.Now.ToYYYYMMDDHHMM() + "Ошибка получения данных для отчета: " + nameReport,
+                            true
+                            );
                     }
                 }
             }
@@ -9278,25 +9265,28 @@ namespace ASTA
 
 
 
-        private void _toolStripStatusLabelSetText(ToolStripStatusLabel statusLabel, string s) //add string into  from other threads
+        private void _toolStripStatusLabelSetText(ToolStripStatusLabel statusLabel, string s, bool error=false, string errorText=null) //add string into  from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
                     statusLabel.Text = s;
+                    if  (error) statusLabel.BackColor = Color.DarkOrange;
                 }));
             else
             {
                 statusLabel.Text = s;
+                if (error) statusLabel.BackColor = Color.DarkOrange;
             }
 
             stimerPrev = s;
 
-            if (s?.Length > 0)
-            {
-                logger.Info(s);
-            }
+            if (error)
+            { logger.Warn(s + "\nОшибка: " + errorText); }
+            else
+            {  logger.Info(s);}
         }
+
         private string _toolStripStatusLabelReturnText(ToolStripStatusLabel statusLabel)
         {
             string s = null;
@@ -9692,11 +9682,13 @@ namespace ASTA
                 {
                     timer1.Enabled = true;
                     ProgressBar1.Value = 0;
+                   StatusLabel2.BackColor=  SystemColors.Control;
                 }));
             else
             {
                 timer1.Enabled = true;
                 ProgressBar1.Value = 0;
+                StatusLabel2.BackColor = SystemColors.Control;
             }
         }
 
@@ -10107,7 +10099,7 @@ namespace ASTA
                             logger.Info("");
                             logger.Trace("-= Update =-");
                             logger.Trace("...");
-                            logger.Info(@"    new update "+appName+" ver." + xmlnode[0].InnerText + @" was found.");
+                            _toolStripStatusLabelSetText(StatusLabel2, @"    new update " + appName + " ver." + xmlnode[0].InnerText + @" was found.");
                             logger.Trace("...");
                             logger.Trace("-= Update =-");
                             logger.Info("");
@@ -10157,12 +10149,11 @@ namespace ASTA
             uploadingUpdate = false;
             if (uploadUpdateError)
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Загрузка файлов завершилась неудачно -> " + appUpdateFolderURI);
-                _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
+                _toolStripStatusLabelSetText(StatusLabel2, "Отправка файлов на сервер завершена с ошибкой -> " + appUpdateFolderURI,true);
             }
             else
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Загрузка файлов завершена -> " + appUpdateFolderURI);
+                _toolStripStatusLabelSetText(StatusLabel2, "Отправка файлов на сервер завершена -> " + appUpdateFolderURI);
             }
         }
         
@@ -10170,21 +10161,21 @@ namespace ASTA
         {
             MethodInvoker mi1 = delegate
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Идет загрузка файла -> " + target);
+                _toolStripStatusLabelSetText(StatusLabel2, "Идет отправка файла -> " + target);
                 try
                 {
                     // var fileByte = System.IO.File.ReadAllBytes(source);
                     // System.IO.File.WriteAllBytes(target, fileByte);
-                    try { System.IO.File.Delete(target); } catch { logger.Info("файл предварительно не удален: " + target); } //@"\\server\folder\Myfile.txt"
+                    try { System.IO.File.Delete(target); }
+                    catch { logger.Info("файл предварительно не удален: " + target); } //@"\\server\folder\Myfile.txt"
 
                     System.IO.File.Copy(source, target, true); //@"\\server\folder\Myfile.txt"
-                    logger.Info("Uploaded: " + source + " -> " + target);
+                    logger.Info("Отправка файла на сервер завершена: " + source + " -> " + target);
                 }
                 catch (Exception err)
                 {
                     uploadUpdateError = true;
-                    _toolStripStatusLabelSetText(StatusLabel2, "Ошибка загрузки файла " + target);
-                    logger.Warn("Uploaded error: " + source + " -> " + target + "\n" + err.ToString());
+                    _toolStripStatusLabelSetText(StatusLabel2, "Отправка файла на сервер завершена с ошибкой: " + target,true, err.ToString());
                 }
             };
 
