@@ -177,9 +177,6 @@
     <Content Include="ASTA.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="ASTA.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="NLog.config" />
     <None Include="NLog.xsd">
       <SubType>Designer</SubType>
@@ -216,6 +213,7 @@
     <Compile Include="MailServer.cs" />
     <Compile Include="MailSender.cs" />
     <Compile Include="MailUser.cs" />
+    <Compile Include="MakerXML.cs" />
     <Compile Include="PeopleShiftsAndOutResons.cs" />
     <Compile Include="AssemblyInfo1.cs" />
     <Compile Include="DataGridViewSeekValuesInSelectedRow.cs" />

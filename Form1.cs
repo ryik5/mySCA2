@@ -45,6 +45,7 @@ namespace ASTA
 
         readonly static string appFilePath = Application.ExecutablePath;
 
+
         readonly static string appFolderPath = System.IO.Path.GetDirectoryName(appFilePath); //Environment.CurrentDirectory
         readonly static string appFolderTempPath = System.IO.Path.Combine(appFolderPath, "Temp");
         readonly static string appFolderUpdatePath = System.IO.Path.Combine(appFolderPath, "Update");
@@ -59,6 +60,7 @@ namespace ASTA
             };
         static string appQueryCreatingDB = System.IO.Path.Combine(appFolderPath, System.IO.Path.GetFileNameWithoutExtension(appFilePath) + @".sql");
 
+        static string appFileMD5;
         static string appUpdateFolderURL = @"file://kv-sb-server.corp.ais/Common/ASTA/";
         static string appUpdateURL = appUpdateFolderURL + appNameXML;
 
@@ -532,6 +534,7 @@ namespace ASTA
                 logger.Info("");
                 logger.Info("");
             }
+            
             //Блок проверки уровня настройки логгирования
             {
                 logger.Info("Test Info message");
@@ -541,67 +544,15 @@ namespace ASTA
                 logger.Error("Test4 Error message");
                 logger.Fatal("Test5 Fatal message");
             }
+            
             //Clear temporary folder 
             {
                 ClearItemsInApplicationFolders(appFolderTempPath);
                 ClearItemsInApplicationFolders(appFolderUpdatePath);
-                System.IO.Directory.CreateDirectory(appFolderUpdatePath);
-                System.IO.Directory.CreateDirectory(appFolderTempPath);
                 System.IO.Directory.CreateDirectory(appFolderBackUpPath);
-            }
-
-
-            logger.Info("Настраиваю интерфейс....");
-            bmpLogo = Properties.Resources.LogoRYIK;
-            this.Icon = Icon.FromHandle(bmpLogo.GetHicon());
-            notifyIcon.Icon = this.Icon;
-            notifyIcon.Visible = true;
-            notifyIcon.BalloonTipText = "Developed by " + appCopyright;
-            notifyIcon.ShowBalloonTip(500);
-
-            this.Text = appFileVersionInfo.Comments;
-            notifyIcon.Text = appName + "\nv." + appFileVersionInfo.FileVersion + "\n" + appFileVersionInfo.CompanyName;
-
-            //write ver of application on the disk
-            System.Xml.XmlDocument doc = new System.Xml.XmlDocument();
-            System.Xml.XmlDeclaration xmlDeclaration = doc.CreateXmlDeclaration("1.0", "UTF-8", null);   //the xml declaration is recommended, but not mandatory
-            System.Xml.XmlElement root = doc.DocumentElement;
-            doc.InsertBefore(xmlDeclaration, root);
-
-            System.Xml.XmlElement item = doc.CreateElement(string.Empty, "item", string.Empty);     //string.Empty makes cleaner code
-            doc.AppendChild(item);
-
-            System.Xml.XmlElement versionAssemblyInXML = doc.CreateElement(string.Empty, "version", string.Empty);
-            System.Xml.XmlText versionInXML = doc.CreateTextNode(appVersionAssembly);
-            versionAssemblyInXML.AppendChild(versionInXML);
-            item.AppendChild(versionAssemblyInXML);
-
-            System.Xml.XmlElement urlZip = doc.CreateElement(string.Empty, "url", string.Empty);
-            System.Xml.XmlText urlText = doc.CreateTextNode(appUpdateFolderURL + appNameZIP); //
-            urlZip.AppendChild(urlText);
-            item.AppendChild(urlZip);
-
-            /* //todo
-            System.Xml.XmlElement changelog = doc.CreateElement(string.Empty, "changelog", string.Empty);
-            System.Xml.XmlText changelogText = doc.CreateTextNode(appUpdateFolderURL + "urlLog");
-            changelog.AppendChild(changelogText);
-            item.AppendChild(changelog);
-            
-            System.Xml.XmlElement checksum = doc.CreateElement(string.Empty, "checksum", string.Empty);
-            checksum.InnerXml = "algorithm = \"MD5\"";
-            System.Xml.XmlText checksumText = doc.CreateTextNode("checksumText");
-            checksum.AppendChild(checksumText);
-            item.AppendChild(checksum);
-             */
-             /*
-            <changelog>https://github.com/ravibpatel/AutoUpdater.NET/releases</changelog>
-            <checksum algorithm="MD5">Update file Checksum</checksum>
-            */
-            
-
-            doc.Save(appNameXML);
-
-
+                System.IO.Directory.CreateDirectory(appFolderTempPath);
+                 System.IO.Directory.CreateDirectory(appFolderUpdatePath);
+           }
 
             //Make archive from *.exe and libs of application
             if (System.IO.File.Exists(appNameZIP))
@@ -609,25 +560,23 @@ namespace ASTA
                 System.IO.File.Move(appNameZIP, System.IO.Path.Combine(appFolderBackUpPath, appName + "." + GetSafeFilename(today.ToYYYYMMDDHHMMSS(), "") + @".zip"));
             }
             MakeZip(appAllFiles, appNameZIP);
-
             ClearItemsInApplicationFolders(appFolderTempPath);
             System.IO.Directory.CreateDirectory(appFolderTempPath);
 
             //Make archive from main DB of application
             string zipPath = appDbName + "." + GetSafeFilename(today.ToYYYYMMDDHHMMSS(), "") + @".zip";
             string[] fillesToZip = { appDbName };
-         //   if (!System.IO.File.Exists(zipPath))
+            //   if (!System.IO.File.Exists(zipPath))
             {
                 MakeZip(fillesToZip, zipPath);
             }
             System.IO.File.Move(zipPath, System.IO.Path.Combine(appFolderBackUpPath, System.IO.Path.GetFileName(zipPath)));
-
             ClearItemsInApplicationFolders(appFolderTempPath);
             System.IO.Directory.CreateDirectory(appFolderTempPath);
 
 
             //Check local DB Configuration
-            logger.Trace("Check Local DB");
+            logger.Trace("Проверка локальной БД");
             if (!System.IO.File.Exists(dbApplication.FullName))
             {
                 logger.Info("Создаю файл локальной DB");
@@ -660,78 +609,7 @@ namespace ASTA
 
 
             //Refresh Configuration of the application
-             RefreshConfigOfApplicationInMainDB();
-
-            //Настройка отображаемых пунктов меню и других элементов интерфеса
-            {
-                currentModeAppManual = true;
-                _MenuItemTextSet(ModeItem, "Включить режим автоматических e-mail рассылок");
-                _menuItemTooltipSet(ModeItem, "Включен интерактивный режим. Все рассылки остановлены.");
-
-
-                StatusLabel1.Text = statusBar;
-                StatusLabel1.Alignment = ToolStripItemAlignment.Right;
-                StatusLabel2.Text = " Начните работу с кнопки - \"Получить ФИО\"";
-
-                contextMenu = new ContextMenu();  //Context Menu on notify Icon
-                notifyIcon.ContextMenu = contextMenu;
-                contextMenu.MenuItems.Add("About", AboutSoft);
-                contextMenu.MenuItems.Add("-", AboutSoft);
-                contextMenu.MenuItems.Add("Exit", ApplicationExit);
-
-                EditAnualDaysItem.Text = DAY_OFF_AND_WORK;
-                EditAnualDaysItem.ToolTipText = DAY_OFF_AND_WORK_EDIT;
-
-                _MenuItemEnabled(AddAnualDateItem, false);
-
-                //todo
-                //rewrite to access from other threads
-                MembersGroupItem.Enabled = false;
-                AddPersonToGroupItem.Enabled = false;
-                CreateGroupItem.Enabled = false;
-                DeleteGroupItem.Visible = false;
-                DeletePersonFromGroupItem.Visible = false;
-                CheckBoxesFiltersAll_Enable(false);
-                TableModeItem.Visible = false;
-                VisualModeItem.Visible = false;
-                ChangeColorMenuItem.Visible = false;
-                TableExportToExcelItem.Visible = false;
-                listFioItem.Visible = false;
-                dataGridView1.ShowCellToolTips = true;
-                groupBoxProperties.Visible = false;
-
-                comboBoxFio.DrawMode = DrawMode.OwnerDrawFixed;
-                comboBoxFio.DrawItem += new DrawItemEventHandler(ComboBox_DrawItem);
-
-                GetFioItem.BackColor = Color.LightSkyBlue;
-                HelpAboutItem.BackColor = Color.PaleGreen;
-                ExitItem.BackColor = Color.DarkOrange;
-                DeleteGroupItem.BackColor = Color.DarkOrange;
-
-                //Set up Starting values
-                dateTimePickerStart.CustomFormat = "yyyy-MM-dd";
-                dateTimePickerEnd.CustomFormat = "yyyy-MM-dd";
-                dateTimePickerStart.Format = DateTimePickerFormat.Custom;
-                dateTimePickerEnd.Format = DateTimePickerFormat.Custom;
-                dateTimePickerStart.MinDate = DateTime.Parse("2016-01-01");
-                dateTimePickerEnd.MinDate = DateTime.Parse("2016-01-01");
-                dateTimePickerStart.MaxDate = today;
-                dateTimePickerEnd.MaxDate = DateTime.Parse("2025-12-31");
-                dateTimePickerStart.Value = DateTime.Parse(today.Year + "-" + today.Month + "-01");
-                dateTimePickerEnd.Value = today.LastDayOfMonth();
-
-
-                numUpDownHourStart.Value = 9;
-                numUpDownMinuteStart.Value = 0;
-                numUpDownHourEnd.Value = 18;
-                numUpDownMinuteEnd.Value = 0;
-
-                _MenuItemTextSet(PersonOrGroupItem, WORK_WITH_A_PERSON);
-                toolTip1.SetToolTip(textBoxGroup, "Создать или добавить в группу");
-                toolTip1.SetToolTip(textBoxGroupDescription, "Изменить описание группы");
-                _toolStripStatusLabelSetText(StatusLabel2, "");
-            }
-                                   
+            RefreshConfigOfApplicationInMainDB();
 
             if (!currentDbEmpty)
             {
@@ -799,6 +677,88 @@ namespace ASTA
             {
                 _mailServer = new MailServer(mailServer, mailServerSMTPPort);
             }
+
+
+            logger.Info("Настраиваю интерфейс....");
+            bmpLogo = Properties.Resources.LogoRYIK;
+            this.Icon = Icon.FromHandle(bmpLogo.GetHicon());
+            notifyIcon.Icon = this.Icon;
+            notifyIcon.Visible = true;
+            notifyIcon.BalloonTipText = "Developed by " + appCopyright;
+            notifyIcon.ShowBalloonTip(500);
+
+            this.Text = appFileVersionInfo.Comments;
+            notifyIcon.Text = appName + "\nv." + appFileVersionInfo.FileVersion + "\n" + appFileVersionInfo.CompanyName;
+
+            //Настройка отображаемых пунктов меню и других элементов интерфеса
+            {
+                currentModeAppManual = true;
+                _MenuItemTextSet(ModeItem, "Включить режим автоматических e-mail рассылок");
+                _menuItemTooltipSet(ModeItem, "Включен интерактивный режим. Все рассылки остановлены.");
+
+
+                StatusLabel1.Text = statusBar;
+                StatusLabel1.Alignment = ToolStripItemAlignment.Right;
+
+                contextMenu = new ContextMenu();  //Context Menu on notify Icon
+                notifyIcon.ContextMenu = contextMenu;
+                contextMenu.MenuItems.Add("About", AboutSoft);
+                contextMenu.MenuItems.Add("-", AboutSoft);
+                contextMenu.MenuItems.Add("Exit", ApplicationExit);
+
+                EditAnualDaysItem.Text = DAY_OFF_AND_WORK;
+                EditAnualDaysItem.ToolTipText = DAY_OFF_AND_WORK_EDIT;
+
+                _MenuItemEnabled(AddAnualDateItem, false);
+
+                //todo
+                //rewrite to access from other threads
+                MembersGroupItem.Enabled = false;
+                AddPersonToGroupItem.Enabled = false;
+                CreateGroupItem.Enabled = false;
+                DeleteGroupItem.Visible = false;
+                DeletePersonFromGroupItem.Visible = false;
+                CheckBoxesFiltersAll_Enable(false);
+                TableModeItem.Visible = false;
+                VisualModeItem.Visible = false;
+                ChangeColorMenuItem.Visible = false;
+                TableExportToExcelItem.Visible = false;
+                listFioItem.Visible = false;
+                dataGridView1.ShowCellToolTips = true;
+                groupBoxProperties.Visible = false;
+
+                comboBoxFio.DrawMode = DrawMode.OwnerDrawFixed;
+                comboBoxFio.DrawItem += new DrawItemEventHandler(ComboBox_DrawItem);
+
+                GetFioItem.BackColor = Color.LightSkyBlue;
+                HelpAboutItem.BackColor = Color.PaleGreen;
+                ExitItem.BackColor = Color.DarkOrange;
+                DeleteGroupItem.BackColor = Color.DarkOrange;
+
+                //Set up Starting values
+                dateTimePickerStart.CustomFormat = "yyyy-MM-dd";
+                dateTimePickerEnd.CustomFormat = "yyyy-MM-dd";
+                dateTimePickerStart.Format = DateTimePickerFormat.Custom;
+                dateTimePickerEnd.Format = DateTimePickerFormat.Custom;
+                dateTimePickerStart.MinDate = DateTime.Parse("2016-01-01");
+                dateTimePickerEnd.MinDate = DateTime.Parse("2016-01-01");
+                dateTimePickerStart.MaxDate = today;
+                dateTimePickerEnd.MaxDate = DateTime.Parse("2025-12-31");
+                dateTimePickerStart.Value = DateTime.Parse(today.Year + "-" + today.Month + "-01");
+                dateTimePickerEnd.Value = today.LastDayOfMonth();
+
+
+                numUpDownHourStart.Value = 9;
+                numUpDownMinuteStart.Value = 0;
+                numUpDownHourEnd.Value = 18;
+                numUpDownMinuteEnd.Value = 0;
+
+                _MenuItemTextSet(PersonOrGroupItem, WORK_WITH_A_PERSON);
+                toolTip1.SetToolTip(textBoxGroup, "Создать или добавить в группу");
+                toolTip1.SetToolTip(textBoxGroupDescription, "Изменить описание группы");
+            }
+                                   
+
 
             if (mailsOfSenderOfName != null && mailsOfSenderOfName.Contains('@'))
             {
@@ -959,8 +919,8 @@ namespace ASTA
                 }//foreach
 
                 dbWriter.ExecuteQueryEnd();
+            _toolStripStatusLabelSetText(StatusLabel2, "Таблицы в БД созданы.");
             }
-            _toolStripStatusLabelSetText(StatusLabel2, "");
         }
 
 
@@ -1006,23 +966,24 @@ namespace ASTA
             using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(appRegistryKey, Microsoft.Win32.RegistryKeyPermissionCheck.ReadSubTree, System.Security.AccessControl.RegistryRights.ReadKey))
             {
                 try { sServer1Registry = EvUserKey?.GetValue("SKDServer")?.ToString(); }
-                catch { logger.Warn("Registry GetValue SCA Name"); }
+                catch { logger.Trace("Can't get value of SCA server's name from Registry"); }
                 try { sServer1UserNameRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey?.GetValue("SKDUser")?.ToString(), keyEncryption, keyDencryption).ToString(); }
-                catch { logger.Warn("Error of GetValue SCA User from Registry"); }
+                catch { logger.Trace("Can't get value of SCA User from Registry"); }
                 try { sServer1UserPasswordRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey?.GetValue("SKDUserPassword")?.ToString(), keyEncryption, keyDencryption).ToString(); }
-                catch { logger.Warn("Error of GetValue SCA UserPassword from Registry"); }
+                catch { logger.Trace("Can't get value of SCA UserPassword from Registry"); }
                 //  try { mailServerRegistry = EvUserKey?.GetValue("MailServer")?.ToString(); } catch { logger.Warn("Registry GetValue Mail"); }
                 //  try { mailServerUserNameRegistry = EvUserKey?.GetValue("MailUser")?.ToString(); } catch { }
                 //  try { mailServerUserPasswordRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey?.GetValue("MailUserPassword")?.ToString(), keyEncryption, keyDencryption).ToString(); } catch { }
 
                 try { mysqlServerRegistry = EvUserKey?.GetValue("MySQLServer")?.ToString(); }
-                catch { logger.Warn("Error of GetValue MySQL Name from Registry"); }
+                catch { logger.Trace("Can't get value of MySQL Name from Registry"); }
                 try { mysqlServerUserNameRegistry = EvUserKey?.GetValue("MySQLUser")?.ToString(); }
-                catch { logger.Warn("Error of GetValue MySQL User from Registry"); }
+                catch { logger.Trace("Can't get value of MySQL User from Registry"); }
                 try { mysqlServerUserPasswordRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey?.GetValue("MySQLUserPassword")?.ToString(), keyEncryption, keyDencryption).ToString(); }
-                catch { logger.Warn("Error of GetValue MySQL UserPassword from Registry"); }
+                catch { logger.Trace("Can't get value of MySQL UserPassword from Registry"); }
 
-                try { modeApp = EvUserKey?.GetValue("ModeApp")?.ToString(); } catch { logger.Warn("Registry GetValue ModeApp"); }
+                try { modeApp = EvUserKey?.GetValue("ModeApp")?.ToString(); }
+                catch { logger.Trace("Can't get value of ModeApp from Registry"); }
             }
 
             //Get data from local DB
@@ -10025,6 +9986,8 @@ namespace ASTA
             worker.Start();
         }
 
+
+        //Autoupdate
         private void AutoupdatItem_Click(object sender, EventArgs e)
         {
             AutoUpdate();
@@ -10032,6 +9995,9 @@ namespace ASTA
 
         private async Task AutoUpdate()
         {
+            //Make application XML for Autoupdater's
+            CreateAppXMLFile();
+
             AutoUpdater.CheckForUpdateEvent += AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
 
             //Check updates frequently
@@ -10070,7 +10036,7 @@ namespace ASTA
                 }
                 else
                 {
-                    logger.Info(@"Update suspended: Now it is going on upload a new ver of application ");
+                    logger.Info(@"Обновление приостановлено. На сервер сейчас загружается новая версия ПО");
                 }
             };
             timer.Start();
@@ -10086,7 +10052,6 @@ namespace ASTA
                     {
                         if (AutoUpdater.DownloadUpdate())
                         {
-
                             System.Xml.XmlDocument xmldoc = new System.Xml.XmlDocument();
                             System.Xml.XmlNodeList xmlnode;
                             xmldoc.Load(appUpdateURL);
@@ -10096,7 +10061,7 @@ namespace ASTA
                             logger.Info("");
                             logger.Trace("-= Update =-");
                             logger.Trace("...");
-                            _toolStripStatusLabelSetText(StatusLabel2, @"    new update " + appName + " ver." + xmlnode[0].InnerText + @" was found.");
+                            _toolStripStatusLabelSetText(StatusLabel2, @" обнаружена новая версия " + appName + " ver." + xmlnode[0].InnerText);
                             logger.Trace("...");
                             logger.Trace("-= Update =-");
                             logger.Info("");
@@ -10123,7 +10088,32 @@ namespace ASTA
             }
         }
 
+        //Make and Save XML into local file
+        private void CreateAppXMLFile()
+        {
+            //calculate app's MD5
+            appFileMD5 = CalculateMD5(appFilePath);
 
+            MakerXML makerXML = new MakerXML(appVersionAssembly, appNameXML, appUpdateFolderURL + appNameZIP, null, appFileMD5);
+            makerXML.SaveXML();
+            _toolStripStatusLabelSetText(StatusLabel2, makerXML.Status);
+            makerXML = null;
+        }
+
+        static string CalculateMD5(string filename)
+        {
+            using (var md5 = MD5.Create())
+            {
+                using (var stream = System.IO.File.OpenRead(filename))
+                {
+                    var hash = md5.ComputeHash(stream);
+                    return BitConverter.ToString(hash).Replace("-", "").ToUpperInvariant();
+                }
+            }
+        }
+
+
+        //Upload App's files to Server
         private async void UploadApplicationItem_Click(object sender, EventArgs e) //Uploading()
         {
            Task.Run(()=> Uploading());
@@ -10131,9 +10121,10 @@ namespace ASTA
 
         private async void Uploading() //UploadApplicationToShare()
         {
+            _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
+
             uploadingUpdate = true;
             uploadUpdateError = false;
-            _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
 
             Func<Task>[] tasks =
             {
@@ -10151,6 +10142,7 @@ namespace ASTA
             else
             {
                 _toolStripStatusLabelSetText(StatusLabel2, "Отправка файлов на сервер завершена -> " + appUpdateFolderURI);
+                _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
             }
         }
         
@@ -10178,8 +10170,7 @@ namespace ASTA
 
             this.Invoke(mi1);
         }
-
-
+        
         static async Task InvokeAsync(IEnumerable<Func<Task>> taskFactories, int maxDegreeOfParallelism)
         {
             Queue<Func<Task>> queue = new Queue<Func<Task>>(taskFactories);
@@ -10209,5 +10200,7 @@ namespace ASTA
             }
             while (queue.Count != 0 || tasksInFlight.Count != 0);
         }
+
+        
     }
 }

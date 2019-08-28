@@ -871,13 +871,13 @@
     <value>Работа только с группами для персон с NAV-кодами</value>
   </data>
   <data name="SettingsProgrammItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
+    <value>374, 22</value>
   </data>
   <data name="SettingsProgrammItem.Text" xml:space="preserve">
     <value>Первичная настройка программы</value>
   </data>
   <data name="AddParameterInConfigItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
+    <value>374, 22</value>
   </data>
   <data name="AddParameterInConfigItem.Text" xml:space="preserve">
     <value>Добавить параметр в конфигурацию</value>
@@ -886,61 +886,61 @@
     <value>Если параметр был, то изменить сохраненный</value>
   </data>
   <data name="ConfigurationItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
+    <value>374, 22</value>
   </data>
   <data name="ConfigurationItem.Text" xml:space="preserve">
     <value>Вся конфигурация ПО</value>
   </data>
   <data name="SelectedToLoadCityItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
+    <value>374, 22</value>
   </data>
   <data name="SelectedToLoadCityItem.Text" xml:space="preserve">
     <value>Список городов для загрузки с www</value>
   </data>
   <data name="Separator1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>354, 6</value>
+    <value>371, 6</value>
   </data>
   <data name="MailingsShowItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
+    <value>374, 22</value>
   </data>
   <data name="MailingsShowItem.Text" xml:space="preserve">
     <value>Все e-mail рассылки</value>
   </data>
   <data name="MailingAddItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
+    <value>374, 22</value>
   </data>
   <data name="MailingAddItem.Text" xml:space="preserve">
     <value>Добавить e-mail рассылку</value>
   </data>
   <data name="MailingsExceptItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
+    <value>374, 22</value>
   </data>
   <data name="MailingsExceptItem.Text" xml:space="preserve">
     <value>Адреса исключенные из рассылок</value>
   </data>
   <data name="ModeItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
+    <value>374, 22</value>
   </data>
   <data name="ModeItem.Text" xml:space="preserve">
     <value>Mode</value>
   </data>
   <data name="TestToSendAllMailingsItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
+    <value>374, 22</value>
   </data>
   <data name="TestToSendAllMailingsItem.Text" xml:space="preserve">
     <value>Протестировать режим авторассылки отчетов</value>
   </data>
   <data name="Separator2.Size" type="System.Drawing.Size, System.Drawing">
-    <value>354, 6</value>
+    <value>371, 6</value>
   </data>
   <data name="EditAnualDaysItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
+    <value>374, 22</value>
   </data>
   <data name="EditAnualDaysItem.Text" xml:space="preserve">
     <value>Войти в режим редактирования праздников</value>
   </data>
   <data name="AddAnualDateItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
+    <value>374, 22</value>
   </data>
   <data name="AddAnualDateItem.Text" xml:space="preserve">
     <value>Добавить праздничный день</value>
@@ -949,10 +949,10 @@
     <value>Добавить выделенный день как праздничный</value>
   </data>
   <data name="Separator3.Size" type="System.Drawing.Size, System.Drawing">
-    <value>354, 6</value>
+    <value>371, 6</value>
   </data>
   <data name="ClearReportItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
+    <value>374, 22</value>
   </data>
   <data name="ClearReportItem.Text" xml:space="preserve">
     <value>Очистить папку програмы от сохраненных отчетов</value>
@@ -961,7 +961,7 @@
     <value>Очистить локальную базу с отчетами и все файлы отчетов</value>
   </data>
   <data name="ClearDataItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
+    <value>374, 22</value>
   </data>
   <data name="ClearDataItem.Text" xml:space="preserve">
     <value>Очистить таблицы программы от данных</value>
@@ -970,13 +970,13 @@
     <value>Очистить все таблицы, кроме таблиц с настройками</value>
   </data>
   <data name="ClearRegistryItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
+    <value>374, 22</value>
   </data>
   <data name="ClearRegistryItem.Text" xml:space="preserve">
     <value>Удалить данные из реестра</value>
   </data>
   <data name="ClearAllItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
+    <value>374, 22</value>
   </data>
   <data name="ClearAllItem.Text" xml:space="preserve">
     <value>Очистить программу от всех данных и настроек</value>
@@ -985,28 +985,28 @@
     <value>Очистика локальной базы от всех полученных, сгенерированных, сохраненных и введенных данных</value>
   </data>
   <data name="Separator7.Size" type="System.Drawing.Size, System.Drawing">
-    <value>354, 6</value>
+    <value>371, 6</value>
   </data>
   <data name="GetADUsersItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
+    <value>374, 22</value>
   </data>
   <data name="GetADUsersItem.Text" xml:space="preserve">
     <value>Получить список AD users</value>
   </data>
   <data name="AutoupdateItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
+    <value>374, 22</value>
   </data>
   <data name="AutoupdateItem.Text" xml:space="preserve">
     <value>Проверить обновления ПО</value>
   </data>
   <data name="GetCurrentSchemeItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
+    <value>374, 22</value>
   </data>
   <data name="GetCurrentSchemeItem.Text" xml:space="preserve">
     <value>Схема локальной БД</value>
   </data>
   <data name="CreateDBItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
+    <value>374, 22</value>
   </data>
   <data name="CreateDBItem.Text" xml:space="preserve">
     <value>Создать локальную БД из sql-запроса</value>
@@ -1018,7 +1018,7 @@
     <value>Обновить конфигурацию параметров в локальной БД</value>
   </data>
   <data name="UploadApplicationItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>357, 22</value>
+    <value>374, 22</value>
   </data>
   <data name="UploadApplicationItem.Text" xml:space="preserve">
     <value>Загрузить данное приложение на сервер</value>
@@ -2001,6 +2001,12 @@
   <data name="&gt;&gt;RefreshConfigInMainDBItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="&gt;&gt;UploadApplicationItem.Name" xml:space="preserve">
+    <value>UploadApplicationItem</value>
+  </data>
+  <data name="&gt;&gt;UploadApplicationItem.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="&gt;&gt;HelpMenuItem.Name" xml:space="preserve">
     <value>HelpMenuItem</value>
   </data>
@@ -2030,12 +2036,6 @@
   </data>
   <data name="&gt;&gt;timer1.Type" xml:space="preserve">
     <value>System.Windows.Forms.Timer, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;UploadApplicationItem.Name" xml:space="preserve">
-    <value>UploadApplicationItem</value>
-  </data>
-  <data name="&gt;&gt;UploadApplicationItem.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;$this.Name" xml:space="preserve">
     <value>WinFormASTA</value>

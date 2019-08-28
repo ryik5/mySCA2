@@ -111,6 +111,7 @@
             this.GetCurrentSchemeItem = new System.Windows.Forms.ToolStripMenuItem();
             this.CreateDBItem = new System.Windows.Forms.ToolStripMenuItem();
             this.RefreshConfigInMainDBItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.UploadApplicationItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpAboutItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SetupItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -128,7 +129,6 @@
             this.groupBoxTimeEnd = new System.Windows.Forms.GroupBox();
             this.labelHourEnd = new System.Windows.Forms.Label();
             this.labelMinuteEnd = new System.Windows.Forms.Label();
-            this.UploadApplicationItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownHourStart)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownMinuteStart)).BeginInit();
@@ -740,6 +740,12 @@
             resources.ApplyResources(this.RefreshConfigInMainDBItem, "RefreshConfigInMainDBItem");
             this.RefreshConfigInMainDBItem.Click += new System.EventHandler(this.RefreshConfigInMainDBItem_Click);
             // 
+            // UploadApplicationItem
+            // 
+            this.UploadApplicationItem.Name = "UploadApplicationItem";
+            resources.ApplyResources(this.UploadApplicationItem, "UploadApplicationItem");
+            this.UploadApplicationItem.Click += new System.EventHandler(this.UploadApplicationItem_Click);
+            // 
             // HelpMenuItem
             // 
             this.HelpMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -851,12 +857,6 @@
             // 
             resources.ApplyResources(this.labelMinuteEnd, "labelMinuteEnd");
             this.labelMinuteEnd.Name = "labelMinuteEnd";
-            // 
-            // UploadApplicationItem
-            // 
-            this.UploadApplicationItem.Name = "UploadApplicationItem";
-            resources.ApplyResources(this.UploadApplicationItem, "UploadApplicationItem");
-            this.UploadApplicationItem.Click += new System.EventHandler(this.UploadApplicationItem_Click);
             // 
             // WinFormASTA
             // 
