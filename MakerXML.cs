@@ -37,6 +37,11 @@ namespace ASTA
             //https://stackoverflow.com/questions/44477727/writing-xml-and-reading-it-back-c-sharp
 
             XMLDocument document = new XMLDocument();
+
+            //clear any xmlns attributes from the root element
+            XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
+            ns.Add("","");//clear any xmlns attributes from the root element
+
             if (_appVersion != null)
                 document.version = _appVersion;
             if (_appUpdateFileURL != null)
@@ -55,10 +60,12 @@ namespace ASTA
 
             using (FileStream fs = new FileStream(_appXmlLocalPath, FileMode.Create))
             {
+                
+
                 // XmlSerializer serializer = new XmlSerializer(nodesToStore.GetType());
                 // serializer.Serialize(fs, nodesToStore);
-                XmlSerializer serializer = new XmlSerializer(document.GetType());
-                serializer.Serialize(fs, document);
+                XmlSerializer serializer = new XmlSerializer(document.GetType());//, atribXmlOver
+                serializer.Serialize(fs, document, ns); //clear any xmlns attributes from the root element
                 Status = "XML файл сохранен как " + _appXmlLocalPath;
             }
 
@@ -120,9 +127,11 @@ namespace ASTA
          */
     }
 
-    [XmlRoot(ElementName = "document", IsNullable = true)]
-    public class XMLDocument
+    [XmlRoot(ElementName = "item", IsNullable = false)]
+    public class XMLDocument //Класс должен иметь модификатор public 
     {
+        //Класс для сериализации должен иметь стандартный конструктор без параметров. 
+        //поля или свойства с модификатором private, при сериализации будут игнорироваться. 
         [XmlElement]
         public string version { get; set; }
         public string url { get; set; }
@@ -130,8 +139,11 @@ namespace ASTA
         public XMLElementChecksum checksum { get; set; }
     }
 
-    public class XMLElementChecksum
+    public class XMLElementChecksum //Класс должен иметь модификатор public 
     {
+        //Класс для сериализации должен иметь стандартный конструктор без параметров. 
+        //поля или свойства с модификатором private, при сериализации будут игнорироваться. 
+
         [XmlText]
         public string value { get; set; }
 

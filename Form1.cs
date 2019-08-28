@@ -9990,20 +9990,18 @@ namespace ASTA
         //Autoupdate
         private void AutoupdatItem_Click(object sender, EventArgs e)
         {
-            AutoUpdate();
+            AutoUpdater.Start(appUpdateURL, System.Reflection.Assembly.GetEntryAssembly());
+            // AutoUpdate();
         }
 
         private async Task AutoUpdate()
         {
-            //Make application XML for Autoupdater's
-            CreateAppXMLFile();
-
             AutoUpdater.CheckForUpdateEvent += AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
 
             //Check updates frequently
             System.Timers.Timer timer = new System.Timers.Timer
             {
-                Interval = 1*60 * 60 * 1000,       // 1 * 60 * 1000 // it sets the interval of checking equal at a minute
+                Interval = 1 * 60 * 60 * 1000,       // 1 * 60 * 1000 // it sets the interval of checking equal at a minute
                 SynchronizingObject = this
             };
             timer.Elapsed += delegate
@@ -10035,9 +10033,7 @@ namespace ASTA
                     //AutoUpdater.Start("ftp://kv-sb-server.corp.ais/Common/ASTA/ASTA.xml", new NetworkCredential("FtpUserName", "FtpPassword")); //download from FTP
                 }
                 else
-                {
-                    logger.Info(@"Обновление приостановлено. На сервер сейчас загружается новая версия ПО");
-                }
+                { logger.Info(@"Обновление приостановлено. На сервер сейчас загружается новая версия ПО"); }
             };
             timer.Start();
         }
@@ -10071,29 +10067,23 @@ namespace ASTA
                         }
                     }
                     catch (Exception exception)
-                    {
-                        logger.Error(@"Update's check was failed: " + exception.Message + "| " + exception.GetType().ToString());
-                    }
+                    { logger.Error(@"Update's check was failed: " + exception.Message + "| " + exception.GetType().ToString()); }
                     // Uncomment the following line if you want to show standard update dialog instead.
                     // AutoUpdater.ShowUpdateForm();
                 }
                 else
-                {
-                    logger.Trace(@"Update's check: " + @"There is no update available please try again later.");
-                }
+                { logger.Trace(@"Update's check: " + @"There is no update available please try again later."); }
             }
             else
-            {
-                logger.Warn(@"Update check failed: There is a problem reaching update server URL.");
-            }
+            { logger.Warn(@"Update check failed: There is a problem reaching update server URL."); }
         }
 
         //Make and Save XML into local file
         private void CreateAppXMLFile()
         {
             //calculate app's MD5
-            appFileMD5 = CalculateMD5(appFilePath);
-
+          //  appFileMD5 = CalculateMD5(appFilePath);//something wrong
+            appFileMD5 = null;
             MakerXML makerXML = new MakerXML(appVersionAssembly, appNameXML, appUpdateFolderURL + appNameZIP, null, appFileMD5);
             makerXML.SaveXML();
             _toolStripStatusLabelSetText(StatusLabel2, makerXML.Status);
@@ -10107,8 +10097,18 @@ namespace ASTA
                 using (var stream = System.IO.File.OpenRead(filename))
                 {
                     var hash = md5.ComputeHash(stream);
-                    return BitConverter.ToString(hash).Replace("-", "").ToUpperInvariant();
+                    return BitConverter.ToString(hash);//.Replace("-", "").ToUpperInvariant();
                 }
+            }
+        }
+
+        static string CalculateHash(string filename)
+        {
+            using (System.IO.FileStream fs = new System.IO.FileStream(filename, System.IO.FileMode.Open, System.IO.FileAccess.Read))
+            {
+                SHA1CryptoServiceProvider unmanaged = new SHA1CryptoServiceProvider();
+                byte[] retVal = unmanaged.ComputeHash(fs);
+                return string.Join("", retVal.Select(x => x.ToString("x2")));
             }
         }
 
@@ -10125,6 +10125,9 @@ namespace ASTA
 
             uploadingUpdate = true;
             uploadUpdateError = false;
+           
+            //Make application XML for Autoupdater's
+            CreateAppXMLFile();
 
             Func<Task>[] tasks =
             {
@@ -10201,6 +10204,5 @@ namespace ASTA
             while (queue.Count != 0 || tasksInFlight.Count != 0);
         }
 
-        
     }
 }
