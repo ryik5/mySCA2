@@ -534,7 +534,7 @@ namespace ASTA
                 logger.Info("");
                 logger.Info("");
             }
-            
+
             //Блок проверки уровня настройки логгирования
             {
                 logger.Info("Test Info message");
@@ -544,15 +544,15 @@ namespace ASTA
                 logger.Error("Test4 Error message");
                 logger.Fatal("Test5 Fatal message");
             }
-            
+
             //Clear temporary folder 
             {
                 ClearItemsInApplicationFolders(appFolderTempPath);
                 ClearItemsInApplicationFolders(appFolderUpdatePath);
                 System.IO.Directory.CreateDirectory(appFolderBackUpPath);
                 System.IO.Directory.CreateDirectory(appFolderTempPath);
-                 System.IO.Directory.CreateDirectory(appFolderUpdatePath);
-           }
+                System.IO.Directory.CreateDirectory(appFolderUpdatePath);
+            }
 
             //Make archive from *.exe and libs of application
             if (System.IO.File.Exists(appNameZIP))
@@ -757,7 +757,7 @@ namespace ASTA
                 toolTip1.SetToolTip(textBoxGroup, "Создать или добавить в группу");
                 toolTip1.SetToolTip(textBoxGroupDescription, "Изменить описание группы");
             }
-                                   
+
 
 
             if (mailsOfSenderOfName != null && mailsOfSenderOfName.Contains('@'))
@@ -838,51 +838,44 @@ namespace ASTA
             MethodInvoker mi = delegate
             {
                 string prevText = _toolStripStatusLabelReturnText(StatusLabel2);
-                Color prevColor = _toolStripStatusLabelBackColorReturn(StatusLabel2);
+                Color prevColor = _toolStripStatusLabelReturnBackColor(StatusLabel2);
                 bool readOk = true;
-
-                using (OpenFileDialog openFileDialog1 = new OpenFileDialog())
-                {
-                    if (!(fpath?.Length > 0))
+                
+                     if (!(fpath?.Length > 0))
                     {
-                        openFileDialog1.FileName = "";
-                        openFileDialog1.Filter = "Текстовые файлы (*.sql)|*.sql|All files (*.*)|*.*";
-                        DialogResult res = openFileDialog1.ShowDialog();
-                        if (res == DialogResult.Cancel)
-                            return;
-
-                        fpath = openFileDialog1.FileName;
+                        fpath = SelectFileOpenFileDialog("Выберите файл", "Текстовые файлы (*.txt)|*.txt|SQL файлы (*.sql)|*.sql|All files (*.*)|*.*");
+                        if (fpath == null) return;
                     }
 
                     logger.Trace("ReadTXTFile");
                     _toolStripStatusLabelSetText(StatusLabel2, "Читаю файл: " + fpath);
-                    try
+                try
+                {
+                    using (System.IO.StreamReader Reader =
+                            new System.IO.StreamReader(fpath, Encoding.GetEncoding(1251)))
                     {
-                        var Coder = Encoding.GetEncoding(1251);
-                        using (System.IO.StreamReader Reader = new System.IO.StreamReader(fpath, Coder))
+                        while ((s = Reader.ReadLine()) != null)
                         {
-
-                            while ((s = Reader.ReadLine()) != null)
-                            {
-                                if (s?.Trim()?.Length > 0)
-                                    txt.Add(s);
-                            }//while
-                        }
-                    }
-                    catch (Exception err)
-                    {
-                        readOk = false;
-                        logger.Warn("Can not read the file: " + fpath + " \nException: " + err.ToString());
-                    }
+                            if (s?.Trim()?.Length > 0)
+                                txt.Add(s);
+                        }//while
+                    }//using
                 }
+                catch (Exception err)
+                {
+                    readOk = false;
+                    logger.Warn("Не могу прочитать файл: " + fpath + " \nException: " + err.ToString());
+                }
+
                 if (!readOk)
                 {
-                    _toolStripStatusLabelSetText(StatusLabel2, "Не могу прочитать файл: " + fpath,true);
+                    _toolStripStatusLabelSetText(StatusLabel2, "Не могу прочитать файл: " + fpath, true);
                 }
                 else
                 {
                     _toolStripStatusLabelBackColor(StatusLabel2, prevColor);
-                    _toolStripStatusLabelSetText(StatusLabel2, prevText);
+                    if (prevText?.Length > 0)
+                    { _toolStripStatusLabelSetText(StatusLabel2, prevText); }
                 }
             };
             this.Invoke(mi);
@@ -919,7 +912,7 @@ namespace ASTA
                 }//foreach
 
                 dbWriter.ExecuteQueryEnd();
-            _toolStripStatusLabelSetText(StatusLabel2, "Таблицы в БД созданы.");
+                _toolStripStatusLabelSetText(StatusLabel2, "Таблицы в БД созданы.");
             }
         }
 
@@ -1138,7 +1131,7 @@ namespace ASTA
 
             foreach (string sParameter in allParametersOfConfig)
             {
-                logger.Trace("looking for: " +sParameter+" in local DB");
+                logger.Trace("looking for: " + sParameter + " in local DB");
                 if (!listParameters.Any(x => x?.parameterName == sParameter))
                 {
                     parameterOfConfiguration = new ParameterOfConfigurationBuilder().
@@ -1155,7 +1148,7 @@ namespace ASTA
             listParameters = null;
             parameterOfConfiguration = null;
             configInDB = null;
-           _toolStripStatusLabelSetText(StatusLabel2, "Обновление параметров конфигурации локальной БД завершено");
+            _toolStripStatusLabelSetText(StatusLabel2, "Обновление параметров конфигурации локальной БД завершено");
         }
 
         private void AddParameterInConfigItem_Click(object sender, EventArgs e)
@@ -1558,7 +1551,7 @@ namespace ASTA
             }
             catch (Exception err)
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Ошибка доступа к " + serverName + " SQL БД СКД-сервера!",true,"server: " + serverName + "|user: " + userName + "|password: " + userPasswords + "\n" + err.ToString());
+                _toolStripStatusLabelSetText(StatusLabel2, "Ошибка доступа к " + serverName + " SQL БД СКД-сервера!", true, "server: " + serverName + "|user: " + userName + "|password: " + userPasswords + "\n" + err.ToString());
             }
 
             logger.Trace("CheckAliveIntellectServer: query: " + query + "| result: " + bServer1Exist);
@@ -1618,9 +1611,9 @@ namespace ASTA
             else
             {
                 _toolStripStatusLabelSetText(
-                    StatusLabel2, 
+                    StatusLabel2,
                     "Ошибка доступа к домену " + domain,
-                    true, 
+                    true,
                     "It hasn't access to AD: user: " + user + "| domain: " + domain + "| password: " + password + "| server: " + server);
             }
         }
@@ -1894,7 +1887,7 @@ namespace ASTA
                     {
                         if (mysqlData.GetString(@"code")?.Length > 0)
                         {
-                            try { dayStartShift = DateTime.Parse( mysqlData.GetMySqlDateTime(@"start_date").ToString()).ToYYYYMMDD(); }
+                            try { dayStartShift = DateTime.Parse(mysqlData.GetMySqlDateTime(@"start_date").ToString()).ToYYYYMMDD(); }
                             catch
                             { dayStartShift = DateTime.Parse("1980-01-01").ToYYYYMMDD(); }
 
@@ -2035,9 +2028,9 @@ namespace ASTA
             catch (Exception err)
             {
                 _toolStripStatusLabelSetText(
-                    StatusLabel2, 
-                    "Возникла ошибка во время получения данных с серверов.", 
-                    true,                      err.ToString()
+                    StatusLabel2,
+                    "Возникла ошибка во время получения данных с серверов.",
+                    true, err.ToString()
                     );
             }
 
@@ -2561,9 +2554,9 @@ namespace ASTA
             catch (Exception err)
             {
                 _toolStripStatusLabelSetText(
-                    StatusLabel2, 
-                    "Ошибка генерации файла. Проверьте наличие установленного Excel", 
-                    true,                    "| ExportDatatableSelectedColumnsToExcel: " + err.ToString());
+                    StatusLabel2,
+                    "Ошибка генерации файла. Проверьте наличие установленного Excel",
+                    true, "| ExportDatatableSelectedColumnsToExcel: " + err.ToString());
             }
             finally
             {
@@ -3603,7 +3596,7 @@ namespace ASTA
                     if (mysqlData?.GetString(@"reason_id")?.Length > 0 && mysqlData?.GetString(@"user_code")?.Length > 0)
                     {
                         resonId = outResons.Find((x) => x._id == mysqlData.GetString(@"reason_id"))._id;
-                        try { date =DateTime.Parse(mysqlData.GetString(@"reason_date")).ToYYYYMMDD(); } catch { date = ""; }
+                        try { date = DateTime.Parse(mysqlData.GetString(@"reason_date")).ToYYYYMMDD(); } catch { date = ""; }
 
                         outPerson.Add(new OutPerson()
                         {
@@ -4082,7 +4075,7 @@ namespace ASTA
                         sqlCommand.Parameters.Add("@NAV", DbType.String).Value = nav;
                         sqlCommand.Parameters.Add("@DayType", DbType.String).Value = dayType;
                         sqlCommand.Parameters.Add("@DayDescription", DbType.String).Value = textBoxGroupDescription.Text.Trim();
-                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value =DateTime.Now.ToYYYYMMDD();
+                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDD();
                         try { sqlCommand.ExecuteNonQuery(); } catch (Exception err) { MessageBox.Show(err.ToString()); }
                     }
                 }
@@ -6770,8 +6763,8 @@ namespace ASTA
             LoadDataItem.BackColor = Color.PaleGreen;
             dateTimePickerEnd.MinDate = dateTimePickerStart.Value;
 
-             string day = string.Format("{0:d4}-{1:d2}-{2:d2}", dateTimePickerStart.Value.Year, dateTimePickerStart.Value.Month, dateTimePickerStart.Value.Day);
-           _MenuItemTextSet(LoadInputsOutputsItem, "Отобразить входы-выходы за " + day);
+            string day = string.Format("{0:d4}-{1:d2}-{2:d2}", dateTimePickerStart.Value.Year, dateTimePickerStart.Value.Month, dateTimePickerStart.Value.Day);
+            _MenuItemTextSet(LoadInputsOutputsItem, "Отобразить входы-выходы за " + day);
         }
 
         private void dateTimePickerEnd_CloseUp(object sender, EventArgs e)
@@ -7685,7 +7678,7 @@ namespace ASTA
             logger.Trace("-= " + method + " =-");
 
             _ProgressBar1Start();
-            
+
 
             resultOfSendingReports = new List<Mailing>();
 
@@ -8032,14 +8025,14 @@ namespace ASTA
                 DateTime dd = DateTime.Now;
                 if (dd.Hour == 4 && dd.Minute == 10 && sent == false) //do something at Hour 2 and 5 minute //dd.Day == 1 && 
                 {
-                    _toolStripStatusLabelSetText(StatusLabel2, "Ведется работа по подготовке отчетов " + DateTime.Now.ToYYYYMMDDHHMM()+" ...");
+                    _toolStripStatusLabelSetText(StatusLabel2, "Ведется работа по подготовке отчетов " + DateTime.Now.ToYYYYMMDDHHMM() + " ...");
                     _toolStripStatusLabelBackColor(StatusLabel2, Color.LightPink);
                     CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword).GetAwaiter().GetResult();
                     SelectMailingDoAction();
                     sent = true;
                     _toolStripStatusLabelSetText(StatusLabel2, "Все задачи по подготовке и отправке отчетов завершены.");
                     logger.Info("");
-                    logger.Info("---/  " +DateTime.Now.ToYYYYMMDDHHMMSS() + "  /---");
+                    logger.Info("---/  " + DateTime.Now.ToYYYYMMDDHHMMSS() + "  /---");
                 }
                 else
                 {
@@ -8168,7 +8161,7 @@ namespace ASTA
             DaysOfSendingMail daysOfSendingMail = daysToSendReports.GetDays();
 
             logger.Trace("SelectMailingDoAction: all of daysOfSendingMail within the selected period: " + startDayOfCurrentMonth[0] + "-" + startDayOfCurrentMonth[1] + "-" + startDayOfCurrentMonth[2] + " - " +
-                lastDayOfCurrentMonth[0] + "-" + lastDayOfCurrentMonth[1] + "-" + lastDayOfCurrentMonth[2]+": "+
+                lastDayOfCurrentMonth[0] + "-" + lastDayOfCurrentMonth[1] + "-" + lastDayOfCurrentMonth[2] + ": " +
                 daysOfSendingMail.START_OF_MONTH + ", " + daysOfSendingMail.MIDDLE_OF_MONTH + ", " +
                 daysOfSendingMail.LAST_WORK_DAY_OF_MONTH + ", " + daysOfSendingMail.END_OF_MONTH
                 );
@@ -8540,7 +8533,7 @@ namespace ASTA
                             else
                             {
                                 _toolStripStatusLabelSetText(
-                                    StatusLabel2, 
+                                    StatusLabel2,
                                     DateTime.Now.ToYYYYMMDDHHMM() + " Ошибка экспорта в файл отчета: " + nameReport + "(" + groupName + ")",
                                     true
                                     );
@@ -8550,7 +8543,7 @@ namespace ASTA
                     else
                     {
                         _toolStripStatusLabelSetText(
-                            StatusLabel2, 
+                            StatusLabel2,
                             DateTime.Now.ToYYYYMMDDHHMM() + "Ошибка получения данных для отчета: " + nameReport,
                             true
                             );
@@ -8706,14 +8699,14 @@ namespace ASTA
                         sb.Append(@"<font size='2' color='red' face='Arial'>");
                         sb.Append(order + @". Получатель: " + mailing._recipient +
                                   @", отчет по " + mailing._descriptionReport +
-                                  @", не доставлен: " + mailing._status + @"</font><br/>");
+                                  @" не получил: " + mailing._status + @"</font><br/>");
                     }
                     else
                     {
                         sb.Append(@"<font size='2' color='black' face='Arial'>");
                         sb.Append(order + @". Получатель: " + mailing._recipient +
                                   @", отчет по группе " + mailing._descriptionReport +
-                                  @", доставлен: " + mailing._status + @" </font><br/>");
+                                  @", доставлен " + mailing._status + @" </font><br/>");
                     }
                 }
             }
@@ -9115,7 +9108,7 @@ namespace ASTA
 
         private string _dateTimePickerSet(DateTimePicker dateTimePicker, int year, int month, int day) //add string into  from other threads
         {
-            DateTime dt=DateTime.Now;
+            DateTime dt = DateTime.Now;
 
             string result = "";
             if (InvokeRequired)
@@ -9230,13 +9223,13 @@ namespace ASTA
 
 
 
-        private void _toolStripStatusLabelSetText(ToolStripStatusLabel statusLabel, string s, bool error=false, string errorText=null) //add string into  from other threads
+        private void _toolStripStatusLabelSetText(ToolStripStatusLabel statusLabel, string s, bool error = false, string errorText = null) //add string into  from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
                     statusLabel.Text = s;
-                    if  (error) statusLabel.BackColor = Color.DarkOrange;
+                    if (error) statusLabel.BackColor = Color.DarkOrange;
                 }));
             else
             {
@@ -9249,7 +9242,7 @@ namespace ASTA
             if (error)
             { logger.Warn(s + "\nОшибка: " + errorText); }
             else
-            {  logger.Info(s);}
+            { logger.Info(s); }
         }
 
         private string _toolStripStatusLabelReturnText(ToolStripStatusLabel statusLabel)
@@ -9283,7 +9276,7 @@ namespace ASTA
                 statusLabel.BackColor = s;
         }
 
-        private Color _toolStripStatusLabelBackColorReturn(ToolStripStatusLabel statusLabel) //add string into  from other threads
+        private Color _toolStripStatusLabelReturnBackColor(ToolStripStatusLabel statusLabel) //add string into  from other threads
         {
             Color s = SystemColors.ControlText;
             if (InvokeRequired)
@@ -9647,7 +9640,7 @@ namespace ASTA
                 {
                     timer1.Enabled = true;
                     ProgressBar1.Value = 0;
-                   StatusLabel2.BackColor=  SystemColors.Control;
+                    StatusLabel2.BackColor = SystemColors.Control;
                 }));
             else
             {
@@ -9879,29 +9872,25 @@ namespace ASTA
 
 
 
-        private void GetCurrentSchemeItem_Click(object sender, EventArgs e)
-        {
-            GetSQLiteDbScheme();
-        }
-
         private void CreateDBItem_Click(object sender, EventArgs e)
         {
             TryMakeLocalDB();
         }
 
+        private void GetCurrentSchemeItem_Click(object sender, EventArgs e)
+        {
+            GetSQLiteDbScheme();
+        }
 
         private void GetSQLiteDbScheme()
         {
             StringBuilder sb = new StringBuilder();
-            string fpath = string.Empty;
-            System.Windows.Forms.OpenFileDialog openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            string fpath = SelectFileOpenFileDialog("Выберите файл", "SQL файлы (*.sql)|*.sql|Все files (*.*)|*.*");
 
-            DialogResult res = openFileDialog1.ShowDialog(this);
-            if (res == DialogResult.Cancel)
+            if (fpath == null)
                 return;
 
-            if (openFileDialog1?.FileName?.Length == 0)
-            { fpath = dbApplication.FullName.ToString(); } //openFileDialog1.FileName;
+             fpath = dbApplication.FullName.ToString(); 
 
             Cursor = Cursors.WaitCursor;
             System.Threading.Thread worker = new System.Threading.Thread(new System.Threading.ThreadStart(delegate
@@ -10027,9 +10016,11 @@ namespace ASTA
                     AutoUpdater.RunUpdateAsAdmin = false;
                     AutoUpdater.UpdateMode = Mode.ForcedDownload;
                     AutoUpdater.Mandatory = true;
+                    AutoUpdater.ReportErrors = true;
+                    AutoUpdater.AppCastURL = appUpdateURL;
                     AutoUpdater.DownloadPath = appFolderUpdatePath;
 
-                    AutoUpdater.Start(appUpdateURL, System.Reflection.Assembly.GetEntryAssembly());
+                    AutoUpdater.Start(appUpdateURL); //, System.Reflection.Assembly.GetEntryAssembly()
                     //AutoUpdater.Start("ftp://kv-sb-server.corp.ais/Common/ASTA/ASTA.xml", new NetworkCredential("FtpUserName", "FtpPassword")); //download from FTP
                 }
                 else
@@ -10082,41 +10073,60 @@ namespace ASTA
         private void CreateAppXMLFile()
         {
             //calculate app's MD5
-          //  appFileMD5 = CalculateMD5(appFilePath);//something wrong
-            appFileMD5 = null;
+           // System.IO.File.Copy(appNameZIP, System.IO.Path.Combine(appFolderTempPath, appNameZIP));
+           // appFileMD5 = CalculateFileHash(System.IO.Path.Combine(appFolderTempPath, appNameZIP));  //something wrong
+
+            //for test
+             appFileMD5 = null; //don't make the element of XML - MD5
             MakerXML makerXML = new MakerXML(appVersionAssembly, appNameXML, appUpdateFolderURL + appNameZIP, null, appFileMD5);
             makerXML.SaveXML();
             _toolStripStatusLabelSetText(StatusLabel2, makerXML.Status);
             makerXML = null;
         }
 
-        static string CalculateMD5(string filename)
+        //todo
+        //check it
+        private static string CalculateFileHash(string filename, string algorythm = "MD5")
         {
-            using (var md5 = MD5.Create())
+            //  var hashMD5 = MD5.Create().ComputeHash(new System.IO.FileStream(filename, System.IO.FileMode.Open));
+
+            //  var hsString = Encoding.ASCII.GetBytes(hashMD5);
+            //   var sb;
+            //    foreach(byte b in .append)
+
+            using (var hashAlgorithm = HashAlgorithm.Create(algorythm))
             {
-                using (var stream = System.IO.File.OpenRead(filename))
+
+                using (var fileStream = new System.IO.FileStream(filename, System.IO.FileMode.Open, System.IO.FileAccess.Read))
+               // using (var fileStream = System.IO.File.OpenRead(filename))
                 {
-                    var hash = md5.ComputeHash(stream);
-                    return BitConverter.ToString(hash);//.Replace("-", "").ToUpperInvariant();
+                    string fileChecksum = null;
+                    if (hashAlgorithm != null)
+                    {
+                        var hash = hashAlgorithm.ComputeHash(fileStream);
+                        fileChecksum = BitConverter.ToString(hash).ToUpperInvariant();
+                    }
+                    return fileChecksum;
                 }
             }
         }
 
-        static string CalculateHash(string filename)
-        {
-            using (System.IO.FileStream fs = new System.IO.FileStream(filename, System.IO.FileMode.Open, System.IO.FileAccess.Read))
-            {
-                SHA1CryptoServiceProvider unmanaged = new SHA1CryptoServiceProvider();
-                byte[] retVal = unmanaged.ComputeHash(fs);
-                return string.Join("", retVal.Select(x => x.ToString("x2")));
-            }
-        }
+        /*
+                static string CalculateHash(string filename)
+                {
+                    using (var fileStream = new System.IO.FileStream(filename, System.IO.FileMode.Open, System.IO.FileAccess.Read))
+                    {
+                        SHA1CryptoServiceProvider unmanaged = new SHA1CryptoServiceProvider();
+                        byte[] retVal = unmanaged.ComputeHash(fileStream);
+                        return string.Join("", retVal.Select(x => x.ToString("x2")));
+                    }
+                }*/
 
 
         //Upload App's files to Server
         private async void UploadApplicationItem_Click(object sender, EventArgs e) //Uploading()
         {
-           Task.Run(()=> Uploading());
+            Task.Run(() => Uploading());
         }
 
         private async void Uploading() //UploadApplicationToShare()
@@ -10125,7 +10135,7 @@ namespace ASTA
 
             uploadingUpdate = true;
             uploadUpdateError = false;
-           
+
             //Make application XML for Autoupdater's
             CreateAppXMLFile();
 
@@ -10140,7 +10150,7 @@ namespace ASTA
             uploadingUpdate = false;
             if (uploadUpdateError)
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Отправка файлов на сервер завершена с ошибкой -> " + appUpdateFolderURI,true);
+                _toolStripStatusLabelSetText(StatusLabel2, "Отправка файлов на сервер завершена с ошибкой -> " + appUpdateFolderURI, true);
             }
             else
             {
@@ -10148,7 +10158,7 @@ namespace ASTA
                 _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
             }
         }
-        
+
         private async Task UploadApplicationToShare(string source, string target)
         {
             MethodInvoker mi1 = delegate
@@ -10167,13 +10177,13 @@ namespace ASTA
                 catch (Exception err)
                 {
                     uploadUpdateError = true;
-                    _toolStripStatusLabelSetText(StatusLabel2, "Отправка файла на сервер завершена с ошибкой: " + target,true, err.ToString());
+                    _toolStripStatusLabelSetText(StatusLabel2, "Отправка файла на сервер завершена с ошибкой: " + target, true, err.ToString());
                 }
             };
 
             this.Invoke(mi1);
         }
-        
+
         static async Task InvokeAsync(IEnumerable<Func<Task>> taskFactories, int maxDegreeOfParallelism)
         {
             Queue<Func<Task>> queue = new Queue<Func<Task>>(taskFactories);
@@ -10202,6 +10212,58 @@ namespace ASTA
                 tasksInFlight.Remove(completedTask);
             }
             while (queue.Count != 0 || tasksInFlight.Count != 0);
+        }
+
+
+        private void CalculateHashItem_Click(object sender, EventArgs e) //Selectfiles()
+        {
+            SelectfilesForCalculatingHash();
+        }
+
+        private void SelectfilesForCalculatingHash() //SelectFileOpenFileDialog() CalculateFileHash()
+        {
+            string result = null;
+            string filePath = null;
+            DialogResult selectTwoFiles = MessageBox.Show("Выбрать 2 файла для сравнения?", "Сравнение файлов",
+                MessageBoxButtons.YesNo,
+                      MessageBoxIcon.Exclamation,
+                      MessageBoxDefaultButton.Button1);
+
+            filePath = SelectFileOpenFileDialog("Выберите первый файл для вычисления хэша");
+            result += CalculateFileHash(filePath) + "\n";
+
+            if (selectTwoFiles == DialogResult.Yes)
+            {
+                filePath = SelectFileOpenFileDialog("Выберите следующий файл для вычисления хэша");
+                result += "\n" + CalculateFileHash(filePath) + "\n";
+            }
+            MessageBox.Show(result, "Результат вычисления хэша");
+        }
+
+
+        private string SelectFileOpenFileDialog(string titleWindowDialog = null, string maskFiles= "Все файлы (*.*)|*.*")
+        {
+            string filePath = null;
+            MethodInvoker mi = delegate
+            {
+                using (OpenFileDialog openFileDialog1 = new OpenFileDialog())
+                {
+                    openFileDialog1.FileName = "";
+
+                    if (titleWindowDialog != null)
+                    { openFileDialog1.Title = titleWindowDialog; }
+
+                    openFileDialog1.Filter = maskFiles;
+                    DialogResult res = openFileDialog1.ShowDialog();
+                    if (res == DialogResult.Cancel)
+                        return;
+
+                    filePath = openFileDialog1.FileName;
+                }
+            };
+
+            this.Invoke(mi);
+            return filePath;
         }
 
     }

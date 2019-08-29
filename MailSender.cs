@@ -16,8 +16,7 @@ namespace ASTA
         MailUser _to;
         public string Status { get; private set; }
 
-        public MailSender()
-        { }
+        public MailSender() { }
 
         public MailSender(MailServer mailServer)
         {
@@ -26,12 +25,13 @@ namespace ASTA
 
         public void SetFrom(MailUser from)
         {
-            if (string.IsNullOrWhiteSpace(from.GetEmail())||!from.GetEmail().Contains('@'))
+            if (string.IsNullOrWhiteSpace(from.GetEmail()) || !from.GetEmail().Contains('@'))
             {
                 throw new ArgumentException("no 'From' address provided!");
             }
             _from = from;
         }
+
         public void SetTo(MailUser to)
         {
             if (string.IsNullOrWhiteSpace(to.GetEmail()) || !to.GetEmail().Contains('@'))
@@ -41,6 +41,7 @@ namespace ASTA
             Status = string.Empty;
             _to = to;
         }
+
         public void SetServer(MailServer mailServer)
         {
             if (string.IsNullOrWhiteSpace(mailServer.GetName()))
@@ -64,15 +65,14 @@ namespace ASTA
             {
                 throw new ArgumentException("no needed data provided!");
             }
-            MailKit.Net.Smtp.SmtpClient client;
 
+            MailKit.Net.Smtp.SmtpClient client;
             MimeMessage emailMessage = new MimeMessage();
             emailMessage.From.Add(new MailboxAddress(_from.GetName(), _from.GetEmail()));
             emailMessage.To.Add(new MailboxAddress(_to.GetEmail()));
             emailMessage.Subject = subject;
             emailMessage.Body = bodyOfMessage.ToMessageBody();
-            emailMessage.Headers[HeaderId.DispositionNotificationTo] =
-                new MailboxAddress(_from.GetName(), _from.GetEmail()).ToString(true); //request a notification when the message is read by the user
+            // emailMessage.Headers[HeaderId.DispositionNotificationTo] = new MailboxAddress(_from.GetName(), _from.GetEmail()).ToString(true); //request a notification when the message is read by the user
 
             using (client = new MailKit.Net.Smtp.SmtpClient(new MailKit.ProtocolLogger("smtp.log", false))) //
             {
@@ -90,8 +90,10 @@ namespace ASTA
                 }
                 catch (Exception e)
                 {
-                    Status = _to.GetEmail() + " - " + e.Message;
+                    Status = e.Message;
+                    //Status = _to.GetEmail() + " - " + e.Message;
                 }
+
                 await client.DisconnectAsync(true).ConfigureAwait(false);
             }
             client.Dispose();
@@ -99,7 +101,8 @@ namespace ASTA
 
         void OnMessageSent(object sender, MailKit.MessageSentEventArgs e)
         {
-            Status = e.Message.To + " - OK";
+            Status = " успешно";
+            // Status = e.Message.To + " - OK";
         }
 
         /*
@@ -349,9 +352,5 @@ namespace ASTA
         }
 
         */
-
     }
-
-  
-
 }
