@@ -9980,6 +9980,7 @@ namespace ASTA
         private void AutoupdatItem_Click(object sender, EventArgs e)
         {
             AutoUpdater.Start(appUpdateURL, System.Reflection.Assembly.GetEntryAssembly());
+            AutoUpdater.DownloadPath = appFolderUpdatePath;
             // AutoUpdate();
         }
 
@@ -10016,11 +10017,11 @@ namespace ASTA
                     AutoUpdater.RunUpdateAsAdmin = false;
                     AutoUpdater.UpdateMode = Mode.ForcedDownload;
                     AutoUpdater.Mandatory = true;
-                    AutoUpdater.ReportErrors = true;
-                    AutoUpdater.AppCastURL = appUpdateURL;
+                   // AutoUpdater.ReportErrors = true;
+                   // AutoUpdater.AppCastURL = appUpdateURL;
                     AutoUpdater.DownloadPath = appFolderUpdatePath;
 
-                    AutoUpdater.Start(appUpdateURL); //, System.Reflection.Assembly.GetEntryAssembly()
+                    AutoUpdater.Start(appUpdateURL, System.Reflection.Assembly.GetEntryAssembly());
                     //AutoUpdater.Start("ftp://kv-sb-server.corp.ais/Common/ASTA/ASTA.xml", new NetworkCredential("FtpUserName", "FtpPassword")); //download from FTP
                 }
                 else
@@ -10072,12 +10073,11 @@ namespace ASTA
         //Make and Save XML into local file
         private void CreateAppXMLFile()
         {
-            //calculate app's MD5
-           // System.IO.File.Copy(appNameZIP, System.IO.Path.Combine(appFolderTempPath, appNameZIP));
-           // appFileMD5 = CalculateFileHash(System.IO.Path.Combine(appFolderTempPath, appNameZIP));  //something wrong
+            //calculate appFileZip's MD5 checksum
+            appFileMD5 = CalculateFileHash(appNameZIP);
 
-            //for test
-             appFileMD5 = null; //don't make the element of XML - MD5
+            //block to make checksum string in XML
+            // appFileMD5 = null;
             MakerXML makerXML = new MakerXML(appVersionAssembly, appNameXML, appUpdateFolderURL + appNameZIP, null, appFileMD5);
             makerXML.SaveXML();
             _toolStripStatusLabelSetText(StatusLabel2, makerXML.Status);
@@ -10086,31 +10086,6 @@ namespace ASTA
 
         //todo
         //check it
-        private static string CalculateFileHash(string filename, string algorythm = "MD5")
-        {
-            //  var hashMD5 = MD5.Create().ComputeHash(new System.IO.FileStream(filename, System.IO.FileMode.Open));
-
-            //  var hsString = Encoding.ASCII.GetBytes(hashMD5);
-            //   var sb;
-            //    foreach(byte b in .append)
-
-            using (var hashAlgorithm = HashAlgorithm.Create(algorythm))
-            {
-
-                using (var fileStream = new System.IO.FileStream(filename, System.IO.FileMode.Open, System.IO.FileAccess.Read))
-               // using (var fileStream = System.IO.File.OpenRead(filename))
-                {
-                    string fileChecksum = null;
-                    if (hashAlgorithm != null)
-                    {
-                        var hash = hashAlgorithm.ComputeHash(fileStream);
-                        fileChecksum = BitConverter.ToString(hash).ToUpperInvariant();
-                    }
-                    return fileChecksum;
-                }
-            }
-        }
-
         /*
                 static string CalculateHash(string filename)
                 {
@@ -10121,6 +10096,108 @@ namespace ASTA
                         return string.Join("", retVal.Select(x => x.ToString("x2")));
                     }
                 }*/
+
+        private static string CalculateFileHash(string fileName, string algorithm = "MD5") //MD5, SHA1, SHA256, SHA384, SHA512
+        {
+            string fileChecksum = null;
+            using (var hashAlgorithm = HashAlgorithm.Create(algorithm))
+            {
+                using (var stream = System.IO.File.OpenRead(fileName))
+                {
+                    if (hashAlgorithm != null)
+                    {
+                        var hash = hashAlgorithm.ComputeHash(stream);
+                        fileChecksum = BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant();
+                    }
+
+                    return fileChecksum;
+                }
+            }
+        }
+/*
+        //Test algorithm to evaluate with the autoupdater's algorithm
+        private static bool CompareChecksum(string fileName, string checksum, string algorythm = "MD5") //MD5, SHA1, SHA256, SHA384, SHA512
+        {
+            using (var hashAlgorithm = HashAlgorithm.Create(algorythm))
+            {
+                using (var stream =System.IO.File.OpenRead(fileName))
+                {
+                    if (hashAlgorithm != null)
+                    {
+                        var hash = hashAlgorithm.ComputeHash(stream);
+                        var fileChecksum = BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant();
+
+                        if (fileChecksum == checksum.ToLower()) return true;
+                    }
+
+                    return false;
+                }
+            }
+        }
+
+        //Test algorithm to evaluate with the autoupdater's algorithm
+        private void TestHash()
+        {
+            string filePath = null;
+            filePath = SelectFileOpenFileDialog("Выберите первый файл для вычисления хэша");
+            string myFileHash = CalculateFileHash(filePath);
+
+            filePath = SelectFileOpenFileDialog("Выберите второй файл для вычисления хэша");
+            bool result = CompareChecksum(filePath, myFileHash);
+            MessageBox.Show("Result of evaluation of checking\n"+ result);
+        }*/
+
+       private void CalculateHashItem_Click(object sender, EventArgs e) //Selectfiles()
+        {
+            SelectfilesForCalculatingHash();
+          //  TestHash();
+        }
+
+
+        private void SelectfilesForCalculatingHash() //SelectFileOpenFileDialog() CalculateFileHash()
+        {
+            string result = null;
+            string filePath = null;
+            DialogResult selectTwoFiles = MessageBox.Show("Выбрать 2 файла для сравнения?", "Сравнение файлов",
+                MessageBoxButtons.YesNo,
+                      MessageBoxIcon.Exclamation,
+                      MessageBoxDefaultButton.Button1);
+
+            filePath = SelectFileOpenFileDialog("Выберите первый файл для вычисления хэша");
+            result += CalculateFileHash(filePath) + "\n";
+
+            if (selectTwoFiles == DialogResult.Yes)
+            {
+                filePath = SelectFileOpenFileDialog("Выберите следующий файл для вычисления хэша");
+                result += "\n" + CalculateFileHash(filePath) + "\n";
+            }
+            MessageBox.Show(result, "Результат вычисления хэша");
+        }
+        
+        private string SelectFileOpenFileDialog(string titleWindowDialog = null, string maskFiles= "Все файлы (*.*)|*.*")
+        {
+            string filePath = null;
+            MethodInvoker mi = delegate
+            {
+                using (OpenFileDialog openFileDialog1 = new OpenFileDialog())
+                {
+                    openFileDialog1.FileName = "";
+
+                    if (titleWindowDialog != null)
+                    { openFileDialog1.Title = titleWindowDialog; }
+
+                    openFileDialog1.Filter = maskFiles;
+                    DialogResult res = openFileDialog1.ShowDialog();
+                    if (res == DialogResult.Cancel)
+                        return;
+
+                    filePath = openFileDialog1.FileName;
+                }
+            };
+
+            this.Invoke(mi);
+            return filePath;
+        }
 
 
         //Upload App's files to Server
@@ -10212,58 +10289,6 @@ namespace ASTA
                 tasksInFlight.Remove(completedTask);
             }
             while (queue.Count != 0 || tasksInFlight.Count != 0);
-        }
-
-
-        private void CalculateHashItem_Click(object sender, EventArgs e) //Selectfiles()
-        {
-            SelectfilesForCalculatingHash();
-        }
-
-        private void SelectfilesForCalculatingHash() //SelectFileOpenFileDialog() CalculateFileHash()
-        {
-            string result = null;
-            string filePath = null;
-            DialogResult selectTwoFiles = MessageBox.Show("Выбрать 2 файла для сравнения?", "Сравнение файлов",
-                MessageBoxButtons.YesNo,
-                      MessageBoxIcon.Exclamation,
-                      MessageBoxDefaultButton.Button1);
-
-            filePath = SelectFileOpenFileDialog("Выберите первый файл для вычисления хэша");
-            result += CalculateFileHash(filePath) + "\n";
-
-            if (selectTwoFiles == DialogResult.Yes)
-            {
-                filePath = SelectFileOpenFileDialog("Выберите следующий файл для вычисления хэша");
-                result += "\n" + CalculateFileHash(filePath) + "\n";
-            }
-            MessageBox.Show(result, "Результат вычисления хэша");
-        }
-
-
-        private string SelectFileOpenFileDialog(string titleWindowDialog = null, string maskFiles= "Все файлы (*.*)|*.*")
-        {
-            string filePath = null;
-            MethodInvoker mi = delegate
-            {
-                using (OpenFileDialog openFileDialog1 = new OpenFileDialog())
-                {
-                    openFileDialog1.FileName = "";
-
-                    if (titleWindowDialog != null)
-                    { openFileDialog1.Title = titleWindowDialog; }
-
-                    openFileDialog1.Filter = maskFiles;
-                    DialogResult res = openFileDialog1.ShowDialog();
-                    if (res == DialogResult.Cancel)
-                        return;
-
-                    filePath = openFileDialog1.FileName;
-                }
-            };
-
-            this.Invoke(mi);
-            return filePath;
         }
 
     }
