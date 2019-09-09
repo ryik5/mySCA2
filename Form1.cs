@@ -740,10 +740,10 @@ namespace ASTA
                 dateTimePickerEnd.CustomFormat = "yyyy-MM-dd";
                 dateTimePickerStart.Format = DateTimePickerFormat.Custom;
                 dateTimePickerEnd.Format = DateTimePickerFormat.Custom;
-                dateTimePickerStart.MinDate = DateTime.Parse("2016-01-01");
-                dateTimePickerEnd.MinDate = DateTime.Parse("2016-01-01");
-                dateTimePickerStart.MaxDate = today;
-                dateTimePickerEnd.MaxDate = DateTime.Parse("2025-12-31");
+              //  dateTimePickerStart.MinDate = DateTime.Parse("2016-01-01");
+              //  dateTimePickerEnd.MinDate = DateTime.Parse("2016-01-01");
+              // dateTimePickerStart.MaxDate = today;
+             //   dateTimePickerEnd.MaxDate = DateTime.Parse("2025-12-31");
                 dateTimePickerStart.Value = DateTime.Parse(today.Year + "-" + today.Month + "-01");
                 dateTimePickerEnd.Value = today.LastDayOfMonth();
 
@@ -1708,7 +1708,7 @@ namespace ASTA
                 var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(arrayHiddenColumnsFIO).ToArray(); //take distinct data
                 dtPersonTemp = GetDistinctRecords(dtTempIntermediate, namesDistinctColumnsArray);
                 ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenColumnsFIO, "ListFIO");
-                _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить последние входы-выходы");
+             //   _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить последние входы-выходы");
                 _toolStripStatusLabelSetText(StatusLabel2, "Записано в локальную базу: " + countUsers + " ФИО, " + countGroups + " групп и " + countMailers + " рассылок");
                 namesDistinctColumnsArray = null;
             }
@@ -2310,7 +2310,7 @@ namespace ASTA
         private void listFioItem_Click(object sender, EventArgs e) //ListFioReturn()
         {
             nameOfLastTable = "ListFIO";
-            _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить последние входы-выходы");
+          //  _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить последние входы-выходы");
             _controlEnable(comboBoxFio, true);
             SeekAndShowMembersOfGroup("");
         }
@@ -3295,7 +3295,7 @@ namespace ASTA
         private async void LoadLastIputsOutputs_Update_Click(object sender, EventArgs e) //LoadIputsOutputs()
         {
             nameOfLastTable = "ListFIO"; //Reset last name of table to List FIO
-            _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить входы-выходы за сегодня");
+          //  _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить входы-выходы за сегодня");
 
             DateTime today = _dateTimePickerReturn(dateTimePickerStart);
             _dateTimePickerSet(dateTimePickerEnd, today.Year, today.Month, today.Day);
@@ -4030,7 +4030,7 @@ namespace ASTA
 
             _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
             _toolStripStatusLabelSetText(StatusLabel2, @"Завершен 'Режим редактирования в локальной БД дат праздников и выходных'");
-            _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить последние входы-выходы");
+         //   _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить последние входы-выходы");
 
             nameOfLastTable = "ListFIO";
             SeekAndShowMembersOfGroup("");
@@ -6761,14 +6761,16 @@ namespace ASTA
         {
             LoadDataItem.Enabled = true;
             LoadDataItem.BackColor = Color.PaleGreen;
-            dateTimePickerEnd.MinDate = dateTimePickerStart.Value;
+          //  dateTimePickerEnd.MinDate = dateTimePickerStart.Value;
 
             string day = string.Format("{0:d4}-{1:d2}-{2:d2}", dateTimePickerStart.Value.Year, dateTimePickerStart.Value.Month, dateTimePickerStart.Value.Day);
             _MenuItemTextSet(LoadInputsOutputsItem, "Отобразить входы-выходы за " + day);
         }
 
         private void dateTimePickerEnd_CloseUp(object sender, EventArgs e)
-        { dateTimePickerStart.MaxDate = dateTimePickerEnd.Value; }
+        {
+         //   dateTimePickerStart.MaxDate = dateTimePickerEnd.Value;
+        }
 
         private void PersonOrGroupItem_Click(object sender, EventArgs e) //PersonOrGroup()
         { PersonOrGroup(); }
@@ -6835,11 +6837,11 @@ namespace ASTA
                              GROUP, GROUP_DECRIPTION
                             });
 
-                        textBoxGroup.Text = dgSeek.values[0]; //Take the name of selected group
-                        textBoxGroupDescription.Text = dgSeek.values[1]; //Take the name of selected group
+                        textBoxGroup.Text = dgSeek?.values[0]; //Take the name of selected group
+                        textBoxGroupDescription.Text = dgSeek?.values[1]; //Take the name of selected group
                         groupBoxPeriod.BackColor = Color.PaleGreen;
                         groupBoxFilterReport.BackColor = SystemColors.Control;
-                        StatusLabel2.Text = @"Выбрана группа: " + dgSeek.values[0];
+                        StatusLabel2.Text = @"Выбрана группа: " + dgSeek?.values[0];
                         if (textBoxFIO.TextLength > 3)
                         {
                             comboBoxFio.SelectedIndex = comboBoxFio.FindString(textBoxFIO.Text);
@@ -6855,13 +6857,13 @@ namespace ASTA
                                 DESIRED_TIME_IN, DESIRED_TIME_OUT
                             });
 
-                        textBoxGroup.Text = dgSeek.values[0];
-                        textBoxFIO.Text = dgSeek.values[1];
-                        textBoxNav.Text = dgSeek.values[2];
-                        _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить последние входы-выходы '" + dgSeek.values[1] + "'"); //Отобразить последние входы-выходы
+                        textBoxGroup.Text = dgSeek?.values[0];
+                        textBoxFIO.Text = dgSeek?.values[1];
+                        textBoxNav.Text = dgSeek?.values[2];
+                       // _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить последние входы-выходы за сегодня"); //Отобразить последние входы-выходы
 
-                        StatusLabel2.Text = @"Выбрана группа: " + dgSeek.values[0] +
-                            @" |Курсор на: " + ShortFIO(dgSeek.values[1]);
+                        StatusLabel2.Text = @"Выбрана группа: " + dgSeek?.values[0] +
+                            @" |Курсор на: " + ShortFIO(dgSeek?.values[1]);
 
                         groupBoxPeriod.BackColor = Color.PaleGreen;
                         groupBoxTimeStart.BackColor = Color.PaleGreen;
@@ -6869,8 +6871,8 @@ namespace ASTA
                         groupBoxFilterReport.BackColor = SystemColors.Control;
                         try
                         {
-                            timeIn = ConvertStringTimeHHMMToDecimalArray(dgSeek.values[3]);
-                            timeOut = ConvertStringTimeHHMMToDecimalArray(dgSeek.values[4]);
+                            timeIn = ConvertStringTimeHHMMToDecimalArray(dgSeek?.values[3]);
+                            timeOut = ConvertStringTimeHHMMToDecimalArray(dgSeek?.values[4]);
                             _numUpDownSet(numUpDownHourStart, timeIn[0]);
                             _numUpDownSet(numUpDownMinuteStart, timeIn[1]);
                             _numUpDownSet(numUpDownHourEnd, timeOut[0]);
@@ -6878,12 +6880,12 @@ namespace ASTA
                         }
                         catch { logger.Warn("dataGridView1CellClick: " + timeIn[0]); }
 
-                        if (dgSeek.values[1].Length > 3)
+                        if (dgSeek?.values[1]?.Length > 3)
                         {
-                            try { comboBoxFio.SelectedIndex = comboBoxFio.FindString(dgSeek.values[1]); }
+                            try { comboBoxFio.SelectedIndex = comboBoxFio.FindString(dgSeek?.values[1]); }
                             catch
                             {
-                                logger.Warn("dataGridView1CellClick: " + dgSeek.values[1] + " not found");
+                                logger.Warn("dataGridView1CellClick: " + dgSeek?.values[1] + " not found");
                             }
                         }
                     }
@@ -6893,24 +6895,24 @@ namespace ASTA
                                 "idCard", "fio", "action"
                             });
 
-                        textBoxFIO.Text = dgSeek.values[1];
-                        _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить последние входы-выходы '" + dgSeek.values[1] + "'"); //Отобразить последние входы-выходы
+                        textBoxFIO.Text = dgSeek?.values[1];
+                      //  _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить последние входы-выходы '" + dgSeek?.values[1] + "'"); //Отобразить последние входы-выходы
 
-                        StatusLabel2.Text = @" |Курсор на: " + ShortFIO(dgSeek.values[1]);
+                        StatusLabel2.Text = @" |Курсор на: " + ShortFIO(dgSeek?.values[1]);
 
-                        if (dgSeek.values[1].Length > 3)
+                        if (dgSeek?.values[1].Length > 3)
                         {
-                            try { comboBoxFio.SelectedIndex = comboBoxFio.FindString(dgSeek.values[1]); }
+                            try { comboBoxFio.SelectedIndex = comboBoxFio.FindString(dgSeek?.values[1]); }
                             catch
                             {
-                                logger.Warn("dataGridView1CellClick: " + dgSeek.values[1] + " not found");
+                                logger.Warn("dataGridView1CellClick: " + dgSeek?.values[1] + " not found");
                             }
                         }
                     }
                 }
                 catch (Exception err)
                 {
-                    MessageBox.Show(err.ToString());
+                    logger.Warn("dataGridView1CellClick," + nameOfLastTable +":"+ err.ToString());
                 }
             }
         }
@@ -7988,7 +7990,7 @@ namespace ASTA
 
         public void InitScheduleTask(bool manualMode) //ScheduleTask()
         {
-            long interval = 50 * 1000; //20 sek
+            long interval = 60 * 1000; //60 seconds
             if (manualMode)
             {
                 _MenuItemTextSet(ModeItem, "Выключить режим e-mail рассылок");
