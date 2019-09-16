@@ -9,11 +9,11 @@ namespace ASTA.PersonDefinitions
     {
         
         Visitor visitor;
-      public  ObservableCollection<Visitor> visitors;
+      public  ObservableCollection<Visitor> collection;
 
         public Visitors()
         {
-            visitors = new ObservableCollection<Visitor>();
+            collection = new ObservableCollection<Visitor>();
         }
 
         public void Add(string _fio, string _action, string _idCard, string _date, string _time, SideOfPassagePoint _sideOfPassagePoint)
@@ -28,22 +28,22 @@ namespace ASTA.PersonDefinitions
                 sideOfPassagePoint = _sideOfPassagePoint
             };
 
-            visitors.Add(visitor);
+            collection.Add(visitor);
         }
 
         public ObservableCollection<Visitor> Get()
         {
-            return visitors;
+            return collection;
         }
 
         public IEnumerator GetEnumerator()
         {
-            return ((IEnumerable)visitors).GetEnumerator();
+            return ((IEnumerable)collection).GetEnumerator();
         }
 
         public int Count()
         {
-            return visitors.Count();
+            return collection.Count();
         }
     }
 }

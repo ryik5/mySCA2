@@ -14,6 +14,7 @@ using System.Security.Cryptography;  // for Crypography
 using MimeKit;
 using AutoUpdaterDotNET;
 using ASTA.PersonDefinitions;
+using System.Collections.Specialized;
 
 //using NLog;
 //Project\Control NuGet\console 
@@ -3305,15 +3306,50 @@ namespace ASTA
         }
 
 
+        /* public void EntityViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            //This will get called when the property of an object inside the collection changes
+        }*/
+
+        private void ContentCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+
+            //todo
+            //reload collection into datagrid
+            //todo it only for today
+
+            //This will get called when the collection is changed
+          /*  if (e.Action == NotifyCollectionChangedAction.Remove)
+            {
+                foreach (Visitor item in e.OldItems)
+                {
+                    //Removed items
+                    item.PropertyChanged -= EntityViewModelPropertyChanged;
+                }
+            }
+            else if (e.Action == NotifyCollectionChangedAction.Add)
+            {
+                foreach (EntityViewModel item in e.NewItems)
+                {
+                    //Added items
+                    item.PropertyChanged += EntityViewModelPropertyChanged;
+                }
+            }*/
+        }
+       
         private void LoadIputsOutputs(string wholeDay)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
+            Visitors visitors = new Visitors();
+           visitors.collection.CollectionChanged+= ContentCollectionChanged;
+            string dateTimeRegistration = null;
+
+
+
             _ProgressBar1Start();
             CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword).GetAwaiter().GetResult();
-
-            Visitors visitors = new Visitors();
 
             //Get names of the points
             GetNamesOfPassagePoints();
@@ -3322,7 +3358,6 @@ namespace ASTA
             DateTime today = DateTime.Today;
             string startDay = wholeDay + " 00:00:00";
             string endDay = wholeDay + " 23:59:59";
-            string dateTimeRegistration = null;
             string time, date, fullPointName, fio, action, action_descr, fac, card;
             int idCard = 0; string idCardDescr;
 
@@ -3332,7 +3367,8 @@ namespace ASTA
                 " CONVERT(varchar, p.date, 120) AS date, CONVERT(varchar, p.time, 114) AS time, p.time dateTimeRegistration" +
                 " FROM protocol p " +
                 " LEFT JOIN OBJ_PERSON pe ON  p.param1=pe.id " +
-                " where p.objtype like 'ABC_ARC_READER' AND p.param0 like '%%' AND date >= '" + startDay + "' AND date <= '" + endDay + "' " +
+                " where p.objtype like 'ABC_ARC_READER' AND p.param0 like '%%' "+
+                " AND date >= '" + startDay + "' AND date <= '" + endDay + "' " +
                 " ORDER BY p.time DESC";
 
             logger.Trace("stringConnection: " + sqlServerConnectionString);
@@ -3374,7 +3410,7 @@ namespace ASTA
                     logger.Trace(fio + " " + action_descr + " " + idCard + " " + idCardDescr + " " + record["action"]?.ToString()?.Trim() + " " + date + " " + time + " " + sideOfPassagePoint._namePoint + " " + sideOfPassagePoint._direction);
                     visitors.Add(fio, action_descr, idCardDescr, date, time, sideOfPassagePoint);
 
-                    dateTimeRegistration = record["dateTimeRegistration"]?.ToString();
+                    dateTimeRegistration = date+" "+ time;
                     _ProgressWork1Step();
                 }
                 logger.Trace("visitors.Count: " + visitors.Count());
