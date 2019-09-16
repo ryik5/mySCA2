@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 
 namespace ASTA
 {
-    class MakerXML
+    class MakerOfUpdateAppXML
     {
         string _appVersion;
         string _appXmlLocalPath;
@@ -17,7 +13,7 @@ namespace ASTA
         string _appMD5;
         public string Status { get; private set; }
 
-        public MakerXML(string appVersion, string appXmlLocalPath, string appUpdateFileURL, string appUpdateChangeLogURL, string appMD5)
+        public MakerOfUpdateAppXML(string appVersion, string appXmlLocalPath, string appUpdateFileURL, string appUpdateChangeLogURL, string appMD5)
         {
             _appVersion = appVersion;
             _appXmlLocalPath = appXmlLocalPath;

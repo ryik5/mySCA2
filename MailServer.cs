@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ASTA
 {
-    class MailServer
+   sealed class MailServer
     {
         private int _mailServerPort = -1;
         private string _mailServerName;
@@ -58,40 +54,5 @@ namespace ASTA
             return ToString().GetHashCode();
         }
     }
-
-    /* class MailServerBuilder
-     {
-         private MailServer _mailServer;
-
-         public MailServerBuilder()
-         { _mailServer = new MailServer(); }
-
-         public MailServerBuilder(string name, int port)
-         {
-             _mailServer = new MailServer(name,port);
-         }
-         public void Set(string name, int port)
-         {
-             _mailServer = new MailServer(name, port);
-         }
-         public void SetName(string name)
-         {
-             _mailServer.SetName(name);
-         }
-         public void SetPort(int port)
-         {
-             _mailServer.SetPort(port);
-         }
-
-         public MailServer Build()
-         {
-             return _mailServer;
-         }
-
-         public override string ToString()
-         {
-             return _mailServer.ToString();
-         }
-     }*/
 
 }

@@ -1,21 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ASTA
+namespace ASTA.PersonDefinitions
 {
-    class ADUser : IComparable<ADUser>
+    class UserAD : Employee, IComparable<UserAD>
     {
         public int id;
         public string domain;
         public string login;
         public string password;
-        public string code;
         public string mailNickName;
         public string mail;
         public string mailServer;
         public string description;
         public string lastLogon;
-        public string fio;
         public string department;
         public string stateAccount;
 
@@ -30,10 +28,10 @@ namespace ASTA
 
         public override bool Equals(object obj)
         {
-            if (obj == null || !(obj is ADUser))
+            if (obj == null || !(obj is UserAD))
                 return false;
 
-            ADUser df = obj as ADUser;
+            UserAD df = obj as UserAD;
             if ((Object)df == null)
                 return false;
 
@@ -46,12 +44,12 @@ namespace ASTA
         }
 
         //реализация для выполнения сортировки
-        int IComparable<ADUser>.CompareTo(ADUser next)
+        int IComparable<UserAD>.CompareTo(UserAD next)
         {
             return new ADUsersComparer().Compare(this, next);
         }
 
-        public string CompareTo(ADUser next)
+        public string CompareTo(UserAD next)
         {
             return next.CompareTo(this);
         }
@@ -59,14 +57,14 @@ namespace ASTA
     }
 
     //additional class для выполнения сортировки
-    class ADUsersComparer : IComparer<ADUser>
+    class ADUsersComparer : IComparer<UserAD>
     {
-        public int Compare(ADUser x, ADUser y)
+        public int Compare(UserAD x, UserAD y)
         {
             return this.CompareTwoStaffADs(x, y);
         }
 
-        public int CompareTwoStaffADs(ADUser x, ADUser y)
+        public int CompareTwoStaffADs(UserAD x, UserAD y)
         {
             string a = x.fio + x.login;
             string b = y.fio + y.login;

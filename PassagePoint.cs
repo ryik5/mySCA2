@@ -5,59 +5,7 @@ using System.Linq;
 
 namespace ASTA
 {
-
-    class InputOutputOfPerson
-    {
-        public string fio { get; set; }
-        public string idCard { get; set; }
-        public string date { get; set; }
-        public string time { get; set; }
-        public string action { get; set; }
-        public SideOfPassagePoint sideOfPassagePoint { get; set; }
-    }
-
-    class CollectionInputsOutputs : IEnumerable
-    {
-        InputOutputOfPerson inputOutputOfPerson;
-        List<InputOutputOfPerson> listInputsOutputs;
-
-        public CollectionInputsOutputs()
-        {
-            listInputsOutputs = new List<InputOutputOfPerson>();
-        }
-
-        public void Add(string _fio, string _action, string _idCard, string _date, string _time, SideOfPassagePoint _sideOfPassagePoint)
-        {
-            inputOutputOfPerson = new InputOutputOfPerson()
-            {
-                fio = _fio,
-                idCard = _idCard,
-                action = _action,
-                date = _date,
-                time = _time,
-                sideOfPassagePoint = _sideOfPassagePoint
-            };
-
-            listInputsOutputs.Add(inputOutputOfPerson);
-        }
-
-        public List<InputOutputOfPerson> Get()
-        {
-            return listInputsOutputs;
-        }
-
-        public IEnumerator GetEnumerator()
-        {
-            return ((IEnumerable)listInputsOutputs).GetEnumerator();
-        }
-
-        public int Count()
-        {
-            return listInputsOutputs.Count();
-        }
-    }
-
-    class PassagePoint
+    public class PassagePoint
     {
         public string _idPoint;
         public string _namePoint;
@@ -86,7 +34,7 @@ namespace ASTA
         }
     }
 
-    class SideOfPassagePoint : PassagePoint
+    public class SideOfPassagePoint : PassagePoint
     {
         public string _direction;
 
@@ -113,7 +61,7 @@ namespace ASTA
         }
     }
 
-    class CollectionSideOfPassagePoints : IEnumerable
+    public class CollectionSideOfPassagePoints : IEnumerable
     {
         SideOfPassagePoint sideOfPassagePoint;
         Dictionary<string, SideOfPassagePoint> listSideOfPassagePoints;

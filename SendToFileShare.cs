@@ -1,11 +1,12 @@
 ﻿using System;
+using ASTA.PersonDefinitions; 
 
 namespace ASTA
 {
 
     class SendToFileShare
     {
-        private SendToFileShare(string fileName, ADUser user, string pathNetworkShare)
+        private SendToFileShare(string fileName, UserAD user, string pathNetworkShare)
         {
             // string networkShareLocation = @"\\your\network\share\";
 

@@ -1,22 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace ASTA
 {
-
     public abstract class DBConnector
     {
         public virtual void CheckDB() { }
         public virtual void CloseConnection() { }
         public virtual void Dispose() { }
     }
-
-
+    
     //SQL
     class SqlDbReader : IDisposable
     {

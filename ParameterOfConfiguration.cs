@@ -6,7 +6,7 @@ using System.Data.SQLite;
 namespace ASTA
 {
 
-    class ParameterConfig
+    internal class ParameterConfig
     {
         public string parameterName;
         public string parameterDescription;
@@ -38,7 +38,7 @@ namespace ASTA
         }
     }
 
-    class ParameterOfConfiguration
+    internal class ParameterOfConfiguration
     {
         public string ParameterName { get; set; }
         public string ParameterValue { get; set; }
@@ -74,7 +74,7 @@ namespace ASTA
         }
     }
 
-    class ParameterOfConfigurationBuilder
+    internal class ParameterOfConfigurationBuilder
     {
         private ParameterOfConfiguration _parameterOfConfiguration;
 
@@ -114,7 +114,7 @@ namespace ASTA
         }
     }
 
-    class ParameterOfConfigurationInSQLiteDB
+    internal class ParameterOfConfigurationInSQLiteDB
     {
         ParameterOfConfiguration _parameterOfConfiguration;
         System.IO.FileInfo _databasePerson;
@@ -170,7 +170,7 @@ namespace ASTA
                     sqlCommand1.ExecuteNonQuery();
                 }
                 if (_parameterOfConfiguration?.ParameterValue?.Length == 0)
-                    return _parameterOfConfiguration.ParameterName +  " - was saved in DB, but value is empty!";
+                    return _parameterOfConfiguration.ParameterName + " - was saved in DB, but value is empty!";
                 else
                     return _parameterOfConfiguration.ParameterName + " (" + _parameterOfConfiguration.ParameterValue + ")" + " - was saved in DB!";
             }

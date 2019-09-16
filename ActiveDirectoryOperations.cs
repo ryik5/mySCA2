@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Collections.ObjectModel;
 using System.DirectoryServices;
+using ASTA.PersonDefinitions;
 
 namespace ASTA
 {
@@ -13,7 +14,7 @@ namespace ASTA
         static NLog.Logger logger;
         ADUserAuthorization _ADUserAuthorization;
 
-        public ObservableCollection<ADUser> ADUsersCollection;
+        public ObservableCollection<UserAD> ADUsersCollection;
 
         public ADData(string _user, string _domain, string _password, string _domainPath)
         {
@@ -28,10 +29,10 @@ namespace ASTA
                  
             // isValid = ValidateCredentials(_ADUserAuthorization);       // it sometimes doesn't work correctly
             //  logger.Trace("!Test only!  "+"Доступ к домену '" + _ADUserAuthorization.Domain + "' предоставлен: " + isValid);
-            ADUsersCollection = new ObservableCollection<ADUser>();
+            ADUsersCollection = new ObservableCollection<UserAD>();
         }
 
-        public ObservableCollection<ADUser> GetADUsers()
+        public ObservableCollection<UserAD> GetADUsers()
         {
             logger.Trace(_ADUserAuthorization.DomainPath);
             int userCount = 0;
@@ -102,7 +103,7 @@ namespace ASTA
                                         // _guid = foundUser?.Guid?.ToString();
 
                                         userCount += 1;
-                                        ADUsersCollection.Add(new ADUser
+                                        ADUsersCollection.Add(new UserAD
                                         {
                                             id = userCount,
                                             login = _login,
