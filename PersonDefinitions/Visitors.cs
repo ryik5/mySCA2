@@ -1,19 +1,29 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 
 namespace ASTA.PersonDefinitions
 {
-    public class Visitors : IEnumerable
+    public class Visitors :INotifyPropertyChanged, IEnumerable
     {
+
+        private Visitor visitor;
+        public ObservableRangeCollection<Visitor> collection;
         
-        Visitor visitor;
-      public  ObservableCollection<Visitor> collection;
+        public event PropertyChangedEventHandler PropertyChanged;
+        public void OnPropertyChanged(string prop)
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(prop));
+            }
+        }
 
         public Visitors()
         {
-            collection = new ObservableCollection<Visitor>();
+            collection = new ObservableRangeCollection<Visitor>();
         }
 
         public void Add(string _fio, string _action, string _idCard, string _date, string _time, SideOfPassagePoint _sideOfPassagePoint)
@@ -27,11 +37,34 @@ namespace ASTA.PersonDefinitions
                 time = _time,
                 sideOfPassagePoint = _sideOfPassagePoint
             };
-
+            collection.Reverse();
             collection.Add(visitor);
+            collection.Reverse();
+            OnPropertyChanged("Visitor");
         }
 
-        public ObservableCollection<Visitor> Get()
+        public void Add(Visitor visitor)
+        {
+            collection.Add(visitor);
+            OnPropertyChanged("Visitor");
+        }
+
+        public void Add(Visitor visitor, int position)
+        {
+            collection.Insert(position, visitor);
+            OnPropertyChanged("Visitor");
+        }
+
+        public void Add(ObservableCollection<Visitor> visitors)
+        {
+            if (visitors?.Count > 0)
+            {
+                    collection.AddRange(visitors);
+                    OnPropertyChanged("Visitor");
+            }
+        }
+
+        public ObservableCollection<Visitor> GetCollection()
         {
             return collection;
         }

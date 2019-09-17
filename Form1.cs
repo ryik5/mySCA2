@@ -15,6 +15,7 @@ using MimeKit;
 using AutoUpdaterDotNET;
 using ASTA.PersonDefinitions;
 using System.Collections.Specialized;
+using System.Collections.ObjectModel;
 
 //using NLog;
 //Project\Control NuGet\console 
@@ -514,7 +515,7 @@ namespace ASTA
         Color textBoxFIOCurrentBackColor;
         Color textBoxNavCurrentBackColor;
 
-        CollectionSideOfPassagePoints collectionSideOfPassagePoints;
+        CollectionOfPassagePoints collectionOfPassagePoints;
 
         public WinFormASTA()
         { InitializeComponent(); }
@@ -742,10 +743,10 @@ namespace ASTA
                 dateTimePickerEnd.CustomFormat = "yyyy-MM-dd";
                 dateTimePickerStart.Format = DateTimePickerFormat.Custom;
                 dateTimePickerEnd.Format = DateTimePickerFormat.Custom;
-              //  dateTimePickerStart.MinDate = DateTime.Parse("2016-01-01");
-              //  dateTimePickerEnd.MinDate = DateTime.Parse("2016-01-01");
-              // dateTimePickerStart.MaxDate = today;
-             //   dateTimePickerEnd.MaxDate = DateTime.Parse("2025-12-31");
+                //  dateTimePickerStart.MinDate = DateTime.Parse("2016-01-01");
+                //  dateTimePickerEnd.MinDate = DateTime.Parse("2016-01-01");
+                // dateTimePickerStart.MaxDate = today;
+                //   dateTimePickerEnd.MaxDate = DateTime.Parse("2025-12-31");
                 dateTimePickerStart.Value = DateTime.Parse(today.Year + "-" + today.Month + "-01");
                 dateTimePickerEnd.Value = today.LastDayOfMonth();
 
@@ -842,15 +843,15 @@ namespace ASTA
                 string prevText = _toolStripStatusLabelReturnText(StatusLabel2);
                 Color prevColor = _toolStripStatusLabelReturnBackColor(StatusLabel2);
                 bool readOk = true;
-                
-                     if (!(fpath?.Length > 0))
-                    {
-                        fpath = SelectFileOpenFileDialog("Выберите файл", "Текстовые файлы (*.txt)|*.txt|SQL файлы (*.sql)|*.sql|All files (*.*)|*.*");
-                        if (fpath == null) return;
-                    }
 
-                    logger.Trace("ReadTXTFile");
-                    _toolStripStatusLabelSetText(StatusLabel2, "Читаю файл: " + fpath);
+                if (!(fpath?.Length > 0))
+                {
+                    fpath = SelectFileOpenFileDialog("Выберите файл", "Текстовые файлы (*.txt)|*.txt|SQL файлы (*.sql)|*.sql|All files (*.*)|*.*");
+                    if (fpath == null) return;
+                }
+
+                logger.Trace("ReadTXTFile");
+                _toolStripStatusLabelSetText(StatusLabel2, "Читаю файл: " + fpath);
                 try
                 {
                     using (System.IO.StreamReader Reader =
@@ -1538,7 +1539,7 @@ namespace ASTA
         {
             logger.Trace("-= CheckAliveIntellectServer =-");
 
-            _toolStripStatusLabelSetText(StatusLabel2, "Проверка доступности " + serverName + ". Ждите окончания процесса...");
+            logger.Trace("Проверка доступности " + serverName + ". Ждите окончания процесса...");
             bServer1Exist = false;
 
             string query = "SELECT database_id FROM sys.databases WHERE Name ='intellect' ";
@@ -1710,7 +1711,7 @@ namespace ASTA
                 var namesDistinctColumnsArray = arrayAllColumnsDataTablePeople.Except(arrayHiddenColumnsFIO).ToArray(); //take distinct data
                 dtPersonTemp = GetDistinctRecords(dtTempIntermediate, namesDistinctColumnsArray);
                 ShowDatatableOnDatagridview(dtPersonTemp, arrayHiddenColumnsFIO, "ListFIO");
-             //   _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить последние входы-выходы");
+                //   _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить последние входы-выходы");
                 _toolStripStatusLabelSetText(StatusLabel2, "Записано в локальную базу: " + countUsers + " ФИО, " + countGroups + " групп и " + countMailers + " рассылок");
                 namesDistinctColumnsArray = null;
             }
@@ -2312,7 +2313,7 @@ namespace ASTA
         private void listFioItem_Click(object sender, EventArgs e) //ListFioReturn()
         {
             nameOfLastTable = "ListFIO";
-          //  _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить последние входы-выходы");
+            //  _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить последние входы-выходы");
             _controlEnable(comboBoxFio, true);
             SeekAndShowMembersOfGroup("");
         }
@@ -3235,7 +3236,7 @@ namespace ASTA
             logger.Trace("-= " + method + " =-");
 
             logger.Trace("GetNamePoints");
-            collectionSideOfPassagePoints = new CollectionSideOfPassagePoints();
+            collectionOfPassagePoints = new CollectionOfPassagePoints();
 
             if (dbApplication.Exists)
             {
@@ -3260,18 +3261,18 @@ namespace ASTA
 
                         if (idPoint?.Length > 0 && namePoint?.Length > 0)
                         {
-                            collectionSideOfPassagePoints.Add(idPoint, namePoint, direction, sServer1);
+                            collectionOfPassagePoints.AddPoint(idPoint, namePoint, direction, sServer1);
                         }
                     }
                 }
             }
-            foreach (var tmp in collectionSideOfPassagePoints.GetCollection())
+            foreach (var tmp in collectionOfPassagePoints.GetCollection())
             {
                 logger.Trace(tmp.Key + " " + tmp.Value._idPoint + " " + tmp.Value._namePoint + " " + tmp.Value._direction + " " + tmp.Value._connectedToServer);
             }
         }
 
-        private async void LoadLastIputsOutputs_Click(object sender, EventArgs e) //LoadIputsOutputs()
+        private async void LoadLastIputsOutputs_Click(object sender, EventArgs e) //LoadInputsOutputsOfVisitors()
         {
             DateTime today = DateTime.Today;
             string day = today.Year + "-" + today.Month + "-" + today.Day;
@@ -3279,7 +3280,7 @@ namespace ASTA
             _dateTimePickerSet(dateTimePickerStart, today.Year, today.Month, today.Day);
             _dateTimePickerSet(dateTimePickerEnd, today.Year, today.Month, today.Day);
 
-            await Task.Run(() => LoadIputsOutputs(day));
+            await Task.Run(() => LoadInputsOutputsOfVisitors(day));
         }
 
 
@@ -3290,11 +3291,11 @@ namespace ASTA
             string day = string.Format("{0:d4}-{1:d2}-{2:d2}", today.Year, today.Month, today.Day);
 
             _MenuItemTextSet(LoadInputsOutputsItem, "Отобразить входы-выходы за " + day);
-            await Task.Run(() => LoadIputsOutputs(day));
+            await Task.Run(() => LoadInputsOutputsOfVisitors(day));
         }
 
 
-        private async void LoadLastIputsOutputs_Update_Click(object sender, EventArgs e) //LoadIputsOutputs()
+        private async void LoadLastIputsOutputs_Update_Click(object sender, EventArgs e) //LoadInputsOutputsOfVisitors()
         {
             nameOfLastTable = "ListFIO"; //Reset last name of table to List FIO
 
@@ -3302,7 +3303,8 @@ namespace ASTA
             _dateTimePickerSet(dateTimePickerEnd, today.Year, today.Month, today.Day);
 
             string day = string.Format("{0:d4}-{1:d2}-{2:d2}", today.Year, today.Month, today.Day);
-            await Task.Run(() => LoadIputsOutputs(day));
+            await Task.Run(() => LoadInputsOutputsOfVisitors(day));
+
         }
 
 
@@ -3317,72 +3319,118 @@ namespace ASTA
             //todo
             //reload collection into datagrid
             //todo it only for today
+            // dataGridView1.Visible = false;
+            _dataGridViewShowData(visitors.collection);
+            //  dataGridView1.Visible = true;
 
-            //This will get called when the collection is changed
-          /*  if (e.Action == NotifyCollectionChangedAction.Remove)
-            {
-                foreach (Visitor item in e.OldItems)
-                {
-                    //Removed items
-                    item.PropertyChanged -= EntityViewModelPropertyChanged;
-                }
-            }
-            else if (e.Action == NotifyCollectionChangedAction.Add)
-            {
-                foreach (EntityViewModel item in e.NewItems)
-                {
-                    //Added items
-                    item.PropertyChanged += EntityViewModelPropertyChanged;
-                }
-            }*/
         }
-       
-        private void LoadIputsOutputs(string wholeDay)
+
+
+        private static Visitors visitors = new Visitors();
+        private static object lockerLoadingTimeInpsOutps;
+        private static object lockerLoadingInsOuts = new object();
+        private static string startLoadingTimeInpsOutps = "00:00:00";
+        private static string startLoadingDayInpsOutps = "dddddday";
+        private static bool checkInputsOutputs = true;
+
+        private void LoadInputsOutputsOfVisitors(string wholeDay)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
-            Visitors visitors = new Visitors();
-           visitors.collection.CollectionChanged+= ContentCollectionChanged;
-            string dateTimeRegistration = null;
-
-
-
-            _ProgressBar1Start();
-            CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword).GetAwaiter().GetResult();
+            visitors?.collection?.Clear();
+            visitors = new Visitors();
+            visitors.collection.CollectionChanged += ContentCollectionChanged; //subscribe on changing data in visitors
+            List<Visitor> visitorsTillNow;
 
             //Get names of the points
             GetNamesOfPassagePoints();
+
+
+            lockerLoadingTimeInpsOutps = new object();
+            startLoadingDayInpsOutps = wholeDay;
+            startLoadingTimeInpsOutps = "00:00:00";
+            checkInputsOutputs = true;
+            bool firstStage = true;
+
+            lockerLoadingInsOuts = new object();
+            StartStopTimer startStopTimer = new StartStopTimer(15);
+            int timesChecking = 10;
+            do
+            {
+                lock (lockerLoadingInsOuts)
+                {
+                    visitorsTillNow = new List<Visitor>();
+                    logger.Trace("time: " + startLoadingTimeInpsOutps);
+                    logger.Trace("---/  " + DateTime.Now.ToYYYYMMDDHHMMSS() + "  /---");
+                    visitorsTillNow = GetInputsOutputs();
+                    if (firstStage)
+                    {
+                        visitors.collection.AddRange(visitorsTillNow);
+                        firstStage = false;
+                    }
+                    else
+                    {
+                        if (visitorsTillNow?.Count > 0)
+                        {
+                            visitorsTillNow.Reverse();
+                            foreach (var visitor in visitorsTillNow)
+                                visitors.Add(visitor, 0);
+                        }
+                    }
+                }
+                timesChecking--;
+                if (timesChecking < 0)
+                { checkInputsOutputs = false; }
+
+                _toolStripStatusLabelSetText(StatusLabel2, "Данные собраны: " + (10 - timesChecking));
+
+                startStopTimer.WaitTime();
+
+            } while (checkInputsOutputs);
+
+            _toolStripStatusLabelSetText(StatusLabel2, "Данные собраны");
+            nameOfLastTable = "LastIputsOutputs";
+        }
+
+        private List<Visitor> GetInputsOutputs()
+        {
+            _ProgressBar1Start();
+
+            CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword).GetAwaiter().GetResult();
+
+            List<Visitor> visitors;
+            bool startTimeNotSet = true;
+
             SideOfPassagePoint sideOfPassagePoint;
 
-            DateTime today = DateTime.Today;
-            string startDay = wholeDay + " 00:00:00";
-            string endDay = wholeDay + " 23:59:59";
+            string startDay = startLoadingDayInpsOutps + " " + startLoadingTimeInpsOutps; //string startDay = day + " 00:00:00";
+            string endDay = startLoadingDayInpsOutps + " 23:59:59";
             string time, date, fullPointName, fio, action, action_descr, fac, card;
             int idCard = 0; string idCardDescr;
-
 
             string query = "SELECT p.param0 as param0, p.param1 as param1, p.action as action, p.objid as objid, p.objtype, " +
                 " pe.tabnum as nav, pe.facility_code as fac, pe.card as card, " +
                 " CONVERT(varchar, p.date, 120) AS date, CONVERT(varchar, p.time, 114) AS time, p.time dateTimeRegistration" +
                 " FROM protocol p " +
                 " LEFT JOIN OBJ_PERSON pe ON  p.param1=pe.id " +
-                " where p.objtype like 'ABC_ARC_READER' AND p.param0 like '%%' "+
-                " AND date >= '" + startDay + "' AND date <= '" + endDay + "' " +
+                " where p.objtype like 'ABC_ARC_READER' AND p.param0 like '%%' " +
+                " AND date > '" + startDay + "' AND date <= '" + endDay + "' " +
                 " ORDER BY p.time DESC";
 
             logger.Trace("stringConnection: " + sqlServerConnectionString);
             logger.Trace("query: " + query);
 
-
             using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
             {
+                visitors = new List<Visitor>();
+
                 System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetData(query);
                 foreach (DbDataRecord record in sqlData)
                 {
                     //look for PassagePoint
                     fullPointName = record["objid"]?.ToString()?.Trim();
-                    sideOfPassagePoint = collectionSideOfPassagePoints.GetSideOfPassagePoint(fullPointName);
+                    sideOfPassagePoint = collectionOfPassagePoints.GetPoint(fullPointName);
 
                     //look for FIO
                     fio = record["param0"]?.ToString()?.Trim()?.Length > 0 ? record["param0"]?.ToString()?.Trim() : sServer1;
@@ -3408,24 +3456,37 @@ namespace ASTA
 
                     //write gathered data in the collection
                     logger.Trace(fio + " " + action_descr + " " + idCard + " " + idCardDescr + " " + record["action"]?.ToString()?.Trim() + " " + date + " " + time + " " + sideOfPassagePoint._namePoint + " " + sideOfPassagePoint._direction);
-                    visitors.Add(fio, action_descr, idCardDescr, date, time, sideOfPassagePoint);
 
-                    dateTimeRegistration = date+" "+ time;
+                    visitors.Add(new Visitor(fio, idCardDescr, date, time, action_descr, sideOfPassagePoint));
+
+                    if (startTimeNotSet) //set starttime into last time at once
+                    {
+                        startLoadingTimeInpsOutps = time;
+                        startTimeNotSet = false;
+                    }
+
                     _ProgressWork1Step();
                 }
                 logger.Trace("visitors.Count: " + visitors.Count());
                 _ProgressWork1Step();
             }
-
-            // Order of collumns
-            //dataTable.SetColumnsOrder(orderColumnsFinacialReport);
-            _dataGridViewShowData(visitors.Get());
-
             stimerPrev = "";
             _ProgressBar1Stop();
-            _toolStripStatusLabelSetText(StatusLabel2, "Данные собраны");
-            nameOfLastTable = "LastIputsOutputs";
+            return visitors;
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3787,7 +3848,7 @@ namespace ASTA
                                 seconds = ConvertStringTimeHHMMToSeconds(record["time"]?.ToString()?.Trim());
 
                                 fullPointName = record["objid"]?.ToString()?.Trim();
-                                sideOfPassagePoint = collectionSideOfPassagePoints.GetSideOfPassagePoint(fullPointName);
+                                sideOfPassagePoint = collectionOfPassagePoints.GetPoint(fullPointName);
                                 namePoint = sideOfPassagePoint._namePoint;
                                 direction = sideOfPassagePoint._direction;
 
@@ -4066,7 +4127,7 @@ namespace ASTA
 
             _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
             _toolStripStatusLabelSetText(StatusLabel2, @"Завершен 'Режим редактирования в локальной БД дат праздников и выходных'");
-         //   _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить последние входы-выходы");
+            //   _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить последние входы-выходы");
 
             nameOfLastTable = "ListFIO";
             SeekAndShowMembersOfGroup("");
@@ -6797,7 +6858,7 @@ namespace ASTA
         {
             LoadDataItem.Enabled = true;
             LoadDataItem.BackColor = Color.PaleGreen;
-          //  dateTimePickerEnd.MinDate = dateTimePickerStart.Value;
+            //  dateTimePickerEnd.MinDate = dateTimePickerStart.Value;
 
             string day = string.Format("{0:d4}-{1:d2}-{2:d2}", dateTimePickerStart.Value.Year, dateTimePickerStart.Value.Month, dateTimePickerStart.Value.Day);
             _MenuItemTextSet(LoadInputsOutputsItem, "Отобразить входы-выходы за " + day);
@@ -6805,7 +6866,7 @@ namespace ASTA
 
         private void dateTimePickerEnd_CloseUp(object sender, EventArgs e)
         {
-         //   dateTimePickerStart.MaxDate = dateTimePickerEnd.Value;
+            //   dateTimePickerStart.MaxDate = dateTimePickerEnd.Value;
         }
 
         private void PersonOrGroupItem_Click(object sender, EventArgs e) //PersonOrGroup()
@@ -6896,7 +6957,7 @@ namespace ASTA
                         textBoxGroup.Text = dgSeek?.values[0];
                         textBoxFIO.Text = dgSeek?.values[1];
                         textBoxNav.Text = dgSeek?.values[2];
-                       // _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить последние входы-выходы за сегодня"); //Отобразить последние входы-выходы
+                        // _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить последние входы-выходы за сегодня"); //Отобразить последние входы-выходы
 
                         StatusLabel2.Text = @"Выбрана группа: " + dgSeek?.values[0] +
                             @" |Курсор на: " + ShortFIO(dgSeek?.values[1]);
@@ -6932,7 +6993,7 @@ namespace ASTA
                             });
 
                         textBoxFIO.Text = dgSeek?.values[1];
-                      //  _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить последние входы-выходы '" + dgSeek?.values[1] + "'"); //Отобразить последние входы-выходы
+                        //  _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить последние входы-выходы '" + dgSeek?.values[1] + "'"); //Отобразить последние входы-выходы
 
                         StatusLabel2.Text = @" |Курсор на: " + ShortFIO(dgSeek?.values[1]);
 
@@ -6948,7 +7009,7 @@ namespace ASTA
                 }
                 catch (Exception err)
                 {
-                    logger.Warn("dataGridView1CellClick," + nameOfLastTable +":"+ err.ToString());
+                    logger.Warn("dataGridView1CellClick," + nameOfLastTable + ":" + err.ToString());
                 }
             }
         }
@@ -8024,7 +8085,7 @@ namespace ASTA
             Task.Run(() => InitScheduleTask(manualMode));
         }
 
-        public void InitScheduleTask(bool manualMode) //ScheduleTask()
+        private void InitScheduleTask(bool manualMode) //ScheduleTask()
         {
             long interval = 60 * 1000; //60 seconds
             if (manualMode)
@@ -8986,35 +9047,30 @@ namespace ASTA
 
         private void _dataGridViewShowData(object obj)
         {
+            System.Collections.ArrayList Empty = new System.Collections.ArrayList();
             if (InvokeRequired)
             {
                 Invoke(new MethodInvoker(delegate
                 {
+                    dataGridView1.DataSource = Empty;
+                    dataGridView1?.Refresh();
+
                     if (obj != null)
                     {
                         dataGridView1.DataSource = obj;
                         dataGridView1.Visible = true;
                     }
-                    else
-                    {
-                        System.Collections.ArrayList Empty = new System.Collections.ArrayList();
-                        dataGridView1.DataSource = Empty;
-                        dataGridView1?.Refresh();
-                    }
                 }));
             }
             else
             {
+                dataGridView1.DataSource = Empty;
+                dataGridView1?.Refresh();
+
                 if (obj != null)
                 {
                     dataGridView1.DataSource = obj;
                     dataGridView1.Visible = true;
-                }
-                else
-                {
-                    System.Collections.ArrayList Empty = new System.Collections.ArrayList();
-                    dataGridView1.DataSource = Empty;
-                    dataGridView1?.Refresh();
                 }
             }
         }
@@ -9792,6 +9848,9 @@ namespace ASTA
             return result;
         }
 
+        //todo
+        //remove
+        //it exists in the  class - DateTimeConvertor
         private string ConvertStringsTimeToStringHHMMSS(string time)
         {
             int h = 0;
@@ -9928,7 +9987,7 @@ namespace ASTA
             if (fpath == null)
                 return;
 
-             fpath = dbApplication.FullName.ToString(); 
+            fpath = dbApplication.FullName.ToString();
 
             Cursor = Cursors.WaitCursor;
             System.Threading.Thread worker = new System.Threading.Thread(new System.Threading.ThreadStart(delegate
@@ -10055,8 +10114,8 @@ namespace ASTA
                     AutoUpdater.RunUpdateAsAdmin = false;
                     AutoUpdater.UpdateMode = Mode.ForcedDownload;
                     AutoUpdater.Mandatory = true;
-                   // AutoUpdater.ReportErrors = true;
-                   // AutoUpdater.AppCastURL = appUpdateURL;
+                    // AutoUpdater.ReportErrors = true;
+                    // AutoUpdater.AppCastURL = appUpdateURL;
                     AutoUpdater.DownloadPath = appFolderUpdatePath;
 
                     AutoUpdater.Start(appUpdateURL, System.Reflection.Assembly.GetEntryAssembly());
@@ -10152,43 +10211,43 @@ namespace ASTA
                 }
             }
         }
-/*
-        //Test algorithm to evaluate with the autoupdater's algorithm
-        private static bool CompareChecksum(string fileName, string checksum, string algorythm = "MD5") //MD5, SHA1, SHA256, SHA384, SHA512
-        {
-            using (var hashAlgorithm = HashAlgorithm.Create(algorythm))
-            {
-                using (var stream =System.IO.File.OpenRead(fileName))
+        /*
+                //Test algorithm to evaluate with the autoupdater's algorithm
+                private static bool CompareChecksum(string fileName, string checksum, string algorythm = "MD5") //MD5, SHA1, SHA256, SHA384, SHA512
                 {
-                    if (hashAlgorithm != null)
+                    using (var hashAlgorithm = HashAlgorithm.Create(algorythm))
                     {
-                        var hash = hashAlgorithm.ComputeHash(stream);
-                        var fileChecksum = BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant();
+                        using (var stream =System.IO.File.OpenRead(fileName))
+                        {
+                            if (hashAlgorithm != null)
+                            {
+                                var hash = hashAlgorithm.ComputeHash(stream);
+                                var fileChecksum = BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant();
 
-                        if (fileChecksum == checksum.ToLower()) return true;
+                                if (fileChecksum == checksum.ToLower()) return true;
+                            }
+
+                            return false;
+                        }
                     }
-
-                    return false;
                 }
-            }
-        }
 
-        //Test algorithm to evaluate with the autoupdater's algorithm
-        private void TestHash()
-        {
-            string filePath = null;
-            filePath = SelectFileOpenFileDialog("Выберите первый файл для вычисления хэша");
-            string myFileHash = CalculateFileHash(filePath);
+                //Test algorithm to evaluate with the autoupdater's algorithm
+                private void TestHash()
+                {
+                    string filePath = null;
+                    filePath = SelectFileOpenFileDialog("Выберите первый файл для вычисления хэша");
+                    string myFileHash = CalculateFileHash(filePath);
 
-            filePath = SelectFileOpenFileDialog("Выберите второй файл для вычисления хэша");
-            bool result = CompareChecksum(filePath, myFileHash);
-            MessageBox.Show("Result of evaluation of checking\n"+ result);
-        }*/
+                    filePath = SelectFileOpenFileDialog("Выберите второй файл для вычисления хэша");
+                    bool result = CompareChecksum(filePath, myFileHash);
+                    MessageBox.Show("Result of evaluation of checking\n"+ result);
+                }*/
 
-       private void CalculateHashItem_Click(object sender, EventArgs e) //Selectfiles()
+        private void CalculateHashItem_Click(object sender, EventArgs e) //Selectfiles()
         {
             SelectfilesForCalculatingHash();
-          //  TestHash();
+            //  TestHash();
         }
 
 
@@ -10211,8 +10270,8 @@ namespace ASTA
             }
             MessageBox.Show(result, "Результат вычисления хэша");
         }
-        
-        private string SelectFileOpenFileDialog(string titleWindowDialog = null, string maskFiles= "Все файлы (*.*)|*.*")
+
+        private string SelectFileOpenFileDialog(string titleWindowDialog = null, string maskFiles = "Все файлы (*.*)|*.*")
         {
             string filePath = null;
             MethodInvoker mi = delegate

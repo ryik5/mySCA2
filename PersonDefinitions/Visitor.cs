@@ -12,7 +12,16 @@ namespace ASTA.PersonDefinitions
         public string action { get; set; }  //результат попытки прохода  ResultOfAttemptToPass
 
         public SideOfPassagePoint sideOfPassagePoint { get; set; }  //card reader name or id one   CardReaderName
-
-       // public event PropertyChangedEventHandler PropertyChanged;
+        public Visitor():base() { }
+        public Visitor(string _fio, string _idCard, string _date, string _time, string _action, SideOfPassagePoint _sideOfPassagePoint)
+        {
+            fio = _fio;
+            idCard = _idCard;
+            date = _date;
+            time = _time;
+            action = _action;
+            sideOfPassagePoint = _sideOfPassagePoint;
+        }
+        // public event PropertyChangedEventHandler PropertyChanged;
     }
 }

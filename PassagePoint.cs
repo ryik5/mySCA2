@@ -61,17 +61,17 @@ namespace ASTA
         }
     }
 
-    public class CollectionSideOfPassagePoints : IEnumerable
+    public class CollectionOfPassagePoints : IEnumerable
     {
         SideOfPassagePoint sideOfPassagePoint;
         Dictionary<string, SideOfPassagePoint> listSideOfPassagePoints;
 
-        public CollectionSideOfPassagePoints()
+        public CollectionOfPassagePoints()
         {
             listSideOfPassagePoints = new Dictionary<string, SideOfPassagePoint>();
         }
 
-        public void Add(string _idPoint, string _namePoint, string _direction, string _connectedToServer)
+        public void AddPoint(string _idPoint, string _namePoint, string _direction, string _connectedToServer)
         {
             sideOfPassagePoint = new SideOfPassagePoint()
             {
@@ -81,9 +81,17 @@ namespace ASTA
                 _connectedToServer = _connectedToServer
             };
 
+            AddPoint(_idPoint, sideOfPassagePoint);
+        }
+
+        public void AddPoint(string _idPoint, SideOfPassagePoint sideOfPassagePoint)
+        {
             if (_idPoint != null)
+            {
                 if (listSideOfPassagePoints.Count == 0)
-                { listSideOfPassagePoints.Add(_idPoint, sideOfPassagePoint); }
+                {
+                    listSideOfPassagePoints.Add(_idPoint, sideOfPassagePoint);
+                }
                 else
                 {
                     SideOfPassagePoint chkPoint;
@@ -92,6 +100,7 @@ namespace ASTA
                         listSideOfPassagePoints.Add(_idPoint, sideOfPassagePoint);
                     }
                 }
+            }
         }
 
         public Dictionary<string, SideOfPassagePoint> GetCollection()
@@ -99,7 +108,7 @@ namespace ASTA
             return listSideOfPassagePoints;
         }
 
-        public SideOfPassagePoint GetSideOfPassagePoint(string _idPoint)
+        public SideOfPassagePoint GetPoint(string _idPoint)
         {
             sideOfPassagePoint = new SideOfPassagePoint();
             listSideOfPassagePoints.TryGetValue(_idPoint, out sideOfPassagePoint);
