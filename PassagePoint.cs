@@ -66,10 +66,7 @@ namespace ASTA
         SideOfPassagePoint sideOfPassagePoint;
         Dictionary<string, SideOfPassagePoint> listSideOfPassagePoints;
 
-        public CollectionOfPassagePoints()
-        {
-            listSideOfPassagePoints = new Dictionary<string, SideOfPassagePoint>();
-        }
+        public CollectionOfPassagePoints() { }
 
         public void AddPoint(string _idPoint, string _namePoint, string _direction, string _connectedToServer)
         {
@@ -88,6 +85,8 @@ namespace ASTA
         {
             if (_idPoint != null)
             {
+                CreateCollection();
+
                 if (listSideOfPassagePoints.Count == 0)
                 {
                     listSideOfPassagePoints.Add(_idPoint, sideOfPassagePoint);
@@ -101,6 +100,11 @@ namespace ASTA
                     }
                 }
             }
+        }
+
+        public void AddCollection(Dictionary<string, SideOfPassagePoint> collection)
+        {
+            listSideOfPassagePoints = collection;
         }
 
         public Dictionary<string, SideOfPassagePoint> GetCollection()
@@ -124,6 +128,12 @@ namespace ASTA
         public int Count()
         {
             return listSideOfPassagePoints.Count();
+        }
+
+        private void CreateCollection()
+        {
+            if (listSideOfPassagePoints == null)
+                listSideOfPassagePoints = new Dictionary<string, SideOfPassagePoint>();
         }
     }
 

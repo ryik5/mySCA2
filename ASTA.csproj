@@ -202,8 +202,8 @@
       <DependentUpon>AboutBox1.cs</DependentUpon>
     </Compile>
     <Compile Include="ActiveDirectoryOperations.cs" />
+    <Compile Include="NamesOfConstants.cs" />
     <Compile Include="DateTimeConvertor.cs" />
-    <Compile Include="LoadingRegistrationOfIdCards.cs" />
     <Compile Include="ObservableRangeCollection.cs" />
     <Compile Include="PassagePoint.cs" />
     <Compile Include="PersonDefinitions\Employee.cs" />

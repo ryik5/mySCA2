@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ASTA
 {
@@ -33,18 +30,18 @@ namespace ASTA
 
             if (time.Contains(':'))
             {
-                Int32.TryParse(time.Split(':')[0], out h);
+                int.TryParse(time.Split(':')[0], out h);
 
                 if (time.Split(':').Length > 1)
                 {
-                    Int32.TryParse(time.Split(':')[1], out m);
+                    int.TryParse(time.Split(':')[1], out m);
 
                     if (time.Split(':').Length > 2)
                     {
-                        Int32.TryParse(time.Split(':')[2], out s);
+                        int.TryParse(time.Split(':')[2], out s);
                     }
                 }
-                return String.Format("{0:d2}:{1:d2}:{2:d2}", h, m, s);
+                return string.Format("{0:d2}:{1:d2}:{2:d2}", h, m, s);
             }
             else
             {
