@@ -29,9 +29,9 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(WinFormASTA));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.comboBoxFio = new System.Windows.Forms.ComboBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
@@ -106,12 +106,12 @@
             this.ClearRegistryItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ClearAllItem = new System.Windows.Forms.ToolStripMenuItem();
             this.Separator7 = new System.Windows.Forms.ToolStripSeparator();
-            this.GetADUsersItem = new System.Windows.Forms.ToolStripMenuItem();
             this.AutoupdateItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.UploadApplicationItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.GetADUsersItem = new System.Windows.Forms.ToolStripMenuItem();
             this.GetCurrentSchemeItem = new System.Windows.Forms.ToolStripMenuItem();
             this.CreateDBItem = new System.Windows.Forms.ToolStripMenuItem();
             this.RefreshConfigInMainDBItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.UploadApplicationItem = new System.Windows.Forms.ToolStripMenuItem();
             this.calculateHashItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpAboutItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -148,20 +148,20 @@
             // dataGridView1
             // 
             this.dataGridView1.AllowUserToOrderColumns = true;
-            dataGridViewCellStyle5.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
-            dataGridViewCellStyle5.SelectionForeColor = System.Drawing.Color.SteelBlue;
-            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle5;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.Color.SteelBlue;
+            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle3;
             resources.ApplyResources(this.dataGridView1, "dataGridView1");
             this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dataGridView1.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedHeaders;
-            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle6.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            dataGridViewCellStyle6.ForeColor = System.Drawing.Color.Black;
-            dataGridViewCellStyle6.SelectionBackColor = System.Drawing.Color.LightBlue;
-            dataGridViewCellStyle6.SelectionForeColor = System.Drawing.Color.DarkSlateGray;
-            dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle6;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.Color.LightBlue;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.Color.DarkSlateGray;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnF2;
             this.dataGridView1.Name = "dataGridView1";
@@ -429,7 +429,7 @@
             // 
             this.LoadDataItem.Name = "LoadDataItem";
             resources.ApplyResources(this.LoadDataItem, "LoadDataItem");
-            this.LoadDataItem.Click += new System.EventHandler(this.GetDataItem_Click);
+            this.LoadDataItem.Click += new System.EventHandler(this.GetDataOfGroup_Click);
             // 
             // LoadLastInputsOutputsItem
             // 
@@ -712,17 +712,23 @@
             this.Separator7.Name = "Separator7";
             resources.ApplyResources(this.Separator7, "Separator7");
             // 
-            // GetADUsersItem
-            // 
-            this.GetADUsersItem.Name = "GetADUsersItem";
-            resources.ApplyResources(this.GetADUsersItem, "GetADUsersItem");
-            this.GetADUsersItem.Click += new System.EventHandler(this.GetADUsersItem_Click);
-            // 
             // AutoupdateItem
             // 
             this.AutoupdateItem.Name = "AutoupdateItem";
             resources.ApplyResources(this.AutoupdateItem, "AutoupdateItem");
             this.AutoupdateItem.Click += new System.EventHandler(this.AutoupdatItem_Click);
+            // 
+            // UploadApplicationItem
+            // 
+            this.UploadApplicationItem.Name = "UploadApplicationItem";
+            resources.ApplyResources(this.UploadApplicationItem, "UploadApplicationItem");
+            this.UploadApplicationItem.Click += new System.EventHandler(this.UploadApplicationItem_Click);
+            // 
+            // GetADUsersItem
+            // 
+            this.GetADUsersItem.Name = "GetADUsersItem";
+            resources.ApplyResources(this.GetADUsersItem, "GetADUsersItem");
+            this.GetADUsersItem.Click += new System.EventHandler(this.GetADUsersItem_Click);
             // 
             // GetCurrentSchemeItem
             // 
@@ -741,12 +747,6 @@
             this.RefreshConfigInMainDBItem.Name = "RefreshConfigInMainDBItem";
             resources.ApplyResources(this.RefreshConfigInMainDBItem, "RefreshConfigInMainDBItem");
             this.RefreshConfigInMainDBItem.Click += new System.EventHandler(this.RefreshConfigInMainDBItem_Click);
-            // 
-            // UploadApplicationItem
-            // 
-            this.UploadApplicationItem.Name = "UploadApplicationItem";
-            resources.ApplyResources(this.UploadApplicationItem, "UploadApplicationItem");
-            this.UploadApplicationItem.Click += new System.EventHandler(this.UploadApplicationItem_Click);
             // 
             // calculateHashItem
             // 

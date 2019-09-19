@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ASTA
+namespace ASTA.Common
 {
     public static class Names
     {
@@ -43,10 +43,12 @@ namespace ASTA
         public const string DATE_REGISTRATION = @"Дата регистрации";
         public const string DAY_OF_WEEK = @"День недели";
         public const string TIME_REGISTRATION = @"Время регистрации";
+        public const string TIME_REGISTRATION_STRING = @"Время  регистрации";
 
         public const string SERVER_SKD = @"Сервер СКД";
-        public const string NAME_CHECKPOINT = @"Имя точки прохода";
-        public const string DIRECTION_WAY = @"Направление прохода";
+        public const string CHECKPOINT_NAME = @"Имя точки прохода";
+        public const string CHECKPOINT_ACTION = @"Результат";
+        public const string CHECKPOINT_DIRECTION = @"Направление прохода";
 
         public const string REAL_TIME_IN = @"Фактич. время прихода ЧЧ:ММ:СС";
         public const string REAL_TIME_OUT = @"Фактич. время ухода ЧЧ:ММ:СС";
@@ -62,6 +64,10 @@ namespace ASTA
         public const string EMPLOYEE_EARLY_DEPARTURE = @"Ранний уход ЧЧ:ММ";
         public const string EMPLOYEE_PLAN_TIME_WORKED = @"Отработанное время ЧЧ:ММ";
         public const string EMPLOYEE_TIME_SPENT = @"Реальное отработанное время";
+
+        //Mailing
+        public const string RECEPIENTS_OF_REPORTS = @"Получатель рассылки";
+
 
         //Page of Report
         //Collumns of the table 'Day off'
@@ -89,11 +95,13 @@ namespace ASTA
                  PLACE_EMPLOYEE,//8
                  DATE_REGISTRATION,//9
                  TIME_REGISTRATION, //10
+                 TIME_REGISTRATION_STRING,
                  REAL_TIME_IN,                      //17
                  REAL_TIME_OUT,                     //18
                  SERVER_SKD,                        //11
-                 NAME_CHECKPOINT,                   //12
-                 DIRECTION_WAY,                     //13              
+                 CHECKPOINT_NAME,                   //12
+                 CHECKPOINT_DIRECTION,                     //13              
+                 CHECKPOINT_ACTION,                     //13              
                  CARD_STATE,                //14
                  DESIRED_TIME_IN,                   //15
                  DESIRED_TIME_OUT,                  //16
@@ -137,6 +145,49 @@ namespace ASTA
                  EMPLOYEE_POSITION,                    //39
                  EMPLOYEE_SHIFT                    //40
         };
+        public readonly static string[] orderColumnsLastRegistrations =
+              {
+                 FIO,//1
+                 N_ID_STRING,
+                 DATE_REGISTRATION,//12
+                 TIME_REGISTRATION_STRING,
+                 CHECKPOINT_DIRECTION,
+                 CHECKPOINT_ACTION
+        };
+        public readonly static string[] orderColumnsRegistrations =
+              {
+                 FIO,//1
+                 CODE,//2
+                 GROUP,//3
+                 N_ID, //6
+                 DEPARTMENT,//7
+                 PLACE_EMPLOYEE,//8
+                 DATE_REGISTRATION,//9
+                 REAL_TIME_IN,                      //17
+                 REAL_TIME_OUT,                     //18
+                 DESIRED_TIME_IN,                   //15
+                 DESIRED_TIME_OUT,                  //16
+                 EMPLOYEE_SHIFT_COMMENT,            //29
+                 EMPLOYEE_POSITION,                 //30
+                 EMPLOYEE_SHIFT,                    //31
+                 DEPARTMENT_ID,                     //33
+                 CHIEF_ID                           //34
+        };
+        public readonly static string[] orderColumnsFIO =
+            {
+                 FIO,//1
+                 CODE,//2
+                 GROUP,//3
+                 DEPARTMENT,//7
+                 PLACE_EMPLOYEE,//8
+                 DESIRED_TIME_IN,                   //15
+                 DESIRED_TIME_OUT,                  //16
+                 EMPLOYEE_POSITION,                 //30
+                 EMPLOYEE_SHIFT,                    //31
+                 DEPARTMENT_ID,                     //33
+                 CHIEF_ID                           //34
+        };
+        /*
         public readonly static string[] arrayHiddenColumnsFIO =
             {
                  NPP,//0
@@ -144,9 +195,11 @@ namespace ASTA
                  N_ID_STRING,
                  DATE_REGISTRATION,         //12
                  TIME_REGISTRATION,        //15
+                 TIME_REGISTRATION_STRING,
                  SERVER_SKD,               //19
-                 NAME_CHECKPOINT,        //20
-                 DIRECTION_WAY,      //21
+                 CHECKPOINT_NAME,                   //12
+                 CHECKPOINT_DIRECTION,                     //13              
+                 CHECKPOINT_ACTION,                     //13              
                  REAL_TIME_IN,//24
                  REAL_TIME_OUT, //25
                  EMPLOYEE_TIME_SPENT, //26
@@ -163,31 +216,36 @@ namespace ASTA
                  EMPLOYEE_HOOKY,
                  CARD_STATE
         };
-        public readonly static string[] nameHidenColumnsArray =
+       
+         public readonly static string[] nameHidenColumnsArray =
             {
-                NPP,//0
-                N_ID_STRING,
-                TIME_REGISTRATION, //15
-                SERVER_SKD, //19
-                NAME_CHECKPOINT, //20
-                DIRECTION_WAY, //21
-                EMPLOYEE_TIME_SPENT, //26
-                EMPLOYEE_PLAN_TIME_WORKED, //27
-                EMPLOYEE_BEING_LATE,                    //28
-                EMPLOYEE_EARLY_DEPARTURE,                 //29
-                EMPLOYEE_VACATION,              //30
-                EMPLOYEE_TRIP,                 //31
-                DAY_OF_WEEK,  //32
-                EMPLOYEE_SICK_LEAVE,  //33
-                EMPLOYEE_ABSENCE,      //34
-                GROUP_DECRIPTION,                //37
-                EMPLOYEE_HOOKY,                   //43
-                CARD_STATE
+                 NPP,//0
+                 N_ID_STRING,
+                 TIME_REGISTRATION, //15
+                 TIME_REGISTRATION_STRING,
+                 SERVER_SKD, //19
+                 CHECKPOINT_NAME,                   //12
+                 CHECKPOINT_DIRECTION,                     //13              
+                 CHECKPOINT_ACTION,                     //13              
+                 EMPLOYEE_TIME_SPENT, //26
+                 EMPLOYEE_PLAN_TIME_WORKED, //27
+                 EMPLOYEE_BEING_LATE,                    //28
+                 EMPLOYEE_EARLY_DEPARTURE,                 //29
+                 EMPLOYEE_VACATION,              //30
+                 EMPLOYEE_TRIP,                 //31
+                 DAY_OF_WEEK,  //32
+                 EMPLOYEE_SICK_LEAVE,  //33
+                 EMPLOYEE_ABSENCE,      //34
+                 GROUP_DECRIPTION,                //37
+                 EMPLOYEE_HOOKY,                   //43
+                 CARD_STATE
         };
+         
         public readonly static string[] nameHidenColumnsArrayLastRegistration =
              {
                 NPP,//0
                 TIME_REGISTRATION, //15
+                TIME_REGISTRATION_STRING,
                 SERVER_SKD, //19
 
                 N_ID, //10
@@ -215,6 +273,6 @@ namespace ASTA
                 DAY_OF_WEEK,  //32
                 GROUP_DECRIPTION                //37
         };
-
+*/
     }
 }
