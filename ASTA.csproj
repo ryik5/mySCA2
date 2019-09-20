@@ -209,6 +209,7 @@
     <Compile Include="PassagePoint.cs" />
     <Compile Include="PersonDefinitions\Employee.cs" />
     <Compile Include="PersonDefinitions\EmployeeFull.cs" />
+    <Compile Include="PersonDefinitions\EmployeeVisitor.cs" />
     <Compile Include="PersonDefinitions\UserAD.cs" />
     <Compile Include="ADUserAuthorization.cs" />
     <Compile Include="AmountMembersOfGroup.cs" />

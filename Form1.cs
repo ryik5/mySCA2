@@ -168,7 +168,7 @@ namespace ASTA
         static string mailServerDB = "";
         static int mailServerSMTPPort = 25;
         static string mailServerSMTPPortDB = "";
-        static string mailsOfSenderOfName = "";
+        static string mailSenderAddress = "";
         static string mailsOfSenderOfNameDB = "";
         static string mailsOfSenderOfPassword = "";
         static string mailsOfSenderOfPasswordDB = "";
@@ -355,14 +355,14 @@ namespace ASTA
             //Make archive from *.exe and libs of application
             if (System.IO.File.Exists(appNameZIP))
             {
-                System.IO.File.Move(appNameZIP, System.IO.Path.Combine(appFolderBackUpPath, appName + "." + GetSafeFilename(today.ToYYYYMMDDHHMMSS(), "") + @".zip"));
+                System.IO.File.Move(appNameZIP, System.IO.Path.Combine(appFolderBackUpPath, appName + "." + GetSafeFilename(DateTime.Now.ToYYYYMMDDHHMMSS(), "") + @".zip"));
             }
             MakeZip(appAllFiles, appNameZIP);
             ClearItemsInApplicationFolders(appFolderTempPath);
             System.IO.Directory.CreateDirectory(appFolderTempPath);
 
             //Make archive from main DB of application
-            string zipPath = appDbName + "." + GetSafeFilename(today.ToYYYYMMDDHHMMSS(), "") + @".zip";
+            string zipPath = appDbName + "." + GetSafeFilename(DateTime.Now.ToYYYYMMDDHHMMSS(), "") + @".zip";
             string[] fillesToZip = { appDbName };
             //   if (!System.IO.File.Exists(zipPath))
             {
@@ -417,8 +417,8 @@ namespace ASTA
             logger.Info("Вычисляю ближайшие праздничные и выходные дни...");
             DataTable dtEmpty = new DataTable();
             EmployeeFull personEmpty = new EmployeeFull();
-            var startDay = today.AddDays(-60).ToYYYYMMDD();
-            var endDay = today.AddDays(30).ToYYYYMMDD();
+            var startDay = DateTime.Now.AddDays(-60).ToYYYYMMDD();
+            var endDay = DateTime.Now.AddDays(30).ToYYYYMMDD();
 
             SeekAnualDays(ref dtEmpty, ref personEmpty, false,
                 ConvertStringDateToIntArray(startDay), ConvertStringDateToIntArray(endDay),
@@ -428,8 +428,8 @@ namespace ASTA
             personEmpty = null;
 
             dgvo = new DataGridViewOperations();
-            monthCalendar.SelectionStart = today;
-            monthCalendar.SelectionEnd = today;
+            monthCalendar.SelectionStart = DateTime.Now;
+            monthCalendar.SelectionEnd = DateTime.Now;
             monthCalendar.Update();
             monthCalendar.Refresh();
             logger.Info("Настраиваю переменные....");
@@ -463,7 +463,6 @@ namespace ASTA
                 "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
                 " ORDER BY RecipientEmail asc, DateCreated desc; ");
                 }
-                //   dataGridView1.Select();
                 ExecuteAutoMode(true);
             }
             if (currentDbEmpty || mailServerDB?.Length < 5 || mailServerSMTPPortDB?.Length < 1)
@@ -480,6 +479,8 @@ namespace ASTA
 
             logger.Info("Настраиваю интерфейс....");
             bmpLogo = Properties.Resources.LogoRYIK;
+            MakeByteLogo(bmpLogo); //logo for mailing
+
             this.Icon = Icon.FromHandle(bmpLogo.GetHicon());
             notifyIcon.Icon = this.Icon;
             notifyIcon.Visible = true;
@@ -504,9 +505,6 @@ namespace ASTA
                 contextMenu.MenuItems.Add("About", AboutSoft);
                 contextMenu.MenuItems.Add("-", AboutSoft);
                 contextMenu.MenuItems.Add("Exit", ApplicationExit);
-
-                EditAnualDaysItem.Text = Names.DAY_OFF_OR_WORK;
-                EditAnualDaysItem.ToolTipText = Names.DAY_OFF_OR_WORK_EDIT;
 
                 _MenuItemEnabled(AddAnualDateItem, false);
 
@@ -539,16 +537,9 @@ namespace ASTA
                 dateTimePickerEnd.CustomFormat = "yyyy-MM-dd";
                 dateTimePickerStart.Format = DateTimePickerFormat.Custom;
                 dateTimePickerEnd.Format = DateTimePickerFormat.Custom;
-                //  dateTimePickerStart.MinDate = DateTime.Parse("2016-01-01");
-                //  dateTimePickerEnd.MinDate = DateTime.Parse("2016-01-01");
-                // dateTimePickerStart.MaxDate = today;
-                //   dateTimePickerEnd.MaxDate = DateTime.Parse("2025-12-31");
-                dateTimePickerStart.Value = DateTime.Parse(today.Year + "-" + today.Month + "-01");
-                dateTimePickerEnd.Value = today.LastDayOfMonth();
-                _dateTimePickerSet(dateTimePickerEnd, today.Year, today.Month, today.Day);
-                string day = string.Format("{0:d4}-{1:d2}-{2:d2}", dateTimePickerStart.Value.Year, dateTimePickerStart.Value.Month, dateTimePickerStart.Value.Day);
+                dateTimePickerStart.Value = DateTime.Now.FirstDayOfMonth();
+                dateTimePickerEnd.Value = DateTime.Now.LastDayOfMonth();
 
-                _MenuItemTextSet(LoadInputsOutputsItem, "Отобразить входы-выходы за " + day);
 
                 if (_comboBoxCountItems(comboBoxFio) > 0)
                 {
@@ -556,22 +547,23 @@ namespace ASTA
                     _comboBoxSelectIndex(comboBoxFio, 0);
                 }
 
-
-
                 numUpDownHourStart.Value = 9;
                 numUpDownMinuteStart.Value = 0;
                 numUpDownHourEnd.Value = 18;
                 numUpDownMinuteEnd.Value = 0;
 
+                EditAnualDaysItem.Text = Names.DAY_OFF_OR_WORK;
+                EditAnualDaysItem.ToolTipText = Names.DAY_OFF_OR_WORK_EDIT;
+
+                _MenuItemTextSet(LoadInputsOutputsItem, "Отобразить входы-выходы за " + DateTime.Now.ToYYYYMMDD());
                 _MenuItemTextSet(PersonOrGroupItem, Names.WORK_WITH_A_PERSON);
                 toolTip1.SetToolTip(textBoxGroup, "Создать или добавить в группу");
                 toolTip1.SetToolTip(textBoxGroupDescription, "Изменить описание группы");
             }
 
-
-            if (mailsOfSenderOfName != null && mailsOfSenderOfName.Contains('@'))
+            if (mailSenderAddress != null && mailSenderAddress.Contains('@'))
             {
-                _mailUser = new MailUser(NAME_OF_SENDER_REPORTS, mailsOfSenderOfName);
+                _mailUser = new MailUser(NAME_OF_SENDER_REPORTS, mailSenderAddress);
             }
 
 
@@ -581,17 +573,6 @@ namespace ASTA
 
             //Run Autoupdate function
             Task.Run(() => AutoUpdate());
-
-
-            //create e-mail logo
-            Bitmap b = new Bitmap(bmpLogo, new Size(50, 50));
-            ImageConverter ic = new ImageConverter();
-            byteLogo = (Byte[])ic.ConvertTo(b, typeof(Byte[]));
-            //convert embedded resources into memory stream to attach at an email
-            // System.IO.MemoryStream logo = new System.IO.MemoryStream(byteLogo);
-            // mailLogo = new System.Net.Mail.LinkedResource(logo, "image/jpeg");
-            // mailLogo.ContentId = Guid.NewGuid().ToString(); //myAppLogo for email's reports
-
 
 
             logger.Info("");
@@ -875,7 +856,7 @@ namespace ASTA
 
                 mailServer = mailServerDB?.Length > 0 ? mailServerDB : "";
                 int.TryParse(mailServerSMTPPortDB, out mailServerSMTPPort);
-                mailsOfSenderOfName = mailsOfSenderOfNameDB?.Length > 0 ? mailsOfSenderOfNameDB : "";
+                mailSenderAddress = mailsOfSenderOfNameDB?.Length > 0 ? mailsOfSenderOfNameDB : "";
                 mailsOfSenderOfPassword = mailsOfSenderOfPasswordDB?.Length > 0 ? mailsOfSenderOfPasswordDB : "";
 
                 mysqlServer = mysqlServerRegistry?.Length > 0 ? mysqlServerRegistry : mysqlServerDB;
@@ -1132,9 +1113,9 @@ namespace ASTA
             {
                 _mailServer = new MailServer(mailServer, mailServerSMTPPort);
             }
-            if (mailsOfSenderOfName != null && mailsOfSenderOfName.Contains('@'))
+            if (mailSenderAddress != null && mailSenderAddress.Contains('@'))
             {
-                _mailUser = new MailUser(NAME_OF_SENDER_REPORTS, mailsOfSenderOfName);
+                _mailUser = new MailUser(NAME_OF_SENDER_REPORTS, mailSenderAddress);
             }
 
             ShowDataTableDbQuery(dbApplication, "ConfigDB", "SELECT ParameterName AS 'Имя параметра', " +
@@ -1512,7 +1493,7 @@ namespace ASTA
                 dtPersonTemp?.Clear();
                 dtPersonTemp = dtPeople.Clone();
 
-                dtPersonTemp = CutColumnsAtDataTable(dtTempIntermediate, Names.orderColumnsFIO);
+                dtPersonTemp = LeaveAndOrderColumnsOfDataTable(dtTempIntermediate, Names.orderColumnsFIO);
 
 
                 ShowDatatableOnDatagridview(dtPersonTemp, "ListFIO");
@@ -2129,8 +2110,8 @@ namespace ASTA
             _MenuItemEnabled(SettingsMenuItem, false);
             _MenuItemEnabled(GroupsMenuItem, false);
             _controlEnable(dataGridView1, false);
-            today = DateTime.Now;
-            filePathExcelReport = System.IO.Path.Combine(appFolderPath, "InputOutputs " + today.ToString("yyyyMMdd_HHmmss"));
+
+            filePathExcelReport = System.IO.Path.Combine(appFolderPath, "InputOutputs " + DateTime.Now.ToString("yyyyMMdd_HHmmss"));
 
             await Task.Run(() => ExportDatatableSelectedColumnsToExcel(dtPersonTemp, "InputOutputsOfStaff", filePathExcelReport).GetAwaiter().GetResult());
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer.exe", " /select, " + filePathExcelReport + @".xlsx")); // //System.Reflection.Assembly.GetExecutingAssembly().Location)
@@ -2142,13 +2123,13 @@ namespace ASTA
             _ProgressBar1Stop();
         }
 
-        private string MakeNameFile(string fileName)
+        private string TryToMakeNameFile(string fileName)
         {
             string pathToFile = fileName;
             if (System.IO.File.Exists(fileName + @".xlsx"))
             {
                 pathToFile = fileName + "_1";
-                MakeNameFile(pathToFile);
+                TryToMakeNameFile(pathToFile);
             }
 
             return pathToFile;
@@ -2159,25 +2140,29 @@ namespace ASTA
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
-            string pathToFile = MakeNameFile(filePath);
+            string pathToFile = TryToMakeNameFile(filePath);
 
             reportExcelReady = false;
 
-            // Order of collumns
+
             dataTable.SetColumnsOrder(Names.orderColumnsFinacialReport);
-            DataView dv = dataTable.DefaultView;
             DataTable dtExport;
+            string sort = Names.DEPARTMENT + ", " + Names.FIO + ", " + Names.DATE_REGISTRATION + " ASC";
+            // Order of collumns
+            DataView dv = dataTable.DefaultView;
             try
             {
-                dv.Sort = Names.DEPARTMENT + ", " + Names.FIO + ", " + Names.DATE_REGISTRATION + " ASC";
+                dv.Sort = sort;
                 dtExport = dv.ToTable();
             }
             catch
             {
-                dv.Sort = Names.GROUP + ", " + Names.FIO + ", " + Names.DATE_REGISTRATION + " ASC";
+                sort = Names.GROUP + ", " + Names.FIO + ", " + Names.DATE_REGISTRATION + " ASC";
+                dv.Sort = sort;
                 dtExport = dv.ToTable();
             }
 
+            logger.Trace("Сортировка: " + sort);
             logger.Trace("В таблице " + dataTable.TableName + " столбцов всего - " + dtExport.Columns.Count + ", строк - " + dtExport.Rows.Count);
             _toolStripStatusLabelSetText(StatusLabel2, "Генерирую Excel-файл по отчету: '" + nameReport + "'");
             _ProgressWork1Step();
@@ -2450,6 +2435,11 @@ namespace ASTA
                 groupBoxFilterReport.BackColor = SystemColors.Control;
             }
             sComboboxFIO = null;
+
+            if (nameOfLastTable == "LastIputsOutputs")
+            {
+
+            }
         }
 
 
@@ -2752,7 +2742,7 @@ namespace ASTA
                 dtPersonTemp?.Clear();
                 dtPersonTemp = dtPeople.Clone();
 
-                dtPersonTemp = CutColumnsAtDataTable(dtTemp, Names.orderColumnsFIO);
+                dtPersonTemp = LeaveAndOrderColumnsOfDataTable(dtTemp, Names.orderColumnsFIO);
 
                 ShowDatatableOnDatagridview(dtPersonTemp, "PeopleGroup");
 
@@ -3096,22 +3086,32 @@ namespace ASTA
 
         
         private async void LoadLastIputsOutputs_Click(object sender, EventArgs e) //LoadInputsOutputsOfVisitors()
-        {             
+        {
+            //how many times continiously to check registrations at the server
             int timesCheckingRegistration = 10;
 
-            today = DateTime.Now;
-            string day = string.Format("{0:d4}-{1:d2}-{2:d2}", today.Year, today.Month, today.Day);
+            //clear painting;
+            _paintedEmployeeVisitor = null;
 
-            _dateTimePickerSet(dateTimePickerStart, today.Year, today.Month, today.Day);
-            _dateTimePickerSet(dateTimePickerEnd, today.Year, today.Month, today.Day);
+            //status of repeatedly loading of registrations cards from server
+            checkInputsOutputs = false;
 
-            await Task.Run(() => LoadInputsOutputsOfVisitors(day, timesCheckingRegistration));
+            _dateTimePickerSet(dateTimePickerStart, DateTime.Now.ToIntYYYYMMDD());
+            _dateTimePickerSet(dateTimePickerEnd, DateTime.Now.ToIntYYYYMMDD());
+
+            await Task.Run(() => LoadInputsOutputsOfVisitors(DateTime.Now.ToYYYYMMDD(), timesCheckingRegistration));
         }
                 
         private async void LoadInputsOutputsItem_Click(object sender, EventArgs e)
         {
             //how many times continiously to check registrations at the server
-            int timesCheckingRegistration = 10; 
+            int timesCheckingRegistration = 10;
+
+            //clear painting;
+            _paintedEmployeeVisitor = null;
+
+            //status of repeatedly loading of registrations cards from server
+            checkInputsOutputs = false;
 
             DateTime date = _dateTimePickerReturn(dateTimePickerStart);
             string day = string.Format("{0:d4}-{1:d2}-{2:d2}", date.Year, date.Month, date.Day);
@@ -3119,10 +3119,7 @@ namespace ASTA
 
             _MenuItemTextSet(LoadInputsOutputsItem, "Отобразить входы-выходы за " + day);
 
-            today = DateTime.Now;
-            string toDay = string.Format("{0:d4}-{1:d2}-{2:d2}", today.Year, today.Month, today.Day);
-
-            if (toDay != day)
+            if (DateTime.Now.ToYYYYMMDD() != day)
                 timesCheckingRegistration = 1;
 
             await Task.Run(() => LoadInputsOutputsOfVisitors(day, timesCheckingRegistration));
@@ -3132,30 +3129,38 @@ namespace ASTA
         {
             //how many times continiously to check registrations at the server
             int timesCheckingRegistration = 10;
+
+            //clear painting;
+            _paintedEmployeeVisitor = null;
+
+            //status of repeatedly loading of registrations cards from server
             checkInputsOutputs = false;
 
             DateTime date = _dateTimePickerReturn(dateTimePickerStart);
-            string day = string.Format("{0:d4}-{1:d2}-{2:d2}", date.Year, date.Month, date.Day);
-            _dateTimePickerSet(dateTimePickerEnd, date.Year, date.Month, date.Day);
-
-            today = DateTime.Now;
-            string toDay = string.Format("{0:d4}-{1:d2}-{2:d2}", today.Year, today.Month, today.Day);
-
-            if (toDay != day)
+            string day = date.ToYYYYMMDD();
+            _dateTimePickerSet(dateTimePickerEnd, date.ToIntYYYYMMDD());
+            
+            if (DateTime.Now.ToYYYYMMDD() != day)
                 timesCheckingRegistration = 1;
 
             await Task.Run(() => LoadInputsOutputsOfVisitors(day, timesCheckingRegistration));
         }
         
         private static Visitors visitors = new Visitors();
-        private static object lockerLoadingInsOuts = new object();
-        private static string startLoadingTimeInpsOutps = "00:00:00";
-        private static string startLoadingDayInpsOutps = "dddddday";
-        private static bool checkInputsOutputs = true;
 
-        private static object readyToShowData = new object();
+        //lock to loading of registrations cards from server
+        private static object lockerToLoadInsOuts = new object();
+
+        //lock to show data on datagridview
+        private static object lockerToShowData = new object();
+
+        //status of repeatedly loading of registrations cards from server
+        private static bool checkInputsOutputs = true; 
+
         private void LoadInputsOutputsOfVisitors(string wholeDay, int timesChecking)
         {
+            _controlEnable(comboBoxFio, true);
+
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
             CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword).GetAwaiter().GetResult();
@@ -3170,23 +3175,26 @@ namespace ASTA
             //subscribe on action of changed data in collection of visitors
             visitors.collection.CollectionChanged += VisitorsCollectionChanged;
 
-            startLoadingDayInpsOutps = wholeDay;
-            startLoadingTimeInpsOutps = "00:00:00";
             checkInputsOutputs = true;
             bool firstStage = true;
 
-            lockerLoadingInsOuts = new object();
             StartStopTimer startStopTimer = new StartStopTimer(15);
 
+            string startDay = wholeDay; //string startDay = day + " 00:00:00";
+            string startTime = "00:00:00";
+            string endDay = wholeDay;
+            string endTime = "23:59:59";
             do
             {
-                lock (lockerLoadingInsOuts)
+                lock (lockerToLoadInsOuts)
                 {
                     visitorsTillNow = new List<Visitor>();
-                    logger.Trace("LoadInputsOutputsOfVisitors: " + startLoadingTimeInpsOutps);
-                    visitorsTillNow = GetInputsOutputs();
+
+                    logger.Trace("LoadInputsOutputsOfVisitors: " + startDay + " " + startTime + " - " + endDay + " " + endTime);
+                    visitorsTillNow = GetInputsOutputs(ref startDay, ref startTime, ref endDay, ref endTime);
                     if (firstStage)
                     {
+                        //put registrations in the list with order from the newest data in the top to the oldest ones in the end
                         visitors.collection.AddRange(visitorsTillNow);
                         firstStage = false;
                     }
@@ -3194,6 +3202,7 @@ namespace ASTA
                     {
                         if (visitorsTillNow?.Count > 0)
                         {
+                            //put new registrations in the top of list
                             visitorsTillNow.Reverse();
                             foreach (var visitor in visitorsTillNow)
                             { visitors.Add(visitor, 0); }
@@ -3205,7 +3214,7 @@ namespace ASTA
                 if (timesChecking < 0)
                 { checkInputsOutputs = false; }
 
-                _toolStripStatusLabelSetText(StatusLabel2, "Загружены данные о регистрации пропусков до: " + startLoadingTimeInpsOutps);
+                _toolStripStatusLabelSetText(StatusLabel2, "Загружены данные о регистрации пропусков до: " + startDay + " " + startTime);
 
                 startStopTimer.WaitTime();
 
@@ -3214,87 +3223,108 @@ namespace ASTA
             _toolStripStatusLabelSetText(StatusLabel2, "Сбор данных о регистрацияи пропусков прекращен");
         }
 
-        private List<Visitor> GetInputsOutputs()
+        private List<Visitor> GetInputsOutputs( ref string startDay,ref string startTime, ref string endDay, ref string endTime)
         {
             _ProgressBar1Start();
 
-            List<Visitor> visitors;
+            List<Visitor> visitors = new List<Visitor>();
             bool startTimeNotSet = true;
-
+            
             SideOfPassagePoint sideOfPassagePoint;
-
-            string startDay = startLoadingDayInpsOutps + " " + startLoadingTimeInpsOutps; //string startDay = day + " 00:00:00";
-            string endDay = startLoadingDayInpsOutps + " 23:59:59";
             string time, date, fullPointName, fio, action, action_descr, fac, card;
             int idCard = 0; string idCardDescr;
 
-            string query = "SELECT p.param0 as param0, p.param1 as param1, p.action as action, p.objid as objid, p.objtype, " +
-                " pe.tabnum as nav, pe.facility_code as fac, pe.card as card, " +
-                " CONVERT(varchar, p.date, 120) AS date, CONVERT(varchar, p.time, 114) AS time " +
-                " FROM protocol p " +
-                " LEFT JOIN OBJ_PERSON pe ON  p.param1=pe.id " +
-                " where p.objtype like 'ABC_ARC_READER' AND p.param0 like '%%' " +
-                // " AND p.param1 like '" + person.idCard + 
-                " AND date > '" + startDay + "' AND date <= '" + endDay + "' " +
-                // " ORDER BY date ASC";
-                " ORDER BY time DESC"; //sorting 
-            
+            string query = "SELECT p.param0 as param0, p.param1 as param1, p.objid as objid, p.objtype, p.action as action, " +
+            " pe.tabnum as nav, pe.facility_code as fac, pe.card as card, " +
+            " CONVERT(varchar, p.date, 120) AS date, CONVERT(varchar, p.time, 114) AS time" +
+            " FROM protocol p " +
+            " LEFT JOIN OBJ_PERSON pe ON  p.param1=pe.id " +
+            " where p.objtype like 'ABC_ARC_READER' " +
+            " AND p.param0 like '%%' " +
+            // " AND p.param1 like '" + person.idCard + "' " +
+            " AND date > '" + startDay + " " + startTime + "' AND date <= '" + endDay + " " + endTime + "' " +
+            " ORDER BY time DESC"; //sorting 
+
             logger.Trace("query: " + query);
 
             using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
             {
-                visitors = new List<Visitor>();
-
                 System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetData(query);
                 foreach (DbDataRecord record in sqlData)
                 {
-                    //look for PassagePoint
-                    fullPointName = record["objid"]?.ToString()?.Trim();
-                    sideOfPassagePoint = collectionOfPassagePoints.GetPoint(fullPointName);
+                    if (record != null)
+                    {   //look for PassagePoint
+                        fullPointName = record["objid"]?.ToString()?.Trim();
+                        sideOfPassagePoint = collectionOfPassagePoints.GetPoint(fullPointName);
 
-                    //look for FIO
-                    fio = record["param0"]?.ToString()?.Trim()?.Length > 0 ? record["param0"]?.ToString()?.Trim() : sServer1;
+                        //look for FIO
+                        fio = record["param0"]?.ToString()?.Trim()?.Length > 0 ? record["param0"]?.ToString()?.Trim() : sServer1;
 
-                    //look for date and time
-                    date = record["date"]?.ToString()?.Trim()?.Split(' ')[0];
-                    time = ConvertStringsTimeToStringHHMMSS(record["time"]?.ToString()?.Trim());
+                        //look for date and time
+                        date = record["date"]?.ToString()?.Trim()?.Split(' ')[0];
+                        time = ConvertStringsTimeToStringHHMMSS(record["time"]?.ToString()?.Trim());
 
-                    //look for  idCard
-                    idCard = 0;
-                    int.TryParse(record["param1"]?.ToString()?.Trim(), out idCard);
-                    fac = record["fac"]?.ToString()?.Trim();
-                    card = record["card"]?.ToString()?.Trim();
-                    idCardDescr = idCard != 0 ? "№" + idCard + " (" + fac + "," + card + ")" : (fio == sServer1 ? "" : "Пропуск не зарегистрирован");
+                        //look for  idCard
+                        idCard = 0;
+                        int.TryParse(record["param1"]?.ToString()?.Trim(), out idCard);
+                        fac = record["fac"]?.ToString()?.Trim();
+                        card = record["card"]?.ToString()?.Trim();
+                        idCardDescr = idCard != 0 ? "№" + idCard + " (" + fac + "," + card + ")" : (fio == sServer1 ? "" : "Пропуск не зарегистрирован");
 
-                    //look for action with idCard
-                    action = record["action"]?.ToString()?.Trim();
-                    action_descr = null;
-                    if (Names.CARD_REGISTERED_ACTION.TryGetValue(action, out action_descr))
-                    { action = "Сервисное сообщение"; }
-                    else if (fio == sServer1)
-                    { action_descr = action; }
+                        //look for action with idCard
+                        action = record["action"]?.ToString()?.Trim();
+                        action_descr = null;
+                        if (Names.CARD_REGISTERED_ACTION.TryGetValue(action, out action_descr))
+                        { action = "Сервисное сообщение"; }
+                        else if (fio == sServer1)
+                        { action_descr = action; }
 
-                    //write gathered data in the collection
-                    logger.Trace(fio + " " + action_descr + " " + idCard + " " + idCardDescr + " " + record["action"]?.ToString()?.Trim() + " " + date + " " + time + " " + sideOfPassagePoint._namePoint + " " + sideOfPassagePoint._direction);
+                        //write gathered data in the collection
+                        logger.Trace(fio + " " + action_descr + " " + idCard + " " + idCardDescr + " " + record["action"]?.ToString()?.Trim() + " " + date + " " + time + " " + sideOfPassagePoint._namePoint + " " + sideOfPassagePoint._direction);
 
-                    visitors.Add(new Visitor(fio, idCardDescr, date, time, action_descr, sideOfPassagePoint));
+                        visitors.Add(new Visitor(fio, idCardDescr, date, time, action_descr, sideOfPassagePoint));
 
-                    if (startTimeNotSet) //set starttime into last time at once
-                    {
-                        startLoadingTimeInpsOutps = time;
-                        startTimeNotSet = false;
+                        if (startTimeNotSet) //set starttime into last time at once
+                        {
+                            startTime = time;
+                            startTimeNotSet = false;
+                        }
+
+                        _ProgressWork1Step();
                     }
-
-                    _ProgressWork1Step();
                 }
-                logger.Trace("visitors.Count: " + visitors.Count());
+                logger.Trace("visitors added: " + visitors.Count());
             }
             stimerPrev = "";
             _ProgressBar1Stop();
             return visitors;
         }
 
-        private void WriteListLastRegistrationToDataTable(DataTable dt, ObservableRangeCollection<Visitor> visitors)
+        private void VisitorsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (nameOfLastTable != "LastIputsOutputs")
+            {
+                checkInputsOutputs = false;
+            }
+
+            lock (lockerToShowData)
+            {
+                using (DataTable dtTemp = dtPeople.Clone())
+                {
+                    SendListLastRegistrationsToDataTable(visitors.collection, dtTemp);
+                    using (DataTable dt = LeaveAndOrderColumnsOfDataTable(dtTemp, Names.orderColumnsLastRegistrations))
+                    {
+                        ShowDatatableOnDatagridview(dt, "LastIputsOutputs");
+                        if (_paintedEmployeeVisitor != null)
+                        {
+                            PaintDataGridViewBy(dataGridView1, Names.FIO, _paintedEmployeeVisitor.fio);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void SendListLastRegistrationsToDataTable(ObservableRangeCollection<Visitor> visitors, DataTable dt)
         {
             DataRow row = dt.NewRow();
             foreach (var visitor in visitors.ToArray())
@@ -3314,98 +3344,65 @@ namespace ASTA
             }
         }
 
-        private void VisitorsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-        {
-            if (nameOfLastTable != "LastIputsOutputs")
-            {
-                checkInputsOutputs = false;
-            }
 
-            lock (readyToShowData)
-            {
-                dtPersonTemp?.Clear();
-                dtPersonTemp = dtPeople.Clone();
-
-                DataTable dtTemp = dtPeople.Clone();
-                WriteListLastRegistrationToDataTable(dtTemp, visitors.collection);
-
-                dtPersonTemp = CutColumnsAtDataTable(dtTemp, Names.orderColumnsLastRegistrations);
-
-                ShowDatatableOnDatagridview(dtPersonTemp, "LastIputsOutputs");
-            }
-        }
-
-
-
-
-
-
-
-
-
-
-
-
-
+        private static EmployeeVisitor _paintedEmployeeVisitor; //painted visitor in datagridview1
         private void PaintRowsActionItem_Click(object sender, EventArgs e)
-        { PaintRowsActionItem(); }
-
-        private void PaintRowsActionItem()
         {
-            DataGridViewOperations dgvo = new DataGridViewOperations();
-            dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
-                         Names.N_ID_STRING, Names.FIO, Names.CHECKPOINT_ACTION
-                    });
-            string action = dgvo?.cellValue[2];
-
-            foreach (DataGridViewRow row in dataGridView1.Rows)
-            {
-                if (row?.Cells[Names.CHECKPOINT_ACTION]?.Value?.ToString() == action)
-                    row.DefaultCellStyle.BackColor = Color.Red;
-                else
-                    row.DefaultCellStyle.BackColor = Color.White;
-            }
+            _paintedEmployeeVisitor = LookForSelectedVisitor(dataGridView1);
+            PaintDataGridViewBy(dataGridView1, Names.CHECKPOINT_ACTION, _paintedEmployeeVisitor.action);
         }
 
         private void PaintRowsFioItem_Click(object sender, EventArgs e)
-        { PaintRowsWithFioOfPerson(); }
-
-        private void PaintRowsWithFioOfPerson()
         {
-            DataGridViewOperations dgvo = new DataGridViewOperations();
-            dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
-                Names.N_ID_STRING,
-                Names.FIO
-                    });
-            string fio = dgvo.cellValue[1];
+            _paintedEmployeeVisitor = LookForSelectedVisitor(dataGridView1);
+            PaintDataGridViewBy(dataGridView1, Names.FIO, _paintedEmployeeVisitor.fio);
+        }
 
-            foreach (DataGridViewRow row in dataGridView1.Rows)
+        private EmployeeVisitor LookForSelectedVisitor(DataGridView dgv)
+        {
+            EmployeeVisitor visitor = new EmployeeVisitor();
+            dgvo = new DataGridViewOperations();
+            dgvo.FindValuesInCurrentRow(dgv, new string[] {
+                Names.FIO,
+                Names.N_ID_STRING,
+                Names.CHECKPOINT_ACTION
+                    });
+            visitor.fio= dgvo.cellValue[0];
+            visitor.idCard = dgvo.cellValue[1];
+            visitor.action = dgvo.cellValue[2];
+
+            return visitor;
+        }
+
+        private void PaintDataGridViewBy(DataGridView dgv, string columnName, string desiredData)
+        {
+            foreach (DataGridViewRow row in dgv.Rows)
             {
-                if (row?.Cells[Names.FIO]?.Value?.ToString() == fio)
+                if (row?.Cells[columnName]?.Value?.ToString() == desiredData)
                     row.DefaultCellStyle.BackColor = Color.Red;
                 else
                     row.DefaultCellStyle.BackColor = Color.White;
             }
         }
+
 
 
         private void GetDataOfGroup_Click(object sender, EventArgs e) //LoadIdCardRegistrations()
         {
             string group = _textBoxReturnText(textBoxGroup);
 
-            DateTime today = DateTime.Today;
-            dateTimePickerStart.Value = DateTime.Parse(today.Year + "-" + today.Month + "-01" + " 00:00:00");
+            dateTimePickerStart.Value = DateTime.Now.FirstDayOfMonth();
 
             LoadIdCardRegistrations(group);
         }
 
         private void GetDataOfPerson_Click(object sender, EventArgs e) //LoadIdCardRegistrations()
         {
-            DateTime today = DateTime.Today;
-            dateTimePickerStart.Value = DateTime.Parse(today.Year + "-" + today.Month + "-01" + " 00:00:00");
+            dateTimePickerStart.Value = DateTime.Now.FirstDayOfMonth();
 
             LoadIdCardRegistrations(null);
         }
+
 
         private async void LoadIdCardRegistrations(string _group) //GetData()
         {
@@ -3504,7 +3501,7 @@ namespace ASTA
             dtPersonTemp?.Clear();
             dtPersonTemp = dtPeople.Clone();
 
-            dtPersonTemp = CutColumnsAtDataTable(dtPersonRegistrationsFullList.Copy(), Names.orderColumnsRegistrations);
+            dtPersonTemp = LeaveAndOrderColumnsOfDataTable(dtPersonRegistrationsFullList.Copy(), Names.orderColumnsRegistrations);
 
             //show selected data  within the selected collumns   
             ShowDatatableOnDatagridview(dtPersonTemp, "PeopleGroup");
@@ -3695,21 +3692,20 @@ namespace ASTA
 
                 // Passes By Points
                 
-                query = "SELECT param0, param1, objid, objtype, CONVERT(varchar, date, 120) AS date, CONVERT(varchar, PROTOCOL.time, 114) AS time FROM protocol " +
+             /*   query = "SELECT param0, param1, objid, objtype, CONVERT(varchar, date, 120) AS date, CONVERT(varchar, PROTOCOL.time, 114) AS time FROM protocol " +
                    " where objtype like 'ABC_ARC_READER' AND param1 like '" + person.idCard + "' AND date >= '" + startDay + "' AND date <= '" + endDay + "' " +
-                  " ORDER BY date ASC";
-                /* query = "SELECT p.param0 as param0, p.param1 as param1, p.action as action, p.objid as objid, p.objtype, " +
+                  " ORDER BY date ASC";*/
+                 query = "SELECT p.param0 as param0, p.param1 as param1, p.objid as objid, p.objtype, p.action as action, " +
                         " pe.tabnum as nav, pe.facility_code as fac, pe.card as card, " +
                         " CONVERT(varchar, p.date, 120) AS date, CONVERT(varchar, p.time, 114) AS time" +
                         " FROM protocol p " +
-                      //  " LEFT JOIN OBJ_PERSON pe ON  p.param1=pe.id " +
+                        " LEFT JOIN OBJ_PERSON pe ON  p.param1=pe.id " +
                         " where p.objtype like 'ABC_ARC_READER' " + 
-                        //" AND p.param0 like '%%' "+
-                         " AND p.param1 like '" + person.idCard + 
+                        " AND p.param0 like '%%' "+
+                         " AND p.param1 like '" + person.idCard + "' "+
                         " AND date > '" + startDay + "' AND date <= '" + endDay + "' " +
-                         " ORDER BY date ASC";
-                       // " ORDER BY time DESC"; //sorting 
-                       */
+                        " ORDER BY time DESC"; //sorting 
+                       
                 logger.Trace(query);
                 using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
                 {
@@ -4190,7 +4186,7 @@ namespace ASTA
 
             dtPersonTemp?.Clear();
             dtPersonTemp = dtPeople.Clone();
-            dtPersonTemp = CutColumnsAtDataTable(dtTempIntermediate, Names.orderColumnsRegistrations);
+            dtPersonTemp = LeaveAndOrderColumnsOfDataTable(dtTempIntermediate, Names.orderColumnsRegistrations);
             dtTempIntermediate = null;
 
             //show selected data  within the selected collumns   
@@ -4221,7 +4217,7 @@ namespace ASTA
             _controlEnable(checkBoxReEnter, true);
         }
 
-        private DataTable CutColumnsAtDataTable(DataTable dt, string[] columns)
+        private DataTable LeaveAndOrderColumnsOfDataTable(DataTable dt, string[] columns)
         {
             DataTable dtUniqRecords = new DataTable();
             dtUniqRecords = dt.DefaultView.ToTable(true, columns);
@@ -5925,7 +5921,7 @@ namespace ASTA
                 "Имя пользователя", sServer1UserName, "Имя администратора \"sa\" SQL-сервера",
                 "Пароль", sServer1UserPassword, "Пароль администратора \"sa\" SQL-сервера \"Server\"",
                 "Почтовый сервер", mailServer, "Имя почтового сервера \"Mail Server\" в виде - NameOfServer.Domain.Subdomain",
-                "e-mail пользователя", mailsOfSenderOfName, "E-mail отправителя рассылок виде - User.Name@MailServer.Domain.Subdomain",
+                "e-mail пользователя", mailSenderAddress, "E-mail отправителя рассылок виде - User.Name@MailServer.Domain.Subdomain",
                 "Пароль", mailsOfSenderOfPassword, "Пароль E-mail отправителя почты",
                 "", new List<string>(), "",
                 "", new List<string>(), "",
@@ -6404,8 +6400,8 @@ namespace ASTA
             logger.Trace("-= " + method + " =-");
 
             string recipientEmail = _textBoxReturnText(textBoxServer1UserName);
-            string senderEmail = mailsOfSenderOfName;
-            if (mailsOfSenderOfName.Length == 0)
+            string senderEmail = mailSenderAddress;
+            if (mailSenderAddress.Length == 0)
             { senderEmail = _textBoxReturnText(textBoxServer1); }
             string nameReport = _textBoxReturnText(textBoxMailServerName);
             string description = _textBoxReturnText(textBoxMailServerUserName);
@@ -6461,7 +6457,7 @@ namespace ASTA
                 sServer1UserPassword = password;
 
                 mailServer = sMailServer;
-                mailsOfSenderOfName = sMailUser;
+                mailSenderAddress = sMailUser;
                 mailsOfSenderOfPassword = sMailUserPassword;
 
                 mysqlServer = sMySqlServer;
@@ -6521,7 +6517,7 @@ namespace ASTA
                     resultSaving += parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
                     parameterOfConfiguration = new ParameterOfConfigurationBuilder().
                         SetParameterName("MailUser").
-                        SetParameterValue(mailsOfSenderOfName).
+                        SetParameterValue(mailSenderAddress).
                         SetParameterDescription("Senders E-Mail").
                         IsPassword(false).
                         SetIsExample("no");
@@ -6571,9 +6567,9 @@ namespace ASTA
                 {
                     _mailServer = new MailServer(mailServer, mailServerSMTPPort);
                 }
-                if (mailsOfSenderOfName != null && mailsOfSenderOfName.Contains('@'))
+                if (mailSenderAddress != null && mailSenderAddress.Contains('@'))
                 {
-                    _mailUser = new MailUser(NAME_OF_SENDER_REPORTS, mailsOfSenderOfName);
+                    _mailUser = new MailUser(NAME_OF_SENDER_REPORTS, mailSenderAddress);
                 }
 
                 ShowDataTableDbQuery(dbApplication, "ConfigDB", "SELECT ParameterName AS 'Имя параметра', " +
@@ -7232,9 +7228,9 @@ namespace ASTA
                     {
                         recepient = dgvo.cellValue[2];
                     }
-                    else if (mailsOfSenderOfName?.Length > 0)
+                    else if (mailSenderAddress?.Length > 0)
                     {
-                        recepient = mailsOfSenderOfName;
+                        recepient = mailSenderAddress;
                     }
 
                     mRightClick.MenuItems.Add(new MenuItem(
@@ -7267,6 +7263,7 @@ namespace ASTA
                     mRightClick.MenuItems.Add(new MenuItem(
                         text: "&Обновить данные о регистрации входов-выходов сотрудников",
                        onClick: LoadLastIputsOutputs_Update_Click));
+                    
                     mRightClick.MenuItems.Add(new MenuItem(
                         text: "&Подсветить все входы-выходы '" + dgvo.cellValue[0] + "'",
                        onClick: PaintRowsFioItem_Click));
@@ -7494,12 +7491,12 @@ namespace ASTA
             if (dgvo.cellValue[2]?.Length > 0)
             {
                 MailingAction(
-                    "sendEmail", dgvo.cellValue[2].Trim(), mailsOfSenderOfName,
+                    "sendEmail", dgvo.cellValue[2].Trim(), mailSenderAddress,
                     dgvo.cellValue[0], dgvo.cellValue[0], dgvo.cellValue[1], SelectedDatetimePickersPeriodMonth(), "Активная", "Упрощенный", DateTime.Now.ToYYYYMMDDHHMM());
             }
-            else if (mailsOfSenderOfName?.Length > 0)
+            else if (mailSenderAddress?.Length > 0)
             {
-                MailingAction("sendEmail", mailsOfSenderOfName, mailsOfSenderOfName,
+                MailingAction("sendEmail", mailSenderAddress, mailSenderAddress,
              dgvo.cellValue[0], dgvo.cellValue[0], dgvo.cellValue[1], SelectedDatetimePickersPeriodMonth(), "Активная", "Упрощенный", DateTime.Now.ToYYYYMMDDHHMM());
             }
             else
@@ -7565,7 +7562,7 @@ namespace ASTA
                 @"Получатель", @"Отчет по группам", @"Наименование", @"Описание", @"Период"});
 
             SaveMailing(
-               dgvo.cellValue[0], mailsOfSenderOfName, dgvo.cellValue[1], dgvo.cellValue[2] + "_1",
+               dgvo.cellValue[0], mailSenderAddress, dgvo.cellValue[1], dgvo.cellValue[2] + "_1",
                dgvo.cellValue[3] + "_1", dgvo.cellValue[4], "Неактивная", DateTime.Now.ToYYYYMMDDHHMM(), "", "Копия", DEFAULT_DAY_OF_SENDING_REPORT);
 
             ShowDataTableDbQuery(dbApplication, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
@@ -7667,7 +7664,7 @@ namespace ASTA
                             + "' AND TypeReport='" + dgvo.cellValue[6] + "' AND DayReport ='" + dgvo.cellValue[7]
                             + "';").GetAwaiter().GetResult();
 
-                        MailingAction("sendEmail", dgvo.cellValue[0], mailsOfSenderOfName,
+                        MailingAction("sendEmail", dgvo.cellValue[0], mailSenderAddress,
                             dgvo.cellValue[1], dgvo.cellValue[2], dgvo.cellValue[3], dgvo.cellValue[4],
                             dgvo.cellValue[5], dgvo.cellValue[6], dgvo.cellValue[7]);
 
@@ -7729,23 +7726,18 @@ namespace ASTA
 
             DataTable dtEmpty = new DataTable();
             EmployeeFull personEmpty = new EmployeeFull();
-            var now = DateTime.Today;
-
-            int[] startDayOfCurrentMonth = { now.Year, now.Month, 1 };
-            int[] lastDayOfCurrentMonth = { now.Year, now.Month, now.LastDayOfMonth().Day };
 
             SeekAnualDays(ref dtEmpty, ref personEmpty, false,
-                startDayOfCurrentMonth, lastDayOfCurrentMonth,
+                DateTime.Now.FirstDayOfMonth().ToIntYYYYMMDD(), DateTime.Now.LastDayOfMonth().ToIntYYYYMMDD(),
                 ref myBoldedDates, ref workSelectedDays
                 );
             dtEmpty = null;
             personEmpty = null;
-            DaysWhenSendReports daysToSendReports = new DaysWhenSendReports(workSelectedDays, ShiftDaysBackOfSendingFromLastWorkDay, now.LastDayOfMonth().Day);
+            DaysWhenSendReports daysToSendReports = new DaysWhenSendReports(workSelectedDays, ShiftDaysBackOfSendingFromLastWorkDay, DateTime.Now.LastDayOfMonth().Day);
             DaysOfSendingMail daysOfSendingMail = daysToSendReports.GetDays();
 
             logger.Trace("SendAllReportsInSelectedPeriod: активные отчеты " + dgvo.cellValue[6] + " за " + dgvo.cellValue[4] +
-                startDayOfCurrentMonth[0] + "-" + startDayOfCurrentMonth[1] + "-" + startDayOfCurrentMonth[2] + " - " +
-                lastDayOfCurrentMonth[0] + "-" + lastDayOfCurrentMonth[1] + "-" + lastDayOfCurrentMonth[2] +
+                DateTime.Now.FirstDayOfMonth().ToYYYYMMDD() + " - " + DateTime.Now.LastDayOfMonth().ToYYYYMMDD() +
                 " на дату - " + dgvo.cellValue[7]
                 );
 
@@ -7821,7 +7813,7 @@ namespace ASTA
                 ExecuteSqlAsync(str).GetAwaiter().GetResult();
                 GetRegistrationAndSendReport(
                     mailng._groupsReport, mailng._nameReport, mailng._descriptionReport, mailng._period, mailng._status,
-                    mailng._typeReport, mailng._dayReport, true, mailng._recipient, mailsOfSenderOfName);
+                    mailng._typeReport, mailng._dayReport, true, mailng._recipient, mailSenderAddress);
 
                 _ProgressWork1Step();
             }
@@ -8174,24 +8166,28 @@ namespace ASTA
 
             DataTable dtEmpty = new DataTable();
             EmployeeFull personEmpty = new EmployeeFull();
-            var today = DateTime.Today;
-
-            int[] startDayOfCurrentMonth = { today.Year, today.Month, 1 };
-            int[] lastDayOfCurrentMonth = { today.Year, today.Month, today.LastDayOfMonth().Day };
 
             SeekAnualDays(ref dtEmpty, ref personEmpty, false,
-                startDayOfCurrentMonth, lastDayOfCurrentMonth,
+                DateTime.Now.FirstDayOfMonth().ToIntYYYYMMDD(), DateTime.Now.LastDayOfMonth().ToIntYYYYMMDD(),
+                ref myBoldedDates, ref workSelectedDays
+                );
+
+            SeekAnualDays(ref dtEmpty, ref personEmpty, false,
+                DateTime.Now.FirstDayOfMonth().ToIntYYYYMMDD(), DateTime.Now.LastDayOfMonth().ToIntYYYYMMDD(),
                 ref myBoldedDates, ref workSelectedDays
                 );
             dtEmpty = null;
             personEmpty = null;
 
+            dateTimePickerStart.Value = DateTime.Now.FirstDayOfMonth();
+
+
             DaysWhenSendReports daysToSendReports =
-                new DaysWhenSendReports(workSelectedDays, ShiftDaysBackOfSendingFromLastWorkDay, today.LastDayOfMonth().Day);
+                new DaysWhenSendReports(workSelectedDays, ShiftDaysBackOfSendingFromLastWorkDay, DateTime.Now.LastDayOfMonth().Day);
             DaysOfSendingMail daysOfSendingMail = daysToSendReports.GetDays();
 
-            logger.Trace("SelectMailingDoAction: all of daysOfSendingMail within the selected period: " + startDayOfCurrentMonth[0] + "-" + startDayOfCurrentMonth[1] + "-" + startDayOfCurrentMonth[2] + " - " +
-                lastDayOfCurrentMonth[0] + "-" + lastDayOfCurrentMonth[1] + "-" + lastDayOfCurrentMonth[2] + ": " +
+            logger.Trace("SelectMailingDoAction: all of daysOfSendingMail within the selected period: " +
+                DateTime.Now.FirstDayOfMonth().ToYYYYMMDD() + " - " + DateTime.Now.LastDayOfMonth().ToYYYYMMDD() + ": " +
                 daysOfSendingMail.START_OF_MONTH + ", " + daysOfSendingMail.MIDDLE_OF_MONTH + ", " +
                 daysOfSendingMail.LAST_WORK_DAY_OF_MONTH + ", " + daysOfSendingMail.END_OF_MONTH
                 );
@@ -8221,9 +8217,9 @@ namespace ASTA
 
                                 int dayToSendReport = ReturnNumberStrongNameDayOfSendingReports(dayReport, daysOfSendingMail);
 
-                                logger.Trace("DayReport: " + dayReportInDB + " " + dayReport + "| dayToSendReport: " + dayToSendReport + "| today.Day: " + today.Day);
+                                logger.Trace("DayReport: " + dayReportInDB + " " + dayReport + "| dayToSendReport: " + dayToSendReport + "| today.Day: " + DateTime.Now.Day);
 
-                                if (status == "активная" && dayToSendReport == today.Day)
+                                if (status == "активная" && dayToSendReport == DateTime.Now.Day)
                                 {
                                     mailingList.Add(new Mailing()
                                     {
@@ -8257,8 +8253,7 @@ namespace ASTA
             if (mailingList.Count > 0)
             {
                 logger.Info("Выполняю сбор данных регистраций и рассылку отчетов за период: " +
-                        startDayOfCurrentMonth[0] + "-" + startDayOfCurrentMonth[1] + "-" + startDayOfCurrentMonth[2] + " - " +
-                        lastDayOfCurrentMonth[0] + "-" + lastDayOfCurrentMonth[1] + "-" + lastDayOfCurrentMonth[2]
+                        DateTime.Now.FirstDayOfMonth().ToYYYYMMDD() + " - " + DateTime.Now.LastDayOfMonth().ToYYYYMMDD()
                         );
 
                 foreach (Mailing mailng in mailingList)
@@ -8276,7 +8271,7 @@ namespace ASTA
                     ExecuteSqlAsync(str).GetAwaiter().GetResult();
                     GetRegistrationAndSendReport(
                         mailng._groupsReport, mailng._nameReport, mailng._descriptionReport, mailng._period, mailng._status,
-                        mailng._typeReport, mailng._dayReport, true, mailng._recipient, mailsOfSenderOfName);
+                        mailng._typeReport, mailng._dayReport, true, mailng._recipient, mailSenderAddress);
 
                     _ProgressWork1Step();
                 }
@@ -8407,7 +8402,7 @@ namespace ASTA
             {
                 case "saveEmail":
                     {
-                        SaveMailing(mailsOfSenderOfName, senderEmail, groupsReport, nameReport, description, period, status, DateTime.Now.ToYYYYMMDDHHMM(), "", typeReport, dayReport);
+                        SaveMailing(mailSenderAddress, senderEmail, groupsReport, nameReport, description, period, status, DateTime.Now.ToYYYYMMDDHHMM(), "", typeReport, dayReport);
 
                         ShowDataTableDbQuery(dbApplication, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
                         "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
@@ -8437,9 +8432,9 @@ namespace ASTA
             logger.Trace("-= " + method + " =-");
 
             DataTable dtTempIntermediate = dtPeople.Clone();
-            DateTime dtCurrentDate = DateTime.Today;
+            DateTime dtCurrentDate = DateTime.Now;
             EmployeeFull person = new EmployeeFull();
-            DateTime selectedDate = DateTime.Today;
+            DateTime selectedDate = DateTime.Now;
 
             GetNamesOfPassagePoints();  //Get names of the Passage Points
 
@@ -8461,15 +8456,15 @@ namespace ASTA
                 reportLastDay = SelectedDatetimePickersPeriodMonth().Split('|')[1];
             }
 
-            DateTime dt = DateTime.Parse(reportStartDay);
-            int[] startPeriod = { dt.Year, dt.Month, dt.Day };
-            dt = DateTime.Parse(reportLastDay);
-            int[] endPeriod = { dt.Year, dt.Month, dt.Day };
-            SeekAnualDays(ref dtTempIntermediate, ref person, false, startPeriod, endPeriod, ref myBoldedDates, ref workSelectedDays);
+            DateTime start = DateTime.Parse(reportStartDay);
+            //  int[] startPeriod = { dt.Year, dt.Month, dt.Day };
+            DateTime end = DateTime.Parse(reportLastDay);
+           // int[] endPeriod = { dt.Year, dt.Month, dt.Day };
+            SeekAnualDays(ref dtTempIntermediate, ref person, false, start.ToIntYYYYMMDD() , end.ToIntYYYYMMDD(), ref myBoldedDates, ref workSelectedDays);
             logger.Trace(reportStartDay + " - " + reportLastDay);
 
             string nameGroup = "";
-            string selectedPeriod = reportStartDay.Split(' ')[0] + " - " + reportLastDay.Split(' ')[0];
+          //  string selectedPeriod = reportStartDay.Split(' ')[0] + " - " + reportLastDay.Split(' ')[0];
 
             string titleOfbodyMail = "";
             string[] groups = groupsReport.Split('+');
@@ -8529,7 +8524,7 @@ namespace ASTA
 
                     dtPersonTemp?.Clear();
                     dtPersonTemp = dtPeople.Clone();
-                    dtPersonTemp = CutColumnsAtDataTable(dtTempIntermediate, Names.orderColumnsFinacialReport);
+                    dtPersonTemp = LeaveAndOrderColumnsOfDataTable(dtTempIntermediate, Names.orderColumnsFinacialReport);
 
                     // dtPersonTemp = GetDistinctRecords(dtTempIntermediate, Names.orderColumnsFinacialReport);
                     //  dtPersonTemp.SetColumnsOrder(Names.orderColumnsFinacialReport);
@@ -8557,7 +8552,7 @@ namespace ASTA
                                     {
                                         SendStandartReport(oneAddress.Trim(), titleOfbodyMail, description, filePathExcelReport + @".xlsx", appName);
                                         logger.Trace(method + ", SendEmail succesfull: From:" +
-                                            mailsOfSenderOfName + "| To: " + oneAddress + "| Subject: " + titleOfbodyMail + "| " +
+                                            mailSenderAddress + "| To: " + oneAddress + "| Subject: " + titleOfbodyMail + "| " +
                                             description + "| attached: " + filePathExcelReport + @".xlsx"
                                             );
                                     }
@@ -8641,6 +8636,18 @@ namespace ASTA
             logger.Info("SendStandartReport: " + statusOfSentEmail);
         }
 
+        private static void MakeByteLogo(Bitmap logo)
+        {
+            //create e-mail logo
+            Bitmap b = new Bitmap(logo, new Size(50, 50));
+            ImageConverter ic = new ImageConverter();
+            byteLogo = (Byte[])ic.ConvertTo(b, typeof(Byte[]));
+            //convert embedded resources into memory stream to attach at an email
+            // System.IO.MemoryStream logo = new System.IO.MemoryStream(byteLogo);
+            // mailLogo = new System.Net.Mail.LinkedResource(logo, "image/jpeg");
+            // mailLogo.ContentId = Guid.NewGuid().ToString(); //myAppLogo for email's reports
+        }
+
         private static BodyBuilder MessageBodyStandartReport(string period, string department, string messageAfterPicture)
         {
             var builder = new BodyBuilder();
@@ -8702,7 +8709,7 @@ namespace ASTA
             BodyBuilder builder = MessageBodyAdminReport(period, resultOfSendingReports);
             string statusOfSentEmail = SendEmailAsync(_mailServer, _mailUser, _to, subject, builder);
 
-            logger.Trace("SendAdminReport: Try to send From:" + mailsOfSenderOfName + "| To:" + mailJobReportsOfNameOfReceiver + "| " + period);
+            logger.Trace("SendAdminReport: Try to send From:" + mailSenderAddress + "| To:" + mailJobReportsOfNameOfReceiver + "| " + period);
             logger.Info("SendAdminReport: " + statusOfSentEmail);
             stimerPrev = "Административный отчет отправлен " + statusOfSentEmail;
         }
@@ -8993,29 +9000,37 @@ namespace ASTA
             return iCombo;
         }
 
-        private string _dateTimePickerSet(DateTimePicker dateTimePicker, int year, int month, int day) //add string into  from other threads
+        private void _dateTimePickerSet(DateTimePicker dateTimePicker, int year, int month, int day) //add string into  from other threads
         {
-            DateTime dt = DateTime.Now;
-
-            string result = "";
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
-                    DateTime.TryParse(year + "-" + month + "-" + day, out dt);
-                    dateTimePicker.Value = dt;
+                    dateTimePicker.Value = new DateTime(year, month, day);
                 }
                 ));
             else
             {
-                DateTime.TryParse(year + "-" + month + "-" + day, out dt);
-                dateTimePicker.Value = dt;
+                dateTimePicker.Value = new DateTime(year, month, day);
             }
-            return result;
+        }
+
+        private void _dateTimePickerSet(DateTimePicker dateTimePicker, int[] date) //add string into  from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    dateTimePicker.Value = new DateTime(date[0], date[1], date[2]);
+                }
+                ));
+            else
+            {
+                dateTimePicker.Value = new DateTime(date[0], date[1], date[2]);
+            }
         }
 
         private DateTime _dateTimePickerReturn(DateTimePicker dateTimePicker) //add string into  from other threads
         {
-            DateTime result = DateTime.Now;
+            DateTime result = today;
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
@@ -9543,21 +9558,25 @@ namespace ASTA
                 Invoke(new MethodInvoker(delegate
                 {
                     timer1.Stop();
+                    StatusLabel2.Text = stimerNext;
+
                     ProgressBar1.Value = 100;
-                    StatusLabel1.ForeColor = Color.Black;
+                    StatusLabel2.ForeColor = Color.Black;
                 }));
             else
             {
                 timer1.Stop();
+                StatusLabel2.Text = stimerNext;
+
                 ProgressBar1.Value = 100;
-                StatusLabel1.ForeColor = Color.Black;
+                StatusLabel2.ForeColor = Color.Black;
             }
         }
 
         //---- End. Access to Controls from other threads ----//
 
 
-
+            
         //---- Start. Convertors of data types ----//
 
         private decimal TryParseStringToDecimal(string str)  //string -> decimal. if error it will return 0

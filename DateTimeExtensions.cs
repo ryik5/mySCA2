@@ -31,6 +31,11 @@ namespace ASTA
             return dateTime.ToString("yyyy-MM-dd");
         }
 
+        public static int[] ToIntYYYYMMDD(this DateTime dateTime)
+        {
+            return new int[] { dateTime.Year, dateTime.Month, dateTime.Day };
+        }
+
         public static string ToYYYYMMDDHHMM(this DateTime dateTime)
         {
             return DateTime.Now.ToString("yyyy-MM-dd HH:mm");

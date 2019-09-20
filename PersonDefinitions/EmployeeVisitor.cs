@@ -3,15 +3,14 @@ using System.Collections.Generic;
 
 namespace ASTA.PersonDefinitions
 {
-
-    public class Employee : Person, IComparable<Employee>
+    public class EmployeeVisitor : Visitor, IComparable<EmployeeVisitor>
     {
-        public Employee() : base() { }
         public string code { get; set; }
+        public EmployeeVisitor() : base() { }
 
         public override string ToString()
         {
-            return fio + "\t" + code;
+            return fio + "\t" + code + "\t" + idCard + "\t" + date + "\t" + time + "\t" + action + "\t" + sideOfPassagePoint._idPoint + "\t" + sideOfPassagePoint._direction;
         }
 
         public override bool Equals(object obj)
@@ -19,7 +18,7 @@ namespace ASTA.PersonDefinitions
             if (obj == null)
                 return false;
 
-            Employee df = obj as Employee;
+            EmployeeVisitor df = obj as EmployeeVisitor;
             if ((Object)df == null)
                 return false;
 
@@ -32,28 +31,28 @@ namespace ASTA.PersonDefinitions
         }
 
         //реализация для выполнения сортировки
-        int IComparable<Employee>.CompareTo(Employee next)
+        int IComparable<EmployeeVisitor>.CompareTo(EmployeeVisitor next)
         {
-            return new EmployeeComparer().Compare(this, next);
+            return new EmployeeVisitorComparer().Compare(this, next);
         }
 
-        public string CompareTo(Employee next)
+        public string CompareTo(EmployeeVisitor next)
         {
             return next.CompareTo(this);
         }
     }
 
-    public class EmployeeComparer : IComparer<Employee>
+    public class EmployeeVisitorComparer : IComparer<EmployeeVisitor>
     {
-        public int Compare(Employee x, Employee y)
+        public int Compare(EmployeeVisitor x, EmployeeVisitor y)
         {
             return this.CompareTwoPerson(x, y);
         }
 
-        public int CompareTwoPerson(Employee x, Employee y)
+        public int CompareTwoPerson(EmployeeVisitor x, EmployeeVisitor y)
         {
-            string a = x.fio + x.code;
-            string b = y.fio + y.code;
+            string a = x.fio + x.code + x.idCard + x.date + x.time;
+            string b = y.fio + y.code + y.idCard + y.date + y.time;
 
             string[] words = { a, b };
             Array.Sort(words);
