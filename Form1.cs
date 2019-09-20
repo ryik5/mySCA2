@@ -2438,7 +2438,7 @@ namespace ASTA
 
             if (nameOfLastTable == "LastIputsOutputs")
             {
-
+                _selectedEmployeeVisitor = new EmployeeVisitor {fio= textBoxFIO.Text, code= textBoxNav.Text };
             }
         }
 
@@ -3084,7 +3084,16 @@ namespace ASTA
             }
         }
 
-        
+
+        private async void ResetFilterLoadLastIputsOutput_Click(object sender, EventArgs e)
+        {
+            _selectedEmployeeVisitor = null;
+            int timesCheckingRegistration = 10;
+            await Task.Run(() => LoadInputsOutputsOfVisitors(_selectedEmployeeVisitorDay, timesCheckingRegistration));
+
+        }
+
+
         private async void LoadLastIputsOutputs_Click(object sender, EventArgs e) //LoadInputsOutputsOfVisitors()
         {
             //how many times continiously to check registrations at the server
@@ -3092,13 +3101,14 @@ namespace ASTA
 
             //clear painting;
             _paintedEmployeeVisitor = null;
+            _selectedEmployeeVisitor = null;
 
             //status of repeatedly loading of registrations cards from server
             checkInputsOutputs = false;
 
             _dateTimePickerSet(dateTimePickerStart, DateTime.Now.ToIntYYYYMMDD());
             _dateTimePickerSet(dateTimePickerEnd, DateTime.Now.ToIntYYYYMMDD());
-
+            _selectedEmployeeVisitorDay = DateTime.Now.ToYYYYMMDD();
             await Task.Run(() => LoadInputsOutputsOfVisitors(DateTime.Now.ToYYYYMMDD(), timesCheckingRegistration));
         }
                 
@@ -3109,6 +3119,7 @@ namespace ASTA
 
             //clear painting;
             _paintedEmployeeVisitor = null;
+            _selectedEmployeeVisitor = null;
 
             //status of repeatedly loading of registrations cards from server
             checkInputsOutputs = false;
@@ -3122,6 +3133,7 @@ namespace ASTA
             if (DateTime.Now.ToYYYYMMDD() != day)
                 timesCheckingRegistration = 1;
 
+            _selectedEmployeeVisitorDay = day;
             await Task.Run(() => LoadInputsOutputsOfVisitors(day, timesCheckingRegistration));
         }
         
@@ -3129,6 +3141,7 @@ namespace ASTA
         {
             //how many times continiously to check registrations at the server
             int timesCheckingRegistration = 10;
+            _selectedEmployeeVisitor = null;
 
             //clear painting;
             _paintedEmployeeVisitor = null;
@@ -3143,6 +3156,7 @@ namespace ASTA
             if (DateTime.Now.ToYYYYMMDD() != day)
                 timesCheckingRegistration = 1;
 
+            _selectedEmployeeVisitorDay = day;
             await Task.Run(() => LoadInputsOutputsOfVisitors(day, timesCheckingRegistration));
         }
         
@@ -3302,7 +3316,7 @@ namespace ASTA
 
         private void VisitorsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            if (nameOfLastTable != "LastIputsOutputs")
+            if (nameOfLastTable != "LastIputsOutputs")//Visitor selected=null
             {
                 checkInputsOutputs = false;
             }
@@ -3311,10 +3325,10 @@ namespace ASTA
             {
                 using (DataTable dtTemp = dtPeople.Clone())
                 {
-                    SendListLastRegistrationsToDataTable(visitors.collection, dtTemp);
+                    SendListLastRegistrationsToDataTable(visitors.collection, dtTemp, _selectedEmployeeVisitor);
                     using (DataTable dt = LeaveAndOrderColumnsOfDataTable(dtTemp, Names.orderColumnsLastRegistrations))
                     {
-                        ShowDatatableOnDatagridview(dt, "LastIputsOutputs");
+                        ShowDatatableOnDatagridview(dt, "LastIputsOutputs"); 
                         if (_paintedEmployeeVisitor != null)
                         {
                             PaintDataGridViewBy(dataGridView1, Names.FIO, _paintedEmployeeVisitor.fio);
@@ -3324,7 +3338,7 @@ namespace ASTA
             }
         }
 
-        private void SendListLastRegistrationsToDataTable(ObservableRangeCollection<Visitor> visitors, DataTable dt)
+        private void SendListLastRegistrationsToDataTable(ObservableRangeCollection<Visitor> visitors, DataTable dt, Visitor selected=null)
         {
             DataRow row = dt.NewRow();
             foreach (var visitor in visitors.ToArray())
@@ -3339,13 +3353,16 @@ namespace ASTA
                     row[Names.CHECKPOINT_DIRECTION] = visitor.sideOfPassagePoint;
                     row[Names.CHECKPOINT_ACTION] = visitor.action;
 
-                    dt.Rows.Add(row);
+                    if (selected == null || selected.fio== visitor.fio)
+                    { dt.Rows.Add(row); }
                 }
             }
         }
 
 
         private static EmployeeVisitor _paintedEmployeeVisitor; //painted visitor in datagridview1
+        private static string _selectedEmployeeVisitorDay; //painted visitor in datagridview1
+        private static EmployeeVisitor _selectedEmployeeVisitor; //painted visitor in datagridview1
         private void PaintRowsActionItem_Click(object sender, EventArgs e)
         {
             _paintedEmployeeVisitor = LookForSelectedVisitor(dataGridView1);
@@ -7263,10 +7280,17 @@ namespace ASTA
                     mRightClick.MenuItems.Add(new MenuItem(
                         text: "&Обновить данные о регистрации входов-выходов сотрудников",
                        onClick: LoadLastIputsOutputs_Update_Click));
-                    
+
+                    if (nameOfLastTable != "LastIputsOutputs")//Visitor selected=null
+                    {
+                        checkInputsOutputs = false;
+                    }
                     mRightClick.MenuItems.Add(new MenuItem(
                         text: "&Подсветить все входы-выходы '" + dgvo.cellValue[0] + "'",
                        onClick: PaintRowsFioItem_Click));
+                    mRightClick.MenuItems.Add(new MenuItem(
+                        text: "&Сбросить фильтр",
+                       onClick: ResetFilterLoadLastIputsOutput_Click));
                     mRightClick.MenuItems.Add(new MenuItem(
                         text: "Подсветить все состояния '" + dgvo.cellValue[2] + "'",
                        onClick: PaintRowsActionItem_Click));
