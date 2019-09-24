@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <item>
-  <version>3.9.5.127</version>
+  <version>3.9.5.129</version>
   <url>file://kv-sb-server.corp.ais/Common/ASTA/ASTA.zip</url>
-  <checksum algorithm="MD5">caa2be8336360567a5483acd325486d0</checksum>
+  <checksum algorithm="MD5">d0df9a986fc241a00c15845292bc4b36</checksum>
 </item>

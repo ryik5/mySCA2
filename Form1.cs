@@ -10098,11 +10098,11 @@ namespace ASTA
             uploadingUpdate = false;
             if (uploadUpdateError)
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Отправка архива с обновлением на сервер завершена с ошибкой -> " + appUpdateFolderURI, true);
+                _toolStripStatusLabelSetText(StatusLabel2, "Отправка обновления на сервер завершена с ошибкой -> " + appUpdateFolderURI, true);
             }
             else
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Отправка архива с обновлением на сервер завершена -> " + appUpdateFolderURI);
+                _toolStripStatusLabelSetText(StatusLabel2, "Отправка обновления на сервер завершена -> " + appUpdateFolderURI);
                 _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
             }
         }
