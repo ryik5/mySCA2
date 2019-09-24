@@ -2,7 +2,7 @@
 using System.IO;
 using System.Xml.Serialization;
 
-namespace ASTA
+namespace ASTA.AutoUpdate
 {
     class MakerOfUpdateAppXML
     {
@@ -128,6 +128,7 @@ namespace ASTA
     {
         //Класс для сериализации должен иметь стандартный конструктор без параметров. 
         //поля или свойства с модификатором private, при сериализации будут игнорироваться. 
+
         [XmlElement]
         public string version { get; set; }
         public string url { get; set; }

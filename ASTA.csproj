@@ -221,7 +221,7 @@
     <Compile Include="MailServer.cs" />
     <Compile Include="MailSender.cs" />
     <Compile Include="PersonDefinitions\MailUser.cs" />
-    <Compile Include="MakerXML.cs" />
+    <Compile Include="AutoUpdate\MakerXML.cs" />
     <Compile Include="PeopleShiftsAndOutResons.cs" />
     <Compile Include="AssemblyInfo1.cs" />
     <Compile Include="DataTableExtensions.cs" />

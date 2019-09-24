@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Data;
 using System.Data.Common;
@@ -10,17 +9,16 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Forms;
 
 using System.Security.Cryptography;  // for Crypography
 
 using MimeKit;
 
-using AutoUpdaterDotNET;
-
 using ASTA.PersonDefinitions;
 using ASTA.Common;
+using ASTA.AutoUpdate;
+using AutoUpdaterDotNET;
 
 //using NLog;
 //Project\Control NuGet\console 
@@ -9896,7 +9894,7 @@ namespace ASTA
                     //AutoUpdater.Start("ftp://kv-sb-server.corp.ais/Common/ASTA/ASTA.xml", new NetworkCredential("FtpUserName", "FtpPassword")); //download from FTP
                 }
                 else
-                { logger.Info(@"Обновление приостановлено. На сервер сейчас загружается новая версия ПО"); }
+                { logger.Trace(@"Обновление приостановлено. На сервер сейчас загружается новая версия ПО"); }
             };
             timer.Start();
         }
@@ -9930,7 +9928,7 @@ namespace ASTA
                         }
                     }
                     catch (Exception exception)
-                    { logger.Error(@"Update's check was failed: " + exception.Message + "| " + exception.GetType().ToString()); }
+                    { logger.Warn(@"Update's check was failed: " + exception.Message + "| " + exception.GetType().ToString()); }
                     // Uncomment the following line if you want to show standard update dialog instead.
                     // AutoUpdater.ShowUpdateForm();
                 }
@@ -10072,7 +10070,7 @@ namespace ASTA
 
 
         //Upload App's files to Server
-        private async void UploadApplicationItem_Click(object sender, EventArgs e) //Uploading()
+        private void UploadApplicationItem_Click(object sender, EventArgs e) //Uploading()
         {
             Task.Run(() => Uploading());
         }
