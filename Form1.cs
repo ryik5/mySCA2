@@ -1032,11 +1032,9 @@ namespace ASTA
                 Parent = groupBoxProperties,
                 Checked = false
             };
-            //  periodCombo.KeyPress += new KeyPressEventHandler(SelectComboBoxParameters_SelectedIndexChanged);
             periodCombo.SelectedIndexChanged += new EventHandler(ListBox_SelectedIndexChanged);
             textBoxSettings16.KeyPress += new KeyPressEventHandler(textboxDate_KeyPress);
 
-            //  textBoxSettings16.TextChanged += new EventHandler(textboxDate_textChanged);
             checkBox1.CheckStateChanged += new EventHandler(checkBox1_CheckStateChanged);
             textBoxSettings16.BringToFront();
             labelSettings9.BringToFront();
@@ -1123,35 +1121,6 @@ namespace ASTA
             " ORDER BY ParameterName asc, DateCreated desc; ");
         }
 
-
-
-        private async Task ExecuteSqlAsync(string SqlQuery) //Prepare DB and execute of SQL Query
-        {
-            string result = string.Empty;
-            if (dbApplication.Exists)
-            {
-                using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
-                {
-                    dbWriter.ExecuteQuery(SqlQuery);
-                    result += dbWriter.Status;
-                }
-            }
-            logger.Trace("ExecuteSql: query: " + SqlQuery + "\nresult - " + result);
-        }
-
-        private void ExecuteSql(string SqlQuery) //Prepare DB and execute of SQL Query
-        {
-            string result = string.Empty;
-            if (dbApplication.Exists)
-            {
-                using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
-                {
-                    dbWriter.ExecuteQuery(SqlQuery);
-                    result += dbWriter.Status;
-                }
-            }
-            logger.Trace("ExecuteSql: query: " + SqlQuery + "\nresult - " + result);
-        }
 
 
         //void ShowDataTableDbQuery(
@@ -1486,18 +1455,10 @@ namespace ASTA
 
             if (currentAction != @"sendEmail")
             {
-                // var namesDistinctColumnsArray = Names.arrayAllColumnsDataTablePeople.Except(Names.arrayHiddenColumnsFIO).ToArray(); //take distinct data
-                // dtPersonTemp = GetDistinctRecords(dtTempIntermediate, namesDistinctColumnsArray);
-
-
-                dtPersonTemp?.Clear();
-                dtPersonTemp = dtPeople.Clone();
-
                 dtPersonTemp = LeaveAndOrderColumnsOfDataTable(dtTempIntermediate, Names.orderColumnsFIO);
 
-
                 ShowDatatableOnDatagridview(dtPersonTemp, "ListFIO");
-                //   _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить последние входы-выходы");
+
                 _toolStripStatusLabelSetText(StatusLabel2, "Записано в локальную базу: " + countUsers + " ФИО, " + countGroups + " групп и " + countMailers + " рассылок");
             }
             dtTempIntermediate?.Dispose();
@@ -1569,7 +1530,6 @@ namespace ASTA
                     //import group from SCA server
                     foreach (DbDataRecord record in sqlData)
                     {
-
                         idGroup = record["id"]?.ToString()?.Trim();
                         groupName = record?["name"]?.ToString()?.Trim();
                         if (groupName?.Length > 0 && idGroup?.Length > 0 && !departments.ContainsKey(idGroup))
@@ -1583,8 +1543,8 @@ namespace ASTA
                         }
                         _ProgressWork1Step();
                     }
-
                 }
+
                 //import users from с SCA server
                 query = "SELECT id, name, surname, patronymic, post, tabnum, parent_id, facility_code, card FROM OBJ_PERSON WHERE is_locked = '0' AND facility_code NOT LIKE '' AND card NOT LIKE '' ";
                 logger.Trace(query);
@@ -1601,7 +1561,7 @@ namespace ASTA
                             nav = record["tabnum"]?.ToString()?.Trim()?.ToUpper();
 
                             departmentFromDictionary = new Department();
-                            //  depName = departments.First((x) => x._departmentId == groupName)?._departmentDescription;
+
                             if (departments.TryGetValue(groupName, out departmentFromDictionary))
                             {
                                 depName = departmentFromDictionary._departmentDescription;
@@ -1624,7 +1584,6 @@ namespace ASTA
                             dataTablePeople.Rows.Add(row);
 
                             listFIO.Add(new Employee { fio = fio, code = nav });
-                            //    listCodesWithIdCard.Add(nav);
 
                             _ProgressWork1Step();
                         }
@@ -1735,17 +1694,15 @@ namespace ASTA
                             personFromServer.DepartmentId = mysqlData.GetString(@"department")?.Trim();
 
                             departmentFromDictionary = new Department();
-                            //  depName = departments.First((x) => x._departmentId == groupName)?._departmentDescription;
+
                             if (departments.TryGetValue(personFromServer?.DepartmentId, out departmentFromDictionary))
                             {
                                 depName = departmentFromDictionary?._departmentDescription;
                                 depBoss = departmentFromDictionary?._departmentBossCode;
                             }
 
-                            //  depName = departments.First((x) => x._departmentId == personFromServer?.DepartmentId)?._departmentDescription;
                             personFromServer.Department = depName ?? personFromServer?.DepartmentId;
 
-                            //  depBoss = departments.First((x) => x._departmentId == personFromServer?.DepartmentId)?._departmentBossCode;
                             personFromServer.DepartmentBossCode = depBoss?.Length > 0 ? depBoss : mysqlData.GetString(@"boss_id")?.Trim();
 
                             personFromServer.City = mysqlData.GetString(@"city")?.Trim();
@@ -1789,15 +1746,7 @@ namespace ASTA
                             row[Names.DESIRED_TIME_IN] = personFromServer.ControlInHHMM;
                             row[Names.DESIRED_TIME_OUT] = personFromServer.ControlOutHHMM;
 
-                            /////////////////////
-                            // If need only people with idCard - 
-                            // should uncomment next string with "if (listCodesWithIdCard....."
-                            /////////////////////
-
-                            // if (listCodesWithIdCard.IndexOf(personFromServer.code) != -1)
-                            {
-                                dataTablePeople.Rows.Add(row);
-                            }
+                            dataTablePeople.Rows.Add(row);
 
                             listFIO.Add(new Employee { fio = personFromServer.fio, code = personFromServer.code });
 
@@ -1821,7 +1770,6 @@ namespace ASTA
 
             query = fio = nav = groupName = depName = depBoss = timeStart = timeEnd = dayStartShift = dayStartShift_ = confitionToLoad = null;
             row = null; departments = null; departmentFromDictionary = null; personFromServer = null;
-            //  listCodesWithIdCard = null;
         }
 
         private void WriteGroupsMailingsInLocalDb(DataTable dataTablePeople, List<PeopleShift> peopleShifts)
@@ -2095,7 +2043,7 @@ namespace ASTA
         private void listFioItem_Click(object sender, EventArgs e) //ListFioReturn()
         {
             nameOfLastTable = "ListFIO";
-            //  _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить последние входы-выходы");
+
             _controlEnable(comboBoxFio, true);
             SeekAndShowMembersOfGroup("");
         }
@@ -2409,23 +2357,27 @@ namespace ASTA
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
-            string sComboboxFIO;
             textBoxFIO.Text = "";
             textBoxNav.Text = "";
             CheckBoxesFiltersAll_Enable(false);
+            string[] sComboboxFIO = comboBoxFio?.SelectedItem?.ToString()?.Trim()?.Split('|');
+            //    try
+            //    {
+            if (sComboboxFIO?.Length > 0)
+            {
+                textBoxFIO.Text = sComboboxFIO[0]?.Trim();
+                StatusLabel2.Text = @"Выбран: " + ShortFIO(textBoxFIO?.Text);
 
-            if (nameOfLastTable == "PeopleGroup")
-            {
-                labelGroup.BackColor = Color.PaleGreen;
+                if (sComboboxFIO?.Length > 1)
+                {
+                    textBoxNav.Text = sComboboxFIO[1]?.Trim();
+                }
             }
-            try
-            {
-                sComboboxFIO = comboBoxFio.SelectedItem.ToString().Trim();
-                textBoxFIO.Text = Regex.Split(sComboboxFIO, "[|]")[0].Trim();
-                textBoxNav.Text = Regex.Split(sComboboxFIO, "[|]")[1].Trim();
-                StatusLabel2.Text = @"Выбран: " + ShortFIO(textBoxFIO.Text);
-            }
-            catch { }
+
+            //    }
+            //    catch { }
+
+
             if (comboBoxFio.SelectedIndex > -1)
             {
                 LoadDataItem.BackColor = Color.PaleGreen;
@@ -2434,11 +2386,12 @@ namespace ASTA
                 groupBoxTimeEnd.BackColor = Color.PaleGreen;
                 groupBoxFilterReport.BackColor = SystemColors.Control;
             }
-            sComboboxFIO = null;
 
             if (nameOfLastTable == "LastIputsOutputs")
             {
-                _selectedEmployeeVisitor = new EmployeeVisitor {fio= textBoxFIO.Text, code= textBoxNav.Text };
+                _selectedEmployeeVisitor = new EmployeeVisitor { fio = textBoxFIO.Text, code = textBoxNav.Text };
+                logger.Trace(_selectedEmployeeVisitor.fio+" "+ _selectedEmployeeVisitor.code);
+                ShowVisitorsOnDataGridView(visitors, _selectedEmployeeVisitor);
             }
         }
 
@@ -2490,8 +2443,8 @@ namespace ASTA
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
-            groupBoxProperties.Visible = false;
-            dataGridView1.Visible = false;
+            _controlVisible(groupBoxProperties, false);
+            _controlVisible(dataGridView1, false);
 
             UpdateAmountAndRecepientOfPeopleGroupDescription();
 
@@ -2508,13 +2461,13 @@ namespace ASTA
             groupBoxFilterReport.BackColor = SystemColors.Control;
 
             DeleteGroupItem.Visible = true;
-            dataGridView1.Visible = true;
             MembersGroupItem.Enabled = true;
+            PersonOrGroupItem.Text = Names.WORK_WITH_A_PERSON;
+
             _controlEnable(comboBoxFio, false);
 
+            _controlVisible(dataGridView1, true);
             dataGridView1.Select();
-
-            PersonOrGroupItem.Text = Names.WORK_WITH_A_PERSON;
         }
 
         private void UpdateAmountAndRecepientOfPeopleGroupDescription()
@@ -2693,7 +2646,6 @@ namespace ASTA
             using (SqLiteDbReader dbReader = new SqLiteDbReader(sqLiteLocalConnectionString, dbApplication))
             {
                 System.Data.SQLite.SQLiteDataReader data = null;
-                //query = "SELECT ComboList FROM LastTakenPeopleComboList;";
 
                 try
                 {
@@ -2736,17 +2688,8 @@ namespace ASTA
 
             if (numberPeopleInLoading > 0)
             {
-                //  var namesDistinctCollumnsArray = Names.arrayAllColumnsDataTablePeople.Except(Names.arrayHiddenColumnsFIO).ToArray(); //take distinct data
-                // dtPersonTemp = GetDistinctRecords(dtTemp, namesDistinctCollumnsArray);
-
-                dtPersonTemp?.Clear();
-                dtPersonTemp = dtPeople.Clone();
-
                 dtPersonTemp = LeaveAndOrderColumnsOfDataTable(dtTemp, Names.orderColumnsFIO);
-
                 ShowDatatableOnDatagridview(dtPersonTemp, "PeopleGroup");
-
-
                 _MenuItemVisible(DeletePersonFromGroupItem, true);
             }
 
@@ -3085,12 +3028,10 @@ namespace ASTA
         }
 
 
-        private async void ResetFilterLoadLastIputsOutput_Click(object sender, EventArgs e)
+        private void ResetFilterLoadLastIputsOutput_Click(object sender, EventArgs e)
         {
             _selectedEmployeeVisitor = null;
-            int timesCheckingRegistration = 10;
-            await Task.Run(() => LoadInputsOutputsOfVisitors(_selectedEmployeeVisitorDay, timesCheckingRegistration));
-
+            ShowVisitorsOnDataGridView(visitors);
         }
 
 
@@ -3234,7 +3175,7 @@ namespace ASTA
 
             } while (checkInputsOutputs);
 
-            _toolStripStatusLabelSetText(StatusLabel2, "Сбор данных о регистрацияи пропусков прекращен");
+            _toolStripStatusLabelSetText(StatusLabel2, "Сбор данных о регистрации пропусков прекращен");
         }
 
         private List<Visitor> GetInputsOutputs( ref string startDay,ref string startTime, ref string endDay, ref string endTime)
@@ -3323,25 +3264,30 @@ namespace ASTA
 
             lock (lockerToShowData)
             {
-                using (DataTable dtTemp = dtPeople.Clone())
+                ShowVisitorsOnDataGridView(visitors, _selectedEmployeeVisitor);
+            }
+        }
+
+        private void ShowVisitorsOnDataGridView(Visitors visitors_, Visitor selected = null)
+        {
+            using (DataTable dtTemp = dtPeople.Clone())
+            {
+                SendListLastRegistrationsToDataTable(visitors_.collection, dtTemp, selected);
+                using (DataTable dt = LeaveAndOrderColumnsOfDataTable(dtTemp, Names.orderColumnsLastRegistrations))
                 {
-                    SendListLastRegistrationsToDataTable(visitors.collection, dtTemp, _selectedEmployeeVisitor);
-                    using (DataTable dt = LeaveAndOrderColumnsOfDataTable(dtTemp, Names.orderColumnsLastRegistrations))
+                    ShowDatatableOnDatagridview(dt, "LastIputsOutputs");
+                    if (_paintedEmployeeVisitor != null)
                     {
-                        ShowDatatableOnDatagridview(dt, "LastIputsOutputs"); 
-                        if (_paintedEmployeeVisitor != null)
-                        {
-                            PaintDataGridViewBy(dataGridView1, Names.FIO, _paintedEmployeeVisitor.fio);
-                        }
+                        PaintDataGridViewBy(dataGridView1, Names.FIO, _paintedEmployeeVisitor.fio);
                     }
                 }
             }
         }
 
-        private void SendListLastRegistrationsToDataTable(ObservableRangeCollection<Visitor> visitors, DataTable dt, Visitor selected=null)
+        private void SendListLastRegistrationsToDataTable(ObservableRangeCollection<Visitor> _visitors, DataTable dt, Visitor selected=null)
         {
             DataRow row = dt.NewRow();
-            foreach (var visitor in visitors.ToArray())
+            foreach (var visitor in _visitors.ToArray())
             {
                 if (visitor != null)
                 {
@@ -3358,8 +3304,7 @@ namespace ASTA
                 }
             }
         }
-
-
+        
         private static EmployeeVisitor _paintedEmployeeVisitor; //painted visitor in datagridview1
         private static string _selectedEmployeeVisitorDay; //painted visitor in datagridview1
         private static EmployeeVisitor _selectedEmployeeVisitor; //painted visitor in datagridview1
@@ -3448,9 +3393,6 @@ namespace ASTA
                 reportStartDay = _dateTimePickerStartReturn().Split(' ')[0];
                 reportLastDay = _dateTimePickerEndReturn().Split(' ')[0];
 
-                //  reportStartDay = selectedDate.FirstDayOfMonth().ToYYYYMMDD() + " 00:00:00";
-                // reportLastDay = selectedDate.LastDayOfMonth().ToYYYYMMDD() + " 23:59:59";
-
                 await Task.Run(() => GetData(_group, reportStartDay, reportLastDay));
 
                 _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
@@ -3514,9 +3456,6 @@ namespace ASTA
 
             //Load Records of registrations of Id cards
             LoadRecords(_group, _dateTimePickerStartReturn(), _dateTimePickerEndReturn(), "");
-
-            dtPersonTemp?.Clear();
-            dtPersonTemp = dtPeople.Clone();
 
             dtPersonTemp = LeaveAndOrderColumnsOfDataTable(dtPersonRegistrationsFullList.Copy(), Names.orderColumnsRegistrations);
 
@@ -3593,14 +3532,10 @@ namespace ASTA
             _ProgressWork1Step();
 
             if ((nameOfLastTable == "PeopleGroupDescription" || nameOfLastTable == "PeopleGroup" || nameOfLastTable == "Mailing" ||
-                nameOfLastTable == "ListFIO" || doPostAction == "sendEmail") && nameGroup.Length > 0)
+                nameOfLastTable == "ListFIO" || doPostAction == "sendEmail") && nameGroup?.Length > 0)
             {
                 _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по группе " + nameGroup);
-                //  if (doPostAction != "sendEmail")
-                {
-                    dtPeopleGroup.Clear();
-                    LoadGroupMembersFromDbToDataTable(nameGroup, ref dtPeopleGroup);
-                }
+                dtPeopleGroup= LoadGroupMembersFromDbToDataTable(nameGroup);
 
                 logger.Trace("LoadRecords, DT - " + dtPeopleGroup.TableName + " , всего записей - " + dtPeopleGroup.Rows.Count);
                 foreach (DataRow row in dtPeopleGroup.Rows)
@@ -3709,9 +3644,6 @@ namespace ASTA
 
                 // Passes By Points
                 
-             /*   query = "SELECT param0, param1, objid, objtype, CONVERT(varchar, date, 120) AS date, CONVERT(varchar, PROTOCOL.time, 114) AS time FROM protocol " +
-                   " where objtype like 'ABC_ARC_READER' AND param1 like '" + person.idCard + "' AND date >= '" + startDay + "' AND date <= '" + endDay + "' " +
-                  " ORDER BY date ASC";*/
                  query = "SELECT p.param0 as param0, p.param1 as param1, p.objid as objid, p.objtype, p.action as action, " +
                         " pe.tabnum as nav, pe.facility_code as fac, pe.card as card, " +
                         " CONVERT(varchar, p.date, 120) AS date, CONVERT(varchar, p.time, 114) AS time" +
@@ -3887,8 +3819,9 @@ namespace ASTA
         }
 
         //Get info the selected group from DB and make a few lists with these data
-        private void LoadGroupMembersFromDbToDataTable(string namePointedGroup, ref DataTable peopleGroup) // dtPeopleGroup //"Select * FROM PeopleGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
+        private DataTable LoadGroupMembersFromDbToDataTable(string namePointedGroup) // dtPeopleGroup //"Select * FROM PeopleGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
         {
+            DataTable peopleGroup=dtPeople.Clone();
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
@@ -3935,8 +3868,9 @@ namespace ASTA
                 }
             }
             query = null; dataRow = null;
-
             logger.Trace("LoadGroupMembersFromDbToDataTable, всего записей - " + peopleGroup.Rows.Count + ", группа - " + namePointedGroup);
+
+            return peopleGroup;
         }
 
 
@@ -4157,8 +4091,7 @@ namespace ASTA
 
             if ((nameOfLastTable == "PeopleGroupDescription" || nameOfLastTable == "PeopleGroup") && nameGroup.Length > 0)
             {
-                dtPeopleGroup.Clear();
-                LoadGroupMembersFromDbToDataTable(nameGroup, ref dtPeopleGroup);
+                dtPeopleGroup = LoadGroupMembersFromDbToDataTable(nameGroup);
 
                 if (_CheckboxCheckedStateReturn(checkBoxReEnter))
                 {
@@ -4200,9 +4133,6 @@ namespace ASTA
 
             //Table with all columns
             dtPersonTempAllColumns = dtTempIntermediate.Copy();
-
-            dtPersonTemp?.Clear();
-            dtPersonTemp = dtPeople.Clone();
             dtPersonTemp = LeaveAndOrderColumnsOfDataTable(dtTempIntermediate, Names.orderColumnsRegistrations);
             dtTempIntermediate = null;
 
@@ -5000,16 +4930,12 @@ namespace ASTA
         //gathering a person's features from textboxes and other controls
         private void SelectPersonFromControls(ref EmployeeFull personSelected)
         {
-            try
-            {
                 personSelected.fio = _textBoxReturnText(textBoxFIO);
                 personSelected.code = _textBoxReturnText(textBoxNav);
                 personSelected.GroupPerson = _textBoxReturnText(textBoxGroup);
 
                 personSelected.ControlInHHMM = ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourStart), _numUpDownReturn(numUpDownMinuteStart));
                 personSelected.ControlOutHHMM = ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourEnd), _numUpDownReturn(numUpDownMinuteEnd));
-            }
-            catch (Exception err) { MessageBox.Show(err.ToString()); }
         }
 
 
@@ -5831,6 +5757,7 @@ namespace ASTA
             using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
             {
                 sqlConnection.Open();
+                string group;
                 using (var sqlCommand = new SQLiteCommand(
                     "SELECT GroupPerson FROM PeopleGroupDescription;", sqlConnection))
                 {
@@ -5838,9 +5765,10 @@ namespace ASTA
                     {
                         foreach (DbDataRecord record in sqlReader)
                         {
-                            if (record["GroupPerson"]?.ToString()?.Length > 0)
+                            group = record["GroupPerson"]?.ToString();
+                            if (group?.Length > 0)
                             {
-                                listComboParameters.Add(record["GroupPerson"].ToString());
+                                listComboParameters.Add(group);
                             }
                         }
                     }
@@ -5876,13 +5804,13 @@ namespace ASTA
             bool recipientValid = false;
             bool senderValid = false;
 
-            if (recipientEmail.Length > 0 && recipientEmail.Contains('.') && recipientEmail.Contains('@') && recipientEmail.Split('.').Count() > 1)
+            if (recipientEmail?.Length > 0 && recipientEmail.Contains('.') && recipientEmail.Contains('@') && recipientEmail?.Split('.').Count() > 1)
             { recipientValid = true; }
 
-            if (senderEmail.Length > 0 && senderEmail.Contains('.') && senderEmail.Contains('@') && senderEmail.Split('.').Count() > 1)
+            if (senderEmail?.Length > 0 && senderEmail.Contains('.') && senderEmail.Contains('@') && senderEmail?.Split('.').Count() > 1)
             { senderValid = true; }
 
-            if (dbApplication.Exists && nameReport.Length > 0 && senderValid && recipientValid)
+            if (dbApplication.Exists && nameReport?.Length > 0 && senderValid && recipientValid)
             {
                 using (SQLiteConnection sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
                 {
@@ -6299,10 +6227,7 @@ namespace ASTA
                 };
                 toolTip1.SetToolTip(textBoxSettings16, tooltip16);
 
-
                 textBoxSettings16.KeyPress += new KeyPressEventHandler(textboxDate_KeyPress);
-                //  textBoxSettings16.KeyPress += new KeyPressEventHandler(textBoxSettings16_KeyPress);
-                //  textBoxSettings16.TextChanged += new EventHandler(textboxDate_textChanged);
             }
 
             labelServer1?.BringToFront();
@@ -6399,7 +6324,6 @@ namespace ASTA
 
             _controlDispose(labelSettings16);
             _controlDispose(textBoxSettings16);
-
         }
 
         private void buttonPropertiesSave_Click(object sender, EventArgs e) //SaveProperties()
@@ -6627,14 +6551,12 @@ namespace ASTA
             }
         }
 
-
-
-
         private void comboBoxFio_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == (char)13)//если нажата Enter
             {
                 comboBoxFio.Items.Add(comboBoxFio.Text);
+                SelectFioAndNavFromCombobox();
             }
         }
 
@@ -6804,26 +6726,16 @@ namespace ASTA
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
-
-
+            
             int IndexCurrentRow = dgvo.CurrentRowIndex(dataGridView1);
 
-            if (0 < dataGridView1.Rows.Count && IndexCurrentRow < dataGridView1.Rows.Count)
+            if (0 < dgvo.RowsCount( dataGridView1) && IndexCurrentRow < dgvo.RowsCount(dataGridView1))
             {
-                decimal[] timeIn = new decimal[4];
-                decimal[] timeOut = new decimal[4];
-
                 try
                 {
-                    dgvo = new DataGridViewOperations();
+                 //   dgvo = new DataGridViewOperations();
 
-                    if (nameOfLastTable == "BoldedDates")
-                    {
-                        //    ShowDataTableDbQuery(dbApplication, "BoldedDates", "SELECT DayBolded AS '"+ DAYOFF_DATE+"', DayType AS '"+DAYOFF_TYPE+"', " +
-                        //   "NAV AS '"+DAYOFF_USED_BY+"', DayDescription AS 'Описание', DateCreated AS '"+DAYOFF_ADDED+"'",
-                        //    " ORDER BY DayBolded desc, NAV asc; ");
-                    }
-                    else if (nameOfLastTable == "PeopleGroupDescription")
+                    if (nameOfLastTable == "PeopleGroupDescription")
                     {
                         dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             Names.GROUP,
@@ -6856,7 +6768,6 @@ namespace ASTA
                         textBoxGroup.Text = dgvo?.cellValue[0];
                         textBoxFIO.Text = dgvo?.cellValue[1];
                         textBoxNav.Text = dgvo?.cellValue[2];
-                        // _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить последние входы-выходы за сегодня"); //Отобразить последние входы-выходы
 
                         StatusLabel2.Text = @"Выбрана группа: " + dgvo?.cellValue[0] +
                             @" |Курсор на: " + ShortFIO(dgvo?.cellValue[1]);
@@ -6865,6 +6776,9 @@ namespace ASTA
                         groupBoxTimeStart.BackColor = Color.PaleGreen;
                         groupBoxTimeEnd.BackColor = Color.PaleGreen;
                         groupBoxFilterReport.BackColor = SystemColors.Control;
+
+                        decimal[] timeIn = new decimal[4];
+                        decimal[] timeOut = new decimal[4];
                         try
                         {
                             timeIn = ConvertStringTimeHHMMToDecimalArray(dgvo?.cellValue[3]);
@@ -6894,18 +6808,9 @@ namespace ASTA
                             });
 
                         textBoxFIO.Text = dgvo?.cellValue[1];
-                        //  _MenuItemTextSet(LoadLastInputsOutputsItem, "Отобразить последние входы-выходы '" + dgvo?.cellValue[1] + "'"); //Отобразить последние входы-выходы
+                        textBoxNav.Text = "";
 
                         StatusLabel2.Text = @" |Курсор на: " + ShortFIO(dgvo?.cellValue[1]);
-
-                        if (dgvo?.cellValue[1].Length > 3)
-                        {
-                            try { comboBoxFio.SelectedIndex = comboBoxFio.FindString(dgvo?.cellValue[1]); }
-                            catch
-                            {
-                                logger.Warn("dataGridView1CellClick: " + dgvo?.cellValue[1] + " not found");
-                            }
-                        }
                     }
                 }
                 catch (Exception err)
@@ -7198,6 +7103,21 @@ namespace ASTA
             }
         }
 
+        private async Task ExecuteSqlAsync(string SqlQuery) //Prepare DB and execute of SQL Query
+        {
+            string result = string.Empty;
+            if (dbApplication.Exists)
+            {
+                using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
+                {
+                    dbWriter.ExecuteQuery(SqlQuery);
+                    result += dbWriter.Status;
+                }
+            }
+            logger.Trace("ExecuteSqlAsync: query: " + SqlQuery + "\nresult - " + result);
+        }
+
+
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
             if (dgvo.ColumnsCount(dataGridView1) > 0 && dgvo.RowsCount(dataGridView1) > 0)
@@ -7209,7 +7129,7 @@ namespace ASTA
                     )
                 {
                     // e.ColumnIndex == this.dataGridView1.Columns["NAV-код"].Index
-                    DataGridViewCell cell = this.dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                    DataGridViewCell cell = this.dataGridView1.Rows[e.RowIndex]?.Cells[e.ColumnIndex];
                     cell.ToolTipText = "Для установки нового значения нажмите F2,\nвнесите новое значение,\nа затем нажмите Enter";
                 }
             }
@@ -7438,7 +7358,7 @@ namespace ASTA
             ShowDataTableDbQuery(dbApplication, "SelectedCityToLoadFromWeb", "SELECT City AS 'Местонахождение сотрудника', DateCreated AS 'Дата создания'",
             " ORDER BY DateCreated desc; ");
 
-            if (dataGridView1?.RowCount < 2)
+            if (dgvo.RowsCount(dataGridView1) < 2)
             {
                 AddNewCityToLoad();
                 ShowDataTableDbQuery(dbApplication, "SelectedCityToLoadFromWeb", "SELECT City AS 'Местонахождение сотрудника', DateCreated AS 'Дата создания'",
@@ -8481,14 +8401,12 @@ namespace ASTA
             }
 
             DateTime start = DateTime.Parse(reportStartDay);
-            //  int[] startPeriod = { dt.Year, dt.Month, dt.Day };
             DateTime end = DateTime.Parse(reportLastDay);
-           // int[] endPeriod = { dt.Year, dt.Month, dt.Day };
+
             SeekAnualDays(ref dtTempIntermediate, ref person, false, start.ToIntYYYYMMDD() , end.ToIntYYYYMMDD(), ref myBoldedDates, ref workSelectedDays);
             logger.Trace(reportStartDay + " - " + reportLastDay);
 
             string nameGroup = "";
-          //  string selectedPeriod = reportStartDay.Split(' ')[0] + " - " + reportLastDay.Split(' ')[0];
 
             string titleOfbodyMail = "";
             string[] groups = groupsReport.Split('+');
@@ -8502,16 +8420,12 @@ namespace ASTA
                     dtPersonRegistrationsFullList?.Clear();
                     LoadRecords(groupName, reportStartDay, reportLastDay, "sendEmail");//typeReport== only one group
 
-                    dtTempIntermediate?.Clear();
                     dtTempIntermediate = dtPeople.Clone();
-
-                    dtPersonTemp?.Clear();
                     dtPersonTemp = dtPeople.Clone();
 
                     person = new EmployeeFull();
 
-                    dtPeopleGroup.Clear();
-                    LoadGroupMembersFromDbToDataTable(nameGroup, ref dtPeopleGroup);
+                    dtPeopleGroup = LoadGroupMembersFromDbToDataTable(nameGroup);
 
                     foreach (DataRow row in dtPeopleGroup.Rows)
                     {
@@ -8519,7 +8433,6 @@ namespace ASTA
                             (row[Names.GROUP]?.ToString() == nameGroup || (@"@" + row[Names.DEPARTMENT_ID]?.ToString()) == nameGroup))
                         {
                             person = new EmployeeFull()
-
                             {
                                 fio = row[Names.FIO].ToString(),
                                 code = row[Names.CODE].ToString(),
@@ -8543,15 +8456,9 @@ namespace ASTA
                         }
                     }
 
-                    logger.Trace("dtTempIntermediate: " + dtTempIntermediate.Rows.Count);
-
-
-                    dtPersonTemp?.Clear();
-                    dtPersonTemp = dtPeople.Clone();
                     dtPersonTemp = LeaveAndOrderColumnsOfDataTable(dtTempIntermediate, Names.orderColumnsFinacialReport);
 
-                    // dtPersonTemp = GetDistinctRecords(dtTempIntermediate, Names.orderColumnsFinacialReport);
-                    //  dtPersonTemp.SetColumnsOrder(Names.orderColumnsFinacialReport);
+                    logger.Trace("dtTempIntermediate: " + dtTempIntermediate.Rows.Count);
                     logger.Trace("dtPersonTemp: " + dtPersonTemp.Rows.Count);
 
                     if (dtPersonTemp.Rows.Count > 0)
@@ -8610,9 +8517,7 @@ namespace ASTA
             dtTempIntermediate?.Dispose();
             dtPersonTemp?.Clear();
         }
-
-
-
+        
 
         //send e-mail
         private static string SendEmailAsync(MailServer server, MailUser from, MailUser to, string _subject, BodyBuilder builder)
