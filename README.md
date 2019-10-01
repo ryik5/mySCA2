@@ -5,7 +5,7 @@ It is maintained by [@ryik5](https://github.com/ryik5).
 
 ## Why?
 
-This aplication do gathering registrations of idCards to make reports and then sending by e-mail.
+This aplication do gathering of time registrations of passes to make reports and then sending by e-mail.
 
 ## Quickstart
 
