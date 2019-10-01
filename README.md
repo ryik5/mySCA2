@@ -3,7 +3,7 @@
 It is maintained by [@ryik5](https://github.com/ryik5).
 
 
-## Why?
+## What?
 
 This aplication do gathering of time registrations of passes to make reports and then sending by e-mail.
 
@@ -21,7 +21,7 @@ Then you can use the app.
 
 
 ### Links
-* [Why?](https://github.com/ryik5/mySCA2/README.md)
+* [What?](https://github.com/ryik5/mySCA2/README.md)
 * [Usage](https://github.com/ryik5/mySCA2/README.md)
 * [Documentation](https://github.com/ryik5/mySCA2/README.md)
 * [Contributing](https://github.com/ryik5/mySCA2/README.md)
