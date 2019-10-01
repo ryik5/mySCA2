@@ -256,6 +256,11 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="DbControls.cs" />
+    <Compile Include="README1.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>README.md</DependentUpon>
+    </Compile>
     <Compile Include="SendToFileShare.cs" />
     <Compile Include="StartStopTimers.cs" />
     <Compile Include="TimeConvertor.cs" />
