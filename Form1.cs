@@ -298,7 +298,6 @@ namespace ASTA
         static DataTable dtPersonRegistrationsFullList = new DataTable("PersonRegistrationsFullList");
         static DataTable dtPeopleGroup = new DataTable("PeopleGroup");
         static DataTable dtPeopleListLoaded = new DataTable("PeopleLoaded");
-        // static DataTable dtTempIntermediate; //temporary DT
 
         //Color of User's Control elements which depend on the selected MenuItem  
         Color labelGroupCurrentBackColor;
@@ -1392,7 +1391,7 @@ namespace ASTA
         {
             _ProgressBar1Start();
             currentAction = "GetFIO";
-            CheckBoxesFiltersAll_CheckedState(false);
+            CheckBoxesFiltersAll_SetState(false);
             CheckBoxesFiltersAll_Enable(false);
             _MenuItemEnabled(LoadDataItem, false);
             _MenuItemEnabled(FunctionMenuItem, false);
@@ -2333,7 +2332,7 @@ namespace ASTA
             { GC.Collect(); }
         }
 
-        public string GetExcelColumnName(int number)
+        private string GetExcelColumnName(int number)
         {
             string result;
             if (number > 0)
@@ -3405,7 +3404,7 @@ namespace ASTA
                 _ControlEnable(checkBoxTimeViolations, false);
                 _ControlEnable(checkBoxWeekend, false);
                 _ControlEnable(checkBoxCelebrate, false);
-                CheckBoxesFiltersAll_CheckedState(false);
+                CheckBoxesFiltersAll_SetState(false);
 
                 panelViewResize(numberPeopleInLoading);
                 _ControlChangeBackColor(groupBoxFilterReport, Color.PaleGreen);
@@ -4015,7 +4014,7 @@ namespace ASTA
             " ORDER BY DayBolded desc, NAV asc; ");
         }
 
-        public void CheckBoxesFiltersAll_CheckedState(bool state)
+        private void CheckBoxesFiltersAll_SetState(bool state)
         {
             _CheckboxCheckedSet(checkBoxTimeViolations, state);
             _CheckboxCheckedSet(checkBoxReEnter, state);
@@ -4023,7 +4022,7 @@ namespace ASTA
             _CheckboxCheckedSet(checkBoxWeekend, state);
         }
 
-        public void CheckBoxesFiltersAll_Enable(bool state)
+        private void CheckBoxesFiltersAll_Enable(bool state)
         {
             _ControlEnable(checkBoxTimeViolations, state);
             _ControlEnable(checkBoxReEnter, state);
@@ -4031,7 +4030,7 @@ namespace ASTA
             _ControlEnable(checkBoxWeekend, state);
         }
 
-        public void CheckBoxesFiltersAll_Visible(bool state)
+        private void CheckBoxesFiltersAll_Visible(bool state)
         {
             _ControlVisible(checkBoxTimeViolations, state);
             _ControlVisible(checkBoxReEnter, state);
@@ -5657,7 +5656,7 @@ namespace ASTA
             logger.Trace("ColorizeDraw:clrRealRegistration.Name: " + clrRealRegistration.Name);
         }
 
-        public void ColorizeDraw(Color color)
+        private void ColorizeDraw(Color color)
         {
             EmployeeFull personSelected = new EmployeeFull();
             SelectPersonFromControls(ref personSelected);
@@ -8326,7 +8325,7 @@ namespace ASTA
             _ProgressBar1Stop();
         }
 
-        public string GetSafeFilename(string filename, string splitter = "_")
+        private string GetSafeFilename(string filename, string splitter = "_")
         {
             return string.Join(splitter, filename.Split(System.IO.Path.GetInvalidFileNameChars()));
         }
@@ -10130,7 +10129,7 @@ namespace ASTA
             this.Invoke(mi1);
         }
 
-        public static async Task InvokeAsync(IEnumerable<Func<Task>> taskFactories, int maxDegreeOfParallelism)
+        private static async Task InvokeAsync(IEnumerable<Func<Task>> taskFactories, int maxDegreeOfParallelism)
         {
             Queue<Func<Task>> queue = new Queue<Func<Task>>(taskFactories);
 

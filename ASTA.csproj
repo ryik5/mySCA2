@@ -171,6 +171,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="README.md">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>README1.cs</LastGenOutput>
+    </None>
     <None Include=".vs\v14\.suo" />
     <None Include="app.config" />
     <None Include="App.config" />
@@ -252,6 +256,11 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="DbControls.cs" />
+    <Compile Include="README1.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>README.md</DependentUpon>
+    </Compile>
     <Compile Include="SendToFileShare.cs" />
     <Compile Include="StartStopTimers.cs" />
     <Compile Include="TimeConvertor.cs" />
@@ -268,7 +277,9 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5.2">
       <Visible>False</Visible>
