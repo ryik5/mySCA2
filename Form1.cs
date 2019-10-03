@@ -10034,7 +10034,7 @@ namespace ASTA
             MakerOfUpdateAppXML makerXML = new MakerOfUpdateAppXML(appVersionAssembly, appNameXML, appUpdateFolderURL + appZipPath, null, appFileMD5);
             makerXML.status += LoggerAddInfo;
 
-            Updating updating = new Updating(makerLinks, makerXML);
+            Updating updating = new Updating(makerLinks, makerXML, parameters);
             updating.status += LoggerAddInfo;
 
             AppUpdating.status += LoggerAddInfo;

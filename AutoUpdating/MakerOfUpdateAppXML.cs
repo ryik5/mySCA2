@@ -51,6 +51,10 @@ namespace ASTA.AutoUpdating
             _appUpdateChangeLogURL = appUpdateChangeLogURL;
             _appUpdateMD5 = appUpdateMD5;
         }
+        public void SetParameters(UpdatingParameters parameters)
+        {
+            _parameters = parameters;
+        }
 
         public void Make()
         {
@@ -65,7 +69,7 @@ namespace ASTA.AutoUpdating
 
             //clear any xmlns attributes from the root element
             XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
-            ns.Add("","");//clear any xmlns attributes from the root element
+            ns.Add("", "");//clear any xmlns attributes from the root element
 
             if (_appVersion != null)
                 document.version = _appVersion;
@@ -90,7 +94,7 @@ namespace ASTA.AutoUpdating
                 XmlSerializer serializer = new XmlSerializer(document.GetType());//, atribXmlOver
                 serializer.Serialize(fs, document, ns); //clear any xmlns attributes from the root element
             }
-                status?.Invoke(this, new AccountEventArgs("XML файл сохранен как " + _appXmlLocalPath));
+            status?.Invoke(this, new AccountEventArgs("XML файл сохранен как " + _appXmlLocalPath));
 
 
             /* var readNodes = new List<document>();
@@ -101,11 +105,11 @@ namespace ASTA.AutoUpdating
              }*/
         }
 
-            public UpdatingParameters GetParameters()
-            {
-                return _parameters;
-            }
-        
+        public UpdatingParameters GetParameters()
+        {
+            return _parameters;
+        }
+
         /*
             private void CreateAppXMLFile()
         {

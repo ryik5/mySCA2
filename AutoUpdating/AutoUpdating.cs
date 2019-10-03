@@ -15,15 +15,18 @@ namespace ASTA.AutoUpdating
         public delegate void Status(object sender, AccountEventArgs e);
         public event Status status;
         
-        public Updating( MakerOfLinks subsystem1, MakerOfUpdateAppXML subsystem2)
+        public Updating( MakerOfLinks subsystem1, MakerOfUpdateAppXML subsystem2, UpdatingParameters parameters)
         {
             _subsystem1 = subsystem1;
             _subsystem2 = subsystem2;
+            _parameters = parameters;
         }
 
         public void Do()
         {
             _subsystem1.Make();
+            _parameters = _subsystem1.GetParameters();
+            _subsystem2.SetParameters(_parameters);
             _subsystem2.Make();
 
             status?.Invoke(this, new AccountEventArgs("Обновление завершено!"));
