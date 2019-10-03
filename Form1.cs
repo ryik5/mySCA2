@@ -17,7 +17,7 @@ using MimeKit;
 
 using ASTA.PersonDefinitions;
 using ASTA.Common;
-using ASTA.AutoUpdate;
+using ASTA.AutoUpdating;
 using AutoUpdaterDotNET;
 
 //using NLog;
@@ -69,12 +69,16 @@ namespace ASTA
             };
         static string appQueryCreatingDB = System.IO.Path.Combine(appFolderPath, System.IO.Path.GetFileNameWithoutExtension(appFilePath) + @".sql");
 
-        static string appFileMD5;
-        static string appUpdateFolderURL = @"file://kv-sb-server.corp.ais/Common/ASTA/";
-        static string appUpdateURL = appUpdateFolderURL + appNameXML;
 
-        static string appUpdateFolderURI = @"\\kv-sb-server.corp.ais\Common\ASTA\";
-        static string appUpdateURI = appUpdateFolderURI + appNameXML;
+
+
+
+
+        static string appFileMD5;
+        static string serverUpdateURL = @"kv-sb-server.corp.ais\Common\ASTA";
+        static string appUpdateFolderURL = @"file://" + serverUpdateURL.Replace(@"\", @"/") + @"/"; //  @"file://kv-sb-server.corp.ais/Common/ASTA/";
+        static string appUpdateURL = appUpdateFolderURL + appNameXML;
+        static string appUpdateFolderURI = @"\\" + serverUpdateURL + @"\"; //@"\\kv-sb-server.corp.ais\Common\ASTA\";
         static bool uploadingUpdate = false;
         static bool uploadUpdateError = false;
 
@@ -114,7 +118,6 @@ namespace ASTA
         ContextMenu contextMenu;
         bool buttonAboutForm;
         static Byte[] byteLogo;
-
 
 
         int iCounterLine = 0;
@@ -318,9 +321,8 @@ namespace ASTA
 
         private async void Form1Load()
         {
+            //Начало лога
             logger = NLog.LogManager.GetCurrentClassLogger();
-
-            //Шапка начала лога
             logger.Info("");
             logger.Info("");
             logger.Info("-= " + statusBar + " =-");
@@ -340,34 +342,34 @@ namespace ASTA
             ClearItemsInApplicationFolders(appFolderTempPath);
             ClearItemsInApplicationFolders(appFolderUpdatePath);
             System.IO.Directory.CreateDirectory(appFolderBackUpPath);
-            System.IO.Directory.CreateDirectory(appFolderTempPath);
-            System.IO.Directory.CreateDirectory(appFolderUpdatePath);
-
 
 
             //Make archives:
             //1. from app's *.exe and main files of the app
+            if (System.IO.File.Exists(appZipPath))
+            {
+                try { System.IO.File.Delete(appZipPath); } catch { }
+            }
             MakeZip(appAllFiles, appZipPath);
-
-            //refresh temp folder
-            ClearItemsInApplicationFolders(appFolderTempPath);
-            System.IO.Directory.CreateDirectory(appFolderTempPath);
-
-            //2. from the main DB of application
-            string dbZipPath = appDbName + "." + GetSafeFilename(DateTime.Now.ToYYYYMMDDHHMMSS(), "") + @".zip";
-            string[] dbPath = { appDbName };
-            MakeZip(dbPath, dbZipPath);
-
             if (System.IO.File.Exists(appZipPath))
             {
                 System.IO.File.Move(appZipPath, System.IO.Path.Combine(appFolderBackUpPath, appName + "." + GetSafeFilename(DateTime.Now.ToYYYYMMDDHHMMSS(), "") + @".zip"));
             }
+            //refresh temp folder
+            ClearItemsInApplicationFolders(appFolderTempPath);
+
+            //2. from the main DB of application
+            string dbZipPath = appDbName + "." + GetSafeFilename(DateTime.Now.ToYYYYMMDDHHMMSS(), "") + @".zip";
+
+            if (System.IO.File.Exists(dbZipPath))
+            {
+                try { System.IO.File.Delete(appZipPath); } catch { }
+            }
+            MakeZip(appDbName, dbZipPath);
             System.IO.File.Move(dbZipPath, System.IO.Path.Combine(appFolderBackUpPath, System.IO.Path.GetFileName(dbZipPath)));
 
             //refresh temp folder
             ClearItemsInApplicationFolders(appFolderTempPath);
-            System.IO.Directory.CreateDirectory(appFolderTempPath);
-
 
 
             //Check local DB Configuration
@@ -840,9 +842,14 @@ namespace ASTA
                 mailsOfSenderOfPasswordDB = GetValueOfConfigParameter(listParameters, @"MailUserPassword", null, true);
 
                 mailJobReportsOfNameOfReceiver = GetValueOfConfigParameter(listParameters, @"JobReportsReceiver", null, true);
-                string defaultURL = appUpdateFolderURL;
+                string defaultURL = serverUpdateURL;
+                serverUpdateURL = GetValueOfConfigParameter(listParameters, @"serverUpdateURL", defaultURL);
+                //todo
+                //make all URL
+
+                /*string defaultURL = appUpdateFolderURL;
                 appUpdateFolderURL = GetValueOfConfigParameter(listParameters, @"appUpdateFolderURL", defaultURL);
-                appUpdateURL = appUpdateFolderURL + @"ASTA.xml";
+                appUpdateURL = appUpdateFolderURL + @"ASTA.xml";*/
             }
 
             //set app's variables
@@ -3098,7 +3105,7 @@ namespace ASTA
         private static bool checkInputsOutputs = true;
 
         //Timer for waiting next loading
-        StartStopTimer startStopTimer;
+        IStartStopTimer startStopTimer;
 
         private void LoadInputsOutputsOfVisitors(string startDay, string endDay, int timesChecking)
         {
@@ -4712,6 +4719,25 @@ namespace ASTA
             System.IO.Compression.ZipFile.CreateFromDirectory(appFolderTempPath, fullNameZip, System.IO.Compression.CompressionLevel.Fastest, false);
         }
 
+        private void MakeZip(string filePath, string fullNameZip)
+        {
+            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
+            logger.Trace("-= " + method + " =-");
+
+            if (filePath.Contains(@"\"))
+            {
+                try { System.IO.Directory.CreateDirectory(filePath.Replace(filePath, appFolderTempPath + @"\" + filePath.Remove(filePath.IndexOf('\\')))); }
+                catch (Exception err) { logger.Trace(filePath + " - " + err.Message); }
+            }
+            try
+            {
+                System.IO.File.Copy(filePath, appFolderTempPath + @"\" + filePath, true);
+            }
+            catch (Exception err) { logger.Trace(filePath + " - " + err.Message); }
+
+            System.IO.Compression.ZipFile.CreateFromDirectory(appFolderTempPath, fullNameZip, System.IO.Compression.CompressionLevel.Fastest, false);
+        }
+
         //----- Clearing. Start ---------//
         private void ClearItemsInApplicationFolders(string maskFiles)
         {
@@ -4734,6 +4760,7 @@ namespace ASTA
                     logger.Trace("Files '" + maskFiles + "' in folder exist:" + filesInFolderExist);
                     var dir = new System.IO.DirectoryInfo(maskFiles);
                     dir.Delete(true);
+                    try { System.IO.Directory.CreateDirectory(maskFiles); } catch { }
                 }
                 else
                 {
@@ -5685,26 +5712,33 @@ namespace ASTA
         private void GetInfoSetup()
         {
             DialogResult result = MessageBox.Show(
-                "Перед получением информации необходимо в Настройках:" + "\n\n" +
-                 "1.1. Добавить имя СКД-сервера Интеллект (SERVER.DOMAIN.SUBDOMAIN),\nимя и пароль пользователя для доступа к SQL-серверу СКД\n" +
-                 "1.2. Добавить имя сервера с базой сотрудников для корпоративного сайта (SERVER.DOMAIN.SUBDOMAIN),\nимя и пароль пользователя для доступа к MySQL-серверу\n" +
-                 "1.3. Добавить имя почтового сервера (SERVER.DOMAIN.SUBDOMAIN),\nemail и пароль пользователя для отправки рассылок с отчетами\n" +
-                 "2. Сохранить введенные параметры\n" +
-                 "2.1. В случае ввода некорректных данных получения данных и отправка рассылок будет заблокирована\n" +
-                 "2.2. Если данные введены корректно, необходимо перезапустить программу в обычном режиме\n" +
-                 "3. После этого можно:\n" +
-                 "3.1. Получать списки сотрудников, хранимый на СКД-сервере и корпоративном сайте\n" +
-                 "3.2. Использовать ранее сохраненные группы пользователей локально\n" +
-                 "3.3. Добавлять или корректировать праздничные дни персонального для каждого или всех, отгулы, отпуски\n" +
-                 "3.4. Загружать данные регистраций по группам или отдельным сотрудников, генерировать отчеты, визуализировать, отправлять отчеты по спискам рассылок, сгенерированным автоматически\n" +
-                 "3.5. Создавать собственные группы генерации отчетов, собственные рассылки отчетов\n" +
-                 "3.6. Проводить анализ данных как в табличном виде так и визуально, экспортировать данные в Excel файл.\n\nДата и время локального ПК: " +
-                _dateTimePickerReturnString(dateTimePickerEnd),
-                //dateTimePickerEnd.Value,
+                @"Перед получением информации необходимо в Настройках:\n\n" +
+                 @"1.1. Добавить URI адрес СКД-сервера с ПО 'Интеллект' (SERVER.DOMAIN.SUBDOMAIN),\nа также логин и пароль пользователя для доступа к SQL-серверу СКД\n" +
+                 @"1.2. Добавить URI адрес сервера с базой сотрудников корпоративного сайта вэб-сервера (SERVER.DOMAIN),\nnа также логин и пароль пользователя для доступа к MySQL-серверу\n" +
+                 @"1.3. Добавить URI адрес сервера с контроллером домена (SERVER.DOMAIN.SUBDOMAIN),\nа также логин, пароль и домен(DOMAIN.SUBDOMAIN) логина пользователя для доступа к данным\n" +
+                 @"1.4. Добавить URI адрес почтового сервера (SERVER.DOMAIN.SUBDOMAIN),\nа также email и (не обязательно) пароль пользователя для отправки рассылок с отчетами\n" +
+                 @"2. Сохранить введенные параметры\n" +
+                 @"2.1. В случае ввода некорректных данных получение данных и/или отправка рассылок будут заблокированы\n" +
+                 @"2.2. Если данные введены корректно (будут отсутствовать ошибки о вводе некорректных данных), необходимо перезапустить программу\n" +
+                 @"3. После этого можно:\n" +
+                 @"3.1. Получать списки сотрудников\n" +
+                 @"3.2. Создавать и использовать ранее сохраненные локально группы пользователей\n" +
+                 @"3.3. Добавлять или корректировать праздничные дни, отгулы, отпуски - персонального для каждого или для всех\n" +
+                 @"3.4. Загружать регистрации пропусков по группам или отдельным сотрудников, генерировать отчеты, " +
+                 @"визуализировать полученные данные, отправлять отчеты по спискам рассылок, сгенерированным автоматически или вручную\n" +
+                 @"3.5. Создавать собственные группы генерации отчетов, собственные рассылки отчетов\n" +
+                 @"3.6. Проводить анализ полученных данных как в табличном виде так и визуально, экспортировать данные в Excel файл." +
+                 @"3.7. Загружать все попытки регистрации пропусков, включая запрещенные попытки прохода, за текущий день или выбранный период." +
+                 @"\nФильтровать эти данные по пользователям или попыткам прохода" +
+                 @"4. ПО способно самостоятельно или принудительно проверять наличие обновления на сервере." +
+                 @"4.1. Для использования данного функционала внусите в настройках в параметр 'serverUpdateURL' URI адрес папки сервера с обновлениями (SERVER.DOMAIN.SUBDOMAIN\FOLDER_WITH_UPDATES)." +
+                 @"\n\nДата и время локального ПК: " + _dateTimePickerReturnString(dateTimePickerEnd),
+
                 "Информация о программе",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information,
                 MessageBoxDefaultButton.Button1);
+
         }
 
         private void PrepareForMakingFormMailing(object sender, EventArgs e) //MailingItem()
@@ -9844,13 +9878,20 @@ namespace ASTA
         //Autoupdate
         private void AutoupdatItem_Click(object sender, EventArgs e)
         {
+            appUpdateURL = appUpdateFolderURL + @"ASTA.xml";
+
             AutoUpdater.DownloadPath = appFolderUpdatePath;
             AutoUpdater.Start(appUpdateURL, System.Reflection.Assembly.GetEntryAssembly());
+            AutoUpdater.CheckForUpdateEvent -= AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
+            AutoUpdater.CheckForUpdateEvent += AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
             // AutoUpdate();
         }
 
         private async Task AutoUpdate()
         {
+            appUpdateURL = appUpdateFolderURL + @"ASTA.xml";
+
+            AutoUpdater.CheckForUpdateEvent -= AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
             AutoUpdater.CheckForUpdateEvent += AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
 
             //Check updates frequently
@@ -9905,16 +9946,22 @@ namespace ASTA
                     {
                         if (AutoUpdater.DownloadUpdate())
                         {
+                            _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
                             System.Xml.XmlDocument xmldoc = new System.Xml.XmlDocument();
                             System.Xml.XmlNodeList xmlnode;
                             xmldoc.Load(appUpdateURL);
                             xmlnode = xmldoc.GetElementsByTagName("version");
-
+                            string foundNewVersionApp = xmlnode[0].InnerText;
                             logger.Info("-----------------------------------------");
                             logger.Info("");
                             logger.Trace("-= Update =-");
                             logger.Trace("...");
-                            _toolStripStatusLabelSetText(StatusLabel2, @" обнаружена новая версия " + appName + " ver." + xmlnode[0].InnerText);
+                            _toolStripStatusLabelSetText(
+                                StatusLabel2,
+                                @" обнаружена новая версия " + appName + " ver." + foundNewVersionApp,
+                                true,
+                                "Запущено обновление ПО. Старая версия - " + appVersionAssembly + ", новая версия - " + foundNewVersionApp
+                                );
                             logger.Trace("...");
                             logger.Trace("-= Update =-");
                             logger.Info("");
@@ -9929,26 +9976,75 @@ namespace ASTA
                     // AutoUpdater.ShowUpdateForm();
                 }
                 else
-                { logger.Trace(@"Update's check: " + @"There is no update available please try again later."); }
+                {
+                    _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
+                    _toolStripStatusLabelSetText(StatusLabel2, @"Новых версий ПО '" + appName + "' не обнаружено");
+                }
             }
             else
-            { logger.Warn(@"Update check failed: There is a problem reaching update server URL."); }
+            {
+                logger.Warn(@"Update check failed: There is a problem reaching update server URL.");
+            }
         }
 
         //Make and Save XML into local file
-        private void CreateAppXMLFile()
+        private void CreateCurrentAppZipXMLFile()
         {
+            //Make an archive with the currrent app's version 
+            MakeZip(appAllFiles, appZipPath);
+
             //calculate appFileZip's MD5 checksum
             appFileMD5 = CalculateFileHash(appZipPath);
 
             //block to make checksum string in XML
             // appFileMD5 = null;
             MakerOfUpdateAppXML makerXML = new MakerOfUpdateAppXML(appVersionAssembly, appNameXML, appUpdateFolderURL + appZipPath, null, appFileMD5);
-            makerXML.SaveXML();
-            _toolStripStatusLabelSetText(StatusLabel2, makerXML.Status);
+            makerXML.status += LoggerAddInfo;
+            makerXML.Make();
+            makerXML.status -= LoggerAddInfo;
+            try { System.IO.File.Delete(appZipPath); } catch { }
             makerXML = null;
         }
 
+        private void LoggerAddInfo(object sender, AccountEventArgs e)
+        {
+        //    logger.Info(e.Message);
+            _toolStripStatusLabelSetText(StatusLabel2, e.Message);
+        }
+
+        private void LoggerAddInfo(string message)
+        {
+      //      logger.Info(message);
+            _toolStripStatusLabelSetText(StatusLabel2, message);
+        }
+
+
+        private void testUpdateToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Update();
+        }
+        private void Update()
+        {
+            UpdatingParameters parameters = new UpdatingParameters();
+
+            LoggerAddInfo(serverUpdateURL);
+            MakerOfLinks makerLinks = new MakerOfLinks(serverUpdateURL);
+            makerLinks.status += LoggerAddInfo;
+
+            MakerOfUpdateAppXML makerXML = new MakerOfUpdateAppXML(appVersionAssembly, appNameXML, appUpdateFolderURL + appZipPath, null, appFileMD5);
+            makerXML.status += LoggerAddInfo;
+
+            Updating updating = new Updating(makerLinks, makerXML);
+            updating.status += LoggerAddInfo;
+
+            AppUpdating.status += LoggerAddInfo;
+            AppUpdating.ClientCode(updating);
+
+            makerLinks.status -= LoggerAddInfo;
+            makerXML.status -= LoggerAddInfo;
+            updating.status -= LoggerAddInfo;
+            AppUpdating.status -= LoggerAddInfo;
+        }
         //todo
         //check it
         /*
@@ -10079,7 +10175,7 @@ namespace ASTA
             uploadUpdateError = false;
 
             //Make application XML for Autoupdater's
-            CreateAppXMLFile();
+            CreateCurrentAppZipXMLFile();
 
             Func<Task>[] tasks =
             {

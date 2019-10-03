@@ -2,29 +2,58 @@
 using System.IO;
 using System.Xml.Serialization;
 
-namespace ASTA.AutoUpdate
+namespace ASTA.AutoUpdating
 {
-    class MakerOfUpdateAppXML
+   public class AccountEventArgs
+    {
+        // Сообщение
+        public string Message { get; }
+
+        public AccountEventArgs(string mes)
+        {
+            Message = mes;
+        }
+    }
+
+    public class MakerOfUpdateAppXML
     {
         string _appVersion;
         string _appXmlLocalPath;
         string _appUpdateFileURL;
         string _appUpdateChangeLogURL;
-        string _appMD5;
-        public string Status { get; private set; }
+        string _appUpdateMD5;
+        UpdatingParameters _parameters { get; set; }
 
-        public MakerOfUpdateAppXML(string appVersion, string appXmlLocalPath, string appUpdateFileURL, string appUpdateChangeLogURL, string appMD5)
+        public delegate void Status(object sender, AccountEventArgs e);
+        public event Status status;
+
+        public MakerOfUpdateAppXML() { }
+
+        public MakerOfUpdateAppXML(string appVersion, string appXmlLocalPath, string appUpdateFileURL, string appUpdateChangeLogURL, string appUpdateMD5)
         {
             _appVersion = appVersion;
             _appXmlLocalPath = appXmlLocalPath;
             _appUpdateFileURL = appUpdateFileURL;
             _appUpdateChangeLogURL = appUpdateChangeLogURL;
-            _appMD5 = appMD5;
+            _appUpdateMD5 = appUpdateMD5;
         }
 
-        public void SaveXML()
+        public MakerOfUpdateAppXML(UpdatingParameters parameters)
         {
-            Status = null;
+            _appXmlLocalPath = parameters.appXmlLocalPath;
+            _appUpdateFileURL = parameters.appUpdateURL;
+        }
+        public void SetParameters(string appVersion, string appXmlLocalPath, string appUpdateFileURL, string appUpdateChangeLogURL, string appUpdateMD5)
+        {
+            _appVersion = appVersion;
+            _appXmlLocalPath = appXmlLocalPath;
+            _appUpdateFileURL = appUpdateFileURL;
+            _appUpdateChangeLogURL = appUpdateChangeLogURL;
+            _appUpdateMD5 = appUpdateMD5;
+        }
+
+        public void Make()
+        {
             if (_appXmlLocalPath == null)
             {
                 throw new NullReferenceException();
@@ -44,10 +73,10 @@ namespace ASTA.AutoUpdate
                 document.url = _appUpdateFileURL;
             if (_appUpdateChangeLogURL != null)
                 document.changelogUrl = _appUpdateChangeLogURL;
-            if (_appMD5 != null)
+            if (_appUpdateMD5 != null)
             {
                 var checksum = new XMLElementChecksum();
-                checksum.value = _appMD5;
+                checksum.value = _appUpdateMD5;
                 checksum.algorithm = "MD5";
                 document.checksum = checksum;
             }
@@ -56,14 +85,13 @@ namespace ASTA.AutoUpdate
 
             using (FileStream fs = new FileStream(_appXmlLocalPath, FileMode.Create))
             {
-                
-
                 // XmlSerializer serializer = new XmlSerializer(nodesToStore.GetType());
                 // serializer.Serialize(fs, nodesToStore);
                 XmlSerializer serializer = new XmlSerializer(document.GetType());//, atribXmlOver
                 serializer.Serialize(fs, document, ns); //clear any xmlns attributes from the root element
-                Status = "XML файл сохранен как " + _appXmlLocalPath;
             }
+                status?.Invoke(this, new AccountEventArgs("XML файл сохранен как " + _appXmlLocalPath));
+
 
             /* var readNodes = new List<document>();
              using (FileStream fs2 = new FileStream(filepath, FileMode.Open))
@@ -72,6 +100,11 @@ namespace ASTA.AutoUpdate
                  readNodes = serializer.Deserialize(fs2) as List<document>;
              }*/
         }
+
+            public UpdatingParameters GetParameters()
+            {
+                return _parameters;
+            }
         
         /*
             private void CreateAppXMLFile()
@@ -122,7 +155,7 @@ namespace ASTA.AutoUpdate
         }
          */
     }
-
+    
     [XmlRoot(ElementName = "item", IsNullable = false)]
     public class XMLDocument //Класс должен иметь модификатор public 
     {

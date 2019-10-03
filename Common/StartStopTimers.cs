@@ -2,8 +2,6 @@
 
 namespace ASTA
 {
-
-         
     interface IStartStopTimer
     {
         void WaitTime();

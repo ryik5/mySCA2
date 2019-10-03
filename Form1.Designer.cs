@@ -130,6 +130,7 @@
             this.groupBoxTimeEnd = new System.Windows.Forms.GroupBox();
             this.labelHourEnd = new System.Windows.Forms.Label();
             this.labelMinuteEnd = new System.Windows.Forms.Label();
+            this.testUpdateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownHourStart)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownMinuteStart)).BeginInit();
@@ -597,7 +598,8 @@
             this.GetCurrentSchemeItem,
             this.CreateDBItem,
             this.RefreshConfigInMainDBItem,
-            this.calculateHashItem});
+            this.calculateHashItem,
+            this.testUpdateToolStripMenuItem});
             this.SettingsMenuItem.Name = "SettingsMenuItem";
             resources.ApplyResources(this.SettingsMenuItem, "SettingsMenuItem");
             // 
@@ -866,6 +868,12 @@
             resources.ApplyResources(this.labelMinuteEnd, "labelMinuteEnd");
             this.labelMinuteEnd.Name = "labelMinuteEnd";
             // 
+            // testUpdateToolStripMenuItem
+            // 
+            this.testUpdateToolStripMenuItem.Name = "testUpdateToolStripMenuItem";
+            resources.ApplyResources(this.testUpdateToolStripMenuItem, "testUpdateToolStripMenuItem");
+            this.testUpdateToolStripMenuItem.Click += new System.EventHandler(this.testUpdateToolStripMenuItem_Click);
+            // 
             // WinFormASTA
             // 
             resources.ApplyResources(this, "$this");
@@ -1015,6 +1023,7 @@
         private System.Windows.Forms.ToolStripMenuItem RefreshConfigInMainDBItem;
         private System.Windows.Forms.ToolStripMenuItem UploadApplicationItem;
         private System.Windows.Forms.ToolStripMenuItem calculateHashItem;
+        private System.Windows.Forms.ToolStripMenuItem testUpdateToolStripMenuItem;
     }
 }
 

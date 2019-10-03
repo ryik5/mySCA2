@@ -206,30 +206,31 @@
       <DependentUpon>AboutBox1.cs</DependentUpon>
     </Compile>
     <Compile Include="ActiveDirectoryOperations.cs" />
+    <Compile Include="AutoUpdating\AutoUpdating.cs" />
     <Compile Include="Common\DataGridViewOperations.cs" />
     <Compile Include="Common\NamesOfConstants.cs" />
-    <Compile Include="DateTimeConvertor.cs" />
-    <Compile Include="ObservableRangeCollection.cs" />
+    <Compile Include="Common\DateTimeConvertor.cs" />
+    <Compile Include="Common\ObservableRangeCollection.cs" />
     <Compile Include="PassagePoint.cs" />
     <Compile Include="PersonDefinitions\Employee.cs" />
     <Compile Include="PersonDefinitions\EmployeeFull.cs" />
     <Compile Include="PersonDefinitions\EmployeeVisitor.cs" />
     <Compile Include="PersonDefinitions\UserAD.cs" />
-    <Compile Include="ADUserAuthorization.cs" />
+    <Compile Include="PersonDefinitions\ADUserAuthorization.cs" />
     <Compile Include="AmountMembersOfGroup.cs" />
-    <Compile Include="DbColumn.cs" />
-    <Compile Include="DbIndex.cs" />
-    <Compile Include="DbSchema.cs" />
-    <Compile Include="DbTable.cs" />
-    <Compile Include="DbUpgradeException.cs" />
+    <Compile Include="Common\DbColumn.cs" />
+    <Compile Include="Common\DbIndex.cs" />
+    <Compile Include="Common\DbSchema.cs" />
+    <Compile Include="Common\DbTable.cs" />
+    <Compile Include="Common\DbUpgradeException.cs" />
     <Compile Include="MailServer.cs" />
     <Compile Include="MailSender.cs" />
     <Compile Include="PersonDefinitions\MailUser.cs" />
-    <Compile Include="AutoUpdate\MakerXML.cs" />
+    <Compile Include="AutoUpdating\MakerOfUpdateAppXML.cs" />
     <Compile Include="PeopleShiftsAndOutResons.cs" />
     <Compile Include="AssemblyInfo1.cs" />
-    <Compile Include="DataTableExtensions.cs" />
-    <Compile Include="DateTimeExtensions.cs" />
+    <Compile Include="Common\DataTableExtensions.cs" />
+    <Compile Include="Common\DateTimeExtensions.cs" />
     <Compile Include="Department.cs" />
     <Compile Include="EncryptDecrypt.cs" />
     <Compile Include="Form1.cs">
@@ -255,15 +256,15 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Include="DbControls.cs" />
+    <Compile Include="Common\DbControls.cs" />
     <Compile Include="README1.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>README.md</DependentUpon>
     </Compile>
     <Compile Include="SendToFileShare.cs" />
-    <Compile Include="StartStopTimers.cs" />
-    <Compile Include="TimeConvertor.cs" />
+    <Compile Include="Common\StartStopTimers.cs" />
+    <Compile Include="Common\TimeConvertor.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="AboutBox1.resx">
