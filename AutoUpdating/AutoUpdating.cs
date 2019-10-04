@@ -82,7 +82,7 @@ namespace ASTA.AutoUpdating
     public class UpdatingParameters
     {
         public string appUpdateMD5 { get; set; }
-        public string appXmlLocalPath { get; set; }
+        public string appFileXml { get; set; }
         public string appVersion { get; set; }
 
         public string serverUpdateURL { get; set; }
