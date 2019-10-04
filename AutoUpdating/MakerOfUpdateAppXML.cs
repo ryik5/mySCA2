@@ -17,11 +17,6 @@ namespace ASTA.AutoUpdating
 
     public class MakerOfUpdateAppXML
     {
-        string _appVersion;
-        string _appXmlLocalPath;
-        string _appUpdateFileURL;
-        string _appUpdateChangeLogURL;
-        string _appUpdateMD5;
         UpdatingParameters _parameters { get; set; }
 
         public delegate void Status(object sender, AccountEventArgs e);
@@ -29,36 +24,24 @@ namespace ASTA.AutoUpdating
 
         public MakerOfUpdateAppXML() { }
 
-        public MakerOfUpdateAppXML(string appVersion, string appXmlLocalPath, string appUpdateFileURL, string appUpdateChangeLogURL, string appUpdateMD5)
-        {
-            _appVersion = appVersion;
-            _appXmlLocalPath = appXmlLocalPath;
-            _appUpdateFileURL = appUpdateFileURL;
-            _appUpdateChangeLogURL = appUpdateChangeLogURL;
-            _appUpdateMD5 = appUpdateMD5;
-        }
-
         public MakerOfUpdateAppXML(UpdatingParameters parameters)
         {
-            _appXmlLocalPath = parameters.appXmlLocalPath;
-            _appUpdateFileURL = parameters.appUpdateURL;
+            _parameters = parameters;
         }
-        public void SetParameters(string appVersion, string appXmlLocalPath, string appUpdateFileURL, string appUpdateChangeLogURL, string appUpdateMD5)
-        {
-            _appVersion = appVersion;
-            _appXmlLocalPath = appXmlLocalPath;
-            _appUpdateFileURL = appUpdateFileURL;
-            _appUpdateChangeLogURL = appUpdateChangeLogURL;
-            _appUpdateMD5 = appUpdateMD5;
-        }
+        
         public void SetParameters(UpdatingParameters parameters)
         {
             _parameters = parameters;
         }
 
+        public UpdatingParameters GetParameters()
+        {
+           return _parameters ;
+        }
+
         public void Make()
         {
-            if (_appXmlLocalPath == null)
+            if (_parameters.appFileXml == null)
             {
                 throw new NullReferenceException();
             }
@@ -71,30 +54,24 @@ namespace ASTA.AutoUpdating
             XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
             ns.Add("", "");//clear any xmlns attributes from the root element
 
-            if (_appVersion != null)
-                document.version = _appVersion;
-            if (_appUpdateFileURL != null)
-                document.url = _appUpdateFileURL;
-            if (_appUpdateChangeLogURL != null)
-                document.changelogUrl = _appUpdateChangeLogURL;
-            if (_appUpdateMD5 != null)
+            if (_parameters.appUpdateMD5 != null)
             {
                 var checksum = new XMLElementChecksum();
-                checksum.value = _appUpdateMD5;
+                checksum.value = _parameters.appUpdateMD5;
                 checksum.algorithm = "MD5";
                 document.checksum = checksum;
             }
 
             //  var nodesToStore = new List<XMLDocument> { document };
 
-            using (FileStream fs = new FileStream(_appXmlLocalPath, FileMode.Create))
+            using (FileStream fs = new FileStream(_parameters.appFileXml, FileMode.Create))
             {
                 // XmlSerializer serializer = new XmlSerializer(nodesToStore.GetType());
                 // serializer.Serialize(fs, nodesToStore);
                 XmlSerializer serializer = new XmlSerializer(document.GetType());//, atribXmlOver
                 serializer.Serialize(fs, document, ns); //clear any xmlns attributes from the root element
             }
-            status?.Invoke(this, new AccountEventArgs("XML файл сохранен как " + _appXmlLocalPath));
+            status?.Invoke(this, new AccountEventArgs("XML файл сохранен как " + _parameters.appFileXml));
 
 
             /* var readNodes = new List<document>();
@@ -103,11 +80,6 @@ namespace ASTA.AutoUpdating
                  XmlSerializer serializer = new XmlSerializer(nodesToStore.GetType());
                  readNodes = serializer.Deserialize(fs2) as List<document>;
              }*/
-        }
-
-        public UpdatingParameters GetParameters()
-        {
-            return _parameters;
         }
 
         /*
