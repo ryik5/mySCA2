@@ -18,6 +18,7 @@ using MimeKit;
 using ASTA.PersonDefinitions;
 using ASTA.Common;
 using ASTA.AutoUpdating;
+using ASTA.Security;
 using AutoUpdaterDotNET;
 
 //using NLog;
@@ -9990,11 +9991,13 @@ namespace ASTA
         //Make and Save XML into local file
         private void CreateCurrentAppZipXMLFile()
         {
+            CalculatingHash calculatedHash;
             //Make an archive with the currrent app's version 
             MakeZip(appAllFiles, appZipPath);
 
             //calculate appFileZip's MD5 checksum
-            appFileMD5 = CalculateFileHash(appZipPath);
+            calculatedHash = new CalculatingHash(appZipPath);
+            appFileMD5 = calculatedHash.Calculate();
 
             //block to make checksum string in XML
             // appFileMD5 = null;
@@ -10006,16 +10009,24 @@ namespace ASTA
             makerXML = null;
         }
 
+        private void StatusLabelAddInfo(object sender, AccountEventArgs e)
+        {
+            _toolStripStatusLabelSetText(StatusLabel2, e.Message);
+        }
+
+        private void StatusLabelAddInfo(string message)
+        {
+            _toolStripStatusLabelSetText(StatusLabel2, message);
+        }
+
         private void LoggerAddInfo(object sender, AccountEventArgs e)
         {
-        //    logger.Info(e.Message);
-            _toolStripStatusLabelSetText(StatusLabel2, e.Message);
+                logger.Info(e.Message);
         }
 
         private void LoggerAddInfo(string message)
         {
-      //      logger.Info(message);
-            _toolStripStatusLabelSetText(StatusLabel2, message);
+                  logger.Info(message);
         }
 
 
@@ -10045,68 +10056,6 @@ namespace ASTA
             updating.status -= LoggerAddInfo;
             AppUpdating.status -= LoggerAddInfo;
         }
-        //todo
-        //check it
-        /*
-                static string CalculateHash(string filename)
-                {
-                    using (var fileStream = new System.IO.FileStream(filename, System.IO.FileMode.Open, System.IO.FileAccess.Read))
-                    {
-                        SHA1CryptoServiceProvider unmanaged = new SHA1CryptoServiceProvider();
-                        byte[] retVal = unmanaged.ComputeHash(fileStream);
-                        return string.Join("", retVal.Select(x => x.ToString("x2")));
-                    }
-                }*/
-
-        private static string CalculateFileHash(string fileName, string algorithm = "MD5") //MD5, SHA1, SHA256, SHA384, SHA512
-        {
-            string fileChecksum = null;
-            using (var hashAlgorithm = HashAlgorithm.Create(algorithm))
-            {
-                using (var stream = System.IO.File.OpenRead(fileName))
-                {
-                    if (hashAlgorithm != null)
-                    {
-                        var hash = hashAlgorithm.ComputeHash(stream);
-                        fileChecksum = BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant();
-                    }
-
-                    return fileChecksum;
-                }
-            }
-        }
-        /*
-                //Test algorithm to evaluate with the autoupdater's algorithm
-                private static bool CompareChecksum(string fileName, string checksum, string algorythm = "MD5") //MD5, SHA1, SHA256, SHA384, SHA512
-                {
-                    using (var hashAlgorithm = HashAlgorithm.Create(algorythm))
-                    {
-                        using (var stream =System.IO.File.OpenRead(fileName))
-                        {
-                            if (hashAlgorithm != null)
-                            {
-                                var hash = hashAlgorithm.ComputeHash(stream);
-                                var fileChecksum = BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant();
-
-                                if (fileChecksum == checksum.ToLower()) return true;
-                            }
-
-                            return false;
-                        }
-                    }
-                }
-
-                //Test algorithm to evaluate with the autoupdater's algorithm
-                private void TestHash()
-                {
-                    string filePath = null;
-                    filePath = SelectFileOpenFileDialog("Выберите первый файл для вычисления хэша");
-                    string myFileHash = CalculateFileHash(filePath);
-
-                    filePath = SelectFileOpenFileDialog("Выберите второй файл для вычисления хэша");
-                    bool result = CompareChecksum(filePath, myFileHash);
-                    MessageBox.Show("Result of evaluation of checking\n"+ result);
-                }*/
 
         private void CalculateHashItem_Click(object sender, EventArgs e) //Selectfiles()
         {
@@ -10119,18 +10068,22 @@ namespace ASTA
         {
             string result = null;
             string filePath = null;
+            CalculatingHash calculatedHash;
+
             DialogResult selectTwoFiles = MessageBox.Show("Выбрать 2 файла для сравнения?", "Сравнение файлов",
                 MessageBoxButtons.YesNo,
                       MessageBoxIcon.Exclamation,
                       MessageBoxDefaultButton.Button1);
 
             filePath = SelectFileOpenFileDialog("Выберите первый файл для вычисления хэша");
-            result += CalculateFileHash(filePath) + "\n";
+            calculatedHash = new CalculatingHash(filePath);
+            result += calculatedHash.Calculate() + "\n";
 
             if (selectTwoFiles == DialogResult.Yes)
             {
                 filePath = SelectFileOpenFileDialog("Выберите следующий файл для вычисления хэша");
-                result += "\n" + CalculateFileHash(filePath) + "\n";
+                calculatedHash = new CalculatingHash(filePath);
+                result += "\n" + calculatedHash.Calculate() + "\n";
             }
             MessageBox.Show(result, "Результат вычисления хэша");
         }
