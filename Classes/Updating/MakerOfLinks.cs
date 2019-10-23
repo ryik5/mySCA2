@@ -28,7 +28,10 @@ namespace ASTA.Classes.AutoUpdating
                 throw new Exception("Не создан экземпляр UpdatingParameters!");
 
             if (string.IsNullOrWhiteSpace(_parameters.remoteFolderUpdatingURL))
-                throw new Exception("Отсутствует параметр serverUpdateURL или ссылка пустая!");
+                throw new Exception("Отсутствует параметр remoteFolderUpdatingURL или ссылка пустая!");
+
+            if (string.IsNullOrWhiteSpace(_parameters.appFileXml))
+                throw new Exception("Отсутствует параметр appFileXml или ссылка пустая!");
 
             _parameters.appUpdateFolderURL = @"file://" + _parameters.remoteFolderUpdatingURL.Replace(@"\", @"/") + @"/";
             _parameters.appUpdateFolderURI = @"\\" + _parameters.remoteFolderUpdatingURL.Replace(@"/", @"\") + @"\";
