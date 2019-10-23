@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Xml;
 using System.Xml.Serialization;
 
 namespace ASTA.AutoUpdating
@@ -54,6 +55,11 @@ namespace ASTA.AutoUpdating
             XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
             ns.Add("", "");//clear any xmlns attributes from the root element
 
+
+            document.version = _parameters.appVersion;
+            document.url = _parameters.appUpdateFolderURL;
+
+
             if (_parameters.appUpdateMD5 != null)
             {
                 var checksum = new XMLElementChecksum();
@@ -71,7 +77,7 @@ namespace ASTA.AutoUpdating
                 XmlSerializer serializer = new XmlSerializer(document.GetType());//, atribXmlOver
                 serializer.Serialize(fs, document, ns); //clear any xmlns attributes from the root element
             }
-            status?.Invoke(this, new AccountEventArgs("XML файл сохранен как " + _parameters.appFileXml));
+            status?.Invoke(this, new AccountEventArgs("XML файл сохранен как " + Path.GetFullPath(_parameters.appFileXml)));
 
 
             /* var readNodes = new List<document>();
@@ -143,6 +149,11 @@ namespace ASTA.AutoUpdating
         public string url { get; set; }
         public string changelogUrl { get; set; }
         public XMLElementChecksum checksum { get; set; }
+
+        internal XmlDeclaration CreateXmlDeclaration(string v1, string v2, object p)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class XMLElementChecksum //Класс должен иметь модификатор public 

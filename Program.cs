@@ -1,6 +1,11 @@
 ﻿using System;
 using System.Windows.Forms;
 
+//For analysing crashes
+using Microsoft.AppCenter;
+using Microsoft.AppCenter.Analytics;
+using Microsoft.AppCenter.Crashes;
+
 namespace ASTA
 {
     static class Program
@@ -14,6 +19,9 @@ namespace ASTA
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
+            //For analysing crashes
+            AppCenter.Start("b038f212-9e6f-4d65-8e4c-1f7fe0f9551a", typeof(Analytics), typeof(Crashes));
+            
             //turn on gathering logs
             NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 

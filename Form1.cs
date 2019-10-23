@@ -66,8 +66,21 @@ namespace ASTA
                 @"MySql.Data.dll", @"MySql.Data.dll", @"Renci.SshNet.dll",
                 @"MailKit.dll", @"MimeKit.dll",
                 @"BouncyCastle.Crypto.dll", @"System.Data.SQLite.dll",
-                @"x64\SQLite.Interop.dll", @"x86\SQLite.Interop.dll"
-            };
+                @"x64\SQLite.Interop.dll", @"x86\SQLite.Interop.dll",
+                
+                //Analysing pacckages
+                @"Microsoft.AppCenter.dll",
+                @"Microsoft.AppCenter.Analytics.dll",
+                @"Microsoft.AppCenter.Crashes.dll",
+                @"x64\e_sqlite3.dll", @"x86\e_sqlite3.dll",
+                @"SQLite-net.dll",
+                @"SQLitePCLRaw.provider.e_sqlite3.dll",
+                @"SQLitePCLRaw.batteries_green.dll",
+                @"SQLitePCLRaw.batteries_v2.dll",
+                @"SQLitePCLRaw.core.dll",
+                @"System.Runtime.InteropServices.RuntimeInformation.dll",
+                @"Newtonsoft.Json.dll"
+        };
         static string appQueryCreatingDB = System.IO.Path.Combine(appFolderPath, System.IO.Path.GetFileNameWithoutExtension(appFilePath) + @".sql");
 
 
@@ -246,7 +259,6 @@ namespace ASTA
         int numberPeopleInLoading = 1;
 
         //todo
-        static string stimerNext = "";
         static string stimerPrev = "";
         static string stimerCurr = "Ждите!";
 
@@ -4704,8 +4716,14 @@ namespace ASTA
             {
                 if (dirPath.Contains(@"\"))
                 {
-                    try { System.IO.Directory.CreateDirectory(dirPath.Replace(dirPath, appFolderTempPath + @"\" + dirPath.Remove(dirPath.IndexOf('\\')))); }
-                    catch (Exception err) { logger.Trace(dirPath + " - " + err.Message); }
+                    try 
+                    { 
+                        System.IO.Directory.CreateDirectory(dirPath.Replace(dirPath, appFolderTempPath + @"\" + dirPath.Remove(dirPath.IndexOf('\\'))));
+                    }
+                    catch (Exception err)
+                    { 
+                        logger.Trace(dirPath + " - " + err.ToString());
+                    }
                 }
             }
             foreach (var file in files)
@@ -4714,10 +4732,10 @@ namespace ASTA
                 {
                     System.IO.File.Copy(file, appFolderTempPath + @"\" + file, true);
                 }
-                catch (Exception err) { logger.Trace(file + " - " + err.Message); }
+                catch (Exception err) { logger.Trace(file + " - " + err.ToString()); }
             }
-
-            System.IO.Compression.ZipFile.CreateFromDirectory(appFolderTempPath, fullNameZip, System.IO.Compression.CompressionLevel.Fastest, false);
+            System.IO.Compression.ZipFile.CreateFromDirectory(appFolderTempPath, appFolderPath + @"\" + fullNameZip, System.IO.Compression.CompressionLevel.Optimal, false);
+            LoggerAddInfo("Made archive: "+ appFolderPath + @"\" + fullNameZip);
         }
 
         private void MakeZip(string filePath, string fullNameZip)
@@ -4728,15 +4746,16 @@ namespace ASTA
             if (filePath.Contains(@"\"))
             {
                 try { System.IO.Directory.CreateDirectory(filePath.Replace(filePath, appFolderTempPath + @"\" + filePath.Remove(filePath.IndexOf('\\')))); }
-                catch (Exception err) { logger.Trace(filePath + " - " + err.Message); }
+                catch (Exception err) { logger.Trace(filePath + " - " + err.ToString()); }
             }
             try
             {
                 System.IO.File.Copy(filePath, appFolderTempPath + @"\" + filePath, true);
             }
-            catch (Exception err) { logger.Trace(filePath + " - " + err.Message); }
+            catch (Exception err) { logger.Trace(filePath + " - " + err.ToString()); }
 
-            System.IO.Compression.ZipFile.CreateFromDirectory(appFolderTempPath, fullNameZip, System.IO.Compression.CompressionLevel.Fastest, false);
+            System.IO.Compression.ZipFile.CreateFromDirectory(appFolderTempPath, appFolderPath + @"\" + fullNameZip, System.IO.Compression.CompressionLevel.Optimal, false);
+            LoggerAddInfo("Made archive: " + appFolderPath + @"\" + fullNameZip);
         }
 
         //----- Clearing. Start ---------//
@@ -9989,7 +10008,7 @@ namespace ASTA
         }
 
         //Make and Save XML into local file
-        private void CreateCurrentAppZipXMLFile()
+        private void CreateAppZipAndXMLFiles()
         {
             CalculatingHash calculatedHash;
             //Make an archive with the currrent app's version 
@@ -10001,11 +10020,16 @@ namespace ASTA
 
             //block to make checksum string in XML
             // appFileMD5 = null;
-            MakerOfUpdateAppXML makerXML = new MakerOfUpdateAppXML(appVersionAssembly, appNameXML, appUpdateFolderURL + appZipPath, null, appFileMD5);
+            UpdatingParameters parameters = new UpdatingParameters();
+            parameters.appVersion = appVersionAssembly;
+            parameters.appUpdateFolderURL = appUpdateFolderURL + appZipPath;
+            parameters.appFileXml = appNameXML; //appFolderPath
+            parameters.appUpdateMD5 = appFileMD5;
+
+            MakerOfUpdateAppXML makerXML = new MakerOfUpdateAppXML(parameters);
             makerXML.status += LoggerAddInfo;
             makerXML.Make();
             makerXML.status -= LoggerAddInfo;
-            try { System.IO.File.Delete(appZipPath); } catch { }
             makerXML = null;
         }
 
@@ -10042,7 +10066,14 @@ namespace ASTA
             MakerOfLinks makerLinks = new MakerOfLinks(serverUpdateURL);
             makerLinks.status += LoggerAddInfo;
 
-            MakerOfUpdateAppXML makerXML = new MakerOfUpdateAppXML(appVersionAssembly, appNameXML, appUpdateFolderURL + appZipPath, null, appFileMD5);
+            parameters.appVersion = appVersionAssembly;
+            parameters.appUpdateFolderURL = appUpdateFolderURL + appZipPath;
+            parameters.appFileXml = appNameXML;
+            parameters.appUpdateMD5 = appFileMD5;
+
+            MakerOfUpdateAppXML makerXML = new MakerOfUpdateAppXML(parameters);
+            
+            makerXML.Make();
             makerXML.status += LoggerAddInfo;
 
             Updating updating = new Updating(makerLinks, makerXML, parameters);
@@ -10067,7 +10098,7 @@ namespace ASTA
         private void SelectfilesForCalculatingHash() //SelectFileOpenFileDialog() CalculateFileHash()
         {
             string result = null;
-            string filePath = null;
+            string filePath ;
             CalculatingHash calculatedHash;
 
             DialogResult selectTwoFiles = MessageBox.Show("Выбрать 2 файла для сравнения?", "Сравнение файлов",
@@ -10128,12 +10159,12 @@ namespace ASTA
             uploadUpdateError = false;
 
             //Make application XML for Autoupdater's
-            CreateCurrentAppZipXMLFile();
+            CreateAppZipAndXMLFiles();
 
             Func<Task>[] tasks =
             {
-                ()=>UploadApplicationToShare(appZipPath, appUpdateFolderURI + appZipPath),
-                () => UploadApplicationToShare(appFolderPath + @"\" + appNameXML, appUpdateFolderURI + appNameXML)
+                () => UploadApplicationToShare(appFolderPath + @"\" + appZipPath, appUpdateFolderURI + appZipPath),                        //Send app.zip file to server
+                () => UploadApplicationToShare(appFolderPath + @"\" + appNameXML, appUpdateFolderURI + appNameXML)  //Send app.xml file to server
             };
 
             await InvokeAsync(tasks, maxDegreeOfParallelism: 2);
@@ -10141,11 +10172,11 @@ namespace ASTA
             uploadingUpdate = false;
             if (uploadUpdateError)
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Отправка обновления на сервер завершена с ошибкой -> " + appUpdateFolderURI, true);
+                _toolStripStatusLabelSetText(StatusLabel2, "Отправка обновлений на сервер завершена с ошибкой -> " + appUpdateFolderURI, true);
             }
             else
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Отправка обновления на сервер завершена -> " + appUpdateFolderURI);
+                _toolStripStatusLabelSetText(StatusLabel2, "Выполнена отправка обновлений на сервер -> " + appUpdateFolderURI);
                 _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
             }
         }
@@ -10154,7 +10185,7 @@ namespace ASTA
         {
             MethodInvoker mi1 = delegate
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Идет отправка файла -> " + target);
+                _toolStripStatusLabelSetText(StatusLabel2, "Идет отправка файла " + source + " -> " + target);
                 try
                 {
                     // var fileByte = System.IO.File.ReadAllBytes(source);
@@ -10163,12 +10194,15 @@ namespace ASTA
                     catch { logger.Info("файл предварительно не удален: " + target); } //@"\\server\folder\Myfile.txt"
 
                     System.IO.File.Copy(source, target, true); //@"\\server\folder\Myfile.txt"
-                    logger.Info("Отправка файла на сервер завершена: " + source + " -> " + target);
+                    LoggerAddInfo("Отправка файла " + source + " на сервер выполнена " + target);
+
+                    try { System.IO.File.Delete(source); } catch { }
                 }
                 catch (Exception err)
                 {
                     uploadUpdateError = true;
-                    _toolStripStatusLabelSetText(StatusLabel2, "Отправка файла на сервер завершена с ошибкой: " + target, true, err.ToString());
+                    LoggerAddInfo("Отправка файла " + source + " на сервер " + target + " завершена с ошибкой: " + err.ToString());
+                    _toolStripStatusLabelSetText(StatusLabel2, "Отправка файла на сервер завершена с ошибкой: " + target, true, err.Message);
                 }
             };
 
