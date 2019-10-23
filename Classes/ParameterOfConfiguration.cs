@@ -255,5 +255,4 @@ namespace ASTA
             return parametersConfig;
         }
     }
-
 }

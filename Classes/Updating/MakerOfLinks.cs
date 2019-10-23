@@ -25,14 +25,11 @@ namespace ASTA.Classes.AutoUpdating
         public void Make()
         {
             if (string.IsNullOrWhiteSpace(_parameters.remoteFolderUpdatingURL))
-                throw new ArgumentNullException("Отсутствует параметр serverUpdateURL или ссылка пустая!", "serverUpdateURL");
+                throw new Exception("Отсутствует параметр serverUpdateURL или ссылка пустая!");
 
-            _parameters.remoteFolderUpdatingURL = _parameters.remoteFolderUpdatingURL;
             _parameters.appUpdateFolderURL = @"file://" + _parameters.remoteFolderUpdatingURL.Replace(@"\", @"/") + @"/";
             _parameters.appUpdateFolderURI = @"\\" + _parameters.remoteFolderUpdatingURL + @"\";
             _parameters.appUpdateURL = _parameters.appUpdateFolderURL + _parameters.appFileXml;
-
-            PrintProperties(_parameters);
 
             status?.Invoke(this, new AccountEventArgs("Все ссылки сгенерированы!"));
         }
@@ -53,16 +50,16 @@ namespace ASTA.Classes.AutoUpdating
             };
         }
 
-        private void PrintProperties(UpdatingParameters parameters)
+        public void PrintProperties()
         {
-            foreach (var prop in parameters.GetType().GetProperties())
+            foreach (var prop in _parameters.GetType().GetProperties())
             {
-                status?.Invoke(this, new AccountEventArgs(prop.Name + ": " + prop.GetValue(parameters, null)));
+                status?.Invoke(this, new AccountEventArgs(prop.Name + ": " + prop.GetValue(_parameters, null)));
             }
 
-            foreach (var field in parameters.GetType().GetFields())
+            foreach (var field in _parameters.GetType().GetFields())
             {
-                status?.Invoke(this, new AccountEventArgs(field.Name + ": " + field.GetValue(parameters)));
+                status?.Invoke(this, new AccountEventArgs(field.Name + ": " + field.GetValue(_parameters)));
             }
         }
     }
