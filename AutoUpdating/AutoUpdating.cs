@@ -52,7 +52,7 @@ namespace ASTA.AutoUpdating
 
             _parameters.serverUpdateURL = _serverUpdateURL;
             _parameters.appUpdateFolderURL = @"file://" + _serverUpdateURL.Replace(@"\", @"/") + @"/";
-            _parameters.appUpdateURL = _parameters.appUpdateFolderURL + _parameters.appXmlLocalPath;
+            _parameters.appUpdateURL = _parameters.appUpdateFolderURL + _parameters.appFileXml;
             _parameters.appUpdateFolderURI = @"\\" + _serverUpdateURL + @"\";
 
             PrintProperties(_parameters);
