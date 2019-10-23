@@ -24,11 +24,14 @@ namespace ASTA.Classes.AutoUpdating
 
         public void Make()
         {
+            if (_parameters == null)
+                throw new Exception("Не создан экземпляр UpdatingParameters!");
+
             if (string.IsNullOrWhiteSpace(_parameters.remoteFolderUpdatingURL))
                 throw new Exception("Отсутствует параметр serverUpdateURL или ссылка пустая!");
 
             _parameters.appUpdateFolderURL = @"file://" + _parameters.remoteFolderUpdatingURL.Replace(@"\", @"/") + @"/";
-            _parameters.appUpdateFolderURI = @"\\" + _parameters.remoteFolderUpdatingURL + @"\";
+            _parameters.appUpdateFolderURI = @"\\" + _parameters.remoteFolderUpdatingURL.Replace(@"/", @"\") + @"\";
             _parameters.appUpdateURL = _parameters.appUpdateFolderURL + _parameters.appFileXml;
 
             status?.Invoke(this, new AccountEventArgs("Все ссылки сгенерированы!"));
