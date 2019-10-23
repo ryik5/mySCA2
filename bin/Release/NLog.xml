@@ -2535,6 +2535,16 @@
             Initializes a new instance of the <see cref="T:NLog.Config.DefaultParameterAttribute" /> class.
             </summary>
         </member>
+        <member name="T:NLog.Config.DynamicLogLevelFilter">
+            <summary>
+            Dynamic filtering with a positive list of enabled levels
+            </summary>
+        </member>
+        <member name="T:NLog.Config.DynamicRangeLevelFilter">
+            <summary>
+            Dynamic filtering with a minlevel and maxlevel range
+            </summary>
+        </member>
         <member name="T:NLog.Config.ExceptionRenderingFormat">
             <summary>
             Format of the exception output to the specific target.
@@ -2578,6 +2588,11 @@
         <member name="F:NLog.Config.ExceptionRenderingFormat.Serialize">
             <summary>
             Destructure the exception (usually into JSON)
+            </summary>
+        </member>
+        <member name="F:NLog.Config.ExceptionRenderingFormat.Source">
+            <summary>
+            Appends the <see cref="P:System.Exception.Source"/> from the application or the object that caused the error.
             </summary>
         </member>
         <member name="T:NLog.Config.Factory`2">
@@ -2743,6 +2758,16 @@
             Get file paths (including filename) for the possible NLog config files. 
             </summary>
             <returns>The filepaths to the possible config file</returns>
+        </member>
+        <member name="P:NLog.Config.ILoggingRuleLevelFilter.LogLevels">
+            <summary>
+            Level enabled flags for each LogLevel ordinal
+            </summary>
+        </member>
+        <member name="M:NLog.Config.ILoggingRuleLevelFilter.GetSimpleFilterForUpdate">
+            <summary>
+            Converts the filter into a simple <see cref="T:NLog.Config.LoggingRuleLevelFilter"/>
+            </summary>
         </member>
         <member name="T:NLog.Config.INamedItemFactory`2">
             <summary>
@@ -3587,6 +3612,11 @@
             <param name="loggerName">String to be matched.</param>
             <returns>A value of <see langword="true"/> when the name matches, <see langword="false" /> otherwise.</returns>
         </member>
+        <member name="T:NLog.Config.LoggingRuleLevelFilter">
+            <summary>
+            Default filtering with static level config
+            </summary>
+        </member>
         <member name="T:NLog.Config.MethodFactory`2">
             <summary>
             Factory for locating methods.
@@ -3972,28 +4002,13 @@
             <param name="ignoreErrors">Ignore any errors during configuration.</param>
             <param name="logFactory">The <see cref="T:NLog.LogFactory" /> to which to apply any applicable configuration values.</param>
         </member>
-        <member name="M:NLog.Config.XmlLoggingConfiguration.#ctor(System.Xml.XmlElement,System.String)">
-            <summary>
-            Initializes a new instance of the <see cref="T:NLog.Config.XmlLoggingConfiguration" /> class.
-            </summary>
-            <param name="element">The XML element.</param>
-            <param name="fileName">Name of the XML file.</param>
-        </member>
-        <member name="M:NLog.Config.XmlLoggingConfiguration.#ctor(System.Xml.XmlElement,System.String,System.Boolean)">
-            <summary>
-            Initializes a new instance of the <see cref="T:NLog.Config.XmlLoggingConfiguration" /> class.
-            </summary>
-            <param name="element">The XML element.</param>
-            <param name="fileName">Name of the XML file.</param>
-            <param name="ignoreErrors">If set to <c>true</c> errors will be ignored during file processing.</param>
-        </member>
-        <member name="M:NLog.Config.XmlLoggingConfiguration.#ctor(System.String,System.String,System.Boolean)">
+        <member name="M:NLog.Config.XmlLoggingConfiguration.#ctor(System.String,System.String,NLog.LogFactory)">
             <summary>
             Initializes a new instance of the <see cref="T:NLog.Config.XmlLoggingConfiguration" /> class.
             </summary>
             <param name="xmlContents">The XML contents.</param>
             <param name="fileName">Name of the XML file.</param>
-            <param name="ignoreErrors">If set to <c>true</c> errors will be ignored during file processing.</param>
+            <param name="logFactory">The <see cref="T:NLog.LogFactory" /> to which to apply any applicable configuration values.</param>
         </member>
         <member name="M:NLog.Config.XmlLoggingConfiguration.CreateFromXmlString(System.String)">
             <summary>
@@ -4289,6 +4304,19 @@
             <see cref="F:NLog.Filters.FilterResult.Log"/> - if the log event should be logged<br/>
             .</returns>
         </member>
+        <member name="T:NLog.Filters.WhenMethodFilter">
+            <summary>
+            Matches the provided filter-method
+            </summary>
+        </member>
+        <member name="M:NLog.Filters.WhenMethodFilter.#ctor(System.Func{NLog.LogEventInfo,NLog.Filters.FilterResult})">
+            <summary>
+            Initializes a new instance of the <see cref="T:NLog.Filters.WhenMethodFilter" /> class.
+            </summary>
+        </member>
+        <member name="M:NLog.Filters.WhenMethodFilter.Check(NLog.LogEventInfo)">
+            <inheritdoc/>
+        </member>
         <member name="T:NLog.Filters.WhenNotContainsFilter">
             <summary>
             Matches when the calculated layout does NOT contain the specified substring.
@@ -4419,7 +4447,7 @@
         </member>
         <member name="M:NLog.Filters.WhenRepeatedFilter.#ctor">
             <summary>
-            Constructor
+            Initializes a new instance of the <see cref="T:NLog.Filters.WhenRepeatedFilter" /> class.
             </summary>
         </member>
         <member name="M:NLog.Filters.WhenRepeatedFilter.Check(NLog.LogEventInfo)">
@@ -9267,16 +9295,6 @@
             </summary>
             <param name="url">The network URL.</param>
         </member>
-        <member name="M:NLog.Internal.NetworkSenders.HttpNetworkSender.DoSend(System.Byte[],System.Int32,System.Int32,NLog.Common.AsyncContinuation)">
-            <summary>
-            Actually sends the given text over the specified protocol.
-            </summary>
-            <param name="bytes">The bytes to be sent.</param>
-            <param name="offset">Offset in buffer.</param>
-            <param name="length">Number of bytes to send.</param>
-            <param name="asyncContinuation">The async continuation to be invoked after the buffer has been sent.</param>
-            <remarks>To be overridden in inheriting classes.</remarks>
-        </member>
         <member name="T:NLog.Internal.NetworkSenders.INetworkSenderFactory">
             <summary>
             Creates instances of <see cref="T:NLog.Internal.NetworkSenders.NetworkSender"/> objects for given URLs.
@@ -9395,6 +9413,33 @@
         <member name="M:NLog.Internal.NetworkSenders.NetworkSenderFactory.Create(System.String,System.Int32,System.Security.Authentication.SslProtocols,System.TimeSpan)">
             <inheritdoc />
         </member>
+        <member name="T:NLog.Internal.NetworkSenders.QueuedNetworkSender">
+            <summary>
+            A base class for network senders that can block or send out-of-order
+            </summary>
+        </member>
+        <member name="M:NLog.Internal.NetworkSenders.QueuedNetworkSender.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:NLog.Internal.NetworkSenders.QueuedNetworkSender"/> class.
+            </summary>
+            <param name="url">URL. Must start with tcp://.</param>
+        </member>
+        <member name="M:NLog.Internal.NetworkSenders.QueuedNetworkSender.DoSend(System.Byte[],System.Int32,System.Int32,NLog.Common.AsyncContinuation)">
+            <summary>
+            Actually sends the given text over the specified protocol.
+            </summary>
+            <param name="bytes">The bytes to be sent.</param>
+            <param name="offset">Offset in buffer.</param>
+            <param name="length">Number of bytes to send.</param>
+            <param name="asyncContinuation">The async continuation to be invoked after the buffer has been sent.</param>
+            <remarks>To be overridden in inheriting classes.</remarks>
+        </member>
+        <member name="M:NLog.Internal.NetworkSenders.QueuedNetworkSender.DoFlush(NLog.Common.AsyncContinuation)">
+            <summary>
+            Performs sender-specific flush.
+            </summary>
+            <param name="continuation">The continuation.</param>
+        </member>
         <member name="T:NLog.Internal.NetworkSenders.SocketProxy">
             <summary>
             Socket proxy for mocking Socket code.
@@ -9477,22 +9522,6 @@
             </summary>
             <param name="continuation">The continuation.</param>
         </member>
-        <member name="M:NLog.Internal.NetworkSenders.TcpNetworkSender.DoFlush(NLog.Common.AsyncContinuation)">
-            <summary>
-            Performs sender-specific flush.
-            </summary>
-            <param name="continuation">The continuation.</param>
-        </member>
-        <member name="M:NLog.Internal.NetworkSenders.TcpNetworkSender.DoSend(System.Byte[],System.Int32,System.Int32,NLog.Common.AsyncContinuation)">
-            <summary>
-            Sends the specified text over the connected socket.
-            </summary>
-            <param name="bytes">The bytes to be sent.</param>
-            <param name="offset">Offset in buffer.</param>
-            <param name="length">Number of bytes to send.</param>
-            <param name="asyncContinuation">The async continuation to be invoked after the buffer has been sent.</param>
-            <remarks>To be overridden in inheriting classes.</remarks>
-        </member>
         <member name="T:NLog.Internal.NetworkSenders.TcpNetworkSender.MySocketAsyncEventArgs">
             <summary>
             Facilitates mocking of <see cref="T:System.Net.Sockets.SocketAsyncEventArgs"/> class.
@@ -9564,6 +9593,24 @@
         </member>
         <member name="M:NLog.Internal.ObjectGraphScanner.ScanProperties``1(System.Boolean,System.Collections.Generic.List{``0},System.Object,System.Int32,System.Collections.Generic.HashSet{System.Object})">
             <remarks>ISet is not there in .net35, so using HashSet</remarks>
+        </member>
+        <member name="T:NLog.Internal.ObjectPropertyHelper">
+            <summary>
+            Helper for extracting propertyPath
+            </summary>
+        </member>
+        <member name="P:NLog.Internal.ObjectPropertyHelper.ObjectPath">
+            <summary>
+            Object Path to check
+            </summary>
+        </member>
+        <member name="M:NLog.Internal.ObjectPropertyHelper.TryGetObjectProperty(System.Object,System.Object@)">
+            <summary>
+            Try get value from <paramref name="value"/>, using <see cref="P:NLog.Internal.ObjectPropertyHelper.ObjectPath"/>, and set into <paramref name="foundValue"/>
+            </summary>
+            <param name="value"></param>
+            <param name="foundValue"></param>
+            <returns></returns>
         </member>
         <member name="T:NLog.Internal.ObjectReflectionCache">
             <summary>
@@ -11611,6 +11658,13 @@
             <param name="sb">The <see cref="T:System.Text.StringBuilder"/> to append the rendered data to.</param>
             <param name="ex">The Exception whose short type should be appended.</param>
         </member>
+        <member name="M:NLog.LayoutRenderers.ExceptionLayoutRenderer.AppendSource(System.Text.StringBuilder,System.Exception)">
+            <summary>
+            Appends the application source of an Exception to the specified <see cref="T:System.Text.StringBuilder" />.
+            </summary>
+            <param name="sb">The <see cref="T:System.Text.StringBuilder"/> to append the rendered data to.</param>
+            <param name="ex">The Exception whose source should be appended.</param>
+        </member>
         <member name="M:NLog.LayoutRenderers.ExceptionLayoutRenderer.AppendData(System.Text.StringBuilder,System.Exception)">
             <summary>
             Appends the contents of an Exception's Data property to the specified <see cref="T:System.Text.StringBuilder" />.
@@ -13407,8 +13461,9 @@
         </member>
         <member name="T:NLog.LayoutRenderers.Wrappers.NoRawValueLayoutRendererWrapper">
             <summary>
-            Left part of a text
+            Render the non-raw value of an object.
             </summary>
+            <remarks>For performance and/or full (formatted) control of the output.</remarks>
         </member>
         <member name="P:NLog.LayoutRenderers.Wrappers.NoRawValueLayoutRendererWrapper.NoRawValue">
             <summary>
@@ -13422,6 +13477,48 @@
         </member>
         <member name="M:NLog.LayoutRenderers.Wrappers.NoRawValueLayoutRendererWrapper.Transform(System.String)">
             <inheritdoc/>
+        </member>
+        <member name="T:NLog.LayoutRenderers.Wrappers.ObjectPathRendererWrapper">
+            <summary>
+            Render a single property of a object
+            </summary>
+        </member>
+        <member name="M:NLog.LayoutRenderers.Wrappers.ObjectPathRendererWrapper.#ctor">
+            <inheritdoc />
+        </member>
+        <member name="P:NLog.LayoutRenderers.Wrappers.ObjectPathRendererWrapper.Path">
+             <summary>
+             Gets or sets the object-property-navigation-path for lookup of nested property
+            
+             Shortcut for <see cref="P:NLog.LayoutRenderers.Wrappers.ObjectPathRendererWrapper.ObjectPath"/>
+             </summary>
+        </member>
+        <member name="P:NLog.LayoutRenderers.Wrappers.ObjectPathRendererWrapper.ObjectPath">
+            <summary>
+            Gets or sets the object-property-navigation-path for lookup of nested property
+            </summary>
+            <docgen category='Rendering Options' order='20' />
+        </member>
+        <member name="P:NLog.LayoutRenderers.Wrappers.ObjectPathRendererWrapper.Format">
+            <summary>
+            Format string for conversion from object to string.
+            </summary>
+            <docgen category='Rendering Options' order='50' />
+        </member>
+        <member name="P:NLog.LayoutRenderers.Wrappers.ObjectPathRendererWrapper.Culture">
+            <summary>
+            Gets or sets the culture used for rendering. 
+            </summary>
+            <docgen category='Rendering Options' order='100' />
+        </member>
+        <member name="M:NLog.LayoutRenderers.Wrappers.ObjectPathRendererWrapper.Transform(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:NLog.LayoutRenderers.Wrappers.ObjectPathRendererWrapper.RenderInnerAndTransform(NLog.LogEventInfo,System.Text.StringBuilder,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:NLog.LayoutRenderers.Wrappers.ObjectPathRendererWrapper.TryGetRawValue(NLog.LogEventInfo,System.Object@)">
+            <inheritdoc />
         </member>
         <member name="T:NLog.LayoutRenderers.Wrappers.OnExceptionLayoutRendererWrapper">
             <summary>
@@ -13888,6 +13985,12 @@
             [DefaultParameter] so Inner: is not required if it's the first
             </summary>
             <docgen category='Transformation Options' order='10' />
+        </member>
+        <member name="E:NLog.LayoutRenderers.Wrappers.WrapperLayoutRendererBase.InnerChanged">
+            <summary>
+            Notify when <see cref="P:NLog.LayoutRenderers.Wrappers.WrapperLayoutRendererBase.Inner"/> has been changed
+            </summary>
+            <remarks>Change to private protected in C# 7.3</remarks>
         </member>
         <member name="M:NLog.LayoutRenderers.Wrappers.WrapperLayoutRendererBase.InitializeLayoutRenderer">
             <inheritdoc/>
@@ -22181,12 +22284,19 @@
             </summary>
             <docgen category='Console Options' order='10' />
         </member>
+        <member name="P:NLog.Targets.ColoredConsoleTarget.DetectOutputRedirected">
+            <summary>
+            Gets or sets a value indicating whether to auto-check if the console has been redirected to file
+              - Disables coloring logic when System.Console.IsOutputRedirected = true
+            </summary>
+            <docgen category='Console Options' order='11' />
+        </member>
         <member name="P:NLog.Targets.ColoredConsoleTarget.AutoFlush">
             <summary>
             Gets or sets a value indicating whether to auto-flush after <see cref="M:System.Console.WriteLine"/>
             </summary>
             <remarks>
-            Normally the standard Console.Out will have <see cref="P:System.IO.StreamWriter.AutoFlush"/> = false, but not when piped
+            Normally not required as standard Console.Out will have <see cref="P:System.IO.StreamWriter.AutoFlush"/> = true, but not when pipe to file
             </remarks>
         </member>
         <member name="P:NLog.Targets.ColoredConsoleTarget.EnableAnsiOutput">
@@ -22443,7 +22553,7 @@
             Gets or sets a value indicating whether to auto-flush after <see cref="M:System.Console.WriteLine"/>
             </summary>
             <remarks>
-            Normally the standard Console.Out will have <see cref="P:System.IO.StreamWriter.AutoFlush"/> = false, but not when piped
+            Normally not required as standard Console.Out will have <see cref="P:System.IO.StreamWriter.AutoFlush"/> = true, but not when pipe to file
             </remarks>
         </member>
         <member name="M:NLog.Targets.ConsoleTarget.#ctor">

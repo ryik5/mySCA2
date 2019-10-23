@@ -2506,7 +2506,7 @@
             Creates a new <see cref="T:MailKit.Net.Imap.ImapLiteral"/>.
             </remarks>
             <param name="options">The formatting options.</param>
-            <param name="literal">The literal.</param>
+            <param name="message">The message.</param>
             <param name="action">The progress update action.</param>
         </member>
         <member name="M:MailKit.Net.Imap.ImapLiteral.#ctor(MimeKit.FormatOptions,System.Byte[])">
@@ -3622,7 +3622,24 @@
             An IMAP event notification for message annotation changes.
             </summary>
             <remarks>
-            Annotations are currently not supported by MailKit.
+            <para>If the <see cref="F:MailKit.Net.Imap.ImapEvent.AnnotationChange"/> notification arrives for a message located in the currently selected
+            folder, then that folder will emit a <see cref="E:MailKit.IMailFolder.AnnotationsChanged"/> event as well as a
+            <see cref="E:MailKit.IMailFolder.MessageSummaryFetched"/> event with an appropriately populated
+            <see cref="T:MailKit.IMessageSummary"/>.</para>
+            <para>On the other hand, if the <see cref="F:MailKit.Net.Imap.ImapEvent.AnnotationChange"/> notification arrives for a message that is not
+            located in the currently selected folder, then the events that are emitted will depend on the
+            <see cref="T:MailKit.Net.Imap.ImapCapabilities"/> of the IMAP server.</para>
+            <para>If the server supports the <see cref="F:MailKit.Net.Imap.ImapCapabilities.CondStore"/> capability (or the
+            <see cref="F:MailKit.Net.Imap.ImapCapabilities.QuickResync"/> capability and the client has enabled it via
+            <see cref="M:MailKit.Net.Imap.ImapClient.EnableQuickResync(System.Threading.CancellationToken)"/>), then the
+            <see cref="E:MailKit.IMailFolder.HighestModSeqChanged"/> event will be emitted as well as the
+            <see cref="E:MailKit.IMailFolder.UidValidityChanged"/> event (if the latter has changed). If the number of
+            seen messages has changed, then the <see cref="E:MailKit.IMailFolder.UnreadChanged"/> event may also be emitted.</para>
+            <para>If the server does not support either the <see cref="F:MailKit.Net.Imap.ImapCapabilities.CondStore"/> capability nor
+            the <see cref="F:MailKit.Net.Imap.ImapCapabilities.QuickResync"/> capability and the client has not enabled the later capability
+            via <see cref="M:MailKit.Net.Imap.ImapClient.EnableQuickResync(System.Threading.CancellationToken)"/>, then the server may choose
+            only to notify the client of <see cref="P:MailKit.IMailFolder.UidValidity"/> changes by emitting the
+            <see cref="E:MailKit.IMailFolder.UidValidityChanged"/> event.</para>
             </remarks>
         </member>
         <member name="F:MailKit.Net.Imap.ImapEvent.MailboxName">
@@ -4330,6 +4347,7 @@
             <remarks>
             Renames the folder to exist with a new name under a new parent folder.
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="parent">The new parent folder.</param>
             <param name="name">The new name of the folder.</param>
             <param name="cancellationToken">The cancellation token.</param>
@@ -4413,6 +4431,7 @@
             <para>Deletes the folder on the IMAP server.</para>
             <note type="note">This method will not delete any child folders.</note>
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="cancellationToken">The cancellation token.</param>
             <exception cref="T:System.ObjectDisposedException">
             The <see cref="T:MailKit.Net.Imap.ImapClient"/> has been disposed.
@@ -4476,6 +4495,7 @@
             <remarks>
             Subscribes the folder.
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="cancellationToken">The cancellation token.</param>
             <exception cref="T:System.ObjectDisposedException">
             The <see cref="T:MailKit.Net.Imap.ImapClient"/> has been disposed.
@@ -4536,6 +4556,7 @@
             <remarks>
             Unsubscribes the folder.
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="cancellationToken">The cancellation token.</param>
             <exception cref="T:System.ObjectDisposedException">
             The <see cref="T:MailKit.Net.Imap.ImapClient"/> has been disposed.
@@ -4753,6 +4774,7 @@
             <para>For more information about the <c>CHECK</c> command, see
             <a href="https://tools.ietf.org/html/rfc3501#section-6.4.1">rfc350101</a>.</para>
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="cancellationToken">The cancellation token.</param>
             <exception cref="T:System.ObjectDisposedException">
             The <see cref="T:MailKit.Net.Imap.ImapClient"/> has been disposed.
@@ -4841,6 +4863,7 @@
             <para>For more information about the <c>STATUS</c> command, see
             <a href="https://tools.ietf.org/html/rfc3501#section-6.3.10">rfc3501</a>.</para>
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="items">The items to update.</param>
             <param name="cancellationToken">The cancellation token.</param>
             <exception cref="T:System.ObjectDisposedException">
@@ -5304,6 +5327,7 @@
             <remarks>
             Sets the access rights for the specified identity.
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="name">The identity name.</param>
             <param name="rights">The access rights.</param>
             <param name="cancellationToken">The cancellation token.</param>
@@ -5381,6 +5405,7 @@
             <remarks>
             Removes all access rights for the given identity.
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="name">The identity name.</param>
             <param name="cancellationToken">The cancellation token.</param>
             <exception cref="T:System.ArgumentNullException">
@@ -6182,6 +6207,108 @@
             The server replied with a NO or BAD response.
             </exception>
         </member>
+        <member name="M:MailKit.Net.Imap.ImapFolder.Append(MimeKit.FormatOptions,MimeKit.MimeMessage,MailKit.MessageFlags,System.Nullable{System.DateTimeOffset},System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken,MailKit.ITransferProgress)">
+            <summary>
+            Append the specified message to the folder.
+            </summary>
+            <remarks>
+            Appends the specified message to the folder and returns the UniqueId assigned to the message.
+            </remarks>
+            <returns>The UID of the appended message, if available; otherwise, <c>null</c>.</returns>
+            <param name="options">The formatting options.</param>
+            <param name="message">The message.</param>
+            <param name="flags">The message flags.</param>
+            <param name="date">The received date of the message.</param>
+            <param name="annotations">The message annotations.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <param name="progress">The progress reporting mechanism.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="options"/> is <c>null</c>.</para>
+            <para>-or-</para>
+            <para><paramref name="message"/> is <c>null</c>.</para>
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> is not authenticated.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Internationalized formatting was requested but has not been enabled.
+            </exception>
+            <exception cref="T:MailKit.FolderNotFoundException">
+            The <see cref="T:MailKit.Net.Imap.ImapFolder"/> does not exist.
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.NotSupportedException">
+            Internationalized formatting was requested but is not supported by the server.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.Net.Imap.ImapProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.Net.Imap.ImapCommandException">
+            The server replied with a NO or BAD response.
+            </exception>
+        </member>
+        <member name="M:MailKit.Net.Imap.ImapFolder.AppendAsync(MimeKit.FormatOptions,MimeKit.MimeMessage,MailKit.MessageFlags,System.Nullable{System.DateTimeOffset},System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken,MailKit.ITransferProgress)">
+            <summary>
+            Asynchronously append the specified message to the folder.
+            </summary>
+            <remarks>
+            Appends the specified message to the folder and returns the UniqueId assigned to the message.
+            </remarks>
+            <returns>The UID of the appended message, if available; otherwise, <c>null</c>.</returns>
+            <param name="options">The formatting options.</param>
+            <param name="message">The message.</param>
+            <param name="flags">The message flags.</param>
+            <param name="date">The received date of the message.</param>
+            <param name="annotations">The message annotations.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <param name="progress">The progress reporting mechanism.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="options"/> is <c>null</c>.</para>
+            <para>-or-</para>
+            <para><paramref name="message"/> is <c>null</c>.</para>
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> is not authenticated.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Internationalized formatting was requested but has not been enabled.
+            </exception>
+            <exception cref="T:MailKit.FolderNotFoundException">
+            The <see cref="T:MailKit.Net.Imap.ImapFolder"/> does not exist.
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.NotSupportedException">
+            Internationalized formatting was requested but is not supported by the server.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.Net.Imap.ImapProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.Net.Imap.ImapCommandException">
+            The server replied with a NO or BAD response.
+            </exception>
+        </member>
         <member name="M:MailKit.Net.Imap.ImapFolder.Append(MimeKit.FormatOptions,System.Collections.Generic.IList{MimeKit.MimeMessage},System.Collections.Generic.IList{MailKit.MessageFlags},System.Threading.CancellationToken,MailKit.ITransferProgress)">
             <summary>
             Append the specified messages to the folder.
@@ -6694,6 +6821,7 @@
             <remarks>
             Copies the specified messages to the destination folder.
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="indexes">The indexes of the messages to copy.</param>
             <param name="destination">The destination folder.</param>
             <param name="cancellationToken">The cancellation token.</param>
@@ -6801,6 +6929,7 @@
             may be advisable to implement your own logic for moving messages in this case in order to better
             handle spontanious server disconnects and other error conditions.</para>
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="indexes">The indexes of the messages to move.</param>
             <param name="destination">The destination folder.</param>
             <param name="cancellationToken">The cancellation token.</param>
@@ -6861,6 +6990,416 @@
             </exception>
             <exception cref="T:MailKit.FolderNotOpenException">
             The <see cref="T:MailKit.Net.Imap.ImapFolder"/> is not currently open.
+            </exception>
+        </member>
+        <member name="M:MailKit.Net.Imap.ImapFolder.Store(System.Collections.Generic.IList{MailKit.UniqueId},System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Store the annotations for the specified messages.
+            </summary>
+            <remarks>
+            Stores the annotations for the specified messages.
+            </remarks>
+            <param name="uids">The UIDs of the messages.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="uids"/> is <c>null</c>.</para>
+            <para>-or-</para>
+            <para><paramref name="annotations"/> is <c>null</c>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            One or more of the <paramref name="uids"/> is invalid.
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> is not authenticated.
+            </exception>
+            <exception cref="T:MailKit.FolderNotOpenException">
+            The <see cref="T:MailKit.Net.Imap.ImapFolder"/> is not currently open in read-write mode.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Cannot store annotations without any properties defined.
+            </exception>
+            <exception cref="T:System.NotSupportedException">
+            The <see cref="T:MailKit.Net.Imap.ImapFolder"/> does not support annotations.
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.Net.Imap.ImapProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.Net.Imap.ImapCommandException">
+            The server replied with a NO or BAD response.
+            </exception>
+        </member>
+        <member name="M:MailKit.Net.Imap.ImapFolder.StoreAsync(System.Collections.Generic.IList{MailKit.UniqueId},System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously store the annotations for the specified messages.
+            </summary>
+            <remarks>
+            Asynchronously stores the annotations for the specified messages.
+            </remarks>
+            <returns>An asynchronous task context.</returns>
+            <param name="uids">The UIDs of the messages.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="uids"/> is <c>null</c>.</para>
+            <para>-or-</para>
+            <para><paramref name="annotations"/> is <c>null</c>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            One or more of the <paramref name="uids"/> is invalid.
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> is not authenticated.
+            </exception>
+            <exception cref="T:MailKit.FolderNotOpenException">
+            The <see cref="T:MailKit.Net.Imap.ImapFolder"/> is not currently open in read-write mode.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Cannot store annotations without any properties defined.
+            </exception>
+            <exception cref="T:System.NotSupportedException">
+            The <see cref="T:MailKit.Net.Imap.ImapFolder"/> does not support annotations.
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.Net.Imap.ImapProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.Net.Imap.ImapCommandException">
+            The server replied with a NO or BAD response.
+            </exception>
+        </member>
+        <member name="M:MailKit.Net.Imap.ImapFolder.Store(System.Collections.Generic.IList{MailKit.UniqueId},System.UInt64,System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Store the annotations for the specified messages only if their mod-sequence value is less than the specified value.
+            </summary>
+            <remarks>
+            Stores the annotations for the specified messages only if their mod-sequence value is less than the specified value.
+            </remarks>
+            <returns>The unique IDs of the messages that were not updated.</returns>
+            <param name="uids">The UIDs of the messages.</param>
+            <param name="modseq">The mod-sequence value.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="uids"/> is <c>null</c>.</para>
+            <para>-or-</para>
+            <para><paramref name="annotations"/> is <c>null</c>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            One or more of the <paramref name="uids"/> is invalid.
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> is not authenticated.
+            </exception>
+            <exception cref="T:MailKit.FolderNotOpenException">
+            The <see cref="T:MailKit.Net.Imap.ImapFolder"/> is not currently open in read-write mode.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Cannot store annotations without any properties defined.
+            </exception>
+            <exception cref="T:System.NotSupportedException">
+            <para>The <see cref="T:MailKit.Net.Imap.ImapFolder"/> does not support annotations.</para>
+            <para>-or-</para>
+            <para>The <see cref="T:MailKit.Net.Imap.ImapFolder"/> does not support mod-sequences.</para>
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.Net.Imap.ImapProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.Net.Imap.ImapCommandException">
+            The server replied with a NO or BAD response.
+            </exception>
+        </member>
+        <member name="M:MailKit.Net.Imap.ImapFolder.StoreAsync(System.Collections.Generic.IList{MailKit.UniqueId},System.UInt64,System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously store the annotations for the specified messages only if their mod-sequence value is less than the specified value.
+            </summary>
+            <remarks>
+            Asynchronously stores the annotations for the specified messages only if their mod-sequence value is less than the specified value.
+            </remarks>
+            <returns>The unique IDs of the messages that were not updated.</returns>
+            <param name="uids">The UIDs of the messages.</param>
+            <param name="modseq">The mod-sequence value.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="uids"/> is <c>null</c>.</para>
+            <para>-or-</para>
+            <para><paramref name="annotations"/> is <c>null</c>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            One or more of the <paramref name="uids"/> is invalid.
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> is not authenticated.
+            </exception>
+            <exception cref="T:MailKit.FolderNotOpenException">
+            The <see cref="T:MailKit.Net.Imap.ImapFolder"/> is not currently open in read-write mode.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Cannot store annotations without any properties defined.
+            </exception>
+            <exception cref="T:System.NotSupportedException">
+            <para>The <see cref="T:MailKit.Net.Imap.ImapFolder"/> does not support annotations.</para>
+            <para>-or-</para>
+            <para>The <see cref="T:MailKit.Net.Imap.ImapFolder"/> does not support mod-sequences.</para>
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.Net.Imap.ImapProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.Net.Imap.ImapCommandException">
+            The server replied with a NO or BAD response.
+            </exception>
+        </member>
+        <member name="M:MailKit.Net.Imap.ImapFolder.Store(System.Collections.Generic.IList{System.Int32},System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Store the annotations for the specified messages.
+            </summary>
+            <remarks>
+            Stores the annotations for the specified messages.
+            </remarks>
+            <param name="indexes">The indexes of the messages.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="indexes"/> is <c>null</c>.</para>
+            <para>-or-</para>
+            <para><paramref name="annotations"/> is <c>null</c>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            One or more of the <paramref name="indexes"/> is invalid.
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> is not authenticated.
+            </exception>
+            <exception cref="T:MailKit.FolderNotOpenException">
+            The <see cref="T:MailKit.Net.Imap.ImapFolder"/> is not currently open in read-write mode.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Cannot store annotations without any properties defined.
+            </exception>
+            <exception cref="T:System.NotSupportedException">
+            The <see cref="T:MailKit.Net.Imap.ImapFolder"/> does not support annotations.
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.Net.Imap.ImapProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.Net.Imap.ImapCommandException">
+            The server replied with a NO or BAD response.
+            </exception>
+        </member>
+        <member name="M:MailKit.Net.Imap.ImapFolder.StoreAsync(System.Collections.Generic.IList{System.Int32},System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously store the annotations for the specified messages.
+            </summary>
+            <remarks>
+            Asynchronously stores the annotations for the specified messages.
+            </remarks>
+            <returns>An asynchronous task context.</returns>
+            <param name="indexes">The indexes of the messages.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="indexes"/> is <c>null</c>.</para>
+            <para>-or-</para>
+            <para><paramref name="annotations"/> is <c>null</c>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            One or more of the <paramref name="indexes"/> is invalid.
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> is not authenticated.
+            </exception>
+            <exception cref="T:MailKit.FolderNotOpenException">
+            The <see cref="T:MailKit.Net.Imap.ImapFolder"/> is not currently open in read-write mode.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Cannot store annotations without any properties defined.
+            </exception>
+            <exception cref="T:System.NotSupportedException">
+            The <see cref="T:MailKit.Net.Imap.ImapFolder"/> does not support annotations.
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.Net.Imap.ImapProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.Net.Imap.ImapCommandException">
+            The server replied with a NO or BAD response.
+            </exception>
+        </member>
+        <member name="M:MailKit.Net.Imap.ImapFolder.Store(System.Collections.Generic.IList{System.Int32},System.UInt64,System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Store the annotations for the specified messages only if their mod-sequence value is less than the specified value.
+            </summary>
+            <remarks>
+            Stores the annotations for the specified messages only if their mod-sequence value is less than the specified value.
+            </remarks>
+            <returns>The indexes of the messages that were not updated.</returns>
+            <param name="indexes">The indexes of the messages.</param>
+            <param name="modseq">The mod-sequence value.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="indexes"/> is <c>null</c>.</para>
+            <para>-or-</para>
+            <para><paramref name="annotations"/> is <c>null</c>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            One or more of the <paramref name="indexes"/> is invalid.
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> is not authenticated.
+            </exception>
+            <exception cref="T:MailKit.FolderNotOpenException">
+            The <see cref="T:MailKit.Net.Imap.ImapFolder"/> is not currently open in read-write mode.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Cannot store annotations without any properties defined.
+            </exception>
+            <exception cref="T:System.NotSupportedException">
+            <para>The <see cref="T:MailKit.Net.Imap.ImapFolder"/> does not support annotations.</para>
+            <para>-or-</para>
+            <para>The <see cref="T:MailKit.Net.Imap.ImapFolder"/> does not support mod-sequences.</para>
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.Net.Imap.ImapProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.Net.Imap.ImapCommandException">
+            The server replied with a NO or BAD response.
+            </exception>
+        </member>
+        <member name="M:MailKit.Net.Imap.ImapFolder.StoreAsync(System.Collections.Generic.IList{System.Int32},System.UInt64,System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously store the annotations for the specified messages only if their mod-sequence value is less than the specified value.
+            </summary>
+            <remarks>
+            Asynchronously stores the annotations for the specified messages only if their mod-sequence value is less than the specified value.s
+            </remarks>
+            <returns>The indexes of the messages that were not updated.</returns>
+            <param name="indexes">The indexes of the messages.</param>
+            <param name="modseq">The mod-sequence value.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="indexes"/> is <c>null</c>.</para>
+            <para>-or-</para>
+            <para><paramref name="annotations"/> is <c>null</c>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            One or more of the <paramref name="indexes"/> is invalid.
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.Net.Imap.ImapClient"/> is not authenticated.
+            </exception>
+            <exception cref="T:MailKit.FolderNotOpenException">
+            The <see cref="T:MailKit.Net.Imap.ImapFolder"/> is not currently open in read-write mode.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Cannot store annotations without any properties defined.
+            </exception>
+            <exception cref="T:System.NotSupportedException">
+            <para>The <see cref="T:MailKit.Net.Imap.ImapFolder"/> does not support annotations.</para>
+            <para>-or-</para>
+            <para>The <see cref="T:MailKit.Net.Imap.ImapFolder"/> does not support mod-sequences.</para>
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.Net.Imap.ImapProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.Net.Imap.ImapCommandException">
+            The server replied with a NO or BAD response.
             </exception>
         </member>
         <member name="M:MailKit.Net.Imap.ImapFolder.Fetch(System.Collections.Generic.IList{MailKit.UniqueId},MailKit.MessageSummaryItems,System.Threading.CancellationToken)">
@@ -10690,6 +11229,7 @@
             <remarks>
             <para>Asynchronously gets the streams for the specified messages.</para>
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="uids">The uids of the messages.</param>
             <param name="callback"></param>
             <param name="cancellationToken">The cancellation token.</param>
@@ -10778,6 +11318,7 @@
             <remarks>
             <para>Asynchronously gets the streams for the specified messages.</para>
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="indexes">The indexes of the messages.</param>
             <param name="callback"></param>
             <param name="cancellationToken">The cancellation token.</param>
@@ -10867,6 +11408,7 @@
             <remarks>
             <para>Asynchronously gets the streams for the specified messages.</para>
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="min">The minimum index.</param>
             <param name="max">The maximum index, or <c>-1</c> to specify no upper bound.</param>
             <param name="callback"></param>
@@ -14735,6 +15277,15 @@
             <returns>The date.</returns>
             <param name="text">The text to parse.</param>
         </member>
+        <member name="M:MailKit.Net.Imap.ImapUtils.FormatAnnotations(System.Text.StringBuilder,System.Collections.Generic.IList{MailKit.Annotation},System.Collections.Generic.List{System.Object},System.Boolean)">
+            <summary>
+            Formats a list of annotations for a STORE or APPEND command.
+            </summary>
+            <param name="command">The command builder.</param>
+            <param name="annotations">The annotations.</param>
+            <param name="args">the argument list.</param>
+            <param name="throwOnError">Throw an exception if there are any annotations without properties.</param>
+        </member>
         <member name="M:MailKit.Net.Imap.ImapUtils.FormatIndexSet(System.Collections.Generic.IList{System.Int32})">
             <summary>
             Formats the array of indexes as a string suitable for use with IMAP commands.
@@ -14840,6 +15391,15 @@
             <param name="engine">The IMAP engine.</param>
             <param name="name">The name of the flags being parsed.</param>
             <param name="keywords">A hash set of user-defined message flags that will be populated if non-null.</param>
+            <param name="doAsync">Whether or not asynchronous IO methods should be used.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+        </member>
+        <member name="M:MailKit.Net.Imap.ImapUtils.ParseAnnotationsAsync(MailKit.Net.Imap.ImapEngine,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Parses the ANNOTATION list.
+            </summary>
+            <returns>The list of annotations.</returns>
+            <param name="engine">The IMAP engine.</param>
             <param name="doAsync">Whether or not asynchronous IO methods should be used.</param>
             <param name="cancellationToken">The cancellation token.</param>
         </member>
@@ -16060,6 +16620,7 @@
             is cleanly disconnected
             (see <see cref="M:MailKit.Net.Pop3.Pop3Client.Disconnect(System.Boolean,System.Threading.CancellationToken)"/>).
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="cancellationToken">The cancellation token.</param>
             <exception cref="T:System.ObjectDisposedException">
             The <see cref="T:MailKit.Net.Pop3.Pop3Client"/> has been disposed.
@@ -18566,10 +19127,10 @@
         </member>
         <member name="M:MailKit.Net.Proxy.HttpProxyClient.#ctor(System.String,System.Int32)">
             <summary>
-            Initializes a new instance of the <see cref="T:MailKit.Net.HttpProxyClient"/> class.
+            Initializes a new instance of the <see cref="T:MailKit.Net.Proxy.HttpProxyClient"/> class.
             </summary>
             <remarks>
-            Initializes a new instance of the <see cref="T:MailKit.Net.HttpProxyClient"/> class.
+            Initializes a new instance of the <see cref="T:MailKit.Net.Proxy.HttpProxyClient"/> class.
             </remarks>
             <param name="host">The host name of the proxy server.</param>
             <param name="port">The proxy server port.</param>
@@ -18587,10 +19148,10 @@
         </member>
         <member name="M:MailKit.Net.Proxy.HttpProxyClient.#ctor(System.String,System.Int32,System.Net.NetworkCredential)">
             <summary>
-            Initializes a new instance of the <see cref="T:MailKit.Net.HttpProxyClient"/> class.
+            Initializes a new instance of the <see cref="T:MailKit.Net.Proxy.HttpProxyClient"/> class.
             </summary>
             <remarks>
-            Initializes a new instance of the <see cref="T:MailKit.Net.HttpProxyClient"/> class.
+            Initializes a new instance of the <see cref="T:MailKit.Net.Proxy.HttpProxyClient"/> class.
             </remarks>
             <param name="host">The host name of the proxy server.</param>
             <param name="port">The proxy server port.</param>
@@ -18853,10 +19414,10 @@
         </member>
         <member name="M:MailKit.Net.Proxy.ProxyClient.#ctor(System.String,System.Int32)">
             <summary>
-            Initializes a new instance of the <see cref="T:MailKit.Net.ProxyClient"/> class.
+            Initializes a new instance of the <see cref="T:MailKit.Net.Proxy.ProxyClient"/> class.
             </summary>
             <remarks>
-            Initializes a new instance of the <see cref="T:MailKit.Net.ProxyClient"/> class.
+            Initializes a new instance of the <see cref="T:MailKit.Net.Proxy.ProxyClient"/> class.
             </remarks>
             <param name="host">The host name of the proxy server.</param>
             <param name="port">The proxy server port.</param>
@@ -18874,10 +19435,10 @@
         </member>
         <member name="M:MailKit.Net.Proxy.ProxyClient.#ctor(System.String,System.Int32,System.Net.NetworkCredential)">
             <summary>
-            Initializes a new instance of the <see cref="T:MailKit.Net.ProxyClient"/> class.
+            Initializes a new instance of the <see cref="T:MailKit.Net.Proxy.ProxyClient"/> class.
             </summary>
             <remarks>
-            Initializes a new instance of the <see cref="T:MailKit.Net.ProxyClient"/> class.
+            Initializes a new instance of the <see cref="T:MailKit.Net.Proxy.ProxyClient"/> class.
             </remarks>
             <param name="host">The host name of the proxy server.</param>
             <param name="port">The proxy server port.</param>
@@ -19122,10 +19683,10 @@
         </member>
         <member name="M:MailKit.Net.Proxy.Socks4aClient.#ctor(System.String,System.Int32)">
             <summary>
-            Initializes a new instance of the <see cref="T:MailKit.Net.Socks4aClient"/> class.
+            Initializes a new instance of the <see cref="T:MailKit.Net.Proxy.Socks4aClient"/> class.
             </summary>
             <remarks>
-            Initializes a new instance of the <see cref="T:MailKit.Net.Socks4aClient"/> class.
+            Initializes a new instance of the <see cref="T:MailKit.Net.Proxy.Socks4aClient"/> class.
             </remarks>
             <param name="host">The host name of the proxy server.</param>
             <param name="port">The proxy server port.</param>
@@ -19143,10 +19704,10 @@
         </member>
         <member name="M:MailKit.Net.Proxy.Socks4aClient.#ctor(System.String,System.Int32,System.Net.NetworkCredential)">
             <summary>
-            Initializes a new instance of the <see cref="T:MailKit.Net.Socks4Client"/> class.
+            Initializes a new instance of the <see cref="T:MailKit.Net.Proxy.Socks4Client"/> class.
             </summary>
             <remarks>
-            Initializes a new instance of the <see cref="T:MailKit.Net.Socks4Client"/> class.
+            Initializes a new instance of the <see cref="T:MailKit.Net.Proxy.Socks4Client"/> class.
             </remarks>
             <param name="host">The host name of the proxy server.</param>
             <param name="port">The proxy server port.</param>
@@ -19173,10 +19734,10 @@
         </member>
         <member name="M:MailKit.Net.Proxy.Socks4Client.#ctor(System.String,System.Int32)">
             <summary>
-            Initializes a new instance of the <see cref="T:MailKit.Net.Socks4Client"/> class.
+            Initializes a new instance of the <see cref="T:MailKit.Net.Proxy.Socks4Client"/> class.
             </summary>
             <remarks>
-            Initializes a new instance of the <see cref="T:MailKit.Net.Socks4Client"/> class.
+            Initializes a new instance of the <see cref="T:MailKit.Net.Proxy.Socks4Client"/> class.
             </remarks>
             <param name="host">The host name of the proxy server.</param>
             <param name="port">The proxy server port.</param>
@@ -19194,10 +19755,10 @@
         </member>
         <member name="M:MailKit.Net.Proxy.Socks4Client.#ctor(System.String,System.Int32,System.Net.NetworkCredential)">
             <summary>
-            Initializes a new instance of the <see cref="T:MailKit.Net.Socks4Client"/> class.
+            Initializes a new instance of the <see cref="T:MailKit.Net.Proxy.Socks4Client"/> class.
             </summary>
             <remarks>
-            Initializes a new instance of the <see cref="T:MailKit.Net.Socks4Client"/> class.
+            Initializes a new instance of the <see cref="T:MailKit.Net.Proxy.Socks4Client"/> class.
             </remarks>
             <param name="host">The host name of the proxy server.</param>
             <param name="port">The proxy server port.</param>
@@ -19293,10 +19854,10 @@
         </member>
         <member name="M:MailKit.Net.Proxy.Socks5Client.#ctor(System.String,System.Int32)">
             <summary>
-            Initializes a new instance of the <see cref="T:MailKit.Net.Socks5Client"/> class.
+            Initializes a new instance of the <see cref="T:MailKit.Net.Proxy.Socks5Client"/> class.
             </summary>
             <remarks>
-            Initializes a new instance of the <see cref="T:MailKit.Net.Socks5Client"/> class.
+            Initializes a new instance of the <see cref="T:MailKit.Net.Proxy.Socks5Client"/> class.
             </remarks>
             <param name="host">The host name of the proxy server.</param>
             <param name="port">The proxy server port.</param>
@@ -19314,10 +19875,10 @@
         </member>
         <member name="M:MailKit.Net.Proxy.Socks5Client.#ctor(System.String,System.Int32,System.Net.NetworkCredential)">
             <summary>
-            Initializes a new instance of the <see cref="T:MailKit.Net.Socks5Client"/> class.
+            Initializes a new instance of the <see cref="T:MailKit.Net.Proxy.Socks5Client"/> class.
             </summary>
             <remarks>
-            Initializes a new instance of the <see cref="T:MailKit.Net.Socks5Client"/> class.
+            Initializes a new instance of the <see cref="T:MailKit.Net.Proxy.Socks5Client"/> class.
             </remarks>
             <param name="host">The host name of the proxy server.</param>
             <param name="port">The proxy server port.</param>
@@ -19406,10 +19967,10 @@
         </member>
         <member name="M:MailKit.Net.Proxy.SocksClient.#ctor(System.Int32,System.String,System.Int32)">
             <summary>
-            Initializes a new instance of the <see cref="T:MailKit.Net.SocksClient"/> class.
+            Initializes a new instance of the <see cref="T:MailKit.Net.Proxy.SocksClient"/> class.
             </summary>
             <remarks>
-            Initializes a new instance of the <see cref="T:MailKit.Net.SocksClient"/> class.
+            Initializes a new instance of the <see cref="T:MailKit.Net.Proxy.SocksClient"/> class.
             </remarks>
             <param name="version">The SOCKS protocol version.</param>
             <param name="host">The host name of the proxy server.</param>
@@ -19426,10 +19987,10 @@
         </member>
         <member name="M:MailKit.Net.Proxy.SocksClient.#ctor(System.Int32,System.String,System.Int32,System.Net.NetworkCredential)">
             <summary>
-            Initializes a new instance of the <see cref="T:MailKit.Net.SocksClient"/> class.
+            Initializes a new instance of the <see cref="T:MailKit.Net.Proxy.SocksClient"/> class.
             </summary>
             <remarks>
-            Initializes a new instance of the <see cref="T:MailKit.Net.SocksClient"/> class.
+            Initializes a new instance of the <see cref="T:MailKit.Net.Proxy.SocksClient"/> class.
             </remarks>
             <param name="version">The SOCKS protocol version.</param>
             <param name="host">The host name of the proxy server.</param>
@@ -19474,6 +20035,39 @@
             <example>
             <code language="c#" source="Examples\SmtpExamples.cs" region="SendMessages" />
             </example>
+        </member>
+        <member name="M:MailKit.Net.Smtp.SmtpClient.SendCommandAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously send a custom command to the SMTP server.
+            </summary>
+            <remarks>
+            <para>Asynchronously sends a custom command to the SMTP server.</para>
+            <note type="note">The command string should not include the terminating <c>\r\n</c> sequence.</note>
+            </remarks>
+            <returns>The command response.</returns>
+            <param name="command">The command.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <paramref name="command"/> is <c>null</c>.
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.Net.Smtp.SmtpClient"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.Net.Smtp.SmtpClient"/> is not connected.
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation has been canceled.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.Net.Smtp.SmtpCommandException">
+            The SMTP command failed.
+            </exception>
+            <exception cref="T:MailKit.Net.Smtp.SmtpProtocolException">
+            An SMTP protocol exception occurred.
+            </exception>
         </member>
         <member name="M:MailKit.Net.Smtp.SmtpClient.AuthenticateAsync(MailKit.Security.SaslMechanism,System.Threading.CancellationToken)">
             <summary>
@@ -20190,6 +20784,39 @@
             </remarks>
             <param name="message">The message being sent.</param>
         </member>
+        <member name="M:MailKit.Net.Smtp.SmtpClient.SendCommand(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Send a custom command to the SMTP server.
+            </summary>
+            <remarks>
+            <para>Sends a custom command to the SMTP server.</para>
+            <note type="note">The command string should not include the terminating <c>\r\n</c> sequence.</note>
+            </remarks>
+            <returns>The command response.</returns>
+            <param name="command">The command.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <paramref name="command"/> is <c>null</c>.
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.Net.Smtp.SmtpClient"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.Net.Smtp.SmtpClient"/> is not connected.
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation has been canceled.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.Net.Smtp.SmtpCommandException">
+            The SMTP command failed.
+            </exception>
+            <exception cref="T:MailKit.Net.Smtp.SmtpProtocolException">
+            An SMTP protocol exception occurred.
+            </exception>
+        </member>
         <member name="M:MailKit.Net.Smtp.SmtpClient.Authenticate(MailKit.Security.SaslMechanism,System.Threading.CancellationToken)">
             <summary>
             Authenticate using the specified SASL mechanism.
@@ -20614,6 +21241,58 @@
             <returns>The desired delivery status notification type.</returns>
             <param name="message">The message being sent.</param>
             <param name="mailbox">The mailbox.</param>
+        </member>
+        <member name="M:MailKit.Net.Smtp.SmtpClient.Prepare(MimeKit.FormatOptions,MimeKit.MimeMessage,MimeKit.EncodingConstraint,System.Int32)">
+            <summary>
+            Prepare the message for transport with the specified constraints.
+            </summary>
+            <remarks>
+            <para>Prepares the message for transport with the specified constraints.</para>
+            <para>Typically, this involves calling <see cref="M:MimeKit.MimeMessage.Prepare(MimeKit.EncodingConstraint,System.Int32)"/> on
+            the message with the provided constraints.</para>
+            </remarks>
+            <param name="options">The format options.</param>
+            <param name="message">The message.</param>
+            <param name="constraint">The encoding constraint.</param>
+            <param name="maxLineLength">The max line length supported by the server.</param>
+        </member>
+        <member name="M:MailKit.Net.Smtp.SmtpClient.GetSize(MimeKit.FormatOptions,MimeKit.MimeMessage,System.Threading.CancellationToken)">
+            <summary>
+            Get the size of the message.
+            </summary>
+            <remarks>
+            <para>Calculates the size of the message in bytes.</para>
+            <para>This method is called by <a href="Overload_MailKit_MailTransport_Send.htm">Send</a>
+            methods in the following conditions:</para>
+            <list type="bullet">
+            <item>The SMTP server supports the <c>SIZE=</c> parameter in the <c>MAIL FROM</c> command.</item>
+            <item>The <see cref="T:MailKit.ITransferProgress"/> parameter is non-null.</item>
+            <item>The SMTP server supports the <c>CHUNKING</c> extension.</item>
+            </list>
+            </remarks>
+            <returns>The size of the message, in bytes.</returns>
+            <param name="options">The formatting options.</param>
+            <param name="message">The message.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+        </member>
+        <member name="M:MailKit.Net.Smtp.SmtpClient.GetSizeAsync(MimeKit.FormatOptions,MimeKit.MimeMessage,System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously get the size of the message.
+            </summary>
+            <remarks>
+            <para>Asynchronously calculates the size of the message in bytes.</para>
+            <para>This method is called by <a href="Overload_MailKit_MailTransport_SendAsync.htm">SendAsync</a>
+            methods in the following conditions:</para>
+            <list type="bullet">
+            <item>The SMTP server supports the <c>SIZE=</c> parameter in the <c>MAIL FROM</c> command.</item>
+            <item>The <see cref="T:MailKit.ITransferProgress"/> parameter is non-null.</item>
+            <item>The SMTP server supports the <c>CHUNKING</c> extension.</item>
+            </list>
+            </remarks>
+            <returns>The size of the message, in bytes.</returns>
+            <param name="options">The formatting options.</param>
+            <param name="message">The message.</param>
+            <param name="cancellationToken">The cancellation token.</param>
         </member>
         <member name="M:MailKit.Net.Smtp.SmtpClient.Send(MimeKit.FormatOptions,MimeKit.MimeMessage,System.Threading.CancellationToken,MailKit.ITransferProgress)">
             <summary>
@@ -21833,6 +22512,60 @@
             Only the headers should be included in any failed delivery status notification issued by the server.
             </summary>
         </member>
+        <member name="T:MailKit.Search.AnnotationSearchQuery">
+            <summary>
+            An annotation-based search query.
+            </summary>
+            <remarks>
+            An annotation-based search query.
+            </remarks>
+        </member>
+        <member name="M:MailKit.Search.AnnotationSearchQuery.#ctor(MailKit.AnnotationEntry,MailKit.AnnotationAttribute,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MailKit.Search.AnnotationSearchQuery"/> class.
+            </summary>
+            <remarks>
+            Creates a new annotation-based search query.
+            </remarks>
+            <param name="entry">The annotation entry.</param>
+            <param name="attribute">The annotation attribute.</param>
+            <param name="value">The annotation attribute value.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="entry"/> is <c>null</c>.</para>
+            <para>-or-</para>
+            <para><paramref name="attribute"/> is <c>null</c>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="attribute"/> is not a valid attribute for searching.
+            </exception>
+        </member>
+        <member name="P:MailKit.Search.AnnotationSearchQuery.Entry">
+            <summary>
+            Get the annotation entry.
+            </summary>
+            <remarks>
+            Gets the annotation entry.
+            </remarks>
+            <value>The annotation entry.</value>
+        </member>
+        <member name="P:MailKit.Search.AnnotationSearchQuery.Attribute">
+            <summary>
+            Get the annotation attribute.
+            </summary>
+            <remarks>
+            Gets the annotation attribute.
+            </remarks>
+            <value>The annotation attribute.</value>
+        </member>
+        <member name="P:MailKit.Search.AnnotationSearchQuery.Value">
+            <summary>
+            Get the annotation attribute value.
+            </summary>
+            <remarks>
+            Gets the annotation attribute value.
+            </remarks>
+            <value>The annotation attribute value.</value>
+        </member>
         <member name="T:MailKit.Search.BinarySearchQuery">
             <summary>
             A binary search query such as an AND or OR expression.
@@ -22199,6 +22932,50 @@
             Sort results by the first display name in the To header in descending order.
             </remarks>
         </member>
+        <member name="T:MailKit.Search.OrderByAnnotation">
+            <summary>
+            Specifies an annotation-based sort order for search results.
+            </summary>
+            <remarks>
+            You can combine multiple <see cref="T:MailKit.Search.OrderBy"/> rules to specify the sort
+            order that <see cref="M:MailKit.IMailFolder.Sort(MailKit.Search.SearchQuery,System.Collections.Generic.IList{MailKit.Search.OrderBy},System.Threading.CancellationToken)"/>
+            should return the results in.
+            </remarks>
+        </member>
+        <member name="M:MailKit.Search.OrderByAnnotation.#ctor(MailKit.AnnotationEntry,MailKit.AnnotationAttribute,MailKit.Search.SortOrder)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MailKit.Search.OrderByAnnotation"/> class.
+            </summary>
+            <param name="entry">The annotation entry to sort by.</param>
+            <param name="attribute">The annotation attribute to use for sorting.</param>
+            <param name="order">The sort order.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="entry"/> is <c>null</c>.</para>
+            <para>-or-</para>
+            <para><paramref name="attribute"/>is <c>null</c>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="attribute"/> is not a valid attribute for sorting.
+            </exception>
+        </member>
+        <member name="P:MailKit.Search.OrderByAnnotation.Entry">
+            <summary>
+            Get the annotation entry.
+            </summary>
+            <remarks>
+            Gets the annotation entry.
+            </remarks>
+            <value>The annotation entry.</value>
+        </member>
+        <member name="P:MailKit.Search.OrderByAnnotation.Attribute">
+            <summary>
+            Get the annotation attribute.
+            </summary>
+            <remarks>
+            Gets the annotation attribute.
+            </remarks>
+            <value>The annotation attribute.</value>
+        </member>
         <member name="T:MailKit.Search.OrderByType">
             <summary>
             The field to sort by.
@@ -22206,6 +22983,11 @@
             <remarks>
             The field to sort by.
             </remarks>
+        </member>
+        <member name="F:MailKit.Search.OrderByType.Annotation">
+            <summary>
+            Sort by an annotation value.
+            </summary>
         </member>
         <member name="F:MailKit.Search.OrderByType.Arrival">
             <summary>
@@ -22365,6 +23147,27 @@
             <param name="expr">An additional query to execute.</param>
             <exception cref="T:System.ArgumentNullException">
             <paramref name="expr"/> is <c>null</c>.
+            </exception>
+        </member>
+        <member name="M:MailKit.Search.SearchQuery.AnnotationsContain(MailKit.AnnotationEntry,MailKit.AnnotationAttribute,System.String)">
+            <summary>
+            Match messages with the specified annotation.
+            </summary>
+            <remarks>
+            <para>Matches messages with the specified annotation.</para>
+            <note type="warning">This feature is not supported by all IMAP servers.</note>
+            </remarks>
+            <param name="entry">The annotation entry.</param>
+            <param name="attribute">The annotation attribute.</param>
+            <param name="value">The annotation attribute value.</param>
+            <returns>A <see cref="T:MailKit.Search.AnnotationSearchQuery"/>.</returns>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="entry"/> is <c>null</c>.</para>
+            <para>-or-</para>
+            <para><paramref name="attribute"/> is <c>null</c>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="attribute"/> is not a valid attribute for searching.
             </exception>
         </member>
         <member name="F:MailKit.Search.SearchQuery.Answered">
@@ -23161,6 +23964,11 @@
             A search term that logically combines 2 or more other
             search expressions such that messages must match both
             expressions.
+            </summary>
+        </member>
+        <member name="F:MailKit.Search.SearchTerm.Annotation">
+            <summary>
+            A search term that matches messages that have the specified annotation.
             </summary>
         </member>
         <member name="F:MailKit.Search.SearchTerm.Answered">
@@ -25949,6 +26757,543 @@
             </remarks>
             <value>The alert message.</value>
         </member>
+        <member name="T:MailKit.Annotation">
+            <summary>
+            An annotation.
+            </summary>
+            <remarks>
+            An annotation.
+            </remarks>
+        </member>
+        <member name="M:MailKit.Annotation.#ctor(MailKit.AnnotationEntry)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MailKit.Annotation"/> class.
+            </summary>
+            <remarks>
+            Creates a new <see cref="T:MailKit.Annotation"/>.
+            </remarks>
+            <param name="entry">The annotation entry.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <paramref name="entry"/> is <c>null</c>.
+            </exception>
+        </member>
+        <member name="P:MailKit.Annotation.Entry">
+            <summary>
+            Get the annotation tag.
+            </summary>
+            <remarks>
+            Gets the annotation tag.
+            </remarks>
+            <value>The annotation tag.</value>
+        </member>
+        <member name="P:MailKit.Annotation.Properties">
+            <summary>
+            Get the annotation properties.
+            </summary>
+            <remarks>
+            Gets the annotation properties.
+            </remarks>
+        </member>
+        <member name="T:MailKit.AnnotationAccess">
+            <summary>
+            An annotation access level.
+            </summary>
+            <remarks>
+            An annotation access level.
+            </remarks>
+        </member>
+        <member name="F:MailKit.AnnotationAccess.None">
+            <summary>
+            Annotations are not supported.
+            </summary>
+        </member>
+        <member name="F:MailKit.AnnotationAccess.ReadOnly">
+            <summary>
+            Annotations are read-only.
+            </summary>
+        </member>
+        <member name="F:MailKit.AnnotationAccess.ReadWrite">
+            <summary>
+            Annotations are read-write.
+            </summary>
+        </member>
+        <member name="T:MailKit.AnnotationAttribute">
+            <summary>
+            An annotation attribute.
+            </summary>
+            <remarks>
+            An annotation attribute.
+            </remarks>
+        </member>
+        <member name="F:MailKit.AnnotationAttribute.Value">
+            <summary>
+            The annotation value.
+            </summary>
+            <remarks>
+            Used to get or set both the private and shared values of an annotation.
+            </remarks>
+        </member>
+        <member name="F:MailKit.AnnotationAttribute.SharedValue">
+            <summary>
+            The shared annotation value.
+            </summary>
+            <remarks>
+            Used to get or set the shared value of an annotation.
+            </remarks>
+        </member>
+        <member name="F:MailKit.AnnotationAttribute.PrivateValue">
+            <summary>
+            The private annotation value.
+            </summary>
+            <remarks>
+            Used to get or set the private value of an annotation.
+            </remarks>
+        </member>
+        <member name="F:MailKit.AnnotationAttribute.Size">
+            <summary>
+            The size of an annotation value.
+            </summary>
+            <remarks>
+            Used to get the size of the both the private and shared annotation values.
+            </remarks>
+        </member>
+        <member name="F:MailKit.AnnotationAttribute.SharedSize">
+            <summary>
+            The size of a shared annotation value.
+            </summary>
+            <remarks>
+            Used to get the size of a shared annotation value.
+            </remarks>
+        </member>
+        <member name="F:MailKit.AnnotationAttribute.PrivateSize">
+            <summary>
+            The size of a private annotation value.
+            </summary>
+            <remarks>
+            Used to get the size of a private annotation value.
+            </remarks>
+        </member>
+        <member name="M:MailKit.AnnotationAttribute.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MailKit.AnnotationAttribute"/> class.
+            </summary>
+            <param name="specifier">The annotation attribute specifier.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <paramref name="specifier"/> is <c>null</c>.
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="specifier"/> contains illegal characters.
+            </exception>
+        </member>
+        <member name="P:MailKit.AnnotationAttribute.Name">
+            <summary>
+            Get the name of the annotation attribute.
+            </summary>
+            <remarks>
+            Gets the name of the annotation attribute.
+            </remarks>
+        </member>
+        <member name="P:MailKit.AnnotationAttribute.Scope">
+            <summary>
+            Get the scope of the annotation attribute.
+            </summary>
+            <remarks>
+            Gets the scope of the annotation attribute.
+            </remarks>
+        </member>
+        <member name="P:MailKit.AnnotationAttribute.Specifier">
+            <summary>
+            Get the annotation attribute specifier.
+            </summary>
+            <remarks>
+            Gets the annotation attribute specifier.
+            </remarks>
+        </member>
+        <member name="M:MailKit.AnnotationAttribute.Equals(MailKit.AnnotationAttribute)">
+            <summary>
+            Determines whether the specified <see cref="T:MailKit.AnnotationAttribute"/> is equal to the current <see cref="T:MailKit.AnnotationAttribute"/>.
+            </summary>
+            <remarks>
+            Determines whether the specified <see cref="T:MailKit.AnnotationAttribute"/> is equal to the current <see cref="T:MailKit.AnnotationAttribute"/>.
+            </remarks>
+            <param name="other">The <see cref="T:MailKit.AnnotationAttribute"/> to compare with the current <see cref="T:MailKit.AnnotationAttribute"/>.</param>
+            <returns><c>true</c> if the specified <see cref="T:MailKit.AnnotationAttribute"/> is equal to the current
+            <see cref="T:MailKit.AnnotationAttribute"/>; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="M:MailKit.AnnotationAttribute.op_Equality(MailKit.AnnotationAttribute,MailKit.AnnotationAttribute)">
+            <summary>
+            Determines whether two annotation attributes are equal.
+            </summary>
+            <remarks>
+            Determines whether two annotation attributes are equal.
+            </remarks>
+            <returns><c>true</c> if <paramref name="attr1"/> and <paramref name="attr2"/> are equal; otherwise, <c>false</c>.</returns>
+            <param name="attr1">The first annotation attribute to compare.</param>
+            <param name="attr2">The second annotation attribute to compare.</param>
+        </member>
+        <member name="M:MailKit.AnnotationAttribute.op_Inequality(MailKit.AnnotationAttribute,MailKit.AnnotationAttribute)">
+            <summary>
+            Determines whether two annotation attributes are not equal.
+            </summary>
+            <remarks>
+            Determines whether two annotation attributes are not equal.
+            </remarks>
+            <returns><c>true</c> if <paramref name="attr1"/> and <paramref name="attr2"/> are not equal; otherwise, <c>false</c>.</returns>
+            <param name="attr1">The first annotation attribute to compare.</param>
+            <param name="attr2">The second annotation attribute to compare.</param>
+        </member>
+        <member name="M:MailKit.AnnotationAttribute.Equals(System.Object)">
+            <summary>
+            Determine whether the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:MailKit.AnnotationAttribute"/>.
+            </summary>
+            <remarks>
+            Determines whether the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:MailKit.AnnotationAttribute"/>.
+            </remarks>
+            <param name="obj">The <see cref="T:System.Object"/> to compare with the current <see cref="T:MailKit.AnnotationAttribute"/>.</param>
+            <returns><c>true</c> if the specified <see cref="T:System.Object"/> is equal to the current
+            <see cref="T:MailKit.AnnotationAttribute"/>; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="M:MailKit.AnnotationAttribute.GetHashCode">
+            <summary>
+            Serves as a hash function for a <see cref="T:MailKit.AnnotationAttribute"/> object.
+            </summary>
+            <remarks>
+            Serves as a hash function for a <see cref="T:MailKit.AnnotationAttribute"/> object.
+            </remarks>
+            <returns>A hash code for this instance that is suitable for use in hashing algorithms and data structures such as a hash table.</returns>
+        </member>
+        <member name="M:MailKit.AnnotationAttribute.ToString">
+            <summary>
+            Returns a <see cref="T:System.String"/> that represents the current <see cref="T:MailKit.AnnotationAttribute"/>.
+            </summary>
+            <remarks>
+            Returns a <see cref="T:System.String"/> that represents the current <see cref="T:MailKit.AnnotationAttribute"/>.
+            </remarks>
+            <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:MailKit.AnnotationAttribute"/>.</returns>
+        </member>
+        <member name="T:MailKit.AnnotationEntry">
+            <summary>
+            An annotation entry.
+            </summary>
+            <remarks>
+            An annotation entry.
+            </remarks>
+        </member>
+        <member name="F:MailKit.AnnotationEntry.Comment">
+            <summary>
+            An annotation entry for a comment on a message.
+            </summary>
+            <remarks>
+            Used to get or set a comment on a message.
+            </remarks>
+        </member>
+        <member name="F:MailKit.AnnotationEntry.PrivateComment">
+            <summary>
+            An annotation entry for a private comment on a message.
+            </summary>
+            <remarks>
+            Used to get or set a private comment on a message.
+            </remarks>
+        </member>
+        <member name="F:MailKit.AnnotationEntry.SharedComment">
+            <summary>
+            An annotation entry for a shared comment on a message.
+            </summary>
+            <remarks>
+            Used to get or set a shared comment on a message.
+            </remarks>
+        </member>
+        <member name="F:MailKit.AnnotationEntry.Flags">
+            <summary>
+            An annotation entry for flags on a message.
+            </summary>
+            <remarks>
+            Used to get or set flags on a message.
+            </remarks>
+        </member>
+        <member name="F:MailKit.AnnotationEntry.PrivateFlags">
+            <summary>
+            An annotation entry for private flags on a message.
+            </summary>
+            <remarks>
+            Used to get or set private flags on a message.
+            </remarks>
+        </member>
+        <member name="F:MailKit.AnnotationEntry.SharedFlags">
+            <summary>
+            Aa annotation entry for shared flags on a message.
+            </summary>
+            <remarks>
+            Used to get or set shared flags on a message.
+            </remarks>
+        </member>
+        <member name="F:MailKit.AnnotationEntry.AltSubject">
+            <summary>
+            An annotation entry for an alternate subject on a message.
+            </summary>
+            <remarks>
+            Used to get or set an alternate subject on a message.
+            </remarks>
+        </member>
+        <member name="F:MailKit.AnnotationEntry.PrivateAltSubject">
+            <summary>
+            An annotation entry for a private alternate subject on a message.
+            </summary>
+            <remarks>
+            Used to get or set a private alternate subject on a message.
+            </remarks>
+        </member>
+        <member name="F:MailKit.AnnotationEntry.SharedAltSubject">
+            <summary>
+            An annotation entry for a shared alternate subject on a message.
+            </summary>
+            <remarks>
+            Used to get or set a shared alternate subject on a message.
+            </remarks>
+        </member>
+        <member name="M:MailKit.AnnotationEntry.#ctor(System.String,MailKit.AnnotationScope)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MailKit.AnnotationEntry"/> struct.
+            </summary>
+            <remarks>
+            Creates a new <see cref="T:MailKit.AnnotationEntry"/>.
+            </remarks>
+            <param name="path">The annotation entry path.</param>
+            <param name="scope">The scope of the annotation.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <paramref name="path"/> is <c>null</c>.
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="path"/> is invalid.
+            </exception>
+        </member>
+        <member name="M:MailKit.AnnotationEntry.#ctor(System.String,System.String,MailKit.AnnotationScope)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MailKit.AnnotationEntry"/> struct.
+            </summary>
+            <remarks>
+            Creates a new <see cref="T:MailKit.AnnotationEntry"/> for an individual body part of a message.
+            </remarks>
+            <param name="partSpecifier">The part-specifier of the body part of the message.</param>
+            <param name="path">The annotation entry path.</param>
+            <param name="scope">The scope of the annotation.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="partSpecifier"/> is <c>null</c>.</para>
+            <para>-or-</para>
+            <para><paramref name="path"/> is <c>null</c>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            <para><paramref name="partSpecifier"/> is invalid.</para>
+            <para>-or-</para>
+            <para><paramref name="path"/> is invalid.</para>
+            </exception>
+        </member>
+        <member name="M:MailKit.AnnotationEntry.#ctor(MailKit.BodyPart,System.String,MailKit.AnnotationScope)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MailKit.AnnotationEntry"/> struct.
+            </summary>
+            <remarks>
+            Creates a new <see cref="T:MailKit.AnnotationEntry"/> for an individual body part of a message.
+            </remarks>
+            <param name="part">The body part of the message.</param>
+            <param name="path">The annotation entry path.</param>
+            <param name="scope">The scope of the annotation.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="part"/> is <c>null</c>.</para>
+            <para>-or-</para>
+            <para><paramref name="path"/> is <c>null</c>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="path"/> is invalid.
+            </exception>
+        </member>
+        <member name="P:MailKit.AnnotationEntry.Entry">
+            <summary>
+            Get the annotation entry specifier.
+            </summary>
+            <remarks>
+            Gets the annotation entry specifier.
+            </remarks>
+            <value>The annotation entry specifier.</value>
+        </member>
+        <member name="P:MailKit.AnnotationEntry.PartSpecifier">
+            <summary>
+            Get the part-specifier component of the annotation entry.
+            </summary>
+            <remarks>
+            Gets the part-specifier component of the annotation entry.
+            </remarks>
+        </member>
+        <member name="P:MailKit.AnnotationEntry.Path">
+            <summary>
+            Get the path component of the annotation entry.
+            </summary>
+            <remarks>
+            Gets the path component of the annotation entry.
+            </remarks>
+        </member>
+        <member name="P:MailKit.AnnotationEntry.Scope">
+            <summary>
+            Get the scope of the annotation.
+            </summary>
+            <remarks>
+            Gets the scope of the annotation.
+            </remarks>
+        </member>
+        <member name="M:MailKit.AnnotationEntry.Equals(MailKit.AnnotationEntry)">
+            <summary>
+            Determines whether the specified <see cref="T:MailKit.AnnotationEntry"/> is equal to the current <see cref="T:MailKit.AnnotationEntry"/>.
+            </summary>
+            <remarks>
+            Determines whether the specified <see cref="T:MailKit.AnnotationEntry"/> is equal to the current <see cref="T:MailKit.AnnotationEntry"/>.
+            </remarks>
+            <param name="other">The <see cref="T:MailKit.AnnotationEntry"/> to compare with the current <see cref="T:MailKit.AnnotationEntry"/>.</param>
+            <returns><c>true</c> if the specified <see cref="T:MailKit.AnnotationEntry"/> is equal to the current
+            <see cref="T:MailKit.AnnotationEntry"/>; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="M:MailKit.AnnotationEntry.op_Equality(MailKit.AnnotationEntry,MailKit.AnnotationEntry)">
+            <summary>
+            Determines whether two annotation entries are equal.
+            </summary>
+            <remarks>
+            Determines whether two annotation entries are equal.
+            </remarks>
+            <returns><c>true</c> if <paramref name="entry1"/> and <paramref name="entry2"/> are equal; otherwise, <c>false</c>.</returns>
+            <param name="entry1">The first annotation entry to compare.</param>
+            <param name="entry2">The second annotation entry to compare.</param>
+        </member>
+        <member name="M:MailKit.AnnotationEntry.op_Inequality(MailKit.AnnotationEntry,MailKit.AnnotationEntry)">
+            <summary>
+            Determines whether two annotation entries are not equal.
+            </summary>
+            <remarks>
+            Determines whether two annotation entries are not equal.
+            </remarks>
+            <returns><c>true</c> if <paramref name="entry1"/> and <paramref name="entry2"/> are not equal; otherwise, <c>false</c>.</returns>
+            <param name="entry1">The first annotation entry to compare.</param>
+            <param name="entry2">The second annotation entry to compare.</param>
+        </member>
+        <member name="M:MailKit.AnnotationEntry.Equals(System.Object)">
+            <summary>
+            Determine whether the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:MailKit.AnnotationEntry"/>.
+            </summary>
+            <remarks>
+            Determines whether the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:MailKit.AnnotationEntry"/>.
+            </remarks>
+            <param name="obj">The <see cref="T:System.Object"/> to compare with the current <see cref="T:MailKit.AnnotationEntry"/>.</param>
+            <returns><c>true</c> if the specified <see cref="T:System.Object"/> is equal to the current
+            <see cref="T:MailKit.AnnotationEntry"/>; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="M:MailKit.AnnotationEntry.GetHashCode">
+            <summary>
+            Serves as a hash function for a <see cref="T:MailKit.AnnotationEntry"/> object.
+            </summary>
+            <remarks>
+            Serves as a hash function for a <see cref="T:MailKit.AnnotationEntry"/> object.
+            </remarks>
+            <returns>A hash code for this instance that is suitable for use in hashing algorithms and data structures such as a hash table.</returns>
+        </member>
+        <member name="M:MailKit.AnnotationEntry.ToString">
+            <summary>
+            Returns a <see cref="T:System.String"/> that represents the current <see cref="T:MailKit.AnnotationEntry"/>.
+            </summary>
+            <remarks>
+            Returns a <see cref="T:System.String"/> that represents the current <see cref="T:MailKit.AnnotationEntry"/>.
+            </remarks>
+            <returns>A <see cref="T:System.String"/> that represents the current <see cref="T:MailKit.AnnotationEntry"/>.</returns>
+        </member>
+        <member name="M:MailKit.AnnotationEntry.Parse(System.String)">
+            <summary>
+            Parse an annotation entry.
+            </summary>
+            <remarks>
+            Parses an annotation entry.
+            </remarks>
+            <param name="entry">The annotation entry.</param>
+            <returns>The parsed annotation entry.</returns>
+            <exception cref="T:System.ArgumentNullException">
+            <paramref name="entry"/> is <c>null</c>.
+            </exception>
+            <exception cref="T:System.FormatException">
+            <paramref name="entry"/> does not conform to the annotation entry syntax.
+            </exception>
+        </member>
+        <member name="T:MailKit.AnnotationsChangedEventArgs">
+            <summary>
+            Event args used when an annotation changes.
+            </summary>
+            <remarks>
+            Event args used when an annotation changes.
+            </remarks>
+        </member>
+        <member name="M:MailKit.AnnotationsChangedEventArgs.#ctor(System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MailKit.AnnotationsChangedEventArgs"/> class.
+            </summary>
+            <remarks>
+            Creates a new <see cref="T:MailKit.AnnotationsChangedEventArgs"/>.
+            </remarks>
+            <param name="index">The message index.</param>
+        </member>
+        <member name="M:MailKit.AnnotationsChangedEventArgs.#ctor(System.Int32,System.Collections.Generic.IEnumerable{MailKit.Annotation})">
+            <summary>
+            Initializes a new instance of the <see cref="T:MailKit.AnnotationsChangedEventArgs"/> class.
+            </summary>
+            <remarks>
+            Creates a new <see cref="T:MailKit.AnnotationsChangedEventArgs"/>.
+            </remarks>
+            <param name="index">The message index.</param>
+            <param name="annotations">The annotations that changed.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <paramref name="annotations"/> is <c>null</c>.
+            </exception>
+        </member>
+        <member name="P:MailKit.AnnotationsChangedEventArgs.Annotations">
+            <summary>
+            Get the annotations that changed.
+            </summary>
+            <remarks>
+            Gets the annotations that changed.
+            </remarks>
+            <value>The annotation.</value>
+        </member>
+        <member name="P:MailKit.AnnotationsChangedEventArgs.ModSeq">
+            <summary>
+            Gets the updated mod-sequence value of the message, if available.
+            </summary>
+            <remarks>
+            Gets the updated mod-sequence value of the message, if available.
+            </remarks>
+            <value>The mod-sequence value.</value>
+        </member>
+        <member name="T:MailKit.AnnotationScope">
+            <summary>
+            The scope of an annotation.
+            </summary>
+            <remarks>
+            Represents the scope of an annotation.
+            </remarks>
+        </member>
+        <member name="F:MailKit.AnnotationScope.None">
+            <summary>
+            No scopes.
+            </summary>
+        </member>
+        <member name="F:MailKit.AnnotationScope.Private">
+            <summary>
+            The private annotation scope.
+            </summary>
+        </member>
+        <member name="F:MailKit.AnnotationScope.Shared">
+            <summary>
+            The shared annotation scope.
+            </summary>
+        </member>
+        <member name="F:MailKit.AnnotationScope.Both">
+            <summary>
+            Both private and shared scopes.
+            </summary>
+        </member>
         <member name="T:MailKit.AuthenticatedEventArgs">
             <summary>
             Authenticated event arguments.
@@ -28115,6 +29460,33 @@
             </remarks>
             <value>The folder attributes.</value>
         </member>
+        <member name="P:MailKit.IMailFolder.AnnotationAccess">
+            <summary>
+            Get the annotation access level.
+            </summary>
+            <remarks>
+            If annotations are supported, this property can be used to determine whether or not
+            the <see cref="T:MailKit.IMailFolder"/> supports reading and writing annotations.
+            </remarks>
+        </member>
+        <member name="P:MailKit.IMailFolder.AnnotationScopes">
+            <summary>
+            Get the supported annotation scopes.
+            </summary>
+            <remarks>
+            If annotations are supported, this property can be used to determine which
+            annotation scopes are supported by the <see cref="T:MailKit.IMailFolder"/>.
+            </remarks>
+        </member>
+        <member name="P:MailKit.IMailFolder.MaxAnnotationSize">
+            <summary>
+            Get the maximum size of annotation values supported by the folder.
+            </summary>
+            <remarks>
+            If annotations are supported, this property can be used to determine the
+            maximum size of annotation values supported by the <see cref="T:MailKit.IMailFolder"/>.
+            </remarks>
+        </member>
         <member name="P:MailKit.IMailFolder.PermanentFlags">
             <summary>
             Get the permanent flags.
@@ -29098,6 +30470,36 @@
             <param name="cancellationToken">The cancellation token.</param>
             <param name="progress">The progress reporting mechanism.</param>
         </member>
+        <member name="M:MailKit.IMailFolder.Append(MimeKit.MimeMessage,MailKit.MessageFlags,System.Nullable{System.DateTimeOffset},System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken,MailKit.ITransferProgress)">
+            <summary>
+            Append the specified message to the folder.
+            </summary>
+            <remarks>
+            Appends the specified message to the folder and returns the UniqueId assigned to the message.
+            </remarks>
+            <returns>The UID of the appended message, if available; otherwise, <c>null</c>.</returns>
+            <param name="message">The message.</param>
+            <param name="flags">The message flags.</param>
+            <param name="date">The received date of the message.</param>
+            <param name="annotations">The message annotations.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <param name="progress">The progress reporting mechanism.</param>
+        </member>
+        <member name="M:MailKit.IMailFolder.AppendAsync(MimeKit.MimeMessage,MailKit.MessageFlags,System.Nullable{System.DateTimeOffset},System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken,MailKit.ITransferProgress)">
+            <summary>
+            Asynchronously append the specified message to the folder.
+            </summary>
+            <remarks>
+            Asynchronously appends the specified message to the folder and returns the UniqueId assigned to the message.
+            </remarks>
+            <returns>The UID of the appended message, if available; otherwise, <c>null</c>.</returns>
+            <param name="message">The message.</param>
+            <param name="flags">The message flags.</param>
+            <param name="date">The received date of the message.</param>
+            <param name="annotations">The message annotations.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <param name="progress">The progress reporting mechanism.</param>
+        </member>
         <member name="M:MailKit.IMailFolder.Append(MimeKit.FormatOptions,MimeKit.MimeMessage,MailKit.MessageFlags,System.Threading.CancellationToken,MailKit.ITransferProgress)">
             <summary>
             Append the specified message to the folder.
@@ -29153,6 +30555,38 @@
             <param name="message">The message.</param>
             <param name="flags">The message flags.</param>
             <param name="date">The received date of the message.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <param name="progress">The progress reporting mechanism.</param>
+        </member>
+        <member name="M:MailKit.IMailFolder.Append(MimeKit.FormatOptions,MimeKit.MimeMessage,MailKit.MessageFlags,System.Nullable{System.DateTimeOffset},System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken,MailKit.ITransferProgress)">
+            <summary>
+            Append the specified message to the folder.
+            </summary>
+            <remarks>
+            Appends the specified message to the folder and returns the UniqueId assigned to the message.
+            </remarks>
+            <returns>The UID of the appended message, if available; otherwise, <c>null</c>.</returns>
+            <param name="options">The formatting options.</param>
+            <param name="message">The message.</param>
+            <param name="flags">The message flags.</param>
+            <param name="date">The received date of the message.</param>
+            <param name="annotations">The message annotations.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <param name="progress">The progress reporting mechanism.</param>
+        </member>
+        <member name="M:MailKit.IMailFolder.AppendAsync(MimeKit.FormatOptions,MimeKit.MimeMessage,MailKit.MessageFlags,System.Nullable{System.DateTimeOffset},System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken,MailKit.ITransferProgress)">
+            <summary>
+            Asynchronously append the specified message to the folder.
+            </summary>
+            <remarks>
+            Asynchronously appends the specified message to the folder and returns the UniqueId assigned to the message.
+            </remarks>
+            <returns>The UID of the appended message, if available; otherwise, <c>null</c>.</returns>
+            <param name="options">The formatting options.</param>
+            <param name="message">The message.</param>
+            <param name="flags">The message flags.</param>
+            <param name="date">The received date of the message.</param>
+            <param name="annotations">The message annotations.</param>
             <param name="cancellationToken">The cancellation token.</param>
             <param name="progress">The progress reporting mechanism.</param>
         </member>
@@ -32162,6 +33596,150 @@
             <param name="silent">If set to <c>true</c>, no <see cref="E:MailKit.IMailFolder.MessageLabelsChanged"/> events will be emitted.</param>
             <param name="cancellationToken">The cancellation token.</param>
         </member>
+        <member name="M:MailKit.IMailFolder.Store(MailKit.UniqueId,System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Store the annotations for the specified message.
+            </summary>
+            <remarks>
+            Stores the annotations for the specified message.
+            </remarks>
+            <param name="uid">The UID of the message.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+        </member>
+        <member name="M:MailKit.IMailFolder.StoreAsync(MailKit.UniqueId,System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously store the annotations for the specified message.
+            </summary>
+            <remarks>
+            Asynchronously stores the annotations for the specified message.
+            </remarks>
+            <returns>An asynchronous task context.</returns>
+            <param name="uid">The UID of the message.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+        </member>
+        <member name="M:MailKit.IMailFolder.Store(System.Collections.Generic.IList{MailKit.UniqueId},System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Store the annotations for the specified messages.
+            </summary>
+            <remarks>
+            Stores the annotations for the specified messages.
+            </remarks>
+            <param name="uids">The UIDs of the messages.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+        </member>
+        <member name="M:MailKit.IMailFolder.StoreAsync(System.Collections.Generic.IList{MailKit.UniqueId},System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously store the annotations for the specified messages.
+            </summary>
+            <remarks>
+            Asynchronously stores the annotations for the specified messages.
+            </remarks>
+            <returns>An asynchronous task context.</returns>
+            <param name="uids">The UIDs of the messages.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+        </member>
+        <member name="M:MailKit.IMailFolder.Store(System.Collections.Generic.IList{MailKit.UniqueId},System.UInt64,System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Store the annotations for the specified messages only if their mod-sequence value is less than the specified value.
+            </summary>
+            <remarks>
+            Stores the annotations for the specified messages only if their mod-sequence value is less than the specified value.
+            </remarks>
+            <returns>The unique IDs of the messages that were not updated.</returns>
+            <param name="uids">The UIDs of the messages.</param>
+            <param name="modseq">The mod-sequence value.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+        </member>
+        <member name="M:MailKit.IMailFolder.StoreAsync(System.Collections.Generic.IList{MailKit.UniqueId},System.UInt64,System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously store the annotations for the specified messages only if their mod-sequence value is less than the specified value.
+            </summary>
+            <remarks>
+            Asynchronously stores the annotations for the specified messages only if their mod-sequence value is less than the specified value.
+            </remarks>
+            <returns>The unique IDs of the messages that were not updated.</returns>
+            <param name="uids">The UIDs of the messages.</param>
+            <param name="modseq">The mod-sequence value.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+        </member>
+        <member name="M:MailKit.IMailFolder.Store(System.Int32,System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Store the annotations for the specified message.
+            </summary>
+            <remarks>
+            Stores the annotations for the specified message.
+            </remarks>
+            <param name="index">The index of the message.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+        </member>
+        <member name="M:MailKit.IMailFolder.StoreAsync(System.Int32,System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously store the annotations for the specified message.
+            </summary>
+            <remarks>
+            Asynchronously stores the annotations for the specified message.
+            </remarks>
+            <returns>An asynchronous task context.</returns>
+            <param name="index">The indexes of the message.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+        </member>
+        <member name="M:MailKit.IMailFolder.Store(System.Collections.Generic.IList{System.Int32},System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Store the annotations for the specified messages.
+            </summary>
+            <remarks>
+            Stores the annotations for the specified messages.
+            </remarks>
+            <param name="indexes">The indexes of the messages.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+        </member>
+        <member name="M:MailKit.IMailFolder.StoreAsync(System.Collections.Generic.IList{System.Int32},System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously store the annotations for the specified messages.
+            </summary>
+            <remarks>
+            Asynchronously stores the annotations for the specified messages.
+            </remarks>
+            <returns>An asynchronous task context.</returns>
+            <param name="indexes">The indexes of the messages.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+        </member>
+        <member name="M:MailKit.IMailFolder.Store(System.Collections.Generic.IList{System.Int32},System.UInt64,System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Store the annotations for the specified messages only if their mod-sequence value is less than the specified value.
+            </summary>
+            <remarks>
+            Stores the annotations for the specified messages only if their mod-sequence value is less than the specified value.
+            </remarks>
+            <returns>The indexes of the messages that were not updated.</returns>
+            <param name="indexes">The indexes of the messages.</param>
+            <param name="modseq">The mod-sequence value.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+        </member>
+        <member name="M:MailKit.IMailFolder.StoreAsync(System.Collections.Generic.IList{System.Int32},System.UInt64,System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously store the annotations for the specified messages only if their mod-sequence value is less than the specified value.
+            </summary>
+            <remarks>
+            Asynchronously stores the annotations for the specified messages only if their mod-sequence value is less than the specified value.s
+            </remarks>
+            <returns>The indexes of the messages that were not updated.</returns>
+            <param name="indexes">The indexes of the messages.</param>
+            <param name="modseq">The mod-sequence value.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+        </member>
         <member name="M:MailKit.IMailFolder.Search(MailKit.Search.SearchQuery,System.Threading.CancellationToken)">
             <summary>
             Search the folder for messages matching the specified query.
@@ -32507,6 +34085,14 @@
             </summary>
             <remarks>
             Emitted when labels changed on a message.
+            </remarks>
+        </member>
+        <member name="E:MailKit.IMailFolder.AnnotationsChanged">
+            <summary>
+            Occurs when annotations changed on a message.
+            </summary>
+            <remarks>
+            Emitted when annotations changed on a message.
             </remarks>
         </member>
         <member name="E:MailKit.IMailFolder.MessageSummaryFetched">
@@ -34972,6 +36558,18 @@
             </remarks>
             <value>The user-defined message flags.</value>
         </member>
+        <member name="P:MailKit.IMessageSummary.Annotations">
+            <summary>
+            Gets the message annotations, if available.
+            </summary>
+            <remarks>
+            <para>Gets the message annotations, if available.</para>
+            <para>This property will only be set if the
+            <see cref="F:MailKit.MessageSummaryItems.Annotations"/> flag is passed to
+            <see cref="M:MailKit.IMailFolder.Fetch(System.Collections.Generic.IList{MailKit.UniqueId},MailKit.MessageSummaryItems,System.Threading.CancellationToken)"/>.</para>
+            </remarks>
+            <value>The message annotations.</value>
+        </member>
         <member name="P:MailKit.IMessageSummary.Headers">
             <summary>
             Gets the list of headers, if available.
@@ -35281,6 +36879,33 @@
             Gets the folder attributes.
             </remarks>
             <value>The folder attributes.</value>
+        </member>
+        <member name="P:MailKit.MailFolder.AnnotationAccess">
+            <summary>
+            Get the annotation access level.
+            </summary>
+            <remarks>
+            If annotations are supported, this property can be used to determine whether or not
+            the <see cref="T:MailKit.IMailFolder"/> supports reading and writing annotations.
+            </remarks>
+        </member>
+        <member name="P:MailKit.MailFolder.AnnotationScopes">
+            <summary>
+            Get the supported annotation scopes.
+            </summary>
+            <remarks>
+            If annotations are supported, this property can be used to determine which
+            annotation scopes are supported by the <see cref="T:MailKit.IMailFolder"/>.
+            </remarks>
+        </member>
+        <member name="P:MailKit.MailFolder.MaxAnnotationSize">
+            <summary>
+            Get the maximum size of annotation values supported by the folder.
+            </summary>
+            <remarks>
+            If annotations are supported, this property can be used to determine the
+            maximum size of annotation values supported by the <see cref="T:MailKit.IMailFolder"/>.
+            </remarks>
         </member>
         <member name="P:MailKit.MailFolder.PermanentFlags">
             <summary>
@@ -37989,6 +39614,96 @@
             The command failed.
             </exception>
         </member>
+        <member name="M:MailKit.MailFolder.Append(MimeKit.MimeMessage,MailKit.MessageFlags,System.Nullable{System.DateTimeOffset},System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken,MailKit.ITransferProgress)">
+            <summary>
+            Append the specified message to the folder.
+            </summary>
+            <remarks>
+            Appends the specified message to the folder and returns the UniqueId assigned to the message.
+            </remarks>
+            <returns>The UID of the appended message, if available; otherwise, <c>null</c>.</returns>
+            <param name="message">The message.</param>
+            <param name="flags">The message flags.</param>
+            <param name="date">The received date of the message.</param>
+            <param name="annotations">The message annotations.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <param name="progress">The progress reporting mechanism.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <paramref name="message"/> is <c>null</c>.
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.IMailStore"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.IMailStore"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.IMailStore"/> is not authenticated.
+            </exception>
+            <exception cref="T:MailKit.FolderNotFoundException">
+            The <see cref="T:MailKit.MailFolder"/> does not exist.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            One or more <paramref name="annotations"/> does not define any properties.
+            </exception>"
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.ProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.CommandException">
+            The command failed.
+            </exception>
+        </member>
+        <member name="M:MailKit.MailFolder.AppendAsync(MimeKit.MimeMessage,MailKit.MessageFlags,System.Nullable{System.DateTimeOffset},System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken,MailKit.ITransferProgress)">
+            <summary>
+            Asynchronously append the specified message to the folder.
+            </summary>
+            <remarks>
+            Asynchronously appends the specified message to the folder and returns the UniqueId assigned to the message.
+            </remarks>
+            <returns>The UID of the appended message, if available; otherwise, <c>null</c>.</returns>
+            <param name="message">The message.</param>
+            <param name="flags">The message flags.</param>
+            <param name="date">The received date of the message.</param>
+            <param name="annotations">The message annotations.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <param name="progress">The progress reporting mechanism.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <paramref name="message"/> is <c>null</c>.
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.IMailStore"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.IMailStore"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.IMailStore"/> is not authenticated.
+            </exception>
+            <exception cref="T:MailKit.FolderNotFoundException">
+            The <see cref="T:MailKit.MailFolder"/> does not exist.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            One or more <paramref name="annotations"/> does not define any properties.
+            </exception>"
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.ProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.CommandException">
+            The command failed.
+            </exception>
+        </member>
         <member name="M:MailKit.MailFolder.Append(MimeKit.FormatOptions,MimeKit.MimeMessage,MailKit.MessageFlags,System.Threading.CancellationToken,MailKit.ITransferProgress)">
             <summary>
             Append the specified message to the folder.
@@ -38149,6 +39864,108 @@
             <param name="message">The message.</param>
             <param name="flags">The message flags.</param>
             <param name="date">The received date of the message.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <param name="progress">The progress reporting mechanism.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="options"/> is <c>null</c>.</para>
+            <para>-or-</para>
+            <para><paramref name="message"/> is <c>null</c>.</para>
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.IMailStore"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.IMailStore"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.IMailStore"/> is not authenticated.
+            </exception>
+            <exception cref="T:MailKit.FolderNotFoundException">
+            The <see cref="T:MailKit.MailFolder"/> does not exist.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Internationalized formatting was requested but has not been enabled.
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.NotSupportedException">
+            Internationalized formatting was requested but is not supported by the server.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.ProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.CommandException">
+            The command failed.
+            </exception>
+        </member>
+        <member name="M:MailKit.MailFolder.Append(MimeKit.FormatOptions,MimeKit.MimeMessage,MailKit.MessageFlags,System.Nullable{System.DateTimeOffset},System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken,MailKit.ITransferProgress)">
+            <summary>
+            Append the specified message to the folder.
+            </summary>
+            <remarks>
+            Appends the specified message to the folder and returns the UniqueId assigned to the message.
+            </remarks>
+            <returns>The UID of the appended message, if available; otherwise, <c>null</c>.</returns>
+            <param name="options">The formatting options.</param>
+            <param name="message">The message.</param>
+            <param name="flags">The message flags.</param>
+            <param name="date">The received date of the message.</param>
+            <param name="annotations">The message annotations.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <param name="progress">The progress reporting mechanism.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="options"/> is <c>null</c>.</para>
+            <para>-or-</para>
+            <para><paramref name="message"/> is <c>null</c>.</para>
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.IMailStore"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.IMailStore"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.IMailStore"/> is not authenticated.
+            </exception>
+            <exception cref="T:MailKit.FolderNotFoundException">
+            The <see cref="T:MailKit.MailFolder"/> does not exist.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Internationalized formatting was requested but has not been enabled.
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.NotSupportedException">
+            Internationalized formatting was requested but is not supported by the server.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.ProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.CommandException">
+            The command failed.
+            </exception>
+        </member>
+        <member name="M:MailKit.MailFolder.AppendAsync(MimeKit.FormatOptions,MimeKit.MimeMessage,MailKit.MessageFlags,System.Nullable{System.DateTimeOffset},System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken,MailKit.ITransferProgress)">
+            <summary>
+            Asynchronously append the specified message to the folder.
+            </summary>
+            <remarks>
+            Asynchronously appends the specified message to the folder and returns the UniqueId assigned to the message.
+            </remarks>
+            <returns>The UID of the appended message, if available; otherwise, <c>null</c>.</returns>
+            <param name="options">The formatting options.</param>
+            <param name="message">The message.</param>
+            <param name="flags">The message flags.</param>
+            <param name="date">The received date of the message.</param>
+            <param name="annotations">The message annotations.</param>
             <param name="cancellationToken">The cancellation token.</param>
             <param name="progress">The progress reporting mechanism.</param>
             <exception cref="T:System.ArgumentNullException">
@@ -47880,6 +49697,606 @@
             The command failed.
             </exception>
         </member>
+        <member name="M:MailKit.MailFolder.Store(MailKit.UniqueId,System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Store the annotations for the specified message.
+            </summary>
+            <remarks>
+            Stores the annotations for the specified message.
+            </remarks>
+            <param name="uid">The UID of the message.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <paramref name="annotations"/> is <c>null</c>.
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="uid"/> is invalid.
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.IMailStore"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.IMailStore"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.IMailStore"/> is not authenticated.
+            </exception>
+            <exception cref="T:MailKit.FolderNotOpenException">
+            The <see cref="T:MailKit.IMailFolder"/> is not currently open in read-write mode.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Cannot store annotations without any properties defined.
+            </exception>
+            <exception cref="T:System.NotSupportedException">
+            The <see cref="T:MailKit.IMailFolder"/> does not support annotations.
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.ProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.CommandException">
+            The command failed.
+            </exception>
+        </member>
+        <member name="M:MailKit.MailFolder.StoreAsync(MailKit.UniqueId,System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously store the annotations for the specified message.
+            </summary>
+            <remarks>
+            Asynchronously stores the annotations for the specified message.
+            </remarks>
+            <returns>An asynchronous task context.</returns>
+            <param name="uid">The UID of the message.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <paramref name="annotations"/> is <c>null</c>.
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="uid"/> is invalid.
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.IMailStore"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.IMailStore"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.IMailStore"/> is not authenticated.
+            </exception>
+            <exception cref="T:MailKit.FolderNotOpenException">
+            The <see cref="T:MailKit.IMailFolder"/> is not currently open in read-write mode.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Cannot store annotations without any properties defined.
+            </exception>
+            <exception cref="T:System.NotSupportedException">
+            The <see cref="T:MailKit.IMailFolder"/> does not support annotations.
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.ProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.CommandException">
+            The command failed.
+            </exception>
+        </member>
+        <member name="M:MailKit.MailFolder.Store(System.Collections.Generic.IList{MailKit.UniqueId},System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Store the annotations for the specified messages.
+            </summary>
+            <remarks>
+            Stores the annotations for the specified messages.
+            </remarks>
+            <param name="uids">The UIDs of the messages.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="uids"/> is <c>null</c>.</para>
+            <para>-or-</para>
+            <para><paramref name="annotations"/> is <c>null</c>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            One or more of the <paramref name="uids"/> is invalid.
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.IMailStore"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.IMailStore"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.IMailStore"/> is not authenticated.
+            </exception>
+            <exception cref="T:MailKit.FolderNotOpenException">
+            The <see cref="T:MailKit.IMailFolder"/> is not currently open in read-write mode.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Cannot store annotations without any properties defined.
+            </exception>
+            <exception cref="T:System.NotSupportedException">
+            The <see cref="T:MailKit.IMailFolder"/> does not support annotations.
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.ProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.CommandException">
+            The command failed.
+            </exception>
+        </member>
+        <member name="M:MailKit.MailFolder.StoreAsync(System.Collections.Generic.IList{MailKit.UniqueId},System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously store the annotations for the specified messages.
+            </summary>
+            <remarks>
+            Asynchronously stores the annotations for the specified messages.
+            </remarks>
+            <returns>An asynchronous task context.</returns>
+            <param name="uids">The UIDs of the messages.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="uids"/> is <c>null</c>.</para>
+            <para>-or-</para>
+            <para><paramref name="annotations"/> is <c>null</c>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            One or more of the <paramref name="uids"/> is invalid.
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.IMailStore"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.IMailStore"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.IMailStore"/> is not authenticated.
+            </exception>
+            <exception cref="T:MailKit.FolderNotOpenException">
+            The <see cref="T:MailKit.IMailFolder"/> is not currently open in read-write mode.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Cannot store annotations without any properties defined.
+            </exception>
+            <exception cref="T:System.NotSupportedException">
+            The <see cref="T:MailKit.IMailFolder"/> does not support annotations.
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.ProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.CommandException">
+            The command failed.
+            </exception>
+        </member>
+        <member name="M:MailKit.MailFolder.Store(System.Collections.Generic.IList{MailKit.UniqueId},System.UInt64,System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Store the annotations for the specified messages only if their mod-sequence value is less than the specified value.
+            </summary>
+            <remarks>
+            Stores the annotations for the specified messages only if their mod-sequence value is less than the specified value.
+            </remarks>
+            <returns>The unique IDs of the messages that were not updated.</returns>
+            <param name="uids">The UIDs of the messages.</param>
+            <param name="modseq">The mod-sequence value.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="uids"/> is <c>null</c>.</para>
+            <para>-or-</para>
+            <para><paramref name="annotations"/> is <c>null</c>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            One or more of the <paramref name="uids"/> is invalid.
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.IMailStore"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.IMailStore"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.IMailStore"/> is not authenticated.
+            </exception>
+            <exception cref="T:MailKit.FolderNotOpenException">
+            The <see cref="T:MailKit.IMailFolder"/> is not currently open in read-write mode.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Cannot store annotations without any properties defined.
+            </exception>
+            <exception cref="T:System.NotSupportedException">
+            <para>The <see cref="T:MailKit.IMailFolder"/> does not support annotations.</para>
+            <para>-or-</para>
+            <para>The <see cref="T:MailKit.IMailFolder"/> does not support mod-sequences.</para>
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.ProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.CommandException">
+            The command failed.
+            </exception>
+        </member>
+        <member name="M:MailKit.MailFolder.StoreAsync(System.Collections.Generic.IList{MailKit.UniqueId},System.UInt64,System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously store the annotations for the specified messages only if their mod-sequence value is less than the specified value.
+            </summary>
+            <remarks>
+            Asynchronously stores the annotations for the specified messages only if their mod-sequence value is less than the specified value.
+            </remarks>
+            <returns>The unique IDs of the messages that were not updated.</returns>
+            <param name="uids">The UIDs of the messages.</param>
+            <param name="modseq">The mod-sequence value.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="uids"/> is <c>null</c>.</para>
+            <para>-or-</para>
+            <para><paramref name="annotations"/> is <c>null</c>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            One or more of the <paramref name="uids"/> is invalid.
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.IMailStore"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.IMailStore"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.IMailStore"/> is not authenticated.
+            </exception>
+            <exception cref="T:MailKit.FolderNotOpenException">
+            The <see cref="T:MailKit.IMailFolder"/> is not currently open in read-write mode.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Cannot store annotations without any properties defined.
+            </exception>
+            <exception cref="T:System.NotSupportedException">
+            <para>The <see cref="T:MailKit.IMailFolder"/> does not support annotations.</para>
+            <para>-or-</para>
+            <para>The <see cref="T:MailKit.IMailFolder"/> does not support mod-sequences.</para>
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.ProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.CommandException">
+            The command failed.
+            </exception>
+        </member>
+        <member name="M:MailKit.MailFolder.Store(System.Int32,System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Store the annotations for the specified message.
+            </summary>
+            <remarks>
+            Stores the annotations for the specified message.
+            </remarks>
+            <param name="index">The index of the message.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <paramref name="annotations"/> is <c>null</c>.
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="index"/> is invalid.
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.IMailStore"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.IMailStore"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.IMailStore"/> is not authenticated.
+            </exception>
+            <exception cref="T:MailKit.FolderNotOpenException">
+            The <see cref="T:MailKit.IMailFolder"/> is not currently open in read-write mode.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Cannot store annotations without any properties defined.
+            </exception>
+            <exception cref="T:System.NotSupportedException">
+            The <see cref="T:MailKit.IMailFolder"/> does not support annotations.
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.ProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.CommandException">
+            The command failed.
+            </exception>
+        </member>
+        <member name="M:MailKit.MailFolder.StoreAsync(System.Int32,System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously store the annotations for the specified message.
+            </summary>
+            <remarks>
+            Asynchronously stores the annotations for the specified message.
+            </remarks>
+            <returns>An asynchronous task context.</returns>
+            <param name="index">The indexes of the message.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <paramref name="annotations"/> is <c>null</c>.
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="index"/> is invalid.
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.IMailStore"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.IMailStore"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.IMailStore"/> is not authenticated.
+            </exception>
+            <exception cref="T:MailKit.FolderNotOpenException">
+            The <see cref="T:MailKit.IMailFolder"/> is not currently open in read-write mode.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Cannot store annotations without any properties defined.
+            </exception>
+            <exception cref="T:System.NotSupportedException">
+            The <see cref="T:MailKit.IMailFolder"/> does not support annotations.
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.ProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.CommandException">
+            The command failed.
+            </exception>
+        </member>
+        <member name="M:MailKit.MailFolder.Store(System.Collections.Generic.IList{System.Int32},System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Store the annotations for the specified messages.
+            </summary>
+            <remarks>
+            Stores the annotations for the specified messages.
+            </remarks>
+            <param name="indexes">The indexes of the messages.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="indexes"/> is <c>null</c>.</para>
+            <para>-or-</para>
+            <para><paramref name="annotations"/> is <c>null</c>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            One or more of the <paramref name="indexes"/> is invalid.
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.IMailStore"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.IMailStore"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.IMailStore"/> is not authenticated.
+            </exception>
+            <exception cref="T:MailKit.FolderNotOpenException">
+            The <see cref="T:MailKit.IMailFolder"/> is not currently open in read-write mode.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Cannot store annotations without any properties defined.
+            </exception>
+            <exception cref="T:System.NotSupportedException">
+            The <see cref="T:MailKit.IMailFolder"/> does not support annotations.
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.ProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.CommandException">
+            The command failed.
+            </exception>
+        </member>
+        <member name="M:MailKit.MailFolder.StoreAsync(System.Collections.Generic.IList{System.Int32},System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously store the annotations for the specified messages.
+            </summary>
+            <remarks>
+            Asynchronously stores the annotations for the specified messages.
+            </remarks>
+            <returns>An asynchronous task context.</returns>
+            <param name="indexes">The indexes of the messages.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="indexes"/> is <c>null</c>.</para>
+            <para>-or-</para>
+            <para><paramref name="annotations"/> is <c>null</c>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            One or more of the <paramref name="indexes"/> is invalid.
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.IMailStore"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.IMailStore"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.IMailStore"/> is not authenticated.
+            </exception>
+            <exception cref="T:MailKit.FolderNotOpenException">
+            The <see cref="T:MailKit.IMailFolder"/> is not currently open in read-write mode.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Cannot store annotations without any properties defined.
+            </exception>
+            <exception cref="T:System.NotSupportedException">
+            The <see cref="T:MailKit.IMailFolder"/> does not support annotations.
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.ProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.CommandException">
+            The command failed.
+            </exception>
+        </member>
+        <member name="M:MailKit.MailFolder.Store(System.Collections.Generic.IList{System.Int32},System.UInt64,System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Store the annotations for the specified messages only if their mod-sequence value is less than the specified value.
+            </summary>
+            <remarks>
+            Stores the annotations for the specified messages only if their mod-sequence value is less than the specified value.
+            </remarks>
+            <returns>The indexes of the messages that were not updated.</returns>
+            <param name="indexes">The indexes of the messages.</param>
+            <param name="modseq">The mod-sequence value.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="indexes"/> is <c>null</c>.</para>
+            <para>-or-</para>
+            <para><paramref name="annotations"/> is <c>null</c>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            One or more of the <paramref name="indexes"/> is invalid.
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.IMailStore"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.IMailStore"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.IMailStore"/> is not authenticated.
+            </exception>
+            <exception cref="T:MailKit.FolderNotOpenException">
+            The <see cref="T:MailKit.IMailFolder"/> is not currently open in read-write mode.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Cannot store annotations without any properties defined.
+            </exception>
+            <exception cref="T:System.NotSupportedException">
+            <para>The <see cref="T:MailKit.IMailFolder"/> does not support annotations.</para>
+            <para>-or-</para>
+            <para>The <see cref="T:MailKit.IMailFolder"/> does not support mod-sequences.</para>
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.ProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.CommandException">
+            The command failed.
+            </exception>
+        </member>
+        <member name="M:MailKit.MailFolder.StoreAsync(System.Collections.Generic.IList{System.Int32},System.UInt64,System.Collections.Generic.IList{MailKit.Annotation},System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously store the annotations for the specified messages only if their mod-sequence value is less than the specified value.
+            </summary>
+            <remarks>
+            Asynchronously stores the annotations for the specified messages only if their mod-sequence value is less than the specified value.s
+            </remarks>
+            <returns>The indexes of the messages that were not updated.</returns>
+            <param name="indexes">The indexes of the messages.</param>
+            <param name="modseq">The mod-sequence value.</param>
+            <param name="annotations">The annotations to store.</param>
+            <param name="cancellationToken">The cancellation token.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <para><paramref name="indexes"/> is <c>null</c>.</para>
+            <para>-or-</para>
+            <para><paramref name="annotations"/> is <c>null</c>.</para>
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            One or more of the <paramref name="indexes"/> is invalid.
+            </exception>
+            <exception cref="T:System.ObjectDisposedException">
+            The <see cref="T:MailKit.IMailStore"/> has been disposed.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotConnectedException">
+            The <see cref="T:MailKit.IMailStore"/> is not connected.
+            </exception>
+            <exception cref="T:MailKit.ServiceNotAuthenticatedException">
+            The <see cref="T:MailKit.IMailStore"/> is not authenticated.
+            </exception>
+            <exception cref="T:MailKit.FolderNotOpenException">
+            The <see cref="T:MailKit.IMailFolder"/> is not currently open in read-write mode.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Cannot store annotations without any properties defined.
+            </exception>
+            <exception cref="T:System.NotSupportedException">
+            <para>The <see cref="T:MailKit.IMailFolder"/> does not support annotations.</para>
+            <para>-or-</para>
+            <para>The <see cref="T:MailKit.IMailFolder"/> does not support mod-sequences.</para>
+            </exception>
+            <exception cref="T:System.OperationCanceledException">
+            The operation was canceled via the cancellation token.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            An I/O error occurred.
+            </exception>
+            <exception cref="T:MailKit.ProtocolException">
+            The server's response contained unexpected tokens.
+            </exception>
+            <exception cref="T:MailKit.CommandException">
+            The command failed.
+            </exception>
+        </member>
         <member name="M:MailKit.MailFolder.Search(MailKit.Search.SearchQuery,System.Threading.CancellationToken)">
             <summary>
             Search the folder for messages matching the specified query.
@@ -49086,6 +51503,23 @@
             Raises the message labels changed event.
             </remarks>
             <param name="args">The message labels changed event args.</param>
+        </member>
+        <member name="E:MailKit.MailFolder.AnnotationsChanged">
+            <summary>
+            Occurs when annotations changed on a message.
+            </summary>
+            <remarks>
+            The <see cref="E:MailKit.MailFolder.AnnotationsChanged"/> event is emitted when the annotations for a message are changed.
+            </remarks>
+        </member>
+        <member name="M:MailKit.MailFolder.OnAnnotationsChanged(MailKit.AnnotationsChangedEventArgs)">
+            <summary>
+            Raise the message annotations changed event.
+            </summary>
+            <remarks>
+            Raises the message annotations changed event.
+            </remarks>
+            <param name="args">The message annotations changed event args.</param>
         </member>
         <member name="E:MailKit.MailFolder.MessageSummaryFetched">
             <summary>
@@ -53322,6 +55756,19 @@
             <paramref name="index"/> is out of range.
             </exception>
         </member>
+        <member name="M:MailKit.MessageEventArgs.#ctor(System.Int32,MailKit.UniqueId)">
+            <summary>
+            Initializes a new instance of the <see cref="T:MailKit.MessageEventArgs"/> class.
+            </summary>
+            <remarks>
+            Creates a new <see cref="T:MailKit.MessageEventArgs"/>.
+            </remarks>
+            <param name="index">The message index.</param>
+            <param name="uid">The unique id of the message.</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">
+            <paramref name="index"/> is out of range.
+            </exception>
+        </member>
         <member name="P:MailKit.MessageEventArgs.Index">
             <summary>
             Gets the index of the message that changed.
@@ -53330,6 +55777,15 @@
             Gets the index of the message that changed.
             </remarks>
             <value>The index of the message.</value>
+        </member>
+        <member name="P:MailKit.MessageEventArgs.UniqueId">
+            <summary>
+            Gets the unique ID of the message that changed, if available.
+            </summary>
+            <remarks>
+            Gets the unique ID of the message that changed, if available.
+            </remarks>
+            <value>The unique ID of the message.</value>
         </member>
         <member name="T:MailKit.MessageFlags">
             <summary>
@@ -53521,15 +55977,6 @@
             <paramref name="index"/> is out of range.
             </exception>
         </member>
-        <member name="P:MailKit.MessageFlagsChangedEventArgs.UniqueId">
-            <summary>
-            Gets the unique ID of the message that changed, if available.
-            </summary>
-            <remarks>
-            Gets the unique ID of the message that changed, if available.
-            </remarks>
-            <value>The unique ID of the message.</value>
-        </member>
         <member name="P:MailKit.MessageFlagsChangedEventArgs.Flags">
             <summary>
             Gets the updated message flags.
@@ -53653,15 +56100,6 @@
             <exception cref="T:System.ArgumentOutOfRangeException">
             <paramref name="index"/> is out of range.
             </exception>
-        </member>
-        <member name="P:MailKit.MessageLabelsChangedEventArgs.UniqueId">
-            <summary>
-            Gets the unique ID of the message that changed, if available.
-            </summary>
-            <remarks>
-            Gets the unique ID of the message that changed, if available.
-            </remarks>
-            <value>The unique ID of the message.</value>
         </member>
         <member name="P:MailKit.MessageLabelsChangedEventArgs.Labels">
             <summary>
@@ -54019,6 +56457,18 @@
             </remarks>
             <value>The user-defined message flags.</value>
         </member>
+        <member name="P:MailKit.MessageSummary.Annotations">
+            <summary>
+            Gets the message annotations, if available.
+            </summary>
+            <remarks>
+            <para>Gets the message annotations, if available.</para>
+            <para>This property will only be set if the
+            <see cref="F:MailKit.MessageSummaryItems.Annotations"/> flag is passed to
+            <see cref="M:MailKit.IMailFolder.Fetch(System.Collections.Generic.IList{MailKit.UniqueId},MailKit.MessageSummaryItems,System.Threading.CancellationToken)"/>.</para>
+            </remarks>
+            <value>The message annotations.</value>
+        </member>
         <member name="P:MailKit.MessageSummary.Headers">
             <summary>
             Gets the list of headers, if available.
@@ -54300,6 +56750,11 @@
             Fetch the the complete list of <see cref="P:MailKit.IMessageSummary.Headers"/>.
             </summary>
         </member>
+        <member name="F:MailKit.MessageSummaryItems.Annotations">
+            <summary>
+            Fetch the <see cref="P:MailKit.IMessageSummary.Annotations"/>.
+            </summary>
+        </member>
         <member name="F:MailKit.MessageSummaryItems.All">
             <summary>
             A macro for <see cref="F:MailKit.MessageSummaryItems.Envelope"/>, <see cref="F:MailKit.MessageSummaryItems.Flags"/>, <see cref="F:MailKit.MessageSummaryItems.InternalDate"/>,
@@ -54478,7 +56933,7 @@
             Creates a new <see cref="T:MailKit.Metadata"/>.
             </remarks>
             <param name="tag">The metadata tag.</param>
-            <param name="value">The meatdata value.</param>
+            <param name="value">The metadata value.</param>
         </member>
         <member name="P:MailKit.Metadata.Tag">
             <summary>
@@ -54623,7 +57078,7 @@
         </member>
         <member name="F:MailKit.MetadataTag.SharedAdmin">
             <summary>
-            Indicates a method for contacting the server administrator.
+            A metadata tag for specifying the contact information for the server administrator.
             </summary>
             <remarks>
             Used to get the contact information of the administrator on a
@@ -54632,7 +57087,7 @@
         </member>
         <member name="F:MailKit.MetadataTag.PrivateComment">
             <summary>
-            Indicates a private comment.
+            A metadata tag for private comments.
             </summary>
             <remarks>
             Used to get or set a private comment on a <see cref="T:MailKit.IMailFolder"/>.
@@ -54640,7 +57095,7 @@
         </member>
         <member name="F:MailKit.MetadataTag.SharedComment">
             <summary>
-            Indicates a shared comment.
+            A metadata tag for shared comments.
             </summary>
             <remarks>
             Used to get or set a shared comment on a <see cref="T:MailKit.IMailStore"/>
@@ -54649,7 +57104,7 @@
         </member>
         <member name="F:MailKit.MetadataTag.PrivateSpecialUse">
             <summary>
-            Indicates a method for specifying the special use for a particular folder.
+            A metadata tag for specifying the special use of a folder.
             </summary>
             <remarks>
             Used to get or set the special use of a <see cref="T:MailKit.IMailFolder"/>.
@@ -54672,7 +57127,7 @@
         </member>
         <member name="P:MailKit.MetadataTag.Id">
             <summary>
-            Gets the metadata tag identifier.
+            Get the metadata tag identifier.
             </summary>
             <remarks>
             Gets the metadata tag identifier.
@@ -54681,7 +57136,7 @@
         </member>
         <member name="M:MailKit.MetadataTag.Equals(System.Object)">
             <summary>
-            Determines whether the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:MailKit.MetadataTag"/>.
+            Determine whether the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:MailKit.MetadataTag"/>.
             </summary>
             <remarks>
             Determines whether the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:MailKit.MetadataTag"/>.
@@ -54745,15 +57200,6 @@
             <param name="index">The message index.</param>
             <param name="uid">The unique id of the message.</param>
             <param name="modseq">The modification sequence value.</param>
-        </member>
-        <member name="P:MailKit.ModSeqChangedEventArgs.UniqueId">
-            <summary>
-            Gets the unique ID of the message that changed, if available.
-            </summary>
-            <remarks>
-            Gets the unique ID of the message that changed, if available.
-            </remarks>
-            <value>The unique ID of the message.</value>
         </member>
         <member name="P:MailKit.ModSeqChangedEventArgs.ModSeq">
             <summary>
@@ -54921,6 +57367,15 @@
             Releases unmanaged resources and performs other cleanup operations before the <see cref="T:MailKit.ProtocolLogger"/>
             is reclaimed by garbage collection.
             </remarks>
+        </member>
+        <member name="P:MailKit.ProtocolLogger.Stream">
+            <summary>
+            Get the log stream.
+            </summary>
+            <remarks>
+            Gets the log stream.
+            </remarks>
+            <value>The log sstream.</value>
         </member>
         <member name="M:MailKit.ProtocolLogger.LogConnect(System.Uri)">
             <summary>
