@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.29411.108
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASTA", "ASTA.csproj", "{6C84406F-DC6A-4BB4-9716-1B56D6313C43}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASTATests", "..\ASTATests\ASTATests.csproj", "{BBCEC714-893D-4136-85F0-47B3C6FFB5C2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASTATests", "ASTATests\ASTATests.csproj", "{BBCEC714-893D-4136-85F0-47B3C6FFB5C2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
