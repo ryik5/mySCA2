@@ -7,8 +7,7 @@ using System.DirectoryServices;
 using ASTA.PersonDefinitions;
 
 namespace ASTA
-{
-   
+{   
     class ADData
     {
         static NLog.Logger logger;

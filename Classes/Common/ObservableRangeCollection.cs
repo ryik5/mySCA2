@@ -6,7 +6,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 
-namespace ASTA
+namespace ASTA.Classes.Common
 {
     /// <summary>
     /// Implementation of a dynamic data collection based on generic Collection&lt;T&gt;,

@@ -2,9 +2,7 @@
 using ASTA.PersonDefinitions; 
 
 namespace ASTA
-{
-
-    class SendToFileShare
+{    class SendToFileShare
     {
         private SendToFileShare(string fileName, UserAD user, string pathNetworkShare)
         {

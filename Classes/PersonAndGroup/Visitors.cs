@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-
+using ASTA.Classes.Common;
 namespace ASTA.PersonDefinitions
 {
     public class Visitors :INotifyPropertyChanged, IEnumerable

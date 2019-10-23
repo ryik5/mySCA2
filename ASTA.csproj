@@ -243,11 +243,14 @@
       <DependentUpon>AboutBox1.cs</DependentUpon>
     </Compile>
     <Compile Include="Classes\ActiveDirectory\ActiveDirectoryOperations.cs" />
-    <Compile Include="Classes\AutoUpdating\AutoUpdating.cs" />
-    <Compile Include="Classes\AutoUpdating\Updating.cs" />
-    <Compile Include="Classes\AutoUpdating\UpdatingParameters.cs" />
+    <Compile Include="Classes\Updating\AutoUpdating.cs" />
+    <Compile Include="Classes\Updating\MakerOfLinks.cs" />
+    <Compile Include="Classes\Updating\MakerOfUpdateXmlFile.cs" />
+    <Compile Include="Classes\Updating\UpdatePreparing.cs" />
+    <Compile Include="Classes\Updating\UpdatingParameters.cs" />
     <Compile Include="Classes\Common\DataGridViewOperations.cs" />
     <Compile Include="Classes\Common\NamesOfConstants.cs" />
+    <Compile Include="Classes\Common\WinFormsExtensions.cs" />
     <Compile Include="Classes\Datetime\DateTimeConvertor.cs" />
     <Compile Include="Classes\Common\ObservableRangeCollection.cs" />
     <Compile Include="Classes\PassagePoint.cs" />
@@ -265,7 +268,7 @@
     <Compile Include="Classes\Mailing\MailServer.cs" />
     <Compile Include="Classes\Mailing\MailSender.cs" />
     <Compile Include="Classes\Mailing\MailUser.cs" />
-    <Compile Include="Classes\AutoUpdating\MakerOfUpdateAppXML.cs" />
+    <Compile Include="Classes\Updating\AccountEventArgs.cs" />
     <Compile Include="Classes\PeopleShiftsAndOutResons.cs" />
     <Compile Include="AssemblyInfo1.cs" />
     <Compile Include="Classes\Common\DataTableExtensions.cs" />
@@ -273,6 +276,7 @@
     <Compile Include="Classes\PersonAndGroup\Department.cs" />
     <Compile Include="Classes\Security\CalculateHash.cs" />
     <Compile Include="Classes\Security\EncryptDecrypt.cs" />
+    <Compile Include="Classes\Updating\Uploader.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -302,7 +306,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>README.md</DependentUpon>
     </Compile>
-    <Compile Include="Classes\AutoUpdating\SendToFileShare.cs" />
+    <Compile Include="Classes\Updating\SendToFileShare.cs" />
     <Compile Include="Classes\Common\StartStopTimers.cs" />
     <Compile Include="Classes\Datetime\TimeConvertor.cs" />
   </ItemGroup>

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ASTA.Common
+namespace ASTA.Classes.Common
 {
     public static class Names
     {
@@ -9,9 +9,9 @@ namespace ASTA.Common
                 @"MySQLServer", @"MySQLUser", @"MySQLUserPassword",
                 @"MailServer", @"MailUser", @"MailUserPassword",
                 @"DEFAULT_DAY_OF_SENDING_REPORT", @"MailServerSMTPport",
-                @"DomainOfUser", @"ServerURI", @"UserName", @"UserPassword",
+                @"DomainOfUser", @"DomainController", @"UserName", @"UserPassword",
                 @"clrRealRegistration", @"ShiftDaysBackOfSendingFromLastWorkDay",
-                @"JobReportsReceiver", @"appUpdateFolderURL",@"appUpdateFolderURI"
+                @"JobReportsReceiver", @"RemoteFolderUpdateURL"
             };
 
         public const string CARD_STATE = @"Событие точки доступа";

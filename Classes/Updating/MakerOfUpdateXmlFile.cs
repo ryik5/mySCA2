@@ -1,28 +1,20 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 
 namespace ASTA.Classes.AutoUpdating
 {
-    public class AccountEventArgs
-    {
-        // Сообщение
-        public string Message { get; }
-
-        public AccountEventArgs(string mes)
-        {
-            Message = mes;
-        }
-    }
-
     public class MakerOfUpdateXmlFile
     {
-        UpdatingParameters _parameters { get; set; }
+      static UpdatingParameters _parameters { get; set; }
 
         public delegate void Status(object sender, AccountEventArgs e);
         public event Status status;
-
         public MakerOfUpdateXmlFile() { }
 
         public MakerOfUpdateXmlFile(UpdatingParameters parameters)
@@ -42,15 +34,17 @@ namespace ASTA.Classes.AutoUpdating
 
         public void MakeFile()
         {
+            status?.Invoke(this, new AccountEventArgs("MakeFile "));
+
             if (_parameters == null)
             {
-                throw new ArgumentNullException(UpdatingParameters.Name, "Class 'UpdatingParameters' can't be Null!");
+                throw new ArgumentNullException();
             }
 
-            if (_parameters.appFileXml == null)
-            {
-                throw new NullReferenceException();
-            }
+                       if (_parameters.appFileXml == null)
+                       {
+                           throw new ArgumentNullException();
+                       }
 
             //https://stackoverflow.com/questions/44477727/writing-xml-and-reading-it-back-c-sharp
             //clear any xmlns attributes from the root element
@@ -60,7 +54,7 @@ namespace ASTA.Classes.AutoUpdating
             XMLDocument document = new XMLDocument();
             document.version = _parameters.appVersion;
             document.url = _parameters.appUpdateFolderURL;
-            
+
             if (_parameters.appUpdateMD5 != null)
             {
                 var checksum = new XMLElementChecksum();
@@ -68,18 +62,25 @@ namespace ASTA.Classes.AutoUpdating
                 checksum.algorithm = "MD5";
                 document.checksum = checksum;
             }
+            status?.Invoke(this, new AccountEventArgs("XML файл:" + _parameters.appFileXml));
 
             //  var nodesToStore = new List<XMLDocument> { document };
-            using (FileStream fs = new FileStream(_parameters.appFileXml, FileMode.Create))
+            try
             {
-                // XmlSerializer serializer = new XmlSerializer(nodesToStore.GetType());
-                // serializer.Serialize(fs, nodesToStore);
+                using (FileStream fs = new FileStream(_parameters.appFileXml, FileMode.Create))
+                {
+                    // XmlSerializer serializer = new XmlSerializer(nodesToStore.GetType());
+                    // serializer.Serialize(fs, nodesToStore);
 
-                XmlSerializer serializer = new XmlSerializer(document.GetType());//, atribXmlOver
-                serializer.Serialize(fs, document, ns); //clear any xmlns attributes from the root element
+                    XmlSerializer serializer = new XmlSerializer(document.GetType());//, atribXmlOver
+                    serializer.Serialize(fs, document, ns); //clear any xmlns attributes from the root element
+                }
+                status?.Invoke(this, new AccountEventArgs("XML файл сохранен как " + Path.GetFullPath(_parameters.appFileXml)));
             }
-            status?.Invoke(this, new AccountEventArgs("XML файл сохранен как " + Path.GetFullPath(_parameters.appFileXml)));
-
+            catch
+            {
+                status?.Invoke(this, new AccountEventArgs("Ошибка сохранения XML файла"));
+            }
 
             /* var readNodes = new List<document>();
              using (FileStream fs2 = new FileStream(filepath, FileMode.Open))

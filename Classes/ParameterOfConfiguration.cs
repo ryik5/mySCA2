@@ -10,14 +10,14 @@ namespace ASTA
     {
         public string parameterName;
         public string parameterDescription;
-        public string parameterValue;
+        public string Value;
         public string dateCreated;
         public bool isPassword;
         public string isExample;
 
         public override string ToString()
         {
-            return parameterName + "\t" + parameterDescription + "\t" + parameterValue + "\t" + dateCreated + "\t" +
+            return parameterName + "\t" + parameterDescription + "\t" + Value + "\t" + dateCreated + "\t" +
                 isPassword.ToString() + "\t" + isExample;
         }
 
@@ -185,7 +185,7 @@ namespace ASTA
         {
             List<ParameterConfig> parametersConfig = new List<ParameterConfig>(); ;
 
-            ParameterConfig parameterConfig = new ParameterConfig() { parameterName = "", parameterDescription = "", parameterValue = "", isPassword = false, isExample = "no" };
+            ParameterConfig parameterConfig = new ParameterConfig() { parameterName = "", parameterDescription = "", Value = "", isPassword = false, isExample = "no" };
 
             string value = ""; string valueTmp = ""; string name = ""; string decrypt = "";
 
@@ -219,7 +219,7 @@ namespace ASTA
                                     name = reader["ParameterName"]?.ToString();
                                     if (name?.Length > 0)
                                     {
-                                        parameterConfig = new ParameterConfig() { parameterName = "", parameterDescription = "", parameterValue = "", isPassword = false, isExample = "no" };
+                                        parameterConfig = new ParameterConfig() { parameterName = "", parameterDescription = "", Value = "", isPassword = false, isExample = "no" };
                                         decrypt = reader["IsPassword"]?.ToString();
 
                                         valueTmp = reader["Value"]?.ToString();
@@ -234,7 +234,7 @@ namespace ASTA
                                             parameterConfig.isPassword = false;
                                         }
                                         parameterConfig.parameterName = name;
-                                        parameterConfig.parameterValue = value;
+                                        parameterConfig.Value = value;
                                         parameterConfig.parameterDescription = reader["Description"]?.ToString();
                                         parameterConfig.dateCreated = reader["DateCreated"]?.ToString();
                                         parameterConfig.isExample = reader["IsExample"]?.ToString();
