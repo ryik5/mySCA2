@@ -17,7 +17,7 @@ using MimeKit;
 
 using ASTA.PersonDefinitions;
 using ASTA.Common;
-using ASTA.AutoUpdating;
+using ASTA.Classes.AutoUpdating;
 using ASTA.Security;
 using AutoUpdaterDotNET;
 
@@ -4716,12 +4716,12 @@ namespace ASTA
             {
                 if (dirPath.Contains(@"\"))
                 {
-                    try 
-                    { 
+                    try
+                    {
                         System.IO.Directory.CreateDirectory(dirPath.Replace(dirPath, appFolderTempPath + @"\" + dirPath.Remove(dirPath.IndexOf('\\'))));
                     }
                     catch (Exception err)
-                    { 
+                    {
                         logger.Trace(dirPath + " - " + err.ToString());
                     }
                 }
@@ -4735,7 +4735,7 @@ namespace ASTA
                 catch (Exception err) { logger.Trace(file + " - " + err.ToString()); }
             }
             System.IO.Compression.ZipFile.CreateFromDirectory(appFolderTempPath, appFolderPath + @"\" + fullNameZip, System.IO.Compression.CompressionLevel.Optimal, false);
-            LoggerAddInfo("Made archive: "+ appFolderPath + @"\" + fullNameZip);
+            LoggerAddInfo("Made archive: " + appFolderPath + @"\" + fullNameZip);
         }
 
         private void MakeZip(string filePath, string fullNameZip)
@@ -10026,9 +10026,9 @@ namespace ASTA
             parameters.appFileXml = appNameXML; //appFolderPath
             parameters.appUpdateMD5 = appFileMD5;
 
-            MakerOfUpdateAppXML makerXML = new MakerOfUpdateAppXML(parameters);
+            MakerOfUpdateXmlFile makerXML = new MakerOfUpdateXmlFile(parameters);
             makerXML.status += LoggerAddInfo;
-            makerXML.Make();
+            makerXML.MakeFile();
             makerXML.status -= LoggerAddInfo;
             makerXML = null;
         }
@@ -10045,12 +10045,12 @@ namespace ASTA
 
         private void LoggerAddInfo(object sender, AccountEventArgs e)
         {
-                logger.Info(e.Message);
+            logger.Info(e.Message);
         }
 
         private void LoggerAddInfo(string message)
         {
-                  logger.Info(message);
+            logger.Info(message);
         }
 
 
@@ -10071,9 +10071,9 @@ namespace ASTA
             parameters.appFileXml = appNameXML;
             parameters.appUpdateMD5 = appFileMD5;
 
-            MakerOfUpdateAppXML makerXML = new MakerOfUpdateAppXML(parameters);
-            
-            makerXML.Make();
+            MakerOfUpdateXmlFile makerXML = new MakerOfUpdateXmlFile(parameters);
+
+            makerXML.MakeFile();
             makerXML.status += LoggerAddInfo;
 
             Updating updating = new Updating(makerLinks, makerXML, parameters);
@@ -10098,7 +10098,7 @@ namespace ASTA
         private void SelectfilesForCalculatingHash() //SelectFileOpenFileDialog() CalculateFileHash()
         {
             string result = null;
-            string filePath ;
+            string filePath;
             CalculatingHash calculatedHash;
 
             DialogResult selectTwoFiles = MessageBox.Show("Выбрать 2 файла для сравнения?", "Сравнение файлов",

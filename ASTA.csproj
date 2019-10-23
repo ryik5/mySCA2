@@ -242,46 +242,48 @@
     <Compile Include="AboutBox1.Designer.cs">
       <DependentUpon>AboutBox1.cs</DependentUpon>
     </Compile>
-    <Compile Include="ActiveDirectory\ActiveDirectoryOperations.cs" />
-    <Compile Include="AutoUpdating\AutoUpdating.cs" />
-    <Compile Include="Common\DataGridViewOperations.cs" />
-    <Compile Include="Common\NamesOfConstants.cs" />
-    <Compile Include="Datetime\DateTimeConvertor.cs" />
-    <Compile Include="Common\ObservableRangeCollection.cs" />
+    <Compile Include="Classes\ActiveDirectory\ActiveDirectoryOperations.cs" />
+    <Compile Include="Classes\AutoUpdating\AutoUpdating.cs" />
+    <Compile Include="Classes\AutoUpdating\Updating.cs" />
+    <Compile Include="Classes\AutoUpdating\UpdatingParameters.cs" />
+    <Compile Include="Classes\Common\DataGridViewOperations.cs" />
+    <Compile Include="Classes\Common\NamesOfConstants.cs" />
+    <Compile Include="Classes\Datetime\DateTimeConvertor.cs" />
+    <Compile Include="Classes\Common\ObservableRangeCollection.cs" />
     <Compile Include="Classes\PassagePoint.cs" />
-    <Compile Include="PersonAndGroup\Employee.cs" />
-    <Compile Include="PersonAndGroup\EmployeeFull.cs" />
-    <Compile Include="PersonAndGroup\EmployeeVisitor.cs" />
-    <Compile Include="ActiveDirectory\UserAD.cs" />
-    <Compile Include="ActiveDirectory\ADUserAuthorization.cs" />
+    <Compile Include="Classes\PersonAndGroup\Employee.cs" />
+    <Compile Include="Classes\PersonAndGroup\EmployeeFull.cs" />
+    <Compile Include="Classes\PersonAndGroup\EmployeeVisitor.cs" />
+    <Compile Include="Classes\ActiveDirectory\UserAD.cs" />
+    <Compile Include="Classes\ActiveDirectory\ADUserAuthorization.cs" />
     <Compile Include="Classes\AmountMembersOfGroup.cs" />
-    <Compile Include="Db\DbColumn.cs" />
-    <Compile Include="Db\DbIndex.cs" />
-    <Compile Include="Db\DbSchema.cs" />
-    <Compile Include="Db\DbTable.cs" />
-    <Compile Include="Db\DbUpgradeException.cs" />
-    <Compile Include="Mailing\MailServer.cs" />
-    <Compile Include="Mailing\MailSender.cs" />
-    <Compile Include="Mailing\MailUser.cs" />
-    <Compile Include="AutoUpdating\MakerOfUpdateAppXML.cs" />
+    <Compile Include="Classes\Db\DbColumn.cs" />
+    <Compile Include="Classes\Db\DbIndex.cs" />
+    <Compile Include="Classes\Db\DbSchema.cs" />
+    <Compile Include="Classes\Db\DbTable.cs" />
+    <Compile Include="Classes\Db\DbUpgradeException.cs" />
+    <Compile Include="Classes\Mailing\MailServer.cs" />
+    <Compile Include="Classes\Mailing\MailSender.cs" />
+    <Compile Include="Classes\Mailing\MailUser.cs" />
+    <Compile Include="Classes\AutoUpdating\MakerOfUpdateAppXML.cs" />
     <Compile Include="Classes\PeopleShiftsAndOutResons.cs" />
     <Compile Include="AssemblyInfo1.cs" />
-    <Compile Include="Common\DataTableExtensions.cs" />
-    <Compile Include="Datetime\DateTimeExtensions.cs" />
-    <Compile Include="PersonAndGroup\Department.cs" />
-    <Compile Include="Security\CalculateHash.cs" />
-    <Compile Include="Security\EncryptDecrypt.cs" />
+    <Compile Include="Classes\Common\DataTableExtensions.cs" />
+    <Compile Include="Classes\Datetime\DateTimeExtensions.cs" />
+    <Compile Include="Classes\PersonAndGroup\Department.cs" />
+    <Compile Include="Classes\Security\CalculateHash.cs" />
+    <Compile Include="Classes\Security\EncryptDecrypt.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
-    <Compile Include="PersonAndGroup\Visitor.cs" />
-    <Compile Include="Mailing\Mailing.cs" />
+    <Compile Include="Classes\PersonAndGroup\Visitor.cs" />
+    <Compile Include="Classes\Mailing\Mailing.cs" />
     <Compile Include="Classes\ParameterOfConfiguration.cs" />
-    <Compile Include="PersonAndGroup\Person.cs" />
-    <Compile Include="PersonAndGroup\Visitors.cs" />
+    <Compile Include="Classes\PersonAndGroup\Person.cs" />
+    <Compile Include="Classes\PersonAndGroup\Visitors.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -294,15 +296,15 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Include="Db\DbControls.cs" />
+    <Compile Include="Classes\Db\DbControls.cs" />
     <Compile Include="README1.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>README.md</DependentUpon>
     </Compile>
-    <Compile Include="AutoUpdating\SendToFileShare.cs" />
-    <Compile Include="Common\StartStopTimers.cs" />
-    <Compile Include="Datetime\TimeConvertor.cs" />
+    <Compile Include="Classes\AutoUpdating\SendToFileShare.cs" />
+    <Compile Include="Classes\Common\StartStopTimers.cs" />
+    <Compile Include="Classes\Datetime\TimeConvertor.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="AboutBox1.resx">

@@ -942,6 +942,7 @@
             <example>
             <code language="c#" source="Examples\ArcSignerExample.cs" />
             </example>
+            <returns>An awaitable task.</returns>
             <param name="options">The formatting options.</param>
             <param name="message">The message to sign.</param>
             <param name="headers">The list of header fields to sign.</param>
@@ -1001,6 +1002,7 @@
             <example>
             <code language="c#" source="Examples\ArcSignerExample.cs" />
             </example>
+            <returns>An awaitable task.</returns>
             <param name="message">The message to sign.</param>
             <param name="headers">The list of header fields to sign.</param>
             <param name="cancellationToken">The cancellation token.</param>
@@ -1060,6 +1062,7 @@
             <example>
             <code language="c#" source="Examples\ArcSignerExample.cs" />
             </example>
+            <returns>An awaitable task.</returns>
             <param name="options">The formatting options.</param>
             <param name="message">The message to sign.</param>
             <param name="headers">The list of header fields to sign.</param>
@@ -1119,6 +1122,7 @@
             <example>
             <code language="c#" source="Examples\ArcSignerExample.cs" />
             </example>
+            <returns>An awaitable task.</returns>
             <param name="message">The message to sign.</param>
             <param name="headers">The list of header fields to sign.</param>
             <param name="cancellationToken">The cancellation token.</param>
@@ -1685,7 +1689,16 @@
             <remarks>
             Gets the comment regarding the authentication method result.
             </remarks>
-            <value>THe comment regarding the authentication method result.</value>
+            <value>The comment regarding the authentication method result.</value>
+        </member>
+        <member name="P:MimeKit.Cryptography.AuthenticationMethodResult.Action">
+            <summary>
+            Get the action taken for the authentication method result.
+            </summary>
+            <remarks>
+            Gets the action taken for the authentication method result.
+            </remarks>
+            <value>The action taken for the authentication method result.</value>
         </member>
         <member name="P:MimeKit.Cryptography.AuthenticationMethodResult.Reason">
             <summary>
@@ -1731,6 +1744,7 @@
             </remarks>
             <param name="ptype">The property type.</param>
             <param name="property">The name of the property.</param>
+            <param name="value">The value of the property.</param>
             <exception cref="T:System.ArgumentNullException">
             <para><paramref name="ptype"/> is <c>null</c>.</para>
             <para>-or-</para>
@@ -2188,6 +2202,19 @@
             <exception cref="T:Org.BouncyCastle.Cms.CmsException">
             An error occurred in the cryptographic message syntax subsystem.
             </exception>
+        </member>
+        <member name="M:MimeKit.Cryptography.BouncyCastleSecureMimeContext.BuildCertificateChain(Org.BouncyCastle.X509.X509Certificate)">
+            <summary>
+            Build a certificate chain.
+            </summary>
+            <remarks>
+            <para>Builds a certificate chain for the provided certificate.</para>
+            <para>This method is ideal for use with custom <see cref="M:MimeKit.Cryptography.BouncyCastleSecureMimeContext.GetCmsSigner(MimeKit.MailboxAddress,MimeKit.Cryptography.DigestAlgorithm)"/>
+            implementations when it is desirable to include the certificate chain
+            in the signature.</para>
+            </remarks>
+            <param name="certificate">The certificate to build the chain for.</param>
+            <returns>The certificate chain, including the specified certificate.</returns>
         </member>
         <member name="M:MimeKit.Cryptography.BouncyCastleSecureMimeContext.TryGetDigestAlgorithm(Org.BouncyCastle.Asn1.X509.AlgorithmIdentifier,MimeKit.Cryptography.DigestAlgorithm@)">
             <summary>
@@ -2773,7 +2800,7 @@
             </summary>
             <remarks>
             <para>The initial value of the <see cref="P:MimeKit.Cryptography.CmsSigner.DigestAlgorithm"/> will be set to
-            <see cref="F:MimeKit.Cryptography.DigestAlgorithm.Sha1"/> and both the
+            <see cref="F:MimeKit.Cryptography.DigestAlgorithm.Sha256"/> and both the
             <see cref="P:MimeKit.Cryptography.CmsSigner.SignedAttributes"/> and <see cref="P:MimeKit.Cryptography.CmsSigner.UnsignedAttributes"/> properties
             will be initialized to empty tables.</para>
             </remarks>
@@ -2784,7 +2811,7 @@
             </summary>
             <remarks>
             <para>The initial value of the <see cref="P:MimeKit.Cryptography.CmsSigner.DigestAlgorithm"/> will be set to
-            <see cref="F:MimeKit.Cryptography.DigestAlgorithm.Sha1"/> and both the
+            <see cref="F:MimeKit.Cryptography.DigestAlgorithm.Sha256"/> and both the
             <see cref="P:MimeKit.Cryptography.CmsSigner.SignedAttributes"/> and <see cref="P:MimeKit.Cryptography.CmsSigner.UnsignedAttributes"/> properties
             will be initialized to empty tables.</para>
             </remarks>
@@ -2809,7 +2836,7 @@
             </summary>
             <remarks>
             <para>The initial value of the <see cref="T:MimeKit.Cryptography.DigestAlgorithm"/> will
-            be set to <see cref="F:MimeKit.Cryptography.DigestAlgorithm.Sha1"/> and both the
+            be set to <see cref="F:MimeKit.Cryptography.DigestAlgorithm.Sha256"/> and both the
             <see cref="P:MimeKit.Cryptography.CmsSigner.SignedAttributes"/> and <see cref="P:MimeKit.Cryptography.CmsSigner.UnsignedAttributes"/> properties will be
             initialized to empty tables.</para>
             </remarks>
@@ -2834,7 +2861,7 @@
             <para>Creates a new <see cref="T:MimeKit.Cryptography.CmsSigner"/>, loading the X.509 certificate and private key
             from the specified stream.</para>
             <para>The initial value of the <see cref="T:MimeKit.Cryptography.DigestAlgorithm"/> will
-            be set to <see cref="F:MimeKit.Cryptography.DigestAlgorithm.Sha1"/> and both the
+            be set to <see cref="F:MimeKit.Cryptography.DigestAlgorithm.Sha256"/> and both the
             <see cref="P:MimeKit.Cryptography.CmsSigner.SignedAttributes"/> and <see cref="P:MimeKit.Cryptography.CmsSigner.UnsignedAttributes"/> properties will be
             initialized to empty tables.</para>
             </remarks>
@@ -2862,7 +2889,7 @@
             <para>Creates a new <see cref="T:MimeKit.Cryptography.CmsSigner"/>, loading the X.509 certificate and private key
             from the specified file.</para>
             <para>The initial value of the <see cref="T:MimeKit.Cryptography.DigestAlgorithm"/> will
-            be set to <see cref="F:MimeKit.Cryptography.DigestAlgorithm.Sha1"/> and both the
+            be set to <see cref="F:MimeKit.Cryptography.DigestAlgorithm.Sha256"/> and both the
             <see cref="P:MimeKit.Cryptography.CmsSigner.SignedAttributes"/> and <see cref="P:MimeKit.Cryptography.CmsSigner.UnsignedAttributes"/> properties will be
             initialized to empty tables.</para>
             </remarks>
@@ -2901,7 +2928,7 @@
             </summary>
             <remarks>
             <para>The initial value of the <see cref="T:MimeKit.Cryptography.DigestAlgorithm"/> will
-            be set to <see cref="F:MimeKit.Cryptography.DigestAlgorithm.Sha1"/> and both the
+            be set to <see cref="F:MimeKit.Cryptography.DigestAlgorithm.Sha256"/> and both the
             <see cref="P:MimeKit.Cryptography.CmsSigner.SignedAttributes"/> and <see cref="P:MimeKit.Cryptography.CmsSigner.UnsignedAttributes"/> properties will be
             initialized to empty tables.</para>
             </remarks>
@@ -2915,7 +2942,7 @@
         </member>
         <member name="P:MimeKit.Cryptography.CmsSigner.Certificate">
             <summary>
-            Gets the signer's certificate.
+            Get the signer's certificate.
             </summary>
             <remarks>
             The signer's certificate that contains a public key that can be used for
@@ -2925,7 +2952,7 @@
         </member>
         <member name="P:MimeKit.Cryptography.CmsSigner.CertificateChain">
             <summary>
-            Gets the certificate chain.
+            Get the certificate chain.
             </summary>
             <remarks>
             Gets the certificate chain.
@@ -2934,7 +2961,7 @@
         </member>
         <member name="P:MimeKit.Cryptography.CmsSigner.DigestAlgorithm">
             <summary>
-            Gets or sets the digest algorithm.
+            Get or set the digest algorithm.
             </summary>
             <remarks>
             Specifies which digest algorithm to use to generate the
@@ -2944,16 +2971,26 @@
         </member>
         <member name="P:MimeKit.Cryptography.CmsSigner.PrivateKey">
             <summary>
-            Gets the private key.
+            Get the private key.
             </summary>
             <remarks>
             The private key used for signing.
             </remarks>
             <value>The private key.</value>
         </member>
+        <member name="P:MimeKit.Cryptography.CmsSigner.RsaSignaturePaddingScheme">
+            <summary>
+            Get or set the RSA signature padding scheme.
+            </summary>
+            <remarks>
+            <para>Gets or sets the signature padding scheme to use for signing when
+            the <see cref="P:MimeKit.Cryptography.CmsSigner.PrivateKey"/> is an RSA key.</para>
+            </remarks>
+            <value>The signature padding scheme.</value>
+        </member>
         <member name="P:MimeKit.Cryptography.CmsSigner.SignedAttributes">
             <summary>
-            Gets or sets the signed attributes.
+            Get or set the signed attributes.
             </summary>
             <remarks>
             A table of attributes that should be included in the signature.
@@ -2962,7 +2999,7 @@
         </member>
         <member name="P:MimeKit.Cryptography.CmsSigner.UnsignedAttributes">
             <summary>
-            Gets or sets the unsigned attributes.
+            Get or set the unsigned attributes.
             </summary>
             <remarks>
             A table of attributes that should not be signed in the signature,
@@ -6730,73 +6767,6 @@
             An error occurred in the cryptographic message syntax subsystem.
             </exception>
         </member>
-        <member name="T:MimeKit.Cryptography.NpgsqlCertificateDatabase">
-            <summary>
-            An X.509 certificate database built on PostgreSQL.
-            </summary>
-            <remarks>
-            <para>An X.509 certificate database is used for storing certificates, metdata related to the certificates
-            (such as encryption algorithms supported by the associated client), certificate revocation lists (CRLs),
-            and private keys.</para>
-            <para>This particular database uses PostgreSQL to store the data.</para>
-            </remarks>
-        </member>
-        <member name="M:MimeKit.Cryptography.NpgsqlCertificateDatabase.#ctor(System.String,System.String)">
-            <summary>
-            Initializes a new instance of the <see cref="T:MimeKit.Cryptography.NpgsqlCertificateDatabase"/> class.
-            </summary>
-            <remarks>
-            <para>Creates a new <see cref="T:MimeKit.Cryptography.NpgsqlCertificateDatabase"/> and opens a connection to the
-            PostgreSQL database using the specified connection string.</para>
-            </remarks>
-            <param name="connectionString">The connection string.</param>
-            <param name="password">The password used for encrypting and decrypting the private keys.</param>
-            <exception cref="T:System.ArgumentNullException">
-            <para><paramref name="connectionString"/> is <c>null</c>.</para>
-            <para>-or-</para>
-            <para><paramref name="password"/> is <c>null</c>.</para>
-            </exception>
-            <exception cref="T:System.ArgumentException">
-            <paramref name="connectionString"/> is empty.
-            </exception>
-        </member>
-        <member name="M:MimeKit.Cryptography.NpgsqlCertificateDatabase.#ctor(System.Data.Common.DbConnection,System.String)">
-            <summary>
-            Initializes a new instance of the <see cref="T:MimeKit.Cryptography.NpgsqlCertificateDatabase"/> class.
-            </summary>
-            <remarks>
-            Creates a new <see cref="T:MimeKit.Cryptography.NpgsqlCertificateDatabase"/> using the provided Npgsql database connection.
-            </remarks>
-            <param name="connection">The Npgsql connection.</param>
-            <param name="password">The password used for encrypting and decrypting the private keys.</param>
-            <exception cref="T:System.ArgumentNullException">
-            <para><paramref name="connection"/> is <c>null</c>.</para>
-            <para>-or-</para>
-            <para><paramref name="password"/> is <c>null</c>.</para>
-            </exception>
-        </member>
-        <member name="M:MimeKit.Cryptography.NpgsqlCertificateDatabase.GetCreateCertificatesTableCommand(System.Data.Common.DbConnection)">
-            <summary>
-            Gets the command to create the certificates table.
-            </summary>
-            <remarks>
-            Constructs the command to create a certificates table suitable for storing
-            <see cref="T:MimeKit.Cryptography.X509CertificateRecord"/> objects.
-            </remarks>
-            <returns>The <see cref="T:System.Data.Common.DbCommand"/>.</returns>
-            <param name="connection">The <see cref="T:System.Data.Common.DbConnection"/>.</param>
-        </member>
-        <member name="M:MimeKit.Cryptography.NpgsqlCertificateDatabase.GetCreateCrlsTableCommand(System.Data.Common.DbConnection)">
-            <summary>
-            Gets the command to create the CRLs table.
-            </summary>
-            <remarks>
-            Constructs the command to create a CRLs table suitable for storing
-            <see cref="T:MimeKit.Cryptography.X509CertificateRecord"/> objects.
-            </remarks>
-            <returns>The <see cref="T:System.Data.Common.DbCommand"/>.</returns>
-            <param name="connection">The <see cref="T:System.Data.Common.DbConnection"/>.</param>
-        </member>
         <member name="T:MimeKit.Cryptography.OpenPgpBlockFilter">
             <summary>
             A filter to strip off data before and after an armored OpenPGP block.
@@ -8516,6 +8486,25 @@
             Gets the key id that could not be found.
             </remarks>
             <value>The key id.</value>
+        </member>
+        <member name="T:MimeKit.Cryptography.RsaSignaturePaddingScheme">
+            <summary>
+            The RSA signature padding schemes used by S/MIME.
+            </summary>
+            <remarks>
+            The RSA signature padding schemes used by S/MIME as described in
+            <a href="https://tools.ietf.org/html/rfc8017">rfc8017</a>.
+            </remarks>
+        </member>
+        <member name="F:MimeKit.Cryptography.RsaSignaturePaddingScheme.Pkcs1">
+            <summary>
+            The PKCS #1 v1.5 signature padding scheme.
+            </summary>
+        </member>
+        <member name="F:MimeKit.Cryptography.RsaSignaturePaddingScheme.Pss">
+            <summary>
+            The Probibilistic Signature Scheme (PSS).
+            </summary>
         </member>
         <member name="T:MimeKit.Cryptography.SecureMailboxAddress">
             <summary>
@@ -16308,22 +16297,12 @@
             <para>The flowed text format defines a Content-Type parameter called "delsp" which can
             have a value of "yes" or "no". If the parameter exists and the value is "yes", then
             <see cref="P:MimeKit.Text.FlowedToHtml.DeleteSpace"/> should be set to <c>true</c>, otherwise <see cref="P:MimeKit.Text.FlowedToHtml.DeleteSpace"/>
-            should be set to false.</para>
+            should be set to <c>false</c>.</para>
             </remarks>
             <example>
             <code language="c#" source="Examples\MimeVisitorExamples.cs" region="HtmlPreviewVisitor" />
             </example>
             <value><c>true</c> if the trailing space on a wrapped line should be deleted; otherwise, <c>false</c>.</value>
-        </member>
-        <member name="P:MimeKit.Text.FlowedToHtml.Footer">
-            <summary>
-            Get or set the text that will be appended to the end of the output.
-            </summary>
-            <remarks>
-            <para>Gets or sets the text that will be appended to the end of the output.</para>
-            <para>The footer must be set before conversion begins.</para>
-            </remarks>
-            <value>The footer.</value>
         </member>
         <member name="P:MimeKit.Text.FlowedToHtml.FooterFormat">
             <summary>
@@ -16333,16 +16312,6 @@
             Gets or sets the footer format.
             </remarks>
             <value>The footer format.</value>
-        </member>
-        <member name="P:MimeKit.Text.FlowedToHtml.Header">
-            <summary>
-            Get or set text that will be prepended to the beginning of the output.
-            </summary>
-            <remarks>
-            <para>Gets or sets the text that will be prepended to the beginning of the output.</para>
-            <para>The header must be set before conversion begins.</para>
-            </remarks>
-            <value>The header.</value>
         </member>
         <member name="P:MimeKit.Text.FlowedToHtml.HeaderFormat">
             <summary>
@@ -18269,16 +18238,6 @@
             </remarks>
             <value><c>true</c> if executable scripts should be filtered; otherwise, <c>false</c>.</value>
         </member>
-        <member name="P:MimeKit.Text.HtmlToHtml.Footer">
-            <summary>
-            Get or set the text that will be appended to the end of the output.
-            </summary>
-            <remarks>
-            <para>Gets or sets the text that will be appended to the end of the output.</para>
-            <para>The footer must be set before conversion begins.</para>
-            </remarks>
-            <value>The footer.</value>
-        </member>
         <member name="P:MimeKit.Text.HtmlToHtml.FooterFormat">
             <summary>
             Get or set the footer format.
@@ -18287,16 +18246,6 @@
             Gets or sets the footer format.
             </remarks>
             <value>The footer format.</value>
-        </member>
-        <member name="P:MimeKit.Text.HtmlToHtml.Header">
-            <summary>
-            Get or set text that will be prepended to the beginning of the output.
-            </summary>
-            <remarks>
-            <para>Gets or sets the text that will be prepended to the beginning of the output.</para>
-            <para>The header must be set before conversion begins.</para>
-            </remarks>
-            <value>The header.</value>
         </member>
         <member name="P:MimeKit.Text.HtmlToHtml.HeaderFormat">
             <summary>
@@ -20367,6 +20316,26 @@
             <paramref name="value"/> is less than or equal to <c>0</c>.
             </exception>
         </member>
+        <member name="P:MimeKit.Text.TextConverter.Footer">
+            <summary>
+            Get or set the text that will be appended to the end of the output.
+            </summary>
+            <remarks>
+            <para>Gets or sets the text that will be appended to the end of the output.</para>
+            <para>The footer must be set before conversion begins.</para>
+            </remarks>
+            <value>The footer.</value>
+        </member>
+        <member name="P:MimeKit.Text.TextConverter.Header">
+            <summary>
+            Get or set text that will be prepended to the beginning of the output.
+            </summary>
+            <remarks>
+            <para>Gets or sets the text that will be prepended to the beginning of the output.</para>
+            <para>The header must be set before conversion begins.</para>
+            </remarks>
+            <value>The header.</value>
+        </member>
         <member name="M:MimeKit.Text.TextConverter.Convert(System.IO.Stream,System.IO.Stream)">
             <summary>
             Convert the contents of <paramref name="source"/> from the <see cref="P:MimeKit.Text.TextConverter.InputFormat"/> to the
@@ -20530,26 +20499,6 @@
             </remarks>
             <value>The output format.</value>
         </member>
-        <member name="P:MimeKit.Text.TextToFlowed.Footer">
-            <summary>
-            Get or set the text that will be appended to the end of the output.
-            </summary>
-            <remarks>
-            <para>Gets or sets the text that will be appended to the end of the output.</para>
-            <para>The footer must be set before conversion begins.</para>
-            </remarks>
-            <value>The footer.</value>
-        </member>
-        <member name="P:MimeKit.Text.TextToFlowed.Header">
-            <summary>
-            Get or set text that will be prepended to the beginning of the output.
-            </summary>
-            <remarks>
-            <para>Gets or sets the text that will be prepended to the beginning of the output.</para>
-            <para>The header must be set before conversion begins.</para>
-            </remarks>
-            <value>The header.</value>
-        </member>
         <member name="M:MimeKit.Text.TextToFlowed.Convert(System.IO.TextReader,System.IO.TextWriter)">
             <summary>
             Convert the contents of <paramref name="reader"/> from the <see cref="P:MimeKit.Text.TextToFlowed.InputFormat"/> to the
@@ -20604,16 +20553,6 @@
             </remarks>
             <value>The output format.</value>
         </member>
-        <member name="P:MimeKit.Text.TextToHtml.Footer">
-            <summary>
-            Get or set the text that will be appended to the end of the output.
-            </summary>
-            <remarks>
-            <para>Gets or sets the text that will be appended to the end of the output.</para>
-            <para>The footer must be set before conversion begins.</para>
-            </remarks>
-            <value>The footer.</value>
-        </member>
         <member name="P:MimeKit.Text.TextToHtml.FooterFormat">
             <summary>
             Get or set the footer format.
@@ -20622,16 +20561,6 @@
             Gets or sets the footer format.
             </remarks>
             <value>The footer format.</value>
-        </member>
-        <member name="P:MimeKit.Text.TextToHtml.Header">
-            <summary>
-            Get or set text that will be prepended to the beginning of the output.
-            </summary>
-            <remarks>
-            <para>Gets or sets the text that will be prepended to the beginning of the output.</para>
-            <para>The header must be set before conversion begins.</para>
-            </remarks>
-            <value>The header.</value>
         </member>
         <member name="P:MimeKit.Text.TextToHtml.HeaderFormat">
             <summary>
@@ -20713,35 +20642,6 @@
             Gets the output format.
             </remarks>
             <value>The output format.</value>
-        </member>
-        <member name="P:MimeKit.Text.TextToText.Footer">
-            <summary>
-            Get or set the text that will be appended to the end of the output.
-            </summary>
-            <remarks>
-            <para>Gets or sets the text that will be appended to the end of the output.</para>
-            <para>The footer must be set before conversion begins.</para>
-            </remarks>
-            <value>The footer.</value>
-        </member>
-        <member name="P:MimeKit.Text.TextToText.FooterFormat">
-            <summary>
-            Get or set the footer format.
-            </summary>
-            <remarks>
-            Gets or sets the footer format.
-            </remarks>
-            <value>The footer format.</value>
-        </member>
-        <member name="P:MimeKit.Text.TextToText.Header">
-            <summary>
-            Get or set text that will be prepended to the beginning of the output.
-            </summary>
-            <remarks>
-            <para>Gets or sets the text that will be prepended to the beginning of the output.</para>
-            <para>The header must be set before conversion begins.</para>
-            </remarks>
-            <value>The header.</value>
         </member>
         <member name="M:MimeKit.Text.TextToText.Convert(System.IO.TextReader,System.IO.TextWriter)">
             <summary>
@@ -33425,8 +33325,8 @@
             Gets or sets whether the formatter should allow mixed charsets in the headers.
             </summary>
             <remarks>
-            <para>When this option is enabled, the MIME formatter will try to use US-ASCII and/or
-            ISO-8859-1 to encode headers when appropriate rather than being forced to use the
+            <para>When this option is enabled, the MIME formatter will try to use us-ascii and/or
+            iso-8859-1 to encode headers when appropriate rather than being forced to use the
             specified charset for all encoded-word tokens in order to maximize readability.</para>
             <para>Unfortunately, mail clients like Outlook and Thunderbird do not treat
             encoded-word tokens individually and assume that all tokens are encoded using the
@@ -33436,7 +33336,7 @@
             <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=317263">
             https://bugzilla.mozilla.org/show_bug.cgi?id=317263</a>.</para>
             </remarks>
-            <value><c>true</c> if the formatter should be allowed to use ISO-8859-1 when encoding headers; otherwise, <c>false</c>.</value>
+            <value><c>true</c> if the formatter should be allowed to use us-ascii and/or iso-8859-1 when encoding headers; otherwise, <c>false</c>.</value>
         </member>
         <member name="P:MimeKit.FormatOptions.ParameterEncodingMethod">
             <summary>
@@ -36222,6 +36122,9 @@
             using a suitable decoder based on the <see cref="P:MimeKit.IMimeContent.Encoding"/> property, otherwise the
             stream will be copied into the output stream as-is.
             </remarks>
+            <example>
+            <code language="c#" source="Examples\AttachmentExamples.cs" region="SaveAttachments" />
+            </example>
             <param name="stream">The output stream.</param>
             <param name="cancellationToken">The cancellation token.</param>
             <exception cref="T:System.ArgumentNullException">
@@ -36233,9 +36136,6 @@
             <exception cref="T:System.IO.IOException">
             An I/O error occurred.
             </exception>
-            <example>
-            <code language="c#" source="Examples\AttachmentExamples.cs" region="SaveAttachments" />
-            </example>
         </member>
         <member name="M:MimeKit.IMimeContent.DecodeToAsync(System.IO.Stream,System.Threading.CancellationToken)">
             <summary>
@@ -36246,6 +36146,10 @@
             using a suitable decoder based on the <see cref="P:MimeKit.IMimeContent.Encoding"/> property, otherwise the
             stream will be copied into the output stream as-is.
             </remarks>
+            <example>
+            <code language="c#" source="Examples\AttachmentExamples.cs" region="SaveAttachments" />
+            </example>
+            <returns>An awaitable task.</returns>
             <param name="stream">The output stream.</param>
             <param name="cancellationToken">The cancellation token.</param>
             <exception cref="T:System.ArgumentNullException">
@@ -36257,9 +36161,6 @@
             <exception cref="T:System.IO.IOException">
             An I/O error occurred.
             </exception>
-            <example>
-            <code language="c#" source="Examples\AttachmentExamples.cs" region="SaveAttachments" />
-            </example>
         </member>
         <member name="M:MimeKit.IMimeContent.WriteTo(System.IO.Stream,System.Threading.CancellationToken)">
             <summary>
@@ -36293,6 +36194,7 @@
             <note type="note">If you want the decoded content, use
             <see cref="M:MimeKit.IMimeContent.DecodeTo(System.IO.Stream,System.Threading.CancellationToken)"/> instead.</note>
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="stream">The output stream.</param>
             <param name="cancellationToken">The cancellation token.</param>
             <exception cref="T:System.ArgumentNullException">
@@ -38476,8 +38378,9 @@
             Asynchronously writes the <see cref="T:MimeKit.MessagePart"/> to the output stream.
             </summary>
             <remarks>
-            Writes the MIME entity and its message to the output stream.
+            Asynchronously writes the MIME entity and its message to the output stream.
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="options">The formatting options.</param>
             <param name="stream">The output stream.</param>
             <param name="contentOnly"><c>true</c> if only the content should be written; otherwise, <c>false</c>.</param>
@@ -38787,6 +38690,7 @@
             <note type="note">If you want the decoded content, use
             <see cref="M:MimeKit.MimeContent.DecodeTo(System.IO.Stream,System.Threading.CancellationToken)"/> instead.</note>
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="stream">The output stream.</param>
             <param name="cancellationToken">The cancellation token.</param>
             <exception cref="T:System.ArgumentNullException">
@@ -38808,6 +38712,9 @@
             using a suitable decoder based on the <see cref="P:MimeKit.MimeContent.Encoding"/> property, otherwise the
             stream will be copied into the output stream as-is.
             </remarks>
+            <example>
+            <code language="c#" source="Examples\AttachmentExamples.cs" region="SaveAttachments" />
+            </example>
             <param name="stream">The output stream.</param>
             <param name="cancellationToken">The cancellation token.</param>
             <exception cref="T:System.ArgumentNullException">
@@ -38819,9 +38726,6 @@
             <exception cref="T:System.IO.IOException">
             An I/O error occurred.
             </exception>
-            <example>
-            <code language="c#" source="Examples\AttachmentExamples.cs" region="SaveAttachments" />
-            </example>
         </member>
         <member name="M:MimeKit.MimeContent.DecodeToAsync(System.IO.Stream,System.Threading.CancellationToken)">
             <summary>
@@ -38832,6 +38736,10 @@
             using a suitable decoder based on the <see cref="P:MimeKit.MimeContent.Encoding"/> property, otherwise the
             stream will be copied into the output stream as-is.
             </remarks>
+            <example>
+            <code language="c#" source="Examples\AttachmentExamples.cs" region="SaveAttachments" />
+            </example>
+            <returns>An awaitable task.</returns>
             <param name="stream">The output stream.</param>
             <param name="cancellationToken">The cancellation token.</param>
             <exception cref="T:System.ArgumentNullException">
@@ -38843,9 +38751,6 @@
             <exception cref="T:System.IO.IOException">
             An I/O error occurred.
             </exception>
-            <example>
-            <code language="c#" source="Examples\AttachmentExamples.cs" region="SaveAttachments" />
-            </example>
         </member>
         <member name="T:MimeKit.MimeEntity">
             <summary>
@@ -39069,9 +38974,10 @@
             Asynchronously write the <see cref="T:MimeKit.MimeEntity"/> to the specified output stream.
             </summary>
             <remarks>
-            <para>Writes the headers to the output stream, followed by a blank line.</para>
+            <para>Asynchronously writes the headers to the output stream, followed by a blank line.</para>
             <para>Subclasses should override this method to write the content of the entity.</para>
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="options">The formatting options.</param>
             <param name="stream">The output stream.</param>
             <param name="contentOnly"><c>true</c> if only the content should be written; otherwise, <c>false</c>.</param>
@@ -39116,9 +39022,10 @@
             Asynchronously write the <see cref="T:MimeKit.MimeEntity"/> to the specified output stream.
             </summary>
             <remarks>
-            <para>Writes the headers to the output stream, followed by a blank line.</para>
+            <para>Asynchronously writes the headers to the output stream, followed by a blank line.</para>
             <para>Subclasses should override this method to write the content of the entity.</para>
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="options">The formatting options.</param>
             <param name="stream">The output stream.</param>
             <param name="cancellationToken">The cancellation token.</param>
@@ -39156,11 +39063,12 @@
         </member>
         <member name="M:MimeKit.MimeEntity.WriteToAsync(System.IO.Stream,System.Boolean,System.Threading.CancellationToken)">
             <summary>
-            Adsynchronously write the <see cref="T:MimeKit.MimeEntity"/> to the specified output stream.
+            Asynchronously write the <see cref="T:MimeKit.MimeEntity"/> to the specified output stream.
             </summary>
             <remarks>
-            Writes the entity to the output stream.
+            Asynchronously writes the entity to the output stream.
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="stream">The output stream.</param>
             <param name="contentOnly"><c>true</c> if only the content should be written; otherwise, <c>false</c>.</param>
             <param name="cancellationToken">The cancellation token.</param>
@@ -39198,8 +39106,9 @@
             Asynchronously write the <see cref="T:MimeKit.MimeEntity"/> to the specified output stream.
             </summary>
             <remarks>
-            Writes the entity to the output stream.
+            Asynchronously writes the entity to the output stream.
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="stream">The output stream.</param>
             <param name="cancellationToken">The cancellation token.</param>
             <exception cref="T:System.ArgumentNullException">
@@ -39254,8 +39163,9 @@
             Asynchronously write the <see cref="T:MimeKit.MimeEntity"/> to the specified file.
             </summary>
             <remarks>
-            Writes the <see cref="T:MimeKit.MimeEntity"/> to the specified file using the provided formatting options.
+            Asynchronously writes the <see cref="T:MimeKit.MimeEntity"/> to the specified file using the provided formatting options.
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="options">The formatting options.</param>
             <param name="fileName">The file.</param>
             <param name="contentOnly"><c>true</c> if only the content should be written; otherwise, <c>false</c>.</param>
@@ -39327,8 +39237,9 @@
             Asynchronously write the <see cref="T:MimeKit.MimeEntity"/> to the specified file.
             </summary>
             <remarks>
-            Writes the <see cref="T:MimeKit.MimeEntity"/> to the specified file using the provided formatting options.
+            Asynchronously writes the <see cref="T:MimeKit.MimeEntity"/> to the specified file using the provided formatting options.
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="options">The formatting options.</param>
             <param name="fileName">The file.</param>
             <param name="cancellationToken">The cancellation token.</param>
@@ -39397,8 +39308,9 @@
             Asynchronously write the <see cref="T:MimeKit.MimeEntity"/> to the specified file.
             </summary>
             <remarks>
-            Writes the <see cref="T:MimeKit.MimeEntity"/> to the specified file using the default formatting options.
+            Asynchronously writes the <see cref="T:MimeKit.MimeEntity"/> to the specified file using the default formatting options.
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="fileName">The file.</param>
             <param name="contentOnly"><c>true</c> if only the content should be written; otherwise, <c>false</c>.</param>
             <param name="cancellationToken">The cancellation token.</param>
@@ -39464,8 +39376,9 @@
             Asynchronously writes the <see cref="T:MimeKit.MimeEntity"/> to the specified file.
             </summary>
             <remarks>
-            Writes the <see cref="T:MimeKit.MimeEntity"/> to the specified file using the default formatting options.
+            Asynchronously writes the <see cref="T:MimeKit.MimeEntity"/> to the specified file using the default formatting options.
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="fileName">The file.</param>
             <param name="cancellationToken">The cancellation token.</param>
             <exception cref="T:System.ArgumentNullException">
@@ -40777,8 +40690,9 @@
             Asynchronously write the message to the specified output stream.
             </summary>
             <remarks>
-            Writes the message to the output stream using the provided formatting options.
+            Asynchronously writes the message to the output stream using the provided formatting options.
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="options">The formatting options.</param>
             <param name="stream">The output stream.</param>
             <param name="headersOnly"><c>true</c> if only the headers should be written; otherwise, <c>false</c>.</param>
@@ -40822,8 +40736,9 @@
             Asynchronously write the message to the specified output stream.
             </summary>
             <remarks>
-            Writes the message to the output stream using the provided formatting options.
+            Asynchronously writes the message to the output stream using the provided formatting options.
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="options">The formatting options.</param>
             <param name="stream">The output stream.</param>
             <param name="cancellationToken">The cancellation token.</param>
@@ -40864,8 +40779,9 @@
             Asynchronously write the message to the specified output stream.
             </summary>
             <remarks>
-            Writes the message to the output stream using the default formatting options.
+            Asynchronously writes the message to the output stream using the default formatting options.
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="stream">The output stream.</param>
             <param name="headersOnly"><c>true</c> if only the headers should be written; otherwise, <c>false</c>.</param>
             <param name="cancellationToken">The cancellation token.</param>
@@ -40903,8 +40819,9 @@
             Asynchronously write the message to the specified output stream.
             </summary>
             <remarks>
-            Writes the message to the output stream using the default formatting options.
+            Asynchronously writes the message to the output stream using the default formatting options.
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="stream">The output stream.</param>
             <param name="cancellationToken">The cancellation token.</param>
             <exception cref="T:System.ArgumentNullException">
@@ -40958,8 +40875,9 @@
             Asynchronously write the message to the specified file.
             </summary>
             <remarks>
-            Writes the message to the specified file using the provided formatting options.
+            Asynchronously writes the message to the specified file using the provided formatting options.
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="options">The formatting options.</param>
             <param name="fileName">The file.</param>
             <param name="cancellationToken">The cancellation token.</param>
@@ -41027,8 +40945,9 @@
             Asynchronously write the message to the specified file.
             </summary>
             <remarks>
-            Writes the message to the specified file using the default formatting options.
+            Asynchronously writes the message to the specified file using the default formatting options.
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="fileName">The file.</param>
             <param name="cancellationToken">The cancellation token.</param>
             <exception cref="T:System.ArgumentNullException">
@@ -42182,8 +42101,9 @@
             Asynchronously writes the <see cref="T:MimeKit.MimePart"/> to the specified output stream.
             </summary>
             <remarks>
-            Writes the MIME part to the output stream.
+            Asynchronously writes the MIME part to the output stream.
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="options">The formatting options.</param>
             <param name="stream">The output stream.</param>
             <param name="contentOnly"><c>true</c> if only the content should be written; otherwise, <c>false</c>.</param>
@@ -42677,8 +42597,9 @@
             Asynchronously writes the <see cref="T:MimeKit.Multipart"/> to the specified output stream.
             </summary>
             <remarks>
-            Writes the multipart MIME entity and its subparts to the output stream.
+            Asynchronously writes the multipart MIME entity and its subparts to the output stream.
             </remarks>
+            <returns>An awaitable task.</returns>
             <param name="options">The formatting options.</param>
             <param name="stream">The output stream.</param>
             <param name="contentOnly"><c>true</c> if only the content should be written; otherwise, <c>false</c>.</param>

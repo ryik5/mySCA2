@@ -3,9 +3,9 @@ using System.IO;
 using System.Xml;
 using System.Xml.Serialization;
 
-namespace ASTA.AutoUpdating
+namespace ASTA.Classes.AutoUpdating
 {
-   public class AccountEventArgs
+    public class AccountEventArgs
     {
         // Сообщение
         public string Message { get; }
@@ -16,20 +16,20 @@ namespace ASTA.AutoUpdating
         }
     }
 
-    public class MakerOfUpdateAppXML
+    public class MakerOfUpdateXmlFile
     {
         UpdatingParameters _parameters { get; set; }
 
         public delegate void Status(object sender, AccountEventArgs e);
         public event Status status;
 
-        public MakerOfUpdateAppXML() { }
+        public MakerOfUpdateXmlFile() { }
 
-        public MakerOfUpdateAppXML(UpdatingParameters parameters)
+        public MakerOfUpdateXmlFile(UpdatingParameters parameters)
         {
             _parameters = parameters;
         }
-        
+
         public void SetParameters(UpdatingParameters parameters)
         {
             _parameters = parameters;
@@ -37,29 +37,30 @@ namespace ASTA.AutoUpdating
 
         public UpdatingParameters GetParameters()
         {
-           return _parameters ;
+            return _parameters;
         }
 
-        public void Make()
+        public void MakeFile()
         {
+            if (_parameters == null)
+            {
+                throw new ArgumentNullException(UpdatingParameters.Name, "Class 'UpdatingParameters' can't be Null!");
+            }
+
             if (_parameters.appFileXml == null)
             {
                 throw new NullReferenceException();
             }
 
             //https://stackoverflow.com/questions/44477727/writing-xml-and-reading-it-back-c-sharp
-
-            XMLDocument document = new XMLDocument();
-
             //clear any xmlns attributes from the root element
             XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
             ns.Add("", "");//clear any xmlns attributes from the root element
 
-
+            XMLDocument document = new XMLDocument();
             document.version = _parameters.appVersion;
             document.url = _parameters.appUpdateFolderURL;
-
-
+            
             if (_parameters.appUpdateMD5 != null)
             {
                 var checksum = new XMLElementChecksum();
@@ -69,11 +70,11 @@ namespace ASTA.AutoUpdating
             }
 
             //  var nodesToStore = new List<XMLDocument> { document };
-
             using (FileStream fs = new FileStream(_parameters.appFileXml, FileMode.Create))
             {
                 // XmlSerializer serializer = new XmlSerializer(nodesToStore.GetType());
                 // serializer.Serialize(fs, nodesToStore);
+
                 XmlSerializer serializer = new XmlSerializer(document.GetType());//, atribXmlOver
                 serializer.Serialize(fs, document, ns); //clear any xmlns attributes from the root element
             }
@@ -127,23 +128,20 @@ namespace ASTA.AutoUpdating
             checksum.Attributes.Append(algorithm);
             checksum.AppendChild(checksumText);
             item.AppendChild(checksum);
-
-            
+                        
           // <changelog>https://github.com/ravibpatel/AutoUpdater.NET/releases</changelog>
-          // <checksum algorithm="MD5">Update file Checksum</checksum>
-           
+          // <checksum algorithm="MD5">Update file Checksum</checksum>           
 
             doc.Save(appNameXML);
         }
          */
     }
-    
+
     [XmlRoot(ElementName = "item", IsNullable = false)]
     public class XMLDocument //Класс должен иметь модификатор public 
     {
         //Класс для сериализации должен иметь стандартный конструктор без параметров. 
         //поля или свойства с модификатором private, при сериализации будут игнорироваться. 
-
         [XmlElement]
         public string version { get; set; }
         public string url { get; set; }
@@ -160,7 +158,6 @@ namespace ASTA.AutoUpdating
     {
         //Класс для сериализации должен иметь стандартный конструктор без параметров. 
         //поля или свойства с модификатором private, при сериализации будут игнорироваться. 
-
         [XmlText]
         public string value { get; set; }
 
