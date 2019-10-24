@@ -19,7 +19,7 @@ namespace ASTA.Classes.Updating
 
         public async void Upload()
         {
-          /*  if (_parameters == null)
+            if (_parameters == null)
             {
                 throw new ArgumentNullException("UpdatingParameters", "UpdatingParameters cannot be empty");
             }
@@ -31,19 +31,21 @@ namespace ASTA.Classes.Updating
             if (string.IsNullOrWhiteSpace( _parameters.appFileZip))
             {
                 throw new ArgumentNullException("appFileZip", "appFileZip cannot be empty");
-            }*/
+            }
 
             Func<Task>[] tasks =
             {
                 () => UploadApplicationToShare(
-                    _parameters.localFolderUpdatingURL + @"\" + _parameters.appFileZip,
-                    _parameters.appUpdateFolderURI + _parameters.appFileZip),                        //Send app.zip file to server
-                () => UploadApplicationToShare(
                     _parameters.localFolderUpdatingURL + @"\" + _parameters.appFileXml,
-                    _parameters.appUpdateFolderURI +_parameters.appFileXml)  //Send app.xml file to server
+                    _parameters.appUpdateFolderURI +_parameters.appFileXml),  //Send app.xml file to server
+                () => UploadApplicationToShare(
+                    _parameters.localFolderUpdatingURL + @"\" + _parameters.appFileZip,
+                    _parameters.appUpdateFolderURI + _parameters.appFileZip)                        //Send app.zip file to server
             };
 
             await InvokeAsync(tasks, maxDegreeOfParallelism: 2);
+            
+            status?.Invoke(this, new AccountEventArgs("Обновление на сервер загружено -> " + _parameters.remoteFolderUpdatingURL));
         }
 
         private async Task UploadApplicationToShare(string source, string target)
@@ -58,13 +60,13 @@ namespace ASTA.Classes.Updating
                     catch { status?.Invoke(this, new AccountEventArgs("Файл на сервере: " + target + " удалить не удалось")); } //@"\\server\folder\Myfile.txt"
 
                     System.IO.File.Copy(source, target, true); //@"\\server\folder\Myfile.txt"
-                    status?.Invoke(this, new AccountEventArgs("Отправка файла " + source + " на сервер выполнена " + target));
+                    status?.Invoke(this, new AccountEventArgs("Отправка файла на сервер выполнена " + target));
 
                     try { System.IO.File.Delete(source); } catch { }
                 }
                 catch (Exception err)
                 {
-                    status?.Invoke(this, new AccountEventArgs("Отправка файла " + source + " на сервер " + target + " завершена с ошибкой: " + err.ToString()));
+                    status?.Invoke(this, new AccountEventArgs("Отправка файла на сервер " + target + " завершена с ошибкой: " + err.ToString()));
                 }
         }
 

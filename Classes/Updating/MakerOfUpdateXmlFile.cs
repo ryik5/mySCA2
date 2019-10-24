@@ -53,7 +53,7 @@ namespace ASTA.Classes.AutoUpdating
 
             XMLDocument document = new XMLDocument();
             document.version = _parameters.appVersion;
-            document.url = _parameters.appUpdateFolderURL;
+            document.url = _parameters.appUpdateFolderURL+ _parameters.appFileZip;
 
             if (_parameters.appUpdateMD5 != null)
             {

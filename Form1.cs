@@ -46,17 +46,24 @@ namespace ASTA
         // logger.Trace("-= " + method + " =-");
 
         //System settings
+        readonly static string appVersionAssembly = System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString();
         readonly static System.Diagnostics.FileVersionInfo appFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
+        readonly static string appCopyright = appFileVersionInfo.LegalCopyright;
         readonly static string appName = appFileVersionInfo.ProductName;
         readonly static string appNameXML = appName + @".xml";
         readonly static string appFileZip = appName + @".zip";
-
-        readonly static string appVersionAssembly = System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString();
-        readonly static string appCopyright = appFileVersionInfo.LegalCopyright;
+        static string appFileMD5;
+        
+        static string remoteFolderUpdateURL;// = @"kv-sb-server.corp.ais\Common\ASTA";
+        static string appUpdateFolderURL;// = @"file://" + serverUpdateURL.Replace(@"\", @"/") + @"/"; //  @"file://kv-sb-server.corp.ais/Common/ASTA/";
+        static string appUpdateURL;// = appUpdateFolderURL + appNameXML;
+        static string appUpdateFolderURI;// = @"\\" + serverUpdateURL + @"\"; //@"\\kv-sb-server.corp.ais\Common\ASTA\";
+        
+        static bool uploadingUpdate = false;
+        static bool uploadUpdateError = false;
+        
 
         readonly static string appFilePath = Application.ExecutablePath;
-
-
         readonly static string localAppFolderPath = System.IO.Path.GetDirectoryName(appFilePath); //Environment.CurrentDirectory
         readonly static string appFolderTempPath = System.IO.Path.Combine(localAppFolderPath, "Temp");
         readonly static string appFolderUpdatePath = System.IO.Path.Combine(localAppFolderPath, "Update");
@@ -69,7 +76,8 @@ namespace ASTA
                 @"BouncyCastle.Crypto.dll", @"System.Data.SQLite.dll",
                 @"x64\SQLite.Interop.dll", @"x86\SQLite.Interop.dll",
                 
-                //Analysing pacckages
+                //Analysing packages
+                @"ASTA.exe.config",
                 @"Microsoft.AppCenter.dll",
                 @"Microsoft.AppCenter.Analytics.dll",
                 @"Microsoft.AppCenter.Crashes.dll",
@@ -80,19 +88,18 @@ namespace ASTA
                 @"SQLitePCLRaw.batteries_v2.dll",
                 @"SQLitePCLRaw.core.dll",
                 @"System.Runtime.InteropServices.RuntimeInformation.dll",
-                @"Newtonsoft.Json.dll"
+                @"Newtonsoft.Json.dll",
+                
+                //Test packages
+                @"Shouldly.dll",
+                @"Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.dll",
+                @"Microsoft.VisualStudio.TestPlatform.TestFramework.dll",
+                @"Microsoft.VisualStudio.TestPlatform.MSTestAdapter.PlatformServices.Interface.dll",
+                @"Microsoft.VisualStudio.TestPlatform.MSTestAdapter.PlatformServices.dll",
+                @"Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.dll",
         };
         static string appQueryCreatingDB = System.IO.Path.Combine(localAppFolderPath, System.IO.Path.GetFileNameWithoutExtension(appFilePath) + @".sql");
-
-        
-        static string appFileMD5;
-        static string remoteFolderUpdateURL;// = @"kv-sb-server.corp.ais\Common\ASTA";
-        static string appUpdateFolderURL;// = @"file://" + serverUpdateURL.Replace(@"\", @"/") + @"/"; //  @"file://kv-sb-server.corp.ais/Common/ASTA/";
-        static string appUpdateURL;// = appUpdateFolderURL + appNameXML;
-        static string appUpdateFolderURI;// = @"\\" + serverUpdateURL + @"\"; //@"\\kv-sb-server.corp.ais\Common\ASTA\";
-        static bool uploadingUpdate = false;
-        static bool uploadUpdateError = false;
-
+                
         string guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения// получаем GIUD приложения
 
         readonly static string appRegistryKey = @"SOFTWARE\RYIK\ASTA";
@@ -114,7 +121,7 @@ namespace ASTA
         //Все константы в локальную БД
         //todo
         //преобразовать в дикшенери сущностей с дефолтовыми значениями и описаниями параметров
-        Dictionary<string, ParameterOfConfiguration> config = new Dictionary<string, ParameterOfConfiguration>();
+      //  Dictionary<string, ParameterOfConfiguration> config = new Dictionary<string, ParameterOfConfiguration>();
 
         static string sLastSelectedElement = "MainForm";
         static string nameOfLastTable = "PersonRegistrationsList";
@@ -352,9 +359,9 @@ namespace ASTA
 
 
             //Clear temporary folder 
-            ClearItemsInApplicationFolders(appFolderTempPath);
-            ClearItemsInApplicationFolders(appFolderUpdatePath);
-            System.IO.Directory.CreateDirectory(appFolderBackUpPath);
+            ClearItemsInApplicationFolders(appFolderTempPath+ @"\");
+            ClearItemsInApplicationFolders(appFolderUpdatePath + @"\");
+            System.IO.Directory.CreateDirectory(appFolderBackUpPath + @"\");
 
 
             //Make archives:
@@ -369,7 +376,7 @@ namespace ASTA
                 System.IO.File.Move(appFileZip, System.IO.Path.Combine(appFolderBackUpPath, appName + "." + GetSafeFilename(DateTime.Now.ToYYYYMMDDHHMMSS(), "") + @".zip"));
             }
             //refresh temp folder
-            ClearItemsInApplicationFolders(appFolderTempPath);
+            ClearItemsInApplicationFolders(appFolderTempPath + @"\");
 
             //2. from the main DB of application
             string dbZipPath = appDbName + "." + GetSafeFilename(DateTime.Now.ToYYYYMMDDHHMMSS(), "") + @".zip";
@@ -382,7 +389,7 @@ namespace ASTA
             System.IO.File.Move(dbZipPath, System.IO.Path.Combine(appFolderBackUpPath, System.IO.Path.GetFileName(dbZipPath)));
 
             //refresh temp folder
-            ClearItemsInApplicationFolders(appFolderTempPath);
+            ClearItemsInApplicationFolders(appFolderTempPath + @"\");
 
 
             //Check local DB Configuration
@@ -498,30 +505,19 @@ namespace ASTA
                     ExecuteAutoMode(true);
                 }
 
-                if (!(mailServerDB?.Length > 5) || !(mailServerSMTPPortDB?.Length > 1))
-                {
-                    logger.Warn("mailServerDB: " + mailServerDB + ", mailServerSMTPPortDB: " + mailServerSMTPPortDB);
-                    MessageBox.Show("Проверьте параметры конфигурации почтового сервера в базе\n'mailServerDB', 'nmailServerSMTPPortDB'.\nТекущие параметры:\n" +
-                        "URL почтового сервера: " + mailServerDB +
-                        "\nПорт сервера для отправки писем: " + mailServerSMTPPortDB,
-                        "Некоторые важные параметры в базе не правильные!",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
-
                 if (mailServer?.Length > 0 && mailServerSMTPPort > 0)
                 {
                     _mailServer = new MailServer(mailServer, mailServerSMTPPort);
                 }
                 else
                 {
-                    logger.Warn("mailServer: " + mailServer + "|mailServerSMTPPort: " + mailServerSMTPPort);
+                    logger.Warn("mailServer: " + mailServer + ", mailServerSMTPPort: " + mailServerSMTPPort);
                     MessageBox.Show("Проверьте параметры конфигурации почтового сервера в базе\n'mailServer', 'mailServerSMTPPort'.\nТекущие параметры:\n" +
                         "URL почтового сервера: " + mailServer +
                         "\nПорт сервера для отправки писем: " + mailServerSMTPPort,
-                        "Некоторые важные параметры в базе не правильные!",
+                        "Функция рассылки отчетов не работает!",
                         MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
-                
 
                 if (mailSenderAddress != null && mailSenderAddress.Contains('@'))
                 {
@@ -532,7 +528,7 @@ namespace ASTA
                     logger.Warn("mailSenderAddress: "  + mailSenderAddress);
                     MessageBox.Show("Проверьте адрес отправителя почты в конфигурации почтового сервера в базе\n'mailSenderAddress'.\nТекущие параметры:\n" +
                         "адрес отправителя почты: " + mailSenderAddress ,
-                        "Некоторые важные параметры в базе не правильные!",
+                        "Функция рассылки отчетов не работает!",
                         MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
 
@@ -546,18 +542,14 @@ namespace ASTA
                     logger.Warn("RemoteFolderUpdateURL: " + remoteFolderUpdateURL);
                     MessageBox.Show("Проверьте URL адрес сервера обновлений в базе\n'RemoteFolderUpdateURL'.\nТекущие параметры:\n" +
                         "URL адрес сервера обновлений: " + remoteFolderUpdateURL,
-                        "Некоторые важные параметры в базе не правильные!",
+                        "Функция работа с обновлениями ПО не работает!",
                         MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
-
                 
-                //loading parameters
+                //loading parameters of configuration Application
                 ParameterOfConfigurationInSQLiteDB parametersInDb = new ParameterOfConfigurationInSQLiteDB(dbApplication);
-              //  listParameters = parametersInDb.GetParameters("%%").FindAll(x => x?.isExample == "no"); //load only real data
                 listParameters = parametersInDb.GetParameters("%%"); //load only real data
-
                 List<ParameterConfig> parameters= ReturnListParametersWithEmptyValue(listParameters);
-
                 if (parameters?.Count > 0)
                 {
                     string resultParameters = null;
@@ -567,10 +559,6 @@ namespace ASTA
                     }
 
                     logger.Warn("Empty parameters in local config db: " + resultParameters);
-                  Task.Run(()=>  MessageBox.Show("Проверьте параметры конфигурации с не заполненными данными:\n" +
-                        resultParameters,
-                        "Некоторые параметры в базе не введены",
-                        MessageBoxButtons.OK, MessageBoxIcon.Exclamation));
                 }
             }
 
@@ -674,7 +662,7 @@ namespace ASTA
 
             //taskkill /F /IM ASTA.exe
             Text = @"Closing application...";
-            System.Threading.Thread.Sleep(500);
+            System.Threading.Thread.Sleep(1000);
 
             Application.Exit();
         }
@@ -814,9 +802,6 @@ namespace ASTA
                 catch { logger.Trace("Can't get value of SCA User from Registry"); }
                 try { sServer1UserPasswordRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey?.GetValue("SKDUserPassword")?.ToString(), keyEncryption, keyDencryption).ToString(); }
                 catch { logger.Trace("Can't get value of SCA UserPassword from Registry"); }
-                //  try { mailServerRegistry = EvUserKey?.GetValue("MailServer")?.ToString(); } catch { logger.Warn("Registry GetValue Mail"); }
-                //  try { mailServerUserNameRegistry = EvUserKey?.GetValue("MailUser")?.ToString(); } catch { }
-                //  try { mailServerUserPasswordRegistry = EncryptionDecryptionCriticalData.DecryptBase64ToString(EvUserKey?.GetValue("MailUserPassword")?.ToString(), keyEncryption, keyDencryption).ToString(); } catch { }
 
                 try { mysqlServerRegistry = EvUserKey?.GetValue("MySQLServer")?.ToString(); }
                 catch { logger.Trace("Can't get value of MySQL Name from Registry"); }
@@ -912,13 +897,6 @@ namespace ASTA
                 remoteFolderUpdateURL = GetValueOfConfigParameter(listParameters, @"RemoteFolderUpdateURL", defaultURL);
 
                 LoggerAddInfo(remoteFolderUpdateURL);
-
-                //todo
-                //make all URL
-
-                /*string defaultURL = appUpdateFolderURL;
-                appUpdateFolderURL = GetValueOfConfigParameter(listParameters, @"appUpdateFolderURL", defaultURL);
-                appUpdateURL = appUpdateFolderURL + @"ASTA.xml";*/
             }
 
             //set app's variables
@@ -4869,7 +4847,6 @@ namespace ASTA
                 }
             }
             catch { logger.Warn("Ошибка удаления: " + maskFiles); }
-            filesPath = null;
         }
 
         private async void ClearReportItem_Click(object sender, EventArgs e) //ReCreatePersonTables()
@@ -9965,22 +9942,46 @@ namespace ASTA
         //Autoupdate
         private void AutoupdatItem_Click(object sender, EventArgs e)
         {
-            UpdatingParameters parameters = CreateUpdateLinksAndXmlFiles();
-
-
-            AutoUpdater.DownloadPath = appFolderUpdatePath;
-            AutoUpdater.Start(parameters.appUpdateURL, System.Reflection.Assembly.GetEntryAssembly());
-            AutoUpdater.CheckForUpdateEvent -= AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
+            UpdatingParameters parameters = MakeStartParametersOfUpdating();
             AutoUpdater.CheckForUpdateEvent += AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
+            AutoUpdater.ApplicationExitEvent += AutoUpdater_ApplicationExitEvent;    //https://archive.codeplex.com/?p=autoupdaterdotnet
+            AutoUpdater.RunUpdateAsAdmin = false;
+            AutoUpdater.Mandatory = true;
+            AutoUpdater.UpdateMode = Mode.ForcedDownload;
+
+            AutoUpdater.LetUserSelectRemindLater = false;
+            AutoUpdater.RemindLaterTimeSpan = RemindLaterFormat.Days;
+            AutoUpdater.RemindLaterAt = 2;
+            
+            AutoUpdater.Start(parameters.appUpdateURL, System.Reflection.Assembly.GetEntryAssembly());
             // AutoUpdate();
+            AutoUpdater.CheckForUpdateEvent -= AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
+        }
+
+        UpdatingParameters MakeStartParametersOfUpdating()
+        {
+            UpdatingParameters parameters =new UpdatingParameters();
+            parameters.localFolderUpdatingURL = localAppFolderPath;
+            parameters.remoteFolderUpdatingURL = remoteFolderUpdateURL;
+            parameters.appVersion = appVersionAssembly;
+            parameters.appFileXml = appNameXML;
+            parameters.appUpdateMD5 = appFileMD5;
+            parameters.appFileZip = appFileZip;
+
+            MakerOfLinks makerLinks = new MakerOfLinks(parameters);
+            makerLinks.status += LoggerAddInfo;
+            makerLinks.status += StatusLabelAddInfo;
+            makerLinks.Make();
+            makerLinks.status -= LoggerAddInfo;
+            makerLinks.status -= StatusLabelAddInfo;
+
+            return makerLinks.GetParameters();
         }
 
         private async Task AutoUpdate()
         {
-            UpdatingParameters parameters = CreateUpdateLinksAndXmlFiles();
+            UpdatingParameters parameters = MakeStartParametersOfUpdating();
 
-            AutoUpdater.CheckForUpdateEvent -= AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
-            AutoUpdater.CheckForUpdateEvent += AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
 
             //Check updates frequently
             System.Timers.Timer timer = new System.Timers.Timer
@@ -9990,7 +9991,6 @@ namespace ASTA
             };
             timer.Elapsed += delegate
             {
-                //https://archive.codeplex.com/?p=autoupdaterdotnet
                 //https://github.com/ravibpatel/AutoUpdater.NET
                 //http://www.cyberforum.ru/csharp-beginners/thread2169711.html
 
@@ -10008,15 +10008,23 @@ namespace ASTA
                 {
                     logger.Trace(@"Update URL: " + parameters.appUpdateURL);
 
+             AutoUpdater.CheckForUpdateEvent += AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
+                AutoUpdater.ApplicationExitEvent += AutoUpdater_ApplicationExitEvent;    //https://archive.codeplex.com/?p=autoupdaterdotnet
                     AutoUpdater.RunUpdateAsAdmin = false;
-                    AutoUpdater.UpdateMode = Mode.ForcedDownload;
                     AutoUpdater.Mandatory = true;
-                    // AutoUpdater.ReportErrors = true;
+                    AutoUpdater.UpdateMode = Mode.ForcedDownload;
+
+                    AutoUpdater.LetUserSelectRemindLater = false;
+                    AutoUpdater.RemindLaterTimeSpan = RemindLaterFormat.Days;
+                    AutoUpdater.RemindLaterAt = 2;
+                    
+                    // AutoUpdater.ReportErrors = false;
                     // AutoUpdater.AppCastURL = appUpdateURL;
                     AutoUpdater.DownloadPath = appFolderUpdatePath;
 
                     AutoUpdater.Start(parameters.appUpdateURL, System.Reflection.Assembly.GetEntryAssembly());
                     //AutoUpdater.Start("ftp://kv-sb-server.corp.ais/Common/ASTA/ASTA.xml", new NetworkCredential("FtpUserName", "FtpPassword")); //download from FTP
+            AutoUpdater.CheckForUpdateEvent -= AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
                 }
                 else
                 { logger.Trace(@"Обновление приостановлено. На сервер сейчас загружается новая версия ПО"); }
@@ -10048,7 +10056,7 @@ namespace ASTA
                                 StatusLabel2,
                                 @" обнаружена новая версия " + appName + " ver." + foundNewVersionApp,
                                 true,
-                                "Запущено обновление ПО. Старая версия - " + appVersionAssembly + ", новая версия - " + foundNewVersionApp
+                                "Запущено обновление ПО. Старая версия - " + appVersionAssembly + " -> " + foundNewVersionApp
                                 );
                             logger.Trace("...");
                             logger.Trace("-= Update =-");
@@ -10074,31 +10082,17 @@ namespace ASTA
                 logger.Warn(@"Update check failed: There is a problem reaching update server URL.");
             }
         }
-
-        //Make and Save XML into local file
-        private void CreateLocalAppZipAndMD5Files()
+        private void AutoUpdater_ApplicationExitEvent()
         {
-            CalculatingHash calculatedHash;
-            //Make an archive with the currrent app's version 
-            MakeZip(appAllFiles, appFileZip);
-
-            //calculate appFileZip's MD5 checksum
-            calculatedHash = new CalculatingHash(appFileZip);
-            appFileMD5 = calculatedHash.Calculate();
-
-            //block to make checksum string in XML
-            // appFileMD5 = null;
-            /* UpdatingParameters parameters = new UpdatingParameters();
-             parameters.appVersion = appVersionAssembly;
-             parameters.appUpdateFolderURL = appUpdateFolderURL + appZipPath;
-             parameters.appFileXml = appNameXML; //appFolderPath
-             parameters.appUpdateMD5 = appFileMD5;
-
-             MakerOfUpdateXmlFile makerXML = new MakerOfUpdateXmlFile(parameters);
-             makerXML.status += LoggerAddInfo;
-             makerXML.MakeFile();
-             makerXML.status -= LoggerAddInfo;
-             makerXML = null;*/
+            Text = @"Closing application...";
+            System.Threading.Thread.Sleep(500);
+            Application.Exit();
+        }
+        //Calculate MD5 checksum of local file
+        private string CalculateMD5OfFile(string file)
+        {
+            CalculatingHash calculatedHash = new CalculatingHash(file);
+            return calculatedHash.Calculate();
         }
 
         private void StatusLabelAddInfo(object sender, AccountEventArgs e)
@@ -10124,13 +10118,21 @@ namespace ASTA
 
         private void testUpdateToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            UpdatingParameters parameters =    CreateUpdateLinksAndXmlFiles();
+            UpdatingParameters parameters = PrepareUpdating();
         }
-        private UpdatingParameters CreateUpdateLinksAndXmlFiles()
+
+        private UpdatingParameters PrepareUpdating()
         {
             LoggerAddInfo(remoteFolderUpdateURL);
 
+            //Make an archive with the currrent app's version 
+            MakeZip(appAllFiles, appFileZip);
+
+            //Make MD5 of ZIP archive
+            appFileMD5 = CalculateMD5OfFile(appFileZip);
+
             UpdatingParameters parameters = new UpdatingParameters();
+
             parameters.localFolderUpdatingURL = localAppFolderPath;
             parameters.remoteFolderUpdatingURL = remoteFolderUpdateURL;
             parameters.appVersion = appVersionAssembly;
@@ -10139,47 +10141,38 @@ namespace ASTA
             parameters.appFileZip = appFileZip;
 
             MakerOfLinks makerLinks = new MakerOfLinks(parameters);
-
             makerLinks.status += LoggerAddInfo;
-            makerLinks.SetParameters(parameters);
-
-             makerLinks.Make();
-            parameters = makerLinks.GetParameters();
+            makerLinks.status += StatusLabelAddInfo;
 
             MakerOfUpdateXmlFile makerXML = new MakerOfUpdateXmlFile();
-            makerXML.SetParameters(parameters);
-            //  makerXML.MakeFile();
             makerXML.status += LoggerAddInfo;
             makerXML.status += StatusLabelAddInfo;
 
-            UpdatePreparing updating = new UpdatePreparing(makerLinks, makerXML, parameters);
-            updating.status += LoggerAddInfo;
-            updating.status += StatusLabelAddInfo;
+            UpdatePreparing preparing = new UpdatePreparing(makerLinks, makerXML, parameters);
+            preparing.status += LoggerAddInfo;
+            preparing.status += StatusLabelAddInfo;
 
-            AppUpdating.status += LoggerAddInfo;
-            AppUpdating.status += StatusLabelAddInfo;
-            AppUpdating.Do(updating);
-            
-            makerLinks.status -= LoggerAddInfo;
+            preparing.Do();
+
             makerXML.status -= LoggerAddInfo;
             makerXML.status -= StatusLabelAddInfo;
-            updating.status -= LoggerAddInfo;
-            updating.status -= StatusLabelAddInfo;
-            AppUpdating.status -= StatusLabelAddInfo;
-            AppUpdating.status -= LoggerAddInfo;
+            makerLinks.status -= LoggerAddInfo;
+            makerLinks.status -= StatusLabelAddInfo;
+            preparing.status -= LoggerAddInfo;
+            preparing.status -= StatusLabelAddInfo;
             
             return new UpdatingParameters()
             {
-                localFolderUpdatingURL = parameters.localFolderUpdatingURL,
-                remoteFolderUpdatingURL = parameters.remoteFolderUpdatingURL,
-                appVersion = parameters.appVersion,
-                appFileXml = parameters.appFileXml,
-                appUpdateMD5 = parameters.appUpdateMD5,
-                appUpdateFolderURI = parameters.appUpdateFolderURI,
-                appUpdateChangeLogURL = parameters.appUpdateChangeLogURL,
-                appUpdateFolderURL = parameters.appUpdateFolderURL,
-                appUpdateURL = parameters.appUpdateURL,
-                appFileZip = parameters.appFileZip
+                localFolderUpdatingURL = preparing._parameters.localFolderUpdatingURL,
+                remoteFolderUpdatingURL = preparing._parameters.remoteFolderUpdatingURL,
+                appVersion = preparing._parameters.appVersion,
+                appFileXml = preparing._parameters.appFileXml,
+                appUpdateMD5 = preparing._parameters.appUpdateMD5,
+                appUpdateFolderURI = preparing._parameters.appUpdateFolderURI,
+                appUpdateChangeLogURL = preparing._parameters.appUpdateChangeLogURL,
+                appUpdateFolderURL = preparing._parameters.appUpdateFolderURL,
+                appUpdateURL = preparing._parameters.appUpdateURL,
+                appFileZip = preparing._parameters.appFileZip                
             };
         }
 
@@ -10253,12 +10246,8 @@ namespace ASTA
             uploadingUpdate = true;
             uploadUpdateError = false;
 
-            //Make application XML for Autoupdater's
-            CreateLocalAppZipAndMD5Files();
-
-            UpdatingParameters parameters = CreateUpdateLinksAndXmlFiles();
-
-
+            UpdatingParameters parameters = PrepareUpdating();
+            
             Uploader uploader = new Uploader(parameters);
 
             uploader.status += LoggerAddInfo;
@@ -10268,85 +10257,19 @@ namespace ASTA
 
             uploader.status -= LoggerAddInfo;
             uploader.status -= StatusLabelAddInfo;
-            /*  Func<Task>[] tasks =
-                                                 {
-                                                     () => UploadApplicationToShare(localAppFolderPath + @"\" + appZipPath, appUpdateFolderURI + appZipPath),                        //Send app.zip file to server
-                                                     () => UploadApplicationToShare(localAppFolderPath + @"\" + appNameXML, appUpdateFolderURI + appNameXML)  //Send app.xml file to server
-                                                 };
 
-                                                 await InvokeAsync(tasks, maxDegreeOfParallelism: 2);
-
-                                                 uploadingUpdate = false;
-                                                 if (uploadUpdateError)
-                                                 {
-                                                     _toolStripStatusLabelSetText(StatusLabel2, "Отправка обновлений на сервер завершена с ошибкой -> " + appUpdateFolderURI, true);
-                                                 }
-                                                 else
-                                                 {
-                                                     _toolStripStatusLabelSetText(StatusLabel2, "Выполнена отправка обновлений на сервер -> " + appUpdateFolderURI);
-                                                     _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
-                                                 }*/
-        }
-
-        private async Task UploadApplicationToShare(string source, string target)
-        {
-            MethodInvoker mi1 = delegate
+            if (System.IO.File.Exists(appFileZip))
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Идет отправка файла " + source + " -> " + target);
-                try
-                {
-                    // var fileByte = System.IO.File.ReadAllBytes(source);
-                    // System.IO.File.WriteAllBytes(target, fileByte);
-                    try { System.IO.File.Delete(target); }
-                    catch { logger.Info("файл предварительно не удален: " + target); } //@"\\server\folder\Myfile.txt"
-
-                    System.IO.File.Copy(source, target, true); //@"\\server\folder\Myfile.txt"
-                    LoggerAddInfo("Отправка файла " + source + " на сервер выполнена " + target);
-
-                    try { System.IO.File.Delete(source); } catch { }
-                }
-                catch (Exception err)
-                {
-                    uploadUpdateError = true;
-                    LoggerAddInfo("Отправка файла " + source + " на сервер " + target + " завершена с ошибкой: " + err.ToString());
-                    _toolStripStatusLabelSetText(StatusLabel2, "Отправка файла на сервер завершена с ошибкой: " + target, true, err.Message);
-                }
-            };
-
-            this.Invoke(mi1);
-        }
-
-        private static async Task InvokeAsync(IEnumerable<Func<Task>> taskFactories, int maxDegreeOfParallelism)
-        {
-            Queue<Func<Task>> queue = new Queue<Func<Task>>(taskFactories);
-
-            if (queue.Count == 0)
-            {
-                return;
+                try { System.IO.File.Delete(appFileZip); } catch { }
             }
 
-            List<Task> tasksInFlight = new List<Task>(maxDegreeOfParallelism);
-
-            do
+            if (System.IO.File.Exists(appNameXML))
             {
-                while (tasksInFlight.Count < maxDegreeOfParallelism && queue.Count != 0)
-                {
-                    Func<Task> taskFactory = queue.Dequeue();
-
-                    tasksInFlight.Add(taskFactory());
-                }
-
-                Task completedTask = await Task.WhenAny(tasksInFlight).ConfigureAwait(false);
-
-                // Propagate exceptions. In-flight tasks will be abandoned if this throws.
-                await completedTask.ConfigureAwait(false);
-
-                tasksInFlight.Remove(completedTask);
+                try { System.IO.File.Delete(appNameXML); } catch { }
             }
-            while (queue.Count != 0 || tasksInFlight.Count != 0);
-        }
 
+            uploader = null;
+            parameters = null;
+        }
     }
-
-    
 }
