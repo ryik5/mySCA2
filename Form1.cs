@@ -53,15 +53,15 @@ namespace ASTA
         readonly static string appNameXML = appName + @".xml";
         readonly static string appFileZip = appName + @".zip";
         static string appFileMD5;
-        
+
         static string remoteFolderUpdateURL;// = @"kv-sb-server.corp.ais\Common\ASTA";
         static string appUpdateFolderURL;// = @"file://" + serverUpdateURL.Replace(@"\", @"/") + @"/"; //  @"file://kv-sb-server.corp.ais/Common/ASTA/";
         static string appUpdateURL;// = appUpdateFolderURL + appNameXML;
         static string appUpdateFolderURI;// = @"\\" + serverUpdateURL + @"\"; //@"\\kv-sb-server.corp.ais\Common\ASTA\";
-        
+
         static bool uploadingUpdate = false;
         static bool uploadUpdateError = false;
-        
+
 
         readonly static string appFilePath = Application.ExecutablePath;
         readonly static string localAppFolderPath = System.IO.Path.GetDirectoryName(appFilePath); //Environment.CurrentDirectory
@@ -99,7 +99,7 @@ namespace ASTA
                 @"Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.dll",
         };
         static string appQueryCreatingDB = System.IO.Path.Combine(localAppFolderPath, System.IO.Path.GetFileNameWithoutExtension(appFilePath) + @".sql");
-                
+
         string guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения// получаем GIUD приложения
 
         readonly static string appRegistryKey = @"SOFTWARE\RYIK\ASTA";
@@ -121,7 +121,7 @@ namespace ASTA
         //Все константы в локальную БД
         //todo
         //преобразовать в дикшенери сущностей с дефолтовыми значениями и описаниями параметров
-      //  Dictionary<string, ParameterOfConfiguration> config = new Dictionary<string, ParameterOfConfiguration>();
+        //  Dictionary<string, ParameterOfConfiguration> config = new Dictionary<string, ParameterOfConfiguration>();
 
         static string sLastSelectedElement = "MainForm";
         static string nameOfLastTable = "PersonRegistrationsList";
@@ -359,7 +359,7 @@ namespace ASTA
 
 
             //Clear temporary folder 
-            ClearItemsInApplicationFolders(appFolderTempPath+ @"\");
+            ClearItemsInApplicationFolders(appFolderTempPath + @"\");
             ClearItemsInApplicationFolders(appFolderUpdatePath + @"\");
             System.IO.Directory.CreateDirectory(appFolderBackUpPath + @"\");
 
@@ -417,9 +417,9 @@ namespace ASTA
             if (equalDB) { logger.Trace("Схема конфигурации текущей БД соответствует схеме загруженной с файла: " + appQueryCreatingDB); }
             else { logger.Info("Схема конфигурации текущей БД Отличается от схеме загруженной с файла: " + appQueryCreatingDB); }
 
-             logger.Trace("tables in loaded DB: " + schemaDB?.Tables?.Count + ", " + " must be tables: " + schemaTXT?.Tables?.Count);
-           
-            if (currentDbEmpty || !equalDB || !(schemaDB.Tables.Equals (schemaTXT.Tables)))
+            logger.Trace("tables in loaded DB: " + schemaDB?.Tables?.Count + ", " + " must be tables: " + schemaTXT?.Tables?.Count);
+
+            if (currentDbEmpty || !equalDB || !(schemaDB.Tables.Equals(schemaTXT.Tables)))
             {
                 logger.Info("Заполняю схему локальной DB");
                 TryMakeLocalDB(appQueryCreatingDB);
@@ -429,10 +429,10 @@ namespace ASTA
             //Refresh Configuration of the application
             AddExceptedParametersIntoConfigurationDb();
 
-               logger.Info("Загружаю/проверяю настройки программы...");
-            
-                 LoadPreviouslySavedParameters();
-           logger.Info("Вычисляю ближайшие праздничные и выходные дни...");
+            logger.Info("Загружаю/проверяю настройки программы...");
+
+            LoadPreviouslySavedParameters();
+            logger.Info("Вычисляю ближайшие праздничные и выходные дни...");
             DataTable dtEmpty = new DataTable();
             EmployeeFull personEmpty = new EmployeeFull();
             var startDay = DateTime.Now.AddDays(-60).ToYYYYMMDD();
@@ -494,7 +494,7 @@ namespace ASTA
                 }
                 else
                 {
-                   // nameOfLastTable = "Mailing";
+                    // nameOfLastTable = "Mailing";
                     _ControlEnable(comboBoxFio, false);
                     logger.Info("Стартовый режим - автоматический...");
 
@@ -525,14 +525,14 @@ namespace ASTA
                 }
                 else
                 {
-                    logger.Warn("mailSenderAddress: "  + mailSenderAddress);
+                    logger.Warn("mailSenderAddress: " + mailSenderAddress);
                     MessageBox.Show("Проверьте адрес отправителя почты в конфигурации почтового сервера в базе\n'mailSenderAddress'.\nТекущие параметры:\n" +
-                        "адрес отправителя почты: " + mailSenderAddress ,
+                        "адрес отправителя почты: " + mailSenderAddress,
                         "Функция рассылки отчетов не работает!",
                         MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
 
-                if (remoteFolderUpdateURL?.Length>5)
+                if (remoteFolderUpdateURL?.Length > 5)
                 {
                     //Run Autoupdate function
                     Task.Run(() => AutoUpdate());
@@ -545,17 +545,17 @@ namespace ASTA
                         "Функция работа с обновлениями ПО не работает!",
                         MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
-                
+
                 //loading parameters of configuration Application
                 ParameterOfConfigurationInSQLiteDB parametersInDb = new ParameterOfConfigurationInSQLiteDB(dbApplication);
                 listParameters = parametersInDb.GetParameters("%%"); //load only real data
-                List<ParameterConfig> parameters= ReturnListParametersWithEmptyValue(listParameters);
+                List<ParameterConfig> parameters = ReturnListParametersWithEmptyValue(listParameters);
                 if (parameters?.Count > 0)
                 {
                     string resultParameters = null;
-                    foreach(var p in parameters)
+                    foreach (var p in parameters)
                     {
-                        resultParameters+=(p.parameterName + " is empty\n\r");
+                        resultParameters += (p.parameterName + " is empty\n\r");
                     }
 
                     logger.Warn("Empty parameters in local config db: " + resultParameters);
@@ -756,7 +756,7 @@ namespace ASTA
                 _toolStripStatusLabelSetText(StatusLabel2, "Таблицы в БД созданы.");
             }
         }
-        
+
 
         private void SetTechInfoIntoDB() //Write Technical Info in DB 
         {
@@ -895,8 +895,6 @@ namespace ASTA
                 mailJobReportsOfNameOfReceiver = GetValueOfConfigParameter(listParameters, @"JobReportsReceiver", null, true);
                 string defaultURL = remoteFolderUpdateURL;
                 remoteFolderUpdateURL = GetValueOfConfigParameter(listParameters, @"RemoteFolderUpdateURL", defaultURL);
-
-                LoggerAddInfo(remoteFolderUpdateURL);
             }
 
             //set app's variables
@@ -1153,7 +1151,7 @@ namespace ASTA
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
             string textLabel = _ReturnTextOfControl(labelSettings9);
-            string description = textLabel?.ToLower() == "example" ? "" : textLabel; 
+            string description = textLabel?.ToLower() == "example" ? "" : textLabel;
 
             ParameterOfConfigurationInSQLiteDB parameter = new ParameterOfConfigurationInSQLiteDB(dbApplication);
 
@@ -9714,9 +9712,8 @@ namespace ASTA
             return result;
         }
 
-        //todo
-        //remove
-        //it exists in the  class - DateTimeConvertor
+        //todo -  remove
+        //it already is exists in the  class - DateTimeConvertor
         private string ConvertStringsTimeToStringHHMMSS(string time)
         {
             int h = 0;
@@ -9834,7 +9831,6 @@ namespace ASTA
 
 
 
-
         private void CreateDBItem_Click(object sender, EventArgs e)
         {
             TryMakeLocalDB();
@@ -9939,10 +9935,18 @@ namespace ASTA
         }
 
 
-        //Autoupdate
+
+
+        /// <summary>
+        /// ///////////////////////////////////
+        //  Update - Upload
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void AutoupdatItem_Click(object sender, EventArgs e)
         {
             UpdatingParameters parameters = MakeStartParametersOfUpdating();
+
             AutoUpdater.CheckForUpdateEvent += AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
             AutoUpdater.ApplicationExitEvent += AutoUpdater_ApplicationExitEvent;    //https://archive.codeplex.com/?p=autoupdaterdotnet
             AutoUpdater.RunUpdateAsAdmin = false;
@@ -9952,15 +9956,14 @@ namespace ASTA
             AutoUpdater.LetUserSelectRemindLater = false;
             AutoUpdater.RemindLaterTimeSpan = RemindLaterFormat.Days;
             AutoUpdater.RemindLaterAt = 2;
-            
+
             AutoUpdater.Start(parameters.appUpdateURL, System.Reflection.Assembly.GetEntryAssembly());
-            // AutoUpdate();
             AutoUpdater.CheckForUpdateEvent -= AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
         }
 
         UpdatingParameters MakeStartParametersOfUpdating()
         {
-            UpdatingParameters parameters =new UpdatingParameters();
+            UpdatingParameters parameters = new UpdatingParameters();
             parameters.localFolderUpdatingURL = localAppFolderPath;
             parameters.remoteFolderUpdatingURL = remoteFolderUpdateURL;
             parameters.appVersion = appVersionAssembly;
@@ -9969,10 +9972,8 @@ namespace ASTA
             parameters.appFileZip = appFileZip;
 
             MakerOfLinks makerLinks = new MakerOfLinks(parameters);
-            makerLinks.status += LoggerAddInfo;
             makerLinks.status += StatusLabelAddInfo;
             makerLinks.Make();
-            makerLinks.status -= LoggerAddInfo;
             makerLinks.status -= StatusLabelAddInfo;
 
             return makerLinks.GetParameters();
@@ -9981,7 +9982,6 @@ namespace ASTA
         private async Task AutoUpdate()
         {
             UpdatingParameters parameters = MakeStartParametersOfUpdating();
-
 
             //Check updates frequently
             System.Timers.Timer timer = new System.Timers.Timer
@@ -10008,8 +10008,8 @@ namespace ASTA
                 {
                     logger.Trace(@"Update URL: " + parameters.appUpdateURL);
 
-             AutoUpdater.CheckForUpdateEvent += AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
-                AutoUpdater.ApplicationExitEvent += AutoUpdater_ApplicationExitEvent;    //https://archive.codeplex.com/?p=autoupdaterdotnet
+                    AutoUpdater.CheckForUpdateEvent += AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
+                    AutoUpdater.ApplicationExitEvent += AutoUpdater_ApplicationExitEvent;    //https://archive.codeplex.com/?p=autoupdaterdotnet
                     AutoUpdater.RunUpdateAsAdmin = false;
                     AutoUpdater.Mandatory = true;
                     AutoUpdater.UpdateMode = Mode.ForcedDownload;
@@ -10017,14 +10017,14 @@ namespace ASTA
                     AutoUpdater.LetUserSelectRemindLater = false;
                     AutoUpdater.RemindLaterTimeSpan = RemindLaterFormat.Days;
                     AutoUpdater.RemindLaterAt = 2;
-                    
+
                     // AutoUpdater.ReportErrors = false;
                     // AutoUpdater.AppCastURL = appUpdateURL;
                     AutoUpdater.DownloadPath = appFolderUpdatePath;
 
                     AutoUpdater.Start(parameters.appUpdateURL, System.Reflection.Assembly.GetEntryAssembly());
                     //AutoUpdater.Start("ftp://kv-sb-server.corp.ais/Common/ASTA/ASTA.xml", new NetworkCredential("FtpUserName", "FtpPassword")); //download from FTP
-            AutoUpdater.CheckForUpdateEvent -= AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
+                    AutoUpdater.CheckForUpdateEvent -= AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
                 }
                 else
                 { logger.Trace(@"Обновление приостановлено. На сервер сейчас загружается новая версия ПО"); }
@@ -10141,26 +10141,20 @@ namespace ASTA
             parameters.appFileZip = appFileZip;
 
             MakerOfLinks makerLinks = new MakerOfLinks(parameters);
-            makerLinks.status += LoggerAddInfo;
             makerLinks.status += StatusLabelAddInfo;
 
             MakerOfUpdateXmlFile makerXML = new MakerOfUpdateXmlFile();
-            makerXML.status += LoggerAddInfo;
             makerXML.status += StatusLabelAddInfo;
 
             UpdatePreparing preparing = new UpdatePreparing(makerLinks, makerXML, parameters);
-            preparing.status += LoggerAddInfo;
             preparing.status += StatusLabelAddInfo;
 
             preparing.Do();
 
-            makerXML.status -= LoggerAddInfo;
             makerXML.status -= StatusLabelAddInfo;
-            makerLinks.status -= LoggerAddInfo;
             makerLinks.status -= StatusLabelAddInfo;
-            preparing.status -= LoggerAddInfo;
             preparing.status -= StatusLabelAddInfo;
-            
+
             return new UpdatingParameters()
             {
                 localFolderUpdatingURL = preparing._parameters.localFolderUpdatingURL,
@@ -10172,7 +10166,7 @@ namespace ASTA
                 appUpdateChangeLogURL = preparing._parameters.appUpdateChangeLogURL,
                 appUpdateFolderURL = preparing._parameters.appUpdateFolderURL,
                 appUpdateURL = preparing._parameters.appUpdateURL,
-                appFileZip = preparing._parameters.appFileZip                
+                appFileZip = preparing._parameters.appFileZip
             };
         }
 
@@ -10247,15 +10241,13 @@ namespace ASTA
             uploadUpdateError = false;
 
             UpdatingParameters parameters = PrepareUpdating();
-            
+
             Uploader uploader = new Uploader(parameters);
 
-            uploader.status += LoggerAddInfo;
             uploader.status += StatusLabelAddInfo;
 
             uploader.Upload();
 
-            uploader.status -= LoggerAddInfo;
             uploader.status -= StatusLabelAddInfo;
 
             if (System.IO.File.Exists(appFileZip))

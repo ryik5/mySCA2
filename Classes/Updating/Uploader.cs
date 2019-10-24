@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace ASTA.Classes.Updating
 {
-   public class Uploader
+    public class Uploader
     {
         public delegate void Status(object sender, AccountEventArgs e);
         public event Status status;
@@ -24,11 +24,11 @@ namespace ASTA.Classes.Updating
                 throw new ArgumentNullException("UpdatingParameters", "UpdatingParameters cannot be empty");
             }
 
-            if (string.IsNullOrWhiteSpace(_parameters.appUpdateFolderURI ))
+            if (string.IsNullOrWhiteSpace(_parameters.appUpdateFolderURI))
             {
                 throw new ArgumentNullException("appUpdateFolderURI", "appUpdateFolderURI cannot be empty");
             }
-            if (string.IsNullOrWhiteSpace( _parameters.appFileZip))
+            if (string.IsNullOrWhiteSpace(_parameters.appFileZip))
             {
                 throw new ArgumentNullException("appFileZip", "appFileZip cannot be empty");
             }
@@ -44,32 +44,31 @@ namespace ASTA.Classes.Updating
             };
 
             await InvokeAsync(tasks, maxDegreeOfParallelism: 2);
-            
+
             status?.Invoke(this, new AccountEventArgs("Обновление на сервер загружено -> " + _parameters.remoteFolderUpdatingURL));
         }
 
         private async Task UploadApplicationToShare(string source, string target)
         {
-                status?.Invoke(this, new AccountEventArgs("Идет отправка файла " + source + " -> " + target));
+            status?.Invoke(this, new AccountEventArgs("Идет отправка файла " + source + " -> " + target));
 
-                try
-                {
-                    // var fileByte = System.IO.File.ReadAllBytes(source);
-                    // System.IO.File.WriteAllBytes(target, fileByte);
-                    try { System.IO.File.Delete(target); }
-                    catch { status?.Invoke(this, new AccountEventArgs("Файл на сервере: " + target + " удалить не удалось")); } //@"\\server\folder\Myfile.txt"
+            try
+            {
+                // var fileByte = System.IO.File.ReadAllBytes(source);
+                // System.IO.File.WriteAllBytes(target, fileByte);
+                try { System.IO.File.Delete(target); }
+                catch { status?.Invoke(this, new AccountEventArgs("Файл на сервере: " + target + " удалить не удалось")); } //@"\\server\folder\Myfile.txt"
 
-                    System.IO.File.Copy(source, target, true); //@"\\server\folder\Myfile.txt"
-                    status?.Invoke(this, new AccountEventArgs("Отправка файла на сервер выполнена " + target));
+                System.IO.File.Copy(source, target, true); //@"\\server\folder\Myfile.txt"
+                status?.Invoke(this, new AccountEventArgs("Отправка файла на сервер выполнена " + target));
 
-                    try { System.IO.File.Delete(source); } catch { }
-                }
-                catch (Exception err)
-                {
-                    status?.Invoke(this, new AccountEventArgs("Отправка файла на сервер " + target + " завершена с ошибкой: " + err.ToString()));
-                }
+                try { System.IO.File.Delete(source); } catch { }
+            }
+            catch (Exception err)
+            {
+                status?.Invoke(this, new AccountEventArgs("Отправка файла на сервер " + target + " завершена с ошибкой: " + err.ToString()));
+            }
         }
-
         private static async Task InvokeAsync(IEnumerable<Func<Task>> taskFactories, int maxDegreeOfParallelism)
         {
             Queue<Func<Task>> queue = new Queue<Func<Task>>(taskFactories);
@@ -99,7 +98,6 @@ namespace ASTA.Classes.Updating
             }
             while (queue.Count != 0 || tasksInFlight.Count != 0);
         }
-
     }
 }
 
