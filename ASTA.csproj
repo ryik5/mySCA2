@@ -257,7 +257,7 @@
     <Compile Include="Classes\Updating\MakerOfLinks.cs" />
     <Compile Include="Classes\Updating\MakerOfUpdateXmlFile.cs" />
     <Compile Include="Classes\Updating\UpdatePreparing.cs" />
-    <Compile Include="Classes\Updating\UpdatingParameters.cs" />
+    <Compile Include="Classes\Updating\UpdateParameters.cs" />
     <Compile Include="Classes\Common\DataGridViewOperations.cs" />
     <Compile Include="Classes\Common\NamesOfConstants.cs" />
     <Compile Include="Classes\Common\WinFormsExtensions.cs" />

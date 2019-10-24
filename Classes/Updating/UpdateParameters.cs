@@ -14,7 +14,21 @@
         public string appUpdateFolderURI { get; set; }
         public string appUpdateChangeLogURL { get; set; }
 
-
+        public UpdatingParameters GetUpdating()
+        {
+            return new UpdatingParameters
+            {
+                remoteFolderUpdatingURL = remoteFolderUpdatingURL,
+                localFolderUpdatingURL = localFolderUpdatingURL,
+                appUpdateFolderURL = appUpdateFolderURL,
+                appUpdateFolderURI = appUpdateFolderURI,
+                appUpdateURL = appUpdateURL,
+                appFileXml = appFileXml,
+                appUpdateChangeLogURL = appUpdateChangeLogURL,
+                appUpdateMD5 = appUpdateMD5,
+                appVersion = appVersion,
+                appFileZip = appFileZip
+            };
+        }
     }
-
 }
