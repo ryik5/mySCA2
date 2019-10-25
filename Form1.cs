@@ -3399,6 +3399,8 @@ namespace ASTA
 
             dateTimePickerStart.Value = DateTime.Now.FirstDayOfMonth();
 
+            nameOfLastTable = @"ListFIO";
+
             LoadIdCardRegistrations(group);
         }
 
