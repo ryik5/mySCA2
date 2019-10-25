@@ -2,7 +2,7 @@
 using System;
 using Shouldly;
 
-namespace ASTA.Classes.AutoUpdating.Tests
+namespace ASTA.Classes.Updating.Tests
 {
     [TestClass()]
     public class MakerOfLinksTests
@@ -11,8 +11,9 @@ namespace ASTA.Classes.AutoUpdating.Tests
         public void MakeShouldThrowIfServerUpdateURLIsEmpty()
         {
             UpdatingParameters _parameters = new UpdatingParameters();
-
-            Should.Throw<Exception>(() => new MakerOfLinks(_parameters).Make())
+            MakerOfLinks maker = new MakerOfLinks();
+            maker.SetParameters(_parameters);
+            Should.Throw<Exception>(() => maker.Make())
             .Message.ShouldBe("Отсутствует параметр remoteFolderUpdatingURL или ссылка пустая!");
         }
         
@@ -21,7 +22,9 @@ namespace ASTA.Classes.AutoUpdating.Tests
         {
             UpdatingParameters _parameters=null;
 
-            Should.Throw<Exception>(() => new MakerOfLinks(_parameters).Make())
+            MakerOfLinks maker = new MakerOfLinks();
+            maker.SetParameters(_parameters);
+            Should.Throw<Exception>(() => maker.Make())
             .Message.ShouldBe("Не создан экземпляр UpdatingParameters!");
         }
 
@@ -31,49 +34,56 @@ namespace ASTA.Classes.AutoUpdating.Tests
             UpdatingParameters _parameters = new UpdatingParameters();
             _parameters.remoteFolderUpdatingURL = @"server.com.ua/common";
 
-            Should.Throw<Exception>(() => new MakerOfLinks(_parameters).Make())
+            MakerOfLinks maker = new MakerOfLinks();
+            maker.SetParameters(_parameters);
+            
+            Should.Throw<Exception>(() => maker.Make())
             .Message.ShouldBe("Отсутствует параметр appFileXml или ссылка пустая!");
         }
 
         [TestMethod()]
         public void MakeShouldWriteCorrectRemoteFolderUpdatingURL()
         {
-            UpdatingParameters _parameters = new UpdatingParameters();
-            _parameters.remoteFolderUpdatingURL = @"server.com.ua/common";
-            _parameters.appFileXml = @"app.xml";
+            UpdatingParameters _parameters = new UpdatingParameters
+            {
+                remoteFolderUpdatingURL = @"server.com.ua/common",
+                appFileXml = @"app.xml"
+            };
 
-            MakerOfLinks makerOfLinks = new MakerOfLinks(_parameters);
-            makerOfLinks.Make();
-
-            _parameters.appUpdateFolderURL.ShouldBe(@"file://server.com.ua/common/");
+            MakerOfLinks maker = new MakerOfLinks();
+            maker.SetParameters(_parameters);
+            
+            maker.GetParameters().appUpdateFolderURL.ShouldBe(@"file://server.com.ua/common/");
         }
 
         [TestMethod()]
         public void MakeShouldWriteCorrectAppUpdateFolderURI()
         {
-            UpdatingParameters _parameters = new UpdatingParameters();
-            _parameters.remoteFolderUpdatingURL = @"server.com.ua/common";
-            _parameters.appFileXml = @"app.xml";
+            UpdatingParameters _parameters = new UpdatingParameters
+            {
+                remoteFolderUpdatingURL = @"server.com.ua/common",
+                appFileXml = @"app.xml"
+            };
 
-            MakerOfLinks makerOfLinks = new MakerOfLinks(_parameters);
-            makerOfLinks.Make();
-
-            _parameters.appUpdateFolderURI.ShouldBe(@"\\server.com.ua\common\");
+            MakerOfLinks maker = new MakerOfLinks();
+            maker.SetParameters(_parameters);
+            
+            maker.GetParameters().appUpdateFolderURI.ShouldBe(@"\\server.com.ua\common\");
         }
         
         [TestMethod()]
         public void MakeShouldWriteCorrectAppUpdateURL()
         {
-            UpdatingParameters _parameters = new UpdatingParameters();
-            _parameters.remoteFolderUpdatingURL = @"server.com.ua/common";
-            _parameters.appFileXml = @"app.xml";
+            UpdatingParameters _parameters = new UpdatingParameters
+            {
+                remoteFolderUpdatingURL = @"server.com.ua/common",
+                appFileXml = @"app.xml"
+            };
 
-            MakerOfLinks makerOfLinks = new MakerOfLinks(_parameters);
-            makerOfLinks.Make();
+            MakerOfLinks maker = new MakerOfLinks();
+            maker.SetParameters(_parameters);
 
-            _parameters.appUpdateURL.ShouldBe(@"file://server.com.ua/common/app.xml");
-        }
-    
-    
+            maker.GetParameters().appUpdateURL.ShouldBe(@"file://server.com.ua/common/app.xml");
+        }    
     }
 }

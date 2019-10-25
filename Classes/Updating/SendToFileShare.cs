@@ -1,41 +1,80 @@
 ﻿using System;
-using ASTA.PersonDefinitions; 
+using System.Diagnostics.Contracts;
+using ASTA.Classes.People; 
 
-namespace ASTA
-{    class SendToFileShare
+namespace ASTA.Updating
+{  /* public class SendToFileShare
     {
-        private SendToFileShare(string fileName, UserAD user, string pathNetworkShare)
+        private UserAD _user;
+        private string _source;
+        private string _target;
+
+        public SendToFileShare(UserAD user, string source, string target)
         {
-            // string networkShareLocation = @"\\your\network\share\";
+            // var path = $"{pathNetworkShare}{fileName}";         // path = @"\\your\network\share\fileName"
 
-            var path = $"{pathNetworkShare}{fileName}"; //$"{pathNetworkShare}{fileName}.pdf";
-            var fileByte = System.IO.File.ReadAllBytes(fileName);
-            //Credentials for the account that has write-access. Probably best to store these in a web.config file.
-            var domain = user.domain;
-            var userID = user.login;
-            var password = user.password;
+            Contract.Requires(source.Length > 0);
+            Contract.Requires(target.Length > 0);
+            Contract.Requires(!source.Equals(target));
 
 
-            if (ImpersonateUser(domain, userID, password) == true)
+            if (ImpersonateUser(user) == true)
             {
-                //write the PDF to the share:
-                System.IO.File.WriteAllBytes(path, fileByte);
+                System.IO.File.Copy(source, target, true);  //@"\\server\folder\Myfile.txt"
+
+                // other way todo it
+                // var fileByte = System.IO.File.ReadAllBytes(source);
+                // System.IO.File.WriteAllBytes(target, fileByte);
             }
             else
             {
-                //Could not authenticate account. Something is up.
-                //Log or something.
+                System.IO.File.Copy(source, target, true);  //@"\\server\folder\Myfile.txt"
             }
         }
+
+        public SendToFileShare(UserAD user, string[] source, string[] target)
+        {
+            // var path = $"{pathNetworkShare}{fileName}";         // path = @"\\your\network\share\fileName"
+            if (!(source?.Length > 0))
+            {
+                throw new ArgumentNullException("Source is null");
+            }
+
+            if (source?.Length != target?.Length)
+            {
+                throw new Exception("Amount elements of source does not equal ones of target");
+            }
+
+            for (int index = 0; index < source.Length; index++)
+            {
+                if (source[index].Equals(target[index]))
+                {
+                    throw new Exception("There is an attempt to copy the file to the same place");
+                }
+            }
+
+            if (ImpersonateUser(user) == true)
+            {
+                for (int index = 0; index < source.Length; index++)
+                {
+                    System.IO.File.Copy(source[index], target[index], true);
+                }
+                //@"\\server\folder\Myfile.txt"
+
+                // other way todo it
+                // var fileByte = System.IO.File.ReadAllBytes(source);
+                // System.IO.File.WriteAllBytes(target, fileByte);
+            }
+         }
 
         /// <summary>
         /// Impersonates the given user during the session.
         /// </summary>
-        /// <param name="domain">The domain.</param>
-        /// <param name="userName">Name of the user.</param>
-        /// <param name="password">The password.</param>
+        /// <param name="domain">The domain.</param>            //user.domain;
+        /// <param name="userName">Name of the user.</param>    //user.login;
+        /// <param name="password">The password.</param>        // user.password;
         /// <returns></returns>
-        private bool ImpersonateUser(string domain, string userName, string password)
+        private bool ImpersonateUser(UserAD user)
         {
             System.Security.Principal.WindowsIdentity tempWindowsIdentity;
             IntPtr token = IntPtr.Zero;
@@ -43,7 +82,7 @@ namespace ASTA
 
             if (RevertToSelf())
             {
-                if (LogonUserA(userName, domain, password, LOGON32_LOGON_INTERACTIVE,
+                if (LogonUserA(user.login, user.domain, user.password, LOGON32_LOGON_INTERACTIVE,
                     LOGON32_PROVIDER_DEFAULT, ref token) != 0)
                 {
                     if (DuplicateToken(token, 2, ref tokenDuplicate) != 0)
@@ -69,7 +108,7 @@ namespace ASTA
         /// <summary>
         /// Undoes the current impersonation.
         /// </summary>
-        private void undoImpersonation()
+        private void UndoImpersonation()
         {
             impersonationContext.Undo();
         }
@@ -100,5 +139,5 @@ namespace ASTA
         public static extern bool CloseHandle(IntPtr handle);
         #endregion
     }
-
+*/
 }

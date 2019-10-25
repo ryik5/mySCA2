@@ -1,4 +1,4 @@
-﻿namespace ASTA.Classes.AutoUpdating
+﻿namespace ASTA.Classes
 {
     public class AccountEventArgs
     {
@@ -10,6 +10,4 @@
             Message = mes;
         }
     }
-
-    
 }

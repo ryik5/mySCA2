@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Linq;
 
-namespace ASTA
+namespace ASTA.Classes.Common
 {
 
     static class DateTimeExtensions

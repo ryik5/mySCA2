@@ -1,55 +1,81 @@
-﻿using ASTA.Classes.AutoUpdating;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Diagnostics.Contracts;
 
 namespace ASTA.Classes.Updating
 {
-    public class Uploader
+    public class Uploader : IDisposable
     {
         public delegate void Status(object sender, AccountEventArgs e);
         public event Status status;
 
+        public delegate void StatusUploading(object sender, AccountEventBoolArgs e);
+        public event StatusUploading uploaded;
+        string messageOfErrorUploading = null;
+
+        private string[] _source;
+        private string[] _target;
+        private bool uploadingError = false;
         UpdatingParameters _parameters { get; set; }
 
-        public Uploader(UpdatingParameters parameters)
+        public Uploader(UpdatingParameters parameters, string[] source, string[] target)
         {
+            status?.Invoke(this, new AccountEventArgs(""));
             _parameters = parameters;
+            _source = source;
+            _target = target;
         }
 
         public async void Upload()
         {
-            if (_parameters == null)
-            {
-                throw new ArgumentNullException("UpdatingParameters", "UpdatingParameters cannot be empty");
-            }
+            status?.Invoke(this, new AccountEventArgs("Начало отправки обновлений..."));
 
-            if (string.IsNullOrWhiteSpace(_parameters.appUpdateFolderURI))
-            {
-                throw new ArgumentNullException("appUpdateFolderURI", "appUpdateFolderURI cannot be empty");
-            }
-            if (string.IsNullOrWhiteSpace(_parameters.appFileZip))
-            {
-                throw new ArgumentNullException("appFileZip", "appFileZip cannot be empty");
-            }
+            uploaded?.Invoke(this, new AccountEventBoolArgs(true, System.Drawing.SystemColors.Control));
+            uploadingError = false;
 
-            Func<Task>[] tasks =
-            {
-                () => UploadApplicationToShare(
-                    _parameters.localFolderUpdatingURL + @"\" + _parameters.appFileXml,
-                    _parameters.appUpdateFolderURI +_parameters.appFileXml),  //Send app.xml file to server
-                () => UploadApplicationToShare(
-                    _parameters.localFolderUpdatingURL + @"\" + _parameters.appFileZip,
-                    _parameters.appUpdateFolderURI + _parameters.appFileZip)                        //Send app.zip file to server
-            };
+            Contract.Requires(_parameters != null);
+            Contract.Requires(_parameters.localFolderUpdatingURL != null);
+            Contract.Requires(_parameters.appUpdateFolderURI != null);
+            Contract.Requires(_parameters.appFileZip != null);
+            Contract.Requires(_parameters.appFileXml != null);
 
+            Contract.Requires(_source != null);
+            Contract.Requires(_target.Length == _source.Length);
+
+            Func<Task>[] tasks = MakeFuncTask();
             await InvokeAsync(tasks, maxDegreeOfParallelism: 2);
 
-            status?.Invoke(this, new AccountEventArgs("Обновление на сервер загружено -> " + _parameters.remoteFolderUpdatingURL));
+
+            if (!uploadingError)
+            {
+                status?.Invoke(this, new AccountEventArgs("Обновление отправлено -> " + _parameters.remoteFolderUpdatingURL));
+                uploaded?.Invoke(this, new AccountEventBoolArgs(false, System.Drawing.Color.PaleGreen));
+            }
+            else
+            {
+                status?.Invoke(this, new AccountEventArgs("Ошибки отправки обновления -> " + _parameters.remoteFolderUpdatingURL + "\r\n" + messageOfErrorUploading));
+                uploaded?.Invoke(this, new AccountEventBoolArgs(false, System.Drawing.Color.DarkOrange));
+            }
+        }
+
+        Func<Task>[] MakeFuncTask()
+        {
+            int len = _source.Length;
+            Func<Task>[] tasks = new Func<Task>[len];
+
+            for (int index = 0; index < len; index++)
+            {
+                int i = index;
+                tasks[i] = (() => UploadApplicationToShare(_source[i], _target[i]));
+            }
+
+            return tasks;
         }
 
         private async Task UploadApplicationToShare(string source, string target)
         {
+            Contract.Requires(!source.Equals(target));
             status?.Invoke(this, new AccountEventArgs("Идет отправка файла " + source + " -> " + target));
 
             try
@@ -61,12 +87,18 @@ namespace ASTA.Classes.Updating
 
                 System.IO.File.Copy(source, target, true); //@"\\server\folder\Myfile.txt"
                 status?.Invoke(this, new AccountEventArgs("Отправка файла на сервер выполнена " + target));
-
-                try { System.IO.File.Delete(source); } catch { }
+                uploaded?.Invoke(this, new AccountEventBoolArgs(true, System.Drawing.Color.LightGreen));
             }
             catch (Exception err)
             {
                 status?.Invoke(this, new AccountEventArgs("Отправка файла на сервер " + target + " завершена с ошибкой: " + err.ToString()));
+                uploadingError = true;
+
+                if (string.IsNullOrEmpty(messageOfErrorUploading))
+                    messageOfErrorUploading = err.Message;
+                else
+                    messageOfErrorUploading += "|" + err.Message;
+                uploaded?.Invoke(this, new AccountEventBoolArgs(false, System.Drawing.Color.LightYellow));
             }
         }
         private static async Task InvokeAsync(IEnumerable<Func<Task>> taskFactories, int maxDegreeOfParallelism)
@@ -98,6 +130,39 @@ namespace ASTA.Classes.Updating
             }
             while (queue.Count != 0 || tasksInFlight.Count != 0);
         }
+
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    _parameters = null;
+                    _source = _target = null;
+                    messageOfErrorUploading = null;
+                    uploaded = null;
+                    status = null;
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                // TODO: set large fields to null.
+
+                disposedValue = true;
+            }
+        }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }
 

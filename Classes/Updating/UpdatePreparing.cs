@@ -1,35 +1,37 @@
-﻿namespace ASTA.Classes.AutoUpdating
+﻿namespace ASTA.Classes.Updating
 {
     public class UpdatePreparing
     {
-        protected MakerOfLinks _makerLinks;
-        protected MakerOfUpdateXmlFile _makerXml;
-        public UpdatingParameters _parameters { private set; get; }
+        IMaker _makerLinks;
+        IMaker _makerXml;
+        UpdatingParameters _parameters { set; get; }
 
         public delegate void Status(object sender, AccountEventArgs e);
         public event Status status;
 
-        public UpdatePreparing(MakerOfLinks makerLinks, MakerOfUpdateXmlFile makerXml, UpdatingParameters parameters)
+        public UpdatePreparing(IMaker makerLinks, IMaker makerXml, UpdatingParameters parameters)
         {
             _makerLinks = makerLinks;
             _makerXml = makerXml;
-            _parameters = parameters;
+            _parameters = new UpdatingParameters(parameters);
         }
 
         public void Do()
         {
             _makerLinks.SetParameters(_parameters);
             _makerLinks.Make();
-            
-            status?.Invoke(this, new AccountEventArgs("Все ссылки для выполнения операций обновления подготовлены."));
 
             _parameters = _makerLinks.GetParameters();
 
             _makerXml.SetParameters(_parameters);
-            _makerXml.MakeFile();
+            _makerXml.Make();
             _parameters = _makerXml.GetParameters();
-           
-            status?.Invoke(this, new AccountEventArgs("Обновление для выгрузки на сервер подготовлены."));
+
+            status?.Invoke(this, new AccountEventArgs("Обновление для отправки на сервер подготовлено..."));
+        }
+        public UpdatingParameters GetParameters()
+        {
+            return new UpdatingParameters(_parameters);
         }
     }
 }

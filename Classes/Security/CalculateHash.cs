@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ASTA.Security
 {
-    public class CalculatingHash
+    internal class CalculatingHash
     {
         private  string FilName{ get; set; }
         public CalculatingHash(string filename)

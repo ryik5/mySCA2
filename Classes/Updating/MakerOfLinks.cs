@@ -1,37 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics.Contracts;
 
-namespace ASTA.Classes.AutoUpdating
+namespace ASTA.Classes.Updating
 {
-    public class MakerOfLinks
+    public class MakerOfLinks: IMaker
     {
         UpdatingParameters _parameters { get; set; }
 
         public delegate void Status(object sender, AccountEventArgs e);
         public event Status status;
-        public MakerOfLinks(UpdatingParameters parameters)
-        {
-            _parameters = parameters;
-        }
+        public MakerOfLinks() { }
 
         public void SetParameters(UpdatingParameters parameters)
         {
-            _parameters = parameters;
+            Contract.Requires(parameters != null,
+                 "Не создан экземпляр UpdatingParameters!");
+
+            _parameters = new UpdatingParameters(parameters);
         }
 
         public void Make()
         {
-            if (_parameters == null)
-                throw new Exception("Не создан экземпляр UpdatingParameters!");
-
-            if (string.IsNullOrWhiteSpace(_parameters.remoteFolderUpdatingURL))
-                throw new Exception("Отсутствует параметр remoteFolderUpdatingURL или ссылка пустая!");
-
-            if (string.IsNullOrWhiteSpace(_parameters.appFileXml))
-                throw new Exception("Отсутствует параметр appFileXml или ссылка пустая!");
+            Contract.Requires(_parameters != null, 
+                "Не создан экземпляр UpdatingParameters!");
+            Contract.Requires(!string.IsNullOrWhiteSpace(_parameters.remoteFolderUpdatingURL),
+                "Отсутствует параметр remoteFolderUpdatingURL или ссылка пустая!");
+            Contract.Requires(!string.IsNullOrWhiteSpace(_parameters.appFileXml),
+                "Отсутствует параметр appFileXml или ссылка пустая!");
 
             _parameters.appUpdateFolderURL = @"file://" + _parameters.remoteFolderUpdatingURL.Replace(@"\", @"/") + @"/";
             _parameters.appUpdateFolderURI = @"\\" + _parameters.remoteFolderUpdatingURL.Replace(@"/", @"\") + @"\";
@@ -42,18 +36,7 @@ namespace ASTA.Classes.AutoUpdating
 
         public UpdatingParameters GetParameters()
         {
-            return new UpdatingParameters {
-                remoteFolderUpdatingURL = _parameters.remoteFolderUpdatingURL,
-                localFolderUpdatingURL = _parameters.localFolderUpdatingURL,
-                appUpdateFolderURL = _parameters.appUpdateFolderURL,
-                appUpdateFolderURI = _parameters.appUpdateFolderURI,
-                appUpdateURL = _parameters.appUpdateURL,
-                appFileXml = _parameters.appFileXml,
-                appUpdateChangeLogURL = _parameters.appUpdateChangeLogURL,
-                appUpdateMD5 = _parameters.appUpdateMD5,
-                appVersion = _parameters.appVersion,
-                appFileZip = _parameters.appFileZip                
-            };
+            return new UpdatingParameters(_parameters);
         }
 
         public void PrintProperties()

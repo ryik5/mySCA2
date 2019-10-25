@@ -252,8 +252,10 @@
     <Compile Include="AboutBox1.Designer.cs">
       <DependentUpon>AboutBox1.cs</DependentUpon>
     </Compile>
-    <Compile Include="Classes\AccountEventArgs.cs" />
-    <Compile Include="Classes\ActiveDirectory\ActiveDirectoryOperations.cs" />
+    <Compile Include="Classes\Common\AccountEventArgs.cs" />
+    <Compile Include="Classes\Common\AccountEventBoolArgs.cs" />
+    <Compile Include="Classes\People\ActiveDirectoryOperations.cs" />
+    <Compile Include="Classes\Updating\IMaker.cs" />
     <Compile Include="Classes\Updating\MakerOfLinks.cs" />
     <Compile Include="Classes\Updating\MakerOfUpdateXmlFile.cs" />
     <Compile Include="Classes\Updating\UpdatePreparing.cs" />
@@ -261,15 +263,15 @@
     <Compile Include="Classes\Common\DataGridViewOperations.cs" />
     <Compile Include="Classes\Common\NamesOfConstants.cs" />
     <Compile Include="Classes\Common\WinFormsExtensions.cs" />
-    <Compile Include="Classes\Datetime\DateTimeConvertor.cs" />
+    <Compile Include="Classes\Common\DateTimeConvertor.cs" />
     <Compile Include="Classes\Common\ObservableRangeCollection.cs" />
     <Compile Include="Classes\PassagePoint.cs" />
-    <Compile Include="Classes\PersonAndGroup\Employee.cs" />
-    <Compile Include="Classes\PersonAndGroup\EmployeeFull.cs" />
-    <Compile Include="Classes\PersonAndGroup\EmployeeVisitor.cs" />
-    <Compile Include="Classes\ActiveDirectory\UserAD.cs" />
-    <Compile Include="Classes\ActiveDirectory\ADUserAuthorization.cs" />
-    <Compile Include="Classes\AmountMembersOfGroup.cs" />
+    <Compile Include="Classes\People\Employee.cs" />
+    <Compile Include="Classes\People\EmployeeFull.cs" />
+    <Compile Include="Classes\People\EmployeeVisitor.cs" />
+    <Compile Include="Classes\People\UserAD.cs" />
+    <Compile Include="Classes\People\ADUserAuthorization.cs" />
+    <Compile Include="Classes\People\ParametersOfGroup.cs" />
     <Compile Include="Classes\Db\DbColumn.cs" />
     <Compile Include="Classes\Db\DbIndex.cs" />
     <Compile Include="Classes\Db\DbSchema.cs" />
@@ -278,11 +280,11 @@
     <Compile Include="Classes\Mailing\MailServer.cs" />
     <Compile Include="Classes\Mailing\MailSender.cs" />
     <Compile Include="Classes\Mailing\MailUser.cs" />
-    <Compile Include="Classes\PeopleShiftsAndOutResons.cs" />
+    <Compile Include="Classes\People\PeopleShiftsAndOutResons.cs" />
     <Compile Include="AssemblyInfo1.cs" />
     <Compile Include="Classes\Common\DataTableExtensions.cs" />
-    <Compile Include="Classes\Datetime\DateTimeExtensions.cs" />
-    <Compile Include="Classes\PersonAndGroup\Department.cs" />
+    <Compile Include="Classes\Common\DateTimeExtensions.cs" />
+    <Compile Include="Classes\People\Department.cs" />
     <Compile Include="Classes\Security\CalculateHash.cs" />
     <Compile Include="Classes\Security\EncryptDecrypt.cs" />
     <Compile Include="Classes\Updating\Uploader.cs" />
@@ -292,11 +294,11 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
-    <Compile Include="Classes\PersonAndGroup\Visitor.cs" />
+    <Compile Include="Classes\People\Visitor.cs" />
     <Compile Include="Classes\Mailing\Mailing.cs" />
     <Compile Include="Classes\ParameterOfConfiguration.cs" />
-    <Compile Include="Classes\PersonAndGroup\Person.cs" />
-    <Compile Include="Classes\PersonAndGroup\Visitors.cs" />
+    <Compile Include="Classes\People\Person.cs" />
+    <Compile Include="Classes\People\Visitors.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -317,7 +319,7 @@
     </Compile>
     <Compile Include="Classes\Updating\SendToFileShare.cs" />
     <Compile Include="Classes\Common\StartStopTimers.cs" />
-    <Compile Include="Classes\Datetime\TimeConvertor.cs" />
+    <Compile Include="Classes\Common\TimeConvertor.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="AboutBox1.resx">

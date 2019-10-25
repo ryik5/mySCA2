@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ASTA.PersonDefinitions
+namespace ASTA.Classes.People
 {
-    class UserAD : Employee, IComparable<UserAD>
+   public class UserAD : Employee, IComparable<UserAD>
     {
         public int id;
         public string domain;

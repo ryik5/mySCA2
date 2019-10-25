@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ASTA.PersonDefinitions
+namespace ASTA.Classes.People
 {
   public  class EmployeeFull : Employee
     {

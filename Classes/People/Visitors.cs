@@ -1,10 +1,10 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using ASTA.Classes.Common;
-namespace ASTA.PersonDefinitions
+
+namespace ASTA.Classes.People
 {
     public class Visitors :INotifyPropertyChanged, IEnumerable
     {

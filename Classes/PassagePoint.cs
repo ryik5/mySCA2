@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ASTA
+namespace ASTA.Classes
 {
     public class PassagePoint
     {

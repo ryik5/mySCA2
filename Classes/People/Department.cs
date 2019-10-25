@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ASTA
+namespace ASTA.Classes.People
 {    
     interface IDepartment
     {
@@ -9,7 +9,7 @@ namespace ASTA
         string _departmentBossCode { get; set; }
     }
 
-    class Department : IDepartment
+   public class Department : IDepartment
     {
         public string _departmentId { get; set; }
         public string _departmentDescription { get; set; }
@@ -37,7 +37,7 @@ namespace ASTA
         }
     }
 
-    class DepartmentFull : IDepartment
+   public class DepartmentFull : IDepartment
     {
         public string _departmentId { get; set; }
         public string _departmentDescription { get; set; }

@@ -4,9 +4,8 @@ using System;
 using System.Linq;
 using System.Collections.ObjectModel;
 using System.DirectoryServices;
-using ASTA.PersonDefinitions;
 
-namespace ASTA
+namespace ASTA.Classes.People
 {   
     class ADData
     {

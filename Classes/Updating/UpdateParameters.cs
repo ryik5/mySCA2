@@ -1,4 +1,4 @@
-﻿namespace ASTA.Classes.AutoUpdating
+﻿namespace ASTA.Classes.Updating
 {
     public class UpdatingParameters
     {
@@ -13,6 +13,22 @@
         public string appUpdateURL { get; set; }
         public string appUpdateFolderURI { get; set; }
         public string appUpdateChangeLogURL { get; set; }
+
+        public UpdatingParameters() { }
+
+        public UpdatingParameters(UpdatingParameters parameters)
+        {
+            remoteFolderUpdatingURL = parameters.remoteFolderUpdatingURL;
+            localFolderUpdatingURL = parameters.localFolderUpdatingURL;
+            appUpdateFolderURL = parameters.appUpdateFolderURL;
+            appUpdateFolderURI = parameters.appUpdateFolderURI;
+            appUpdateURL = parameters.appUpdateURL;
+            appFileXml = parameters.appFileXml;
+            appUpdateChangeLogURL = parameters.appUpdateChangeLogURL;
+            appUpdateMD5 = parameters.appUpdateMD5;
+            appVersion = parameters.appVersion;
+            appFileZip = parameters.appFileZip;
+        }
 
         public UpdatingParameters GetUpdating()
         {

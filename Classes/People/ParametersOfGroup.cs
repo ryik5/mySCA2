@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ASTA
+namespace ASTA.Classes.People
 {
-    class AmountMembersOfGroup
+   public class ParametersOfGroup
     {
         public int _amountMembers;
         public string _groupName;
@@ -22,7 +18,7 @@ namespace ASTA
             if (obj == null)
                 return false;
 
-            AmountMembersOfGroup df = obj as AmountMembersOfGroup;
+            ParametersOfGroup df = obj as ParametersOfGroup;
             if ((Object)df == null)
                 return false;
 

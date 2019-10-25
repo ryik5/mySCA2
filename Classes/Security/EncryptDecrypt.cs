@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 
-namespace ASTA
+namespace ASTA.Security
 {
 
     /*
@@ -32,7 +32,7 @@ namespace ASTA
             }
  
       */
-    class EncryptDecrypt
+   internal class EncryptDecrypt
     {
         /*
             string plainText = "Hello, World!";            
@@ -149,8 +149,8 @@ namespace ASTA
             return plaintext;
         }
     }
-    
-    static class EncryptionDecryptionCriticalData
+
+    internal static class EncryptionDecryptionCriticalData
     {
         public static string EncryptStringToBase64Text(string plainText, byte[] Key, byte[] IV) //Encrypt variables PlainText Data
         {

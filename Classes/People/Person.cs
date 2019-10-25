@@ -1,5 +1,5 @@
 ﻿
-namespace ASTA.PersonDefinitions
+namespace ASTA.Classes.People
 {
 
     public class Person

@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ASTA.PersonDefinitions
+namespace ASTA.Classes.People
 {
-
     public class Employee : Person, IComparable<Employee>
     {
         public Employee() : base() { }

@@ -15,9 +15,9 @@ using System.Security.Cryptography;  // for Crypography
 
 using MimeKit;
 
-using ASTA.PersonDefinitions;
+using ASTA.Classes;
+using ASTA.Classes.People;
 using ASTA.Classes.Common;
-using ASTA.Classes.AutoUpdating;
 using ASTA.Classes.Updating;
 using ASTA.Security;
 using AutoUpdaterDotNET;
@@ -55,12 +55,11 @@ namespace ASTA
         static string appFileMD5;
 
         static string remoteFolderUpdateURL;// = @"kv-sb-server.corp.ais\Common\ASTA";
-        static string appUpdateFolderURL;// = @"file://" + serverUpdateURL.Replace(@"\", @"/") + @"/"; //  @"file://kv-sb-server.corp.ais/Common/ASTA/";
+       // static string appUpdateFolderURL;// = @"file://" + serverUpdateURL.Replace(@"\", @"/") + @"/"; //  @"file://kv-sb-server.corp.ais/Common/ASTA/";
         static string appUpdateURL;// = appUpdateFolderURL + appNameXML;
-        static string appUpdateFolderURI;// = @"\\" + serverUpdateURL + @"\"; //@"\\kv-sb-server.corp.ais\Common\ASTA\";
+      //  static string appUpdateFolderURI;// = @"\\" + serverUpdateURL + @"\"; //@"\\kv-sb-server.corp.ais\Common\ASTA\";
 
         static bool uploadingUpdate = false;
-        static bool uploadUpdateError = false;
 
 
         readonly static string appFilePath = Application.ExecutablePath;
@@ -359,37 +358,30 @@ namespace ASTA
 
 
             //Clear temporary folder 
-            ClearItemsInApplicationFolders(appFolderTempPath + @"\");
-            ClearItemsInApplicationFolders(appFolderUpdatePath + @"\");
+            ClearItemsInApplicationFolders(appFolderTempPath + @"\*.*");
+            ClearItemsInApplicationFolders(appFolderUpdatePath + @"\*.*");
             System.IO.Directory.CreateDirectory(appFolderBackUpPath + @"\");
 
 
             //Make archives:
-            //1. from app's *.exe and main files of the app
-            if (System.IO.File.Exists(appFileZip))
-            {
-                try { System.IO.File.Delete(appFileZip); } catch { }
-            }
+            //1. from app's *.exe and main lib files of the app
+            ClearItemsInApplicationFolders(localAppFolderPath + @"\"+ appFileZip);
             MakeZip(appAllFiles, appFileZip);
             if (System.IO.File.Exists(appFileZip))
             {
                 System.IO.File.Move(appFileZip, System.IO.Path.Combine(appFolderBackUpPath, appName + "." + GetSafeFilename(DateTime.Now.ToYYYYMMDDHHMMSS(), "") + @".zip"));
             }
             //refresh temp folder
-            ClearItemsInApplicationFolders(appFolderTempPath + @"\");
+            ClearItemsInApplicationFolders(appFolderTempPath + @"\*.*");
 
             //2. from the main DB of application
             string dbZipPath = appDbName + "." + GetSafeFilename(DateTime.Now.ToYYYYMMDDHHMMSS(), "") + @".zip";
-
-            if (System.IO.File.Exists(dbZipPath))
-            {
-                try { System.IO.File.Delete(appFileZip); } catch { }
-            }
+            ClearItemsInApplicationFolders(localAppFolderPath + @"\" + dbZipPath);
             MakeZip(appDbName, dbZipPath);
             System.IO.File.Move(dbZipPath, System.IO.Path.Combine(appFolderBackUpPath, System.IO.Path.GetFileName(dbZipPath)));
 
             //refresh temp folder
-            ClearItemsInApplicationFolders(appFolderTempPath + @"\");
+            ClearItemsInApplicationFolders(appFolderTempPath + @"\*.*");
 
 
             //Check local DB Configuration
@@ -2540,7 +2532,7 @@ namespace ASTA
 
             logger.Trace("UpdateAmountAndRecepientOfPeopleGroupDescription");
             List<string> groupsUncount = new List<string>();
-            List<AmountMembersOfGroup> amounts = new List<AmountMembersOfGroup>();
+            List<ParametersOfGroup> amounts = new List<ParametersOfGroup>();
             HashSet<string> groupsUniq = new HashSet<string>();
             List<DepartmentFull> emails = new List<DepartmentFull>();
             string tmpRec = "";
@@ -2631,7 +2623,7 @@ namespace ASTA
                     logger.Trace("groupsUncount: " + (new HashSet<string>(groupsUncount)).Count());
                     foreach (string group in new HashSet<string>(groupsUncount))
                     {
-                        amounts.Add(new AmountMembersOfGroup()
+                        amounts.Add(new ParametersOfGroup()
                         {
                             _groupName = group,
                             _amountMembers = groupsUncount.Where(x => x == group).Count(),
@@ -4805,46 +4797,39 @@ namespace ASTA
         //----- Clearing. Start ---------//
         private void ClearItemsInApplicationFolders(string maskFiles)
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
-
             System.IO.FileInfo[] filesPath = null;
             bool filesInFolderExist = false;
-
+            string folder = System.IO.Path.GetDirectoryName(maskFiles);
             if (System.IO.Directory.Exists(maskFiles))
             {
                 filesInFolderExist = true;
             }
 
-            try
-            {
                 if (filesInFolderExist)
                 {
                     //   filesPath = new System.IO.DirectoryInfo(maskFiles).GetFiles(@"*.*", System.IO.SearchOption.AllDirectories);
                     logger.Trace("Files '" + maskFiles + "' in folder exist:" + filesInFolderExist);
                     var dir = new System.IO.DirectoryInfo(maskFiles);
-                    dir.Delete(true);
-                    try { System.IO.Directory.CreateDirectory(maskFiles); } catch { }
+                    try { dir.Delete(true); }
+                    catch (Exception e) { logger.Warn("Папка не удалена: " + maskFiles + " " + e.Message); }
+                    try { System.IO.Directory.CreateDirectory(maskFiles); }
+                    catch (Exception e) { logger.Warn("Папка не создана: " + maskFiles + " " + e.Message); }
                 }
                 else
                 {
-                    filesPath = new System.IO.DirectoryInfo(localAppFolderPath).GetFiles(maskFiles, System.IO.SearchOption.AllDirectories);
+                    filesPath = new System.IO.DirectoryInfo(folder).GetFiles(
+                        maskFiles.Remove(0, maskFiles.LastIndexOf(@"\") + 1), 
+                        System.IO.SearchOption.AllDirectories);
                 }
-                foreach (System.IO.FileInfo file in filesPath)
+                foreach (var file in filesPath)
                 {
-                    if (file?.FullName?.Length > 0)
+                    try
                     {
-                        logger.Trace("file: " + file + "");
-                        try
-                        {
-                            file.Delete();
-                            logger.Info("Удален файл: \"" + file.FullName + "\"");
-                        }
-                        catch (Exception e) { logger.Warn("Файл '" + file.FullName + "'не удален из-за ошибки: " + e.Message); }
+                        file.Delete();
+                        logger.Trace("Удален файл: " + file.FullName );
                     }
+                    catch (Exception e) { logger.Warn("Файл '" + file.Name + "'не удален из-за ошибки: " + e.Message); }
                 }
-            }
-            catch { logger.Warn("Ошибка удаления: " + maskFiles); }
         }
 
         private async void ClearReportItem_Click(object sender, EventArgs e) //ReCreatePersonTables()
@@ -9830,6 +9815,31 @@ namespace ASTA
 
 
 
+        private void StatusLabelAddInfo(object sender, AccountEventArgs e)
+        {
+            _toolStripStatusLabelSetText(StatusLabel2, e.Message);
+        }
+        private void StatusLabelSetBackColor(object sender, AccountEventBoolArgs e)
+        {
+            _toolStripStatusLabelBackColor(StatusLabel2, e.Color);
+        }
+
+        private void StatusLabelAddInfo(string message)
+        {
+            _toolStripStatusLabelSetText(StatusLabel2, message);
+        }
+
+        private void LoggerAddInfo(object sender, AccountEventArgs e)
+        {
+            logger.Info(e.Message);
+        }
+
+        private void LoggerAddInfo(string message)
+        {
+            logger.Info(message);
+        }
+
+
 
         private void CreateDBItem_Click(object sender, EventArgs e)
         {
@@ -9945,44 +9955,48 @@ namespace ASTA
         /// <param name="e"></param>
         private void AutoupdatItem_Click(object sender, EventArgs e)
         {
-            UpdatingParameters parameters = MakeStartParametersOfUpdating();
+            if (!uploadingUpdate)
+            {
+                UpdatingParameters parameters = MakeStartParametersOfUpdating();
 
-            AutoUpdater.CheckForUpdateEvent += AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
-            AutoUpdater.ApplicationExitEvent += AutoUpdater_ApplicationExitEvent;    //https://archive.codeplex.com/?p=autoupdaterdotnet
-            AutoUpdater.RunUpdateAsAdmin = false;
-            AutoUpdater.Mandatory = true;
-            AutoUpdater.UpdateMode = Mode.ForcedDownload;
+                AutoUpdater.CheckForUpdateEvent += AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
+                AutoUpdater.ApplicationExitEvent += AutoUpdater_ApplicationExitEvent;    //https://archive.codeplex.com/?p=autoupdaterdotnet
+                AutoUpdater.RunUpdateAsAdmin = false;
+                AutoUpdater.Mandatory = true;
+                AutoUpdater.UpdateMode = Mode.ForcedDownload;
 
-            AutoUpdater.LetUserSelectRemindLater = false;
-            AutoUpdater.RemindLaterTimeSpan = RemindLaterFormat.Days;
-            AutoUpdater.RemindLaterAt = 2;
+                AutoUpdater.LetUserSelectRemindLater = false;
+                AutoUpdater.RemindLaterTimeSpan = RemindLaterFormat.Days;
+                AutoUpdater.RemindLaterAt = 2;
 
-            AutoUpdater.Start(parameters.appUpdateURL, System.Reflection.Assembly.GetEntryAssembly());
-            AutoUpdater.CheckForUpdateEvent -= AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
+                AutoUpdater.Start(parameters.appUpdateURL, System.Reflection.Assembly.GetEntryAssembly());
+                AutoUpdater.CheckForUpdateEvent -= AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
+            }
+            else
+            { StatusLabelAddInfo(@"Ждите! На сервер загружается новая версия ПО"); }
         }
 
         UpdatingParameters MakeStartParametersOfUpdating()
         {
-            UpdatingParameters parameters = new UpdatingParameters();
-            parameters.localFolderUpdatingURL = localAppFolderPath;
-            parameters.remoteFolderUpdatingURL = remoteFolderUpdateURL;
-            parameters.appVersion = appVersionAssembly;
-            parameters.appFileXml = appNameXML;
-            parameters.appUpdateMD5 = appFileMD5;
-            parameters.appFileZip = appFileZip;
+            UpdatingParameters parameters = new UpdatingParameters
+            {
+                localFolderUpdatingURL = localAppFolderPath,
+                remoteFolderUpdatingURL = remoteFolderUpdateURL,
+                appVersion = appVersionAssembly,
+                appFileXml = appNameXML,
+                appUpdateMD5 = appFileMD5,
+                appFileZip = appFileZip
+            };
 
-            MakerOfLinks makerLinks = new MakerOfLinks(parameters);
-            makerLinks.status += StatusLabelAddInfo;
+            MakerOfLinks makerLinks = new MakerOfLinks();
+            makerLinks.SetParameters(parameters);
             makerLinks.Make();
-            makerLinks.status -= StatusLabelAddInfo;
 
             return makerLinks.GetParameters();
         }
 
         private async Task AutoUpdate()
         {
-            UpdatingParameters parameters = MakeStartParametersOfUpdating();
-
             //Check updates frequently
             System.Timers.Timer timer = new System.Timers.Timer
             {
@@ -10006,7 +10020,9 @@ namespace ASTA
                 // AutoUpdater.ApplicationExitEvent += ApplicationExit;
                 if (!uploadingUpdate)
                 {
+                    UpdatingParameters parameters = MakeStartParametersOfUpdating();
                     logger.Trace(@"Update URL: " + parameters.appUpdateURL);
+                    appUpdateURL = parameters.appUpdateURL;
 
                     AutoUpdater.CheckForUpdateEvent += AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
                     AutoUpdater.ApplicationExitEvent += AutoUpdater_ApplicationExitEvent;    //https://archive.codeplex.com/?p=autoupdaterdotnet
@@ -10095,32 +10111,6 @@ namespace ASTA
             return calculatedHash.Calculate();
         }
 
-        private void StatusLabelAddInfo(object sender, AccountEventArgs e)
-        {
-            _toolStripStatusLabelSetText(StatusLabel2, e.Message);
-        }
-
-        private void StatusLabelAddInfo(string message)
-        {
-            _toolStripStatusLabelSetText(StatusLabel2, message);
-        }
-
-        private void LoggerAddInfo(object sender, AccountEventArgs e)
-        {
-            logger.Info(e.Message);
-        }
-
-        private void LoggerAddInfo(string message)
-        {
-            logger.Info(message);
-        }
-
-
-        private void testUpdateToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            UpdatingParameters parameters = PrepareUpdating();
-        }
-
         private UpdatingParameters PrepareUpdating()
         {
             LoggerAddInfo(remoteFolderUpdateURL);
@@ -10131,16 +10121,17 @@ namespace ASTA
             //Make MD5 of ZIP archive
             appFileMD5 = CalculateMD5OfFile(appFileZip);
 
-            UpdatingParameters parameters = new UpdatingParameters();
+            UpdatingParameters parameters = new UpdatingParameters
+            {
+                localFolderUpdatingURL = localAppFolderPath,
+                remoteFolderUpdatingURL = remoteFolderUpdateURL,
+                appVersion = appVersionAssembly,
+                appFileXml = appNameXML,
+                appUpdateMD5 = appFileMD5,
+                appFileZip = appFileZip
+            };
 
-            parameters.localFolderUpdatingURL = localAppFolderPath;
-            parameters.remoteFolderUpdatingURL = remoteFolderUpdateURL;
-            parameters.appVersion = appVersionAssembly;
-            parameters.appFileXml = appNameXML;
-            parameters.appUpdateMD5 = appFileMD5;
-            parameters.appFileZip = appFileZip;
-
-            MakerOfLinks makerLinks = new MakerOfLinks(parameters);
+            MakerOfLinks makerLinks = new MakerOfLinks();
             makerLinks.status += StatusLabelAddInfo;
 
             MakerOfUpdateXmlFile makerXML = new MakerOfUpdateXmlFile();
@@ -10155,19 +10146,7 @@ namespace ASTA
             makerLinks.status -= StatusLabelAddInfo;
             preparing.status -= StatusLabelAddInfo;
 
-            return new UpdatingParameters()
-            {
-                localFolderUpdatingURL = preparing._parameters.localFolderUpdatingURL,
-                remoteFolderUpdatingURL = preparing._parameters.remoteFolderUpdatingURL,
-                appVersion = preparing._parameters.appVersion,
-                appFileXml = preparing._parameters.appFileXml,
-                appUpdateMD5 = preparing._parameters.appUpdateMD5,
-                appUpdateFolderURI = preparing._parameters.appUpdateFolderURI,
-                appUpdateChangeLogURL = preparing._parameters.appUpdateChangeLogURL,
-                appUpdateFolderURL = preparing._parameters.appUpdateFolderURL,
-                appUpdateURL = preparing._parameters.appUpdateURL,
-                appFileZip = preparing._parameters.appFileZip
-            };
+            return preparing.GetParameters();
         }
 
         private void CalculateHashItem_Click(object sender, EventArgs e) //Selectfiles()
@@ -10238,30 +10217,38 @@ namespace ASTA
             _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
 
             uploadingUpdate = true;
-            uploadUpdateError = false;
 
             UpdatingParameters parameters = PrepareUpdating();
 
-            Uploader uploader = new Uploader(parameters);
+            string[] source =  {
+                parameters.localFolderUpdatingURL + @"\" + parameters.appFileXml,
+                parameters.localFolderUpdatingURL + @"\" + parameters.appFileZip
+            };
 
-            uploader.status += StatusLabelAddInfo;
-
-            uploader.Upload();
-
-            uploader.status -= StatusLabelAddInfo;
-
-            if (System.IO.File.Exists(appFileZip))
+            string[] target = {
+                parameters.appUpdateFolderURI + parameters.appFileXml,
+                parameters.appUpdateFolderURI + parameters.appFileZip
+            };
+            
+            using (Uploader uploader = new Uploader(parameters, source, target))
             {
-                try { System.IO.File.Delete(appFileZip); } catch { }
+                uploader.status += StatusLabelAddInfo;
+                uploader.uploaded += StatusLabelSetBackColor;
+                uploader.Upload();
+                uploader.status -= StatusLabelAddInfo;
+                uploader.uploaded -= StatusLabelSetBackColor;
             }
 
-            if (System.IO.File.Exists(appNameXML))
+            foreach (var file in source)
             {
-                try { System.IO.File.Delete(appNameXML); } catch { }
-            }
+                if (System.IO.File.Exists(file))
+                {
+                    try { System.IO.File.Delete(file); } catch { }
+                }
 
-            uploader = null;
+            }
             parameters = null;
+            uploadingUpdate = false;
         }
     }
 }

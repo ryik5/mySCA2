@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 
-namespace ASTA.Classes.AutoUpdating
+namespace ASTA.Classes.Updating
 {
-    public class MakerOfUpdateXmlFile
+    public class MakerOfUpdateXmlFile : IMaker
     {
-      static UpdatingParameters _parameters { get; set; }
+       UpdatingParameters _parameters { get; set; }
 
         public delegate void Status(object sender, AccountEventArgs e);
         public event Status status;
@@ -19,32 +16,31 @@ namespace ASTA.Classes.AutoUpdating
 
         public MakerOfUpdateXmlFile(UpdatingParameters parameters)
         {
-            _parameters = parameters;
+            _parameters = new UpdatingParameters(parameters);
         }
 
         public void SetParameters(UpdatingParameters parameters)
         {
-            _parameters = parameters;
+            _parameters = new UpdatingParameters(parameters);
         }
 
         public UpdatingParameters GetParameters()
         {
-            return _parameters;
+            return new UpdatingParameters(_parameters);
         }
 
-        public void MakeFile()
+        public void Make()
         {
             status?.Invoke(this, new AccountEventArgs("MakeFile "));
 
-            if (_parameters == null)
-            {
-                throw new ArgumentNullException();
-            }
+            Contract.Requires(_parameters != null,
+                    "Не создан экземпляр UpdatingParameters!");
 
-                       if (_parameters.appFileXml == null)
-                       {
-                           throw new ArgumentNullException();
-                       }
+            Contract.Requires(!string.IsNullOrWhiteSpace(_parameters.appFileXml),
+                    "Отсутствует параметр appFileXml или ссылка пустая!");
+
+            Contract.Requires(!string.IsNullOrWhiteSpace(_parameters.appVersion),
+                    "Отсутствует параметр appVersion или ссылка пустая!");
 
             //https://stackoverflow.com/questions/44477727/writing-xml-and-reading-it-back-c-sharp
             //clear any xmlns attributes from the root element
@@ -57,9 +53,11 @@ namespace ASTA.Classes.AutoUpdating
 
             if (_parameters.appUpdateMD5 != null)
             {
-                var checksum = new XMLElementChecksum();
-                checksum.value = _parameters.appUpdateMD5;
-                checksum.algorithm = "MD5";
+                var checksum = new XMLElementChecksum
+                {
+                    value = _parameters.appUpdateMD5,
+                    algorithm = "MD5"
+                };
                 document.checksum = checksum;
             }
             status?.Invoke(this, new AccountEventArgs("XML файл:" + _parameters.appFileXml));

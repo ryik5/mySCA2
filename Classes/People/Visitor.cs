@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ASTA.PersonDefinitions
+namespace ASTA.Classes.People
 {
 
     public class Visitor : Person, IComparable<Visitor>//,  INotifyPropertyChanged

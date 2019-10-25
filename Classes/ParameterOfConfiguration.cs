@@ -1,11 +1,12 @@
-﻿using System;
+﻿using ASTA.Classes.Common;
+using ASTA.Security;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 
-namespace ASTA
+namespace ASTA.Classes
 {
-
     internal class ParameterConfig
     {
         public string parameterName;
