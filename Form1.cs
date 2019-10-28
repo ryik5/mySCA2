@@ -9948,10 +9948,6 @@ namespace ASTA
                 AutoUpdater.Mandatory = true;
                 AutoUpdater.UpdateMode = Mode.ForcedDownload;
 
-                AutoUpdater.LetUserSelectRemindLater = false;
-                AutoUpdater.RemindLaterTimeSpan = RemindLaterFormat.Days;
-                AutoUpdater.RemindLaterAt = 2;
-
                 AutoUpdater.Start(parameters.appUpdateURL, System.Reflection.Assembly.GetEntryAssembly());
                 AutoUpdater.CheckForUpdateEvent -= AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
             }
