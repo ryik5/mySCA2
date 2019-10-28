@@ -77,26 +77,7 @@ namespace ASTA
                 
                 //Analysing packages
                 @"ASTA.exe.config",
-                @"Microsoft.AppCenter.dll",
-                @"Microsoft.AppCenter.Analytics.dll",
-                @"Microsoft.AppCenter.Crashes.dll",
-                @"x64\e_sqlite3.dll", @"x86\e_sqlite3.dll",
-                @"SQLite-net.dll",
-                @"SQLitePCLRaw.provider.e_sqlite3.dll",
-                @"SQLitePCLRaw.batteries_green.dll",
-                @"SQLitePCLRaw.batteries_v2.dll",
-                @"SQLitePCLRaw.core.dll",
-                @"System.Runtime.InteropServices.RuntimeInformation.dll",
-                @"Newtonsoft.Json.dll",
-                
-                //Test packages
-                @"Shouldly.dll",
-                @"Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.dll",
-                @"Microsoft.VisualStudio.TestPlatform.TestFramework.dll",
-                @"Microsoft.VisualStudio.TestPlatform.MSTestAdapter.PlatformServices.Interface.dll",
-                @"Microsoft.VisualStudio.TestPlatform.MSTestAdapter.PlatformServices.dll",
-                @"Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.dll",
-        };
+                        };
         static string appQueryCreatingDB = System.IO.Path.Combine(localAppFolderPath, System.IO.Path.GetFileNameWithoutExtension(appFilePath) + @".sql");
 
         string guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения// получаем GIUD приложения
