@@ -29,9 +29,9 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(WinFormASTA));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.comboBoxFio = new System.Windows.Forms.ComboBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
@@ -101,11 +101,7 @@
             this.EditAnualDaysItem = new System.Windows.Forms.ToolStripMenuItem();
             this.AddAnualDateItem = new System.Windows.Forms.ToolStripMenuItem();
             this.Separator3 = new System.Windows.Forms.ToolStripSeparator();
-            this.ClearReportItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.ClearDataItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ClearRegistryItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.ClearAllItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.Separator7 = new System.Windows.Forms.ToolStripSeparator();
             this.AutoupdateItem = new System.Windows.Forms.ToolStripMenuItem();
             this.UploadApplicationItem = new System.Windows.Forms.ToolStripMenuItem();
             this.GetADUsersItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -148,20 +144,20 @@
             // dataGridView1
             // 
             this.dataGridView1.AllowUserToOrderColumns = true;
-            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
-            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.Color.SteelBlue;
-            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle7.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
+            dataGridViewCellStyle7.SelectionForeColor = System.Drawing.Color.SteelBlue;
+            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle7;
             resources.ApplyResources(this.dataGridView1, "dataGridView1");
             this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dataGridView1.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedHeaders;
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            dataGridViewCellStyle4.ForeColor = System.Drawing.Color.Black;
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.Color.LightBlue;
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.Color.DarkSlateGray;
-            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle8.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle8.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle8.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            dataGridViewCellStyle8.ForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyle8.SelectionBackColor = System.Drawing.Color.LightBlue;
+            dataGridViewCellStyle8.SelectionForeColor = System.Drawing.Color.DarkSlateGray;
+            dataGridViewCellStyle8.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle8;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnF2;
             this.dataGridView1.Name = "dataGridView1";
@@ -586,18 +582,14 @@
             this.EditAnualDaysItem,
             this.AddAnualDateItem,
             this.Separator3,
-            this.ClearReportItem,
-            this.ClearDataItem,
-            this.ClearRegistryItem,
-            this.ClearAllItem,
-            this.Separator7,
             this.AutoupdateItem,
             this.UploadApplicationItem,
             this.GetADUsersItem,
             this.GetCurrentSchemeItem,
             this.CreateDBItem,
             this.RefreshConfigInMainDBItem,
-            this.calculateHashItem});
+            this.calculateHashItem,
+            this.ClearRegistryItem});
             this.SettingsMenuItem.Name = "SettingsMenuItem";
             resources.ApplyResources(this.SettingsMenuItem, "SettingsMenuItem");
             // 
@@ -682,35 +674,11 @@
             this.Separator3.Name = "Separator3";
             resources.ApplyResources(this.Separator3, "Separator3");
             // 
-            // ClearReportItem
-            // 
-            this.ClearReportItem.Name = "ClearReportItem";
-            resources.ApplyResources(this.ClearReportItem, "ClearReportItem");
-            this.ClearReportItem.Click += new System.EventHandler(this.ClearReportItem_Click);
-            // 
-            // ClearDataItem
-            // 
-            this.ClearDataItem.Name = "ClearDataItem";
-            resources.ApplyResources(this.ClearDataItem, "ClearDataItem");
-            this.ClearDataItem.Click += new System.EventHandler(this.ClearDataItem_Click);
-            // 
             // ClearRegistryItem
             // 
             this.ClearRegistryItem.Name = "ClearRegistryItem";
             resources.ApplyResources(this.ClearRegistryItem, "ClearRegistryItem");
             this.ClearRegistryItem.Click += new System.EventHandler(this.ClearRegistryItem_Click);
-            // 
-            // ClearAllItem
-            // 
-            this.ClearAllItem.BackColor = System.Drawing.SystemColors.Control;
-            this.ClearAllItem.Name = "ClearAllItem";
-            resources.ApplyResources(this.ClearAllItem, "ClearAllItem");
-            this.ClearAllItem.Click += new System.EventHandler(this.ClearAllItem_Click);
-            // 
-            // Separator7
-            // 
-            this.Separator7.Name = "Separator7";
-            resources.ApplyResources(this.Separator7, "Separator7");
             // 
             // AutoupdateItem
             // 
@@ -965,9 +933,6 @@
         private System.Windows.Forms.ToolStripMenuItem SettingsProgrammItem;
         private System.Windows.Forms.ToolStripMenuItem DeletePersonFromGroupItem;
         private System.Windows.Forms.TextBox textBoxFIO;
-        private System.Windows.Forms.ToolStripMenuItem ClearReportItem;
-        private System.Windows.Forms.ToolStripMenuItem ClearDataItem;
-        private System.Windows.Forms.ToolStripMenuItem ClearAllItem;
         private System.Windows.Forms.Panel panelView;
         private System.Windows.Forms.GroupBox groupBoxProperties;
         private System.Windows.Forms.Button btnPropertiesSave;
@@ -995,7 +960,6 @@
         private System.Windows.Forms.ToolStripSeparator Separator1;
         private System.Windows.Forms.ToolStripSeparator Separator2;
         private System.Windows.Forms.ToolStripSeparator Separator3;
-        private System.Windows.Forms.ToolStripSeparator Separator7;
         private System.Windows.Forms.ToolStripSeparator Separator8;
         private System.Windows.Forms.ToolStripSeparator Separator9;
         private System.Windows.Forms.ToolStripSeparator Separator10;

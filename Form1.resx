@@ -438,24 +438,6 @@
   <metadata name="statusStrip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>220, 17</value>
   </metadata>
-  <data name="StatusLabel1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>73, 17</value>
-  </data>
-  <data name="StatusLabel1.Text" xml:space="preserve">
-    <value>StatusLabel1</value>
-  </data>
-  <data name="ProgressBar1.Size" type="System.Drawing.Size, System.Drawing">
-    <value>75, 16</value>
-  </data>
-  <data name="StatusLabel2.Size" type="System.Drawing.Size, System.Drawing">
-    <value>73, 17</value>
-  </data>
-  <data name="StatusLabel2.Text" xml:space="preserve">
-    <value>StatusLabel2</value>
-  </data>
-  <data name="StatusLabel2.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
-    <value>MiddleLeft</value>
-  </data>
   <data name="statusStrip.Location" type="System.Drawing.Point, System.Drawing">
     <value>0, 564</value>
   </data>
@@ -482,6 +464,24 @@
   </data>
   <data name="&gt;&gt;statusStrip.ZOrder" xml:space="preserve">
     <value>2</value>
+  </data>
+  <data name="StatusLabel1.Size" type="System.Drawing.Size, System.Drawing">
+    <value>73, 17</value>
+  </data>
+  <data name="StatusLabel1.Text" xml:space="preserve">
+    <value>StatusLabel1</value>
+  </data>
+  <data name="ProgressBar1.Size" type="System.Drawing.Size, System.Drawing">
+    <value>75, 16</value>
+  </data>
+  <data name="StatusLabel2.Size" type="System.Drawing.Size, System.Drawing">
+    <value>73, 17</value>
+  </data>
+  <data name="StatusLabel2.Text" xml:space="preserve">
+    <value>StatusLabel2</value>
+  </data>
+  <data name="StatusLabel2.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
+    <value>MiddleLeft</value>
   </data>
   <data name="dateTimePickerStart.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
     <value>Top, Right</value>
@@ -855,113 +855,11 @@
   <metadata name="menuStrip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>503, 17</value>
   </metadata>
-  <data name="menuStrip.Location" type="System.Drawing.Point, System.Drawing">
-    <value>0, 0</value>
-  </data>
-  <data name="menuStrip.Size" type="System.Drawing.Size, System.Drawing">
-    <value>864, 24</value>
-  </data>
-  <data name="menuStrip.TabIndex" type="System.Int32, mscorlib">
-    <value>14</value>
-  </data>
-  <data name="menuStrip.Text" xml:space="preserve">
-    <value>menuStrip1</value>
-  </data>
-  <data name="&gt;&gt;menuStrip.Name" xml:space="preserve">
-    <value>menuStrip</value>
-  </data>
-  <data name="&gt;&gt;menuStrip.Type" xml:space="preserve">
-    <value>System.Windows.Forms.MenuStrip, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;menuStrip.Parent" xml:space="preserve">
-    <value>$this</value>
-  </data>
-  <data name="&gt;&gt;menuStrip.ZOrder" xml:space="preserve">
-    <value>14</value>
-  </data>
   <data name="FunctionMenuItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>64, 20</value>
   </data>
   <data name="FunctionMenuItem.Text" xml:space="preserve">
     <value>Главное</value>
-  </data>
-  <data name="GetFioItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>226, 22</value>
-  </data>
-  <data name="GetFioItem.Text" xml:space="preserve">
-    <value>Получить список ФИО</value>
-  </data>
-  <data name="GetFioItem.ToolTipText" xml:space="preserve">
-    <value>Получить/обновить список ФИО персон заведенных на серверах</value>
-  </data>
-  <data name="Separator8.Size" type="System.Drawing.Size, System.Drawing">
-    <value>223, 6</value>
-  </data>
-  <data name="listFioItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>226, 22</value>
-  </data>
-  <data name="listFioItem.Text" xml:space="preserve">
-    <value>Список ФИО</value>
-  </data>
-  <data name="listFioItem.ToolTipText" xml:space="preserve">
-    <value>Список ВИО, загруженный с сервера</value>
-  </data>
-  <data name="Separator9.Size" type="System.Drawing.Size, System.Drawing">
-    <value>223, 6</value>
-  </data>
-  <data name="LoadDataItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>226, 22</value>
-  </data>
-  <data name="LoadDataItem.Text" xml:space="preserve">
-    <value>Загрузка данных</value>
-  </data>
-  <data name="LoadLastInputsOutputsItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>226, 22</value>
-  </data>
-  <data name="LoadLastInputsOutputsItem.Text" xml:space="preserve">
-    <value>LoadLastInputsOutputsItem</value>
-  </data>
-  <data name="LoadInputsOutputsItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>226, 22</value>
-  </data>
-  <data name="LoadInputsOutputsItem.Text" xml:space="preserve">
-    <value>LoadInputsOutputsItem</value>
-  </data>
-  <data name="Separator10.Size" type="System.Drawing.Size, System.Drawing">
-    <value>223, 6</value>
-  </data>
-  <data name="TableExportToExcelItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>226, 22</value>
-  </data>
-  <data name="TableExportToExcelItem.Text" xml:space="preserve">
-    <value>Экспорт таблицы в Excel</value>
-  </data>
-  <data name="TableModeItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>226, 22</value>
-  </data>
-  <data name="TableModeItem.Text" xml:space="preserve">
-    <value>Показать в табличном виде</value>
-  </data>
-  <data name="VisualModeItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>226, 22</value>
-  </data>
-  <data name="VisualModeItem.Text" xml:space="preserve">
-    <value>Визуализация регистраций</value>
-  </data>
-  <data name="ChangeColorMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>226, 22</value>
-  </data>
-  <data name="ChangeColorMenuItem.Text" xml:space="preserve">
-    <value>Изменить цвет графика</value>
-  </data>
-  <data name="Separator11.Size" type="System.Drawing.Size, System.Drawing">
-    <value>223, 6</value>
-  </data>
-  <data name="ExitItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>226, 22</value>
-  </data>
-  <data name="ExitItem.Text" xml:space="preserve">
-    <value>Выход</value>
   </data>
   <data name="GroupsMenuItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>61, 20</value>
@@ -971,87 +869,6 @@
   </data>
   <data name="GroupsMenuItem.ToolTipText" xml:space="preserve">
     <value>Работа только с группами для персон с NAV-кодами</value>
-  </data>
-  <data name="PersonOrGroupItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>341, 22</value>
-  </data>
-  <data name="PersonOrGroupItem.Text" xml:space="preserve">
-    <value>PersonOrGroup</value>
-  </data>
-  <data name="Separator4.Size" type="System.Drawing.Size, System.Drawing">
-    <value>338, 6</value>
-  </data>
-  <data name="ListGroupsItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>341, 22</value>
-  </data>
-  <data name="ListGroupsItem.Text" xml:space="preserve">
-    <value>Список сохраненных групп</value>
-  </data>
-  <data name="ListGroupsItem.ToolTipText" xml:space="preserve">
-    <value>Вызвать список ранее созданных групп</value>
-  </data>
-  <data name="CreateGroupItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>341, 22</value>
-  </data>
-  <data name="CreateGroupItem.Text" xml:space="preserve">
-    <value>Создать новую группу</value>
-  </data>
-  <data name="CreateGroupItem.ToolTipText" xml:space="preserve">
-    <value>Создать группу персон или заменить описание для существующей</value>
-  </data>
-  <data name="MembersGroupItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>341, 22</value>
-  </data>
-  <data name="MembersGroupItem.Text" xml:space="preserve">
-    <value>Состав выделенной группы</value>
-  </data>
-  <data name="MembersGroupItem.ToolTipText" xml:space="preserve">
-    <value>Перечень ФИО сотрудников, входящих в состав группы персон с настройками начала рабочего дня</value>
-  </data>
-  <data name="AddPersonToGroupItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>341, 22</value>
-  </data>
-  <data name="AddPersonToGroupItem.Text" xml:space="preserve">
-    <value>Добавить персону в группу</value>
-  </data>
-  <data name="AddPersonToGroupItem.ToolTipText" xml:space="preserve">
-    <value>Добавить персону в группу или обновить параметры начала рабочего дня</value>
-  </data>
-  <data name="Separator5.Size" type="System.Drawing.Size, System.Drawing">
-    <value>338, 6</value>
-  </data>
-  <data name="DeleteGroupItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>341, 22</value>
-  </data>
-  <data name="DeleteGroupItem.Text" xml:space="preserve">
-    <value>Удалить выделенную группу</value>
-  </data>
-  <data name="DeleteGroupItem.ToolTipText" xml:space="preserve">
-    <value>Удалить всю группу персон с настройками</value>
-  </data>
-  <data name="DeletePersonFromGroupItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>341, 22</value>
-  </data>
-  <data name="DeletePersonFromGroupItem.Text" xml:space="preserve">
-    <value>Удалить персону из группы</value>
-  </data>
-  <data name="DeletePersonFromGroupItem.ToolTipText" xml:space="preserve">
-    <value>Удалить из состава группы персону и ее настройки</value>
-  </data>
-  <data name="Separator6.Size" type="System.Drawing.Size, System.Drawing">
-    <value>338, 6</value>
-  </data>
-  <data name="ImportPeopleInLocalDBItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>341, 22</value>
-  </data>
-  <data name="ImportPeopleInLocalDBItem.Text" xml:space="preserve">
-    <value>Импорт персонала и групп из текстового файла</value>
-  </data>
-  <data name="SettingsMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>79, 20</value>
-  </data>
-  <data name="SettingsMenuItem.Text" xml:space="preserve">
-    <value>Настройки</value>
   </data>
   <data name="SettingsProgrammItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>377, 22</value>
@@ -1134,42 +951,6 @@
   <data name="Separator3.Size" type="System.Drawing.Size, System.Drawing">
     <value>374, 6</value>
   </data>
-  <data name="ClearReportItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>377, 22</value>
-  </data>
-  <data name="ClearReportItem.Text" xml:space="preserve">
-    <value>Очистить папку програмы от сохраненных отчетов</value>
-  </data>
-  <data name="ClearReportItem.ToolTipText" xml:space="preserve">
-    <value>Очистить локальную базу с отчетами и все файлы отчетов</value>
-  </data>
-  <data name="ClearDataItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>377, 22</value>
-  </data>
-  <data name="ClearDataItem.Text" xml:space="preserve">
-    <value>Очистить таблицы программы от данных</value>
-  </data>
-  <data name="ClearDataItem.ToolTipText" xml:space="preserve">
-    <value>Очистить все таблицы, кроме таблиц с настройками</value>
-  </data>
-  <data name="ClearRegistryItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>377, 22</value>
-  </data>
-  <data name="ClearRegistryItem.Text" xml:space="preserve">
-    <value>Удалить данные из реестра</value>
-  </data>
-  <data name="ClearAllItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>377, 22</value>
-  </data>
-  <data name="ClearAllItem.Text" xml:space="preserve">
-    <value>Очистить программу от всех данных и настроек</value>
-  </data>
-  <data name="ClearAllItem.ToolTipText" xml:space="preserve">
-    <value>Очистика локальной базы от всех полученных, сгенерированных, сохраненных и введенных данных</value>
-  </data>
-  <data name="Separator7.Size" type="System.Drawing.Size, System.Drawing">
-    <value>374, 6</value>
-  </data>
   <data name="AutoupdateItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>377, 22</value>
   </data>
@@ -1212,11 +993,200 @@
   <data name="calculateHashItem.Text" xml:space="preserve">
     <value>Вычислить хэш MD5 файлов</value>
   </data>
+  <data name="ClearRegistryItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>377, 22</value>
+  </data>
+  <data name="ClearRegistryItem.Text" xml:space="preserve">
+    <value>Удалить мусор и данные из реестра</value>
+  </data>
+  <data name="SettingsMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>79, 20</value>
+  </data>
+  <data name="SettingsMenuItem.Text" xml:space="preserve">
+    <value>Настройки</value>
+  </data>
   <data name="HelpMenuItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>68, 20</value>
   </data>
   <data name="HelpMenuItem.Text" xml:space="preserve">
     <value>Помощь</value>
+  </data>
+  <data name="menuStrip.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="menuStrip.Size" type="System.Drawing.Size, System.Drawing">
+    <value>864, 24</value>
+  </data>
+  <data name="menuStrip.TabIndex" type="System.Int32, mscorlib">
+    <value>14</value>
+  </data>
+  <data name="menuStrip.Text" xml:space="preserve">
+    <value>menuStrip1</value>
+  </data>
+  <data name="&gt;&gt;menuStrip.Name" xml:space="preserve">
+    <value>menuStrip</value>
+  </data>
+  <data name="&gt;&gt;menuStrip.Type" xml:space="preserve">
+    <value>System.Windows.Forms.MenuStrip, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;menuStrip.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;menuStrip.ZOrder" xml:space="preserve">
+    <value>14</value>
+  </data>
+  <data name="GetFioItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>226, 22</value>
+  </data>
+  <data name="GetFioItem.Text" xml:space="preserve">
+    <value>Получить список ФИО</value>
+  </data>
+  <data name="GetFioItem.ToolTipText" xml:space="preserve">
+    <value>Получить/обновить список ФИО персон заведенных на серверах</value>
+  </data>
+  <data name="Separator8.Size" type="System.Drawing.Size, System.Drawing">
+    <value>223, 6</value>
+  </data>
+  <data name="listFioItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>226, 22</value>
+  </data>
+  <data name="listFioItem.Text" xml:space="preserve">
+    <value>Список ФИО</value>
+  </data>
+  <data name="listFioItem.ToolTipText" xml:space="preserve">
+    <value>Список ВИО, загруженный с сервера</value>
+  </data>
+  <data name="Separator9.Size" type="System.Drawing.Size, System.Drawing">
+    <value>223, 6</value>
+  </data>
+  <data name="LoadDataItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>226, 22</value>
+  </data>
+  <data name="LoadDataItem.Text" xml:space="preserve">
+    <value>Загрузка данных</value>
+  </data>
+  <data name="LoadLastInputsOutputsItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>226, 22</value>
+  </data>
+  <data name="LoadLastInputsOutputsItem.Text" xml:space="preserve">
+    <value>LoadLastInputsOutputsItem</value>
+  </data>
+  <data name="LoadInputsOutputsItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>226, 22</value>
+  </data>
+  <data name="LoadInputsOutputsItem.Text" xml:space="preserve">
+    <value>LoadInputsOutputsItem</value>
+  </data>
+  <data name="Separator10.Size" type="System.Drawing.Size, System.Drawing">
+    <value>223, 6</value>
+  </data>
+  <data name="TableExportToExcelItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>226, 22</value>
+  </data>
+  <data name="TableExportToExcelItem.Text" xml:space="preserve">
+    <value>Экспорт таблицы в Excel</value>
+  </data>
+  <data name="TableModeItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>226, 22</value>
+  </data>
+  <data name="TableModeItem.Text" xml:space="preserve">
+    <value>Показать в табличном виде</value>
+  </data>
+  <data name="VisualModeItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>226, 22</value>
+  </data>
+  <data name="VisualModeItem.Text" xml:space="preserve">
+    <value>Визуализация регистраций</value>
+  </data>
+  <data name="ChangeColorMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>226, 22</value>
+  </data>
+  <data name="ChangeColorMenuItem.Text" xml:space="preserve">
+    <value>Изменить цвет графика</value>
+  </data>
+  <data name="Separator11.Size" type="System.Drawing.Size, System.Drawing">
+    <value>223, 6</value>
+  </data>
+  <data name="ExitItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>226, 22</value>
+  </data>
+  <data name="ExitItem.Text" xml:space="preserve">
+    <value>Выход</value>
+  </data>
+  <data name="PersonOrGroupItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>341, 22</value>
+  </data>
+  <data name="PersonOrGroupItem.Text" xml:space="preserve">
+    <value>PersonOrGroup</value>
+  </data>
+  <data name="Separator4.Size" type="System.Drawing.Size, System.Drawing">
+    <value>338, 6</value>
+  </data>
+  <data name="ListGroupsItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>341, 22</value>
+  </data>
+  <data name="ListGroupsItem.Text" xml:space="preserve">
+    <value>Список сохраненных групп</value>
+  </data>
+  <data name="ListGroupsItem.ToolTipText" xml:space="preserve">
+    <value>Вызвать список ранее созданных групп</value>
+  </data>
+  <data name="CreateGroupItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>341, 22</value>
+  </data>
+  <data name="CreateGroupItem.Text" xml:space="preserve">
+    <value>Создать новую группу</value>
+  </data>
+  <data name="CreateGroupItem.ToolTipText" xml:space="preserve">
+    <value>Создать группу персон или заменить описание для существующей</value>
+  </data>
+  <data name="MembersGroupItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>341, 22</value>
+  </data>
+  <data name="MembersGroupItem.Text" xml:space="preserve">
+    <value>Состав выделенной группы</value>
+  </data>
+  <data name="MembersGroupItem.ToolTipText" xml:space="preserve">
+    <value>Перечень ФИО сотрудников, входящих в состав группы персон с настройками начала рабочего дня</value>
+  </data>
+  <data name="AddPersonToGroupItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>341, 22</value>
+  </data>
+  <data name="AddPersonToGroupItem.Text" xml:space="preserve">
+    <value>Добавить персону в группу</value>
+  </data>
+  <data name="AddPersonToGroupItem.ToolTipText" xml:space="preserve">
+    <value>Добавить персону в группу или обновить параметры начала рабочего дня</value>
+  </data>
+  <data name="Separator5.Size" type="System.Drawing.Size, System.Drawing">
+    <value>338, 6</value>
+  </data>
+  <data name="DeleteGroupItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>341, 22</value>
+  </data>
+  <data name="DeleteGroupItem.Text" xml:space="preserve">
+    <value>Удалить выделенную группу</value>
+  </data>
+  <data name="DeleteGroupItem.ToolTipText" xml:space="preserve">
+    <value>Удалить всю группу персон с настройками</value>
+  </data>
+  <data name="DeletePersonFromGroupItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>341, 22</value>
+  </data>
+  <data name="DeletePersonFromGroupItem.Text" xml:space="preserve">
+    <value>Удалить персону из группы</value>
+  </data>
+  <data name="DeletePersonFromGroupItem.ToolTipText" xml:space="preserve">
+    <value>Удалить из состава группы персону и ее настройки</value>
+  </data>
+  <data name="Separator6.Size" type="System.Drawing.Size, System.Drawing">
+    <value>338, 6</value>
+  </data>
+  <data name="ImportPeopleInLocalDBItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>341, 22</value>
+  </data>
+  <data name="ImportPeopleInLocalDBItem.Text" xml:space="preserve">
+    <value>Импорт персонала и групп из текстового файла</value>
   </data>
   <data name="HelpAboutItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>212, 22</value>
@@ -1947,35 +1917,11 @@
   <data name="&gt;&gt;Separator3.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripSeparator, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;ClearReportItem.Name" xml:space="preserve">
-    <value>ClearReportItem</value>
-  </data>
-  <data name="&gt;&gt;ClearReportItem.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;ClearDataItem.Name" xml:space="preserve">
-    <value>ClearDataItem</value>
-  </data>
-  <data name="&gt;&gt;ClearDataItem.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
   <data name="&gt;&gt;ClearRegistryItem.Name" xml:space="preserve">
     <value>ClearRegistryItem</value>
   </data>
   <data name="&gt;&gt;ClearRegistryItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;ClearAllItem.Name" xml:space="preserve">
-    <value>ClearAllItem</value>
-  </data>
-  <data name="&gt;&gt;ClearAllItem.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="&gt;&gt;Separator7.Name" xml:space="preserve">
-    <value>Separator7</value>
-  </data>
-  <data name="&gt;&gt;Separator7.Type" xml:space="preserve">
-    <value>System.Windows.Forms.ToolStripSeparator, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;AutoupdateItem.Name" xml:space="preserve">
     <value>AutoupdateItem</value>
