@@ -38,12 +38,13 @@ namespace ASTA
         private DataGridViewOperations dgvo;
 
         //logging
-        static NLog.Logger logger;
-        static string method;
+        static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+        static string method = System.Reflection.MethodBase.GetCurrentMethod().Name;
         // logger.Trace("-= " + method + " =-");
 
         //System settings
-        static string appVersionAssembly;
+        string guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения// получаем GIUD приложения
+        static string appVersionAssembly = System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString();
         static System.Diagnostics.FileVersionInfo appFileVersionInfo;
         static string appCopyright;
         static string appName;
@@ -52,13 +53,11 @@ namespace ASTA
         static string appFileMD5;
 
         static string remoteFolderUpdateURL;// = @"kv-sb-server.corp.ais\Common\ASTA";
-                                            // static string appUpdateFolderURL;// = @"file://" + serverUpdateURL.Replace(@"\", @"/") + @"/"; //  @"file://kv-sb-server.corp.ais/Common/ASTA/";
         static string appUpdateURL;// = appUpdateFolderURL + appNameXML;
-                                   //  static string appUpdateFolderURI;// = @"\\" + serverUpdateURL + @"\"; //@"\\kv-sb-server.corp.ais\Common\ASTA\";
 
         static bool uploadingUpdate = false;
 
-        static string appFilePath;
+        static string appFilePath = System.Reflection.Assembly.GetEntryAssembly().Location;// Application.ExecutablePath;
         static string localAppFolderPath; //Environment.CurrentDirectory
         static string appFolderTempPath;
         static string appFolderUpdatePath;
@@ -79,7 +78,6 @@ namespace ASTA
 
         static string appQueryCreatingDB;
 
-        string guid; // получаем GIUD приложения// получаем GIUD приложения
 
         readonly static byte[] keyEncryption = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
         readonly static byte[] keyDencryption = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
@@ -315,13 +313,7 @@ namespace ASTA
 
         private void Form1Load()
         {
-            //set startup variable
-            logger = NLog.LogManager.GetCurrentClassLogger();
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения// получаем GIUD приложения
-            appFilePath = System.Reflection.Assembly.GetEntryAssembly().Location;// Application.ExecutablePath;
-            appVersionAssembly = System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString();
-            
+            //set startup variable           
             localAppFolderPath = System.IO.Path.GetDirectoryName(appFilePath); //Environment.CurrentDirectory
             appFolderTempPath = System.IO.Path.Combine(localAppFolderPath, "Temp");
             appFolderUpdatePath = System.IO.Path.Combine(localAppFolderPath, "Update");
@@ -9880,7 +9872,9 @@ namespace ASTA
                 AutoUpdater.Mandatory = true;
                 AutoUpdater.UpdateMode = Mode.ForcedDownload;
 
-                AutoUpdater.Start(parameters.appUpdateURL, System.Reflection.Assembly.GetEntryAssembly());
+
+                AutoUpdater.AppCastURL = parameters.appUpdateURL;
+                AutoUpdater.Start();
                 AutoUpdater.CheckForUpdateEvent -= AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
             }
             else
@@ -9948,8 +9942,8 @@ namespace ASTA
                     // AutoUpdater.ReportErrors = false;
                     // AutoUpdater.AppCastURL = appUpdateURL;
                     AutoUpdater.DownloadPath = appFolderUpdatePath;
-
-                    AutoUpdater.Start(parameters.appUpdateURL, System.Reflection.Assembly.GetEntryAssembly());
+                    AutoUpdater.AppCastURL = parameters.appUpdateURL;
+                    AutoUpdater.Start();
                     //AutoUpdater.Start("ftp://kv-sb-server.corp.ais/Common/ASTA/ASTA.xml", new NetworkCredential("FtpUserName", "FtpPassword")); //download from FTP
                     AutoUpdater.CheckForUpdateEvent -= AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
                 }
