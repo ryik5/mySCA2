@@ -110,6 +110,7 @@ namespace ASTA
         ContextMenu contextMenu;
         bool buttonAboutForm;
         static Byte[] byteLogo;
+        static bool isAdmin = false;
 
         int iCounterLine = 0;
 
@@ -333,8 +334,8 @@ namespace ASTA
 
             sLastSelectedElement = "MainForm";
             nameOfLastTable = "PersonRegistrationsList";
-            _toolStripStatusLabelSetText(StatusLabel1, "");
-            _toolStripStatusLabelSetText(StatusLabel2, "");
+            _SetStatusLabelText(StatusLabel1, "");
+            _SetStatusLabelText(StatusLabel2, "");
 
 
             //Начало лога
@@ -444,25 +445,7 @@ namespace ASTA
             monthCalendar.Update();
             monthCalendar.Refresh();
 
-            //todo
-            //rewrite to access from other threads
-            _MenuItemEnabled(AddAnualDateItem, false);
-            MembersGroupItem.Enabled = false;
-            AddPersonToGroupItem.Enabled = false;
-            CreateGroupItem.Enabled = false;
-            DeleteGroupItem.Visible = false;
-            DeletePersonFromGroupItem.Visible = false;
-            CheckBoxesFiltersAll_Enable(false);
-            TableModeItem.Visible = false;
-            VisualModeItem.Visible = false;
-            ChangeColorMenuItem.Visible = false;
-            TableExportToExcelItem.Visible = false;
-            listFioItem.Visible = false;
-            dataGridView1.ShowCellToolTips = true;
-            groupBoxProperties.Visible = false;
-
             logger.Info("Настраиваю переменные....");
-
             //Prepare DataTables
             dtPeople.Columns.AddRange(dcPeople);
             dtPeople.DefaultView.Sort = Names.GROUP + ", " + Names.FIO + ", " + Names.DATE_REGISTRATION + ", " + Names.TIME_REGISTRATION + ", " + Names.REAL_TIME_IN + ", " + Names.REAL_TIME_OUT + " ASC";
@@ -473,12 +456,86 @@ namespace ASTA
             dtPersonRegistrationsFullList = dtPeople.Clone();  //Copy only structure(Name of columns)
             dtPeopleGroup = dtPeople.Clone();  //Copy only structure(Name of columns)
 
+
+            logger.Trace("SetTechInfoIntoDB");
+            SetTechInfoIntoDB();
+
+
+            logger.Info("Настраиваю интерфейс....");
+            bmpLogo = Properties.Resources.LogoRYIK;
+            MakeByteLogo(bmpLogo); //logo for mailing
+
+            this.Icon = Icon.FromHandle(bmpLogo.GetHicon());
+            this.Text = appFileVersionInfo.Comments;
+
+            contextMenu = new ContextMenu();  //Context Menu on notify Icon
+            contextMenu.MenuItems.Add("About", AboutSoft);
+            contextMenu.MenuItems.Add("-", AboutSoft);
+            contextMenu.MenuItems.Add("Exit", ApplicationExit);
+
+            notifyIcon = new NotifyIcon();
+            notifyIcon.Icon = this.Icon;
+            notifyIcon.Visible = true;
+            notifyIcon.BalloonTipText = "Developed by " + appCopyright;
+            notifyIcon.ShowBalloonTip(500);
+            notifyIcon.Text = appName + "\nv." + appVersionAssembly + " (" + appFileVersionInfo.FileVersion + ")" + "\n" + appFileVersionInfo.CompanyName;
+            notifyIcon.ContextMenu = contextMenu;
+            
+            //Set up Starting values
+            dateTimePickerStart.CustomFormat = "yyyy-MM-dd";
+            dateTimePickerEnd.CustomFormat = "yyyy-MM-dd";
+            dateTimePickerStart.Format = DateTimePickerFormat.Custom;
+            dateTimePickerEnd.Format = DateTimePickerFormat.Custom;
+            dateTimePickerStart.Value = DateTime.Now.FirstDayOfMonth();
+            dateTimePickerEnd.Value = DateTime.Now.LastDayOfMonth();
+
+            numUpDownHourStart.Value = 9;
+            numUpDownMinuteStart.Value = 0;
+            numUpDownHourEnd.Value = 18;
+            numUpDownMinuteEnd.Value = 0;
+
+            StatusLabel1.Text = statusBar;
+            StatusLabel1.Alignment = ToolStripItemAlignment.Right;
+
+            /////////////////////////////////
+            ///SetUp Menu Items
+            //todo
+            //rewrite to access from other threads
+            CheckBoxesFiltersAll_Enable(false);
+
+            _EnableMenuItem(AddAnualDateItem, false);
+
+            MembersGroupItem.Enabled = false;
+            AddPersonToGroupItem.Enabled = false;
+            CreateGroupItem.Enabled = false;
+
+            DeleteGroupItem.Visible = false;
+            TableModeItem.Visible = false;
+            VisualModeItem.Visible = false;
+            ChangeColorMenuItem.Visible = false;
+            TableExportToExcelItem.Visible = false;
+            listFioItem.Visible = false;
+            groupBoxProperties.Visible = false;
+
+            dataGridView1.ShowCellToolTips = true;
+
+            //Colorizing of Menu Items
+            GetFioItem.BackColor = Color.LightSkyBlue;
+            HelpAboutItem.BackColor = Color.PaleGreen;
+            ExitItem.BackColor = Color.DarkOrange;
+            DeleteGroupItem.BackColor = Color.DarkOrange;
+            OpenMenuAsLocalAdminItem.BackColor = Color.DarkOrange;
+            UpdateItem.BackColor = Color.PaleGreen;
+
+
             if (currentDbEmpty)
             {
                 logger.Warn("Form loading is finishing, but the local db is still empty!");
+                ChangeVisibleOfAdminMenuItems(true);
             }
             else
             {
+                ChangeVisibleOfAdminMenuItems(false);
                 if (currentModeAppManual)
                 {
                     nameOfLastTable = "ListFIO";
@@ -488,7 +545,7 @@ namespace ASTA
                 else
                 {
                     // nameOfLastTable = "Mailing";
-                    _ControlEnable(comboBoxFio, false);
+                    _EnableControl(comboBoxFio, false);
                     logger.Info("Стартовый режим - автоматический...");
 
                     ShowDataTableDbQuery(dbApplication, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
@@ -555,73 +612,27 @@ namespace ASTA
                 }
             }
 
-
-            logger.Info("Настраиваю интерфейс....");
-            bmpLogo = Properties.Resources.LogoRYIK;
-            MakeByteLogo(bmpLogo); //logo for mailing
-
-            this.Icon = Icon.FromHandle(bmpLogo.GetHicon());
-            this.Text = appFileVersionInfo.Comments;
-
-            contextMenu = new ContextMenu();  //Context Menu on notify Icon
-            contextMenu.MenuItems.Add("About", AboutSoft);
-            contextMenu.MenuItems.Add("-", AboutSoft);
-            contextMenu.MenuItems.Add("Exit", ApplicationExit);
-
-            notifyIcon = new NotifyIcon();
-            notifyIcon.Icon = this.Icon;
-            notifyIcon.Visible = true;
-            notifyIcon.BalloonTipText = "Developed by " + appCopyright;
-            notifyIcon.ShowBalloonTip(500);
-            notifyIcon.Text = appName + "\nv." + appVersionAssembly + " (" + appFileVersionInfo.FileVersion + ")" + "\n" + appFileVersionInfo.CompanyName;
-            notifyIcon.ContextMenu = contextMenu;
-
-
-            StatusLabel1.Text = statusBar;
-            StatusLabel1.Alignment = ToolStripItemAlignment.Right;
-
-            comboBoxFio.DrawMode = DrawMode.OwnerDrawFixed;
-            comboBoxFio.DrawItem += new DrawItemEventHandler(ComboBox_DrawItem);
-
-            GetFioItem.BackColor = Color.LightSkyBlue;
-            HelpAboutItem.BackColor = Color.PaleGreen;
-            ExitItem.BackColor = Color.DarkOrange;
-            DeleteGroupItem.BackColor = Color.DarkOrange;
-
-            //Set up Starting values
-            dateTimePickerStart.CustomFormat = "yyyy-MM-dd";
-            dateTimePickerEnd.CustomFormat = "yyyy-MM-dd";
-            dateTimePickerStart.Format = DateTimePickerFormat.Custom;
-            dateTimePickerEnd.Format = DateTimePickerFormat.Custom;
-            dateTimePickerStart.Value = DateTime.Now.FirstDayOfMonth();
-            dateTimePickerEnd.Value = DateTime.Now.LastDayOfMonth();
-
-            if (_comboBoxCountItems(comboBoxFio) > 0)
+            if (_ReturnComboBoxCountItems(comboBoxFio) > 0)
             {
-                _MenuItemVisible(listFioItem, true);
-                _comboBoxSelectIndex(comboBoxFio, 0);
+                _VisibleMenuItem(listFioItem, true);
+                _SetComboBoxIndex(comboBoxFio, 0);
             }
+            comboBoxFio.DrawMode = DrawMode.OwnerDrawFixed;
+            comboBoxFio.DrawItem += new DrawItemEventHandler(SetComboBox_DrawItem);
 
-            numUpDownHourStart.Value = 9;
-            numUpDownMinuteStart.Value = 0;
-            numUpDownHourEnd.Value = 18;
-            numUpDownMinuteEnd.Value = 0;
-
-            _MenuItemSetText(ModeItem, "Включить режим автоматических e-mail рассылок");
-            _MenuItemSetTooltip(ModeItem, "Включен интерактивный режим. Все рассылки остановлены.");
-
-            _MenuItemSetText(EditAnualDaysItem, Names.DAY_OFF_OR_WORK);
-            _MenuItemSetTooltip(EditAnualDaysItem, Names.DAY_OFF_OR_WORK_EDIT);
-
-            _MenuItemSetText(PersonOrGroupItem, Names.WORK_WITH_A_PERSON);
-
+            //Naming of Menu Items
+            _SetMenuItemText(ModeItem, "Включить режим автоматических e-mail рассылок");
+            _SetMenuItemTooltip(ModeItem, "Включен интерактивный режим. Все рассылки остановлены.");
+            _SetMenuItemText(EditAnualDaysItem, Names.DAY_OFF_OR_WORK);
+            _SetMenuItemTooltip(EditAnualDaysItem, Names.DAY_OFF_OR_WORK_EDIT);
+            _SetMenuItemText(PersonOrGroupItem, Names.WORK_WITH_A_PERSON);
             SetMenuItemsTextAfterClosingDateTimePicker();
 
-            _ControlSetToolTip(textBoxGroup, "Создать или добавить в группу");
-            _ControlSetToolTip(textBoxGroupDescription, "Изменить описание группы");
+            //Naming of Control Items
+            _SetControlToolTip(textBoxGroup, "Создать или добавить в группу");
+            _SetControlToolTip(textBoxGroupDescription, "Изменить описание группы");
 
-            logger.Trace("SetTechInfoIntoDB");
-            SetTechInfoIntoDB();
+
 
             logger.Info("");
             logger.Info("Загрузка и настройка интерфейса ПО завершена....");
@@ -672,8 +683,8 @@ namespace ASTA
 
             MethodInvoker mi = delegate
             {
-                string prevText = _toolStripStatusLabelReturnText(StatusLabel2);
-                Color prevColor = _toolStripStatusLabelReturnBackColor(StatusLabel2);
+                string prevText = _ReturnStatusLabelText(StatusLabel2);
+                Color prevColor = _ReturnStatusLabelBackColor(StatusLabel2);
                 bool readOk = true;
 
                 if (!(fpath?.Length > 0))
@@ -683,7 +694,7 @@ namespace ASTA
                 }
 
                 logger.Trace("ReadTXTFile");
-                _toolStripStatusLabelSetText(StatusLabel2, "Читаю файл: " + fpath);
+                _SetStatusLabelText(StatusLabel2, "Читаю файл: " + fpath);
                 try
                 {
                     using (System.IO.StreamReader Reader =
@@ -704,13 +715,13 @@ namespace ASTA
 
                 if (!readOk)
                 {
-                    _toolStripStatusLabelSetText(StatusLabel2, "Не могу прочитать файл: " + fpath, true);
+                    _SetStatusLabelText(StatusLabel2, "Не могу прочитать файл: " + fpath, true);
                 }
                 else
                 {
-                    _toolStripStatusLabelBackColor(StatusLabel2, prevColor);
+                    _SetStatusLabelBackColor(StatusLabel2, prevColor);
                     if (prevText?.Length > 0 && !nameof(StatusLabel2).Equals(prevText))
-                    { _toolStripStatusLabelSetText(StatusLabel2, prevText); }
+                    { _SetStatusLabelText(StatusLabel2, prevText); }
                 }
             };
             this.Invoke(mi);
@@ -729,7 +740,7 @@ namespace ASTA
             List<string> txt = ReadTXTFile(fpath);
             string query = string.Empty, log = string.Empty;
 
-            _toolStripStatusLabelSetText(StatusLabel2, "Создаю таблицы в БД на основе запроса из текстового файла: " + fpath);
+            _SetStatusLabelText(StatusLabel2, "Создаю таблицы в БД на основе запроса из текстового файла: " + fpath);
             using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
             {
                 dbWriter.ExecuteQueryBegin();
@@ -747,7 +758,7 @@ namespace ASTA
                 }//foreach
 
                 dbWriter.ExecuteQueryEnd();
-                _toolStripStatusLabelSetText(StatusLabel2, "Таблицы в БД созданы.");
+                _SetStatusLabelText(StatusLabel2, "Таблицы в БД созданы.");
             }
         }
 
@@ -832,7 +843,7 @@ namespace ASTA
                             {
                                 if (record["ComboList"]?.ToString()?.Trim()?.Length > 0)
                                 {
-                                    _comboBoxAdd(comboBoxFio, record["ComboList"].ToString().Trim());
+                                    _AddComboBoxItem(comboBoxFio, record["ComboList"].ToString().Trim());
                                     count++;
                                 }
                             }
@@ -958,7 +969,7 @@ namespace ASTA
 
         private void AddExceptedParametersIntoConfigurationDb()    //add not existed example of parameters into ConfigTable in the Main Local DB
         {
-            _toolStripStatusLabelSetText(StatusLabel2, "Проверяю список параметров конфигурации локальной БД...");
+            _SetStatusLabelText(StatusLabel2, "Проверяю список параметров конфигурации локальной БД...");
 
             ParameterOfConfigurationInSQLiteDB configInDB = new ParameterOfConfigurationInSQLiteDB(dbApplication);
             ParameterOfConfiguration parameterOfConfiguration = null;
@@ -980,7 +991,7 @@ namespace ASTA
                     logger.Info("Попытка добавить новый параметр в конфигурацию: " + resultSaving);
                 }
             }
-            _toolStripStatusLabelSetText(StatusLabel2, "Обновление параметров конфигурации локальной БД завершено");
+            _SetStatusLabelText(StatusLabel2, "Обновление параметров конфигурации локальной БД завершено");
         }
 
         private void AddParameterInConfigItem_Click(object sender, EventArgs e)
@@ -993,9 +1004,9 @@ namespace ASTA
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
-            _ControlVisible(panelView, false);
+            _VisibleControl(panelView, false);
             btnPropertiesSave.Text = "Сохранить параметр";
-            RemoveClickEvent(btnPropertiesSave);
+            ClearButtonClickEvent(btnPropertiesSave);
             btnPropertiesSave.Click += new EventHandler(ButtonPropertiesSave_inConfig);
 
             listParameters = new List<ParameterConfig>();
@@ -1039,7 +1050,7 @@ namespace ASTA
                 Sorted = true
             };
 
-            periodCombo.DrawItem += new DrawItemEventHandler(ListBox_DrawItem);
+            periodCombo.DrawItem += new DrawItemEventHandler(SetListBox_DrawItem);
             periodCombo.DataSource = listParameters.Select(x => x.parameterName).ToList();
             if (listParameters.Count > 0) periodCombo.SelectedIndex = 0;
             toolTip1.SetToolTip(periodCombo, "Перечень параметров");
@@ -1111,7 +1122,7 @@ namespace ASTA
 
         private void ListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            string result = _listBoxReturnSelected(sender as ListBox);
+            string result = _ReturnListBoxSelectedItem(sender as ListBox);
             string tooltip = "";
 
             checkBox1.Checked = false;
@@ -1162,7 +1173,7 @@ namespace ASTA
             string description = textLabel?.ToLower() == "example" ? "" : textLabel;
             string name = _ReturnTextOfControl(labelServer1);
             string value = _ReturnTextOfControl(textBoxSettings16);
-            bool isPassword = _ReturnCheckboxCheckedState(checkBox1);
+            bool isPassword = _ReturnCheckboxCheckedStatus(checkBox1);
             string example = "no";
 
 
@@ -1181,7 +1192,7 @@ namespace ASTA
             MessageBox.Show(name + " обновлен новым значением - " + value + "\n" + resultSaving);
 
             DisposeTemporaryControls();
-            _ControlVisible(panelView, true);
+            _VisibleControl(panelView, true);
 
             if (mailServer?.Length > 0 && mailServerSMTPPort > 0)
             {
@@ -1235,7 +1246,7 @@ namespace ASTA
                         try { dataTable.Columns[nameHidenColumnsArray1[i]].ColumnMapping = MappingType.Hidden; } catch { }
                 }
 
-                _toolStripStatusLabelSetText(StatusLabel2, "Всего записей: " + dataTable.Rows.Count);
+                _SetStatusLabelText(StatusLabel2, "Всего записей: " + dataTable.Rows.Count);
                 dgvo.ShowData(dataGridView1, dataTable);
             }
             nameOfLastTable = nameLastTable;
@@ -1371,7 +1382,7 @@ namespace ASTA
             }
             catch (Exception err)
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Ошибка доступа к " + serverName + " SQL БД СКД-сервера!", true, "server: " + serverName + "|user: " + userName + "|password: " + userPasswords + "\n" + err.ToString());
+                _SetStatusLabelText(StatusLabel2, "Ошибка доступа к " + serverName + " SQL БД СКД-сервера!", true, "server: " + serverName + "|user: " + userName + "|password: " + userPasswords + "\n" + err.ToString());
             }
 
             logger.Trace("CheckAliveIntellectServer: query: " + query + "| result: " + bServer1Exist);
@@ -1411,7 +1422,7 @@ namespace ASTA
 
             if (user?.Length > 0 && password?.Length > 0 && domainOfUser?.Length > 0 && domainController?.Length > 0)
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные из домена: " + domainOfUser);
+                _SetStatusLabelText(StatusLabel2, "Получаю данные из домена: " + domainOfUser);
 
                 ad = new ADData(user, domainOfUser, password, domainController);
                 ad.ADUsersCollection.CollectionChanged += Users_CollectionChanged;
@@ -1426,11 +1437,11 @@ namespace ASTA
                     logger.Trace(person?.fio + " |" + person?.login + " |" + person?.code + " |" + person?.mail + " |" + person?.lastLogon);
                 }
                 countUsers = usersAD.Count;
-                _toolStripStatusLabelSetText(StatusLabel2, "Из домена " + domainOfUser + " получено " + countUsers + " ФИО сотрудников");
+                _SetStatusLabelText(StatusLabel2, "Из домена " + domainOfUser + " получено " + countUsers + " ФИО сотрудников");
             }
             else
             {
-                _toolStripStatusLabelSetText(
+                _SetStatusLabelText(
                     StatusLabel2,
                     "Ошибка доступа к домену " + domainOfUser,
                     true,
@@ -1465,12 +1476,12 @@ namespace ASTA
             currentAction = "GetFIO";
             CheckBoxesFiltersAll_SetState(false);
             CheckBoxesFiltersAll_Enable(false);
-            _MenuItemEnabled(LoadDataItem, false);
-            _MenuItemEnabled(FunctionMenuItem, false);
-            _MenuItemEnabled(SettingsMenuItem, false);
-            _MenuItemEnabled(GroupsMenuItem, false);
-            _MenuItemEnabled(GetFioItem, false);
-            _ControlEnable(dataGridView1, false);
+            _EnableMenuItem(LoadDataItem, false);
+            _EnableMenuItem(FunctionMenuItem, false);
+            _EnableMenuItem(SettingsMenuItem, false);
+            _EnableMenuItem(GroupsMenuItem, false);
+            _EnableMenuItem(GetFioItem, false);
+            _EnableControl(dataGridView1, false);
 
             await Task.Run(() => CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword).GetAwaiter().GetResult());
 
@@ -1478,24 +1489,24 @@ namespace ASTA
             {
                 await Task.Run(() => DoListsFioGroupsMailings().GetAwaiter().GetResult());
 
-                _MenuItemVisible(listFioItem, true);
-                _MenuItemEnabled(SettingsMenuItem, true);
-                _MenuItemEnabled(GetFioItem, true);
-                _MenuItemEnabled(FunctionMenuItem, true);
-                _MenuItemEnabled(LoadDataItem, true);
-                _MenuItemEnabled(GroupsMenuItem, true);
+                _VisibleMenuItem(listFioItem, true);
+                _EnableMenuItem(SettingsMenuItem, true);
+                _EnableMenuItem(GetFioItem, true);
+                _EnableMenuItem(FunctionMenuItem, true);
+                _EnableMenuItem(LoadDataItem, true);
+                _EnableMenuItem(GroupsMenuItem, true);
 
-                _ControlEnable(dataGridView1, true);
-                _ControlVisible(dataGridView1, true);
-                _ControlVisible(pictureBox1, false);
-                _ControlEnable(comboBoxFio, true);
+                _EnableControl(dataGridView1, true);
+                _VisibleControl(dataGridView1, true);
+                _VisibleControl(pictureBox1, false);
+                _EnableControl(comboBoxFio, true);
 
-                _toolStripStatusLabelForeColor(StatusLabel1, Color.Black);
-                _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
+                _SetStatusLabelForeColor(StatusLabel1, Color.Black);
+                _SetStatusLabelForeColor(StatusLabel2, Color.Black);
             }
             else
             {
-                _MenuItemEnabled(SettingsMenuItem, true);
+                _EnableMenuItem(SettingsMenuItem, true);
             }
             _ProgressBar1Stop();
         }
@@ -1510,7 +1521,7 @@ namespace ASTA
             countMailers = 0;
 
             if (currentAction != @"sendEmail")
-            { _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные с серверов..."); }
+            { _SetStatusLabelText(StatusLabel2, "Получаю данные с серверов..."); }
             GetUsersFromAD();
 
             using (DataTable dtTempIntermediate = dtPeople.Clone())
@@ -1518,11 +1529,11 @@ namespace ASTA
                 GetDataFromRemoteServers(dtTempIntermediate, peopleShifts);
 
                 if (currentAction != @"sendEmail")
-                { _toolStripStatusLabelSetText(StatusLabel2, "Формирую и записываю группы в локальную базу..."); }
+                { _SetStatusLabelText(StatusLabel2, "Формирую и записываю группы в локальную базу..."); }
                 WriteGroupsMailingsInLocalDb(dtTempIntermediate, peopleShifts);
 
                 if (currentAction != @"sendEmail")
-                { _toolStripStatusLabelSetText(StatusLabel2, "Записываю ФИО в локальную базу..."); }
+                { _SetStatusLabelText(StatusLabel2, "Записываю ФИО в локальную базу..."); }
 
                 WritePeopleInLocalDB(dbApplication.ToString(), dtTempIntermediate);
 
@@ -1532,7 +1543,7 @@ namespace ASTA
 
                     ShowDatatableOnDatagridview(dtPersonTemp, "ListFIO");
 
-                    _toolStripStatusLabelSetText(StatusLabel2, "Записано в локальную базу: " + countUsers + " ФИО, " + countGroups + " групп и " + countMailers + " рассылок");
+                    _SetStatusLabelText(StatusLabel2, "Записано в локальную базу: " + countUsers + " ФИО, " + countGroups + " групп и " + countMailers + " рассылок");
                 }
             }
         }
@@ -1554,8 +1565,8 @@ namespace ASTA
             string depName = "";
             string depBoss = "";
 
-            string timeStart = ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourStart), _numUpDownReturn(numUpDownMinuteStart));
-            string timeEnd = ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourEnd), _numUpDownReturn(numUpDownMinuteEnd));
+            string timeStart = ConvertDecimalTimeToStringHHMM(_ReturnNumUpDown(numUpDownHourStart), _ReturnNumUpDown(numUpDownMinuteStart));
+            string timeEnd = ConvertDecimalTimeToStringHHMM(_ReturnNumUpDown(numUpDownHourEnd), _ReturnNumUpDown(numUpDownMinuteEnd));
             string dayStartShift = "";
             string dayStartShift_ = "";
 
@@ -1563,15 +1574,15 @@ namespace ASTA
             Dictionary<string, Department> departments = new Dictionary<string, Department>();
             Department departmentFromDictionary;
 
-            _comboBoxClr(comboBoxFio);
-            _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю данные с " + sServer1 + ". Ждите окончания процесса...");
+            _ClearComboBox(comboBoxFio);
+            _SetStatusLabelText(StatusLabel2, "Запрашиваю данные с " + sServer1 + ". Ждите окончания процесса...");
 
             string confitionToLoad = "";
             using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
             {
                 sqlConnection.Open();
 
-                _toolStripStatusLabelSetText(StatusLabel2, "Получаю из локальной базы список городов для загрузки списка ФИО из MySQL базы...");
+                _SetStatusLabelText(StatusLabel2, "Получаю из локальной базы список городов для загрузки списка ФИО из MySQL базы...");
                 using (var sqlCommand = new SQLiteCommand("SELECT City FROM SelectedCityToLoadFromWeb;", sqlConnection))
                 {
                     using (var reader = sqlCommand.ExecuteReader())
@@ -1666,7 +1677,7 @@ namespace ASTA
                 // import users, shifts and group from web DB
                 int tmpSeconds = 0;
                 groupName = mysqlServer;
-                _toolStripStatusLabelSetText(StatusLabel2, "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...");
+                _SetStatusLabelText(StatusLabel2, "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...");
 
 
                 // import departments from web DB
@@ -1830,11 +1841,11 @@ namespace ASTA
 
                 dataTablePeople.AcceptChanges();
                 logger.Trace("departments.count: " + departments.Count);
-                _toolStripStatusLabelSetText(StatusLabel2, "ФИО и наименования департаментов получены.");
+                _SetStatusLabelText(StatusLabel2, "ФИО и наименования департаментов получены.");
             }
             catch (Exception err)
             {
-                _toolStripStatusLabelSetText(
+                _SetStatusLabelText(
                     StatusLabel2,
                     "Возникла ошибка во время получения данных с серверов.",
                     true, err.ToString()
@@ -1850,7 +1861,7 @@ namespace ASTA
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
-            _toolStripStatusLabelSetText(StatusLabel2, "Формирую обновленные списки ФИО, департаментов и рассылок...");
+            _SetStatusLabelText(StatusLabel2, "Формирую обновленные списки ФИО, департаментов и рассылок...");
 
             logger.Info("Приступаю к формированию списков ФИО и департаментов...");
             string query;
@@ -2110,14 +2121,14 @@ namespace ASTA
             departmentsEmailUniq = null;
 
             _ProgressWork1Step();
-            _toolStripStatusLabelSetText(StatusLabel2, "Списки ФИО и департаментов получены.");
+            _SetStatusLabelText(StatusLabel2, "Списки ФИО и департаментов получены.");
         }
 
         private void listFioItem_Click(object sender, EventArgs e) //ListFioReturn()
         {
             nameOfLastTable = "ListFIO";
 
-            _ControlEnable(comboBoxFio, true);
+            _EnableControl(comboBoxFio, true);
             SeekAndShowMembersOfGroup("");
         }
 
@@ -2127,20 +2138,20 @@ namespace ASTA
             logger.Trace("-= " + method + " =-");
 
             _ProgressBar1Start();
-            _MenuItemEnabled(FunctionMenuItem, false);
-            _MenuItemEnabled(SettingsMenuItem, false);
-            _MenuItemEnabled(GroupsMenuItem, false);
-            _ControlEnable(dataGridView1, false);
+            _EnableMenuItem(FunctionMenuItem, false);
+            _EnableMenuItem(SettingsMenuItem, false);
+            _EnableMenuItem(GroupsMenuItem, false);
+            _EnableControl(dataGridView1, false);
 
             filePathExcelReport = System.IO.Path.Combine(localAppFolderPath, "InputOutputs " + DateTime.Now.ToString("yyyyMMdd_HHmmss"));
 
             await Task.Run(() => ExportDatatableSelectedColumnsToExcel(dtPersonTemp, "InputOutputsOfStaff", filePathExcelReport).GetAwaiter().GetResult());
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer.exe", " /select, " + filePathExcelReport + @".xlsx")); // //System.Reflection.Assembly.GetExecutingAssembly().Location)
 
-            _MenuItemEnabled(FunctionMenuItem, true);
-            _MenuItemEnabled(SettingsMenuItem, true);
-            _MenuItemEnabled(GroupsMenuItem, true);
-            _ControlEnable(dataGridView1, true);
+            _EnableMenuItem(FunctionMenuItem, true);
+            _EnableMenuItem(SettingsMenuItem, true);
+            _EnableMenuItem(GroupsMenuItem, true);
+            _EnableControl(dataGridView1, true);
             _ProgressBar1Stop();
         }
 
@@ -2185,7 +2196,7 @@ namespace ASTA
 
             logger.Trace("Сортировка: " + sort);
             logger.Trace("В таблице " + dataTable.TableName + " столбцов всего - " + dtExport.Columns.Count + ", строк - " + dtExport.Rows.Count);
-            _toolStripStatusLabelSetText(StatusLabel2, "Генерирую Excel-файл по отчету: '" + nameReport + "'");
+            _SetStatusLabelText(StatusLabel2, "Генерирую Excel-файл по отчету: '" + nameReport + "'");
             _ProgressWork1Step();
 
             Microsoft.Office.Interop.Excel.Application excel = new Microsoft.Office.Interop.Excel.Application
@@ -2353,17 +2364,17 @@ namespace ASTA
                     System.Reflection.Missing.Value);
                 _ProgressWork1Step();
 
-                _toolStripStatusLabelSetText(StatusLabel2, "Отчет сохранен в файл: " + pathToFile + @".xlsx");
+                _SetStatusLabelText(StatusLabel2, "Отчет сохранен в файл: " + pathToFile + @".xlsx");
 
                 filePath = pathToFile;
-                _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
+                _SetStatusLabelForeColor(StatusLabel2, Color.Black);
                 reportExcelReady = true;
                 releaseObject(range);
                 releaseObject(rangeColumnName);
             }
             catch (Exception err)
             {
-                _toolStripStatusLabelSetText(
+                _SetStatusLabelText(
                     StatusLabel2,
                     "Ошибка генерации файла. Проверьте наличие установленного Excel",
                     true, "| ExportDatatableSelectedColumnsToExcel: " + err.ToString());
@@ -2502,7 +2513,7 @@ namespace ASTA
                         try { command.ExecuteNonQuery(); } catch { }
                     }
                 }
-                _toolStripStatusLabelSetText(StatusLabel2, "Группа - \"" + nameGroup + "\" создана");
+                _SetStatusLabelText(StatusLabel2, "Группа - \"" + nameGroup + "\" создана");
             }
         }
 
@@ -2516,8 +2527,8 @@ namespace ASTA
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
-            _ControlVisible(groupBoxProperties, false);
-            _ControlVisible(dataGridView1, false);
+            _VisibleControl(groupBoxProperties, false);
+            _VisibleControl(dataGridView1, false);
 
             UpdateAmountAndRecepientOfPeopleGroupDescription();
 
@@ -2537,9 +2548,9 @@ namespace ASTA
             MembersGroupItem.Enabled = true;
             PersonOrGroupItem.Text = Names.WORK_WITH_A_PERSON;
 
-            _ControlEnable(comboBoxFio, false);
+            _EnableControl(comboBoxFio, false);
 
-            _ControlVisible(dataGridView1, true);
+            _VisibleControl(dataGridView1, true);
             dataGridView1.Select();
         }
 
@@ -2763,7 +2774,6 @@ namespace ASTA
                 {
                     dtPersonTemp = LeaveAndOrderColumnsOfDataTable(dtTemp, Names.orderColumnsFIO);
                     ShowDatatableOnDatagridview(dtPersonTemp, "PeopleGroup");
-                    _MenuItemVisible(DeletePersonFromGroupItem, true);
                 }
             }
         }
@@ -2828,18 +2838,18 @@ namespace ASTA
                             sqlCommand.Parameters.Add("@Shift", DbType.String).Value = dgvo.cellValue[7];
                             try { sqlCommand.ExecuteNonQuery(); } catch (Exception ept) { logger.Warn("PeopleGroup: " + ept.ToString()); }
                         }
-                        _toolStripStatusLabelSetText(StatusLabel2, "'" + ShortFIO(dgvo.cellValue[0]) + "'" + " добавлен в группу '" + group + "'");
-                        _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
+                        _SetStatusLabelText(StatusLabel2, "'" + ShortFIO(dgvo.cellValue[0]) + "'" + " добавлен в группу '" + group + "'");
+                        _SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
                     }
                     else if (group?.Length > 0 && dgvo?.cellValue[1]?.Length == 0)
                     {
-                        _toolStripStatusLabelSetText(StatusLabel2, "Отсутствует NAV-код у: " + ShortFIO(textBoxFIO.Text));
-                        _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
+                        _SetStatusLabelText(StatusLabel2, "Отсутствует NAV-код у: " + ShortFIO(textBoxFIO.Text));
+                        _SetStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
                     }
                     else if (group?.Length == 0 && dgvo?.cellValue[1]?.Length > 0)
                     {
-                        _toolStripStatusLabelSetText(StatusLabel2, "Не указана группа, в которую нужно добавить!");
-                        _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
+                        _SetStatusLabelText(StatusLabel2, "Не указана группа, в которую нужно добавить!");
+                        _SetStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
                     }
                 }
             }
@@ -2847,7 +2857,7 @@ namespace ASTA
             SeekAndShowMembersOfGroup(group);
 
             labelGroup.BackColor = SystemColors.Control;
-            _MenuItemSetText(PersonOrGroupItem, Names.WORK_WITH_A_PERSON);
+            _SetMenuItemText(PersonOrGroupItem, Names.WORK_WITH_A_PERSON);
             nameOfLastTable = "PeopleGroup";
         }
 
@@ -3008,10 +3018,10 @@ namespace ASTA
             }
 
             foreach (var str in listFIO)
-            { _comboBoxAdd(comboBoxFio, str.fio + "|" + str.code); }
+            { _AddComboBoxItem(comboBoxFio, str.fio + "|" + str.code); }
             _ProgressWork1Step();
-            if (_comboBoxCountItems(comboBoxFio) > 0)
-            { _comboBoxSelectIndex(comboBoxFio, 0); }
+            if (_ReturnComboBoxCountItems(comboBoxFio) > 0)
+            { _SetComboBoxIndex(comboBoxFio, 0); }
             _ProgressWork1Step();
 
             int.TryParse(listFIO.Count.ToString(), out countUsers);
@@ -3130,8 +3140,8 @@ namespace ASTA
             //status of repeatedly loading of registrations cards from server
             checkInputsOutputs = false;
 
-            string dayStart = _dateTimePickerReturn(dateTimePickerStart).ToYYYYMMDD();
-            string dayEnd = _dateTimePickerReturn(dateTimePickerEnd).ToYYYYMMDD();
+            string dayStart = _ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD();
+            string dayEnd = _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD();
 
             await Task.Run(() => LoadInputsOutputsOfVisitors(dayStart, dayEnd, timesCheckingRegistration));
         }
@@ -3148,8 +3158,8 @@ namespace ASTA
             //status of repeatedly loading of registrations cards from server
             checkInputsOutputs = false;
 
-            string dayStart = _dateTimePickerReturn(dateTimePickerStart).ToYYYYMMDD();
-            string dayEnd = _dateTimePickerReturn(dateTimePickerEnd).ToYYYYMMDD();
+            string dayStart = _ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD();
+            string dayEnd = _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD();
 
             if (DateTime.Now.ToYYYYMMDD() != dayStart)
             { timesCheckingRegistration = 1; }
@@ -3173,7 +3183,7 @@ namespace ASTA
 
         private void LoadInputsOutputsOfVisitors(string startDay, string endDay, int timesChecking)
         {
-            _ControlEnable(comboBoxFio, true);
+            _EnableControl(comboBoxFio, true);
 
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
@@ -3226,13 +3236,13 @@ namespace ASTA
                 if (timesChecking <= 0)
                 { checkInputsOutputs = false; }
 
-                _toolStripStatusLabelSetText(StatusLabel2, "Загружены данные о регистрации пропусков до: " + startDay + " " + startTime);
+                _SetStatusLabelText(StatusLabel2, "Загружены данные о регистрации пропусков до: " + startDay + " " + startTime);
 
                 startStopTimer.WaitTime();
 
             } while (checkInputsOutputs);
 
-            _toolStripStatusLabelSetText(StatusLabel2, "Сбор данных регистрации пропусков завершен");
+            _SetStatusLabelText(StatusLabel2, "Сбор данных регистрации пропусков завершен");
         }
 
         private List<Visitor> GetInputsOutputs(ref string startDay, ref string startTime, ref string endDay, ref string endTime)
@@ -3436,62 +3446,62 @@ namespace ASTA
 
             await Task.Run(() => CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword).GetAwaiter().GetResult());
 
-            _ControlChangeBackColor(groupBoxPeriod, SystemColors.Control);
-            _ControlChangeBackColor(groupBoxTimeStart, SystemColors.Control);
-            _ControlChangeBackColor(groupBoxTimeEnd, SystemColors.Control);
-            _MenuItemBackColorChange(LoadDataItem, SystemColors.Control);
+            _ChangeControlBackColor(groupBoxPeriod, SystemColors.Control);
+            _ChangeControlBackColor(groupBoxTimeStart, SystemColors.Control);
+            _ChangeControlBackColor(groupBoxTimeEnd, SystemColors.Control);
+            _SetMenuItemBackColor(LoadDataItem, SystemColors.Control);
 
-            _MenuItemEnabled(LoadDataItem, false);
-            _MenuItemEnabled(FunctionMenuItem, false);
-            _MenuItemEnabled(SettingsMenuItem, false);
-            _MenuItemEnabled(GroupsMenuItem, false);
+            _EnableMenuItem(LoadDataItem, false);
+            _EnableMenuItem(FunctionMenuItem, false);
+            _EnableMenuItem(SettingsMenuItem, false);
+            _EnableMenuItem(GroupsMenuItem, false);
             CheckBoxesFiltersAll_Enable(false);
 
-            _ControlVisible(dataGridView1, false);
+            _VisibleControl(dataGridView1, false);
 
             if (bServer1Exist)
             {
-                reportStartDay = _dateTimePickerStartReturn().Split(' ')[0];
-                reportLastDay = _dateTimePickerEndReturn().Split(' ')[0];
+                reportStartDay = _ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD();
+                reportLastDay = _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD();
 
                 await Task.Run(() => GetData(_group, reportStartDay, reportLastDay));
 
-                _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
-                _MenuItemBackColorChange(LoadDataItem, SystemColors.Control);
-                _MenuItemBackColorChange(TableExportToExcelItem, Color.PaleGreen);
+                _SetStatusLabelForeColor(StatusLabel2, Color.Black);
+                _SetMenuItemBackColor(LoadDataItem, SystemColors.Control);
+                _SetMenuItemBackColor(TableExportToExcelItem, Color.PaleGreen);
 
-                _MenuItemEnabled(LoadDataItem, true);
-                _MenuItemEnabled(FunctionMenuItem, true);
-                _MenuItemEnabled(SettingsMenuItem, true);
-                _MenuItemEnabled(GroupsMenuItem, true);
-                _MenuItemEnabled(VisualModeItem, true);
-                _MenuItemVisible(VisualModeItem, true);
-                _MenuItemEnabled(TableModeItem, true);
-                _MenuItemEnabled(TableExportToExcelItem, true);
+                _EnableMenuItem(LoadDataItem, true);
+                _EnableMenuItem(FunctionMenuItem, true);
+                _EnableMenuItem(SettingsMenuItem, true);
+                _EnableMenuItem(GroupsMenuItem, true);
+                _EnableMenuItem(VisualModeItem, true);
+                _VisibleMenuItem(VisualModeItem, true);
+                _EnableMenuItem(TableModeItem, true);
+                _EnableMenuItem(TableExportToExcelItem, true);
 
-                _ControlVisible(dataGridView1, true);
+                _VisibleControl(dataGridView1, true);
 
-                _ControlEnable(checkBoxReEnter, true);
-                _ControlEnable(checkBoxTimeViolations, false);
-                _ControlEnable(checkBoxWeekend, false);
-                _ControlEnable(checkBoxCelebrate, false);
+                _EnableControl(checkBoxReEnter, true);
+                _EnableControl(checkBoxTimeViolations, false);
+                _EnableControl(checkBoxWeekend, false);
+                _EnableControl(checkBoxCelebrate, false);
                 CheckBoxesFiltersAll_SetState(false);
 
                 panelViewResize(numberPeopleInLoading);
-                _ControlChangeBackColor(groupBoxFilterReport, Color.PaleGreen);
+                _ChangeControlBackColor(groupBoxFilterReport, Color.PaleGreen);
             }
             else
             {
                 GetInfoSetup();
-                _MenuItemEnabled(SettingsMenuItem, true);
+                _EnableMenuItem(SettingsMenuItem, true);
             }
             stimerPrev = "";
             _ProgressBar1Stop();
 
             if (dtPersonTemp?.Rows.Count > 0)
             {
-                _MenuItemVisible(TableExportToExcelItem, true);
-                _toolStripStatusLabelSetText(StatusLabel2, "Данные регистрации пропусков загружены");
+                _VisibleMenuItem(TableExportToExcelItem, true);
+                _SetStatusLabelText(StatusLabel2, "Данные регистрации пропусков загружены");
             }
         }
 
@@ -3516,7 +3526,10 @@ namespace ASTA
             GetNamesOfPassagePoints();
 
             //Load Records of registrations of Id cards
-            LoadRecords(_group, _dateTimePickerStartReturn(), _dateTimePickerEndReturn(), "");
+            LoadRecords(_group,
+                _ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD() + " 00:00:00",
+                _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD() + " 23:59:59",
+                "");
 
             dtPersonTemp = LeaveAndOrderColumnsOfDataTable(dtPersonRegistrationsFullList.Copy(), Names.orderColumnsRegistrations);
 
@@ -3595,7 +3608,7 @@ namespace ASTA
             if ((nameOfLastTable == "PeopleGroupDescription" || nameOfLastTable == "PeopleGroup" || nameOfLastTable == "Mailing" ||
                 nameOfLastTable == "ListFIO" || doPostAction == "sendEmail") && nameGroup?.Length > 0)
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по группе " + nameGroup);
+                _SetStatusLabelText(StatusLabel2, "Получаю данные по группе " + nameGroup);
                 dtPeopleGroup = LoadGroupMembersFromDbToDataTable(nameGroup);
 
                 logger.Trace("LoadRecords, DT - " + dtPeopleGroup.TableName + " , всего записей - " + dtPeopleGroup.Rows.Count);
@@ -3626,7 +3639,7 @@ namespace ASTA
                     }
                 }
                 nameOfLastTable = "PeopleGroup";
-                _toolStripStatusLabelSetText(StatusLabel2, "Данные по группе \"" + nameGroup + "\" получены");
+                _SetStatusLabelText(StatusLabel2, "Данные по группе \"" + nameGroup + "\" получены");
             }
             else
             {
@@ -3634,7 +3647,7 @@ namespace ASTA
                 person.code = _ReturnTextOfControl(textBoxNav);
                 person.fio = _ReturnTextOfControl(textBoxFIO);
 
-                _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные по \"" + ShortFIO(person.fio) + "\" ");
+                _SetStatusLabelText(StatusLabel2, "Получаю данные по \"" + ShortFIO(person.fio) + "\" ");
 
                 person.GroupPerson = "One User";
                 person.Department = "";
@@ -3646,14 +3659,14 @@ namespace ASTA
                 person.Shift = "";
                 person.Comment = "";
 
-                person.ControlInHHMM = ConvertStringsTimeToStringHHMM(_numUpDownReturn(numUpDownHourStart).ToString(), _numUpDownReturn(numUpDownMinuteStart).ToString());
-                person.ControlOutHHMM = ConvertStringsTimeToStringHHMM(_numUpDownReturn(numUpDownHourEnd).ToString(), _numUpDownReturn(numUpDownMinuteEnd).ToString());
+                person.ControlInHHMM = ConvertStringsTimeToStringHHMM(_ReturnNumUpDown(numUpDownHourStart).ToString(), _ReturnNumUpDown(numUpDownMinuteStart).ToString());
+                person.ControlOutHHMM = ConvertStringsTimeToStringHHMM(_ReturnNumUpDown(numUpDownHourEnd).ToString(), _ReturnNumUpDown(numUpDownMinuteEnd).ToString());
 
                 logger.Trace("LoadRecords,One User: " + person.fio);
 
                 GetPersonRegistrationFromServer(ref dtPersonRegistrationsFullList, person, startDate, endDate);
 
-                _toolStripStatusLabelSetText(StatusLabel2, "Данные с СКД по \"" + ShortFIO(_ReturnTextOfControl(textBoxFIO)) + "\" получены!");
+                _SetStatusLabelText(StatusLabel2, "Данные с СКД по \"" + ShortFIO(_ReturnTextOfControl(textBoxFIO)) + "\" получены!");
             }
         }
 
@@ -3969,10 +3982,10 @@ namespace ASTA
                 "NAV AS '" + Names.DAYOFF_USED_BY + "', DayDescription AS 'Описание', DateCreated AS '" + Names.DAYOFF_ADDED + "'",
                 " ORDER BY DayBolded desc, NAV asc; ");
 
-            _MenuItemEnabled(FunctionMenuItem, false);
-            _MenuItemEnabled(GroupsMenuItem, false);
-            _MenuItemEnabled(AddAnualDateItem, true);
-            CheckBoxesFiltersAll_Visible(false);
+            _EnableMenuItem(FunctionMenuItem, false);
+            _EnableMenuItem(GroupsMenuItem, false);
+            _EnableMenuItem(AddAnualDateItem, true);
+            _SetCheckBoxesAllFilters_Visible(false);
 
             comboBoxFio.Items.Add("");
             comboBoxFio.SelectedIndex = 0;
@@ -3984,8 +3997,9 @@ namespace ASTA
 
             StatusLabel2.ForeColor = Color.Crimson;
             EditAnualDaysItem.Text = @"Завершить редактирование";
+
             EditAnualDaysItem.ToolTipText = @"Выйти из режима редактирования рабочих и выходных дней";
-            _toolStripStatusLabelSetText(StatusLabel2, @"Режим редактирования рабочих и выходных дней");
+            _SetStatusLabelText(StatusLabel2, @"Режим редактирования рабочих и выходных дней");
         }
 
         private void ExitEditAnual()
@@ -3997,11 +4011,11 @@ namespace ASTA
             if (comboBoxFio.Items.Count > 0)
             { comboBoxFio.SelectedIndex = 0; }
 
-            _MenuItemEnabled(FunctionMenuItem, true);
-            _MenuItemEnabled(GroupsMenuItem, true);
-            _MenuItemEnabled(AddAnualDateItem, false);
+            _EnableMenuItem(FunctionMenuItem, true);
+            _EnableMenuItem(GroupsMenuItem, true);
+            _EnableMenuItem(AddAnualDateItem, false);
 
-            CheckBoxesFiltersAll_Visible(true);
+            _SetCheckBoxesAllFilters_Visible(true);
 
             EditAnualDaysItem.Text = Names.DAY_OFF_OR_WORK;
             EditAnualDaysItem.ToolTipText = Names.DAY_OFF_OR_WORK_EDIT;
@@ -4011,8 +4025,8 @@ namespace ASTA
             labelGroup.Text = "Группа";
             textBoxGroup.Text = "";
 
-            _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
-            _toolStripStatusLabelSetText(StatusLabel2, @"Завершен 'Режим редактирования в локальной БД дат праздников и выходных'");
+            _SetStatusLabelForeColor(StatusLabel2, Color.Black);
+            _SetStatusLabelText(StatusLabel2, @"Завершен 'Режим редактирования в локальной БД дат праздников и выходных'");
 
             nameOfLastTable = "ListFIO";
             SeekAndShowMembersOfGroup("");
@@ -4087,26 +4101,26 @@ namespace ASTA
 
         private void CheckBoxesFiltersAll_SetState(bool state)
         {
-            _CheckboxCheckedSet(checkBoxTimeViolations, state);
-            _CheckboxCheckedSet(checkBoxReEnter, state);
-            _CheckboxCheckedSet(checkBoxCelebrate, state);
-            _CheckboxCheckedSet(checkBoxWeekend, state);
+            _SetCheckBoxCheckedStatus(checkBoxTimeViolations, state);
+            _SetCheckBoxCheckedStatus(checkBoxReEnter, state);
+            _SetCheckBoxCheckedStatus(checkBoxCelebrate, state);
+            _SetCheckBoxCheckedStatus(checkBoxWeekend, state);
         }
 
         private void CheckBoxesFiltersAll_Enable(bool state)
         {
-            _ControlEnable(checkBoxTimeViolations, state);
-            _ControlEnable(checkBoxReEnter, state);
-            _ControlEnable(checkBoxCelebrate, state);
-            _ControlEnable(checkBoxWeekend, state);
+            _EnableControl(checkBoxTimeViolations, state);
+            _EnableControl(checkBoxReEnter, state);
+            _EnableControl(checkBoxCelebrate, state);
+            _EnableControl(checkBoxWeekend, state);
         }
 
-        private void CheckBoxesFiltersAll_Visible(bool state)
+        private void _SetCheckBoxesAllFilters_Visible(bool state)
         {
-            _ControlVisible(checkBoxTimeViolations, state);
-            _ControlVisible(checkBoxReEnter, state);
-            _ControlVisible(checkBoxCelebrate, state);
-            _ControlVisible(checkBoxWeekend, state);
+            _VisibleControl(checkBoxTimeViolations, state);
+            _VisibleControl(checkBoxReEnter, state);
+            _VisibleControl(checkBoxCelebrate, state);
+            _VisibleControl(checkBoxWeekend, state);
         }
 
         private async void checkBox_CheckStateChanged(object sender, EventArgs e)
@@ -4120,14 +4134,14 @@ namespace ASTA
             DataTable dtEmpty = new DataTable();
             EmployeeFull emptyPerson = new EmployeeFull();
             SeekAnualDays(ref dtEmpty, ref emptyPerson, false,
-                _dateTimePickerReturnArray(dateTimePickerStart),
-                _dateTimePickerReturnArray(dateTimePickerEnd),
+                _ReturnDateTimePickerArray(dateTimePickerStart),
+                _ReturnDateTimePickerArray(dateTimePickerEnd),
                 ref myBoldedDates, ref workSelectedDays);
 
             dtEmpty?.Dispose();
 
             CheckBoxesFiltersAll_Enable(false);
-            _ControlVisible(dataGridView1, false);
+            _VisibleControl(dataGridView1, false);
 
             string nameGroup = _ReturnTextOfControl(textBoxGroup);
 
@@ -4153,7 +4167,7 @@ namespace ASTA
             {
                 dtPeopleGroup = LoadGroupMembersFromDbToDataTable(nameGroup);
 
-                if (_ReturnCheckboxCheckedState(checkBoxReEnter))
+                if (_ReturnCheckboxCheckedStatus(checkBoxReEnter))
                 {
                     foreach (DataRow row in dtPeopleGroup.Rows)
                     {
@@ -4185,7 +4199,7 @@ namespace ASTA
             }
             else
             {
-                if (!_ReturnCheckboxCheckedState(checkBoxReEnter))
+                if (!_ReturnCheckboxCheckedStatus(checkBoxReEnter))
                 { dtTempIntermediate = dtPersonRegistrationsFullList.Copy(); }
                 else
                 { FilterRegistrationsOfPerson(ref person, dtPersonRegistrationsFullList, ref dtTempIntermediate); }
@@ -4200,28 +4214,28 @@ namespace ASTA
             ShowDatatableOnDatagridview(dtPersonTemp, "PeopleGroup");
 
             //change enabling of checkboxes
-            if (_ReturnCheckboxCheckedState(checkBoxReEnter))// if (checkBoxReEnter.Checked)
+            if (_ReturnCheckboxCheckedStatus(checkBoxReEnter))// if (checkBoxReEnter.Checked)
             {
-                _ControlEnable(checkBoxTimeViolations, true);
-                _ControlEnable(checkBoxWeekend, true);
-                _ControlEnable(checkBoxCelebrate, true);
+                _EnableControl(checkBoxTimeViolations, true);
+                _EnableControl(checkBoxWeekend, true);
+                _EnableControl(checkBoxCelebrate, true);
 
-                if (_ReturnCheckboxCheckedState(checkBoxTimeViolations))  // if (checkBoxStartWorkInTime.Checked)
-                { _MenuItemBackColorChange(LoadDataItem, SystemColors.Control); }
+                if (_ReturnCheckboxCheckedStatus(checkBoxTimeViolations))  // if (checkBoxStartWorkInTime.Checked)
+                { _SetMenuItemBackColor(LoadDataItem, SystemColors.Control); }
             }
-            else if (!_ReturnCheckboxCheckedState(checkBoxReEnter))
+            else if (!_ReturnCheckboxCheckedStatus(checkBoxReEnter))
             {
-                _CheckboxCheckedSet(checkBoxTimeViolations, false);
-                _CheckboxCheckedSet(checkBoxWeekend, false);
-                _CheckboxCheckedSet(checkBoxCelebrate, false);
-                _ControlEnable(checkBoxTimeViolations, false);
-                _ControlEnable(checkBoxWeekend, false);
-                _ControlEnable(checkBoxCelebrate, false);
+                _SetCheckBoxCheckedStatus(checkBoxTimeViolations, false);
+                _SetCheckBoxCheckedStatus(checkBoxWeekend, false);
+                _SetCheckBoxCheckedStatus(checkBoxCelebrate, false);
+                _EnableControl(checkBoxTimeViolations, false);
+                _EnableControl(checkBoxWeekend, false);
+                _EnableControl(checkBoxCelebrate, false);
             }
 
             panelViewResize(numberPeopleInLoading);
-            _ControlVisible(dataGridView1, true);
-            _ControlEnable(checkBoxReEnter, true);
+            _VisibleControl(dataGridView1, true);
+            _EnableControl(checkBoxReEnter, true);
         }
 
         private DataTable LeaveAndOrderColumnsOfDataTable(DataTable dt, string[] columns)
@@ -4253,7 +4267,7 @@ namespace ASTA
             {
                 var allWorkedDaysPerson = dataTableSource.Select("[NAV-код] = '" + person.code + "'");
 
-                if (_ReturnCheckboxCheckedState(checkBoxReEnter) || currentAction == "sendEmail") //checkBoxReEnter.Checked
+                if (_ReturnCheckboxCheckedStatus(checkBoxReEnter) || currentAction == "sendEmail") //checkBoxReEnter.Checked
                 {
                     foreach (DataRow dataRowDate in allWorkedDaysPerson) //make the list of worked days
                     { hsDays.Add(dataRowDate[Names.DATE_REGISTRATION]?.ToString()); }
@@ -4365,13 +4379,13 @@ namespace ASTA
                         dtTemp.ImportRow(rowDtStoring);
                     }
                 }
-                else if (!_ReturnCheckboxCheckedState(checkBoxReEnter))
+                else if (!_ReturnCheckboxCheckedStatus(checkBoxReEnter))
                 {
                     foreach (DataRow dr in allWorkedDaysPerson)
                     { dtTemp.ImportRow(dr); }
                 }
 
-                if (_ReturnCheckboxCheckedState(checkBoxWeekend) || currentAction == "sendEmail")//checkBoxWeekend Checking
+                if (_ReturnCheckboxCheckedStatus(checkBoxWeekend) || currentAction == "sendEmail")//checkBoxWeekend Checking
                 {
                     SeekAnualDays(ref dtTemp, ref person, true,
                         ConvertStringDateToIntArray(reportStartDay),
@@ -4379,7 +4393,7 @@ namespace ASTA
                         ref myBoldedDates, ref workSelectedDays);
                 }
 
-                if (_ReturnCheckboxCheckedState(checkBoxTimeViolations)) //checkBoxStartWorkInTime Checking
+                if (_ReturnCheckboxCheckedStatus(checkBoxTimeViolations)) //checkBoxStartWorkInTime Checking
                 { QueryDeleteDataFromDataTable(ref dtTemp, "[Опоздание ЧЧ:ММ]='' AND [Ранний уход ЧЧ:ММ]=''", person.code); }
 
                 foreach (DataRow dr in dtTemp.AsEnumerable())
@@ -4835,7 +4849,7 @@ namespace ASTA
             }
             catch (Exception err)
             {
-                _toolStripStatusLabelSetText(StatusLabel2,
+                _SetStatusLabelText(StatusLabel2,
                     "Ошибки с доступом у реестру на запись. Данные не удалены.",
                     true, "| ClearRegistryData: " + err.ToString());
             }
@@ -4930,8 +4944,8 @@ namespace ASTA
             personSelected.code = _ReturnTextOfControl(textBoxNav);
             personSelected.GroupPerson = _ReturnTextOfControl(textBoxGroup);
 
-            personSelected.ControlInHHMM = ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourStart), _numUpDownReturn(numUpDownMinuteStart));
-            personSelected.ControlOutHHMM = ConvertDecimalTimeToStringHHMM(_numUpDownReturn(numUpDownHourEnd), _numUpDownReturn(numUpDownMinuteEnd));
+            personSelected.ControlInHHMM = ConvertDecimalTimeToStringHHMM(_ReturnNumUpDown(numUpDownHourStart), _ReturnNumUpDown(numUpDownMinuteStart));
+            personSelected.ControlOutHHMM = ConvertDecimalTimeToStringHHMM(_ReturnNumUpDown(numUpDownHourEnd), _ReturnNumUpDown(numUpDownMinuteEnd));
         }
 
 
@@ -4976,11 +4990,11 @@ namespace ASTA
                     timeOut = ConvertStringTimeHHMMToDecimalArray(personVisual.ControlOutHHMM);
 
                     personVisual.ControlOutSeconds = (int)timeOut[4];
-                    _numUpDownSet(numUpDownHourStart, timeIn[0]);
-                    _numUpDownSet(numUpDownMinuteStart, timeIn[1]);
+                    _SetNumUpDown(numUpDownHourStart, timeIn[0]);
+                    _SetNumUpDown(numUpDownMinuteStart, timeIn[1]);
 
-                    _numUpDownSet(numUpDownHourEnd, timeOut[0]);
-                    _numUpDownSet(numUpDownMinuteEnd, timeOut[1]);
+                    _SetNumUpDown(numUpDownHourEnd, timeOut[0]);
+                    _SetNumUpDown(numUpDownMinuteEnd, timeOut[1]);
 
                     personVisual.Department = dgvo.cellValue[5];
                     personVisual.PositionInDepartment = dgvo.cellValue[6];
@@ -5008,11 +5022,11 @@ namespace ASTA
                 SelectPersonFromControls(ref personVisual);
             }
 
-            _ControlVisible(dataGridView1, false);
+            _VisibleControl(dataGridView1, false);
 
             CheckBoxesFiltersAll_Enable(false);
 
-            if (_ReturnCheckboxCheckedState(checkBoxReEnter))
+            if (_ReturnCheckboxCheckedStatus(checkBoxReEnter))
             {
                 logger.Trace("DrawFullWorkedPeriodRegistration: ");
                 DrawFullWorkedPeriodRegistration(ref personVisual);
@@ -5023,13 +5037,13 @@ namespace ASTA
                 DrawRegistration(ref personVisual);
             }
 
-            _MenuItemVisible(TableModeItem, true);
-            _MenuItemVisible(VisualModeItem, false);
-            _MenuItemVisible(ChangeColorMenuItem, true);
-            _MenuItemVisible(TableExportToExcelItem, false);
+            _VisibleMenuItem(TableModeItem, true);
+            _VisibleMenuItem(VisualModeItem, false);
+            _VisibleMenuItem(ChangeColorMenuItem, true);
+            _VisibleMenuItem(TableExportToExcelItem, false);
 
-            _ControlVisible(panelView, true);
-            _ControlVisible(pictureBox1, true);
+            _VisibleControl(panelView, true);
+            _VisibleControl(pictureBox1, true);
         }
 
         private void DrawRegistration(ref EmployeeFull personDraw)  // Visualisation of registration
@@ -5094,8 +5108,8 @@ namespace ASTA
             //It needs to prevent the error "index of scope"
             DataTable dtEmpty = new DataTable();
             SeekAnualDays(ref dtEmpty, ref personDraw, false,
-                _dateTimePickerReturnArray(dateTimePickerStart),
-                _dateTimePickerReturnArray(dateTimePickerEnd),
+                _ReturnDateTimePickerArray(dateTimePickerStart),
+                _ReturnDateTimePickerArray(dateTimePickerEnd),
                 ref myBoldedDates, ref workSelectedDays);
             dtEmpty.Dispose();
 
@@ -5115,7 +5129,7 @@ namespace ASTA
             // panelView.Anchor = AnchorStyles.Bottom;
             // panelView.Anchor = AnchorStyles.Left;
             // panelView.Dock = DockStyle.None;
-            _panelResume(panelView);
+            _ResumePpanel(panelView);
 
             pictureBox1?.Dispose();
             if (panelView.Controls.Count > 1)
@@ -5370,8 +5384,8 @@ namespace ASTA
             //It needs to prevent the error "index of scope"
             DataTable dtEmpty = new DataTable();
             SeekAnualDays(ref dtEmpty, ref personDraw, false,
-                _dateTimePickerReturnArray(dateTimePickerStart),
-                _dateTimePickerReturnArray(dateTimePickerEnd),
+                _ReturnDateTimePickerArray(dateTimePickerStart),
+                _ReturnDateTimePickerArray(dateTimePickerEnd),
                 ref myBoldedDates, ref workSelectedDays);
             dtEmpty.Dispose();
 
@@ -5390,7 +5404,7 @@ namespace ASTA
             // panelView.Anchor = AnchorStyles.Bottom;
             // panelView.Anchor = AnchorStyles.Left;
             // panelView.Dock = DockStyle.None;
-            _panelResume(panelView);
+            _ResumePpanel(panelView);
 
             pictureBox1?.Dispose();
             if (panelView.Controls.Count > 1)
@@ -5568,7 +5582,7 @@ namespace ASTA
 
         private void ReportsItem_Click(object sender, EventArgs e)
         {
-            _ControlVisible(pictureBox1, false);
+            _VisibleControl(pictureBox1, false);
 
             try
             {
@@ -5578,16 +5592,16 @@ namespace ASTA
             }
             catch { }
 
-            _ControlVisible(dataGridView1, true);
+            _VisibleControl(dataGridView1, true);
 
             sLastSelectedElement = "dataGridView";
             panelViewResize(numberPeopleInLoading);
 
             CheckBoxesFiltersAll_Enable(true);
-            _MenuItemVisible(TableExportToExcelItem, true);
-            _MenuItemVisible(TableModeItem, false);
-            _MenuItemVisible(VisualModeItem, true);
-            _MenuItemVisible(ChangeColorMenuItem, false);
+            _VisibleMenuItem(TableExportToExcelItem, true);
+            _VisibleMenuItem(TableModeItem, false);
+            _VisibleMenuItem(VisualModeItem, true);
+            _VisibleMenuItem(ChangeColorMenuItem, false);
         }
 
         private void panelView_SizeChanged(object sender, EventArgs e)
@@ -5600,21 +5614,21 @@ namespace ASTA
             switch (sLastSelectedElement)
             {
                 case "DrawFullWorkedPeriodRegistration":
-                    _panelSetHeight(panelView, iShiftHeightAll + iOffsetBetweenHorizontalLines * workSelectedDays.Length * numberPeople); //Fixed size of Picture. If need autosize - disable this row
+                    _SetPanelHeight(panelView, iShiftHeightAll + iOffsetBetweenHorizontalLines * workSelectedDays.Length * numberPeople); //Fixed size of Picture. If need autosize - disable this row
                     break;
                 case "DrawRegistration":
-                    _panelSetHeight(panelView, iShiftHeightAll + iOffsetBetweenHorizontalLines * workSelectedDays.Length * numberPeople); //Fixed size of Picture. If need autosize - disable this row
+                    _SetPanelHeight(panelView, iShiftHeightAll + iOffsetBetweenHorizontalLines * workSelectedDays.Length * numberPeople); //Fixed size of Picture. If need autosize - disable this row
                     break;
                 default:
-                    _panelSetAnchor(panelView, (AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top));
-                    _panelSetHeight(panelView, _panelParentHeightReturn(panelView) - 120);
-                    _panelSetAutoScroll(panelView, true);
-                    _panelSetAutoSizeMode(panelView, AutoSizeMode.GrowAndShrink);
-                    _panelResume(panelView);
+                    _SetPanelAnchor(panelView, (AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top));
+                    _SetPanelHeight(panelView, _ReturnPanelParentHeight(panelView) - 120);
+                    _SetPanelAutoScroll(panelView, true);
+                    _SetPanelAutoSizeMode(panelView, AutoSizeMode.GrowAndShrink);
+                    _ResumePpanel(panelView);
                     break;
             }
 
-            if (_panelControlsCountReturn(panelView) > 1)
+            if (_ReturnPanelControlsCount(panelView) > 1)
             {
                 _RefreshPictureBox(pictureBox1, bmp);
             }
@@ -5715,7 +5729,7 @@ namespace ASTA
                  @"\nФильтровать эти данные по пользователям или попыткам прохода" +
                  @"4. ПО способно самостоятельно или принудительно проверять наличие обновления на сервере." +
                  @"4.1. Для использования данного функционала заполните в конфигурации в параметр 'serverUpdateURL' URI адрес папки сервера с обновлениями (SERVER.DOMAIN.SUBDOMAIN\FOLDER_WITH_UPDATES)." +
-                 @"\n\nДата и время локального ПК: " + _dateTimePickerReturnString(dateTimePickerEnd),
+                 @"\n\nДата и время локального ПК: " + _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDDHHMMSS(),
 
                 "Информация о программе",
                 MessageBoxButtons.OK,
@@ -5727,14 +5741,14 @@ namespace ASTA
         private void PrepareForMakingFormMailing(object sender, EventArgs e) //MailingItem()
         {
             nameOfLastTable = "Mailing";
-            _MenuItemEnabled(SettingsMenuItem, false);
-            _MenuItemEnabled(FunctionMenuItem, false);
-            _MenuItemEnabled(GroupsMenuItem, false);
+            _EnableMenuItem(SettingsMenuItem, false);
+            _EnableMenuItem(FunctionMenuItem, false);
+            _EnableMenuItem(GroupsMenuItem, false);
             CheckBoxesFiltersAll_Enable(false);
-            _ControlVisible(panelView, false);
+            _VisibleControl(panelView, false);
 
             btnPropertiesSave.Text = "Сохранить рассылку";
-            RemoveClickEvent(btnPropertiesSave);
+            ClearButtonClickEvent(btnPropertiesSave);
             btnPropertiesSave.Click += new EventHandler(ButtonPropertiesSave_MailingSave);
 
             MakeFormMailing();
@@ -5842,7 +5856,7 @@ namespace ASTA
                     sqlCommand1 = new SQLiteCommand("end", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
                 }
-                _toolStripStatusLabelSetText(StatusLabel2, "Добавлена рассылка: " + nameReport + "| Всего рассылок: " + dgvo.RowsCount(dataGridView1));
+                _SetStatusLabelText(StatusLabel2, "Добавлена рассылка: " + nameReport + "| Всего рассылок: " + dgvo.RowsCount(dataGridView1));
             }
         }
 
@@ -5859,10 +5873,10 @@ namespace ASTA
         private void MakeFormSettings()
         {
             EnableMainMenuItems(false);
-            _ControlVisible(panelView, false);
+            _VisibleControl(panelView, false);
 
             btnPropertiesSave.Text = "Сохранить настройки";
-            RemoveClickEvent(btnPropertiesSave);
+            ClearButtonClickEvent(btnPropertiesSave);
             btnPropertiesSave.Click += new EventHandler(buttonPropertiesSave_Click);
             ViewFormSettings(
                 "Сервер СКД", sServer1, "Имя сервера \"Server\" с базой Intellect в виде - NameOfServer.Domain.Subdomain",
@@ -6288,46 +6302,46 @@ namespace ASTA
                 " ORDER BY RecipientEmail asc, DateCreated desc; ");
             }
             EnableMainMenuItems(true);
-            _ControlVisible(panelView, true);
+            _VisibleControl(panelView, true);
         }
 
         private void DisposeTemporaryControls()
         {
-            _ControlVisible(groupBoxProperties, false);
-            _ControlDispose(labelServer1);
-            _ControlDispose(labelServer1UserName);
-            _ControlDispose(labelServer1UserPassword);
-            _ControlDispose(labelMailServerName);
-            _ControlDispose(labelMailServerUserName);
-            _ControlDispose(labelMailServerUserPassword);
-            _ControlDispose(labelmysqlServer);
-            _ControlDispose(labelmysqlServerUserName);
-            _ControlDispose(labelmysqlServerUserPassword);
+            _VisibleControl(groupBoxProperties, false);
+            _DisposeControl(labelServer1);
+            _DisposeControl(labelServer1UserName);
+            _DisposeControl(labelServer1UserPassword);
+            _DisposeControl(labelMailServerName);
+            _DisposeControl(labelMailServerUserName);
+            _DisposeControl(labelMailServerUserPassword);
+            _DisposeControl(labelmysqlServer);
+            _DisposeControl(labelmysqlServerUserName);
+            _DisposeControl(labelmysqlServerUserPassword);
 
-            _ControlDispose(textBoxServer1);
-            _ControlDispose(textBoxServer1UserName);
-            _ControlDispose(textBoxServer1UserPassword);
-            _ControlDispose(textBoxMailServerName);
-            _ControlDispose(textBoxMailServerUserName);
-            _ControlDispose(textBoxMailServerUserPassword);
-            _ControlDispose(textBoxmysqlServer);
-            _ControlDispose(textBoxmysqlServerUserName);
-            _ControlDispose(textBoxmysqlServerUserPassword);
+            _DisposeControl(textBoxServer1);
+            _DisposeControl(textBoxServer1UserName);
+            _DisposeControl(textBoxServer1UserPassword);
+            _DisposeControl(textBoxMailServerName);
+            _DisposeControl(textBoxMailServerUserName);
+            _DisposeControl(textBoxMailServerUserPassword);
+            _DisposeControl(textBoxmysqlServer);
+            _DisposeControl(textBoxmysqlServerUserName);
+            _DisposeControl(textBoxmysqlServerUserPassword);
 
-            _ControlDispose(listComboLabel);
-            _ControlDispose(periodComboLabel);
-            _ControlDispose(labelSettings9);
+            _DisposeControl(listComboLabel);
+            _DisposeControl(periodComboLabel);
+            _DisposeControl(labelSettings9);
 
-            _ControlDispose(listCombo);
-            _ControlDispose(periodCombo);
-            _ControlDispose(comboSettings9);
+            _DisposeControl(listCombo);
+            _DisposeControl(periodCombo);
+            _DisposeControl(comboSettings9);
 
-            _ControlDispose(labelSettings15);
-            _ControlDispose(comboSettings15);
+            _DisposeControl(labelSettings15);
+            _DisposeControl(comboSettings15);
 
-            _ControlDispose(labelSettings16);
-            _ControlDispose(textBoxSettings16);
-            _ControlDispose(checkBox1);
+            _DisposeControl(labelSettings16);
+            _DisposeControl(textBoxSettings16);
+            _DisposeControl(checkBox1);
         }
 
         private void buttonPropertiesSave_Click(object sender, EventArgs e) //SaveProperties()
@@ -6336,7 +6350,7 @@ namespace ASTA
 
             DisposeTemporaryControls();
             EnableMainMenuItems(true);
-            _ControlVisible(panelView, true);
+            _VisibleControl(panelView, true);
         }
 
         private void ButtonPropertiesSave_MailingSave(object sender, EventArgs e)
@@ -6350,10 +6364,10 @@ namespace ASTA
             { senderEmail = _ReturnTextOfControl(textBoxServer1); }
             string nameReport = _ReturnTextOfControl(textBoxMailServerName);
             string description = _ReturnTextOfControl(textBoxMailServerUserName);
-            string report = _comboBoxReturnSelected(listCombo);
-            string period = _listBoxReturnSelected(periodCombo);
-            string status = _comboBoxReturnSelected(comboSettings9);
-            string typeReport = _comboBoxReturnSelected(comboSettings15);
+            string report = _ReturnComboBoxSelectedItem(listCombo);
+            string period = _ReturnListBoxSelectedItem(periodCombo);
+            string status = _ReturnComboBoxSelectedItem(comboSettings9);
+            string typeReport = _ReturnComboBoxSelectedItem(comboSettings15);
             string dayReport = _ReturnTextOfControl(textBoxSettings16);
 
             if (recipientEmail.Length > 5 && nameReport.Length > 0)
@@ -6370,7 +6384,7 @@ namespace ASTA
 
             DisposeTemporaryControls();
             EnableMainMenuItems(true);
-            _ControlVisible(panelView, true);
+            _VisibleControl(panelView, true);
         }
 
         private void SaveProperties() //Save Parameters into Registry and variables
@@ -6394,8 +6408,8 @@ namespace ASTA
 
             if (bServer1Exist)
             {
-                _ControlVisible(groupBoxProperties, false);
-                _MenuItemEnabled(GetFioItem, true);
+                _VisibleControl(groupBoxProperties, false);
+                _EnableMenuItem(GetFioItem, true);
 
                 sServer1 = server;
                 sServer1UserName = user;
@@ -6501,7 +6515,7 @@ namespace ASTA
                     MessageBox.Show(resultSaving);
 
                     DisposeTemporaryControls();
-                    _ControlVisible(panelView, true);
+                    _VisibleControl(panelView, true);
                 }
 
                 if (mailServer?.Length > 0 && mailServerSMTPPort > 0)
@@ -6559,9 +6573,9 @@ namespace ASTA
 
         private void EnableMainMenuItems(bool enabled)
         {
-            _MenuItemEnabled(SettingsMenuItem, enabled);
-            _MenuItemEnabled(FunctionMenuItem, enabled);
-            _MenuItemEnabled(GroupsMenuItem, enabled);
+            _EnableMenuItem(SettingsMenuItem, enabled);
+            _EnableMenuItem(FunctionMenuItem, enabled);
+            _EnableMenuItem(GroupsMenuItem, enabled);
 
             CheckBoxesFiltersAll_Enable(enabled);
         }
@@ -6663,10 +6677,10 @@ namespace ASTA
 
         private void NumUpDownValueChanged()
         {
-            numUpHourStart = _numUpDownReturn(numUpDownHourStart);
-            numUpMinuteStart = _numUpDownReturn(numUpDownMinuteStart);
-            numUpHourEnd = _numUpDownReturn(numUpDownHourEnd);
-            numUpMinuteEnd = _numUpDownReturn(numUpDownMinuteEnd);
+            numUpHourStart = _ReturnNumUpDown(numUpDownHourStart);
+            numUpMinuteStart = _ReturnNumUpDown(numUpDownMinuteStart);
+            numUpHourEnd = _ReturnNumUpDown(numUpDownHourEnd);
+            numUpMinuteEnd = _ReturnNumUpDown(numUpDownMinuteEnd);
         }
 
         private void dateTimePickerStart_CloseUp(object sender, EventArgs e)
@@ -6684,15 +6698,15 @@ namespace ASTA
 
         private void SetMenuItemsTextAfterClosingDateTimePicker()
         {
-            string dayStart = _dateTimePickerReturn(dateTimePickerStart).ToYYYYMMDD();
-            string dayEnd = _dateTimePickerReturn(dateTimePickerEnd).ToYYYYMMDD();
+            string dayStart = _ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD();
+            string dayEnd = _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD();
 
-            _MenuItemSetText(LoadLastInputsOutputsItem, "Загрузить регистрации пропусков за сегодня (" + DateTime.Now.ToYYYYMMDD() + ")");
+            _SetMenuItemText(LoadLastInputsOutputsItem, "Загрузить регистрации пропусков за сегодня (" + DateTime.Now.ToYYYYMMDD() + ")");
 
             if (dayStart != dayEnd)
-                _MenuItemSetText(LoadInputsOutputsItem, "Загрузить регистрации пропусков с " + dayStart + " по " + dayEnd);
+                _SetMenuItemText(LoadInputsOutputsItem, "Загрузить регистрации пропусков с " + dayStart + " по " + dayEnd);
             else
-                _MenuItemSetText(LoadInputsOutputsItem, "Загрузить регистрации пропусков за " + dayStart);
+                _SetMenuItemText(LoadInputsOutputsItem, "Загрузить регистрации пропусков за " + dayStart);
         }
 
 
@@ -6701,22 +6715,22 @@ namespace ASTA
 
         private void PersonOrGroup()
         {
-            string menu = _MenuItemReturnText(PersonOrGroupItem);
+            string menu = _ReturnMenuItemText(PersonOrGroupItem);
             switch (menu)
             {
                 case (Names.WORK_WITH_A_GROUP):
-                    _MenuItemSetText(PersonOrGroupItem, Names.WORK_WITH_A_PERSON);
-                    _ControlEnable(comboBoxFio, false);
+                    _SetMenuItemText(PersonOrGroupItem, Names.WORK_WITH_A_PERSON);
+                    _EnableControl(comboBoxFio, false);
                     nameOfLastTable = "PersonRegistrationsList";
                     break;
                 case (Names.WORK_WITH_A_PERSON):
-                    _MenuItemSetText(PersonOrGroupItem, Names.WORK_WITH_A_GROUP);
-                    _ControlEnable(comboBoxFio, true);
+                    _SetMenuItemText(PersonOrGroupItem, Names.WORK_WITH_A_GROUP);
+                    _EnableControl(comboBoxFio, true);
                     nameOfLastTable = "PeopleGroup";
                     break;
                 default:
-                    _MenuItemSetText(PersonOrGroupItem, Names.WORK_WITH_A_GROUP);
-                    _ControlEnable(comboBoxFio, true);
+                    _SetMenuItemText(PersonOrGroupItem, Names.WORK_WITH_A_GROUP);
+                    _EnableControl(comboBoxFio, true);
                     nameOfLastTable = "PeopleGroup";
                     break;
             }
@@ -6792,10 +6806,10 @@ namespace ASTA
                         {
                             timeIn = ConvertStringTimeHHMMToDecimalArray(dgvo?.cellValue[3]);
                             timeOut = ConvertStringTimeHHMMToDecimalArray(dgvo?.cellValue[4]);
-                            _numUpDownSet(numUpDownHourStart, timeIn[0]);
-                            _numUpDownSet(numUpDownMinuteStart, timeIn[1]);
-                            _numUpDownSet(numUpDownHourEnd, timeOut[0]);
-                            _numUpDownSet(numUpDownMinuteEnd, timeOut[1]);
+                            _SetNumUpDown(numUpDownHourStart, timeIn[0]);
+                            _SetNumUpDown(numUpDownMinuteStart, timeIn[1]);
+                            _SetNumUpDown(numUpDownHourEnd, timeOut[0]);
+                            _SetNumUpDown(numUpDownMinuteEnd, timeOut[1]);
                         }
                         catch { logger.Warn("dataGridView1CellClick: " + timeIn[0]); }
 
@@ -7181,15 +7195,15 @@ namespace ASTA
 
                     mRightClick.MenuItems.Add(new MenuItem(
                         text: "&Загрузить регистрации пропусков сотрудников группы: '" +
-                                dgvo.cellValue[1] + "' за " + _dateTimePickerStartReturnMonth(),
+                                dgvo.cellValue[1] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
                         onClick: GetDataOfGroup_Click));
                     mRightClick.MenuItems.Add(new MenuItem(
                         text: "Загрузить  входы-выходы сотрудников группы: '" +
-                                dgvo.cellValue[1] + "' за " + _dateTimePickerStartReturnMonth() + " и &подготовить отчет",
+                                dgvo.cellValue[1] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()+ " и &подготовить отчет",
                         onClick: DoReportByRightClick));
                     mRightClick.MenuItems.Add(new MenuItem(
                         text: "Загрузить регистрации пропусков сотрудников группы: '" +
-                                dgvo.cellValue[1] + "' за " + _dateTimePickerStartReturnMonth() + " и &отправить: " + recepient,
+                                dgvo.cellValue[1] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()+ " и &отправить: " + recepient,
                         onClick: DoReportAndEmailByRightClick));
 
                     mRightClick.MenuItems.Add("-");
@@ -7226,7 +7240,7 @@ namespace ASTA
                     mRightClick.MenuItems.Add("-");
                     mRightClick.MenuItems.Add(new MenuItem(
                         text: "&Загрузить данные регистраций входов-выходов '" +
-                                dgvo.cellValue[0] + "' за " + _dateTimePickerStartReturnMonth(),
+                                dgvo.cellValue[0] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
                         onClick: GetDataOfPerson_Click));
                     mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                 }
@@ -7300,11 +7314,11 @@ namespace ASTA
                     }
 
                     mRightClick.MenuItems.Add(new MenuItem(
-                        text: "Загрузить регистрации пропусков на входе в офис &группы сотрудников '" + dgvo.cellValue[8] + "' за " + _dateTimePickerStartReturnMonth(),
+                        text: "Загрузить регистрации пропусков на входе в офис &группы сотрудников '" + dgvo.cellValue[8] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
                         onClick: GetDataOfGroup_Click));
 
                     mRightClick.MenuItems.Add(new MenuItem(
-                        text: "Загрузить регистрации пропусков на входе в офис &сотрудника: '" + dgvo.cellValue[0] + "' за " + _dateTimePickerStartReturnMonth(),
+                        text: "Загрузить регистрации пропусков на входе в офис &сотрудника: '" + dgvo.cellValue[0] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
                         onClick: GetDataOfPerson_Click));
                     mRightClick.MenuItems.Add("-");
                     mRightClick.MenuItems.Add(new MenuItem(
@@ -7439,7 +7453,7 @@ namespace ASTA
             resultOfSendingReports = new List<Mailing>();
             logger.Trace("DoReportAndEmailByRightClick");
 
-            _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет по группе" + dgvo.cellValue[0]);
+            _SetStatusLabelText(StatusLabel2, "Готовлю отчет по группе" + dgvo.cellValue[0]);
 
             if (dgvo.cellValue[2]?.Length > 0)
             {
@@ -7454,14 +7468,14 @@ namespace ASTA
             }
             else
             {
-                _toolStripStatusLabelSetText(
+                _SetStatusLabelText(
                     StatusLabel2,
                     "Попытка отправить отчет " + dgvo.cellValue[0] + " не существующему получателю",
                     true,
                     "DoReportAndEmailByRightClick, the report was attempted to send to non existent user: " + dgvo.cellValue[0]);
             }
 
-            _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
+            _SetStatusLabelForeColor(StatusLabel2, Color.Black);
 
             if (resultOfSendingReports.Count > 0)
             { SendAdminReport(); }
@@ -7484,7 +7498,7 @@ namespace ASTA
                 Names.GROUP_DECRIPTION
             });
 
-            _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет по группе" + dgvo.cellValue[0]);
+            _SetStatusLabelText(StatusLabel2, "Готовлю отчет по группе" + dgvo.cellValue[0]);
             logger.Trace("DoReportByRightClick: " + dgvo.cellValue[0]);
 
             resultOfSendingReports = new List<Mailing>();
@@ -7493,7 +7507,7 @@ namespace ASTA
 
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer.exe", " /select, " + filePathExcelReport + @".xlsx")); // //System.Reflection.Assembly.GetExecutingAssembly().Location)
 
-            _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
+            _SetStatusLabelForeColor(StatusLabel2, Color.Black);
 
             if (resultOfSendingReports.Count > 0)
             { SendAdminReport(); }
@@ -7557,7 +7571,7 @@ namespace ASTA
 
         private void MailingsExceptItem_Click(object sender, EventArgs e)
         {
-            _ControlEnable(comboBoxFio, false);
+            _EnableControl(comboBoxFio, false);
             dataGridView1.Select();
 
             ShowDataTableDbQuery(dbApplication, "MailingException", "SELECT RecipientEmail AS 'Получатель', " +
@@ -7567,7 +7581,7 @@ namespace ASTA
 
         private void MailingsShowItem_Click(object sender, EventArgs e)
         {
-            _ControlEnable(comboBoxFio, false);
+            _EnableControl(comboBoxFio, false);
             dataGridView1.Select();
 
             ShowDataTableDbQuery(dbApplication, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
@@ -7608,7 +7622,7 @@ namespace ASTA
                         dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             @"Получатель", @"Отчет по группам", @"Наименование", @"Описание",
                             @"Период", @"Статус", @"Тип отчета", @"День отправки отчета" });
-                        _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + dgvo.cellValue[2]);
+                        _SetStatusLabelText(StatusLabel2, "Готовлю отчет " + dgvo.cellValue[2]);
 
                         ExecuteSqlAsync("UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToYYYYMMDDHHMM()
                             + "' WHERE RecipientEmail='" + dgvo.cellValue[0] + "' AND GroupsReport ='" + dgvo.cellValue[1]
@@ -7631,7 +7645,7 @@ namespace ASTA
                         "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
                         " ORDER BY RecipientEmail asc, DateCreated desc; ");
 
-                        _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
+                        _SetStatusLabelForeColor(StatusLabel2, Color.Black);
 
                         if (resultOfSendingReports.Count > 0)
                         { SendAdminReport(); }
@@ -7662,7 +7676,7 @@ namespace ASTA
             dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             @"Получатель", @"Отчет по группам", @"Наименование", @"Описание",
                             @"Период", @"Статус", @"Тип отчета", @"День отправки отчета" });
-            _toolStripStatusLabelSetText(StatusLabel2, "Готовлю все активные рассылки с отчетами " + dgvo.cellValue[6] + " за " + dgvo.cellValue[4] + " на " + dgvo.cellValue[7]);
+            _SetStatusLabelText(StatusLabel2, "Готовлю все активные рассылки с отчетами " + dgvo.cellValue[6] + " за " + dgvo.cellValue[4] + " на " + dgvo.cellValue[7]);
 
             currentAction = "sendEmail";
             DoListsFioGroupsMailings().GetAwaiter().GetResult();
@@ -7753,7 +7767,7 @@ namespace ASTA
 
             foreach (Mailing mailng in mailingList)
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + mailng._nameReport);
+                _SetStatusLabelText(StatusLabel2, "Готовлю отчет " + mailng._nameReport);
 
                 str = "UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToYYYYMMDDHHMM() +
                     "' WHERE RecipientEmail='" + mailng._recipient +
@@ -7778,7 +7792,7 @@ namespace ASTA
             "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
             " ORDER BY RecipientEmail asc, DateCreated desc; ");
 
-            _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
+            _SetStatusLabelForeColor(StatusLabel2, Color.Black);
 
             if (resultOfSendingReports.Count > 0)
             { SendAdminReport(); }
@@ -7813,7 +7827,7 @@ namespace ASTA
 
                         UpdateAmountAndRecepientOfPeopleGroupDescription();
                         ShowDataTableDbQuery(dbApplication, "PeopleGroupDescription", "SELECT GroupPerson AS 'Группа', GroupPersonDescription AS 'Описание группы', AmountStaffInDepartment AS 'Колличество сотрудников в группе' ", " group by GroupPerson ORDER BY GroupPerson asc; ");
-                        _toolStripStatusLabelSetText(StatusLabel2, "Удалена группа: " + dgvo.cellValue[0] + "| Всего групп: " + dgvo.RowsCount(dataGridView1));
+                        _SetStatusLabelText(StatusLabel2, "Удалена группа: " + dgvo.cellValue[0] + "| Всего групп: " + dgvo.RowsCount(dataGridView1));
                         MembersGroupItem.Enabled = true;
                         break;
                     }
@@ -7857,7 +7871,7 @@ namespace ASTA
                         "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
                         "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
                         " ORDER BY RecipientEmail asc, DateCreated desc; ");
-                        _toolStripStatusLabelSetText(StatusLabel2, "Удалена рассылка отчета " + dgvo.cellValue[1] + "| Всего рассылок: " + dgvo.RowsCount(dataGridView1));
+                        _SetStatusLabelText(StatusLabel2, "Удалена рассылка отчета " + dgvo.cellValue[1] + "| Всего рассылок: " + dgvo.RowsCount(dataGridView1));
                         break;
                     }
                 case "MailingException":
@@ -7870,7 +7884,7 @@ namespace ASTA
                         ShowDataTableDbQuery(dbApplication, "MailingException", "SELECT RecipientEmail AS 'Получатель', " +
                         "NameReport AS 'Наименование', Description AS 'Описание', DateCreated AS 'Дата создания/модификации', " +
                         "DayReport AS 'День отправки отчета'", " ORDER BY RecipientEmail asc, DateCreated desc; ");
-                        _toolStripStatusLabelSetText(StatusLabel2, "Удален из исключений " + dgvo.cellValue[0] + "| Всего исключений: " + dgvo.RowsCount(dataGridView1));
+                        _SetStatusLabelText(StatusLabel2, "Удален из исключений " + dgvo.cellValue[0] + "| Всего исключений: " + dgvo.RowsCount(dataGridView1));
                         break;
                     }
                 default:
@@ -7896,12 +7910,12 @@ namespace ASTA
 
             if (currentModeAppManual)
             {
-                _MenuItemSetText(ModeItem, "Выключить режим e-mail рассылок");
-                _MenuItemSetTooltip(ModeItem, "Включен автоматический режим. Выполняются Активные рассылки из БД.");
-                _MenuItemBackColorChange(ModeItem, Color.DarkOrange);
+                _SetMenuItemText(ModeItem, "Выключить режим e-mail рассылок");
+                _SetMenuItemTooltip(ModeItem, "Включен автоматический режим. Выполняются Активные рассылки из БД.");
+                _SetMenuItemBackColor(ModeItem, Color.DarkOrange);
 
-                _toolStripStatusLabelSetText(StatusLabel2, "Включен режим рассылки отчетов по почте");
-                _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen); //Color.DarkOrange
+                _SetStatusLabelText(StatusLabel2, "Включен режим рассылки отчетов по почте");
+                _SetStatusLabelBackColor(StatusLabel2, Color.PaleGreen); //Color.DarkOrange
 
                 try
                 {
@@ -7923,12 +7937,12 @@ namespace ASTA
             }
             else
             {
-                _MenuItemSetText(ModeItem, "Включить режим автоматических e-mail рассылок");
-                _MenuItemSetTooltip(ModeItem, "Включен интерактивный режим. Все рассылки остановлены.");
-                _MenuItemBackColorChange(ModeItem, SystemColors.Control);
+                _SetMenuItemText(ModeItem, "Включить режим автоматических e-mail рассылок");
+                _SetMenuItemTooltip(ModeItem, "Включен интерактивный режим. Все рассылки остановлены.");
+                _SetMenuItemBackColor(ModeItem, SystemColors.Control);
 
-                _toolStripStatusLabelSetText(StatusLabel2, "Интерактивный режим");
-                _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
+                _SetStatusLabelText(StatusLabel2, "Интерактивный режим");
+                _SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
 
                 try
                 {
@@ -7966,11 +7980,11 @@ namespace ASTA
             long interval = 60 * 1000; //60 seconds
             if (manualMode)
             {
-                _MenuItemSetText(ModeItem, "Выключить режим e-mail рассылок");
-                _MenuItemSetTooltip(ModeItem, "Включен автоматический режим. Выполняются Активные рассылки из БД.");
-                _MenuItemBackColorChange(ModeItem, Color.DarkOrange);
-                _toolStripStatusLabelSetText(StatusLabel2, "Включен режим авторассылки отчетов");
-                _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
+                _SetMenuItemText(ModeItem, "Выключить режим e-mail рассылок");
+                _SetMenuItemTooltip(ModeItem, "Включен автоматический режим. Выполняются Активные рассылки из БД.");
+                _SetMenuItemBackColor(ModeItem, Color.DarkOrange);
+                _SetStatusLabelText(StatusLabel2, "Включен режим авторассылки отчетов");
+                _SetStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
 
                 timer?.Dispose();
                 currentAction = "sendEmail";
@@ -7979,12 +7993,12 @@ namespace ASTA
             }
             else
             {
-                _MenuItemSetText(ModeItem, "Включить режим автоматических e-mail рассылок");
-                _MenuItemSetTooltip(ModeItem, "Включен интерактивный режим. Все рассылки остановлены.");
-                _MenuItemBackColorChange(ModeItem, SystemColors.Control);
+                _SetMenuItemText(ModeItem, "Включить режим автоматических e-mail рассылок");
+                _SetMenuItemTooltip(ModeItem, "Включен интерактивный режим. Все рассылки остановлены.");
+                _SetMenuItemBackColor(ModeItem, SystemColors.Control);
 
-                _toolStripStatusLabelSetText(StatusLabel2, "Интерактивный режим");
-                _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
+                _SetStatusLabelText(StatusLabel2, "Интерактивный режим");
+                _SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
 
                 timer?.Dispose();
             }
@@ -8000,12 +8014,12 @@ namespace ASTA
                 DateTime dd = DateTime.Now;
                 if (dd.Hour == 4 && dd.Minute == 10 && sent == false) //do something at Hour 2 and 5 minute //dd.Day == 1 && 
                 {
-                    _toolStripStatusLabelSetText(StatusLabel2, "Ведется работа по подготовке отчетов " + DateTime.Now.ToYYYYMMDDHHMM() + " ...");
-                    _toolStripStatusLabelBackColor(StatusLabel2, Color.LightPink);
+                    _SetStatusLabelText(StatusLabel2, "Ведется работа по подготовке отчетов " + DateTime.Now.ToYYYYMMDDHHMM() + " ...");
+                    _SetStatusLabelBackColor(StatusLabel2, Color.LightPink);
                     CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword).GetAwaiter().GetResult();
                     SelectMailingDoAction();
                     sent = true;
-                    _toolStripStatusLabelSetText(StatusLabel2, "Все задачи по подготовке и отправке отчетов завершены.");
+                    _SetStatusLabelText(StatusLabel2, "Все задачи по подготовке и отправке отчетов завершены.");
                     logger.Info("");
                     logger.Info("---/  " + DateTime.Now.ToYYYYMMDDHHMMSS() + "  /---");
                 }
@@ -8016,8 +8030,8 @@ namespace ASTA
 
                 if (dd.Hour == 7 && dd.Minute == 1)
                 {
-                    _toolStripStatusLabelSetText(StatusLabel2, "Режим почтовых рассылок. " + DateTime.Now.ToYYYYMMDDHHMM());
-                    _toolStripStatusLabelBackColor(StatusLabel2, Color.LightCyan);
+                    _SetStatusLabelText(StatusLabel2, "Режим почтовых рассылок. " + DateTime.Now.ToYYYYMMDDHHMM());
+                    _SetStatusLabelBackColor(StatusLabel2, Color.LightCyan);
                     ClearItemsInFolder(@"*.xlsx");
                 }
             }
@@ -8211,7 +8225,7 @@ namespace ASTA
 
                 foreach (Mailing mailng in mailingList)
                 {
-                    _toolStripStatusLabelSetText(StatusLabel2, "Готовлю отчет " + mailng._nameReport);
+                    _SetStatusLabelText(StatusLabel2, "Готовлю отчет " + mailng._nameReport);
 
                     str = "UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToYYYYMMDDHHMM() +
                         "' WHERE RecipientEmail='" + mailng._recipient +
@@ -8235,7 +8249,7 @@ namespace ASTA
             "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
             " ORDER BY RecipientEmail asc, DateCreated desc; ");
 
-            _toolStripStatusLabelForeColor(StatusLabel2, Color.Black);
+            _SetStatusLabelForeColor(StatusLabel2, Color.Black);
 
             if (resultOfSendingReports.Count > 0)
             { SendAdminReport(); }
@@ -8251,15 +8265,15 @@ namespace ASTA
 
             _ProgressBar1Start();
 
-            string recipient = "";
-            string gproupsReport = "";
-            string nameReport = "";
-            string descriptionReport = "";
-            string period = "";
-            string status = "";
-            string typeReport = "";
-            string dayReport = "";
-            string str = "";
+            string recipient ;
+            string gproupsReport ;
+            string nameReport ;
+            string descriptionReport ;
+            string period ;
+            string status ;
+            string typeReport ;
+            string dayReport ;
+            string str ;
 
             HashSet<Mailing> mailingList = new HashSet<Mailing>();
 
@@ -8328,8 +8342,6 @@ namespace ASTA
             "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
             " ORDER BY RecipientEmail asc, DateCreated desc; ");
 
-            mailingList = null;
-
             _ProgressBar1Stop();
         }
 
@@ -8341,7 +8353,7 @@ namespace ASTA
 
         private string SelectedDatetimePickersPeriodMonth() //format of result: "1971-01-01 00:00:00|1971-01-31 23:59:59" // 'yyyy-MM-dd HH:mm:SS'
         {
-            return _dateTimePickerStartReturn() + "|" + _dateTimePickerEndReturn();
+            return _ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD() + " 00:00:00"  + "|" + _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD() + " 23:59:59";
         }
 
         private void MailingAction(string mainAction, string recipientEmail, string senderEmail, string groupsReport, string nameReport, string description, string period, string status, string typeReport, string dayReport)
@@ -8349,7 +8361,7 @@ namespace ASTA
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
-            _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
+            _SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
 
             switch (mainAction)
             {
@@ -8422,7 +8434,7 @@ namespace ASTA
 
             foreach (string groupName in groups)
             {
-                _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
+                _SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
                 nameGroup = groupName.Trim();
                 if (nameGroup.Length > 0)
                 {
@@ -8484,7 +8496,7 @@ namespace ASTA
                             if (reportExcelReady)
                             {
                                 titleOfbodyMail = "с " + reportStartDay.Split(' ')[0] + " по " + reportLastDay.Split(' ')[0];
-                                _toolStripStatusLabelSetText(StatusLabel2, "Выполняю отправку отчета адресату: " + recipientEmail);
+                                _SetStatusLabelText(StatusLabel2, "Выполняю отправку отчета адресату: " + recipientEmail);
 
                                 foreach (var oneAddress in recipientEmail.Split(','))
                                 {
@@ -8498,12 +8510,12 @@ namespace ASTA
                                     }
                                 }
 
-                                _toolStripStatusLabelSetText(StatusLabel2, DateTime.Now.ToYYYYMMDDHHMM() + " Отчет '" + nameReport + "'(" + groupName + ") отправлен " + recipientEmail);
-                                _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
+                                _SetStatusLabelText(StatusLabel2, DateTime.Now.ToYYYYMMDDHHMM() + " Отчет '" + nameReport + "'(" + groupName + ") отправлен " + recipientEmail);
+                                _SetStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
                             }
                             else
                             {
-                                _toolStripStatusLabelSetText(
+                                _SetStatusLabelText(
                                     StatusLabel2,
                                     DateTime.Now.ToYYYYMMDDHHMM() + " Ошибка экспорта в файл отчета: " + nameReport + "(" + groupName + ")",
                                     true
@@ -8513,7 +8525,7 @@ namespace ASTA
                     }
                     else
                     {
-                        _toolStripStatusLabelSetText(
+                        _SetStatusLabelText(
                             StatusLabel2,
                             DateTime.Now.ToYYYYMMDDHHMM() + "Ошибка получения данных для отчета: " + nameReport,
                             true
@@ -8715,16 +8727,12 @@ namespace ASTA
 
 
 
-
-        /*
-        private static string GetFunctionName(Action method)
-        {
-            return method.Method.Name;
-        }*/
-
-        // public static System.Reflection.MethodBase.GetCurrentMethod().Name s;
-
-        private void ListBox_DrawItem(object sender, DrawItemEventArgs e) //Colorize the Listbox
+            /// <summary>
+            /// Colorizing Controls
+            /// </summary>
+            /// <param name="sender"></param>
+            /// <param name="e"></param>
+        private void SetListBox_DrawItem(object sender, DrawItemEventArgs e) //Colorize the Listbox
         {
             Font font = (sender as ListBox).Font;
             Brush backgroundColor;
@@ -8760,7 +8768,7 @@ namespace ASTA
             e.Graphics.DrawString((sender as ListBox).Items[e.Index].ToString(), font, textColor, e.Bounds);
         }
 
-        private void ComboBox_DrawItem(object sender, DrawItemEventArgs e) //Colorize the Combobox
+        private void SetComboBox_DrawItem(object sender, DrawItemEventArgs e) //Colorize the Combobox
         {
             Font font = (sender as ComboBox).Font;
             Brush backgroundColor;
@@ -8797,8 +8805,9 @@ namespace ASTA
         }
 
 
+
         //clear all registered Click events on the selected button
-        private void RemoveClickEvent(Button b)
+        private void ClearButtonClickEvent(Button b)
         {
             System.Reflection.FieldInfo f1 = typeof(Control).GetField("EventClick",
                 System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
@@ -8814,23 +8823,17 @@ namespace ASTA
         //Start of Block. Access to Controls from other threads
         private string _ReturnTextOfControl(Control control) //add string into  from other threads
         {
-            string tBox = "";
+            string text = "";
             if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { tBox = control?.Text?.Trim(); }));
+                Invoke(new MethodInvoker(delegate { text = control?.Text?.Trim(); }));
             else
-                tBox = control?.Text?.Trim();
-            return tBox;
+                text = control?.Text?.Trim();
+            return text;
         }
 
-        private void _SetTextOfControl(Control control, string s) //add string into  from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { control.Text = s?.Trim(); }));
-            else
-                control.Text = s?.Trim();
-        }
 
-        private void _comboBoxAdd(ComboBox comboBx, string s) //add string into  from other threads
+
+        private void _AddComboBoxItem(ComboBox comboBx, string s) //add string into  from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate { comboBx.Items.Add(s); }));
@@ -8838,7 +8841,7 @@ namespace ASTA
                 comboBx.Items.Add(s);
         }
 
-        private void _comboBoxClr(ComboBox comboBx) //add string into  from other threads
+        private void _ClearComboBox(ComboBox comboBx) //add string into  from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -8855,7 +8858,7 @@ namespace ASTA
             }
         }
 
-        private void _comboBoxSelectIndex(ComboBox comboBx, int i) //from other threads
+        private void _SetComboBoxIndex(ComboBox comboBx, int i) //from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate { try { comboBx.SelectedIndex = i; } catch { } }));
@@ -8863,17 +8866,17 @@ namespace ASTA
                 try { comboBx.SelectedIndex = i; } catch { }
         }
 
-        private int _comboBoxCountItems(ComboBox comboBx) //from other threads
+        private int? _ReturnComboBoxCountItems(ComboBox comboBx) //from other threads
         {
-            int count = 0;
+            int? count = 0;
             if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { count = comboBx.Items.Count; }));
+                Invoke(new MethodInvoker(delegate { count = comboBx?.Items?.Count; }));
             else
-            { count = comboBx.Items.Count; }
+            { count = comboBx?.Items?.Count; }
             return count;
         }
 
-        private string _comboBoxReturnSelected(ComboBox comboBox) //from other threads
+        private string _ReturnComboBoxSelectedItem(ComboBox comboBox) //from other threads
         {
             string result = "";
             if (InvokeRequired)
@@ -8894,7 +8897,9 @@ namespace ASTA
             return result;
         }
 
-        private string _listBoxReturnSelected(ListBox listBox) //from other threads
+
+
+        private string _ReturnListBoxSelectedItem(ListBox listBox) //from other threads
         {
             string result = "";
             if (InvokeRequired)
@@ -8915,7 +8920,9 @@ namespace ASTA
             return result;
         }
 
-        private void _numUpDownSet(NumericUpDown numericUpDown, decimal i) //add string into comboBoxTargedPC from other threads
+
+
+        private void _SetNumUpDown(NumericUpDown numericUpDown, decimal i) //add string into comboBoxTargedPC from other threads
         {
             if (InvokeRequired)
             {
@@ -8927,7 +8934,7 @@ namespace ASTA
             }
         }
 
-        private decimal _numUpDownReturn(NumericUpDown numericUpDown)
+        private decimal _ReturnNumUpDown(NumericUpDown numericUpDown)
         {
             decimal iCombo = 0;
             if (InvokeRequired)
@@ -8937,35 +8944,9 @@ namespace ASTA
             return iCombo;
         }
 
-        private void _dateTimePickerSet(DateTimePicker dateTimePicker, int year, int month, int day) //add string into  from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    dateTimePicker.Value = new DateTime(year, month, day);
-                }
-                ));
-            else
-            {
-                dateTimePicker.Value = new DateTime(year, month, day);
-            }
-        }
 
-        private void _dateTimePickerSet(DateTimePicker dateTimePicker, int[] date) //add string into  from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    dateTimePicker.Value = new DateTime(date[0], date[1], date[2]);
-                }
-                ));
-            else
-            {
-                dateTimePicker.Value = new DateTime(date[0], date[1], date[2]);
-            }
-        }
-
-        private DateTime _dateTimePickerReturn(DateTimePicker dateTimePicker) //add string into  from other threads
+    
+        private DateTime _ReturnDateTimePicker(DateTimePicker dateTimePicker) //add string into  from other threads
         {
             DateTime result = DateTime.Now;
             if (InvokeRequired)
@@ -8981,65 +8962,8 @@ namespace ASTA
             return result;
         }
 
-        private string _dateTimePickerReturnString(DateTimePicker dateTimePicker) //add string into  from other threads
-        {
-            string result = "";
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                { result = dateTimePicker?.Value.ToString(); }
-                ));
-            else
-                result = dateTimePicker?.Value.ToString();
-            return result;
-        }
-
-        private string _dateTimePickerStartReturn() //add string into  from other threads
-        {
-            string stringDT = "";
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    stringDT = dateTimePickerStart?.Value.Year.ToString("0000") + "-" + dateTimePickerStart?.Value.Month.ToString("00") + "-" + dateTimePickerStart.Value.Day.ToString("00") + " 00:00:00";
-                }));
-            else
-            {
-                stringDT = dateTimePickerStart?.Value.Year.ToString("0000") + "-" + dateTimePickerStart?.Value.Month.ToString("00") + "-" + dateTimePickerStart.Value.Day.ToString("00") + " 00:00:00";
-            }
-            return stringDT;
-        }
-
-        private string _dateTimePickerStartReturnMonth() //add string into  from other threads
-        {
-            string stringDT = "";
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    stringDT = dateTimePickerStart?.Value.ToMonthName() + " " + dateTimePickerStart?.Value.Year;
-                }));
-            else
-            {
-                stringDT = dateTimePickerStart?.Value.ToMonthName() + " " + dateTimePickerStart?.Value.Year;
-            }
-            return stringDT;
-        }
-
-        private string _dateTimePickerEndReturn() //add string into  from other threads
-        {
-            string stringDT = "";
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    stringDT = dateTimePickerEnd?.Value.Year.ToString("0000") + "-" + dateTimePickerEnd?.Value.Month.ToString("00") + "-" + dateTimePickerEnd.Value.Day.ToString("00") + " 23:59:59";
-                }));
-            else
-            {
-                stringDT = dateTimePickerEnd?.Value.Year.ToString("0000") + "-" + dateTimePickerEnd?.Value.Month.ToString("00") + "-" + dateTimePickerEnd.Value.Day.ToString("00") + " 23:59:59";
-            }
-            return stringDT;
-        }
-
-
-        private int[] _dateTimePickerReturnArray(DateTimePicker dateTimePicker) //add string into  from other threads
+        
+        private int[] _ReturnDateTimePickerArray(DateTimePicker dateTimePicker) //add string into  from other threads
         {
             int[] result = new int[3];
 
@@ -9062,7 +8986,7 @@ namespace ASTA
 
 
 
-        private void _toolStripStatusLabelSetText(ToolStripStatusLabel statusLabel, string s, bool error = false, string errorText = null) //add string into  from other threads
+        private void _SetStatusLabelText(ToolStripStatusLabel statusLabel, string s, bool error = false, string errorText = null) //add string into  from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -9083,8 +9007,24 @@ namespace ASTA
             else
             { logger.Info(s); }
         }
+         
+        private void _SetStatusLabelForeColor(ToolStripStatusLabel statusLabel, Color s)
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { statusLabel.ForeColor = s; }));
+            else
+                statusLabel.ForeColor = s;
+        }
 
-        private string _toolStripStatusLabelReturnText(ToolStripStatusLabel statusLabel)
+        private void _SetStatusLabelBackColor(ToolStripStatusLabel statusLabel, Color s) //add string into  from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { statusLabel.BackColor = s; }));
+            else
+                statusLabel.BackColor = s;
+        }
+       
+        private string _ReturnStatusLabelText(ToolStripStatusLabel statusLabel)
         {
             string s = null;
             if (InvokeRequired)
@@ -9099,23 +9039,7 @@ namespace ASTA
             return s;
         }
 
-        private void _toolStripStatusLabelForeColor(ToolStripStatusLabel statusLabel, Color s)
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { statusLabel.ForeColor = s; }));
-            else
-                statusLabel.ForeColor = s;
-        }
-
-        private void _toolStripStatusLabelBackColor(ToolStripStatusLabel statusLabel, Color s) //add string into  from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { statusLabel.BackColor = s; }));
-            else
-                statusLabel.BackColor = s;
-        }
-
-        private Color _toolStripStatusLabelReturnBackColor(ToolStripStatusLabel statusLabel) //add string into  from other threads
+        private Color _ReturnStatusLabelBackColor(ToolStripStatusLabel statusLabel) //add string into  from other threads
         {
             Color s = SystemColors.ControlText;
             if (InvokeRequired)
@@ -9127,7 +9051,8 @@ namespace ASTA
         }
 
 
-        private void _MenuItemBackColorChange(ToolStripMenuItem tMenuItem, Color colorMenu) //add string into  from other threads
+
+        private void _SetMenuItemBackColor(ToolStripMenuItem tMenuItem, Color colorMenu) //add string into  from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate { tMenuItem.BackColor = colorMenu; }));
@@ -9135,199 +9060,49 @@ namespace ASTA
                 tMenuItem.BackColor = colorMenu; ;
         }
 
-        private void _MenuItemEnabled(ToolStripMenuItem tMenuItem, bool bEnabled) //add string into  from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { tMenuItem.Enabled = bEnabled; }));
-            else
-                tMenuItem.Enabled = bEnabled;
-        }
-
-        private void _MenuItemVisible(ToolStripMenuItem tMenuItem, bool bEnabled) //add string into  from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { tMenuItem.Visible = bEnabled; }));
-            else
-                tMenuItem.Visible = bEnabled;
-        }
-
-
-        private void _CheckboxCheckedSet(CheckBox checkBox, bool checkboxChecked) //add string into  from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { checkBox.Checked = checkboxChecked; }));
-            else
-                checkBox.Checked = checkboxChecked;
-        }
-
-        private bool _ReturnCheckboxCheckedState(CheckBox checkBox) //add string into  from other threads
-        {
-            bool checkBoxChecked = false;
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    checkBoxChecked = checkBox.Checked ? true : false;
-                }));
-            else
-            {
-                checkBoxChecked = checkBox.Checked ? true : false;
-            }
-            return checkBoxChecked;
-        }
-
-
-        private void _panelResume(Panel panel) //access from other threads
+        private void _SetMenuItemText(ToolStripMenuItem menuItem, string text) //access from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
-                    panel?.ResumeLayout();
+                    menuItem.Text = text;
                 }));
             else
             {
-                panel?.ResumeLayout();
+                menuItem.Text = text;
             }
         }
 
-        private void _panelSetAutoSizeMode(Panel panel, AutoSizeMode state) //access from other threads
+        private void _SetMenuItemTooltip(ToolStripMenuItem menuItem, string text) //access from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
-                    panel.AutoSizeMode = state;
+                    menuItem.ToolTipText = text;
                 }));
             else
             {
-                panel.AutoSizeMode = state;
+                menuItem.ToolTipText = text;
             }
         }
 
-        private void _panelSetAutoScroll(Panel panel, bool state) //access from other threads
+        private void _EnableMenuItem(ToolStripMenuItem tMenuItem, bool status) //add string into  from other threads
         {
             if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    panel.AutoScroll = state;
-                }));
+                Invoke(new MethodInvoker(delegate { tMenuItem.Enabled = status; }));
             else
-            {
-                panel.AutoScroll = state;
-            }
+                tMenuItem.Enabled = status;
         }
 
-        private void _panelSetAnchor(Panel panel, AnchorStyles anchorStyles) //access from other threads
+        private void _VisibleMenuItem(ToolStripMenuItem tMenuItem, bool status) //add string into  from other threads
         {
             if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    panel.Anchor = anchorStyles;
-                }));
+                Invoke(new MethodInvoker(delegate { tMenuItem.Visible = status; }));
             else
-            {
-                panel.Anchor = anchorStyles;
-            }
+                tMenuItem.Visible = status;
         }
 
-        private void _panelSetHeight(Panel panel, int height) //access from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    panel.Height = height;
-                }));
-            else
-            {
-                panel.Height = height;
-            }
-        }
-
-        private int _panelParentHeightReturn(Panel panel) //access from other threads
-        {
-            int height = 0;
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    if (panel?.Parent?.Height > 0)
-                        height = panel.Parent.Height;
-                }));
-            else
-            {
-                if (panel?.Parent?.Height > 0)
-                    height = panel.Parent.Height;
-            }
-            return height;
-        }
-
-        private int _panelHeightReturn(Panel panel) //access from other threads
-        {
-            int height = 0;
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    if (panel?.Height > 0)
-                        height = panel.Height;
-                }));
-            else
-            {
-                if (panel?.Height > 0)
-                    height = panel.Height;
-            }
-            return height;
-        }
-
-        private int _panelWidthReturn(Panel panel) //access from other threads
-        {
-            int width = 0;
-            if (InvokeRequired)
-            {
-                Invoke(new MethodInvoker(delegate
-                 {
-                     if (panel?.Width > 0)
-                         width = panel.Width;
-                 }));
-            }
-            else
-            {
-                if (panel?.Width > 0)
-                    width = panel.Width;
-            }
-            return width;
-        }
-
-        private int _panelControlsCountReturn(Panel panel) //access from other threads
-        {
-            int count = 0;
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    if (panel?.Controls?.Count > 0)
-                        count = panel.Controls.Count;
-                }));
-            else
-            {
-                if (panel?.Controls?.Count > 0)
-                    count = panel.Controls.Count;
-            }
-            return count;
-        }
-
-        private void _RefreshPictureBox(PictureBox picBox, Bitmap picImage) // не работает
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    picBox.Image = RefreshBitmap(picImage, _panelWidthReturn(panelView) - 2, _panelHeightReturn(panelView) - 2); //сжатая картина
-                    picBox.Refresh();
-                }));
-            else
-            {
-                picBox.Image = RefreshBitmap(picImage, _panelWidthReturn(panelView) - 2, _panelHeightReturn(panelView) - 2); //сжатая картина
-                picBox.Refresh();
-            }
-        }
-
-
-        private string _MenuItemReturnText(ToolStripMenuItem menuItem) //access from other threads
+        private string _ReturnMenuItemText(ToolStripMenuItem menuItem) //access from other threads
         {
             string name = "";
             if (InvokeRequired)
@@ -9342,34 +9117,9 @@ namespace ASTA
             return name;
         }
 
-        private void _MenuItemSetText(ToolStripMenuItem menuItem, string text) //access from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    menuItem.Text = text;
-                }));
-            else
-            {
-                menuItem.Text = text;
-            }
-        }
-
-        private void _MenuItemSetTooltip(ToolStripMenuItem menuItem, string text) //access from other threads
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    menuItem.ToolTipText = text;
-                }));
-            else
-            {
-                menuItem.ToolTipText = text;
-            }
-        }
 
 
-        private void _ControlVisible(Control control, bool state) //access from other threads
+        private void _VisibleControl(Control control, bool state) //access from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -9382,7 +9132,7 @@ namespace ASTA
             }
         }
 
-        private void _ControlEnable(Control control, bool state) //access from other threads
+        private void _EnableControl(Control control, bool state) //access from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -9395,7 +9145,7 @@ namespace ASTA
             }
         }
 
-        private void _ControlDispose(Control control) //access from other threads
+        private void _DisposeControl(Control control) //access from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -9416,7 +9166,7 @@ namespace ASTA
             }
         }
 
-        private void _ControlChangeBackColor(Control control, Color color) //add string into  from other threads
+        private void _ChangeControlBackColor(Control control, Color color) //add string into  from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate { control.BackColor = color; }));
@@ -9424,20 +9174,7 @@ namespace ASTA
                 control.BackColor = color; ;
         }
 
-        private void _ControlSetText(Control control, string text)
-        {
-            if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate
-                {
-                    control.Text = text;
-                }));
-            else
-            {
-                control.Text = text;
-            }
-        }
-
-        private void _ControlSetToolTip(Control control, string text)
+        private void _SetControlToolTip(Control control, string text)
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -9449,6 +9186,192 @@ namespace ASTA
                 toolTip1.SetToolTip(control, text);
             }
         }
+
+
+
+        private void _SetCheckBoxCheckedStatus(CheckBox checkBox, bool checkboxChecked) //add string into  from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { checkBox.Checked = checkboxChecked; }));
+            else
+                checkBox.Checked = checkboxChecked;
+        }
+
+        private bool _ReturnCheckboxCheckedStatus(CheckBox checkBox) //add string into  from other threads
+        {
+            bool checkBoxChecked = false;
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    checkBoxChecked = checkBox.Checked ? true : false;
+                }));
+            else
+            {
+                checkBoxChecked = checkBox.Checked ? true : false;
+            }
+            return checkBoxChecked;
+        }
+
+
+
+        private void _ResumePpanel(Panel panel) //access from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    panel?.ResumeLayout();
+                }));
+            else
+            {
+                panel?.ResumeLayout();
+            }
+        }
+
+        private void _SetPanelAutoSizeMode(Panel panel, AutoSizeMode state) //access from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    panel.AutoSizeMode = state;
+                }));
+            else
+            {
+                panel.AutoSizeMode = state;
+            }
+        }
+
+        private void _SetPanelAutoScroll(Panel panel, bool state) //access from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    panel.AutoScroll = state;
+                }));
+            else
+            {
+                panel.AutoScroll = state;
+            }
+        }
+
+        private void _SetPanelAnchor(Panel panel, AnchorStyles anchorStyles) //access from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    panel.Anchor = anchorStyles;
+                }));
+            else
+            {
+                panel.Anchor = anchorStyles;
+            }
+        }
+
+        private void _SetPanelHeight(Panel panel, int height) //access from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    panel.Height = height;
+                }));
+            else
+            {
+                panel.Height = height;
+            }
+        }
+
+        private int _ReturnPanelParentHeight(Panel panel) //access from other threads
+        {
+            int height = 0;
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    if (panel?.Parent?.Height > 0)
+                        height = panel.Parent.Height;
+                }));
+            else
+            {
+                if (panel?.Parent?.Height > 0)
+                    height = panel.Parent.Height;
+            }
+            return height;
+        }
+
+        private int _ReturnPanelHeight(Panel panel) //access from other threads
+        {
+            int height = 0;
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    if (panel?.Height > 0)
+                        height = panel.Height;
+                }));
+            else
+            {
+                if (panel?.Height > 0)
+                    height = panel.Height;
+            }
+            return height;
+        }
+
+        private int _ReturnPanelWidth(Panel panel) //access from other threads
+        {
+            int width = 0;
+            if (InvokeRequired)
+            {
+                Invoke(new MethodInvoker(delegate
+                {
+                    if (panel?.Width > 0)
+                        width = panel.Width;
+                }));
+            }
+            else
+            {
+                if (panel?.Width > 0)
+                    width = panel.Width;
+            }
+            return width;
+        }
+
+        private int _ReturnPanelControlsCount(Panel panel) //access from other threads
+        {
+            int count = 0;
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    if (panel?.Controls?.Count > 0)
+                        count = panel.Controls.Count;
+                }));
+            else
+            {
+                if (panel?.Controls?.Count > 0)
+                    count = panel.Controls.Count;
+            }
+            return count;
+        }
+
+
+        private void _RefreshPictureBox(PictureBox picBox, Bitmap picImage) // не работает
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    if (picBox != null)
+                    {
+                        picBox.Image = RefreshBitmap(picImage, _ReturnPanelWidth(panelView) - 2, _ReturnPanelHeight(panelView) - 2); //сжатая картина
+                        picBox.Refresh();
+                    }
+                }));
+            else
+            {
+                if (picBox != null)
+                {
+                    picBox.Image = RefreshBitmap(picImage, _ReturnPanelWidth(panelView) - 2, _ReturnPanelHeight(panelView) - 2); //сжатая картина
+                    picBox.Refresh();
+                }
+            }
+        }
+
+
 
 
         private void timer1_Tick(object sender, EventArgs e) //Change a Color of the Font on Status by the Timer
@@ -9746,11 +9669,11 @@ namespace ASTA
 
         private void StatusLabelAddInfo(object sender, EventTextArgs e)
         {
-            _toolStripStatusLabelSetText(StatusLabel2, e.Message);
+            _SetStatusLabelText(StatusLabel2, e.Message);
         }
         private void StatusLabelSetBackColor(object sender, EventColorArgs e)
         {
-            _toolStripStatusLabelBackColor(StatusLabel2, e.Color);
+            _SetStatusLabelBackColor(StatusLabel2, e.Color);
         }
 
         private void UploadingStatus(object sender, EventBoolArgs e)
@@ -9760,7 +9683,7 @@ namespace ASTA
 
         private void StatusLabelAddInfo(string message)
         {
-            _toolStripStatusLabelSetText(StatusLabel2, message);
+            _SetStatusLabelText(StatusLabel2, message);
         }
 
         private void LoggerAddInfo(object sender, EventTextArgs e)
@@ -9911,7 +9834,9 @@ namespace ASTA
                 AutoUpdater.Start(parameters.appUpdateURL);
             }
             else
-            { _toolStripStatusLabelSetText(StatusLabel2, @"Ждите! На сервер загружается новая версия ПО"); }
+            {
+                _SetStatusLabelText(StatusLabel2, @"Ждите! На сервер загружается новая версия ПО"); 
+            }
         }
 
         private string ChangeRemoteServerUrl(string urlOfUpdatingServer)
@@ -10024,7 +9949,7 @@ namespace ASTA
                     {
                         if (AutoUpdater.DownloadUpdate())
                         {
-                            _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
+                            _SetStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
                             UpdatingParameters parameters = MakeStartParametersOfUpdating();
 
                             System.Xml.XmlDocument xmldoc = new System.Xml.XmlDocument();
@@ -10037,7 +9962,7 @@ namespace ASTA
                             logger.Info("");
                             logger.Trace("-= Update =-");
                             logger.Trace("...");
-                            _toolStripStatusLabelSetText(
+                            _SetStatusLabelText(
                                 StatusLabel2,
                                 @" обнаружена новая версия " + appName + " ver." + foundNewVersionApp,
                                 true,
@@ -10071,15 +9996,15 @@ namespace ASTA
                 }
                 else
                 {
-                    _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
-                    _toolStripStatusLabelSetText(StatusLabel2, @"Новых версий ПО '" + appName + "' не обнаружено");
+                    _SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
+                    _SetStatusLabelText(StatusLabel2, @"Новых версий ПО '" + appName + "' не обнаружено");
                 }
             }
             else
             {
-                _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
+                _SetStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
 
-                _toolStripStatusLabelSetText(StatusLabel2, @"Update check failed: There is a problem reaching update server URL.");
+                _SetStatusLabelText(StatusLabel2, @"Update check failed: There is a problem reaching update server URL.");
                 urlUpdateReachError = true;
                 logger.Warn(@"Измените формат URL сервера обновлений");
                 logger.Warn(@"Если адрес был server.domain.subdomain/folder -> server/folder");
@@ -10207,13 +10132,13 @@ namespace ASTA
                     false, 
                     "no");
 
-                _toolStripStatusLabelSetText(StatusLabel2, message);
+                _SetStatusLabelText(StatusLabel2, message);
             }
         }
 
         private void Uploading() //UploadApplicationToShare()
         {
-            _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
+            _SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
 
             uploadingStatus = true;
             resultOfUploading = false;
@@ -10271,5 +10196,33 @@ namespace ASTA
         static bool replaceBrokenRemoteFolderUpdateURL = false;
         static bool firstAttemptsUpdate = true;
         static bool resultOfUploading = false;
+
+        private void OpenMenuItemsAsLocalAdmin_Click(object sender, EventArgs e)
+        {
+            ChangeVisibleOfAdminMenuItems(true);
+            _SetStatusLabelText(StatusLabel2, "Включено отображение меню как Администратора");
+        }
+
+        private void ChangeVisibleOfAdminMenuItems(bool show)
+        {
+            _VisibleMenuItem(RefreshConfigInMainDBItem, show);
+            _VisibleMenuItem(CalculateHashItem, show);
+            _VisibleMenuItem(AddParameterInConfigItem, show);
+            _VisibleMenuItem(SelectedToLoadCityItem, show);
+            _VisibleMenuItem(MailingAddItem, show);
+            _VisibleMenuItem(TestToSendAllMailingsItem, show);
+            _VisibleMenuItem(UploadApplicationItem, show);
+            _VisibleMenuItem(GetADUsersItem, show);
+            _VisibleMenuItem(GetCurrentSchemeItem, show);
+            _VisibleMenuItem(CreateDBItem, show);
+            _VisibleMenuItem(ClearRegistryItem, show);
+            _VisibleMenuItem(EditAnualDaysItem, show);
+            _VisibleMenuItem(ModeItem, show);
+            _VisibleMenuItem(MailingsExceptItem, show);
+            _VisibleMenuItem(SettingsProgrammItem, show);
+            _VisibleMenuItem(DeletePersonFromGroupItem, show);
+            _VisibleMenuItem(ImportPeopleInLocalDBItem, show);
+            _VisibleMenuItem(OpenMenuAsLocalAdminItem, !show);
+        }
     }
 }

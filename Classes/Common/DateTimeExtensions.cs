@@ -20,6 +20,13 @@ namespace ASTA.Classes.Common
             return System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(dateTime.Month);
         }
 
+        public static string ToMonthNameAndYear(this DateTime dateTime)
+        {
+            return dateTime.ToMonthName()+" "+ dateTime.ToString("yyyy");
+        }
+
+
+
         public static string ToShortMonthName(this DateTime dateTime)
         {
             return System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(dateTime.Month);
