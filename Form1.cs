@@ -6714,29 +6714,32 @@ namespace ASTA
             {
                 try
                 {
-                    if (nameOfLastTable == "PeopleGroupDescription")
+                    switch (nameOfLastTable)
                     {
-                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                        case "PeopleGroupDescription":
+                            {
+                                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             Names.GROUP,
                             Names.GROUP_DECRIPTION
                             });
 
-                        textBoxGroup.Text = dgvo?.cellValue[0]; //Take the name of selected group
-                        textBoxGroupDescription.Text = dgvo?.cellValue[1]; //Take the name of selected group
-                        groupBoxPeriod.BackColor = Color.PaleGreen;
-                        groupBoxFilterReport.BackColor = SystemColors.Control;
-                        StatusLabel2.Text = @"Выбрана группа: " + dgvo?.cellValue[0];
-                        if (textBoxFIO.TextLength > 3)
-                        {
-                            comboBoxFio.SelectedIndex = comboBoxFio.FindString(textBoxFIO.Text);
-                        }
-                    }
-                    else if (
-                        nameOfLastTable == "ListFIO" ||
-                        nameOfLastTable == "PeopleGroup" ||
-                        nameOfLastTable == "PersonRegistrationsList")
-                    {
-                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                                textBoxGroup.Text = dgvo?.cellValue[0]; //Take the name of selected group
+                                textBoxGroupDescription.Text = dgvo?.cellValue[1]; //Take the name of selected group
+                                groupBoxPeriod.BackColor = Color.PaleGreen;
+                                groupBoxFilterReport.BackColor = SystemColors.Control;
+                                StatusLabel2.Text = @"Выбрана группа: " + dgvo?.cellValue[0];
+                                if (textBoxFIO.TextLength > 3)
+                                {
+                                    comboBoxFio.SelectedIndex = comboBoxFio.FindString(textBoxFIO.Text);
+                                }
+                                break;
+                            }
+
+                        case "ListFIO":
+                        case "PeopleGroup":
+                        case "PersonRegistrationsList":
+                            {
+                                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             Names.GROUP,
                             Names.FIO,
                             Names.CODE,
@@ -6744,52 +6747,59 @@ namespace ASTA
                             Names.DESIRED_TIME_OUT
                             });
 
-                        textBoxGroup.Text = dgvo?.cellValue[0];
-                        textBoxFIO.Text = dgvo?.cellValue[1];
-                        textBoxNav.Text = dgvo?.cellValue[2];
+                                textBoxGroup.Text = dgvo?.cellValue[0];
+                                textBoxFIO.Text = dgvo?.cellValue[1];
+                                textBoxNav.Text = dgvo?.cellValue[2];
 
-                        StatusLabel2.Text = @"Выбрана группа: " + dgvo?.cellValue[0] +
-                            @" |Курсор на: " + ShortFIO(dgvo?.cellValue[1]);
+                                StatusLabel2.Text = @"Выбрана группа: " + dgvo?.cellValue[0] +
+                                    @" |Курсор на: " + ShortFIO(dgvo?.cellValue[1]);
 
-                        groupBoxPeriod.BackColor = Color.PaleGreen;
-                        groupBoxTimeStart.BackColor = Color.PaleGreen;
-                        groupBoxTimeEnd.BackColor = Color.PaleGreen;
-                        groupBoxFilterReport.BackColor = SystemColors.Control;
+                                groupBoxPeriod.BackColor = Color.PaleGreen;
+                                groupBoxTimeStart.BackColor = Color.PaleGreen;
+                                groupBoxTimeEnd.BackColor = Color.PaleGreen;
+                                groupBoxFilterReport.BackColor = SystemColors.Control;
 
-                        decimal[] timeIn = new decimal[4];
-                        decimal[] timeOut = new decimal[4];
-                        try
-                        {
-                            timeIn = ConvertStringTimeHHMMToDecimalArray(dgvo?.cellValue[3]);
-                            timeOut = ConvertStringTimeHHMMToDecimalArray(dgvo?.cellValue[4]);
-                            _SetNumUpDown(numUpDownHourStart, timeIn[0]);
-                            _SetNumUpDown(numUpDownMinuteStart, timeIn[1]);
-                            _SetNumUpDown(numUpDownHourEnd, timeOut[0]);
-                            _SetNumUpDown(numUpDownMinuteEnd, timeOut[1]);
-                        }
-                        catch { logger.Warn("dataGridView1CellClick: " + timeIn[0]); }
+                                decimal[] timeIn = new decimal[4];
+                                decimal[] timeOut = new decimal[4];
+                                try
+                                {
+                                    timeIn = ConvertStringTimeHHMMToDecimalArray(dgvo?.cellValue[3]);
+                                    timeOut = ConvertStringTimeHHMMToDecimalArray(dgvo?.cellValue[4]);
+                                    _SetNumUpDown(numUpDownHourStart, timeIn[0]);
+                                    _SetNumUpDown(numUpDownMinuteStart, timeIn[1]);
+                                    _SetNumUpDown(numUpDownHourEnd, timeOut[0]);
+                                    _SetNumUpDown(numUpDownMinuteEnd, timeOut[1]);
+                                }
+                                catch { logger.Warn("dataGridView1CellClick: " + timeIn[0]); }
 
-                        if (dgvo?.cellValue[1]?.Length > 3)
-                        {
-                            try { comboBoxFio.SelectedIndex = comboBoxFio.FindString(dgvo?.cellValue[1]); }
-                            catch
-                            {
-                                logger.Warn("dataGridView1CellClick: " + dgvo?.cellValue[1] + " not found");
+                                if (dgvo?.cellValue[1]?.Length > 3)
+                                {
+                                    try { comboBoxFio.SelectedIndex = comboBoxFio.FindString(dgvo?.cellValue[1]); }
+                                    catch
+                                    {
+                                        logger.Warn("dataGridView1CellClick: " + dgvo?.cellValue[1] + " not found");
+                                    }
+                                }
+                                break;
                             }
-                        }
-                    }
-                    else if (nameOfLastTable == "LastIputsOutputs")
-                    {
-                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+
+                        case "LastIputsOutputs":
+                            {
+                                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             Names.N_ID_STRING,
                             Names.FIO,
                             Names.CHECKPOINT_ACTION
                             });
 
-                        textBoxFIO.Text = dgvo?.cellValue[1];
-                        textBoxNav.Text = "";
+                                textBoxFIO.Text = dgvo?.cellValue[1];
+                                textBoxNav.Text = "";
 
-                        StatusLabel2.Text = @" |Курсор на: " + ShortFIO(dgvo?.cellValue[1]);
+                                StatusLabel2.Text = @" |Курсор на: " + ShortFIO(dgvo?.cellValue[1]);
+                            }
+                            break;
+
+                        default:
+                            break;
                     }
                 }
                 catch (Exception err)
@@ -6823,46 +6833,50 @@ namespace ASTA
                     string currCellValue = dgvo.CurrentCellValue(dataGridView1);
                     string editedCell = "";
 
-                    if (nameOfLastTable == @"BoldedDates")
+                    switch (nameOfLastTable)
                     {
-                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                        case "BoldedDates":
+                            {
+                                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             Names.DAYOFF_DATE,
                             Names.DAYOFF_USED_BY,
                             Names.DAYOFF_TYPE });
 
-                        string dayType = "";
-                        if (textBoxGroup?.Text?.Trim()?.Length == 0 || textBoxGroup?.Text?.ToLower()?.Trim() == "выходной")
-                        { dayType = "Выходной"; }
-                        else { dayType = "Рабочий"; }
+                                string dayType = "";
+                                if (textBoxGroup?.Text?.Trim()?.Length == 0 || textBoxGroup?.Text?.ToLower()?.Trim() == "выходной")
+                                { dayType = "Выходной"; }
+                                else { dayType = "Рабочий"; }
 
-                        if (textBoxNav?.Text?.Trim()?.Length != 6)
-                        { nav = "для всех"; }
-                        else { nav = textBoxNav.Text.Trim(); }
+                                if (textBoxNav?.Text?.Trim()?.Length != 6)
+                                { nav = "для всех"; }
+                                else { nav = textBoxNav.Text.Trim(); }
 
-                        string navD = "";
-                        if (dgvo.cellValue[1]?.Length != 6)
-                        { navD = "всех"; }
-                        else { navD = dgvo.cellValue[1]; }
+                                string navD = "";
+                                if (dgvo.cellValue[1]?.Length != 6)
+                                { navD = "всех"; }
+                                else { navD = dgvo.cellValue[1]; }
 
-                        using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
-                        {
-                            sqlConnection.Open();
+                                using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
+                                {
+                                    sqlConnection.Open();
 
-                            using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'BoldedDates' (DayBolded, NAV, DayType, DayDescription, DateCreated) " +
-                                " VALUES (@BoldedDate, @NAV, @DayType, @DayDescription, @DateCreated)", sqlConnection))
-                            {
-                                sqlCommand.Parameters.Add("@BoldedDate", DbType.String).Value = monthCalendar.SelectionStart.ToYYYYMMDD();
-                                sqlCommand.Parameters.Add("@NAV", DbType.String).Value = nav;
-                                sqlCommand.Parameters.Add("@DayType", DbType.String).Value = dayType;
-                                sqlCommand.Parameters.Add("@DayDescription", DbType.String).Value = textBoxGroupDescription.Text.Trim();
-                                sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDD();
-                                try { sqlCommand.ExecuteNonQuery(); } catch (Exception err) { MessageBox.Show(err.ToString()); }
+                                    using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'BoldedDates' (DayBolded, NAV, DayType, DayDescription, DateCreated) " +
+                                        " VALUES (@BoldedDate, @NAV, @DayType, @DayDescription, @DateCreated)", sqlConnection))
+                                    {
+                                        sqlCommand.Parameters.Add("@BoldedDate", DbType.String).Value = monthCalendar.SelectionStart.ToYYYYMMDD();
+                                        sqlCommand.Parameters.Add("@NAV", DbType.String).Value = nav;
+                                        sqlCommand.Parameters.Add("@DayType", DbType.String).Value = dayType;
+                                        sqlCommand.Parameters.Add("@DayDescription", DbType.String).Value = textBoxGroupDescription.Text.Trim();
+                                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDD();
+                                        try { sqlCommand.ExecuteNonQuery(); } catch (Exception err) { MessageBox.Show(err.ToString()); }
+                                    }
+                                }
+                                break;
                             }
-                        }
-                    }
-                    else if (nameOfLastTable == @"PeopleGroup" || nameOfLastTable == @"ListFIO")
-                    {
-                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                        case "PeopleGroup":
+                        case "ListFIO":
+                            {
+                                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             Names.FIO,
                             Names.CODE,
                             Names.GROUP,
@@ -6875,208 +6889,216 @@ namespace ASTA
                             Names.DEPARTMENT_ID
                             });
 
-                        fio = dgvo.cellValue[0];
-                        textBoxFIO.Text = fio;
+                                fio = dgvo.cellValue[0];
+                                textBoxFIO.Text = fio;
 
-                        nav = dgvo.cellValue[1];
-                        textBoxNav.Text = nav;
+                                nav = dgvo.cellValue[1];
+                                textBoxNav.Text = nav;
 
-                        group = dgvo.cellValue[2];
-                        textBoxGroup.Text = group;
+                                group = dgvo.cellValue[2];
+                                textBoxGroup.Text = group;
 
-                        //todo
-                        //Change to UPDATE, but not Replace!!!!
-                        /*
-                         myCommand1.CommandText = "UPDATE dept SET dname = :dname, loc = :loc WHERE deptno = @deptno";
-                        myCommand1.Parameters.Add("@deptno", 20);
-                        myCommand1.Parameters.Add("dname", "SALES");
-                        myCommand1.Parameters.Add("loc", "NEW YORK");
-                        */
-                        using (var connection = new SQLiteConnection(sqLiteLocalConnectionString))
-                        {
-                            connection.Open();
-                            using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Department, PositionInDepartment, DepartmentId, City) " +
-                                                                                        " VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Comment, @Department, @PositionInDepartment, @DepartmentId, @City)", connection))
-                            {
-                                sqlCommand.Parameters.Add("@FIO", DbType.String).Value = fio;
-                                sqlCommand.Parameters.Add("@NAV", DbType.String).Value = nav;
+                                //todo
+                                //Change to UPDATE, but not Replace!!!!
+                                /*
+                                 myCommand1.CommandText = "UPDATE dept SET dname = :dname, loc = :loc WHERE deptno = @deptno";
+                                myCommand1.Parameters.Add("@deptno", 20);
+                                myCommand1.Parameters.Add("dname", "SALES");
+                                myCommand1.Parameters.Add("loc", "NEW YORK");
+                                */
+                                using (var connection = new SQLiteConnection(sqLiteLocalConnectionString))
+                                {
+                                    connection.Open();
+                                    using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Department, PositionInDepartment, DepartmentId, City) " +
+                                                                                                " VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Comment, @Department, @PositionInDepartment, @DepartmentId, @City)", connection))
+                                    {
+                                        sqlCommand.Parameters.Add("@FIO", DbType.String).Value = fio;
+                                        sqlCommand.Parameters.Add("@NAV", DbType.String).Value = nav;
 
-                                sqlCommand.Parameters.Add("@GroupPerson", DbType.String).Value = group;
-                                sqlCommand.Parameters.Add("@Department", DbType.String).Value = dgvo.cellValue[5];
-                                sqlCommand.Parameters.Add("@PositionInDepartment", DbType.String).Value = dgvo.cellValue[6];
-                                sqlCommand.Parameters.Add("@DepartmentId", DbType.String).Value = dgvo.cellValue[9];
+                                        sqlCommand.Parameters.Add("@GroupPerson", DbType.String).Value = group;
+                                        sqlCommand.Parameters.Add("@Department", DbType.String).Value = dgvo.cellValue[5];
+                                        sqlCommand.Parameters.Add("@PositionInDepartment", DbType.String).Value = dgvo.cellValue[6];
+                                        sqlCommand.Parameters.Add("@DepartmentId", DbType.String).Value = dgvo.cellValue[9];
 
-                                sqlCommand.Parameters.Add("@ControllingHHMM", DbType.String).Value = dgvo.cellValue[3];
-                                sqlCommand.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = dgvo.cellValue[4];
+                                        sqlCommand.Parameters.Add("@ControllingHHMM", DbType.String).Value = dgvo.cellValue[3];
+                                        sqlCommand.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = dgvo.cellValue[4];
 
-                                sqlCommand.Parameters.Add("@Shift", DbType.String).Value = dgvo.cellValue[7];
-                                sqlCommand.Parameters.Add("@Comment", DbType.String).Value = dgvo.cellValue[8];
+                                        sqlCommand.Parameters.Add("@Shift", DbType.String).Value = dgvo.cellValue[7];
+                                        sqlCommand.Parameters.Add("@Comment", DbType.String).Value = dgvo.cellValue[8];
 
-                                try { sqlCommand.ExecuteNonQuery(); } catch { }
+                                        try { sqlCommand.ExecuteNonQuery(); } catch { }
+                                    }
+                                }
+                                SeekAndShowMembersOfGroup(group);
+                                nameOfLastTable = "PeopleGroup";
+                                StatusLabel2.Text = @"Обновлено время прихода " + ShortFIO(fio) + " в группе: " + group;
+                                break;
                             }
-                        }
-                        SeekAndShowMembersOfGroup(group);
-                        nameOfLastTable = "PeopleGroup";
-                        StatusLabel2.Text = @"Обновлено время прихода " + ShortFIO(fio) + " в группе: " + group;
-                    }
-                    else if (nameOfLastTable == @"PeopleGroupDescription")
-                    {
-                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                        case "PeopleGroupDescription":
+                            {
+                                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             Names.GROUP,
                             Names.GROUP_DECRIPTION });
 
-                        textBoxGroup.Text = dgvo.cellValue[0]; //Take the name of selected group
-                        textBoxGroupDescription.Text = dgvo.cellValue[1]; //Take the name of selected group
-                        groupBoxPeriod.BackColor = Color.PaleGreen;
-                        groupBoxFilterReport.BackColor = SystemColors.Control;
-                        StatusLabel2.Text = @"Выбрана группа: " + dgvo.cellValue[0];
-                    }
-                    else if (nameOfLastTable == @"Mailing")
-                    {
-                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                                textBoxGroup.Text = dgvo.cellValue[0]; //Take the name of selected group
+                                textBoxGroupDescription.Text = dgvo.cellValue[1]; //Take the name of selected group
+                                groupBoxPeriod.BackColor = Color.PaleGreen;
+                                groupBoxFilterReport.BackColor = SystemColors.Control;
+                                StatusLabel2.Text = @"Выбрана группа: " + dgvo.cellValue[0];
+                                break;
+                            }
+                        case "Mailing":
+                            {
+                                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             @"Получатель", @"Отчет по группам", @"Наименование", @"Описание",
                             @"Период", @"Статус", @"Тип отчета", @"День отправки отчета" });
 
-                        switch (currColumn)
-                        {
-                            case "День отправки отчета":
-                                editedCell = ReturnStrongNameDayOfSendingReports(dgvo.cellValue[7]);
-                                ExecuteSqlAsync("UPDATE 'Mailing' SET DayReport='" + editedCell + "' WHERE RecipientEmail='" + dgvo.cellValue[0]
-                                  + "' AND NameReport='" + dgvo.cellValue[2] + "' AND GroupsReport ='" + dgvo.cellValue[1]
-                                  + "' AND Period='" + dgvo.cellValue[4] + "' AND TypeReport ='" + dgvo.cellValue[6]
-                                  + "' AND Status ='" + dgvo.cellValue[5] + "' AND Description ='" + dgvo.cellValue[3] + "';")
-                                  .GetAwaiter().GetResult();
-                                break;
-
-                            case "Тип отчета":
-                                if (currCellValue == "Полный") { editedCell = "Полный"; }
-                                else { editedCell = "Упрощенный"; }
-
-                                ExecuteSqlAsync("UPDATE 'Mailing' SET TypeReport='" + editedCell + "' WHERE RecipientEmail='" + dgvo.cellValue[0]
-                                  + "' AND NameReport='" + dgvo.cellValue[2] + "' AND GroupsReport ='" + dgvo.cellValue[1]
-                                  + "' AND Period='" + dgvo.cellValue[4] + "' AND DayReport='" + dgvo.cellValue[7]
-                                  + "' AND Status ='" + dgvo.cellValue[5] + "' AND Description ='" + dgvo.cellValue[3] + "';")
-                                  .GetAwaiter().GetResult();
-                                break;
-
-                            case "Статус":
-                                if (currCellValue == "Активная") { editedCell = "Активная"; }
-                                else { editedCell = "Неактивная"; }
-
-                                ExecuteSqlAsync("UPDATE 'Mailing' SET Status='" + editedCell + "' WHERE RecipientEmail='" + dgvo.cellValue[0]
-                                  + "' AND NameReport='" + dgvo.cellValue[2] + "' AND GroupsReport ='" + dgvo.cellValue[1]
-                                  + "' AND Period='" + dgvo.cellValue[4] + "' AND DayReport='" + dgvo.cellValue[7]
-                                  + "' AND TypeReport ='" + dgvo.cellValue[6] + "' AND Description ='" + dgvo.cellValue[3] + "';")
-                                  .GetAwaiter().GetResult();
-                                break;
-
-                            case "Период":
-                                if (currCellValue == "Текущий месяц") { editedCell = "Текущий месяц"; }
-                                else { editedCell = "Предыдущий месяц"; }
-
-                                ExecuteSqlAsync("UPDATE 'Mailing' SET Period='" + editedCell + "' WHERE RecipientEmail='" + dgvo.cellValue[0]
-                                   + "' AND NameReport='" + dgvo.cellValue[2] + "' AND GroupsReport ='" + dgvo.cellValue[1]
-                                   + "' AND TypeReport ='" + dgvo.cellValue[6] + "' AND DayReport='" + dgvo.cellValue[7]
-                                   + "' AND Status ='" + dgvo.cellValue[5] + "' AND Description ='" + dgvo.cellValue[3] + "';")
-                                   .GetAwaiter().GetResult();
-                                break;
-
-                            case "Описание":
-                                editedCell = currCellValue;
-
-                                ExecuteSqlAsync("UPDATE 'Mailing' SET Description='" + editedCell + "' WHERE RecipientEmail='" + dgvo.cellValue[0]
-                                  + "' AND NameReport='" + dgvo.cellValue[2] + "' AND GroupsReport ='" + dgvo.cellValue[1]
-                                  + "' AND TypeReport ='" + dgvo.cellValue[6] + "' AND DayReport='" + dgvo.cellValue[7]
-                                  + "' AND Status ='" + dgvo.cellValue[5] + "' AND Period='" + dgvo.cellValue[4] + "';")
-                                  .GetAwaiter().GetResult();
-                                break;
-
-                            case "Отчет по группам":
-                                editedCell = currCellValue;
-
-                                ExecuteSqlAsync("UPDATE 'Mailing' SET GroupsReport ='" + editedCell + "' WHERE RecipientEmail='" + dgvo.cellValue[0]
-                                  + "' AND NameReport='" + dgvo.cellValue[2] + "' AND Description ='" + dgvo.cellValue[3]
-                                  + "' AND Status ='" + dgvo.cellValue[5] + "' AND Period='" + dgvo.cellValue[4]
-                                  + "' AND TypeReport ='" + dgvo.cellValue[6] + "' AND DayReport='" + dgvo.cellValue[7] + "';")
-                                  .GetAwaiter().GetResult();
-                                break;
-
-                            case "Получатель":
-                                if (currCellValue.Contains('@') && currCellValue.Contains('.'))
+                                switch (currColumn)
                                 {
-                                    editedCell = currCellValue;
+                                    case "День отправки отчета":
+                                        editedCell = ReturnStrongNameDayOfSendingReports(dgvo.cellValue[7]);
+                                        ExecuteSqlAsync("UPDATE 'Mailing' SET DayReport='" + editedCell + "' WHERE RecipientEmail='" + dgvo.cellValue[0]
+                                          + "' AND NameReport='" + dgvo.cellValue[2] + "' AND GroupsReport ='" + dgvo.cellValue[1]
+                                          + "' AND Period='" + dgvo.cellValue[4] + "' AND TypeReport ='" + dgvo.cellValue[6]
+                                          + "' AND Status ='" + dgvo.cellValue[5] + "' AND Description ='" + dgvo.cellValue[3] + "';")
+                                          .GetAwaiter().GetResult();
+                                        break;
 
-                                    ExecuteSqlAsync("UPDATE 'Mailing' SET RecipientEmail ='" + editedCell + "' WHERE TypeReport ='" + dgvo.cellValue[6]
-                                      + "' AND NameReport='" + dgvo.cellValue[2] + "' AND GroupsReport ='" + dgvo.cellValue[1]
-                                      + "' AND DayReport='" + dgvo.cellValue[7] + "' AND Period='" + dgvo.cellValue[4]
-                                      + "' AND Status ='" + dgvo.cellValue[5] + "' AND Description ='" + dgvo.cellValue[3] + "';")
-                                      .GetAwaiter().GetResult();
+                                    case "Тип отчета":
+                                        if (currCellValue == "Полный") { editedCell = "Полный"; }
+                                        else { editedCell = "Упрощенный"; }
+
+                                        ExecuteSqlAsync("UPDATE 'Mailing' SET TypeReport='" + editedCell + "' WHERE RecipientEmail='" + dgvo.cellValue[0]
+                                          + "' AND NameReport='" + dgvo.cellValue[2] + "' AND GroupsReport ='" + dgvo.cellValue[1]
+                                          + "' AND Period='" + dgvo.cellValue[4] + "' AND DayReport='" + dgvo.cellValue[7]
+                                          + "' AND Status ='" + dgvo.cellValue[5] + "' AND Description ='" + dgvo.cellValue[3] + "';")
+                                          .GetAwaiter().GetResult();
+                                        break;
+
+                                    case "Статус":
+                                        if (currCellValue == "Активная") { editedCell = "Активная"; }
+                                        else { editedCell = "Неактивная"; }
+
+                                        ExecuteSqlAsync("UPDATE 'Mailing' SET Status='" + editedCell + "' WHERE RecipientEmail='" + dgvo.cellValue[0]
+                                          + "' AND NameReport='" + dgvo.cellValue[2] + "' AND GroupsReport ='" + dgvo.cellValue[1]
+                                          + "' AND Period='" + dgvo.cellValue[4] + "' AND DayReport='" + dgvo.cellValue[7]
+                                          + "' AND TypeReport ='" + dgvo.cellValue[6] + "' AND Description ='" + dgvo.cellValue[3] + "';")
+                                          .GetAwaiter().GetResult();
+                                        break;
+
+                                    case "Период":
+                                        if (currCellValue == "Текущий месяц") { editedCell = "Текущий месяц"; }
+                                        else { editedCell = "Предыдущий месяц"; }
+
+                                        ExecuteSqlAsync("UPDATE 'Mailing' SET Period='" + editedCell + "' WHERE RecipientEmail='" + dgvo.cellValue[0]
+                                           + "' AND NameReport='" + dgvo.cellValue[2] + "' AND GroupsReport ='" + dgvo.cellValue[1]
+                                           + "' AND TypeReport ='" + dgvo.cellValue[6] + "' AND DayReport='" + dgvo.cellValue[7]
+                                           + "' AND Status ='" + dgvo.cellValue[5] + "' AND Description ='" + dgvo.cellValue[3] + "';")
+                                           .GetAwaiter().GetResult();
+                                        break;
+
+                                    case "Описание":
+                                        editedCell = currCellValue;
+
+                                        ExecuteSqlAsync("UPDATE 'Mailing' SET Description='" + editedCell + "' WHERE RecipientEmail='" + dgvo.cellValue[0]
+                                          + "' AND NameReport='" + dgvo.cellValue[2] + "' AND GroupsReport ='" + dgvo.cellValue[1]
+                                          + "' AND TypeReport ='" + dgvo.cellValue[6] + "' AND DayReport='" + dgvo.cellValue[7]
+                                          + "' AND Status ='" + dgvo.cellValue[5] + "' AND Period='" + dgvo.cellValue[4] + "';")
+                                          .GetAwaiter().GetResult();
+                                        break;
+
+                                    case "Отчет по группам":
+                                        editedCell = currCellValue;
+
+                                        ExecuteSqlAsync("UPDATE 'Mailing' SET GroupsReport ='" + editedCell + "' WHERE RecipientEmail='" + dgvo.cellValue[0]
+                                          + "' AND NameReport='" + dgvo.cellValue[2] + "' AND Description ='" + dgvo.cellValue[3]
+                                          + "' AND Status ='" + dgvo.cellValue[5] + "' AND Period='" + dgvo.cellValue[4]
+                                          + "' AND TypeReport ='" + dgvo.cellValue[6] + "' AND DayReport='" + dgvo.cellValue[7] + "';")
+                                          .GetAwaiter().GetResult();
+                                        break;
+
+                                    case "Получатель":
+                                        if (currCellValue.Contains('@') && currCellValue.Contains('.'))
+                                        {
+                                            editedCell = currCellValue;
+
+                                            ExecuteSqlAsync("UPDATE 'Mailing' SET RecipientEmail ='" + editedCell + "' WHERE TypeReport ='" + dgvo.cellValue[6]
+                                              + "' AND NameReport='" + dgvo.cellValue[2] + "' AND GroupsReport ='" + dgvo.cellValue[1]
+                                              + "' AND DayReport='" + dgvo.cellValue[7] + "' AND Period='" + dgvo.cellValue[4]
+                                              + "' AND Status ='" + dgvo.cellValue[5] + "' AND Description ='" + dgvo.cellValue[3] + "';")
+                                              .GetAwaiter().GetResult();
+                                        }
+                                        break;
+
+                                    case "Наименование":
+                                        editedCell = currCellValue;
+
+                                        ExecuteSqlAsync("UPDATE 'Mailing' SET NameReport ='" + editedCell + "' WHERE RecipientEmail='" + dgvo.cellValue[0]
+                                          + "' AND Description='" + dgvo.cellValue[3] + "' AND GroupsReport ='" + dgvo.cellValue[1]
+                                          + "' AND DayReport='" + dgvo.cellValue[7] + "' AND TypeReport ='" + dgvo.cellValue[6]
+                                          + "' AND Period ='" + dgvo.cellValue[4] + "' AND Status ='" + dgvo.cellValue[5] + "';")
+                                          .GetAwaiter().GetResult();
+                                        break;
+
+                                    default:
+                                        break;
                                 }
+
+                                ShowDataTableDbQuery(dbApplication, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
+                                "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
+                                "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
+                                " ORDER BY RecipientEmail asc, DateCreated desc; ");
                                 break;
+                            }
+                        case "MailingException":
+                            {
+                                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { @"Получатель", @"Описание" });
 
-                            case "Наименование":
-                                editedCell = currCellValue;
+                                switch (currColumn)
+                                {
+                                    case "Получатель":
+                                        ExecuteSqlAsync("UPDATE 'MailingException' SET RecipientEmail='" + currCellValue +
+                                            "' WHERE Description='" + dgvo.cellValue[1] + "';").GetAwaiter().GetResult();
+                                        break;
 
-                                ExecuteSqlAsync("UPDATE 'Mailing' SET NameReport ='" + editedCell + "' WHERE RecipientEmail='" + dgvo.cellValue[0]
-                                  + "' AND Description='" + dgvo.cellValue[3] + "' AND GroupsReport ='" + dgvo.cellValue[1]
-                                  + "' AND DayReport='" + dgvo.cellValue[7] + "' AND TypeReport ='" + dgvo.cellValue[6]
-                                  + "' AND Period ='" + dgvo.cellValue[4] + "' AND Status ='" + dgvo.cellValue[5] + "';")
-                                  .GetAwaiter().GetResult();
+                                    case "Описание":
+                                        ExecuteSqlAsync("UPDATE 'MailingException' SET Description='" + currCellValue +
+                                            "' WHERE RecipientEmail='" + dgvo.cellValue[0] + "';").GetAwaiter().GetResult();
+                                        break;
+                                    default:
+                                        break;
+                                }
+
+                                ShowDataTableDbQuery(dbApplication, "MailingException", "SELECT RecipientEmail AS 'Получатель', " +
+                                "NameReport AS 'Наименование', Description AS 'Описание', DateCreated AS 'Дата создания/модификации', " +
+                                " DayReport AS 'День отправки отчета'", " ORDER BY RecipientEmail asc, DateCreated desc; ");
                                 break;
-
-                            default:
-                                break;
-                        }
-
-                        ShowDataTableDbQuery(dbApplication, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
-                        "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
-                        "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
-                        " ORDER BY RecipientEmail asc, DateCreated desc; ");
-                    }
-                    else if (nameOfLastTable == @"MailingException")
-                    {
-                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { @"Получатель", @"Описание" });
-
-                        switch (currColumn)
-                        {
-                            case "Получатель":
-                                ExecuteSqlAsync("UPDATE 'MailingException' SET RecipientEmail='" + currCellValue +
-                                    "' WHERE Description='" + dgvo.cellValue[1] + "';").GetAwaiter().GetResult();
-                                break;
-
-                            case "Описание":
-                                ExecuteSqlAsync("UPDATE 'MailingException' SET Description='" + currCellValue +
-                                    "' WHERE RecipientEmail='" + dgvo.cellValue[0] + "';").GetAwaiter().GetResult();
-                                break;
-                            default:
-                                break;
-                        }
-
-                        ShowDataTableDbQuery(dbApplication, "MailingException", "SELECT RecipientEmail AS 'Получатель', " +
-                        "NameReport AS 'Наименование', Description AS 'Описание', DateCreated AS 'Дата создания/модификации', " +
-                        " DayReport AS 'День отправки отчета'", " ORDER BY RecipientEmail asc, DateCreated desc; ");
-                    }
-                    else if (nameOfLastTable == @"SelectedCityToLoadFromWeb")
-                    {
-                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                            }
+                        case "SelectedCityToLoadFromWeb":
+                            {
+                                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             Names.PLACE_EMPLOYEE,
                             @"Дата создания" });
 
-                        switch (currColumn)
-                        {
-                            case "Местонахождение сотрудника":
-                                ExecuteSqlAsync("UPDATE 'SelectedCityToLoadFromWeb' SET City='" + dgvo.cellValue[0] +
-                                                    "' WHERE DateCreated='" + dgvo.cellValue[1] + "';").GetAwaiter().GetResult();
-                                break;
-                            default:
-                                break;
-                        }
+                                switch (currColumn)
+                                {
+                                    case "Местонахождение сотрудника":
+                                        ExecuteSqlAsync("UPDATE 'SelectedCityToLoadFromWeb' SET City='" + dgvo.cellValue[0] +
+                                                            "' WHERE DateCreated='" + dgvo.cellValue[1] + "';").GetAwaiter().GetResult();
+                                        break;
+                                    default:
+                                        break;
+                                }
 
-                        ShowDataTableDbQuery(dbApplication, "SelectedCityToLoadFromWeb", "SELECT City AS 'Местонахождение сотрудника', DateCreated AS 'Дата создания'",
-                        " ORDER BY City asc, DateCreated desc; ");
+                                ShowDataTableDbQuery(dbApplication, "SelectedCityToLoadFromWeb", "SELECT City AS 'Местонахождение сотрудника', DateCreated AS 'Дата создания'",
+                                " ORDER BY City asc, DateCreated desc; ");
+                                break;
+                            }
+                        default:
+                            break;
                     }
                 }
-                catch { }
+                catch(Exception expt) { logger.Trace("DataGridView1CellEndEdit: " + expt.ToString()); }
             }
         }
 
@@ -7129,125 +7151,134 @@ namespace ASTA
                 using (ContextMenu mRightClick = new ContextMenu())
                 {
                     string recepient = "";
-                    if (nameOfLastTable == @"PeopleGroupDescription")
+
+                    switch (nameOfLastTable)
                     {
-                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[]
-                        {
+                        case "PeopleGroupDescription":
+                            {
+                                dgvo.FindValuesInCurrentRow(dataGridView1, new string[]
+                                                        {
                         Names.GROUP,
                         Names.GROUP_DECRIPTION,
                         Names.RECEPIENTS_OF_REPORTS
-                        });
+                                                        });
 
-                        if (dgvo.cellValue[2]?.Length > 0)
-                        {
-                            recepient = dgvo.cellValue[2];
-                        }
-                        else if (mailSenderAddress?.Length > 0)
-                        {
-                            recepient = mailSenderAddress;
-                        }
+                                if (dgvo.cellValue[2]?.Length > 0)
+                                {
+                                    recepient = dgvo.cellValue[2];
+                                }
+                                else if (mailSenderAddress?.Length > 0)
+                                {
+                                    recepient = mailSenderAddress;
+                                }
 
-                        mRightClick.MenuItems.Add(new MenuItem(
-                            text: "&Загрузить регистрации пропусков сотрудников группы: '" +
-                                    dgvo.cellValue[1] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
-                            onClick: GetDataOfGroup_Click));
-                        mRightClick.MenuItems.Add(new MenuItem(
-                            text: "Загрузить  входы-выходы сотрудников группы: '" +
-                                    dgvo.cellValue[1] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear() + " и &подготовить отчет",
-                            onClick: DoReportByRightClick));
-                        mRightClick.MenuItems.Add(new MenuItem(
-                            text: "Загрузить регистрации пропусков сотрудников группы: '" +
-                                    dgvo.cellValue[1] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear() + " и &отправить: " + recepient,
-                            onClick: DoReportAndEmailByRightClick));
+                                mRightClick.MenuItems.Add(new MenuItem(
+                                    text: "&Загрузить регистрации пропусков сотрудников группы: '" +
+                                            dgvo.cellValue[1] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
+                                    onClick: GetDataOfGroup_Click));
+                                mRightClick.MenuItems.Add(new MenuItem(
+                                    text: "Загрузить  входы-выходы сотрудников группы: '" +
+                                            dgvo.cellValue[1] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear() + " и &подготовить отчет",
+                                    onClick: DoReportByRightClick));
+                                mRightClick.MenuItems.Add(new MenuItem(
+                                    text: "Загрузить регистрации пропусков сотрудников группы: '" +
+                                            dgvo.cellValue[1] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear() + " и &отправить: " + recepient,
+                                    onClick: DoReportAndEmailByRightClick));
 
-                        mRightClick.MenuItems.Add("-");
-                        mRightClick.MenuItems.Add(new MenuItem(
-                            text: "&Удалить группу: '" + dgvo.cellValue[0] + "'(" + dgvo.cellValue[1] + ")",
-                            onClick: DeleteCurrentRow));
-                        mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
-                    }
-                    else if (nameOfLastTable == @"LastIputsOutputs")
-                    {
-                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                                mRightClick.MenuItems.Add("-");
+                                mRightClick.MenuItems.Add(new MenuItem(
+                                    text: "&Удалить группу: '" + dgvo.cellValue[0] + "'(" + dgvo.cellValue[1] + ")",
+                                    onClick: DeleteCurrentRow));
+                                mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
+
+                                break;
+                            }
+                        case "LastIputsOutputs":
+                            {
+                                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                         Names.FIO,
                         Names.N_ID_STRING,
                         Names.CHECKPOINT_ACTION
                     });
 
-                        mRightClick.MenuItems.Add(new MenuItem(
-                            text: "&Обновить данные о регистрации входов-выходов сотрудников",
-                           onClick: LoadLastIputsOutputs_Update_Click));
+                                mRightClick.MenuItems.Add(new MenuItem(
+                                    text: "&Обновить данные о регистрации входов-выходов сотрудников",
+                                   onClick: LoadLastIputsOutputs_Update_Click));
 
-                        if (nameOfLastTable != "LastIputsOutputs")//Visitor selected=null
-                        {
-                            checkInputsOutputs = false;
-                        }
-                        mRightClick.MenuItems.Add(new MenuItem(
-                            text: "&Подсветить все входы-выходы '" + dgvo.cellValue[0] + "'",
-                           onClick: PaintRowsFioItem_Click));
-                        mRightClick.MenuItems.Add(new MenuItem(
-                            text: "&Сбросить фильтр",
-                           onClick: ResetFilterLoadLastIputsOutput_Click));
-                        mRightClick.MenuItems.Add(new MenuItem(
-                            text: "Подсветить все состояния '" + dgvo.cellValue[2] + "'",
-                           onClick: PaintRowsActionItem_Click));
-                        mRightClick.MenuItems.Add("-");
-                        mRightClick.MenuItems.Add(new MenuItem(
-                            text: "&Загрузить данные регистраций входов-выходов '" +
-                                    dgvo.cellValue[0] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
-                            onClick: GetDataOfPerson_Click));
-                        mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
-                    }
-                    else if (nameOfLastTable == @"Mailing")
-                    {
-                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                                if (nameOfLastTable != "LastIputsOutputs")//Visitor selected=null
+                                {
+                                    checkInputsOutputs = false;
+                                }
+                                mRightClick.MenuItems.Add(new MenuItem(
+                                    text: "&Подсветить все входы-выходы '" + dgvo.cellValue[0] + "'",
+                                   onClick: PaintRowsFioItem_Click));
+                                mRightClick.MenuItems.Add(new MenuItem(
+                                    text: "&Сбросить фильтр",
+                                   onClick: ResetFilterLoadLastIputsOutput_Click));
+                                mRightClick.MenuItems.Add(new MenuItem(
+                                    text: "Подсветить все состояния '" + dgvo.cellValue[2] + "'",
+                                   onClick: PaintRowsActionItem_Click));
+                                mRightClick.MenuItems.Add("-");
+                                mRightClick.MenuItems.Add(new MenuItem(
+                                    text: "&Загрузить данные регистраций входов-выходов '" +
+                                            dgvo.cellValue[0] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
+                                    onClick: GetDataOfPerson_Click));
+                                mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
+                                break;
+                            }
+                        case "Mailing":
+                            {
+                                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                         @"Наименование", @"Описание", @"День отправки отчета", @"Период", @"Тип отчета", @"Получатель"});
 
-                        mRightClick.MenuItems.Add(new MenuItem(
-                            text: @"Выполнить активные рассылки по всем у кого: тип отчета - " +
-                                    dgvo.cellValue[4] + " за " + dgvo.cellValue[3] + " на " + dgvo.cellValue[2],
-                            onClick: SendAllReportsInSelectedPeriod));
-                        mRightClick.MenuItems.Add("-");
-                        mRightClick.MenuItems.Add(new MenuItem(
-                            text: @"Выполнить рассылку:   " + dgvo.cellValue[0] + "(" + dgvo.cellValue[1] + ") для " + dgvo.cellValue[5],
-                            onClick: DoMainAction));
-                        //mRightClick.MenuItems.Add("-");
-                        //mRightClick.MenuItems.Add(new MenuItem(text: @"Загрузить регистрации пропусков сотрудников группы: '" + dgvo.cellValue[1] +
-                        //     "' за " + _dateTimePickerStartReturnMonth() + " и &отправить: " + dgvo.cellValue[5], 
-                        //     onClick: DoReportAndEmailByRightClick));
-                        mRightClick.MenuItems.Add("-");
-                        mRightClick.MenuItems.Add(new MenuItem(
-                            text: @"Создать новую рассылку",
-                            onClick: PrepareForMakingFormMailing));
-                        mRightClick.MenuItems.Add(new MenuItem(
-                            text: @"Клонировать рассылку:   " + dgvo.cellValue[0] + "(" + dgvo.cellValue[1] + ")",
-                            onClick: MakeCloneMailing));
-                        mRightClick.MenuItems.Add("-");
-                        mRightClick.MenuItems.Add(new MenuItem(
-                            text: @"Состав рассылки:   " + dgvo.cellValue[0] + "(" + dgvo.cellValue[1] + ")",
-                            onClick: MembersGroupItem_Click));
-                        mRightClick.MenuItems.Add("-");
-                        mRightClick.MenuItems.Add(new MenuItem(
-                            text: @"Удалить рассылку:   " + dgvo.cellValue[0] + "(" + dgvo.cellValue[1] + ")",
-                            onClick: DeleteCurrentRow));
-                        mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
-                    }
-                    else if (nameOfLastTable == @"MailingException")
-                    {
-                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { @"Получатель" });
+                                mRightClick.MenuItems.Add(new MenuItem(
+                                    text: @"Выполнить активные рассылки по всем у кого: тип отчета - " +
+                                            dgvo.cellValue[4] + " за " + dgvo.cellValue[3] + " на " + dgvo.cellValue[2],
+                                    onClick: SendAllReportsInSelectedPeriod));
+                                mRightClick.MenuItems.Add("-");
+                                mRightClick.MenuItems.Add(new MenuItem(
+                                    text: @"Выполнить рассылку:   " + dgvo.cellValue[0] + "(" + dgvo.cellValue[1] + ") для " + dgvo.cellValue[5],
+                                    onClick: DoMainAction));
+                                //mRightClick.MenuItems.Add("-");
+                                //mRightClick.MenuItems.Add(new MenuItem(text: @"Загрузить регистрации пропусков сотрудников группы: '" + dgvo.cellValue[1] +
+                                //     "' за " + _dateTimePickerStartReturnMonth() + " и &отправить: " + dgvo.cellValue[5], 
+                                //     onClick: DoReportAndEmailByRightClick));
+                                mRightClick.MenuItems.Add("-");
+                                mRightClick.MenuItems.Add(new MenuItem(
+                                    text: @"Создать новую рассылку",
+                                    onClick: PrepareForMakingFormMailing));
+                                mRightClick.MenuItems.Add(new MenuItem(
+                                    text: @"Клонировать рассылку:   " + dgvo.cellValue[0] + "(" + dgvo.cellValue[1] + ")",
+                                    onClick: MakeCloneMailing));
+                                mRightClick.MenuItems.Add("-");
+                                mRightClick.MenuItems.Add(new MenuItem(
+                                    text: @"Состав рассылки:   " + dgvo.cellValue[0] + "(" + dgvo.cellValue[1] + ")",
+                                    onClick: MembersGroupItem_Click));
+                                mRightClick.MenuItems.Add("-");
+                                mRightClick.MenuItems.Add(new MenuItem(
+                                    text: @"Удалить рассылку:   " + dgvo.cellValue[0] + "(" + dgvo.cellValue[1] + ")",
+                                    onClick: DeleteCurrentRow));
+                                mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
+                                break;
+                            }
+                        case "MailingException":
+                            {
+                                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { @"Получатель" });
 
-                        mRightClick.MenuItems.Add(new MenuItem(
-                            text: @"Добавить новый адрес 'для исключения из рассылок'",
-                            onClick: MakeNewRecepientExcept));
-                        mRightClick.MenuItems.Add("-");
-                        mRightClick.MenuItems.Add(new MenuItem(
-                            text: @"Удалить адрес, ранее внесенный как 'исключеный из рассылок':   " + dgvo.cellValue[0],
-                            onClick: DeleteCurrentRow));
-                        mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
-                    }
-                    else if (nameOfLastTable == @"PeopleGroup" || nameOfLastTable == @"ListFIO")
-                    {
-                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                                mRightClick.MenuItems.Add(new MenuItem(
+                                    text: @"Добавить новый адрес 'для исключения из рассылок'",
+                                    onClick: MakeNewRecepientExcept));
+                                mRightClick.MenuItems.Add("-");
+                                mRightClick.MenuItems.Add(new MenuItem(
+                                    text: @"Удалить адрес, ранее внесенный как 'исключеный из рассылок':   " + dgvo.cellValue[0],
+                                    onClick: DeleteCurrentRow));
+                                mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
+                                break;
+                            }
+                        case "PeopleGroup":
+                        case "ListFIO":
+                            {
+                                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                         Names.FIO,
                         Names.CODE,
                         Names.DEPARTMENT,
@@ -7259,69 +7290,74 @@ namespace ASTA
                         Names.GROUP
                     });
 
-                        if (string.Compare(dgvo.cellValue[8], txtboxGroup) != 0 && txtboxGroup?.Length > 0) //добавить пункт меню если в текстбоксе группа другая
-                        {
-                            mRightClick.MenuItems.Add(new MenuItem(
-                                text: "&Добавить '" + dgvo.cellValue[0] + "' в группу '" + txtboxGroup + "'",
-                                onClick: AddPersonToGroupItem_Click));
-                            mRightClick.MenuItems.Add("-");
-                        }
+                                if (string.Compare(dgvo.cellValue[8], txtboxGroup) != 0 && txtboxGroup?.Length > 0) //добавить пункт меню если в текстбоксе группа другая
+                                {
+                                    mRightClick.MenuItems.Add(new MenuItem(
+                                        text: "&Добавить '" + dgvo.cellValue[0] + "' в группу '" + txtboxGroup + "'",
+                                        onClick: AddPersonToGroupItem_Click));
+                                    mRightClick.MenuItems.Add("-");
+                                }
 
-                        mRightClick.MenuItems.Add(new MenuItem(
-                            text: "Загрузить регистрации пропусков на входе в офис &группы сотрудников '" + dgvo.cellValue[8] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
-                            onClick: GetDataOfGroup_Click));
+                                mRightClick.MenuItems.Add(new MenuItem(
+                                    text: "Загрузить регистрации пропусков на входе в офис &группы сотрудников '" + dgvo.cellValue[8] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
+                                    onClick: GetDataOfGroup_Click));
 
-                        mRightClick.MenuItems.Add(new MenuItem(
-                            text: "Загрузить регистрации пропусков на входе в офис &сотрудника: '" + dgvo.cellValue[0] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
-                            onClick: GetDataOfPerson_Click));
-                        mRightClick.MenuItems.Add("-");
-                        mRightClick.MenuItems.Add(new MenuItem(
-                            text: "&Удалить '" + dgvo.cellValue[0] + "' из группы '" + txtboxGroup + "'",
-                            onClick: DeleteCurrentRow));
-                        mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
-                    }
-                    else if (nameOfLastTable == @"BoldedDates")
-                    {
-                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                                mRightClick.MenuItems.Add(new MenuItem(
+                                    text: "Загрузить регистрации пропусков на входе в офис &сотрудника: '" + dgvo.cellValue[0] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
+                                    onClick: GetDataOfPerson_Click));
+                                mRightClick.MenuItems.Add("-");
+                                mRightClick.MenuItems.Add(new MenuItem(
+                                    text: "&Удалить '" + dgvo.cellValue[0] + "' из группы '" + txtboxGroup + "'",
+                                    onClick: DeleteCurrentRow));
+                                mRightClick.Show(dataGridView1, new Point(e.X, e.Y)); break;
+                            }
+                        case "BoldedDates":
+                            {
+                                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                         Names.DAYOFF_DATE,
                         Names.DAYOFF_USED_BY,
                         Names.DAYOFF_TYPE
                     });
 
-                        string dayType = "";
-                        if (txtboxGroup?.Length == 0 || txtboxGroup?.ToLower() == "выходной")
-                        { dayType = "Выходной"; }
-                        else { dayType = "Рабочий"; }
+                                string dayType = "";
+                                if (txtboxGroup?.Length == 0 || txtboxGroup?.ToLower() == "выходной")
+                                { dayType = "Выходной"; }
+                                else { dayType = "Рабочий"; }
 
-                        string nav = "";
-                        if (textBoxNav?.Text?.Trim()?.Length != 6)
-                        { nav = "для всех"; }
-                        else { nav = textBoxNav.Text.Trim(); }
+                                string nav = "";
+                                if (textBoxNav?.Text?.Trim()?.Length != 6)
+                                { nav = "для всех"; }
+                                else { nav = textBoxNav.Text.Trim(); }
 
-                        string navD = "";
-                        if (dgvo.cellValue[1]?.Length != 6)
-                        { navD = "всех"; }
-                        else { navD = dgvo.cellValue[1]; }
+                                string navD = "";
+                                if (dgvo.cellValue[1]?.Length != 6)
+                                { navD = "всех"; }
+                                else { navD = dgvo.cellValue[1]; }
 
-                        mRightClick.MenuItems.Add(new MenuItem(
-                            text: @"Сохранить для " + nav + @" как '" + dayType + @"' " + monthCalendar.SelectionStart.ToYYYYMMDD(),
-                            onClick: AddAnualDateItem_Click));
-                        mRightClick.MenuItems.Add("-");
-                        mRightClick.MenuItems.Add(new MenuItem(
-                            text: @"Удалить из сохранненых '" + dgvo.cellValue[2] + @"'  '" + dgvo.cellValue[0] + @"' для " + navD,
-                            onClick: DeleteAnualDateItem_Click));
-                        mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
-                    }
-                    else if (nameOfLastTable == @"SelectedCityToLoadFromWeb")
-                    {
-                        mRightClick.MenuItems.Add(new MenuItem(
-                            text: @"Добавить новый город",
-                            onClick: AddNewCityToLoadByRightClick));
-                        mRightClick.MenuItems.Add("-");
-                        mRightClick.MenuItems.Add(new MenuItem(
-                            text: @"Удалить выбранный город",
-                            onClick: DeleteCityToLoadByRightClick));
-                        mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
+                                mRightClick.MenuItems.Add(new MenuItem(
+                                    text: @"Сохранить для " + nav + @" как '" + dayType + @"' " + monthCalendar.SelectionStart.ToYYYYMMDD(),
+                                    onClick: AddAnualDateItem_Click));
+                                mRightClick.MenuItems.Add("-");
+                                mRightClick.MenuItems.Add(new MenuItem(
+                                    text: @"Удалить из сохранненых '" + dgvo.cellValue[2] + @"'  '" + dgvo.cellValue[0] + @"' для " + navD,
+                                    onClick: DeleteAnualDateItem_Click));
+                                mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
+                                break;
+                            }
+                        case "SelectedCityToLoadFromWeb":
+                            {
+                                mRightClick.MenuItems.Add(new MenuItem(
+                                    text: @"Добавить новый город",
+                                    onClick: AddNewCityToLoadByRightClick));
+                                mRightClick.MenuItems.Add("-");
+                                mRightClick.MenuItems.Add(new MenuItem(
+                                    text: @"Удалить выбранный город",
+                                    onClick: DeleteCityToLoadByRightClick));
+                                mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
+                                break;
+                            }
+                        default:
+                            break;
                     }
                 }
             }
@@ -7778,7 +7814,7 @@ namespace ASTA
                         MembersGroupItem.Enabled = true;
                         break;
                     }
-                case "PeopleGroup" when group.Length > 0:
+                case "PeopleGroup" when group?.Length > 0:
                     {
                         int indexCurrentRow = dgvo.RowsCount(dataGridView1);
 
