@@ -1,11 +1,11 @@
 ﻿namespace ASTA.Classes
 {
-    public class AccountEventArgs
+    public class EventTextArgs
     {
         // Сообщение
         public string Message { get; }
 
-        public AccountEventArgs(string mes)
+        public EventTextArgs(string mes)
         {
             Message = mes;
         }

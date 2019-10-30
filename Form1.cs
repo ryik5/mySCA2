@@ -52,17 +52,17 @@ namespace ASTA
         static string appFileZip;
         static string appFileMD5;
 
-        static string remoteFolderUpdateURL;// = @"kv-sb-server.corp.ais\Common\ASTA";
-        static string appUpdateURL;// = appUpdateFolderURL + appNameXML;
+        static string remoteFolderUpdateURL; // format - server.domain.subdomain/folder  or   server/folder
+        static string appUpdateURL;          // = appUpdateFolderURL + appNameXML;
 
-        static bool uploadingUpdate = false;
+        static bool uploadingStatus = false;
 
         static string appFilePath = System.Reflection.Assembly.GetEntryAssembly().Location;// Application.ExecutablePath;
         static string localAppFolderPath; //Environment.CurrentDirectory
         static string appFolderTempPath;
         static string appFolderUpdatePath;
         static string appFolderBackUpPath;
-
+        string domainOfUser = null;
         readonly static string[] appAllFiles =  {
                 @"ASTA.exe" , @"NLog.config", @"AutoUpdater.NET.dll",
                 @"ASTA.sql", @"Google.Protobuf.dll", @"NLog.dll",
@@ -330,7 +330,7 @@ namespace ASTA
             appDbName = System.IO.Path.GetFileName(appDbPath);
             sqLiteLocalConnectionString = string.Format("Data Source = {0}; Version=3;", dbApplication); ////$"Data Source={dbApplication.FullName};Version=3;"
             statusBar = appName + " ver." + appVersionAssembly + " by " + appCopyright;
-            
+
             sLastSelectedElement = "MainForm";
             nameOfLastTable = "PersonRegistrationsList";
             _toolStripStatusLabelSetText(StatusLabel1, "");
@@ -355,10 +355,10 @@ namespace ASTA
             //Настройка отображаемых пунктов меню и других элементов интерфеса
             currentModeAppManual = true;
             System.IO.Directory.CreateDirectory(appFolderBackUpPath);
-            System.IO.Directory.CreateDirectory(appFolderTempPath );
-            System.IO.Directory.CreateDirectory(appFolderUpdatePath );
+            System.IO.Directory.CreateDirectory(appFolderTempPath);
+            System.IO.Directory.CreateDirectory(appFolderUpdatePath);
 
-           
+
             ClearItemsInFolder(appFolderTempPath);   //Clear temporary folder 
             ClearItemsInFolder(appFolderUpdatePath); //System.IO.Path.Combine(appFolderUpdatePath, @"*.*")
             ClearItemsInFolder(System.IO.Path.Combine(localAppFolderPath, appFileZip));
@@ -373,7 +373,7 @@ namespace ASTA
             //refresh temp folder
             ClearItemsInFolder(appFolderTempPath); //+ @"\*.*"
 
-                                   
+
 
             //2. from the main DB of application
             string dbZipPath = appDbName + "." + GetSafeFilename(DateTime.Now.ToYYYYMMDDHHMMSS(), "") + @".zip";
@@ -383,7 +383,7 @@ namespace ASTA
 
             //refresh temp folder
             ClearItemsInFolder(appFolderTempPath); //+ @"\*.*"
-            
+
 
             //Check local DB Configuration
             logger.Trace("Проверка локальной БД");
@@ -709,7 +709,7 @@ namespace ASTA
                 else
                 {
                     _toolStripStatusLabelBackColor(StatusLabel2, prevColor);
-                    if (prevText?.Length > 0&&!nameof(StatusLabel2).Equals(prevText))
+                    if (prevText?.Length > 0 && !nameof(StatusLabel2).Equals(prevText))
                     { _toolStripStatusLabelSetText(StatusLabel2, prevText); }
                 }
             };
@@ -890,6 +890,8 @@ namespace ASTA
                 mailJobReportsOfNameOfReceiver = GetValueOfConfigParameter(listParameters, @"JobReportsReceiver", null, true);
                 string defaultURL = remoteFolderUpdateURL;
                 remoteFolderUpdateURL = GetValueOfConfigParameter(listParameters, @"RemoteFolderUpdateURL", defaultURL);
+
+                domainOfUser = GetValueOfConfigParameter(listParameters, @"DomainOfUser", null);
             }
 
             //set app's variables
@@ -1137,25 +1139,46 @@ namespace ASTA
             }
         }
 
+        private string SaveParameterInConfig(string name, string value, string description, bool isPassword, string example)
+        {
+            ParameterOfConfigurationInSQLiteDB parameter = new ParameterOfConfigurationInSQLiteDB(dbApplication);
+
+            ParameterOfConfiguration parameterOfConfiguration = new ParameterOfConfigurationBuilder().
+                SetParameterName(name).
+                SetParameterValue(value).
+                SetParameterDescription(description).
+                IsPassword(isPassword).
+                SetIsExample(example);
+
+            return parameter.SaveParameter(parameterOfConfiguration);
+        }
 
         private void ButtonPropertiesSave_inConfig(object sender, EventArgs e) //SaveProperties()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
             string textLabel = _ReturnTextOfControl(labelSettings9);
+
             string description = textLabel?.ToLower() == "example" ? "" : textLabel;
+            string name = _ReturnTextOfControl(labelServer1);
+            string value = _ReturnTextOfControl(textBoxSettings16);
+            bool isPassword = _ReturnCheckboxCheckedState(checkBox1);
+            string example = "no";
 
-            ParameterOfConfigurationInSQLiteDB parameter = new ParameterOfConfigurationInSQLiteDB(dbApplication);
 
-            ParameterOfConfiguration parameterOfConfiguration = new ParameterOfConfigurationBuilder().
-                SetParameterName(labelServer1.Text).
-                SetParameterValue(textBoxSettings16.Text).
-                SetParameterDescription(description).
-                IsPassword(checkBox1.Checked).
-                SetIsExample("no");
+            //ParameterOfConfigurationInSQLiteDB parameter = new ParameterOfConfigurationInSQLiteDB(dbApplication);
 
-            string resultSaving = parameter.SaveParameter(parameterOfConfiguration);
-            MessageBox.Show(parameterOfConfiguration.ParameterName + " (" + parameterOfConfiguration.ParameterValue + ")\n" + resultSaving);
+            //ParameterOfConfiguration parameterOfConfiguration = new ParameterOfConfigurationBuilder().
+            //    SetParameterName(labelServer1.Text).
+            //    SetParameterValue(textBoxSettings16.Text).
+            //    SetParameterDescription(description).
+            //    IsPassword(checkBox1.Checked).
+            //    SetIsExample("no");
+
+            //string resultSaving = parameter.SaveParameter(parameterOfConfiguration);
+            string resultSaving = SaveParameterInConfig(name, value, description, isPassword, example);
+
+            MessageBox.Show(name + " обновлен новым значением - " + value + "\n" + resultSaving);
 
             DisposeTemporaryControls();
             _ControlVisible(panelView, true);
@@ -1368,7 +1391,7 @@ namespace ASTA
             logger.Trace("GetUsersFromAD: ");
             string user = null;
             string password = null;
-            string domain = null;
+
             string domainController = null;
 
             ADData ad;
@@ -1382,15 +1405,15 @@ namespace ASTA
             user = listParameters.FindLast(x => x?.parameterName == @"UserName")?.Value;
             password = listParameters.FindLast(x => x?.parameterName == @"UserPassword")?.Value;
             domainController = listParameters.FindLast(x => x?.parameterName == @"DomainController")?.Value;
-            domain = listParameters.FindLast(x => x?.parameterName == @"DomainOfUser")?.Value;
+            domainOfUser = listParameters.FindLast(x => x?.parameterName == @"DomainOfUser")?.Value;
 
-            logger.Trace("user, domain, password, server: " + user + " |" + domain + " |" + password + " |" + domainController);
+            logger.Trace("user, domain, password, server: " + user + " |" + domainOfUser + " |" + password + " |" + domainController);
 
-            if (user?.Length > 0 && password?.Length > 0 && domain?.Length > 0 && domainController?.Length > 0)
+            if (user?.Length > 0 && password?.Length > 0 && domainOfUser?.Length > 0 && domainController?.Length > 0)
             {
-                _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные из домена: " + domain);
+                _toolStripStatusLabelSetText(StatusLabel2, "Получаю данные из домена: " + domainOfUser);
 
-                ad = new ADData(user, domain, password, domainController);
+                ad = new ADData(user, domainOfUser, password, domainController);
                 ad.ADUsersCollection.CollectionChanged += Users_CollectionChanged;
                 usersAD = ad.GetADUsers().ToList();
                 usersAD.Sort();
@@ -1403,15 +1426,15 @@ namespace ASTA
                     logger.Trace(person?.fio + " |" + person?.login + " |" + person?.code + " |" + person?.mail + " |" + person?.lastLogon);
                 }
                 countUsers = usersAD.Count;
-                _toolStripStatusLabelSetText(StatusLabel2, "Из домена " + domain + " получено " + countUsers + " ФИО сотрудников");
+                _toolStripStatusLabelSetText(StatusLabel2, "Из домена " + domainOfUser + " получено " + countUsers + " ФИО сотрудников");
             }
             else
             {
                 _toolStripStatusLabelSetText(
                     StatusLabel2,
-                    "Ошибка доступа к домену " + domain,
+                    "Ошибка доступа к домену " + domainOfUser,
                     true,
-                    "It hasn't access to AD: user: " + user + "| domain: " + domain + "| password: " + password + "| server: " + domainController);
+                    "It hasn't access to AD: user: " + user + "| domain: " + domainOfUser + "| password: " + password + "| server: " + domainController);
             }
         }
 
@@ -4130,7 +4153,7 @@ namespace ASTA
             {
                 dtPeopleGroup = LoadGroupMembersFromDbToDataTable(nameGroup);
 
-                if (_CheckboxCheckedStateReturn(checkBoxReEnter))
+                if (_ReturnCheckboxCheckedState(checkBoxReEnter))
                 {
                     foreach (DataRow row in dtPeopleGroup.Rows)
                     {
@@ -4162,7 +4185,7 @@ namespace ASTA
             }
             else
             {
-                if (!_CheckboxCheckedStateReturn(checkBoxReEnter))
+                if (!_ReturnCheckboxCheckedState(checkBoxReEnter))
                 { dtTempIntermediate = dtPersonRegistrationsFullList.Copy(); }
                 else
                 { FilterRegistrationsOfPerson(ref person, dtPersonRegistrationsFullList, ref dtTempIntermediate); }
@@ -4177,16 +4200,16 @@ namespace ASTA
             ShowDatatableOnDatagridview(dtPersonTemp, "PeopleGroup");
 
             //change enabling of checkboxes
-            if (_CheckboxCheckedStateReturn(checkBoxReEnter))// if (checkBoxReEnter.Checked)
+            if (_ReturnCheckboxCheckedState(checkBoxReEnter))// if (checkBoxReEnter.Checked)
             {
                 _ControlEnable(checkBoxTimeViolations, true);
                 _ControlEnable(checkBoxWeekend, true);
                 _ControlEnable(checkBoxCelebrate, true);
 
-                if (_CheckboxCheckedStateReturn(checkBoxTimeViolations))  // if (checkBoxStartWorkInTime.Checked)
+                if (_ReturnCheckboxCheckedState(checkBoxTimeViolations))  // if (checkBoxStartWorkInTime.Checked)
                 { _MenuItemBackColorChange(LoadDataItem, SystemColors.Control); }
             }
-            else if (!_CheckboxCheckedStateReturn(checkBoxReEnter))
+            else if (!_ReturnCheckboxCheckedState(checkBoxReEnter))
             {
                 _CheckboxCheckedSet(checkBoxTimeViolations, false);
                 _CheckboxCheckedSet(checkBoxWeekend, false);
@@ -4230,7 +4253,7 @@ namespace ASTA
             {
                 var allWorkedDaysPerson = dataTableSource.Select("[NAV-код] = '" + person.code + "'");
 
-                if (_CheckboxCheckedStateReturn(checkBoxReEnter) || currentAction == "sendEmail") //checkBoxReEnter.Checked
+                if (_ReturnCheckboxCheckedState(checkBoxReEnter) || currentAction == "sendEmail") //checkBoxReEnter.Checked
                 {
                     foreach (DataRow dataRowDate in allWorkedDaysPerson) //make the list of worked days
                     { hsDays.Add(dataRowDate[Names.DATE_REGISTRATION]?.ToString()); }
@@ -4342,13 +4365,13 @@ namespace ASTA
                         dtTemp.ImportRow(rowDtStoring);
                     }
                 }
-                else if (!_CheckboxCheckedStateReturn(checkBoxReEnter))
+                else if (!_ReturnCheckboxCheckedState(checkBoxReEnter))
                 {
                     foreach (DataRow dr in allWorkedDaysPerson)
                     { dtTemp.ImportRow(dr); }
                 }
 
-                if (_CheckboxCheckedStateReturn(checkBoxWeekend) || currentAction == "sendEmail")//checkBoxWeekend Checking
+                if (_ReturnCheckboxCheckedState(checkBoxWeekend) || currentAction == "sendEmail")//checkBoxWeekend Checking
                 {
                     SeekAnualDays(ref dtTemp, ref person, true,
                         ConvertStringDateToIntArray(reportStartDay),
@@ -4356,7 +4379,7 @@ namespace ASTA
                         ref myBoldedDates, ref workSelectedDays);
                 }
 
-                if (_CheckboxCheckedStateReturn(checkBoxTimeViolations)) //checkBoxStartWorkInTime Checking
+                if (_ReturnCheckboxCheckedState(checkBoxTimeViolations)) //checkBoxStartWorkInTime Checking
                 { QueryDeleteDataFromDataTable(ref dtTemp, "[Опоздание ЧЧ:ММ]='' AND [Ранний уход ЧЧ:ММ]=''", person.code); }
 
                 foreach (DataRow dr in dtTemp.AsEnumerable())
@@ -4840,9 +4863,10 @@ namespace ASTA
             {
                 var dir = new System.IO.DirectoryInfo(maskFiles);
 
-                try {
+                try
+                {
                     logger.Trace("dir.FullName: " + dir.FullName);
-                    dir.Delete(true); 
+                    dir.Delete(true);
                     logger.Trace("Папка удалена: " + maskFiles);
                 }
                 catch (Exception e) { logger.Warn("Папка не удалена: " + maskFiles + " " + e.Message); }
@@ -4859,9 +4883,9 @@ namespace ASTA
             else
             {
                 var dir = System.IO.Path.GetDirectoryName(maskFiles);//get path of dir
-               System.IO.FileInfo[] filesPath = new System.IO.DirectoryInfo(dir).GetFiles(
-                      maskFiles.Remove(0, maskFiles.LastIndexOf(@"\") + 1),
-                      System.IO.SearchOption.AllDirectories); //get files from dir
+                System.IO.FileInfo[] filesPath = new System.IO.DirectoryInfo(dir).GetFiles(
+                       maskFiles.Remove(0, maskFiles.LastIndexOf(@"\") + 1),
+                       System.IO.SearchOption.AllDirectories); //get files from dir
                 if (filesPath?.Length > 0)
                 {
                     foreach (var file in filesPath)
@@ -4988,7 +5012,7 @@ namespace ASTA
 
             CheckBoxesFiltersAll_Enable(false);
 
-            if (_CheckboxCheckedStateReturn(checkBoxReEnter))
+            if (_ReturnCheckboxCheckedState(checkBoxReEnter))
             {
                 logger.Trace("DrawFullWorkedPeriodRegistration: ");
                 DrawFullWorkedPeriodRegistration(ref personVisual);
@@ -6478,10 +6502,6 @@ namespace ASTA
 
                     DisposeTemporaryControls();
                     _ControlVisible(panelView, true);
-
-                    parameterOfConfiguration = null;
-                    parameterSQLite = null;
-                    resultSaving = null;
                 }
 
                 if (mailServer?.Length > 0 && mailServerSMTPPort > 0)
@@ -9140,7 +9160,7 @@ namespace ASTA
                 checkBox.Checked = checkboxChecked;
         }
 
-        private bool _CheckboxCheckedStateReturn(CheckBox checkBox) //add string into  from other threads
+        private bool _ReturnCheckboxCheckedState(CheckBox checkBox) //add string into  from other threads
         {
             bool checkBoxChecked = false;
             if (InvokeRequired)
@@ -9724,13 +9744,18 @@ namespace ASTA
 
 
 
-        private void StatusLabelAddInfo(object sender, AccountEventArgs e)
+        private void StatusLabelAddInfo(object sender, EventTextArgs e)
         {
             _toolStripStatusLabelSetText(StatusLabel2, e.Message);
         }
-        private void StatusLabelSetBackColor(object sender, AccountEventBoolArgs e)
+        private void StatusLabelSetBackColor(object sender, EventColorArgs e)
         {
             _toolStripStatusLabelBackColor(StatusLabel2, e.Color);
+        }
+
+        private void UploadingStatus(object sender, EventBoolArgs e)
+        {
+            resultOfUploading = e.Status;
         }
 
         private void StatusLabelAddInfo(string message)
@@ -9738,7 +9763,7 @@ namespace ASTA
             _toolStripStatusLabelSetText(StatusLabel2, message);
         }
 
-        private void LoggerAddInfo(object sender, AccountEventArgs e)
+        private void LoggerAddInfo(object sender, EventTextArgs e)
         {
             logger.Info(e.Message);
         }
@@ -9864,7 +9889,7 @@ namespace ASTA
         /// <param name="e"></param>
         private void AutoupdatItem_Click(object sender, EventArgs e)
         {
-            if (!uploadingUpdate)
+            if (!uploadingStatus)
             {
                 UpdatingParameters parameters = MakeStartParametersOfUpdating();
                 appUpdateURL = parameters.appUpdateURL;
@@ -9880,7 +9905,7 @@ namespace ASTA
 
                 AutoUpdater.UpdateMode = Mode.Normal;
                 AutoUpdater.ReportErrors = true;
-               // AutoUpdater.AppCastURL = parameters.appUpdateURL;
+                // AutoUpdater.AppCastURL = parameters.appUpdateURL;
                 AutoUpdater.CheckForUpdateEvent += AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
                 AutoUpdater.ApplicationExitEvent += ApplicationExit;    //https://archive.codeplex.com/?p=autoupdaterdotnet
                 AutoUpdater.Start(parameters.appUpdateURL);
@@ -9889,8 +9914,37 @@ namespace ASTA
             { _toolStripStatusLabelSetText(StatusLabel2, @"Ждите! На сервер загружается новая версия ПО"); }
         }
 
+        private string ChangeRemoteServerUrl(string urlOfUpdatingServer)
+        {
+            string url = null;
+            if (urlOfUpdatingServer.ToLower().Contains(domainOfUser.ToLower()))
+                url = urlOfUpdatingServer.Replace("." + domainOfUser, "");
+            else
+            {
+                if (urlOfUpdatingServer.Contains('/'))
+                    url = urlOfUpdatingServer.Insert(urlOfUpdatingServer.IndexOf('/'), "." + domainOfUser);
+                else if (urlOfUpdatingServer.Contains(@"\"))
+                    url = urlOfUpdatingServer.Insert(urlOfUpdatingServer.IndexOf(@"\"), "." + domainOfUser);
+            }
+            return url;
+        }
+
+        private void ReplaceBrokenRemoteFolderUpdateURL()
+        {
+            string oldUrl = remoteFolderUpdateURL;
+            logger.Info("old remoteFolderUpdateURL:" + oldUrl);
+            remoteFolderUpdateURL = ChangeRemoteServerUrl(oldUrl);
+            logger.Info("remoteFolderUpdateURL: " + oldUrl + " -> " + remoteFolderUpdateURL);
+            replaceBrokenRemoteFolderUpdateURL = true;
+        }
+
         UpdatingParameters MakeStartParametersOfUpdating()
         {
+            if (urlUpdateReachError)
+            {
+                ReplaceBrokenRemoteFolderUpdateURL();
+            }
+
             UpdatingParameters parameters = new UpdatingParameters
             {
                 localFolderUpdatingURL = localAppFolderPath,
@@ -9904,6 +9958,8 @@ namespace ASTA
             MakerOfLinks makerLinks = new MakerOfLinks();
             makerLinks.SetParameters(parameters);
             makerLinks.Make();
+
+            urlUpdateReachError = false;
 
             return makerLinks.GetParameters();
         }
@@ -9931,13 +9987,13 @@ namespace ASTA
                 // AutoUpdater.RemindLaterTimeSpan = RemindLaterFormat.Minutes;
                 // AutoUpdater.RemindLaterAt = 1;
                 // AutoUpdater.ApplicationExitEvent += ApplicationExit;
-                if (!uploadingUpdate)
+                if (!uploadingStatus)
                 {
                     UpdatingParameters parameters = MakeStartParametersOfUpdating();
                     logger.Trace(@"Update URL: " + parameters.appUpdateURL);
 
-                  //  AutoUpdater.ApplicationExitEvent += AutoUpdater_ApplicationExitEvent;    //https://archive.codeplex.com/?p=autoupdaterdotnet
-                    
+                    //  AutoUpdater.ApplicationExitEvent += AutoUpdater_ApplicationExitEvent;    //https://archive.codeplex.com/?p=autoupdaterdotnet
+
                     AutoUpdater.Mandatory = true;
                     AutoUpdater.UpdateMode = Mode.ForcedDownload;
                     AutoUpdater.RunUpdateAsAdmin = false;
@@ -9963,6 +10019,7 @@ namespace ASTA
             {
                 if (args.IsUpdateAvailable)
                 {
+                            urlUpdateReachError = false;
                     try
                     {
                         if (AutoUpdater.DownloadUpdate())
@@ -9975,6 +10032,7 @@ namespace ASTA
                             xmldoc.Load(parameters.appUpdateURL);
                             xmlnode = xmldoc.GetElementsByTagName("version");
                             string foundNewVersionApp = xmlnode[0].InnerText;
+
                             logger.Info("-----------------------------------------");
                             logger.Info("");
                             logger.Trace("-= Update =-");
@@ -9989,6 +10047,19 @@ namespace ASTA
                             logger.Trace("-= Update =-");
                             logger.Info("");
                             logger.Info("-----------------------------------------");
+
+                         
+                            if (replaceBrokenRemoteFolderUpdateURL && urlUpdateReachError)
+                            {
+                                string message = SaveParameterInConfig(
+                                    "RemoteFolderUpdateURL",
+                                    remoteFolderUpdateURL,
+                                    "Параметр обновлен " + DateTime.Now.ToYYYYMMDDHHMMSS(),
+                                    false,
+                                    "no");
+
+                                System.Threading.Thread.Sleep(200);
+                            }   //update broken RemoteFolderUpdateURL by correct URL
 
                             ApplicationExit();
                         }
@@ -10006,7 +10077,9 @@ namespace ASTA
             }
             else
             {
-                logger.Warn(@"Update check failed: There is a problem reaching update server URL.");
+                _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
+
+                _toolStripStatusLabelSetText(StatusLabel2, @"Update check failed: There is a problem reaching update server URL.");
                 urlUpdateReachError = true;
                 logger.Warn(@"Измените формат URL сервера обновлений");
                 logger.Warn(@"Если адрес был server.domain.subdomain/folder -> server/folder");
@@ -10065,7 +10138,6 @@ namespace ASTA
             //  TestHash();
         }
 
-
         private void SelectfilesForCalculatingHash() //SelectFileOpenFileDialog() CalculateFileHash()
         {
             string result = null;
@@ -10119,14 +10191,32 @@ namespace ASTA
         //Upload App's files to Server
         private void UploadApplicationItem_Click(object sender, EventArgs e) //Uploading()
         {
-            Task.Run(() => Uploading());
+            firstAttemptsUpdate = true;
+            Task.Run(() => UploadUpdatinfAplication());
+        }
+        private async void UploadUpdatinfAplication()
+        {
+            Uploading();
+
+            if (replaceBrokenRemoteFolderUpdateURL && resultOfUploading)
+            {
+                string message = SaveParameterInConfig(
+                    "RemoteFolderUpdateURL", 
+                    remoteFolderUpdateURL, 
+                    "Параметр обновлен " + DateTime.Now.ToYYYYMMDDHHMMSS(), 
+                    false, 
+                    "no");
+
+                _toolStripStatusLabelSetText(StatusLabel2, message);
+            }
         }
 
-        private async void Uploading() //UploadApplicationToShare()
+        private void Uploading() //UploadApplicationToShare()
         {
             _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
 
-            uploadingUpdate = true;
+            uploadingStatus = true;
+            resultOfUploading = false;
 
             UpdatingParameters parameters = PrepareUpdating();
 
@@ -10142,23 +10232,44 @@ namespace ASTA
 
             using (Uploader uploader = new Uploader(parameters, source, target))
             {
-                uploader.status += StatusLabelAddInfo;
-                uploader.uploaded += StatusLabelSetBackColor;
+                uploader.Info += StatusLabelAddInfo;
+                uploader.ColorOfStatus += StatusLabelSetBackColor;
+                uploader.Status += UploadingStatus;
                 uploader.Upload();
-                uploader.status -= StatusLabelAddInfo;
-                uploader.uploaded -= StatusLabelSetBackColor;
+
+                uploader.Info -= StatusLabelAddInfo;
+                uploader.ColorOfStatus -= StatusLabelSetBackColor;
+                uploader.Status -= UploadingStatus;
             }
 
             foreach (var file in source)
             {
                 if (System.IO.File.Exists(file))
                 {
-                    try { System.IO.File.Delete(file); } catch { }
+                    try { System.IO.File.Delete(file); }
+                    catch { }
                 }
 
             }
+
             parameters = null;
-            uploadingUpdate = false;
+
+            if (!resultOfUploading && uploadingStatus && firstAttemptsUpdate)
+            {
+
+                ReplaceBrokenRemoteFolderUpdateURL();
+
+                System.Threading.Thread.Sleep(200);
+
+                firstAttemptsUpdate = false;
+                Uploading();
+            }
+
+            uploadingStatus = false;
         }
+
+        static bool replaceBrokenRemoteFolderUpdateURL = false;
+        static bool firstAttemptsUpdate = true;
+        static bool resultOfUploading = false;
     }
 }

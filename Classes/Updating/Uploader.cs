@@ -7,12 +7,15 @@ namespace ASTA.Classes.Updating
 {
     public class Uploader : IDisposable
     {
-        public delegate void Status(object sender, AccountEventArgs e);
-        public event Status status;
+        public delegate void InfoStatus(object sender, EventTextArgs e);
+        public event InfoStatus Info;
 
-        public delegate void StatusUploading(object sender, AccountEventBoolArgs e);
-        public event StatusUploading uploaded;
+        public delegate void MarkerOfUploading(object sender, EventColorArgs e);
+        public event MarkerOfUploading ColorOfStatus;
         string messageOfErrorUploading = null;
+
+        public delegate void Uploaded(object sender, EventBoolArgs e);
+        public event Uploaded Status;
 
         private string[] _source;
         private string[] _target;
@@ -21,7 +24,7 @@ namespace ASTA.Classes.Updating
 
         public Uploader(UpdatingParameters parameters, string[] source, string[] target)
         {
-            status?.Invoke(this, new AccountEventArgs(""));
+            Info?.Invoke(this, new EventTextArgs(""));
             _parameters = parameters;
             _source = source;
             _target = target;
@@ -29,9 +32,9 @@ namespace ASTA.Classes.Updating
 
         public async void Upload()
         {
-            status?.Invoke(this, new AccountEventArgs("Начало отправки обновлений..."));
+            Info?.Invoke(this, new EventTextArgs("Начало отправки обновлений..."));
 
-            uploaded?.Invoke(this, new AccountEventBoolArgs(true, System.Drawing.SystemColors.Control));
+            ColorOfStatus?.Invoke(this, new EventColorArgs( System.Drawing.SystemColors.Control));
             uploadingError = false;
 
             Contract.Requires(_parameters != null);
@@ -49,13 +52,13 @@ namespace ASTA.Classes.Updating
 
             if (!uploadingError)
             {
-                status?.Invoke(this, new AccountEventArgs("Обновление отправлено -> " + _parameters.remoteFolderUpdatingURL));
-                uploaded?.Invoke(this, new AccountEventBoolArgs(false, System.Drawing.Color.PaleGreen));
+                Info?.Invoke(this, new EventTextArgs("Обновление отправлено -> " + _parameters.remoteFolderUpdatingURL));
+                ColorOfStatus?.Invoke(this, new EventColorArgs( System.Drawing.Color.PaleGreen));
             }
             else
             {
-                status?.Invoke(this, new AccountEventArgs("Ошибки отправки обновления -> " + _parameters.remoteFolderUpdatingURL + "\r\n" + messageOfErrorUploading));
-                uploaded?.Invoke(this, new AccountEventBoolArgs(false, System.Drawing.Color.DarkOrange));
+                Info?.Invoke(this, new EventTextArgs("Ошибки отправки обновления -> " + _parameters.remoteFolderUpdatingURL + "\r\n" + messageOfErrorUploading));
+                ColorOfStatus?.Invoke(this, new EventColorArgs( System.Drawing.Color.DarkOrange));
             }
         }
 
@@ -76,29 +79,33 @@ namespace ASTA.Classes.Updating
         private async Task UploadApplicationToShare(string source, string target)
         {
             Contract.Requires(!source.Equals(target));
-            status?.Invoke(this, new AccountEventArgs("Идет отправка файла " + source + " -> " + target));
+            Info?.Invoke(this, new EventTextArgs("Идет отправка файла " + source + " -> " + target));
+            Status?.Invoke(this, new EventBoolArgs(false));
+            ColorOfStatus?.Invoke(this, new EventColorArgs(System.Drawing.SystemColors.Control));
 
             try
             {
                 // var fileByte = System.IO.File.ReadAllBytes(source);
                 // System.IO.File.WriteAllBytes(target, fileByte);
                 try { System.IO.File.Delete(target); }
-                catch { status?.Invoke(this, new AccountEventArgs("Файл на сервере: " + target + " удалить не удалось")); } //@"\\server\folder\Myfile.txt"
+                catch { Info?.Invoke(this, new EventTextArgs("Файл на сервере: " + target + " удалить не удалось")); } //@"\\server\folder\Myfile.txt"
 
                 System.IO.File.Copy(source, target, true); //@"\\server\folder\Myfile.txt"
-                status?.Invoke(this, new AccountEventArgs("Отправка файла на сервер выполнена " + target));
-                uploaded?.Invoke(this, new AccountEventBoolArgs(true, System.Drawing.Color.LightGreen));
+                
+                Info?.Invoke(this, new EventTextArgs("Отправка файла на сервер выполнена " + target));
+                ColorOfStatus?.Invoke(this, new EventColorArgs(System.Drawing.Color.LightGreen));
+                Status?.Invoke(this, new EventBoolArgs(true));
             }
             catch (Exception err)
             {
-                status?.Invoke(this, new AccountEventArgs("Отправка файла на сервер " + target + " завершена с ошибкой: " + err.ToString()));
+                Info?.Invoke(this, new EventTextArgs("Отправка файла на сервер " + target + " завершена с ошибкой: " + err.ToString()));
                 uploadingError = true;
 
                 if (string.IsNullOrEmpty(messageOfErrorUploading))
                     messageOfErrorUploading = err.Message;
                 else
                     messageOfErrorUploading += "|" + err.Message;
-                uploaded?.Invoke(this, new AccountEventBoolArgs(false, System.Drawing.Color.LightYellow));
+                ColorOfStatus?.Invoke(this, new EventColorArgs(System.Drawing.Color.LightYellow));
             }
         }
         private static async Task InvokeAsync(IEnumerable<Func<Task>> taskFactories, int maxDegreeOfParallelism)
@@ -143,8 +150,9 @@ namespace ASTA.Classes.Updating
                     _parameters = null;
                     _source = _target = null;
                     messageOfErrorUploading = null;
-                    uploaded = null;
-                    status = null;
+                    ColorOfStatus = null;
+                    Info = null;
+                    Status = null;
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.

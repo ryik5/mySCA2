@@ -6,15 +6,13 @@ using System.Threading.Tasks;
 
 namespace ASTA.Classes
 {
-    public class AccountEventBoolArgs
+    public class EventColorArgs
     {
-        public bool Status { get; }
         public System.Drawing.Color Color { get; }
 
-        public AccountEventBoolArgs(bool status, System.Drawing.Color color)
+        public EventColorArgs(System.Drawing.Color color)
         {
             Color = color;
-            Status = status;
         }
     }
 }

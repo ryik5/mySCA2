@@ -212,8 +212,9 @@
     <Compile Include="AboutBox1.Designer.cs">
       <DependentUpon>AboutBox1.cs</DependentUpon>
     </Compile>
-    <Compile Include="Classes\Common\AccountEventArgs.cs" />
-    <Compile Include="Classes\Common\AccountEventBoolArgs.cs" />
+    <Compile Include="Classes\Common\EventBoolArgs.cs" />
+    <Compile Include="Classes\Common\EventTextArgs.cs" />
+    <Compile Include="Classes\Common\EventColorArgs.cs" />
     <Compile Include="Classes\People\ActiveDirectoryOperations.cs" />
     <Compile Include="Classes\Updating\IMaker.cs" />
     <Compile Include="Classes\Updating\MakerOfLinks.cs" />

@@ -10,7 +10,7 @@ namespace ASTA.Classes.Updating
     {
        UpdatingParameters _parameters { get; set; }
 
-        public delegate void Status(object sender, AccountEventArgs e);
+        public delegate void Status(object sender, EventTextArgs e);
         public event Status status;
         public MakerOfUpdateXmlFile() { }
 
@@ -31,7 +31,7 @@ namespace ASTA.Classes.Updating
 
         public void Make()
         {
-            status?.Invoke(this, new AccountEventArgs("MakeFile "));
+            status?.Invoke(this, new EventTextArgs("MakeFile "));
 
             Contract.Requires(_parameters != null,
                     "Не создан экземпляр UpdatingParameters!");
@@ -60,7 +60,7 @@ namespace ASTA.Classes.Updating
                 };
                 document.checksum = checksum;
             }
-            status?.Invoke(this, new AccountEventArgs("XML файл:" + _parameters.appFileXml));
+            status?.Invoke(this, new EventTextArgs("XML файл:" + _parameters.appFileXml));
 
             //  var nodesToStore = new List<XMLDocument> { document };
             try
@@ -73,11 +73,11 @@ namespace ASTA.Classes.Updating
                     XmlSerializer serializer = new XmlSerializer(document.GetType());//, atribXmlOver
                     serializer.Serialize(fs, document, ns); //clear any xmlns attributes from the root element
                 }
-                status?.Invoke(this, new AccountEventArgs("XML файл сохранен как " + Path.GetFullPath(_parameters.appFileXml)));
+                status?.Invoke(this, new EventTextArgs("XML файл сохранен как " + Path.GetFullPath(_parameters.appFileXml)));
             }
             catch
             {
-                status?.Invoke(this, new AccountEventArgs("Ошибка сохранения XML файла"));
+                status?.Invoke(this, new EventTextArgs("Ошибка сохранения XML файла"));
             }
 
             /* var readNodes = new List<document>();

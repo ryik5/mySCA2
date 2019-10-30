@@ -6,7 +6,7 @@ namespace ASTA.Classes.Updating
     {
         UpdatingParameters _parameters { get; set; }
 
-        public delegate void Status(object sender, AccountEventArgs e);
+        public delegate void Status(object sender, EventTextArgs e);
         public event Status status;
         public MakerOfLinks() { }
 
@@ -31,7 +31,7 @@ namespace ASTA.Classes.Updating
             _parameters.appUpdateFolderURI = @"\\" + _parameters.remoteFolderUpdatingURL.Replace(@"/", @"\") + @"\";
             _parameters.appUpdateURL = _parameters.appUpdateFolderURL + _parameters.appFileXml;
 
-            status?.Invoke(this, new AccountEventArgs("Все ссылки сгенерированы!"));
+            status?.Invoke(this, new EventTextArgs("Все ссылки сгенерированы!"));
         }
 
         public UpdatingParameters GetParameters()
@@ -43,12 +43,12 @@ namespace ASTA.Classes.Updating
         {
             foreach (var prop in _parameters.GetType().GetProperties())
             {
-                status?.Invoke(this, new AccountEventArgs(prop.Name + ": " + prop.GetValue(_parameters, null)));
+                status?.Invoke(this, new EventTextArgs(prop.Name + ": " + prop.GetValue(_parameters, null)));
             }
 
             foreach (var field in _parameters.GetType().GetFields())
             {
-                status?.Invoke(this, new AccountEventArgs(field.Name + ": " + field.GetValue(_parameters)));
+                status?.Invoke(this, new EventTextArgs(field.Name + ": " + field.GetValue(_parameters)));
             }
         }
     }
