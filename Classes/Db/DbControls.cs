@@ -5,11 +5,10 @@ namespace ASTA
 {
     public abstract class DBConnector
     {
-        public virtual void CheckDB() { }
         public virtual void CloseConnection() { }
         public virtual void Dispose() { }
     }
-    
+
     //SQL
     class SqlDbReader : IDisposable
     {
@@ -25,7 +24,7 @@ namespace ASTA
             ConnectToDB(_dbConnectionString);
         }
 
-        public void CheckDB(string dbConnectionString)
+        private void CheckDB(string dbConnectionString)
         {
             if (dbConnectionString?.Trim()?.Length < 1)
             {
@@ -33,12 +32,7 @@ namespace ASTA
             }
         }
 
-        public string GetConnectionString()
-        {
-            return _dbConnectionString;
-        }
-
-        public void ConnectToDB(string dbConnectionString)
+        private void ConnectToDB(string dbConnectionString)
         {
             if (_sqlConnection != null)
             {
@@ -161,7 +155,7 @@ namespace ASTA
 
 
     //SQLite
-    class SQLiteDbBase : DBConnector, IDisposable
+    public abstract class SQLiteDbBase : DBConnector, IDisposable
     {
         public System.Data.SQLite.SQLiteConnection _sqlConnection;
         public System.Data.SQLite.SQLiteCommand _sqlCommand;
@@ -179,7 +173,7 @@ namespace ASTA
             return _dbConnectionString;
         }
 
-        public virtual void CheckDB(string dbConnectionString, System.IO.FileInfo dbFileInfo)
+        private void CheckDB(string dbConnectionString, System.IO.FileInfo dbFileInfo)
         {
             if (!dbFileInfo.Exists)
             {
@@ -192,7 +186,7 @@ namespace ASTA
             }
         }
 
-        public virtual void ConnectToDB(string dbConnectionString)
+        private void ConnectToDB(string dbConnectionString)
         {
             _sqlConnection = new System.Data.SQLite.SQLiteConnection(dbConnectionString);
             _sqlConnection.Open();
@@ -205,8 +199,12 @@ namespace ASTA
 
             if (_sqlConnection != null)
             {
-               try { _sqlConnection?.Close();
-                 _sqlConnection?.Dispose(); } catch { }
+                try
+                {
+                    _sqlConnection?.Close();
+                    _sqlConnection?.Dispose();
+                }
+                catch { }
             }
         }
 
@@ -228,13 +226,14 @@ namespace ASTA
 
         public DataTable GetDataTable(string query)
         {
-            DataTable dt = new DataTable();
-            using (var _sqlDataAdapter = new System.Data.SQLite.SQLiteDataAdapter(query, _sqlConnection))
+            using (DataTable dt = new DataTable())
             {
-                dt = new DataTable();
-                _sqlDataAdapter.Fill(dt);
+                using (var _sqlDataAdapter = new System.Data.SQLite.SQLiteDataAdapter(query, _sqlConnection))
+                {
+                    _sqlDataAdapter.Fill(dt);
 
-                return dt;
+                    return dt;
+                }
             }
         }
     }
@@ -257,20 +256,19 @@ namespace ASTA
                 new ArgumentNullException();
             }
 
-            var sqlCommand1 = new System.Data.SQLite.SQLiteCommand("begin", _sqlConnection);
-            sqlCommand1.ExecuteNonQuery();
+            using (var sqlCommand1 = new System.Data.SQLite.SQLiteCommand("begin", _sqlConnection))
+            { sqlCommand1.ExecuteNonQuery(); }
 
             try { sqlCommand.ExecuteNonQuery(); }
-            catch (Exception expt) { Status = expt.Message; }
+            catch (Exception expt) { Status = expt.ToString(); }
 
-            sqlCommand1 = new System.Data.SQLite.SQLiteCommand("end", _sqlConnection);
-            sqlCommand1.ExecuteNonQuery();
+            using (var sqlCommand1 = new System.Data.SQLite.SQLiteCommand("end", _sqlConnection))
+            { sqlCommand1.ExecuteNonQuery(); }
         }
 
         public void ExecuteQuery(string query)
         {
             Status = "Ok";
-
             if (query == null)
             {
                 Status = "Error. The query can not be empty or null!";
@@ -280,21 +278,21 @@ namespace ASTA
             using (var sqlCommand = new System.Data.SQLite.SQLiteCommand(query, _sqlConnection))
             {
                 try { sqlCommand.ExecuteNonQuery(); }
-                catch (Exception expt) { Status = expt.Message; }
+                catch (Exception expt) { Status = expt.ToString(); }
             }
         }
 
         public void ExecuteQueryBegin()
         {
             Status = string.Empty;
-            var sqlCommand1 = new System.Data.SQLite.SQLiteCommand("begin", _sqlConnection);
-            sqlCommand1.ExecuteNonQuery();
+            using (var sqlCommand = new System.Data.SQLite.SQLiteCommand("begin", _sqlConnection))
+            { sqlCommand.ExecuteNonQuery(); }
         }
 
         public void ExecuteQueryEnd()
         {
-            var sqlCommand1 = new System.Data.SQLite.SQLiteCommand("end", _sqlConnection);
-            sqlCommand1.ExecuteNonQuery();
+            using (var sqlCommand = new System.Data.SQLite.SQLiteCommand("end", _sqlConnection))
+            { sqlCommand.ExecuteNonQuery(); }
         }
 
         public void ExecuteQueryForBulkStepByStep(System.Data.SQLite.SQLiteCommand sqlCommand)
@@ -324,9 +322,7 @@ namespace ASTA
                 try { sqlCommand.ExecuteNonQuery(); }
                 catch (Exception expt) { temporaryResult = expt.Message; }
             }
-          Status += temporaryResult;
+            Status += temporaryResult;
         }
     }
-
-
 }

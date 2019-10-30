@@ -110,7 +110,6 @@ namespace ASTA
         ContextMenu contextMenu;
         bool buttonAboutForm;
         static Byte[] byteLogo;
-        static bool isAdmin = false;
 
         int iCounterLine = 0;
 
@@ -289,11 +288,11 @@ namespace ASTA
                                   new DataColumn(Names.CHIEF_ID,typeof(string)), //33
                                   new DataColumn(Names.CARD_STATE,typeof(string)) //34
                 };
-        static DataTable dtPersonTemp = new DataTable("PersonTemp");
-        static DataTable dtPersonTempAllColumns = new DataTable("PersonTempAllColumns");
-        static DataTable dtPersonRegistrationsFullList = new DataTable("PersonRegistrationsFullList");
-        static DataTable dtPeopleGroup = new DataTable("PeopleGroup");
-        static DataTable dtPeopleListLoaded = new DataTable("PeopleLoaded");
+        DataTable dtPersonTemp = new DataTable("PersonTemp");
+        DataTable dtPersonTempAllColumns = new DataTable("PersonTempAllColumns");
+        DataTable dtPersonRegistrationsFullList = new DataTable("PersonRegistrationsFullList");
+        DataTable dtPeopleGroup = new DataTable("PeopleGroup");
+        DataTable dtPeopleListLoaded = new DataTable("PeopleLoaded");
 
         //Color of User's Control elements which depend on the selected MenuItem  
         Color labelGroupCurrentBackColor;
@@ -480,7 +479,7 @@ namespace ASTA
             notifyIcon.ShowBalloonTip(500);
             notifyIcon.Text = appName + "\nv." + appVersionAssembly + " (" + appFileVersionInfo.FileVersion + ")" + "\n" + appFileVersionInfo.CompanyName;
             notifyIcon.ContextMenu = contextMenu;
-            
+
             //Set up Starting values
             dateTimePickerStart.CustomFormat = "yyyy-MM-dd";
             dateTimePickerEnd.CustomFormat = "yyyy-MM-dd";
@@ -645,9 +644,11 @@ namespace ASTA
 
         private void AboutSoft()
         {
-            AboutBox1 aboutBox = new AboutBox1();
-            aboutBox.Show();
-            buttonAboutForm = aboutBox.OKButtonClicked;
+            using (AboutBox1 aboutBox = new AboutBox1())
+            {
+                aboutBox.Show();
+                buttonAboutForm = aboutBox.OKButtonClicked;
+            }
         }
 
         private void ApplicationExit(object sender, EventArgs e)
@@ -658,6 +659,14 @@ namespace ASTA
 
         private void ApplicationExit()
         {
+            dgvo = null;
+            dtPersonTemp?.Dispose();
+            dtPersonTempAllColumns?.Dispose();
+            dtPersonRegistrationsFullList?.Dispose();
+            dtPeopleGroup?.Dispose();
+            dtPeopleListLoaded?.Dispose();
+            dtPeople?.Dispose();
+
             logger.Info("");
             logger.Info("");
             logger.Info("-=-=  Завершение работы ПО  =-=-");
@@ -972,7 +981,7 @@ namespace ASTA
             _SetStatusLabelText(StatusLabel2, "Проверяю список параметров конфигурации локальной БД...");
 
             ParameterOfConfigurationInSQLiteDB configInDB = new ParameterOfConfigurationInSQLiteDB(dbApplication);
-            ParameterOfConfiguration parameterOfConfiguration = null;
+            ParameterOfConfiguration parameterOfConfiguration;
             listParameters = configInDB.GetParameters("%%");//.FindAll(x => x.isExample == "no");//update work parameters
 
             foreach (string sParameter in Names.allParametersOfConfig)
@@ -1005,7 +1014,7 @@ namespace ASTA
             logger.Trace("-= " + method + " =-");
 
             _VisibleControl(panelView, false);
-            btnPropertiesSave.Text = "Сохранить параметр";
+            _SetControlText(btnPropertiesSave, "Сохранить параметр");
             ClearButtonClickEvent(btnPropertiesSave);
             btnPropertiesSave.Click += new EventHandler(ButtonPropertiesSave_inConfig);
 
@@ -1153,13 +1162,12 @@ namespace ASTA
         private string SaveParameterInConfig(string name, string value, string description, bool isPassword, string example)
         {
             ParameterOfConfigurationInSQLiteDB parameter = new ParameterOfConfigurationInSQLiteDB(dbApplication);
-
-            ParameterOfConfiguration parameterOfConfiguration = new ParameterOfConfigurationBuilder().
-                SetParameterName(name).
-                SetParameterValue(value).
-                SetParameterDescription(description).
-                IsPassword(isPassword).
-                SetIsExample(example);
+            ParameterOfConfiguration parameterOfConfiguration = new ParameterOfConfigurationBuilder()
+                .SetParameterName(name)
+                .SetParameterValue(value)
+                .SetParameterDescription(description)
+                .IsPassword(isPassword)
+                .SetIsExample(example);
 
             return parameter.SaveParameter(parameterOfConfiguration);
         }
@@ -1176,17 +1184,6 @@ namespace ASTA
             bool isPassword = _ReturnCheckboxCheckedStatus(checkBox1);
             string example = "no";
 
-
-            //ParameterOfConfigurationInSQLiteDB parameter = new ParameterOfConfigurationInSQLiteDB(dbApplication);
-
-            //ParameterOfConfiguration parameterOfConfiguration = new ParameterOfConfigurationBuilder().
-            //    SetParameterName(labelServer1.Text).
-            //    SetParameterValue(textBoxSettings16.Text).
-            //    SetParameterDescription(description).
-            //    IsPassword(checkBox1.Checked).
-            //    SetIsExample("no");
-
-            //string resultSaving = parameter.SaveParameter(parameterOfConfiguration);
             string resultSaving = SaveParameterInConfig(name, value, description, isPassword, example);
 
             MessageBox.Show(name + " обновлен новым значением - " + value + "\n" + resultSaving);
@@ -2573,20 +2570,22 @@ namespace ASTA
                 {
                     sqlConnection.Open();
 
-                    SQLiteCommand sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
+                    using (SQLiteCommand sqlCommand = new SQLiteCommand("begin", sqlConnection))
+                    { sqlCommand.ExecuteNonQuery(); }
 
                     //set to empty for amounts and recepients in the PeopleGroupDescription
                     query = "UPDATE 'PeopleGroupDescription' SET AmountStaffInDepartment='0';";
                     using (var command = new SQLiteCommand(query, sqlConnection))
                     { command.ExecuteNonQuery(); }
+
                     query = "UPDATE 'PeopleGroupDescription' SET Recipient='';";
                     using (var command = new SQLiteCommand(query, sqlConnection))
                     { command.ExecuteNonQuery(); }
                     logger.Trace(query);
 
-                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
+                    using (var sqlCommand = new SQLiteCommand("end", sqlConnection))
+                    { sqlCommand.ExecuteNonQuery(); }
+
                     query = "SELECT GroupPerson, DepartmentId FROM PeopleGroup;";
                     logger.Trace(query);
                     using (var sqlCommand = new SQLiteCommand(query, sqlConnection))
@@ -2597,13 +2596,19 @@ namespace ASTA
                         {
                             foreach (DbDataRecord record in reader)
                             {
-                                group = record["GroupPerson"]?.ToString();
-                                idGroup = "@" + record["DepartmentId"]?.ToString();
-
-                                if (group.Length > 0)
+                                if (record != null)
                                 {
-                                    groupsUncount.Add(group);
-                                    groupsUncount.Add(idGroup);
+                                    group = record["GroupPerson"]?.ToString();
+                                    idGroup = "@" + record["DepartmentId"]?.ToString();
+
+                                    if (group?.Length > 0)
+                                    {
+                                        groupsUncount.Add(group);
+                                    }
+                                    if (idGroup?.Length > 1)
+                                    {
+                                        groupsUncount.Add(idGroup);
+                                    }
                                 }
                             }
                         }
@@ -2617,73 +2622,90 @@ namespace ASTA
                         {
                             foreach (DbDataRecord record in reader)
                             {
-                                tmpRec = record["GroupPerson"]?.ToString();
-
-                                if (tmpRec?.Length > 0)
-                                { groupsUniq.Add(tmpRec); }
-                            }
-                        }
-                    }
-
-                    foreach (string grp in groupsUniq)
-                    {
-                        tmpRec = "";
-                        query = "SELECT GroupsReport, RecipientEmail FROM Mailing  WHERE GroupsReport like '" + grp + "' ;";
-                        logger.Trace(query);
-                        using (var sqlCommand = new SQLiteCommand(query, sqlConnection))
-                        {
-                            using (var reader = sqlCommand.ExecuteReader())
-                            {
-                                foreach (DbDataRecord record in reader)
+                                if (record != null)
                                 {
-                                    if (tmpRec.Length == 0)
-                                    { tmpRec += record["RecipientEmail"]?.ToString(); }
-                                    else { tmpRec += ", " + record["RecipientEmail"]?.ToString(); }
+                                    tmpRec = record["GroupPerson"]?.ToString();
+                                    if (tmpRec?.Length > 0)
+                                    { groupsUniq.Add(tmpRec); }
                                 }
                             }
                         }
-                        emails.Add(new DepartmentFull
-                        {
-                            _departmentId = grp,
-                            _departmentBossEmail = tmpRec
-                        });
                     }
 
+                    if (groupsUniq?.Count > 0)
+                    {
+                        foreach (string grp in groupsUniq)
+                        {
+                            tmpRec = "";
+                            query = "SELECT GroupsReport, RecipientEmail FROM Mailing  WHERE GroupsReport like '" + grp + "' ;";
+                            logger.Trace(query);
+                            using (var sqlCommand = new SQLiteCommand(query, sqlConnection))
+                            {
+                                using (var reader = sqlCommand.ExecuteReader())
+                                {
+                                    foreach (DbDataRecord record in reader)
+                                    {
+                                        if (record != null)
+                                        {
+                                            if (tmpRec.Length == 0)
+                                            { tmpRec += record["RecipientEmail"]?.ToString(); }
+                                            else { tmpRec += ", " + record["RecipientEmail"]?.ToString(); }
+                                        }
+                                    }
+                                }
+                            }
+                            if (grp?.Length > 0)
+                            {
+                                emails.Add(new DepartmentFull
+                                {
+                                    _departmentId = grp,
+                                    _departmentBossEmail = tmpRec
+                                });
+                            }
+                        }
+                    }
                     logger.Trace("groupsUncount: " + (new HashSet<string>(groupsUncount)).Count());
-                    foreach (string group in new HashSet<string>(groupsUncount))
+                    if (groupsUncount?.Count > 0)
                     {
-                        amounts.Add(new ParametersOfGroup()
+                        foreach (string group in new HashSet<string>(groupsUncount))
                         {
-                            _groupName = group,
-                            _amountMembers = groupsUncount.Where(x => x == group).Count(),
-                            _emails = emails.Find(x => x._departmentId == group)._departmentBossEmail
-                        });
-                    }
-
-                    sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
-                    if (amounts.Count > 0)
-                    {
-                        foreach (var group in amounts.ToArray())
-                        {
-                            query = "UPDATE 'PeopleGroupDescription' SET AmountStaffInDepartment='" + group._amountMembers + "' WHERE GroupPerson like '" + group._groupName + "';";
-                            logger.Trace(query);
-                            using (var command = new SQLiteCommand(query, sqlConnection))
-                            { command.ExecuteNonQuery(); }
-
-                            query = "UPDATE 'PeopleGroupDescription' SET Recipient='" + group._emails + "' WHERE GroupPerson like '" + group._groupName + "';";
-                            logger.Trace(query);
-                            using (var command = new SQLiteCommand(query, sqlConnection))
-                            { command.ExecuteNonQuery(); }
+                            if (group?.Length > 0)
+                            {
+                                amounts.Add(new ParametersOfGroup()
+                                {
+                                    _groupName = group,
+                                    _amountMembers = groupsUncount.Where(x => x == group).Count(),
+                                    _emails = emails.Find(x => x._departmentId == group)?._departmentBossEmail
+                                });
+                            }
                         }
                     }
 
-                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
-                    sqlCommand1.Dispose();
+                    using (var sqlCommand = new SQLiteCommand("begin", sqlConnection))
+                    { sqlCommand.ExecuteNonQuery(); }
+                    if (amounts?.Count > 0)
+                    {
+                        foreach (var group in amounts.ToArray())
+                        {
+                            if (group != null)
+                            {
+                                query = "UPDATE 'PeopleGroupDescription' SET AmountStaffInDepartment='" + group?._amountMembers + "' WHERE GroupPerson like '" + group?._groupName + "';";
+                                logger.Trace(query);
+                                using (var command = new SQLiteCommand(query, sqlConnection))
+                                { command.ExecuteNonQuery(); }
+
+                                query = "UPDATE 'PeopleGroupDescription' SET Recipient='" + group._emails + "' WHERE GroupPerson like '" + group._groupName + "';";
+                                logger.Trace(query);
+                                using (var command = new SQLiteCommand(query, sqlConnection))
+                                { command.ExecuteNonQuery(); }
+                            }
+                        }
+                    }
+
+                    using (var sqlCommand = new SQLiteCommand("end", sqlConnection))
+                    { sqlCommand.ExecuteNonQuery(); }
                 }
             }
-            amounts = null; groupsUncount = null;
         }
 
         private void MembersGroupItem_Click(object sender, EventArgs e)//SearchMembersSelectedGroup()
@@ -2719,9 +2741,9 @@ namespace ASTA
                 string dprtmnt = "", query = ""; ;
 
                 query = "Select FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Department, PositionInDepartment, DepartmentId, City, Boss FROM PeopleGroup ";
-                if (nameGroup.Contains("@"))
+                if (nameGroup?.Length > 0 && nameGroup.Contains("@"))
                 { query += " where DepartmentId like '" + nameGroup.Remove(0, 1) + "'"; }
-                else if (nameGroup.Length > 0)
+                else if (nameGroup?.Length > 0)
                 { query += " where GroupPerson like '" + nameGroup + "'"; }
 
                 query += ";";
@@ -2741,7 +2763,7 @@ namespace ASTA
                     {
                         foreach (DbDataRecord record in data)
                         {
-                            if (record["FIO"]?.ToString()?.Length > 0 && record["NAV"]?.ToString()?.Length > 0)
+                            if (record != null && record["FIO"]?.ToString()?.Length > 0 && record["NAV"]?.ToString()?.Length > 0)
                             {
                                 try { dprtmnt = record[@"Department"].ToString(); } catch { dprtmnt = record[@"GroupPerson"]?.ToString(); }
 
@@ -2791,7 +2813,6 @@ namespace ASTA
             logger.Trace("AddPersonToGroup: group " + group);
             if (dgvo.RowsCount(dataGridView1) > -1)
             {
-                DataGridViewOperations dgvo = new DataGridViewOperations();
                 dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                     Names.FIO,
                     Names.CODE,
@@ -3392,7 +3413,6 @@ namespace ASTA
         private EmployeeVisitor LookForSelectedVisitor(DataGridView dgv)
         {
             EmployeeVisitor visitor = new EmployeeVisitor();
-            dgvo = new DataGridViewOperations();
             dgvo.FindValuesInCurrentRow(dgv, new string[] {
                 Names.FIO,
                 Names.N_ID_STRING,
@@ -4086,7 +4106,6 @@ namespace ASTA
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
-            DataGridViewOperations dgvo = new DataGridViewOperations();
             dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                  Names.DAYOFF_DATE, Names.DAYOFF_TYPE, Names.DAYOFF_USED_BY, Names.DAYOFF_ADDED });
 
@@ -6440,83 +6459,19 @@ namespace ASTA
                 }
                 catch (Exception err) { logger.Error("CreateSubKey: Ошибки с доступом на запись в реестр. Данные сохранены не корректно. " + err.ToString()); }
 
-                {
-                    string resultSaving = "";
-                    ParameterOfConfigurationInSQLiteDB parameterSQLite = new ParameterOfConfigurationInSQLiteDB(dbApplication);
+                string resultSaving = "";
+                resultSaving += SaveParameterInConfig("SKDServer", sServer1, "URI SKD-сервера", false, "no") + "\n";
+                resultSaving += SaveParameterInConfig("SKDUser", sServer1UserName, "SKD MSSQL User's Name", true, "no") + "\n";
+                resultSaving += SaveParameterInConfig("SKDUserPassword", sServer1UserPassword, "SKD MSSQL User's Password", true, "no") + "\n";
+                resultSaving += SaveParameterInConfig("MailServer", mailServer, "URI Mail-серверa", false, "no") + "\n";
+                resultSaving += SaveParameterInConfig("MailUser", mailSenderAddress, "Sender E-Mail's", false, "no") + "\n";
+                resultSaving += SaveParameterInConfig("MailUserPassword", mailsOfSenderOfPassword, "Password of sender of e-mails", true, "no") + "\n";
+                resultSaving += SaveParameterInConfig("MySQLServer", mysqlServer, "URI MySQL серверa (www)", false, "no") + "\n";
+                resultSaving += SaveParameterInConfig("MySQLUser", mysqlServerUserName, "MySQL User login", false, "no") + "\n";
+                resultSaving += SaveParameterInConfig("MySQLUserPassword", mysqlServerUserPassword, "Password of MySQL User", true, "no") + "\n";
 
-                    ParameterOfConfiguration parameterOfConfiguration = new ParameterOfConfigurationBuilder().
-                        SetParameterName("SKDServer").
-                        SetParameterValue(sServer1).
-                        SetParameterDescription("URI SKD-сервера").
-                        IsPassword(false).
-                        SetIsExample("no");
-                    resultSaving += parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
-                    parameterOfConfiguration = new ParameterOfConfigurationBuilder().
-                        SetParameterName("SKDUser").
-                        SetParameterValue(sServer1UserName).
-                        SetParameterDescription("SKD MSSQL User's Name").
-                        IsPassword(true).
-                        SetIsExample("no");
-                    resultSaving += parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
-                    parameterOfConfiguration = new ParameterOfConfigurationBuilder().
-                        SetParameterName("SKDUserPassword").
-                        SetParameterValue(sServer1UserPassword).
-                        SetParameterDescription("SKD MSSQL User's Password").
-                        IsPassword(true).
-                        SetIsExample("no");
-                    resultSaving += parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
-
-
-                    parameterOfConfiguration = new ParameterOfConfigurationBuilder().
-                        SetParameterName("MailServer").
-                        SetParameterValue(mailServer).
-                        SetParameterDescription("URI Mail-серверa").
-                        IsPassword(false).
-                        SetIsExample("no");
-                    resultSaving += parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
-                    parameterOfConfiguration = new ParameterOfConfigurationBuilder().
-                        SetParameterName("MailUser").
-                        SetParameterValue(mailSenderAddress).
-                        SetParameterDescription("Senders E-Mail").
-                        IsPassword(false).
-                        SetIsExample("no");
-                    resultSaving += parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
-                    parameterOfConfiguration = new ParameterOfConfigurationBuilder().
-                        SetParameterName("MailUserPassword").
-                        SetParameterValue(mailsOfSenderOfPassword).
-                        SetParameterDescription("Password of sender of e-mails").
-                        IsPassword(true).
-                        SetIsExample("no");
-                    resultSaving += parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
-
-
-                    parameterOfConfiguration = new ParameterOfConfigurationBuilder().
-                        SetParameterName("MySQLServer").
-                        SetParameterValue(mysqlServer).
-                        SetParameterDescription("URI MySQL серверa (www)").
-                        IsPassword(false).
-                        SetIsExample("no");
-                    resultSaving += parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
-                    parameterOfConfiguration = new ParameterOfConfigurationBuilder().
-                        SetParameterName("MySQLUser").
-                        SetParameterValue(mysqlServerUserName).
-                        SetParameterDescription("MySQL User login").
-                        IsPassword(false).
-                        SetIsExample("no");
-                    resultSaving += parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
-                    parameterOfConfiguration = new ParameterOfConfigurationBuilder().
-                        SetParameterName("MySQLUserPassword").
-                        SetParameterValue(mysqlServerUserPassword).
-                        SetParameterDescription("Password of MySQL User").
-                        IsPassword(true).
-                        SetIsExample("no");
-                    resultSaving += parameterSQLite.SaveParameter(parameterOfConfiguration) + "\n";
-
-                    MessageBox.Show(resultSaving);
-
-                    DisposeTemporaryControls();
-                    _VisibleControl(panelView, true);
-                }
+                DisposeTemporaryControls();
+                _VisibleControl(panelView, true);
 
                 if (mailServer?.Length > 0 && mailServerSMTPPort > 0)
                 {
@@ -6527,16 +6482,19 @@ namespace ASTA
                     _mailUser = new MailUser(NAME_OF_SENDER_REPORTS, mailSenderAddress);
                 }
 
+                sqlServerConnectionString = "Data Source=" + sServer1 + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=30";
+                mysqlServerConnectionStringDB1 = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60";
+
                 ShowDataTableDbQuery(dbApplication, "ConfigDB", "SELECT ParameterName AS 'Имя параметра', " +
                "Value AS 'Данные', Description AS 'Описание', DateCreated AS 'Дата создания/модификации'",
                " ORDER BY ParameterName asc, DateCreated desc; ");
+
+                Task.Run(() => MessageBox.Show(resultSaving));
             }
             else
             {
                 GetInfoSetup();
             }
-            sqlServerConnectionString = "Data Source=" + sServer1 + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=30";
-            mysqlServerConnectionStringDB1 = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60";
         }
 
 
@@ -6756,8 +6714,6 @@ namespace ASTA
             {
                 try
                 {
-                    //   dgvo = new DataGridViewOperations();
-
                     if (nameOfLastTable == "PeopleGroupDescription")
                     {
                         dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
@@ -6863,8 +6819,6 @@ namespace ASTA
             {
                 try
                 {
-                    DataGridViewOperations dgvo = new DataGridViewOperations();
-
                     string currColumn = dgvo.ColumnName(dataGridView1, dgvo.CurrentColumnIndex(dataGridView1));
                     string currCellValue = dgvo.CurrentCellValue(dataGridView1);
                     string editedCell = "";
@@ -7172,128 +7126,128 @@ namespace ASTA
                 string txtboxGroup = _ReturnTextOfControl(textBoxGroup);
                 string txtboxGroupDescription = _ReturnTextOfControl(textBoxGroupDescription);
 
-                ContextMenu mRightClick = new ContextMenu();
-                DataGridViewOperations dgvo = new DataGridViewOperations();
-                string recepient = "";
-                if (nameOfLastTable == @"PeopleGroupDescription")
+                using (ContextMenu mRightClick = new ContextMenu())
                 {
-                    dgvo.FindValuesInCurrentRow(dataGridView1, new string[]
+                    string recepient = "";
+                    if (nameOfLastTable == @"PeopleGroupDescription")
                     {
+                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[]
+                        {
                         Names.GROUP,
                         Names.GROUP_DECRIPTION,
                         Names.RECEPIENTS_OF_REPORTS
-                    });
+                        });
 
-                    if (dgvo.cellValue[2]?.Length > 0)
-                    {
-                        recepient = dgvo.cellValue[2];
+                        if (dgvo.cellValue[2]?.Length > 0)
+                        {
+                            recepient = dgvo.cellValue[2];
+                        }
+                        else if (mailSenderAddress?.Length > 0)
+                        {
+                            recepient = mailSenderAddress;
+                        }
+
+                        mRightClick.MenuItems.Add(new MenuItem(
+                            text: "&Загрузить регистрации пропусков сотрудников группы: '" +
+                                    dgvo.cellValue[1] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
+                            onClick: GetDataOfGroup_Click));
+                        mRightClick.MenuItems.Add(new MenuItem(
+                            text: "Загрузить  входы-выходы сотрудников группы: '" +
+                                    dgvo.cellValue[1] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear() + " и &подготовить отчет",
+                            onClick: DoReportByRightClick));
+                        mRightClick.MenuItems.Add(new MenuItem(
+                            text: "Загрузить регистрации пропусков сотрудников группы: '" +
+                                    dgvo.cellValue[1] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear() + " и &отправить: " + recepient,
+                            onClick: DoReportAndEmailByRightClick));
+
+                        mRightClick.MenuItems.Add("-");
+                        mRightClick.MenuItems.Add(new MenuItem(
+                            text: "&Удалить группу: '" + dgvo.cellValue[0] + "'(" + dgvo.cellValue[1] + ")",
+                            onClick: DeleteCurrentRow));
+                        mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                     }
-                    else if (mailSenderAddress?.Length > 0)
+                    else if (nameOfLastTable == @"LastIputsOutputs")
                     {
-                        recepient = mailSenderAddress;
-                    }
-
-                    mRightClick.MenuItems.Add(new MenuItem(
-                        text: "&Загрузить регистрации пропусков сотрудников группы: '" +
-                                dgvo.cellValue[1] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
-                        onClick: GetDataOfGroup_Click));
-                    mRightClick.MenuItems.Add(new MenuItem(
-                        text: "Загрузить  входы-выходы сотрудников группы: '" +
-                                dgvo.cellValue[1] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()+ " и &подготовить отчет",
-                        onClick: DoReportByRightClick));
-                    mRightClick.MenuItems.Add(new MenuItem(
-                        text: "Загрузить регистрации пропусков сотрудников группы: '" +
-                                dgvo.cellValue[1] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()+ " и &отправить: " + recepient,
-                        onClick: DoReportAndEmailByRightClick));
-
-                    mRightClick.MenuItems.Add("-");
-                    mRightClick.MenuItems.Add(new MenuItem(
-                        text: "&Удалить группу: '" + dgvo.cellValue[0] + "'(" + dgvo.cellValue[1] + ")",
-                        onClick: DeleteCurrentRow));
-                    mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
-                }
-                else if (nameOfLastTable == @"LastIputsOutputs")
-                {
-                    dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                         Names.FIO,
                         Names.N_ID_STRING,
                         Names.CHECKPOINT_ACTION
                     });
 
-                    mRightClick.MenuItems.Add(new MenuItem(
-                        text: "&Обновить данные о регистрации входов-выходов сотрудников",
-                       onClick: LoadLastIputsOutputs_Update_Click));
+                        mRightClick.MenuItems.Add(new MenuItem(
+                            text: "&Обновить данные о регистрации входов-выходов сотрудников",
+                           onClick: LoadLastIputsOutputs_Update_Click));
 
-                    if (nameOfLastTable != "LastIputsOutputs")//Visitor selected=null
-                    {
-                        checkInputsOutputs = false;
+                        if (nameOfLastTable != "LastIputsOutputs")//Visitor selected=null
+                        {
+                            checkInputsOutputs = false;
+                        }
+                        mRightClick.MenuItems.Add(new MenuItem(
+                            text: "&Подсветить все входы-выходы '" + dgvo.cellValue[0] + "'",
+                           onClick: PaintRowsFioItem_Click));
+                        mRightClick.MenuItems.Add(new MenuItem(
+                            text: "&Сбросить фильтр",
+                           onClick: ResetFilterLoadLastIputsOutput_Click));
+                        mRightClick.MenuItems.Add(new MenuItem(
+                            text: "Подсветить все состояния '" + dgvo.cellValue[2] + "'",
+                           onClick: PaintRowsActionItem_Click));
+                        mRightClick.MenuItems.Add("-");
+                        mRightClick.MenuItems.Add(new MenuItem(
+                            text: "&Загрузить данные регистраций входов-выходов '" +
+                                    dgvo.cellValue[0] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
+                            onClick: GetDataOfPerson_Click));
+                        mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                     }
-                    mRightClick.MenuItems.Add(new MenuItem(
-                        text: "&Подсветить все входы-выходы '" + dgvo.cellValue[0] + "'",
-                       onClick: PaintRowsFioItem_Click));
-                    mRightClick.MenuItems.Add(new MenuItem(
-                        text: "&Сбросить фильтр",
-                       onClick: ResetFilterLoadLastIputsOutput_Click));
-                    mRightClick.MenuItems.Add(new MenuItem(
-                        text: "Подсветить все состояния '" + dgvo.cellValue[2] + "'",
-                       onClick: PaintRowsActionItem_Click));
-                    mRightClick.MenuItems.Add("-");
-                    mRightClick.MenuItems.Add(new MenuItem(
-                        text: "&Загрузить данные регистраций входов-выходов '" +
-                                dgvo.cellValue[0] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
-                        onClick: GetDataOfPerson_Click));
-                    mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
-                }
-                else if (nameOfLastTable == @"Mailing")
-                {
-                    dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                    else if (nameOfLastTable == @"Mailing")
+                    {
+                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                         @"Наименование", @"Описание", @"День отправки отчета", @"Период", @"Тип отчета", @"Получатель"});
 
-                    mRightClick.MenuItems.Add(new MenuItem(
-                        text: @"Выполнить активные рассылки по всем у кого: тип отчета - " +
-                                dgvo.cellValue[4] + " за " + dgvo.cellValue[3] + " на " + dgvo.cellValue[2],
-                        onClick: SendAllReportsInSelectedPeriod));
-                    mRightClick.MenuItems.Add("-");
-                    mRightClick.MenuItems.Add(new MenuItem(
-                        text: @"Выполнить рассылку:   " + dgvo.cellValue[0] + "(" + dgvo.cellValue[1] + ") для " + dgvo.cellValue[5],
-                        onClick: DoMainAction));
-                    //mRightClick.MenuItems.Add("-");
-                    //mRightClick.MenuItems.Add(new MenuItem(text: @"Загрузить регистрации пропусков сотрудников группы: '" + dgvo.cellValue[1] +
-                    //     "' за " + _dateTimePickerStartReturnMonth() + " и &отправить: " + dgvo.cellValue[5], 
-                    //     onClick: DoReportAndEmailByRightClick));
-                    mRightClick.MenuItems.Add("-");
-                    mRightClick.MenuItems.Add(new MenuItem(
-                        text: @"Создать новую рассылку",
-                        onClick: PrepareForMakingFormMailing));
-                    mRightClick.MenuItems.Add(new MenuItem(
-                        text: @"Клонировать рассылку:   " + dgvo.cellValue[0] + "(" + dgvo.cellValue[1] + ")",
-                        onClick: MakeCloneMailing));
-                    mRightClick.MenuItems.Add("-");
-                    mRightClick.MenuItems.Add(new MenuItem(
-                        text: @"Состав рассылки:   " + dgvo.cellValue[0] + "(" + dgvo.cellValue[1] + ")",
-                        onClick: MembersGroupItem_Click));
-                    mRightClick.MenuItems.Add("-");
-                    mRightClick.MenuItems.Add(new MenuItem(
-                        text: @"Удалить рассылку:   " + dgvo.cellValue[0] + "(" + dgvo.cellValue[1] + ")",
-                        onClick: DeleteCurrentRow));
-                    mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
-                }
-                else if (nameOfLastTable == @"MailingException")
-                {
-                    dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { @"Получатель" });
+                        mRightClick.MenuItems.Add(new MenuItem(
+                            text: @"Выполнить активные рассылки по всем у кого: тип отчета - " +
+                                    dgvo.cellValue[4] + " за " + dgvo.cellValue[3] + " на " + dgvo.cellValue[2],
+                            onClick: SendAllReportsInSelectedPeriod));
+                        mRightClick.MenuItems.Add("-");
+                        mRightClick.MenuItems.Add(new MenuItem(
+                            text: @"Выполнить рассылку:   " + dgvo.cellValue[0] + "(" + dgvo.cellValue[1] + ") для " + dgvo.cellValue[5],
+                            onClick: DoMainAction));
+                        //mRightClick.MenuItems.Add("-");
+                        //mRightClick.MenuItems.Add(new MenuItem(text: @"Загрузить регистрации пропусков сотрудников группы: '" + dgvo.cellValue[1] +
+                        //     "' за " + _dateTimePickerStartReturnMonth() + " и &отправить: " + dgvo.cellValue[5], 
+                        //     onClick: DoReportAndEmailByRightClick));
+                        mRightClick.MenuItems.Add("-");
+                        mRightClick.MenuItems.Add(new MenuItem(
+                            text: @"Создать новую рассылку",
+                            onClick: PrepareForMakingFormMailing));
+                        mRightClick.MenuItems.Add(new MenuItem(
+                            text: @"Клонировать рассылку:   " + dgvo.cellValue[0] + "(" + dgvo.cellValue[1] + ")",
+                            onClick: MakeCloneMailing));
+                        mRightClick.MenuItems.Add("-");
+                        mRightClick.MenuItems.Add(new MenuItem(
+                            text: @"Состав рассылки:   " + dgvo.cellValue[0] + "(" + dgvo.cellValue[1] + ")",
+                            onClick: MembersGroupItem_Click));
+                        mRightClick.MenuItems.Add("-");
+                        mRightClick.MenuItems.Add(new MenuItem(
+                            text: @"Удалить рассылку:   " + dgvo.cellValue[0] + "(" + dgvo.cellValue[1] + ")",
+                            onClick: DeleteCurrentRow));
+                        mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
+                    }
+                    else if (nameOfLastTable == @"MailingException")
+                    {
+                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { @"Получатель" });
 
-                    mRightClick.MenuItems.Add(new MenuItem(
-                        text: @"Добавить новый адрес 'для исключения из рассылок'",
-                        onClick: MakeNewRecepientExcept));
-                    mRightClick.MenuItems.Add("-");
-                    mRightClick.MenuItems.Add(new MenuItem(
-                        text: @"Удалить адрес, ранее внесенный как 'исключеный из рассылок':   " + dgvo.cellValue[0],
-                        onClick: DeleteCurrentRow));
-                    mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
-                }
-                else if (nameOfLastTable == @"PeopleGroup" || nameOfLastTable == @"ListFIO")
-                {
-                    dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                        mRightClick.MenuItems.Add(new MenuItem(
+                            text: @"Добавить новый адрес 'для исключения из рассылок'",
+                            onClick: MakeNewRecepientExcept));
+                        mRightClick.MenuItems.Add("-");
+                        mRightClick.MenuItems.Add(new MenuItem(
+                            text: @"Удалить адрес, ранее внесенный как 'исключеный из рассылок':   " + dgvo.cellValue[0],
+                            onClick: DeleteCurrentRow));
+                        mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
+                    }
+                    else if (nameOfLastTable == @"PeopleGroup" || nameOfLastTable == @"ListFIO")
+                    {
+                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                         Names.FIO,
                         Names.CODE,
                         Names.DEPARTMENT,
@@ -7305,69 +7259,70 @@ namespace ASTA
                         Names.GROUP
                     });
 
-                    if (string.Compare(dgvo.cellValue[8], txtboxGroup) != 0 && txtboxGroup?.Length > 0) //добавить пункт меню если в текстбоксе группа другая
-                    {
+                        if (string.Compare(dgvo.cellValue[8], txtboxGroup) != 0 && txtboxGroup?.Length > 0) //добавить пункт меню если в текстбоксе группа другая
+                        {
+                            mRightClick.MenuItems.Add(new MenuItem(
+                                text: "&Добавить '" + dgvo.cellValue[0] + "' в группу '" + txtboxGroup + "'",
+                                onClick: AddPersonToGroupItem_Click));
+                            mRightClick.MenuItems.Add("-");
+                        }
+
                         mRightClick.MenuItems.Add(new MenuItem(
-                            text: "&Добавить '" + dgvo.cellValue[0] + "' в группу '" + txtboxGroup + "'",
-                            onClick: AddPersonToGroupItem_Click));
+                            text: "Загрузить регистрации пропусков на входе в офис &группы сотрудников '" + dgvo.cellValue[8] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
+                            onClick: GetDataOfGroup_Click));
+
+                        mRightClick.MenuItems.Add(new MenuItem(
+                            text: "Загрузить регистрации пропусков на входе в офис &сотрудника: '" + dgvo.cellValue[0] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
+                            onClick: GetDataOfPerson_Click));
                         mRightClick.MenuItems.Add("-");
+                        mRightClick.MenuItems.Add(new MenuItem(
+                            text: "&Удалить '" + dgvo.cellValue[0] + "' из группы '" + txtboxGroup + "'",
+                            onClick: DeleteCurrentRow));
+                        mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                     }
-
-                    mRightClick.MenuItems.Add(new MenuItem(
-                        text: "Загрузить регистрации пропусков на входе в офис &группы сотрудников '" + dgvo.cellValue[8] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
-                        onClick: GetDataOfGroup_Click));
-
-                    mRightClick.MenuItems.Add(new MenuItem(
-                        text: "Загрузить регистрации пропусков на входе в офис &сотрудника: '" + dgvo.cellValue[0] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
-                        onClick: GetDataOfPerson_Click));
-                    mRightClick.MenuItems.Add("-");
-                    mRightClick.MenuItems.Add(new MenuItem(
-                        text: "&Удалить '" + dgvo.cellValue[0] + "' из группы '" + txtboxGroup + "'",
-                        onClick: DeleteCurrentRow));
-                    mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
-                }
-                else if (nameOfLastTable == @"BoldedDates")
-                {
-                    dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                    else if (nameOfLastTable == @"BoldedDates")
+                    {
+                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                         Names.DAYOFF_DATE,
                         Names.DAYOFF_USED_BY,
                         Names.DAYOFF_TYPE
                     });
 
-                    string dayType = "";
-                    if (txtboxGroup?.Length == 0 || txtboxGroup?.ToLower() == "выходной")
-                    { dayType = "Выходной"; }
-                    else { dayType = "Рабочий"; }
+                        string dayType = "";
+                        if (txtboxGroup?.Length == 0 || txtboxGroup?.ToLower() == "выходной")
+                        { dayType = "Выходной"; }
+                        else { dayType = "Рабочий"; }
 
-                    string nav = "";
-                    if (textBoxNav?.Text?.Trim()?.Length != 6)
-                    { nav = "для всех"; }
-                    else { nav = textBoxNav.Text.Trim(); }
+                        string nav = "";
+                        if (textBoxNav?.Text?.Trim()?.Length != 6)
+                        { nav = "для всех"; }
+                        else { nav = textBoxNav.Text.Trim(); }
 
-                    string navD = "";
-                    if (dgvo.cellValue[1]?.Length != 6)
-                    { navD = "всех"; }
-                    else { navD = dgvo.cellValue[1]; }
+                        string navD = "";
+                        if (dgvo.cellValue[1]?.Length != 6)
+                        { navD = "всех"; }
+                        else { navD = dgvo.cellValue[1]; }
 
-                    mRightClick.MenuItems.Add(new MenuItem(
-                        text: @"Сохранить для " + nav + @" как '" + dayType + @"' " + monthCalendar.SelectionStart.ToYYYYMMDD(),
-                        onClick: AddAnualDateItem_Click));
-                    mRightClick.MenuItems.Add("-");
-                    mRightClick.MenuItems.Add(new MenuItem(
-                        text: @"Удалить из сохранненых '" + dgvo.cellValue[2] + @"'  '" + dgvo.cellValue[0] + @"' для " + navD,
-                        onClick: DeleteAnualDateItem_Click));
-                    mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
-                }
-                else if (nameOfLastTable == @"SelectedCityToLoadFromWeb")
-                {
-                    mRightClick.MenuItems.Add(new MenuItem(
-                        text: @"Добавить новый город",
-                        onClick: AddNewCityToLoadByRightClick));
-                    mRightClick.MenuItems.Add("-");
-                    mRightClick.MenuItems.Add(new MenuItem(
-                        text: @"Удалить выбранный город",
-                        onClick: DeleteCityToLoadByRightClick));
-                    mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
+                        mRightClick.MenuItems.Add(new MenuItem(
+                            text: @"Сохранить для " + nav + @" как '" + dayType + @"' " + monthCalendar.SelectionStart.ToYYYYMMDD(),
+                            onClick: AddAnualDateItem_Click));
+                        mRightClick.MenuItems.Add("-");
+                        mRightClick.MenuItems.Add(new MenuItem(
+                            text: @"Удалить из сохранненых '" + dgvo.cellValue[2] + @"'  '" + dgvo.cellValue[0] + @"' для " + navD,
+                            onClick: DeleteAnualDateItem_Click));
+                        mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
+                    }
+                    else if (nameOfLastTable == @"SelectedCityToLoadFromWeb")
+                    {
+                        mRightClick.MenuItems.Add(new MenuItem(
+                            text: @"Добавить новый город",
+                            onClick: AddNewCityToLoadByRightClick));
+                        mRightClick.MenuItems.Add("-");
+                        mRightClick.MenuItems.Add(new MenuItem(
+                            text: @"Удалить выбранный город",
+                            onClick: DeleteCityToLoadByRightClick));
+                        mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
+                    }
                 }
             }
         }
@@ -7424,7 +7379,6 @@ namespace ASTA
 
         private void DeleteCityToLoad()
         {
-            DataGridViewOperations dgvo = new DataGridViewOperations();
             dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                 Names.PLACE_EMPLOYEE,
                 @"Дата создания" });
@@ -7444,7 +7398,6 @@ namespace ASTA
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
-            DataGridViewOperations dgvo = new DataGridViewOperations();
             dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                 Names.GROUP,
                 Names.GROUP_DECRIPTION,
@@ -7492,7 +7445,6 @@ namespace ASTA
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
-            DataGridViewOperations dgvo = new DataGridViewOperations();
             dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                 Names.GROUP,
                 Names.GROUP_DECRIPTION
@@ -7524,7 +7476,6 @@ namespace ASTA
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
-            DataGridViewOperations dgvo = new DataGridViewOperations();
             dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                 @"Получатель", @"Отчет по группам", @"Наименование", @"Описание", @"Период"});
 
@@ -7618,7 +7569,6 @@ namespace ASTA
                         currentAction = "sendEmail";
                         resultOfSendingReports = new List<Mailing>();
 
-                        DataGridViewOperations dgvo = new DataGridViewOperations();
                         dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             @"Получатель", @"Отчет по группам", @"Наименование", @"Описание",
                             @"Период", @"Статус", @"Тип отчета", @"День отправки отчета" });
@@ -7669,10 +7619,8 @@ namespace ASTA
 
             _ProgressBar1Start();
 
-
             resultOfSendingReports = new List<Mailing>();
 
-            DataGridViewOperations dgvo = new DataGridViewOperations();
             dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             @"Получатель", @"Отчет по группам", @"Наименование", @"Описание",
                             @"Период", @"Статус", @"Тип отчета", @"День отправки отчета" });
@@ -7812,7 +7760,6 @@ namespace ASTA
             logger.Trace("-= " + method + " =-");
 
             string group = _ReturnTextOfControl(textBoxGroup);
-            DataGridViewOperations dgvo = new DataGridViewOperations();
 
             switch (nameOfLastTable)
             {
@@ -8265,15 +8212,15 @@ namespace ASTA
 
             _ProgressBar1Start();
 
-            string recipient ;
-            string gproupsReport ;
-            string nameReport ;
-            string descriptionReport ;
-            string period ;
-            string status ;
-            string typeReport ;
-            string dayReport ;
-            string str ;
+            string recipient;
+            string gproupsReport;
+            string nameReport;
+            string descriptionReport;
+            string period;
+            string status;
+            string typeReport;
+            string dayReport;
+            string str;
 
             HashSet<Mailing> mailingList = new HashSet<Mailing>();
 
@@ -8353,7 +8300,7 @@ namespace ASTA
 
         private string SelectedDatetimePickersPeriodMonth() //format of result: "1971-01-01 00:00:00|1971-01-31 23:59:59" // 'yyyy-MM-dd HH:mm:SS'
         {
-            return _ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD() + " 00:00:00"  + "|" + _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD() + " 23:59:59";
+            return _ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD() + " 00:00:00" + "|" + _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD() + " 23:59:59";
         }
 
         private void MailingAction(string mainAction, string recipientEmail, string senderEmail, string groupsReport, string nameReport, string description, string period, string status, string typeReport, string dayReport)
@@ -8727,11 +8674,11 @@ namespace ASTA
 
 
 
-            /// <summary>
-            /// Colorizing Controls
-            /// </summary>
-            /// <param name="sender"></param>
-            /// <param name="e"></param>
+        /// <summary>
+        /// Colorizing Controls
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void SetListBox_DrawItem(object sender, DrawItemEventArgs e) //Colorize the Listbox
         {
             Font font = (sender as ListBox).Font;
@@ -8945,7 +8892,7 @@ namespace ASTA
         }
 
 
-    
+
         private DateTime _ReturnDateTimePicker(DateTimePicker dateTimePicker) //add string into  from other threads
         {
             DateTime result = DateTime.Now;
@@ -8962,7 +8909,7 @@ namespace ASTA
             return result;
         }
 
-        
+
         private int[] _ReturnDateTimePickerArray(DateTimePicker dateTimePicker) //add string into  from other threads
         {
             int[] result = new int[3];
@@ -9007,7 +8954,7 @@ namespace ASTA
             else
             { logger.Info(s); }
         }
-         
+
         private void _SetStatusLabelForeColor(ToolStripStatusLabel statusLabel, Color s)
         {
             if (InvokeRequired)
@@ -9023,7 +8970,7 @@ namespace ASTA
             else
                 statusLabel.BackColor = s;
         }
-       
+
         private string _ReturnStatusLabelText(ToolStripStatusLabel statusLabel)
         {
             string s = null;
@@ -9184,6 +9131,19 @@ namespace ASTA
             else
             {
                 toolTip1.SetToolTip(control, text);
+            }
+        }
+
+        private void _SetControlText(Control control, string text)
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate
+                {
+                    control.Text = text;
+                }));
+            else
+            {
+                control.Text = text;
             }
         }
 
@@ -9835,7 +9795,7 @@ namespace ASTA
             }
             else
             {
-                _SetStatusLabelText(StatusLabel2, @"Ждите! На сервер загружается новая версия ПО"); 
+                _SetStatusLabelText(StatusLabel2, @"Ждите! На сервер загружается новая версия ПО");
             }
         }
 
@@ -9944,7 +9904,7 @@ namespace ASTA
             {
                 if (args.IsUpdateAvailable)
                 {
-                            urlUpdateReachError = false;
+                    urlUpdateReachError = false;
                     try
                     {
                         if (AutoUpdater.DownloadUpdate())
@@ -9973,7 +9933,7 @@ namespace ASTA
                             logger.Info("");
                             logger.Info("-----------------------------------------");
 
-                         
+
                             if (replaceBrokenRemoteFolderUpdateURL && urlUpdateReachError)
                             {
                                 string message = SaveParameterInConfig(
@@ -10126,10 +10086,10 @@ namespace ASTA
             if (replaceBrokenRemoteFolderUpdateURL && resultOfUploading)
             {
                 string message = SaveParameterInConfig(
-                    "RemoteFolderUpdateURL", 
-                    remoteFolderUpdateURL, 
-                    "Параметр обновлен " + DateTime.Now.ToYYYYMMDDHHMMSS(), 
-                    false, 
+                    "RemoteFolderUpdateURL",
+                    remoteFolderUpdateURL,
+                    "Параметр обновлен " + DateTime.Now.ToYYYYMMDDHHMMSS(),
+                    false,
                     "no");
 
                 _SetStatusLabelText(StatusLabel2, message);
