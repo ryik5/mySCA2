@@ -313,7 +313,7 @@ namespace ASTA
 
         private void Form1Load()
         {
-            //set startup variable           
+            //set startup variables
             localAppFolderPath = System.IO.Path.GetDirectoryName(appFilePath); //Environment.CurrentDirectory
             appFolderTempPath = System.IO.Path.Combine(localAppFolderPath, "Temp");
             appFolderUpdatePath = System.IO.Path.Combine(localAppFolderPath, "Update");
@@ -335,6 +335,8 @@ namespace ASTA
             nameOfLastTable = "PersonRegistrationsList";
             _toolStripStatusLabelSetText(StatusLabel1, "");
             _toolStripStatusLabelSetText(StatusLabel2, "");
+
+
             //Начало лога
             logger.Info("");
             logger.Info("");
@@ -655,7 +657,7 @@ namespace ASTA
 
             //taskkill /F /IM ASTA.exe
             Text = @"Closing application...";
-            System.Threading.Thread.Sleep(1000);
+            System.Threading.Thread.Sleep(500);
             Application.Exit();
         }
 
@@ -9865,20 +9867,26 @@ namespace ASTA
             if (!uploadingUpdate)
             {
                 UpdatingParameters parameters = MakeStartParametersOfUpdating();
+                appUpdateURL = parameters.appUpdateURL;
 
-                AutoUpdater.CheckForUpdateEvent += AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
-                AutoUpdater.ApplicationExitEvent += AutoUpdater_ApplicationExitEvent;    //https://archive.codeplex.com/?p=autoupdaterdotnet
-                AutoUpdater.RunUpdateAsAdmin = false;
+                logger.Trace(@"Update URL: " + parameters.appUpdateURL);
+
+                //Changing settings
                 AutoUpdater.Mandatory = true;
-                AutoUpdater.UpdateMode = Mode.ForcedDownload;
+                AutoUpdater.RunUpdateAsAdmin = false;
 
+                AutoUpdater.DownloadPath = appFolderUpdatePath;
+                AutoUpdater.OpenDownloadPage = true;
 
-                AutoUpdater.AppCastURL = parameters.appUpdateURL;
-                AutoUpdater.Start();
-                AutoUpdater.CheckForUpdateEvent -= AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
+                AutoUpdater.UpdateMode = Mode.Normal;
+                AutoUpdater.ReportErrors = true;
+               // AutoUpdater.AppCastURL = parameters.appUpdateURL;
+                AutoUpdater.CheckForUpdateEvent += AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
+                AutoUpdater.ApplicationExitEvent += ApplicationExit;    //https://archive.codeplex.com/?p=autoupdaterdotnet
+                AutoUpdater.Start(parameters.appUpdateURL);
             }
             else
-            { StatusLabelAddInfo(@"Ждите! На сервер загружается новая версия ПО"); }
+            { _toolStripStatusLabelSetText(StatusLabel2, @"Ждите! На сервер загружается новая версия ПО"); }
         }
 
         UpdatingParameters MakeStartParametersOfUpdating()
@@ -9927,25 +9935,21 @@ namespace ASTA
                 {
                     UpdatingParameters parameters = MakeStartParametersOfUpdating();
                     logger.Trace(@"Update URL: " + parameters.appUpdateURL);
-                    appUpdateURL = parameters.appUpdateURL;
 
-                    AutoUpdater.CheckForUpdateEvent += AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
-                    AutoUpdater.ApplicationExitEvent += AutoUpdater_ApplicationExitEvent;    //https://archive.codeplex.com/?p=autoupdaterdotnet
-                    AutoUpdater.RunUpdateAsAdmin = false;
+                  //  AutoUpdater.ApplicationExitEvent += AutoUpdater_ApplicationExitEvent;    //https://archive.codeplex.com/?p=autoupdaterdotnet
+                    
                     AutoUpdater.Mandatory = true;
                     AutoUpdater.UpdateMode = Mode.ForcedDownload;
+                    AutoUpdater.RunUpdateAsAdmin = false;
 
                     AutoUpdater.LetUserSelectRemindLater = false;
                     AutoUpdater.RemindLaterTimeSpan = RemindLaterFormat.Days;
                     AutoUpdater.RemindLaterAt = 2;
 
-                    // AutoUpdater.ReportErrors = false;
-                    // AutoUpdater.AppCastURL = appUpdateURL;
                     AutoUpdater.DownloadPath = appFolderUpdatePath;
-                    AutoUpdater.AppCastURL = parameters.appUpdateURL;
-                    AutoUpdater.Start();
+                    AutoUpdater.CheckForUpdateEvent += AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
+                    AutoUpdater.Start(parameters.appUpdateURL);
                     //AutoUpdater.Start("ftp://kv-sb-server.corp.ais/Common/ASTA/ASTA.xml", new NetworkCredential("FtpUserName", "FtpPassword")); //download from FTP
-                    AutoUpdater.CheckForUpdateEvent -= AutoUpdaterOnAutoCheckForUpdateEvent; //write errors if had no access to the folder
                 }
                 else
                 { logger.Trace(@"Обновление приостановлено. На сервер сейчас загружается новая версия ПО"); }
@@ -9964,9 +9968,11 @@ namespace ASTA
                         if (AutoUpdater.DownloadUpdate())
                         {
                             _toolStripStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
+                            UpdatingParameters parameters = MakeStartParametersOfUpdating();
+
                             System.Xml.XmlDocument xmldoc = new System.Xml.XmlDocument();
                             System.Xml.XmlNodeList xmlnode;
-                            xmldoc.Load(appUpdateURL);
+                            xmldoc.Load(parameters.appUpdateURL);
                             xmlnode = xmldoc.GetElementsByTagName("version");
                             string foundNewVersionApp = xmlnode[0].InnerText;
                             logger.Info("-----------------------------------------");
@@ -9994,21 +10000,20 @@ namespace ASTA
                 }
                 else
                 {
-                    _toolStripStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
+                    _toolStripStatusLabelBackColor(StatusLabel2, SystemColors.Control);
                     _toolStripStatusLabelSetText(StatusLabel2, @"Новых версий ПО '" + appName + "' не обнаружено");
                 }
             }
             else
             {
                 logger.Warn(@"Update check failed: There is a problem reaching update server URL.");
+                urlUpdateReachError = true;
+                logger.Warn(@"Измените формат URL сервера обновлений");
+                logger.Warn(@"Если адрес был server.domain.subdomain/folder -> server/folder");
+                logger.Warn(@"Если адрес был server/folder -> server.domain.subdomain/folder");
             }
         }
-        private void AutoUpdater_ApplicationExitEvent()
-        {
-            Text = @"Closing application...";
-            System.Threading.Thread.Sleep(500);
-            Application.Exit();
-        }
+        bool urlUpdateReachError = false;
         //Calculate MD5 checksum of local file
         private string CalculateMD5OfFile(string file)
         {
