@@ -6,7 +6,7 @@ using System.Xml.Serialization;
 
 namespace ASTA.Classes.Updating
 {
-    public class MakerOfUpdateXmlFile : IMaker
+    public class MakerOfUpdateXmlFile : IMakeable
     {
        UpdatingParameters _parameters { get; set; }
 

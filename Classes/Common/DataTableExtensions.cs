@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Data;
 
-namespace ASTA.Classes.Common
+namespace ASTA.Classes
 {
     static class DataTableExtensions
     {

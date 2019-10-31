@@ -2,14 +2,14 @@
 {
     public class UpdatePreparing
     {
-        IMaker _makerLinks;
-        IMaker _makerXml;
+        IMakeable _makerLinks;
+        IMakeable _makerXml;
         UpdatingParameters _parameters { set; get; }
 
         public delegate void Status(object sender, EventTextArgs e);
         public event Status status;
 
-        public UpdatePreparing(IMaker makerLinks, IMaker makerXml, UpdatingParameters parameters)
+        public UpdatePreparing(IMakeable makerLinks, IMakeable makerXml, UpdatingParameters parameters)
         {
             _makerLinks = makerLinks;
             _makerXml = makerXml;

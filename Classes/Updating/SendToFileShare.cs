@@ -3,7 +3,9 @@ using System.Diagnostics.Contracts;
 using ASTA.Classes.People; 
 
 namespace ASTA.Updating
-{  /* public class SendToFileShare
+{  
+    
+    /* public class SendToFileShare
     {
         private UserAD _user;
         private string _source;

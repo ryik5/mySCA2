@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ASTA
+namespace ASTA.Classes
 {
     /// <summary>
     /// Used to notify about upgrader errors.

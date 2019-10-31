@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace ASTA.Classes.Common
+namespace ASTA.Classes
 {
    public class DateTimeConvertor
     {

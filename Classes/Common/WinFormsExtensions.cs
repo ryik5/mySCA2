@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 
-namespace ASTA.Classes.Common
+namespace ASTA.Classes
 {
     internal static class WinFormsExtensions
     {

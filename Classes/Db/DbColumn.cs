@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Data;
 
-namespace ASTA
+namespace ASTA.Classes
 {
     public class DbColumn
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ASTA.Classes.Common
+namespace ASTA.Classes
 {
 
     static class DateTimeExtensions

@@ -2,7 +2,7 @@
 using System.Data;
 using System.Windows.Forms;
 
-namespace ASTA.Classes.Common
+namespace ASTA.Classes
 {
     public class DataGridViewOperations
     {

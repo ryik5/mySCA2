@@ -216,7 +216,7 @@
     <Compile Include="Classes\Common\EventTextArgs.cs" />
     <Compile Include="Classes\Common\EventColorArgs.cs" />
     <Compile Include="Classes\People\ActiveDirectoryOperations.cs" />
-    <Compile Include="Classes\Updating\IMaker.cs" />
+    <Compile Include="Classes\Updating\IMakeable.cs" />
     <Compile Include="Classes\Updating\MakerOfLinks.cs" />
     <Compile Include="Classes\Updating\MakerOfUpdateXmlFile.cs" />
     <Compile Include="Classes\Updating\UpdatePreparing.cs" />
@@ -351,6 +351,10 @@
       <Isolated>False</Isolated>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </COMReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Analyzer Include="packages\Microsoft.DependencyValidation.Analyzers.0.10.0\analyzers\dotnet\cs\Microsoft.DependencyValidation.Analyzers.resources.dll" />
+    <Analyzer Include="packages\Microsoft.DependencyValidation.Analyzers.0.10.0\analyzers\dotnet\Microsoft.DependencyValidation.Analyzers.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSHARP.Targets" />
   <ProjectExtensions>

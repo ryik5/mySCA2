@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 
-namespace ASTA
+namespace ASTA.Classes
 {
     /// <summary>
     /// Represents a single SQLite table index object

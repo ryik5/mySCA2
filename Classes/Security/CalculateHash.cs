@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 
-namespace ASTA.Security
+namespace ASTA.Classes.Security
 {
     internal class CalculatingHash
     {

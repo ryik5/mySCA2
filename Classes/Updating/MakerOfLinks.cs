@@ -2,7 +2,7 @@
 
 namespace ASTA.Classes.Updating
 {
-    public class MakerOfLinks: IMaker
+    public class MakerOfLinks: IMakeable
     {
         UpdatingParameters _parameters { get; set; }
 
@@ -39,7 +39,7 @@ namespace ASTA.Classes.Updating
             return new UpdatingParameters(_parameters);
         }
 
-        public void PrintProperties()
+       /* public void PrintProperties()
         {
             foreach (var prop in _parameters.GetType().GetProperties())
             {
@@ -50,7 +50,7 @@ namespace ASTA.Classes.Updating
             {
                 status?.Invoke(this, new EventTextArgs(field.Name + ": " + field.GetValue(_parameters)));
             }
-        }
+        }*/
     }
 
 }

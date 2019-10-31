@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using MimeKit;
 
-namespace ASTA
+namespace ASTA.Classes
 {
    sealed class MailSender
     {

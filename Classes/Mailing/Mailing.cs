@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace ASTA
+namespace ASTA.Classes
 {
-    class Mailing
+    internal class Mailing
     {
         public string _recipient;
         public string _groupsReport;
@@ -38,7 +38,7 @@ namespace ASTA
         }
     }
 
-    struct DaysOfSendingMail
+    internal struct DaysOfSendingMail
     {
         public int START_OF_MONTH;
         public int MIDDLE_OF_MONTH;
@@ -46,17 +46,24 @@ namespace ASTA
         public int END_OF_MONTH;
     }
 
-    class DaysWhenSendReports
+    internal class DaysWhenSendReports
     {
-        public DaysWhenSendReports(string[] workDays, int ShiftDaysBackOfSendingFromLastWorkDay, int lastDayInMonth)
-        { SetSendDays(workDays, ShiftDaysBackOfSendingFromLastWorkDay, lastDayInMonth); }
-        DaysOfSendingMail daysOfSendingMail = new DaysOfSendingMail();
+        DaysOfSendingMail daysOfSendingMail;
 
-        void SetSendDays(string[] workDays, int ShiftDaysBackOfSendingFromLastWorkDay, int lastDayInMonth)
+        public DaysWhenSendReports(string[] workDays, int ShiftDaysBackOfSendingFromLastWorkDay, int lastDayInMonth)
         {
-            daysOfSendingMail.START_OF_MONTH = 1;
-            daysOfSendingMail.END_OF_MONTH = lastDayInMonth;
-            int daySelected = 0;
+            SetDaysWhenToSend(workDays, ShiftDaysBackOfSendingFromLastWorkDay, lastDayInMonth);
+        }
+
+
+        void SetDaysWhenToSend(string[] workDays, int ShiftDaysBackOfSendingFromLastWorkDay, int lastDayInMonth)
+        {
+            daysOfSendingMail = new DaysOfSendingMail
+            {
+                START_OF_MONTH = 1,
+                END_OF_MONTH = lastDayInMonth
+            };
+
             if (workDays.Length == 0) throw new RankException();
             foreach (string day in workDays)
             {
@@ -64,7 +71,7 @@ namespace ASTA
             }
 
             //look for last work day
-            if (Int32.TryParse(workDays[workDays.Length - 1].Remove(0, 8), out daySelected))
+            if (Int32.TryParse(workDays[workDays.Length - 1].Remove(0, 8), out int daySelected))
             {
                 daysOfSendingMail.LAST_WORK_DAY_OF_MONTH = daySelected - ShiftDaysBackOfSendingFromLastWorkDay;
             }
@@ -77,8 +84,7 @@ namespace ASTA
 
         public DaysOfSendingMail GetDays()
         {
-            return daysOfSendingMail;
+            return  daysOfSendingMail;
         }
     }
-    
 }

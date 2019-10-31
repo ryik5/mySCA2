@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ASTA.Classes
+namespace ASTA.Classes.People
 {    
     class OutReasons
     {

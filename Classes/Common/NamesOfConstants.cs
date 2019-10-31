@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ASTA.Classes.Common
+namespace ASTA.Classes
 {
     public static class Names
     {
