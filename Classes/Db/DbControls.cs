@@ -243,7 +243,9 @@ namespace ASTA.Classes
         public delegate void InfoStatus(object sender, EventTextArgs e);
         public event InfoStatus Status;
 
+#pragma warning disable CS0169 // The field 'SqLiteDbWriter.temporaryResult' is never used
         string temporaryResult;
+#pragma warning restore CS0169 // The field 'SqLiteDbWriter.temporaryResult' is never used
         public SqLiteDbWriter(string dbConnectionString, System.IO.FileInfo dbFileInfo) :
             base(dbConnectionString, dbFileInfo)
         { }

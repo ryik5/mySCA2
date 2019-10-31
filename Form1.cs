@@ -37,13 +37,14 @@ namespace ASTA
         private DataGridViewOperations dgvo;
 
         //logging
-        static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+        readonly static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         static string method = System.Reflection.MethodBase.GetCurrentMethod().Name;
+
         // logger.Trace("-= " + method + " =-");
 
         //System settings
-        string guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения// получаем GIUD приложения
-        static string appVersionAssembly = System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString();
+        readonly string guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения// получаем GIUD приложения
+        readonly static string appVersionAssembly = System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString();
         static System.Diagnostics.FileVersionInfo appFileVersionInfo;
         static string appCopyright;
         static string appName;
@@ -56,7 +57,7 @@ namespace ASTA
 
         static bool uploadingStatus = false;
 
-        static string appFilePath = System.Reflection.Assembly.GetEntryAssembly().Location;// Application.ExecutablePath;
+        readonly static string appFilePath = System.Reflection.Assembly.GetEntryAssembly().Location;// Application.ExecutablePath;
         static string localAppFolderPath; //Environment.CurrentDirectory
         static string appFolderTempPath;
         static string appFolderUpdatePath;
@@ -475,10 +476,12 @@ namespace ASTA
             contextMenu.MenuItems.Add("-", AboutSoft);
             contextMenu.MenuItems.Add("Exit", ApplicationExit);
 
-            notifyIcon = new NotifyIcon();
-            notifyIcon.Icon = this.Icon;
-            notifyIcon.Visible = true;
-            notifyIcon.BalloonTipText = "Developed by " + appCopyright;
+            notifyIcon = new NotifyIcon
+            {
+                Icon = this.Icon,
+                Visible = true,
+                BalloonTipText = "Developed by " + appCopyright
+            };
             notifyIcon.ShowBalloonTip(500);
             notifyIcon.Text = appName + "\nv." + appVersionAssembly + " (" + appFileVersionInfo.FileVersion + ")" + "\n" + appFileVersionInfo.CompanyName;
             notifyIcon.ContextMenu = contextMenu;
@@ -1271,7 +1274,9 @@ namespace ASTA
         }
 
 
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
         private async Task ExecuteQueryOnLocalDB(System.IO.FileInfo dbApplication, string query) //Delete All data from the selected Table of the DB (both parameters are string)
+#pragma warning restore CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
         {
             if (dbApplication.Exists)
             {
@@ -1288,7 +1293,9 @@ namespace ASTA
             }
         }
 
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
         private async Task DeleteDataTableQueryParameters(System.IO.FileInfo dbApplication, string myTable, string sqlParameter1, string sqlData1,
+#pragma warning restore CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
             string sqlParameter2 = "", string sqlData2 = "", string sqlParameter3 = "", string sqlData3 = "",
             string sqlParameter4 = "", string sqlData4 = "", string sqlParameter5 = "", string sqlData5 = "", string sqlParameter6 = "", string sqlData6 = "") //Delete data from the Table of the DB by NAV (both parameters are string)
         {
@@ -1379,7 +1386,9 @@ namespace ASTA
         }
 
 
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
         private async Task CheckAliveIntellectServer(string serverName, string userName, string userPasswords) //Check alive the SKD Intellect-server and its DB's 'intellect'
+#pragma warning restore CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
         {
             //stop checking last registrations
             checkInputsOutputs = false;
@@ -1526,7 +1535,9 @@ namespace ASTA
             _ProgressBar1Stop();
         }
 
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
         private async Task DoListsFioGroupsMailings()  //  GetDataFromRemoteServers()  ImportTablePeopleToTableGroupsInLocalDB()
+#pragma warning restore CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
@@ -2182,7 +2193,9 @@ namespace ASTA
             return pathToFile;
         }
 
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
         private async Task ExportDatatableSelectedColumnsToExcel(DataTable dataTable, string nameReport, string filePath)  //Export DataTable to Excel 
+#pragma warning restore CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
@@ -3488,8 +3501,8 @@ namespace ASTA
 
             if (bServer1Exist)
             {
-                reportStartDay = _ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD();
-                reportLastDay = _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD();
+                reportStartDay = _ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD() + " 00:00:00";
+                reportLastDay = _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD() + " 23:59:59";
 
                 await Task.Run(() => GetData(_group, reportStartDay, reportLastDay));
 
@@ -3547,22 +3560,18 @@ namespace ASTA
             dtPersonRegistrationsFullList = dtPeople.Clone();  //Copy only structure(Name of columns)
             dtPeopleGroup = dtPeople.Clone();  //Copy only structure(Name of columns)
 
-            logger.Trace("GetData: " + _group + " " + _reportStartDay + " " + _reportStartDay);
+            logger.Trace("GetData: " + _group + " " + _reportStartDay + " " + _reportLastDay);
 
             //Get names of the points
             GetNamesOfPassagePoints();
 
             //Load Records of registrations of Id cards
-            LoadRecords(_group,
-                _ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD() + " 00:00:00",
-                _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD() + " 23:59:59",
-                "");
+            LoadRecords(_group, _reportStartDay, _reportLastDay, "");
 
             dtPersonTemp = LeaveAndOrderColumnsOfDataTable(dtPersonRegistrationsFullList.Copy(), Names.orderColumnsRegistrations);
 
             //show selected data  within the selected collumns   
             ShowDatatableOnDatagridview(dtPersonTemp, "PeopleGroup");
-
         }
 
         private void LoadRecords(string nameGroup, string startDate, string endDate, string doPostAction)
@@ -3888,7 +3897,7 @@ namespace ASTA
 
         private string DayOfWeekRussian(string dayEnglish) //return a day of week as the same short name in Russian 
         {
-            string result = "";
+            string result;
             switch (dayEnglish.ToLower())
             {
                 case "monday":
@@ -3968,14 +3977,13 @@ namespace ASTA
                     }
                 }
             }
-            query = null; dataRow = null;
             logger.Trace("LoadGroupMembersFromDbToDataTable, всего записей - " + peopleGroup.Rows.Count + ", группа - " + namePointedGroup);
 
             return peopleGroup;
         }
 
 
-        private void infoItem_Click(object sender, EventArgs e)
+        private void InfoItem_Click(object sender, EventArgs e)
         {
             ShowDataTableDbQuery(dbApplication, "TechnicalInfo",
                 "SELECT PCName AS 'Версия Windows', POName AS 'Путь к ПО', POVersion AS 'Версия ПО', " +
@@ -4075,12 +4083,12 @@ namespace ASTA
             monthCalendar.AddAnnuallyBoldedDate(monthCalendar.SelectionStart);
             monthCalendar.UpdateBoldedDates();
 
-            string dayType = "";
+            string dayType ;
             if (textBoxGroup?.Text?.Trim()?.Length == 0 || textBoxGroup?.Text?.ToLower()?.Trim() == "выходной")
             { dayType = "Выходной"; }
             else { dayType = "Рабочий"; }
 
-            string nav = "";
+            string nav ;
             if (textBoxNav?.Text?.Trim()?.Length != 6)
             { nav = "0"; }
             else { nav = textBoxNav.Text.Trim(); }
@@ -7180,7 +7188,9 @@ namespace ASTA
             }
         }
 
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
         private async Task ExecuteSqlAsync(string SqlQuery) //Prepare DB and execute of SQL Query
+#pragma warning restore CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
         {
             LoggerAddTrace("ExecuteSqlAsync: query: " + SqlQuery);
             if (dbApplication.Exists)
@@ -9939,7 +9949,9 @@ namespace ASTA
             return makerLinks.GetParameters();
         }
 
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
         private async Task AutoUpdate()
+#pragma warning restore CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
         {
             //Check updates frequently
             System.Timers.Timer timer = new System.Timers.Timer
@@ -10171,7 +10183,9 @@ namespace ASTA
             firstAttemptsUpdate = true;
             Task.Run(() => UploadUpdatinfAplication());
         }
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
         private async void UploadUpdatinfAplication()
+#pragma warning restore CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
         {
             Uploading();
 
