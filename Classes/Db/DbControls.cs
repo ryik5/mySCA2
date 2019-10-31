@@ -212,7 +212,7 @@ namespace ASTA.Classes
         { CloseConnection(); }
     }
 
-    class SqLiteDbReader : SQLiteDbBase, IDisposable
+   internal class SqLiteDbReader : SQLiteDbBase, IDisposable
     {
         public SqLiteDbReader(string dbConnectionString, System.IO.FileInfo dbFileInfo) :
             base(dbConnectionString, dbFileInfo)
@@ -238,9 +238,11 @@ namespace ASTA.Classes
         }
     }
 
-    class SqLiteDbWriter : SQLiteDbBase, IDisposable
+   internal class SqLiteDbWriter : SQLiteDbBase, IDisposable
     {
-        public string Status { get; private set; }
+        public delegate void InfoStatus(object sender, EventTextArgs e);
+        public event InfoStatus Status;
+
         string temporaryResult;
         public SqLiteDbWriter(string dbConnectionString, System.IO.FileInfo dbFileInfo) :
             base(dbConnectionString, dbFileInfo)
@@ -248,11 +250,11 @@ namespace ASTA.Classes
 
         public void ExecuteQuery(System.Data.SQLite.SQLiteCommand sqlCommand)
         {
-            Status = "Ok";
+            Status?.Invoke(this, new EventTextArgs("Ok"));
 
             if (sqlCommand == null)
             {
-                Status = "Error. The SQLCommand can not be empty or null!";
+                Status?.Invoke(this, new EventTextArgs("Error. The SQLCommand can not be empty or null!"));
                 new ArgumentNullException();
             }
 
@@ -260,7 +262,8 @@ namespace ASTA.Classes
             { sqlCommand1.ExecuteNonQuery(); }
 
             try { sqlCommand.ExecuteNonQuery(); }
-            catch (Exception expt) { Status = expt.ToString(); }
+            catch (Exception expt)
+            { Status?.Invoke(this, new EventTextArgs("Error! " + expt.ToString())); }
 
             using (var sqlCommand1 = new System.Data.SQLite.SQLiteCommand("end", _sqlConnection))
             { sqlCommand1.ExecuteNonQuery(); }
@@ -268,23 +271,23 @@ namespace ASTA.Classes
 
         public void ExecuteQuery(string query)
         {
-            Status = "Ok";
+            Status?.Invoke(this, new EventTextArgs("Ok"));
             if (query == null)
             {
-                Status = "Error. The query can not be empty or null!";
+                Status?.Invoke(this, new EventTextArgs("Error. The SQLCommand can not be empty or null!"));
                 new ArgumentNullException();
             }
 
             using (var sqlCommand = new System.Data.SQLite.SQLiteCommand(query, _sqlConnection))
             {
                 try { sqlCommand.ExecuteNonQuery(); }
-                catch (Exception expt) { Status = expt.ToString(); }
+                catch (Exception expt)
+                { Status?.Invoke(this, new EventTextArgs("Error! " + expt.ToString())); }
             }
         }
 
         public void ExecuteQueryBegin()
         {
-            Status = string.Empty;
             using (var sqlCommand = new System.Data.SQLite.SQLiteCommand("begin", _sqlConnection))
             { sqlCommand.ExecuteNonQuery(); }
         }
@@ -297,32 +300,38 @@ namespace ASTA.Classes
 
         public void ExecuteQueryForBulkStepByStep(System.Data.SQLite.SQLiteCommand sqlCommand)
         {
-            temporaryResult = "Ok";
             if (sqlCommand == null)
             {
-                temporaryResult = "Error. The SQLCommand can not be empty or null!";
+                Status?.Invoke(this, new EventTextArgs("Error. The SQLCommand can not be empty or null!"));
                 new ArgumentNullException();
             }
 
-            try { sqlCommand.ExecuteNonQuery(); }
-            catch (Exception expt) { temporaryResult = expt.Message; }
-            Status += temporaryResult;
+            try
+            {
+                sqlCommand.ExecuteNonQuery();
+                Status?.Invoke(this, new EventTextArgs("Ok"));
+            }
+            catch (Exception expt)
+            { Status?.Invoke(this, new EventTextArgs("Error! " + expt.ToString())); }
         }
 
         public void ExecuteQueryForBulkStepByStep(string query)
         {
-            temporaryResult = "Ok";
             if (query?.Length == 0)
             {
-                temporaryResult = "Error. The SQLCommand can not be empty or null!";
+                Status?.Invoke(this, new EventTextArgs("Error. The query can not be empty or null!"));
                 new ArgumentNullException();
             }
             using (var sqlCommand = new System.Data.SQLite.SQLiteCommand(query, _sqlConnection))
             {
-                try { sqlCommand.ExecuteNonQuery(); }
-                catch (Exception expt) { temporaryResult = expt.Message; }
+                try
+                {
+                    sqlCommand.ExecuteNonQuery();
+                    Status?.Invoke(this, new EventTextArgs("Ok"));
+                }
+                catch (Exception expt)
+                { Status?.Invoke(this, new EventTextArgs("Error! " + expt.ToString())); }
             }
-            Status += temporaryResult;
         }
     }
 }

@@ -754,6 +754,7 @@ namespace ASTA
             _SetStatusLabelText(StatusLabel2, "Создаю таблицы в БД на основе запроса из текстового файла: " + fpath);
             using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
             {
+                dbWriter.Status += LoggerAddTrace;
                 dbWriter.ExecuteQueryBegin();
                 foreach (var s in txt)
                 {
@@ -763,12 +764,14 @@ namespace ASTA
 
                     if (s.EndsWith(";"))
                     {
+                        LoggerAddTrace("query: " + query);
                         dbWriter.ExecuteQueryForBulkStepByStep(query);
-                        log += "query: " + query + "\nresult: " + dbWriter.Status + "\n";
                     }
                 }//foreach
 
                 dbWriter.ExecuteQueryEnd();
+                dbWriter.Status -= LoggerAddTrace;
+
                 _SetStatusLabelText(StatusLabel2, "Таблицы в БД созданы.");
             }
         }
@@ -776,15 +779,16 @@ namespace ASTA
 
         private void SetTechInfoIntoDB() //Write Technical Info in DB 
         {
-            string result = null, query = null;
-
             if (dbApplication.Exists)
             {
-                query = "INSERT OR REPLACE INTO 'TechnicalInfo' (PCName, POName, POVersion, LastDateStarted, CurrentUser, FreeRam, GuidAppication) " +
+              string  query = "INSERT OR REPLACE INTO 'TechnicalInfo' (PCName, POName, POVersion, LastDateStarted, CurrentUser, FreeRam, GuidAppication) " +
                         " VALUES (@PCName, @POName, @POVersion, @LastDateStarted, @CurrentUser, @FreeRam, @GuidAppication)";
 
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
                 {
+                    LoggerAddTrace("query: " + query);
+                    dbWriter.Status += LoggerAddTrace;
+
                     using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter._sqlConnection))
                     {
                         SqlQuery.Parameters.Add("@PCName", DbType.String).Value = Environment.MachineName + "|" + Environment.OSVersion;
@@ -796,11 +800,9 @@ namespace ASTA
                         SqlQuery.Parameters.Add("@GuidAppication", DbType.String).Value = guid;
 
                         dbWriter.ExecuteQuery(SqlQuery);
-                        result = dbWriter.Status;
                     }
+                    dbWriter.Status -= LoggerAddTrace;
                 }
-
-                logger.Trace("SetTechInfoIntoDB: query: " + query + "\n" + result);//method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             }
         }
 
@@ -1213,13 +1215,10 @@ namespace ASTA
             _VisibleControl(panelView, true);
 
             if (mailServer?.Length > 0 && mailServerSMTPPort > 0)
-            {
-                _mailServer = new MailServer(mailServer, mailServerSMTPPort);
-            }
+            { _mailServer = new MailServer(mailServer, mailServerSMTPPort); }
+            
             if (mailSenderAddress != null && mailSenderAddress.Contains('@'))
-            {
-                _mailUser = new MailUser(NAME_OF_SENDER_REPORTS, mailSenderAddress);
-            }
+            { _mailUser = new MailUser(NAME_OF_SENDER_REPORTS, mailSenderAddress); }
 
             ShowDataTableDbQuery(dbApplication, "ConfigDB", "SELECT ParameterName AS 'Имя параметра', " +
             "Value AS 'Данные', Description AS 'Описание', DateCreated AS 'Дата создания/модификации'",
@@ -1276,16 +1275,16 @@ namespace ASTA
         {
             if (dbApplication.Exists)
             {
-                string result = string.Empty;
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
                 {
+                    LoggerAddTrace( "query: " + query);
+                    dbWriter.Status += LoggerAddTrace;
                     using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter._sqlConnection))
                     {
                         dbWriter.ExecuteQuery(SqlQuery);
-                        result += dbWriter.Status;
                     }
+                    dbWriter.Status -= LoggerAddTrace;
                 }
-                logger.Trace("ExecuteQueryOnLocalDB: query: " + query + "| result: " + result);
             }
         }
 
@@ -1305,6 +1304,8 @@ namespace ASTA
             {
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
                 {
+                    dbWriter.Status += LoggerAddTrace;
+
                     SQLiteCommand sqlCommand = null;
                     if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0 && sqlParameter4.Length > 0
                     && sqlParameter5.Length > 0 && sqlParameter6.Length > 0)
@@ -1371,11 +1372,10 @@ namespace ASTA
                         sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
                     }
                     dbWriter.ExecuteQuery(sqlCommand);
-                    result += dbWriter.Status;
+                    LoggerAddTrace(method + ": query: " + query);
+                    dbWriter.Status -= LoggerAddTrace;
                 }
             }
-
-            logger.Trace(method + ": query: " + query + "| result: " + result);
         }
 
 
@@ -2989,19 +2989,17 @@ namespace ASTA
         private void WritePeopleInLocalDB(string pathToPersonDB, DataTable dtSource) //use listGroups /add reserv1 reserv2
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
-            logger.Trace("WritePeopleInLocalDB: table - " + dtSource + ", row - " + dtSource.Rows.Count);
 
-            string result = string.Empty;
-            string query = null;
             if (dbApplication.Exists)
             {
-                query = "INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Department, PositionInDepartment, DepartmentId, City, Boss) " +
+              string  query = "INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Department, PositionInDepartment, DepartmentId, City, Boss) " +
                         "VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Comment, @Department, @PositionInDepartment, @DepartmentId, @City, @Boss)";
 
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
                 {
-                    result = string.Empty;
+            logger.Trace("WritePeopleInLocalDB: table - " + dtSource + ", row - " + dtSource.Rows.Count);
+                    LoggerAddTrace(method + ": query: " + query);
+                    dbWriter.Status += LoggerAddTrace;
                     dbWriter.ExecuteQueryBegin();
                     foreach (var dr in dtSource.AsEnumerable())
                     {
@@ -3026,17 +3024,15 @@ namespace ASTA
                                 SqlQuery.Parameters.Add("@Comment", DbType.String).Value = dr[Names.EMPLOYEE_SHIFT_COMMENT]?.ToString();
 
                                 dbWriter.ExecuteQueryForBulkStepByStep(SqlQuery);
-                                result += dbWriter.Status;
                                 _ProgressWork1Step();
                             }
                         }
                     }
-                    logger.Trace(method + ": query: " + query + "\nresult: " + result);//method = System.Reflection.MethodBase.GetCurrentMethod().Name;
                     dbWriter.ExecuteQueryEnd();
 
-                    result = string.Empty;
                     dbWriter.ExecuteQueryBegin();
                     query = "INSERT OR REPLACE INTO 'LastTakenPeopleComboList' (ComboList) VALUES (@ComboList)";
+                    LoggerAddTrace(method + ": query: " + query);
                     foreach (var str in listFIO)
                     {
                         if (str.fio?.Length > 0 && str.code?.Length > 0)
@@ -3046,13 +3042,12 @@ namespace ASTA
                                 SqlQuery.Parameters.Add("@ComboList", DbType.String).Value = str.fio + "|" + str.code;
 
                                 dbWriter.ExecuteQueryForBulkStepByStep(SqlQuery);
-                                result += dbWriter.Status;
                                 _ProgressWork1Step();
                             }
                         }
                     }
-                    logger.Trace(method + ": query: " + query + "\nresult:" + result);//method = System.Reflection.MethodBase.GetCurrentMethod().Name;
                     dbWriter.ExecuteQueryEnd();
+                    dbWriter.Status -= LoggerAddTrace;
                 }
             }
 
@@ -3070,18 +3065,16 @@ namespace ASTA
         private void ImportListGroupsDescriptionInLocalDB(string pathToPersonDB, HashSet<Department> departmentsUniq) //use listGroups
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
-
-
-            string result = string.Empty;
-            string query = null;
+            
             if (dbApplication.Exists)
             {
-                query = "INSERT OR REPLACE INTO 'PeopleGroupDescription' (GroupPerson, GroupPersonDescription, Recipient) " +
+              string  query = "INSERT OR REPLACE INTO 'PeopleGroupDescription' (GroupPerson, GroupPersonDescription, Recipient) " +
                                         "VALUES (@GroupPerson, @GroupPersonDescription, @Recipient)";
 
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
                 {
+                    LoggerAddTrace(method + ": query: " + query);
+                    dbWriter.Status += LoggerAddTrace;
                     dbWriter.ExecuteQueryBegin();
                     foreach (var group in departmentsUniq)
                     {
@@ -3094,12 +3087,11 @@ namespace ASTA
                                 SqlQuery.Parameters.Add("@Recipient", DbType.String).Value = group._departmentBossCode;
 
                                 dbWriter.ExecuteQueryForBulkStepByStep(SqlQuery);
-                                result += dbWriter.Status;
                             }
                         }
                     }
                     dbWriter.ExecuteQueryEnd();
-                    logger.Info(method + ": query: " + query + "\n" + result);//method = System.Reflection.MethodBase.GetCurrentMethod().Name;
+                    dbWriter.Status -= LoggerAddTrace;
                 }
             }
         }
@@ -3108,15 +3100,12 @@ namespace ASTA
         private void GetNamesOfPassagePoints() //Get names of the pass by points
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
-
-            logger.Trace("GetNamePoints");
             collectionOfPassagePoints = new CollectionOfPassagePoints();
 
             if (dbApplication.Exists)
             {
                 string query = "Select id, name FROM OBJ_ABC_ARC_READER;";
-                logger.Trace("query: " + query);
+                logger.Trace(method + " query: " + query);
                 string idPoint, namePoint, direction;
 
                 using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
@@ -7193,16 +7182,15 @@ namespace ASTA
 
         private async Task ExecuteSqlAsync(string SqlQuery) //Prepare DB and execute of SQL Query
         {
-            string result = string.Empty;
+            LoggerAddTrace("ExecuteSqlAsync: query: " + SqlQuery);
             if (dbApplication.Exists)
             {
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
                 {
+                    dbWriter.Status += LoggerAddTrace;
                     dbWriter.ExecuteQuery(SqlQuery);
-                    result += dbWriter.Status;
                 }
             }
-            logger.Trace("ExecuteSqlAsync: query: " + SqlQuery + "\nresult - " + result);
         }
 
 
@@ -9746,6 +9734,11 @@ namespace ASTA
         private void LoggerAddTrace(object sender, EventTextArgs e)
         {
             logger.Trace(e.Message);
+        }
+
+        private void LoggerAddTrace(string message)
+        {
+            logger.Trace(message);
         }
 
         private void LoggerAddInfo(string message)
