@@ -136,41 +136,44 @@ namespace ASTA.Classes
         {
             DbSchema schema = new DbSchema();
 
-            SQLiteConnectionStringBuilder builder =
-                new SQLiteConnectionStringBuilder();
-            builder.DataSource = dbPath;
-            builder.PageSize = 4096;
-            builder.UseUTF16Encoding = true;
+            SQLiteConnectionStringBuilder builder = new SQLiteConnectionStringBuilder
+            {
+                DataSource = dbPath,
+                PageSize = 4096,
+                UseUTF16Encoding = true
+            };
+
             using (SQLiteConnection conn = new SQLiteConnection(builder.ConnectionString))
             {
                 conn.Open();
 
-                SQLiteCommand query = new SQLiteCommand(
-                    @"SELECT * FROM SQLITE_MASTER", conn);
-                using (SQLiteDataReader reader = query.ExecuteReader())
+                using (SQLiteCommand query = new SQLiteCommand(@"SELECT * FROM SQLITE_MASTER", conn))
                 {
-                    while (reader.Read())
+                    using (SQLiteDataReader reader = query.ExecuteReader())
                     {
-                        string type = (string)reader["type"];
-                        string name = (string)reader["name"];
-                        string tblName = (string)reader["tbl_name"];
+                        while (reader.Read())
+                        {
+                            string type = (string)reader["type"];
+                            string name = (string)reader["name"];
+                            string tblName = (string)reader["tbl_name"];
 
-                        // Ignore SQLite internal indexes and tables
-                        if (name.StartsWith("sqlite_"))
-                            continue;
-                        if (reader["sql"] == DBNull.Value)
-                            continue;
+                            // Ignore SQLite internal indexes and tables
+                            if (name.StartsWith("sqlite_"))
+                                continue;
+                            if (reader["sql"] == DBNull.Value)
+                                continue;
 
-                        string sql = (string)reader["sql"];
+                            string sql = (string)reader["sql"];
 
-                        if (type == "table")
-                            schema._tables.Add(tblName, ParseDbTable(ref sql));
-                        else if (type == "index")
-                            schema._indexes.Add(name, ParseDbIndex(ref sql));
-                        else
-                            throw DbUpgradeException.SchemaIsNotSupported();
-                    } // while
-                } // using
+                            if (type == "table")
+                                schema._tables.Add(tblName, ParseDbTable(ref sql));
+                            else if (type == "index")
+                                schema._indexes.Add(name, ParseDbIndex(ref sql));
+                            else
+                                throw DbUpgradeException.SchemaIsNotSupported();
+                        } // while
+                    } // using
+                }// using
             } // using
 
             return schema;
@@ -265,8 +268,10 @@ namespace ASTA.Classes
         /// <returns>The DbTable representation of the table.</returns>
         public static DbTable ParseDbTable(ref string sql)
         {
-            DbTable table = new DbTable();
-            table.TableName = ParseTableName(ref sql);
+            DbTable table = new DbTable
+            {
+                TableName = ParseTableName(ref sql)
+            };
             table.Columns = ParseTableColumns(ref sql, table.TableName);
             return table;
         }

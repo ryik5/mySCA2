@@ -768,7 +768,7 @@
             // 
             this.HelpSystemItem.Name = "HelpSystemItem";
             resources.ApplyResources(this.HelpSystemItem, "HelpSystemItem");
-            this.HelpSystemItem.Click += new System.EventHandler(this.InfoItem_Click);
+            this.HelpSystemItem.Click += new System.EventHandler(this.infoItem_Click);
             // 
             // timer1
             // 

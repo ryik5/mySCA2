@@ -27,6 +27,10 @@ namespace ASTA
 {
     public partial class WinFormASTA : Form
     {
+
+        //About
+        AboutBox1 aboutBox;
+
         //todo!!!!!!!!!
         //Check of All variables, const and controls
         //they will be needed to Remove if they are not needed
@@ -661,11 +665,13 @@ namespace ASTA
 
         private void AboutSoft()
         {
-            using (AboutBox1 aboutBox = new AboutBox1())
-            {
-                aboutBox.Show();
-                buttonAboutForm = aboutBox.OKButtonClicked;
-            }
+            this.Hide();
+            AboutBox1 aboutBox = new AboutBox1();
+            aboutBox.ShowDialog();
+            buttonAboutForm = aboutBox.OKButtonClicked;
+            this.Show();
+            aboutBox?.Close();
+            aboutBox?.Dispose();
         }
 
         private void ApplicationExit(object sender, EventArgs e)
@@ -676,6 +682,7 @@ namespace ASTA
 
         private void ApplicationExit()
         {
+            aboutBox?.Dispose();
             dgvo = null;
             dtPersonTemp?.Dispose();
             dtPersonTempAllColumns?.Dispose();
@@ -761,14 +768,16 @@ namespace ASTA
             return txt;
         }
 
-        private void TryMakeLocalDB(string fpath = null, DbSchema schema = null)
+        private void TryMakeLocalDB(string fpath = null)
         {
             List<string> txt = ReadTXTFile(fpath);
-            string query = string.Empty, log = string.Empty;
+            string query = string.Empty;
 
             _SetStatusLabelText(StatusLabel2, "Создаю таблицы в БД на основе запроса из текстового файла: " + fpath);
             using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
             {
+                dbWriter.Status += AddLoggerTraceText;
+
                 dbWriter.ExecuteQueryBegin();
                 foreach (var s in txt)
                 {
@@ -776,14 +785,17 @@ namespace ASTA
                     { query = s.Trim(); }
                     else { query += s.Trim(); }
 
+                    logger.Trace("query: " + query);
                     if (s.EndsWith(";"))
                     {
                         dbWriter.ExecuteQueryForBulkStepByStep(query);
-                        log += "query: " + query + "\nresult: " + dbWriter.Status + "\n";
                     }
                 }//foreach
 
                 dbWriter.ExecuteQueryEnd();
+
+                dbWriter.Status -= AddLoggerTraceText;
+
                 _SetStatusLabelText(StatusLabel2, "Таблицы в БД созданы.");
             }
         }
@@ -791,15 +803,15 @@ namespace ASTA
 
         private void SetTechInfoIntoDB() //Write Technical Info in DB 
         {
-            string result = null, query = null;
-
             if (dbApplication.Exists)
             {
-                query = "INSERT OR REPLACE INTO 'TechnicalInfo' (PCName, POName, POVersion, LastDateStarted, CurrentUser, FreeRam, GuidAppication) " +
-                        " VALUES (@PCName, @POName, @POVersion, @LastDateStarted, @CurrentUser, @FreeRam, @GuidAppication)";
+                string query = "INSERT OR REPLACE INTO 'TechnicalInfo' (PCName, POName, POVersion, LastDateStarted, CurrentUser, FreeRam, GuidAppication) " +
+                          " VALUES (@PCName, @POName, @POVersion, @LastDateStarted, @CurrentUser, @FreeRam, @GuidAppication)";
 
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
                 {
+                    logger.Trace("query: " + query);
+                    dbWriter.Status += AddLoggerTraceText;
                     using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter._sqlConnection))
                     {
                         SqlQuery.Parameters.Add("@PCName", DbType.String).Value = Environment.MachineName + "|" + Environment.OSVersion;
@@ -811,11 +823,9 @@ namespace ASTA
                         SqlQuery.Parameters.Add("@GuidAppication", DbType.String).Value = guid;
 
                         dbWriter.ExecuteQuery(SqlQuery);
-                        result = dbWriter.Status;
                     }
+                    dbWriter.Status -= AddLoggerTraceText;
                 }
-
-                logger.Trace("SetTechInfoIntoDB: query: " + query + "\n" + result);//method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             }
         }
 
@@ -1291,18 +1301,19 @@ namespace ASTA
         {
             if (dbApplication.Exists)
             {
-                string result = string.Empty;
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
                 {
+                    logger.Trace("query: " + query);
+                    dbWriter.Status += AddLoggerTraceText;
+
 #pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
                     using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter._sqlConnection))
 #pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
                     {
                         dbWriter.ExecuteQuery(SqlQuery);
-                        result += dbWriter.Status;
                     }
+                    dbWriter.Status -= AddLoggerTraceText;
                 }
-                logger.Trace("ExecuteQueryOnLocalDB: query: " + query + "| result: " + result);
             }
         }
 
@@ -1322,6 +1333,8 @@ namespace ASTA
             {
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
                 {
+                    dbWriter.Status += AddLoggerTraceText;
+
                     SQLiteCommand sqlCommand = null;
                     if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0 && sqlParameter4.Length > 0
                     && sqlParameter5.Length > 0 && sqlParameter6.Length > 0)
@@ -1388,11 +1401,11 @@ namespace ASTA
                         sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
                     }
                     dbWriter.ExecuteQuery(sqlCommand);
-                    result += dbWriter.Status;
+
+                    logger.Trace("query: " + query);
+                    dbWriter.Status -= AddLoggerTraceText;
                 }
             }
-
-            logger.Trace(method + ": query: " + query + "| result: " + result);
         }
 
 
@@ -2979,7 +2992,7 @@ namespace ASTA
                             checkHourS = cell[5];
                             if (TryParseStringToDecimal(checkHourS) == 0)
                             { checkHourS = numUpHourStart.ToString(); }
-                            
+
                             row[Names.DESIRED_TIME_IN] = ConvertStringsTimeToStringHHMM(checkHourS, cell[6]);
 
                             checkHourE = cell[7];
@@ -3006,16 +3019,16 @@ namespace ASTA
             logger.Trace("-= " + method + " =-");
             logger.Trace("WritePeopleInLocalDB: table - " + dtSource + ", row - " + dtSource.Rows.Count);
 
-            string result = string.Empty;
-            string query = null;
             if (dbApplication.Exists)
             {
-                query = "INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Department, PositionInDepartment, DepartmentId, City, Boss) " +
-                        "VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Comment, @Department, @PositionInDepartment, @DepartmentId, @City, @Boss)";
+                string query = "INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Department, PositionInDepartment, DepartmentId, City, Boss) " +
+                          "VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Comment, @Department, @PositionInDepartment, @DepartmentId, @City, @Boss)";
 
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
                 {
-                    result = string.Empty;
+                    logger.Trace("query: " + query);
+                    dbWriter.Status += AddLoggerTraceText;
+
                     dbWriter.ExecuteQueryBegin();
                     foreach (var dr in dtSource.AsEnumerable())
                     {
@@ -3040,17 +3053,16 @@ namespace ASTA
                                 SqlQuery.Parameters.Add("@Comment", DbType.String).Value = dr[Names.EMPLOYEE_SHIFT_COMMENT]?.ToString();
 
                                 dbWriter.ExecuteQueryForBulkStepByStep(SqlQuery);
-                                result += dbWriter.Status;
                                 _ProgressWork1Step();
                             }
                         }
                     }
-                    logger.Trace(method + ": query: " + query + "\nresult: " + result);//method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-                    dbWriter.ExecuteQueryEnd();
 
-                    result = string.Empty;
+                    dbWriter.ExecuteQueryEnd();
                     dbWriter.ExecuteQueryBegin();
+
                     query = "INSERT OR REPLACE INTO 'LastTakenPeopleComboList' (ComboList) VALUES (@ComboList)";
+                    logger.Trace("query: " + query);
                     foreach (var str in listFIO)
                     {
                         if (str.fio?.Length > 0 && str.code?.Length > 0)
@@ -3060,13 +3072,13 @@ namespace ASTA
                                 SqlQuery.Parameters.Add("@ComboList", DbType.String).Value = str.fio + "|" + str.code;
 
                                 dbWriter.ExecuteQueryForBulkStepByStep(SqlQuery);
-                                result += dbWriter.Status;
                                 _ProgressWork1Step();
                             }
                         }
                     }
-                    logger.Trace(method + ": query: " + query + "\nresult:" + result);//method = System.Reflection.MethodBase.GetCurrentMethod().Name;
                     dbWriter.ExecuteQueryEnd();
+
+                    dbWriter.Status -= AddLoggerTraceText;
                 }
             }
 
@@ -3086,16 +3098,16 @@ namespace ASTA
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
-
-            string result = string.Empty;
-            string query = null;
             if (dbApplication.Exists)
             {
-                query = "INSERT OR REPLACE INTO 'PeopleGroupDescription' (GroupPerson, GroupPersonDescription, Recipient) " +
-                                        "VALUES (@GroupPerson, @GroupPersonDescription, @Recipient)";
+                string query = "INSERT OR REPLACE INTO 'PeopleGroupDescription' (GroupPerson, GroupPersonDescription, Recipient) " +
+                                           "VALUES (@GroupPerson, @GroupPersonDescription, @Recipient)";
 
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
                 {
+                    logger.Trace("query: " + query);
+                    dbWriter.Status += AddLoggerTraceText;
+
                     dbWriter.ExecuteQueryBegin();
                     foreach (var group in departmentsUniq)
                     {
@@ -3108,12 +3120,11 @@ namespace ASTA
                                 SqlQuery.Parameters.Add("@Recipient", DbType.String).Value = group._departmentBossCode;
 
                                 dbWriter.ExecuteQueryForBulkStepByStep(SqlQuery);
-                                result += dbWriter.Status;
                             }
                         }
                     }
                     dbWriter.ExecuteQueryEnd();
-                    logger.Info(method + ": query: " + query + "\n" + result);//method = System.Reflection.MethodBase.GetCurrentMethod().Name;
+                    dbWriter.Status -= AddLoggerTraceText;
                 }
             }
         }
@@ -3731,7 +3742,7 @@ namespace ASTA
             logger.Trace("GetPersonRegistrationFromServer, person - " + person.code);
 
             SeekAnualDays(ref dtTarget, ref person, false,
-                startDay.ConvertDateAsStringToIntArray(), 
+                startDay.ConvertDateAsStringToIntArray(),
                 endDay.ConvertDateAsStringToIntArray(),
                 ref myBoldedDates, ref workSelectedDays);
             DataRow rowPerson;
@@ -4002,6 +4013,8 @@ namespace ASTA
 
         private void infoItem_Click(object sender, EventArgs e)
         {
+
+
             ShowDataTableDbQuery(dbApplication, "TechnicalInfo",
                 "SELECT PCName AS 'Версия Windows', POName AS 'Путь к ПО', POVersion AS 'Версия ПО', " +
                 "LastDateStarted AS 'Дата использования', CurrentUser, FreeRam, GuidAppication ",
@@ -7087,18 +7100,20 @@ namespace ASTA
             }
         }
 
-        private async Task ExecuteSqlAsync(string SqlQuery) //Prepare DB and execute of SQL Query
+        private async Task ExecuteSqlAsync(string query) //Prepare DB and execute of SQL Query
         {
-            string result = string.Empty;
             if (dbApplication.Exists)
             {
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
                 {
-                    dbWriter.ExecuteQuery(SqlQuery);
-                    result += dbWriter.Status;
+                    logger.Trace("query: " + query);
+                    dbWriter.Status += AddLoggerTraceText;
+
+                    dbWriter.ExecuteQuery(query);
+
+                    dbWriter.Status -= AddLoggerTraceText;
                 }
             }
-            logger.Trace("ExecuteSqlAsync: query: " + SqlQuery + "\nresult - " + result);
         }
 
 
@@ -7136,7 +7151,6 @@ namespace ASTA
                     string txtboxGroupDescription = _ReturnTextOfControl(textBoxGroupDescription);
 
                     mRightClick = new ContextMenu();
-
 
                     switch (nameOfLastTable)
                     {
@@ -9472,7 +9486,7 @@ namespace ASTA
         /// </summary>
         /// <param name="number"></param>
         /// <returns></returns>
-        private decimal TryParseStringToDecimal(string number)  
+        private decimal TryParseStringToDecimal(string number)
         {
             if (number is null)
             { return 0; }
@@ -9488,7 +9502,7 @@ namespace ASTA
         /// </summary>
         /// <param name="s"></param>
         /// <returns></returns>
-        private static string ConvertFullNameToShortForm(string s) 
+        private static string ConvertFullNameToShortForm(string s)
         {
             var stmp = s?.Split(' ');
             var sFullNameOnly = stmp?[0];
@@ -9506,7 +9520,7 @@ namespace ASTA
         /// <param name="hours"></param>
         /// <param name="minutes"></param>
         /// <returns></returns>
-         private int ConvertStringsTimeToSeconds(string hours, string minutes)
+        private int ConvertStringsTimeToSeconds(string hours, string minutes)
         {
             int[] result = ConvertStringsTimeToInt(hours, minutes);
             return result[0] * 60 * 60 + result[1] * 60;
@@ -9545,7 +9559,7 @@ namespace ASTA
         /// <returns></returns>
         private static string ConvertDecimalTimeToStringHHMM(decimal hours, decimal minutes)
         {
-            return string.Format("{0:d2}:{1:d2}", (int)hours, (int)minutes); 
+            return string.Format("{0:d2}:{1:d2}", (int)hours, (int)minutes);
         }
 
         /// <summary>
@@ -9560,9 +9574,9 @@ namespace ASTA
 
             result[0] = (decimal)time[0];                                   // hour in decimal          22
             result[1] = (decimal)time[1];                                   // Minute in decimal        15
-            result[2] = result[0]+                                          // hours in decimal         22.25
-                (decimal)TimeSpan.FromMinutes((double)time[1]).TotalHours + 
-                (decimal)TimeSpan.FromSeconds((double)time[2]).TotalHours; 
+            result[2] = result[0] +                                          // hours in decimal         22.25
+                (decimal)TimeSpan.FromMinutes((double)time[1]).TotalHours +
+                (decimal)TimeSpan.FromSeconds((double)time[2]).TotalHours;
             result[3] = 60 * result[0] + result[1];                         // minutes in decimal       1335
             result[4] = 60 * 60 * result[0] + 60 * result[1] + (decimal)time[2];    // result in seconds       1335
 
@@ -9574,13 +9588,13 @@ namespace ASTA
 
         private void _SetStatusLabelText(object sender, EventTextArgs e)
         { _SetStatusLabelText(StatusLabel2, e.Message); }
-      
-       private void _SetStatusLabelBackColor(object sender, EventColorArgs e)
+
+        private void _SetStatusLabelBackColor(object sender, EventColorArgs e)
         { _SetStatusLabelBackColor(StatusLabel2, e.Color); }
 
         private void SetUploadingStatus(object sender, EventBoolArgs e)
         { resultOfUploading = e.Status; }
- 
+
         private void AddLoggerTraceText(object sender, EventTextArgs e)
         { logger.Trace(e.Message); }
 
@@ -9723,7 +9737,7 @@ namespace ASTA
                 _SetStatusLabelText(StatusLabel2, @"Ждите! На сервер загружается новая версия ПО");
             }
         }
-       
+
         private async Task RunAutoUpdate()
         {
             //Check updates frequently
