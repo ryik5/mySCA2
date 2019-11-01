@@ -31,11 +31,11 @@ namespace ASTA.Classes.People
             if (obj == null || !(obj is UserAD))
                 return false;
 
-            UserAD df = obj as UserAD;
-            if ((Object)df == null)
+            var df = (UserAD) obj;
+            if (df == null)
                 return false;
 
-            return this.ToString() == df.ToString();
+            return ToString() == df.ToString();
         }
 
         public override int GetHashCode()
@@ -69,21 +69,7 @@ namespace ASTA.Classes.People
             string a = x.fio + x.login;
             string b = y.fio + y.login;
 
-            string[] words = { a, b };
-            Array.Sort(words);
-
-            if (words[0] != a)
-            {
-                return 1;
-            }
-            else if (a == b)
-            {
-                return 0;
-            }
-            else
-            {
-                return -1;
-            }
+            return CompareTwoStrings.Compare(a, b);
         }
     }
 }

@@ -73,10 +73,10 @@ namespace ASTA.Classes
                 return false;
 
             MailUser df = obj as MailUser;
-            if ((Object)df == null)
+            if (df == null)
                 return false;
 
-            return this.ToString() == df.ToString();
+            return ToString() == df.ToString();
         }
 
         public override int GetHashCode()

@@ -42,11 +42,11 @@ namespace ASTA.Classes
             if (obj == null || !(obj is MailServer))
                 return false;
 
-            MailServer df = obj as MailServer;
-            if ((Object)df == null)
+            var df = (MailServer) obj;
+            if (df == null)
                 return false;
 
-            return this.ToString() == df.ToString();
+            return ToString() == df.ToString();
         }
 
         public override int GetHashCode()

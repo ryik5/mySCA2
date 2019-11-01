@@ -8,7 +8,6 @@ namespace ASTA.Classes.Updating
 
         public delegate void Status(object sender, EventTextArgs e);
         public event Status status;
-        public MakerOfLinks() { }
 
         public void SetParameters(UpdatingParameters parameters)
         {

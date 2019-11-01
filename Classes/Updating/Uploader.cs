@@ -37,6 +37,7 @@ namespace ASTA.Classes.Updating
             ColorOfStatus?.Invoke(this, new EventColorArgs( System.Drawing.SystemColors.Control));
             uploadingError = false;
 
+            // ReSharper disable InvocationIsSkipped
             Contract.Requires(_parameters != null);
             Contract.Requires(_parameters.localFolderUpdatingURL != null);
             Contract.Requires(_parameters.appUpdateFolderURI != null);
@@ -62,7 +63,7 @@ namespace ASTA.Classes.Updating
             }
         }
 
-        Func<Task>[] MakeFuncTask()
+        private Func<Task>[] MakeFuncTask()
         {
             int len = _source.Length;
             Func<Task>[] tasks = new Func<Task>[len];
@@ -110,25 +111,25 @@ namespace ASTA.Classes.Updating
         }
         private static async Task InvokeAsync(IEnumerable<Func<Task>> taskFactories, int maxDegreeOfParallelism)
         {
-            Queue<Func<Task>> queue = new Queue<Func<Task>>(taskFactories);
+            var queue = new Queue<Func<Task>>(taskFactories);
 
             if (queue.Count == 0)
             {
                 return;
             }
 
-            List<Task> tasksInFlight = new List<Task>(maxDegreeOfParallelism);
+            var tasksInFlight = new List<Task>(maxDegreeOfParallelism);
 
             do
             {
                 while (tasksInFlight.Count < maxDegreeOfParallelism && queue.Count != 0)
                 {
-                    Func<Task> taskFactory = queue.Dequeue();
+                    var taskFactory = queue.Dequeue();
 
                     tasksInFlight.Add(taskFactory());
                 }
 
-                Task completedTask = await Task.WhenAny(tasksInFlight).ConfigureAwait(false);
+                var completedTask = await Task.WhenAny(tasksInFlight).ConfigureAwait(false);
 
                 // Propagate exceptions. In-flight tasks will be abandoned if this throws.
                 await completedTask.ConfigureAwait(false);

@@ -25,11 +25,11 @@ namespace ASTA.Classes.People
             if (obj == null)
                 return false;
 
-            Department df = obj as Department;
-            if ((Object)df == null)
+            var df = (Department) obj;
+            if (df == null)
                 return false;
 
-            return this.ToString() == df.ToString();
+            return ToString() == df.ToString();
         }
         public override int GetHashCode()
         {
@@ -55,7 +55,7 @@ namespace ASTA.Classes.People
                 return false;
 
             DepartmentFull df = obj as DepartmentFull;
-            if ((Object)df == null)
+            if (df == null)
                 return false;
 
             return this.ToString() == df.ToString();

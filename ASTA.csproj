@@ -212,9 +212,12 @@
     <Compile Include="AboutBox1.Designer.cs">
       <DependentUpon>AboutBox1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Classes\Common\CompareTwoStrings.cs" />
     <Compile Include="Classes\Common\EventBoolArgs.cs" />
     <Compile Include="Classes\Common\EventTextArgs.cs" />
     <Compile Include="Classes\Common\EventColorArgs.cs" />
+    <Compile Include="Classes\Common\IntExtensions.cs" />
+    <Compile Include="Classes\Common\StringExtensions.cs" />
     <Compile Include="Classes\People\ActiveDirectoryOperations.cs" />
     <Compile Include="Classes\Updating\IMakeable.cs" />
     <Compile Include="Classes\Updating\MakerOfLinks.cs" />
@@ -224,7 +227,6 @@
     <Compile Include="Classes\Common\DataGridViewOperations.cs" />
     <Compile Include="Classes\Common\NamesOfConstants.cs" />
     <Compile Include="Classes\Common\WinFormsExtensions.cs" />
-    <Compile Include="Classes\Common\DateTimeConvertor.cs" />
     <Compile Include="Classes\Common\ObservableRangeCollection.cs" />
     <Compile Include="Classes\PassagePoint.cs" />
     <Compile Include="Classes\People\Employee.cs" />

@@ -28,10 +28,10 @@ namespace ASTA.Classes
                 return false;
 
             ParameterConfig df = obj as ParameterConfig;
-            if ((Object)df == null)
+            if (df == null)
                 return false;
 
-            return this.ToString() == df.ToString();
+            return ToString() == df.ToString();
         }
         public override int GetHashCode()
         {
@@ -63,10 +63,10 @@ namespace ASTA.Classes
                 return false;
 
             ParameterOfConfiguration df = obj as ParameterOfConfiguration;
-            if ((Object)df == null)
+            if (df == null)
                 return false;
 
-            return this.ToString() == df.ToString();
+            return ToString() == df.ToString();
         }
 
         public override int GetHashCode()
