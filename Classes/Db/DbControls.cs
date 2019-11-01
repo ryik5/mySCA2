@@ -161,7 +161,7 @@ namespace ASTA.Classes
         public System.Data.SQLite.SQLiteCommand _sqlCommand;
         string _dbConnectionString;
 
-        public SQLiteDbBase(string dbConnectionString, System.IO.FileInfo dbFileInfo)
+        protected SQLiteDbBase(string dbConnectionString, System.IO.FileInfo dbFileInfo)
         {
             _dbConnectionString = dbConnectionString;
             CheckDB(_dbConnectionString, dbFileInfo);
@@ -175,15 +175,14 @@ namespace ASTA.Classes
 
         private void CheckDB(string dbConnectionString, System.IO.FileInfo dbFileInfo)
         {
-            if (!dbFileInfo.Exists)
-            {
-                throw new System.ArgumentException("DB is not Exist", "dbFileInfo");
-            }
+            if (!(dbFileInfo?.Length>0))
+                throw new System.ArgumentException("dbFileInfo cannot be null!");
 
-            if (dbConnectionString?.Trim()?.Length < 1)
-            {
-                throw new System.ArgumentException("Connection string can not be Empty or short", "dbConnectionString");
-            }
+            if (!dbFileInfo.Exists)
+                throw new System.ArgumentException("dbFileInfo is not exist");
+
+            if (!(dbConnectionString?.Trim()?.Length >0))
+                throw new System.ArgumentException("dbConnectionString string can not be Empty or short");
         }
 
         private void ConnectToDB(string dbConnectionString)
@@ -192,24 +191,17 @@ namespace ASTA.Classes
             _sqlConnection.Open();
         }
 
-        public override void CloseConnection()
+        public void Dispose()
         {
             if (_sqlCommand != null)
             { _sqlCommand?.Dispose(); }
 
             if (_sqlConnection != null)
             {
-                try
-                {
                     _sqlConnection?.Close();
                     _sqlConnection?.Dispose();
-                }
-                catch { }
-            }
+             }
         }
-
-        public override void Dispose()
-        { CloseConnection(); }
     }
 
    internal class SqLiteDbReader : SQLiteDbBase, IDisposable
@@ -243,9 +235,6 @@ namespace ASTA.Classes
         public delegate void InfoStatus(object sender, EventTextArgs e);
         public event InfoStatus Status;
 
-#pragma warning disable CS0169 // The field 'SqLiteDbWriter.temporaryResult' is never used
-        string temporaryResult;
-#pragma warning restore CS0169 // The field 'SqLiteDbWriter.temporaryResult' is never used
         public SqLiteDbWriter(string dbConnectionString, System.IO.FileInfo dbFileInfo) :
             base(dbConnectionString, dbFileInfo)
         { }

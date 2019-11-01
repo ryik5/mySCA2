@@ -20,7 +20,7 @@ namespace ASTA
 
             string ver1 = System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString();
             string ver2 = fileVersionInfo.FileVersion;
-           // string ver3 = Application.ProductVersion;
+            // string ver3 = Application.ProductVersion;
 
             Text = String.Format("{0,-14}{1}", "О программе:", fileVersionInfo.ProductName);
             labelProductName.Text = String.Format("{0,-14}{1}", "Название:", fileVersionInfo.Comments);
@@ -55,7 +55,7 @@ namespace ASTA
 
         private void logoPictureBox_Click(object sender, EventArgs e)
         {
-            const string url = @"mailto:ryik.yuri@gmail.com";
+            const string url = "mailto:ryik.yuri@gmail.com";
             System.Diagnostics.Process.Start(url);
         }
     }
