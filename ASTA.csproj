@@ -224,7 +224,6 @@
     <Compile Include="Classes\Common\DataGridViewOperations.cs" />
     <Compile Include="Classes\Common\NamesOfConstants.cs" />
     <Compile Include="Classes\Common\WinFormsExtensions.cs" />
-    <Compile Include="Classes\Common\DateTimeConvertor.cs" />
     <Compile Include="Classes\Common\ObservableRangeCollection.cs" />
     <Compile Include="Classes\PassagePoint.cs" />
     <Compile Include="Classes\People\Employee.cs" />
