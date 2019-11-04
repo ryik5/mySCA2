@@ -7,15 +7,15 @@ namespace ASTA.Classes.Updating
 {
     public class Uploader : IDisposable
     {
-        public delegate void InfoStatus<TextEventArgs>(object sender, TextEventArgs e);
-        public event InfoStatus<TextEventArgs> Info;
+        public delegate void Message(object sender, TextEventArgs e);
+        public event Message Info;
 
-        public delegate void MarkerOfUploading<ColorEventArgs>(object sender, ColorEventArgs e);
-        public event MarkerOfUploading<ColorEventArgs> ColorOfStatus;
+        public delegate void MarkerOfUploading(object sender, ColorEventArgs e);
+        public event MarkerOfUploading ColorOfStatus;
         string messageOfErrorUploading = null;
 
-        public delegate void Uploaded<BoolEventArgs>(object sender, BoolEventArgs e);
-        public event Uploaded<BoolEventArgs> Status;
+        public delegate void Uploaded(object sender, BoolEventArgs e);
+        public event Uploaded Status;
 
         private string[] _source;
         private string[] _target;

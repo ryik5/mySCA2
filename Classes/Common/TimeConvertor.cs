@@ -4,18 +4,18 @@ namespace ASTA.Classes
 {
     //todo replace
     //using:         
-    class TestTimeConvertor
-    {
-        public void testConvertor()
-        {
-            TimeConvertor timeConvertor1 = new TimeConvertor { Seconds = 115 };
-            TimeStore timer = timeConvertor1;
-            Console.WriteLine($"{timer.Hours}/d2:{timer.Minutes}/d2:{timer.Seconds}/d2"); // 0:1:55
+    //class TestTimeConvertor
+    //{
+    //    public void testConvertor()
+    //    {
+    //        TimeConvertor timeConvertor1 = new TimeConvertor { Seconds = 115 };
+    //        TimeStore timer = timeConvertor1;
+    //        Console.WriteLine($"{timer.Hours}/d2:{timer.Minutes}/d2:{timer.Seconds}/d2"); // 0:1:55
 
-            TimeConvertor timeConvertor2 = (TimeConvertor)timer;
-            Console.WriteLine(timeConvertor2.Seconds);  //115
-        }
-    }
+    //        TimeConvertor timeConvertor2 = (TimeConvertor)timer;
+    //        Console.WriteLine(timeConvertor2.Seconds);  //115
+    //    }
+    //}
 
     class TimeStore
     {

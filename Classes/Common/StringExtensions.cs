@@ -87,10 +87,8 @@ namespace ASTA.Classes
                     if (length == 3)
                         int.TryParse(time?.Split(':')[2], out seconds);
                 }
-
             }
             return new int[] { hours, minutes, seconds };
         }
-
     }
 }

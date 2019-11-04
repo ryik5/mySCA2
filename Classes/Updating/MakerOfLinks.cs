@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.Contracts;
-using System;
 
 namespace ASTA.Classes.Updating
 {
@@ -7,9 +6,8 @@ namespace ASTA.Classes.Updating
     {
         UpdatingParameters _parameters { get; set; }
 
-        public delegate void Status<TextEventArgs>(object sender, TextEventArgs e);
-        public event Status<TextEventArgs> status;
-        public MakerOfLinks() { }
+        public delegate void Status(object sender, TextEventArgs e);
+        public event Status status;
 
         public void SetParameters(UpdatingParameters parameters)
         {
@@ -44,12 +42,12 @@ namespace ASTA.Classes.Updating
         {
             foreach (var prop in _parameters.GetType().GetProperties())
             {
-                status?.Invoke(this, new EventTextArgs(prop.Name + ": " + prop.GetValue(_parameters, null)));
+                status?.Invoke(this, new TextEventArgs(prop.Name + ": " + prop.GetValue(_parameters, null)));
             }
 
             foreach (var field in _parameters.GetType().GetFields())
             {
-                status?.Invoke(this, new EventTextArgs(field.Name + ": " + field.GetValue(_parameters)));
+                status?.Invoke(this, new TextEventArgs(field.Name + ": " + field.GetValue(_parameters)));
             }
         }*/
     }

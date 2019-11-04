@@ -41,11 +41,11 @@ namespace ASTA.Classes
 
     internal class ParameterOfConfiguration
     {
-        public string Name { get; set; }
-        public string Value { get; set; }
-        public string Description { get; set; }
-        public string IsExample { get; set; }
-        public bool IsSecret { get; set; }
+        public string name { get; set; }
+        public string value { get; set; }
+        public string description { get; set; }
+        public string isExample { get; set; }
+        public bool isSecret { get; set; }
 
         public static ParameterOfConfigurationBuilder CreateParameter()
         {
@@ -54,7 +54,7 @@ namespace ASTA.Classes
 
         public override string ToString()
         {
-            return Name + "\t" + Value + "\t" + Description + "\t" + IsExample + "\t" + IsSecret;
+            return name + "\t" + value + "\t" + description + "\t" + isExample + "\t" + isSecret;
         }
 
         public override bool Equals(object obj)
@@ -85,37 +85,37 @@ namespace ASTA.Classes
         }
         public ParameterOfConfigurationBuilder SetName(string name)
         {
-            _parameterOfConfiguration.Name = name;
+            _parameterOfConfiguration.name = name;
             return this;
         }
         public ParameterOfConfigurationBuilder SetValue(string name)
         {
-            _parameterOfConfiguration.Value = name;
+            _parameterOfConfiguration.value = name;
             return this;
         }
         public ParameterOfConfigurationBuilder SetDescription(string name)
         {
-            _parameterOfConfiguration.Description = name;
+            _parameterOfConfiguration.description = name;
             return this;
         }
         public ParameterOfConfigurationBuilder SetIsExample(string name)
         {
-            _parameterOfConfiguration.IsExample = name;
+            _parameterOfConfiguration.isExample = name;
             return this;
         }
         public ParameterOfConfigurationBuilder SetIsSecret(bool state)
         {
-            _parameterOfConfiguration.IsSecret = state;
+            _parameterOfConfiguration.isSecret = state;
             return this;
         }
 
         public ParameterOfConfigurationBuilder SetParameter(ParameterConfig parameter)
         {
-            _parameterOfConfiguration.Name = parameter.name;
-            _parameterOfConfiguration.Value = parameter.value;
-            _parameterOfConfiguration.Description = parameter.description;
-            _parameterOfConfiguration.IsExample = parameter.isExample;
-            _parameterOfConfiguration.IsSecret = parameter.isSecret;
+            _parameterOfConfiguration.name = parameter.name;
+            _parameterOfConfiguration.value = parameter.value;
+            _parameterOfConfiguration.description = parameter.description;
+            _parameterOfConfiguration.isExample = parameter.isExample;
+            _parameterOfConfiguration.isSecret = parameter.isSecret;
             return this;
         }
 
@@ -132,8 +132,8 @@ namespace ASTA.Classes
         ParameterOfConfiguration _parameterOfConfiguration;
         System.IO.FileInfo _databasePerson;
 
-        public delegate void Status<TextEventArgs>(object sender, TextEventArgs e);
-        public event Status<TextEventArgs> status;
+        public delegate void Status(object sender, TextEventArgs e);
+        public event Status status;
 
         readonly byte[] keyEncryption = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
         readonly byte[] keyDencryption = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
@@ -147,7 +147,7 @@ namespace ASTA.Classes
         {
             _parameterOfConfiguration = parameterOfConfiguration;
 
-            if (_parameterOfConfiguration.Name == null || _parameterOfConfiguration.Name.Length == 0)
+            if (_parameterOfConfiguration.name == null || _parameterOfConfiguration.name.Length == 0)
                 throw new ArgumentNullException("any of Parameters should have a name");
 
             if (_databasePerson.Exists)
@@ -156,41 +156,41 @@ namespace ASTA.Classes
                 {
                     sqlConnection.Open();
 
-                    using (SQLiteCommand sqlCommand = new SQLiteCommand("begin", sqlConnection))
-                    { sqlCommand.ExecuteNonQuery(); }
+                    SQLiteCommand sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
+                    sqlCommand1.ExecuteNonQuery();
                     string ParameterValueSave = "";
-                    if (_parameterOfConfiguration.IsSecret)
+                    if (_parameterOfConfiguration.isSecret)
                     {
                         ParameterValueSave =
-                            (_parameterOfConfiguration.Value == null || _parameterOfConfiguration.Value.Length == 0) ?
+                            (_parameterOfConfiguration.value == null || _parameterOfConfiguration.value.Length == 0) ?
                             "" :
-                            EncryptionDecryptionCriticalData.EncryptStringToBase64Text(_parameterOfConfiguration.Value, keyEncryption, keyDencryption);
+                            EncryptionDecryptionCriticalData.EncryptStringToBase64Text(_parameterOfConfiguration.value, keyEncryption, keyDencryption);
                     }
                     else
-                    { ParameterValueSave = _parameterOfConfiguration.Value; }
+                    { ParameterValueSave = _parameterOfConfiguration.value; }
 
                     using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'ConfigDB' (ParameterName, Value, Description, DateCreated, IsPassword, IsExample)" +
                                " VALUES (@ParameterName, @Value, @Description, @DateCreated, @IsPassword, @IsExample)", sqlConnection))
                     {
-                        sqlCommand.Parameters.Add("@ParameterName", DbType.String).Value = _parameterOfConfiguration.Name;
+                        sqlCommand.Parameters.Add("@ParameterName", DbType.String).Value = _parameterOfConfiguration.name;
                         sqlCommand.Parameters.Add("@Value", DbType.String).Value = ParameterValueSave;
-                        sqlCommand.Parameters.Add("@Description", DbType.String).Value = _parameterOfConfiguration.Description;
+                        sqlCommand.Parameters.Add("@Description", DbType.String).Value = _parameterOfConfiguration.description;
                         sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
-                        sqlCommand.Parameters.Add("@IsPassword", DbType.Boolean).Value = _parameterOfConfiguration.IsSecret;
-                        sqlCommand.Parameters.Add("@IsExample", DbType.String).Value = _parameterOfConfiguration.IsExample;
+                        sqlCommand.Parameters.Add("@IsPassword", DbType.Boolean).Value = _parameterOfConfiguration.isSecret;
+                        sqlCommand.Parameters.Add("@IsExample", DbType.String).Value = _parameterOfConfiguration.isExample;
                         try { sqlCommand.ExecuteNonQuery(); } catch { }
                     }
-                    using (SQLiteCommand sqlCommand = new SQLiteCommand("end", sqlConnection))
-                    { sqlCommand.ExecuteNonQuery(); }
+                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
+                    sqlCommand1.ExecuteNonQuery();
                 }
-                if (_parameterOfConfiguration?.Value?.Length == 0)
-                    return _parameterOfConfiguration.Name + " - was saved in DB, but value is empty!";
+                if (_parameterOfConfiguration?.value?.Length == 0)
+                    return _parameterOfConfiguration.name + " - was saved in DB, but value is empty!";
                 else
-                    return _parameterOfConfiguration.Name + " (" + _parameterOfConfiguration.Value + ")" + " - was saved in DB!";
+                    return _parameterOfConfiguration.name + " (" + _parameterOfConfiguration.value + ")" + " - was saved in DB!";
             }
             else
             {
-                return _parameterOfConfiguration.Name + " - wasn't saved!\nDB: " + _databasePerson.ToString() + " is not exist!";
+                return _parameterOfConfiguration.name + " - wasn't saved!\nDB: " + _databasePerson.ToString() + " is not exist!";
             }
 
         }

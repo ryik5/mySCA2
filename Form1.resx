@@ -781,7 +781,7 @@
     <value>503, 17</value>
   </metadata>
   <data name="GetFioItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>257, 22</value>
+    <value>226, 22</value>
   </data>
   <data name="GetFioItem.Text" xml:space="preserve">
     <value>Получить список ФИО</value>
@@ -790,73 +790,70 @@
     <value>Получить/обновить список ФИО персон заведенных на серверах</value>
   </data>
   <data name="Separator8.Size" type="System.Drawing.Size, System.Drawing">
-    <value>254, 6</value>
+    <value>223, 6</value>
   </data>
-  <data name="ShowListFioItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>257, 22</value>
+  <data name="listFioItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>226, 22</value>
   </data>
-  <data name="ShowListFioItem.Text" xml:space="preserve">
+  <data name="listFioItem.Text" xml:space="preserve">
     <value>Список ФИО</value>
   </data>
-  <data name="ShowListFioItem.ToolTipText" xml:space="preserve">
+  <data name="listFioItem.ToolTipText" xml:space="preserve">
     <value>Список ВИО, загруженный с сервера</value>
   </data>
   <data name="Separator9.Size" type="System.Drawing.Size, System.Drawing">
-    <value>254, 6</value>
+    <value>223, 6</value>
   </data>
   <data name="LoadDataItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>257, 22</value>
+    <value>226, 22</value>
   </data>
   <data name="LoadDataItem.Text" xml:space="preserve">
-    <value>Загрузка регистраций пропусков</value>
-  </data>
-  <data name="LoadDataItem.ToolTipText" xml:space="preserve">
-    <value>Загрузка данных за выбранный период</value>
+    <value>Загрузка данных</value>
   </data>
   <data name="LoadLastInputsOutputsItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>257, 22</value>
+    <value>226, 22</value>
   </data>
   <data name="LoadLastInputsOutputsItem.Text" xml:space="preserve">
     <value>LoadLastInputsOutputsItem</value>
   </data>
   <data name="LoadInputsOutputsItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>257, 22</value>
+    <value>226, 22</value>
   </data>
   <data name="LoadInputsOutputsItem.Text" xml:space="preserve">
     <value>LoadInputsOutputsItem</value>
   </data>
   <data name="Separator10.Size" type="System.Drawing.Size, System.Drawing">
-    <value>254, 6</value>
+    <value>223, 6</value>
   </data>
   <data name="TableExportToExcelItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>257, 22</value>
+    <value>226, 22</value>
   </data>
   <data name="TableExportToExcelItem.Text" xml:space="preserve">
     <value>Экспорт таблицы в Excel</value>
   </data>
   <data name="TableModeItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>257, 22</value>
+    <value>226, 22</value>
   </data>
   <data name="TableModeItem.Text" xml:space="preserve">
     <value>Показать в табличном виде</value>
   </data>
   <data name="VisualModeItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>257, 22</value>
+    <value>226, 22</value>
   </data>
   <data name="VisualModeItem.Text" xml:space="preserve">
     <value>Визуализация регистраций</value>
   </data>
   <data name="ChangeColorMenuItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>257, 22</value>
+    <value>226, 22</value>
   </data>
   <data name="ChangeColorMenuItem.Text" xml:space="preserve">
     <value>Изменить цвет графика</value>
   </data>
   <data name="Separator11.Size" type="System.Drawing.Size, System.Drawing">
-    <value>254, 6</value>
+    <value>223, 6</value>
   </data>
   <data name="ExitItem.Size" type="System.Drawing.Size, System.Drawing">
-    <value>257, 22</value>
+    <value>226, 22</value>
   </data>
   <data name="ExitItem.Text" xml:space="preserve">
     <value>Выход</value>
@@ -1017,10 +1014,10 @@
   <data name="Separator2.Size" type="System.Drawing.Size, System.Drawing">
     <value>375, 6</value>
   </data>
-  <data name="EditAnnualDaysItem.Size" type="System.Drawing.Size, System.Drawing">
+  <data name="EditAnualDaysItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>378, 22</value>
   </data>
-  <data name="EditAnnualDaysItem.Text" xml:space="preserve">
+  <data name="EditAnualDaysItem.Text" xml:space="preserve">
     <value>Войти в режим редактирования праздников</value>
   </data>
   <data name="AddAnualDateItem.Size" type="System.Drawing.Size, System.Drawing">
@@ -1575,10 +1572,10 @@
   <data name="&gt;&gt;Separator8.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripSeparator, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;ShowListFioItem.Name" xml:space="preserve">
-    <value>ShowListFioItem</value>
+  <data name="&gt;&gt;listFioItem.Name" xml:space="preserve">
+    <value>listFioItem</value>
   </data>
-  <data name="&gt;&gt;ShowListFioItem.Type" xml:space="preserve">
+  <data name="&gt;&gt;listFioItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;Separator9.Name" xml:space="preserve">
@@ -1797,10 +1794,10 @@
   <data name="&gt;&gt;Separator2.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripSeparator, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="&gt;&gt;EditAnnualDaysItem.Name" xml:space="preserve">
-    <value>EditAnnualDaysItem</value>
+  <data name="&gt;&gt;EditAnualDaysItem.Name" xml:space="preserve">
+    <value>EditAnualDaysItem</value>
   </data>
-  <data name="&gt;&gt;EditAnnualDaysItem.Type" xml:space="preserve">
+  <data name="&gt;&gt;EditAnualDaysItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;AddAnualDateItem.Name" xml:space="preserve">
