@@ -1540,7 +1540,7 @@ namespace ASTA
 
             if (bServer1Exist)
             {
-                await Task.Run(() => DoListsFioGroupsMailings().GetAwaiter().GetResult());
+                await Task.Run(() => DoListsFioGroupsMailings());
 
                 _VisibleMenuItem(listFioItem, true);
                 _EnableMenuItem(SettingsMenuItem, true);
@@ -1564,7 +1564,7 @@ namespace ASTA
             _ProgressBar1Stop();
         }
 
-        private async Task DoListsFioGroupsMailings()  //  GetDataFromRemoteServers()  ImportTablePeopleToTableGroupsInLocalDB()
+        private void DoListsFioGroupsMailings()  //  GetDataFromRemoteServers()  ImportTablePeopleToTableGroupsInLocalDB()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
@@ -1625,7 +1625,7 @@ namespace ASTA
 
             listFIO = new List<Employee>();
             Dictionary<string, Department> departments = new Dictionary<string, Department>();
-            Department departmentFromDictionary;
+       //     Department departmentFromDictionary;
 
             _ClearComboBox(comboBoxFio);
             _SetStatusLabelText(StatusLabel2, "Запрашиваю данные с " + sServer1 + ". Ждите окончания процесса...");
@@ -1635,7 +1635,7 @@ namespace ASTA
             {
                 sqlConnection.Open();
 
-                _SetStatusLabelText(StatusLabel2, "Получаю из локальной базы список городов для загрузки списка ФИО из MySQL базы...");
+                AddLoggerTraceText("Получаю из локальной базы список городов для загрузки списка ФИО из MySQL базы...");
                 using (var sqlCommand = new SQLiteCommand("SELECT City FROM SelectedCityToLoadFromWeb;", sqlConnection))
                 {
                     using (var reader = sqlCommand.ExecuteReader())
@@ -1697,9 +1697,8 @@ namespace ASTA
                             groupName = record["parent_id"]?.ToString()?.Trim();
                             nav = record["tabnum"]?.ToString()?.Trim()?.ToUpper();
 
-                            departmentFromDictionary = new Department();
 
-                            if (departments.TryGetValue(groupName, out departmentFromDictionary))
+                            if (departments.TryGetValue(groupName, out Department departmentFromDictionary))
                             {
                                 depName = departmentFromDictionary._departmentDescription;
                             }
@@ -1829,10 +1828,10 @@ namespace ASTA
                             personFromServer.fio = fio.Replace("&acute;", "'");
                             personFromServer.code = mysqlData.GetString(@"code")?.Trim()?.ToUpper()?.Replace('C', 'S');
                             personFromServer.DepartmentId = mysqlData.GetString(@"department")?.Trim();
+                            personFromServer.City = mysqlData.GetString(@"city")?.Trim();
+                            personFromServer.PositionInDepartment = mysqlData.GetString(@"vacancy")?.Trim();
 
-                            departmentFromDictionary = new Department();
-
-                            if (departments.TryGetValue(personFromServer?.DepartmentId, out departmentFromDictionary))
+                            if (departments.TryGetValue(personFromServer?.DepartmentId, out Department departmentFromDictionary))
                             {
                                 depName = departmentFromDictionary?._departmentDescription;
                                 depBoss = departmentFromDictionary?._departmentBossCode;
@@ -1842,9 +1841,7 @@ namespace ASTA
 
                             personFromServer.DepartmentBossCode = depBoss?.Length > 0 ? depBoss : mysqlData.GetString(@"boss_id")?.Trim();
 
-                            personFromServer.City = mysqlData.GetString(@"city")?.Trim();
 
-                            personFromServer.PositionInDepartment = mysqlData.GetString(@"vacancy")?.Trim();
                             personFromServer.GroupPerson = groupName;
 
                             personFromServer.Shift = dayStartShift_;
@@ -1867,6 +1864,8 @@ namespace ASTA
 
                                 logger.Trace("Индивидуальный график с " + dayStartShift + " " + personFromServer.code + " " + personFromServer.Comment);
                             }
+
+
                             row[Names.FIO] = personFromServer.fio;
                             row[Names.CODE] = personFromServer.code;
 
@@ -1905,7 +1904,7 @@ namespace ASTA
             }
 
             query = fio = nav = groupName = depName = depBoss = timeStart = timeEnd = dayStartShift = dayStartShift_ = confitionToLoad = null;
-            row = null; departments = null; departmentFromDictionary = null; personFromServer = null;
+            row = null; departments = null; personFromServer = null;
         }
 
         private void WriteGroupsMailingsInLocalDb(DataTable dataTablePeople, List<PeopleShift> peopleShifts)
@@ -7728,7 +7727,7 @@ namespace ASTA
             _SetStatusLabelText(StatusLabel2, "Готовлю все активные рассылки с отчетами " + cellValue[6] + " за " + cellValue[4] + " на " + cellValue[7]);
 
             currentAction = "sendEmail";
-            DoListsFioGroupsMailings().GetAwaiter().GetResult();
+            DoListsFioGroupsMailings();
 
             string recipient = "";
             string gproupsReport = "";
@@ -8169,7 +8168,7 @@ namespace ASTA
             resultOfSendingReports = new List<Mailing>();
             HashSet<Mailing> mailingList = new HashSet<Mailing>();
 
-            DoListsFioGroupsMailings().GetAwaiter().GetResult();
+            DoListsFioGroupsMailings();
 
             string recipient = "";
             string gproupsReport = "";
