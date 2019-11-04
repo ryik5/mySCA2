@@ -200,12 +200,12 @@ namespace ASTA.Classes
         {
             if (!dbFileInfo.Exists)
             {
-                throw new System.ArgumentException("DB is not Exist", "dbFileInfo");
+                throw new System.ArgumentException("DB is not Exist");
             }
 
             if (dbConnectionString?.Trim()?.Length < 1)
             {
-                throw new System.ArgumentException("Connection string can not be Empty or short", "dbConnectionString");
+                throw new System.ArgumentException("Connection string can not be Empty or short");
             }
         }
 

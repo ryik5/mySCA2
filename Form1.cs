@@ -132,8 +132,8 @@ namespace ASTA
 
 
         //reports
-        readonly static int offsetTimeIn = 60;    // смещение времени прихода после учетного, в секундах, в течении которого не учитывается опоздание
-        readonly static int offsetTimeOut = 60;   // смещение времени ухода до учетного, в секундах в течении которого не учитывается ранний уход
+        const int offsetTimeIn = 60;    // смещение времени прихода после учетного, в секундах, в течении которого не учитывается опоздание
+        const int offsetTimeOut = 60;   // смещение времени ухода до учетного, в секундах в течении которого не учитывается ранний уход
         string[] myBoldedDates;
         string[] workSelectedDays;
         static string reportStartDay = "";
@@ -475,10 +475,12 @@ namespace ASTA
             contextMenu.MenuItems.Add("-", AboutSoft);
             contextMenu.MenuItems.Add("Exit", ApplicationExit);
 
-            notifyIcon = new NotifyIcon();
-            notifyIcon.Icon = this.Icon;
-            notifyIcon.Visible = true;
-            notifyIcon.BalloonTipText = "Developed by " + appCopyright;
+            notifyIcon = new NotifyIcon
+            {
+                Icon = this.Icon,
+                Visible = true,
+                BalloonTipText = "Developed by " + appCopyright
+            };
             notifyIcon.ShowBalloonTip(500);
             notifyIcon.Text = appName + "\nv." + appVersionAssembly + " (" + appFileVersionInfo.FileVersion + ")" + "\n" + appFileVersionInfo.CompanyName;
             notifyIcon.ContextMenu = contextMenu;
@@ -599,7 +601,7 @@ namespace ASTA
                 }
 
                 //loading parameters of configuration Application
-                 listParameters = GetConfigOfASTA();
+                listParameters = GetConfigOfASTA();
                 List<ParameterConfig> parameters = ReturnListParametersWithEmptyValue(listParameters);
                 if (parameters?.Count > 0)
                 {
@@ -609,7 +611,7 @@ namespace ASTA
                         resultParameters += (p.name + " is empty\n\r");
                     }
 
-                   logger.Warn("Empty parameters in local config db: " + resultParameters);
+                    logger.Warn("Empty parameters in local config db: " + resultParameters);
                 }
             }
 
@@ -662,21 +664,12 @@ namespace ASTA
         private void ApplicationExit()
         {
             dgvo = null;
-            dtPersonTemp?.Dispose();
-            dtPersonTempAllColumns?.Dispose();
-            dtPersonRegistrationsFullList?.Dispose();
-            dtPeopleGroup?.Dispose();
-            dtPeopleListLoaded?.Dispose();
-            dtPeople?.Dispose();
 
             logger.Info("");
             logger.Info("");
             logger.Info("-=-=  Завершение работы ПО  =-=-");
             logger.Info("-----------------------------------------");
             logger.Info("");
-            notifyIcon?.Dispose();
-            contextMenu?.Dispose();
-            mRightClick?.Dispose();
             //taskkill /F /IM ASTA.exe
             Text = @"Closing application...";
             System.Threading.Thread.Sleep(500);
@@ -746,7 +739,7 @@ namespace ASTA
             return txt;
         }
 
-        private void TryMakeLocalDB(string fpath = null, DbSchema schema = null)
+        private void TryMakeLocalDB(string fpath = null)
         {
             List<string> txt = ReadTXTFile(fpath);
             string query = string.Empty, log = string.Empty;
@@ -776,11 +769,11 @@ namespace ASTA
 
         private void SetTechInfoIntoDB() //Write Technical Info in DB 
         {
-            string result = null, query = null;
+            string result = null;
 
             if (dbApplication.Exists)
             {
-                query = "INSERT OR REPLACE INTO 'TechnicalInfo' (PCName, POName, POVersion, LastDateStarted, CurrentUser, FreeRam, GuidAppication) " +
+                string query = "INSERT OR REPLACE INTO 'TechnicalInfo' (PCName, POName, POVersion, LastDateStarted, CurrentUser, FreeRam, GuidAppication) " +
                         " VALUES (@PCName, @POName, @POVersion, @LastDateStarted, @CurrentUser, @FreeRam, @GuidAppication)";
 
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
@@ -1045,7 +1038,7 @@ namespace ASTA
             InitializeParameterFormSettings(listParameters);
         }
 
-        List<ParameterConfig> GetConfigOfASTA(string parameterName= "%%")
+        List<ParameterConfig> GetConfigOfASTA(string parameterName = "%%")
         {
             List<ParameterConfig> list = new List<ParameterConfig>();
             ConfigurationOfASTA config = new ConfigurationOfASTA(dbApplication);
@@ -1167,11 +1160,9 @@ namespace ASTA
 
         private void textboxDate_KeyPress(object sender, KeyPressEventArgs e)
         {
-            string inputed = null;
             if (e.KeyChar == (char)13)//если нажата Enter
             {
-                inputed = ReturnStrongNameDayOfSendingReports((sender as TextBox).Text);
-                (sender as TextBox).Text = inputed;
+                (sender as TextBox).Text = ReturnStrongNameDayOfSendingReports((sender as TextBox).Text);
             }
         }
 
@@ -1207,7 +1198,6 @@ namespace ASTA
 
             string resultSaving = SaveParameterInConfigASTA(parameter);
             MessageBox.Show(parameter.name + " обновлен новым значением - " + parameter.value + "\n" + resultSaving);
-            parameter = null;
 
             DisposeTemporaryControls();
             _VisibleControl(panelView, true);
@@ -1372,6 +1362,7 @@ namespace ASTA
                     }
                     dbWriter.ExecuteQuery(sqlCommand);
                     result += dbWriter.Status;
+                    sqlCommand?.Dispose();
                 }
             }
 
@@ -1398,10 +1389,12 @@ namespace ASTA
                     bServer1Exist = true;
                 }
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception err)
             {
                 _SetStatusLabelText(StatusLabel2, "Ошибка доступа к " + serverName + " SQL БД СКД-сервера!", true, "server: " + serverName + "|user: " + userName + "|password: " + userPasswords + "\n" + err.ToString());
             }
+#pragma warning restore CA1031 // Do not catch general exception types
 
             logger.Trace("CheckAliveIntellectServer: query: " + query + "| result: " + bServer1Exist);
         }
@@ -1550,7 +1543,7 @@ namespace ASTA
                 if (currentAction != @"sendEmail")
                 { _SetStatusLabelText(StatusLabel2, "Записываю ФИО в локальную базу..."); }
 
-                WritePeopleInLocalDB(dbApplication.ToString(), dtTempIntermediate);
+                WritePeopleInLocalDB( dtTempIntermediate);
 
                 if (currentAction != @"sendEmail")
                 {
@@ -1998,8 +1991,8 @@ namespace ASTA
                 {
                     sqlConnection.Open();
 
-                    var sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
+                    using (var sqlCommand = new SQLiteCommand("begin", sqlConnection))
+                    { sqlCommand.ExecuteNonQuery(); }
 
                     logger.Info("Готовлю списки исключений из рассылок...");
                     query = "SELECT RecipientEmail FROM MailingException;";
@@ -2021,12 +2014,12 @@ namespace ASTA
                             }
                         }
                     }
-                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
+                    using (var sqlCommand = new SQLiteCommand("end", sqlConnection))
+                    { sqlCommand.ExecuteNonQuery(); }
 
                     logger.Info("Записываю новые группы ...");
-                    sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
+                    using (var sqlCommand = new SQLiteCommand("begin", sqlConnection))
+                    { sqlCommand.ExecuteNonQuery(); }
                     foreach (var deprtment in departmentsUniq.ToList().Distinct())
                     {
                         depName = deprtment._departmentId;
@@ -2045,13 +2038,13 @@ namespace ASTA
                         logger.Trace("CreatedGroup: " + depName + "(" + depDescr + ")");
                         _ProgressWork1Step();
                     }
-                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
+                    using (var sqlCommand = new SQLiteCommand("end", sqlConnection))
+                    { sqlCommand.ExecuteNonQuery(); }
 
                     logger.Info("Записываю новые рассылки по группам с учетом исключений...");
                     string recipientEmail = "";
-                    sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
+                    using (var sqlCommand = new SQLiteCommand("begin", sqlConnection))
+                    { sqlCommand.ExecuteNonQuery(); }
                     foreach (var deprtment in departmentsEmailUniq?.ToList()?.Distinct())
                     {
                         depName = deprtment?._departmentId;
@@ -2082,12 +2075,12 @@ namespace ASTA
                         }
                         _ProgressWork1Step();
                     }
-                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
+                    using (var sqlCommand = new SQLiteCommand("end", sqlConnection))
+                    { sqlCommand.ExecuteNonQuery(); }
 
                     logger.Info("Записываю новые индивидуальные графики...");
-                    sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
+                    using (var sqlCommand = new SQLiteCommand("begin", sqlConnection))
+                    { sqlCommand.ExecuteNonQuery(); }
                     foreach (var shift in peopleShifts?.ToArray())
                     {
                         if (shift._nav?.Length > 0)
@@ -2121,8 +2114,8 @@ namespace ASTA
                             }
                         }
                     }
-                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
+                    using (var sqlCommand = new SQLiteCommand("end", sqlConnection))
+                    { sqlCommand.ExecuteNonQuery(); }
 
                     int.TryParse(departmentsUniq?.ToArray()?.Distinct()?.Count().ToString(), out countGroups);
                     int.TryParse(departmentsEmailUniq?.ToArray()?.Distinct()?.Count().ToString(), out countMailers);
@@ -2384,8 +2377,8 @@ namespace ASTA
                 filePath = pathToFile;
                 _SetStatusLabelForeColor(StatusLabel2, Color.Black);
                 reportExcelReady = true;
-                releaseObject(range);
-                releaseObject(rangeColumnName);
+                ReleaseObject(range);
+                ReleaseObject(rangeColumnName);
             }
             catch (Exception err)
             {
@@ -2401,11 +2394,11 @@ namespace ASTA
                 workbooks.Close();
 
                 //clear temporary objects
-                releaseObject(sheet);
-                releaseObject(workbook);
-                releaseObject(workbooks);
+                ReleaseObject(sheet);
+                ReleaseObject(workbook);
+                ReleaseObject(workbooks);
                 excel.Quit();
-                releaseObject(excel);
+                ReleaseObject(excel);
 
                 dv?.Dispose();
                 dtExport?.Dispose();
@@ -2415,7 +2408,7 @@ namespace ASTA
             sLastSelectedElement = "ExportExcel";
         }
 
-        private void releaseObject(object obj) //for function - ExportToExcel()
+        private void ReleaseObject(object obj) //for function - ExportToExcel()
         {
             try
             {
@@ -2502,7 +2495,7 @@ namespace ASTA
 
             if (textBoxGroup.Text.Trim().Length > 0)
             {
-                CreateGroupInDB(dbApplication, textBoxGroup.Text.Trim(), textBoxGroupDescription.Text.Trim());
+                CreateGroupInDB( textBoxGroup.Text.Trim(), textBoxGroupDescription.Text.Trim());
             }
 
             PersonOrGroupItem.Text = Names.WORK_WITH_A_PERSON;
@@ -2510,7 +2503,7 @@ namespace ASTA
             ListGroups();
         }
 
-        private void CreateGroupInDB(System.IO.FileInfo fileInfo, string nameGroup, string descriptionGroup)
+        private void CreateGroupInDB(string nameGroup, string descriptionGroup)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
@@ -2733,17 +2726,17 @@ namespace ASTA
         {
             if (nameOfLastTable == "PeopleGroup" || nameOfLastTable == "PeopleGroupDescription")
             {
-                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                     Names.GROUP
                 });
-                SeekAndShowMembersOfGroup(dgvo.cellValue[0]);
+                SeekAndShowMembersOfGroup(cellValue[0]);
             }
             else if (nameOfLastTable == "Mailing")
             {
-                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                     @"Отчет по группам"
                 });
-                SeekAndShowMembersOfGroup(dgvo.cellValue[0]);
+                SeekAndShowMembersOfGroup(cellValue[0]);
             }
         }
 
@@ -2829,9 +2822,9 @@ namespace ASTA
             string group = _ReturnTextOfControl(textBoxGroup);
             string groupDescription = _ReturnTextOfControl(textBoxGroupDescription);
             logger.Trace("AddPersonToGroup: group " + group);
-            if (dgvo.RowsCount(dataGridView1) > -1)
+            if (DataGridViewOperations.RowsCount(dataGridView1) > -1)
             {
-                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                     Names.FIO,
                     Names.CODE,
                     Names.DEPARTMENT,
@@ -2858,34 +2851,34 @@ namespace ASTA
                         }
                     }
 
-                    if (group?.Length > 0 && dgvo.cellValue[1]?.Length > 0)
+                    if (group?.Length > 0 && cellValue[1]?.Length > 0)
                     {
                         using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Department, PositionInDepartment, Comment, Shift, DepartmentId, City, Boss) " +
                                                     "VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Department, @PositionInDepartment, @Comment, @Shift, @DepartmentId, @City, @Boss)", connection))
                         {
-                            sqlCommand.Parameters.Add("@FIO", DbType.String).Value = dgvo.cellValue[0];
-                            sqlCommand.Parameters.Add("@NAV", DbType.String).Value = dgvo.cellValue[1];
+                            sqlCommand.Parameters.Add("@FIO", DbType.String).Value = cellValue[0];
+                            sqlCommand.Parameters.Add("@NAV", DbType.String).Value = cellValue[1];
                             sqlCommand.Parameters.Add("@GroupPerson", DbType.String).Value = group;
-                            sqlCommand.Parameters.Add("@ControllingHHMM", DbType.String).Value = dgvo.cellValue[4];
-                            sqlCommand.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = dgvo.cellValue[5];
-                            sqlCommand.Parameters.Add("@Department", DbType.String).Value = dgvo.cellValue[2];
-                            sqlCommand.Parameters.Add("@PositionInDepartment", DbType.String).Value = dgvo.cellValue[3];
+                            sqlCommand.Parameters.Add("@ControllingHHMM", DbType.String).Value = cellValue[4];
+                            sqlCommand.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = cellValue[5];
+                            sqlCommand.Parameters.Add("@Department", DbType.String).Value = cellValue[2];
+                            sqlCommand.Parameters.Add("@PositionInDepartment", DbType.String).Value = cellValue[3];
                             sqlCommand.Parameters.Add("@Comment", DbType.String).Value = "";
-                            sqlCommand.Parameters.Add("@DepartmentId", DbType.String).Value = dgvo.cellValue[8];
-                            sqlCommand.Parameters.Add("@City", DbType.String).Value = dgvo.cellValue[9];
-                            sqlCommand.Parameters.Add("@Boss", DbType.String).Value = dgvo.cellValue[6];
-                            sqlCommand.Parameters.Add("@Shift", DbType.String).Value = dgvo.cellValue[7];
+                            sqlCommand.Parameters.Add("@DepartmentId", DbType.String).Value = cellValue[8];
+                            sqlCommand.Parameters.Add("@City", DbType.String).Value = cellValue[9];
+                            sqlCommand.Parameters.Add("@Boss", DbType.String).Value = cellValue[6];
+                            sqlCommand.Parameters.Add("@Shift", DbType.String).Value = cellValue[7];
                             try { sqlCommand.ExecuteNonQuery(); } catch (Exception ept) { logger.Warn("PeopleGroup: " + ept.ToString()); }
                         }
-                        _SetStatusLabelText(StatusLabel2, "'" + ShortFIO(dgvo.cellValue[0]) + "'" + " добавлен в группу '" + group + "'");
+                        _SetStatusLabelText(StatusLabel2, "'" + ShortFIO(cellValue[0]) + "'" + " добавлен в группу '" + group + "'");
                         _SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
                     }
-                    else if (group?.Length > 0 && dgvo?.cellValue[1]?.Length == 0)
+                    else if (group?.Length > 0 && cellValue[1]?.Length == 0)
                     {
                         _SetStatusLabelText(StatusLabel2, "Отсутствует NAV-код у: " + ShortFIO(textBoxFIO.Text));
                         _SetStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
                     }
-                    else if (group?.Length == 0 && dgvo?.cellValue[1]?.Length > 0)
+                    else if (group?.Length == 0 && cellValue[1]?.Length > 0)
                     {
                         _SetStatusLabelText(StatusLabel2, "Не указана группа, в которую нужно добавить!");
                         _SetStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
@@ -2911,9 +2904,8 @@ namespace ASTA
             HashSet<Department> departmentsUniq = new HashSet<Department>();
 
             ImportTextToTable(dtPersonTemp, ref departmentsUniq);
-            WritePeopleInLocalDB(dbApplication.ToString(), dtPersonTemp);
-            ImportListGroupsDescriptionInLocalDB(dbApplication.ToString(), departmentsUniq);
-            departmentsUniq = null;
+            WritePeopleInLocalDB( dtPersonTemp);
+            ImportListGroupsDescriptionInLocalDB( departmentsUniq);
         }
 
         private void ImportTextToTable(DataTable dt, ref HashSet<Department> departmentsUniq) //Fill dtPeople
@@ -2926,8 +2918,7 @@ namespace ASTA
             string checkHourS;
             string checkHourE;
 
-            string getThreeRows = "";
-            getThreeRows = "Маска:\nФИО\tNAV-код\tГруппа\tОтдел\tДолжность\tВремя прихода,часы\tВремя прихода,минуты\tВремя ухода,часы\tВремя ухода,минуты\n\nДанные:\n";
+           string getThreeRows = "Маска:\nФИО\tNAV-код\tГруппа\tОтдел\tДолжность\tВремя прихода,часы\tВремя прихода,минуты\tВремя ухода,часы\tВремя ухода,минуты\n\nДанные:\n";
             if (listRows.Count > 0)
             {
                 getThreeRows += listRows.ElementAt(0) + "\n";
@@ -2986,22 +2977,20 @@ namespace ASTA
 
 
         //Write people in local DB
-        private void WritePeopleInLocalDB(string pathToPersonDB, DataTable dtSource) //use listGroups /add reserv1 reserv2
+        private void WritePeopleInLocalDB( DataTable dtSource) //use listGroups /add reserv1 reserv2
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
             logger.Trace("WritePeopleInLocalDB: table - " + dtSource + ", row - " + dtSource.Rows.Count);
 
-            string result = string.Empty;
-            string query = null;
             if (dbApplication.Exists)
             {
-                query = "INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Department, PositionInDepartment, DepartmentId, City, Boss) " +
+               string query = "INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Department, PositionInDepartment, DepartmentId, City, Boss) " +
                         "VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Comment, @Department, @PositionInDepartment, @DepartmentId, @City, @Boss)";
 
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
                 {
-                    result = string.Empty;
+                  string  result = string.Empty;
                     dbWriter.ExecuteQuery("begin");
                     foreach (var dr in dtSource.AsEnumerable())
                     {
@@ -3067,17 +3056,16 @@ namespace ASTA
             logger.Info("Записано ФИО: " + countUsers);
         }
 
-        private void ImportListGroupsDescriptionInLocalDB(string pathToPersonDB, HashSet<Department> departmentsUniq) //use listGroups
+        private void ImportListGroupsDescriptionInLocalDB( HashSet<Department> departmentsUniq) //use listGroups
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
 
             string result = string.Empty;
-            string query = null;
             if (dbApplication.Exists)
             {
-                query = "INSERT OR REPLACE INTO 'PeopleGroupDescription' (GroupPerson, GroupPersonDescription, Recipient) " +
+              string  query = "INSERT OR REPLACE INTO 'PeopleGroupDescription' (GroupPerson, GroupPersonDescription, Recipient) " +
                                         "VALUES (@GroupPerson, @GroupPersonDescription, @Recipient)";
 
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
@@ -3293,7 +3281,7 @@ namespace ASTA
 
             SideOfPassagePoint sideOfPassagePoint;
             string time, date, fullPointName, fio, action, action_descr, fac, card;
-            int idCard = 0; string idCardDescr;
+            string idCardDescr;
 
             string query = "SELECT p.param0 as param0, p.param1 as param1, p.objid as objid, p.objtype, p.action as action, " +
             " pe.tabnum as nav, pe.facility_code as fac, pe.card as card, " +
@@ -3326,8 +3314,7 @@ namespace ASTA
                         time = ConvertStringsTimeToStringHHMMSS(record["time"]?.ToString()?.Trim());
 
                         //look for  idCard
-                        idCard = 0;
-                        int.TryParse(record["param1"]?.ToString()?.Trim(), out idCard);
+                        int.TryParse(record["param1"]?.ToString()?.Trim(), out int idCard);
                         fac = record["fac"]?.ToString()?.Trim();
                         card = record["card"]?.ToString()?.Trim();
                         idCardDescr = idCard != 0 ? "№" + idCard + " (" + fac + "," + card + ")" : (fio == sServer1 ? "" : "Пропуск не зарегистрирован");
@@ -3395,12 +3382,11 @@ namespace ASTA
 
         private void SendListLastRegistrationsToDataTable(ObservableRangeCollection<Visitor> _visitors, DataTable dt, Visitor selected = null)
         {
-            DataRow row = dt.NewRow();
             foreach (var visitor in _visitors.ToArray())
             {
                 if (visitor != null)
                 {
-                    row = dt.NewRow();
+                 DataRow   row = dt.NewRow();
                     row[Names.FIO] = visitor.fio;
                     row[Names.DATE_REGISTRATION] = visitor.date;
                     row[Names.TIME_REGISTRATION_STRING] = visitor.time;
@@ -3431,14 +3417,14 @@ namespace ASTA
         private EmployeeVisitor LookForSelectedVisitor(DataGridView dgv)
         {
             EmployeeVisitor visitor = new EmployeeVisitor();
-            dgvo.FindValuesInCurrentRow(dgv, new string[] {
+            string[] cellValue = dgvo.FindValuesInCurrentRow(dgv, new string[] {
                 Names.FIO,
                 Names.N_ID_STRING,
                 Names.CHECKPOINT_ACTION
                     });
-            visitor.fio = dgvo.cellValue[0];
-            visitor.idCard = dgvo.cellValue[1];
-            visitor.action = dgvo.cellValue[2];
+            visitor.fio = cellValue[0];
+            visitor.idCard = cellValue[1];
+            visitor.action = cellValue[2];
 
             return visitor;
         }
@@ -3499,8 +3485,8 @@ namespace ASTA
 
             if (bServer1Exist)
             {
-                reportStartDay = _ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD();
-                reportLastDay = _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD();
+                reportStartDay = _ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD() + " 00:00:00";
+                reportLastDay = _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD() + " 23:59:59";
 
                 await Task.Run(() => GetData(_group, reportStartDay, reportLastDay));
 
@@ -3543,6 +3529,13 @@ namespace ASTA
             }
         }
 
+        
+        /// <summary>
+        /// fix using _reportLastDay
+        /// </summary>
+        /// <param name="_group"></param>
+        /// <param name="_reportStartDay"></param>
+        /// <param name="_reportLastDay"></param>
         private void GetData(string _group, string _reportStartDay, string _reportLastDay)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
@@ -3558,16 +3551,13 @@ namespace ASTA
             dtPersonRegistrationsFullList = dtPeople.Clone();  //Copy only structure(Name of columns)
             dtPeopleGroup = dtPeople.Clone();  //Copy only structure(Name of columns)
 
-            logger.Trace("GetData: " + _group + " " + _reportStartDay + " " + _reportStartDay);
+            logger.Trace("GetData: " + _group + " " + _reportStartDay + " " + _reportLastDay);
 
             //Get names of the points
             GetNamesOfPassagePoints();
 
             //Load Records of registrations of Id cards
-            LoadRecords(_group,
-                _ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD() + " 00:00:00",
-                _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD() + " 23:59:59",
-                "");
+            LoadRecords(_group, _reportStartDay, _reportLastDay, "");
 
             dtPersonTemp = LeaveAndOrderColumnsOfDataTable(dtPersonRegistrationsFullList.Copy(), Names.orderColumnsRegistrations);
 
@@ -3681,25 +3671,23 @@ namespace ASTA
             }
             else
             {
-                person = new EmployeeFull();
-                person.code = _ReturnTextOfControl(textBoxNav);
-                person.fio = _ReturnTextOfControl(textBoxFIO);
+                person = new EmployeeFull
+                {
+                    code = _ReturnTextOfControl(textBoxNav),
+                    fio = _ReturnTextOfControl(textBoxFIO),
+                    GroupPerson = "One User",
+                    Department = "",
+                    DepartmentId = "",
+                    City = "",
+                    DepartmentBossCode = "",
+                    PositionInDepartment = "Сотрудник",
+                    Shift = "",
+                    Comment = "",
+                    ControlInHHMM = ConvertStringsTimeToStringHHMM(_ReturnNumUpDown(numUpDownHourStart).ToString(), _ReturnNumUpDown(numUpDownMinuteStart).ToString()),
+                    ControlOutHHMM = ConvertStringsTimeToStringHHMM(_ReturnNumUpDown(numUpDownHourEnd).ToString(), _ReturnNumUpDown(numUpDownMinuteEnd).ToString())
+                };
 
                 _SetStatusLabelText(StatusLabel2, "Получаю данные по \"" + ShortFIO(person.fio) + "\" ");
-
-                person.GroupPerson = "One User";
-                person.Department = "";
-                person.DepartmentId = "";
-                person.City = "";
-                person.DepartmentBossCode = "";
-                person.PositionInDepartment = "Сотрудник";
-
-                person.Shift = "";
-                person.Comment = "";
-
-                person.ControlInHHMM = ConvertStringsTimeToStringHHMM(_ReturnNumUpDown(numUpDownHourStart).ToString(), _ReturnNumUpDown(numUpDownMinuteStart).ToString());
-                person.ControlOutHHMM = ConvertStringsTimeToStringHHMM(_ReturnNumUpDown(numUpDownHourEnd).ToString(), _ReturnNumUpDown(numUpDownMinuteEnd).ToString());
-
                 logger.Trace("LoadRecords,One User: " + person.fio);
 
                 GetPersonRegistrationFromServer(ref dtPersonRegistrationsFullList, person, startDate, endDate);
@@ -3899,7 +3887,7 @@ namespace ASTA
 
         private string DayOfWeekRussian(string dayEnglish) //return a day of week as the same short name in Russian 
         {
-            string result = "";
+            string result ;
             switch (dayEnglish.ToLower())
             {
                 case "monday":
@@ -4124,12 +4112,12 @@ namespace ASTA
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
-            dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+            string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                  Names.DAYOFF_DATE, Names.DAYOFF_TYPE, Names.DAYOFF_USED_BY, Names.DAYOFF_ADDED });
 
             DeleteDataTableQueryParameters(dbApplication, "BoldedDates",
-                "DayBolded", dgvo.cellValue[0], "DayType", dgvo.cellValue[1],
-                "NAV", dgvo.cellValue[2], "DateCreated", dgvo.cellValue[3]).GetAwaiter().GetResult();
+                "DayBolded", cellValue[0], "DayType", cellValue[1],
+                "NAV", cellValue[2], "DateCreated", cellValue[3]).GetAwaiter().GetResult();
 
             ShowDataTableDbQuery(dbApplication, "BoldedDates", "SELECT DayBolded AS '" + Names.DAYOFF_DATE + "', DayType AS '" + Names.DAYOFF_TYPE + "', " +
             "NAV AS '" + Names.DAYOFF_USED_BY + "', DayDescription AS 'Описание', DateCreated AS '" + Names.DAYOFF_ADDED + "'",
@@ -4467,10 +4455,11 @@ namespace ASTA
 
             var mySelectedStartDay = new DateTime(startOfPeriod[0], startOfPeriod[1], startOfPeriod[2]);
             var mySelectedEndDay = new DateTime(endOfPeriod[0], endOfPeriod[1], endOfPeriod[2]);
-            var myMonthCalendar = new MonthCalendar();
-
-            myMonthCalendar.MaxSelectionCount = 60;
-            myMonthCalendar.SelectionRange = new SelectionRange(mySelectedStartDay, mySelectedEndDay);
+            var myMonthCalendar = new MonthCalendar
+            {
+                MaxSelectionCount = 60,
+                SelectionRange = new SelectionRange(mySelectedStartDay, mySelectedEndDay)
+            };
 
             //whole range of days in the selection period
             List<string> wholeSelectedDays = new List<string>();
@@ -4955,18 +4944,19 @@ namespace ASTA
 
         private void VacuumDB(string dbPath)
         {
-            SQLiteConnectionStringBuilder builder =
-                new SQLiteConnectionStringBuilder();
-            builder.DataSource = dbPath;
-            builder.PageSize = 4096;
-            builder.UseUTF16Encoding = true;
+            SQLiteConnectionStringBuilder builder = new SQLiteConnectionStringBuilder
+            {
+                DataSource = dbPath,
+                PageSize = 4096,
+                UseUTF16Encoding = true
+            };
 
             using (SQLiteConnection conn = new SQLiteConnection(builder.ConnectionString))
             {
                 conn.Open();
 
-                SQLiteCommand vacuum = new SQLiteCommand(@"VACUUM", conn);
-                vacuum.ExecuteNonQuery();
+                using (SQLiteCommand vacuum = new SQLiteCommand(@"VACUUM", conn))
+                { vacuum.ExecuteNonQuery(); }
             }
         }
 
@@ -5001,7 +4991,7 @@ namespace ASTA
 
             try
             {
-                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                     Names.FIO,
                     Names.CODE,
                     Names.GROUP,
@@ -5014,16 +5004,16 @@ namespace ASTA
                     Names.EMPLOYEE_SHIFT_COMMENT
                 });
 
-                if (dgvo.RowsCount(dataGridView1) > -1)
+                if (DataGridViewOperations.RowsCount(dataGridView1) > -1)
                 {
-                    personVisual.fio = dgvo.cellValue[0];
-                    personVisual.code = dgvo.cellValue[1]; //Take the name of selected group
-                    personVisual.ControlInHHMM = dgvo.cellValue[3]; //Take the name of selected group
+                    personVisual.fio = cellValue[0];
+                    personVisual.code = cellValue[1]; //Take the name of selected group
+                    personVisual.ControlInHHMM = cellValue[3]; //Take the name of selected group
 
                     timeIn = ConvertStringTimeHHMMToDecimalArray(personVisual.ControlInHHMM);
                     personVisual.ControlInSeconds = (int)timeIn[4];
 
-                    personVisual.ControlOutHHMM = dgvo.cellValue[4]; //Take the name of selected group
+                    personVisual.ControlOutHHMM = cellValue[4]; //Take the name of selected group
                     timeOut = ConvertStringTimeHHMMToDecimalArray(personVisual.ControlOutHHMM);
 
                     personVisual.ControlOutSeconds = (int)timeOut[4];
@@ -5033,15 +5023,15 @@ namespace ASTA
                     _SetNumUpDown(numUpDownHourEnd, timeOut[0]);
                     _SetNumUpDown(numUpDownMinuteEnd, timeOut[1]);
 
-                    personVisual.Department = dgvo.cellValue[5];
-                    personVisual.PositionInDepartment = dgvo.cellValue[6];
-                    personVisual.Shift = dgvo.cellValue[7];
-                    personVisual.DepartmentId = dgvo.cellValue[8];
-                    personVisual.Comment = dgvo.cellValue[9];
+                    personVisual.Department = cellValue[5];
+                    personVisual.PositionInDepartment = cellValue[6];
+                    personVisual.Shift = cellValue[7];
+                    personVisual.DepartmentId = cellValue[8];
+                    personVisual.Comment = cellValue[9];
 
                     if (nameOfLastTable == "PeopleGroup" || nameOfLastTable == "ListFIO")
                     {
-                        personVisual.GroupPerson = dgvo.cellValue[2]; //Take the name of selected group
+                        personVisual.GroupPerson = cellValue[2]; //Take the name of selected group
                         StatusLabel2.Text = @"Выбрана группа: " + personVisual.GroupPerson + @" | Курсор на: " + personVisual.fio;
                         groupBoxPeriod.BackColor = Color.PaleGreen;
                     }
@@ -5893,7 +5883,7 @@ namespace ASTA
                     sqlCommand1 = new SQLiteCommand("end", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
                 }
-                _SetStatusLabelText(StatusLabel2, "Добавлена рассылка: " + nameReport + "| Всего рассылок: " + dgvo.RowsCount(dataGridView1));
+                _SetStatusLabelText(StatusLabel2, "Добавлена рассылка: " + nameReport + "| Всего рассылок: " + DataGridViewOperations.RowsCount(dataGridView1));
             }
         }
 
@@ -6797,9 +6787,9 @@ namespace ASTA
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
-            int IndexCurrentRow = dgvo.CurrentRowIndex(dataGridView1);
+            int IndexCurrentRow = DataGridViewOperations.CurrentRowIndex(dataGridView1);
 
-            if (0 < dgvo.RowsCount(dataGridView1) && IndexCurrentRow < dgvo.RowsCount(dataGridView1))
+            if (0 < DataGridViewOperations.RowsCount(dataGridView1) && IndexCurrentRow < DataGridViewOperations.RowsCount(dataGridView1))
             {
                 try
                 {
@@ -6807,16 +6797,16 @@ namespace ASTA
                     {
                         case "PeopleGroupDescription":
                             {
-                                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                                string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             Names.GROUP,
                             Names.GROUP_DECRIPTION
                             });
 
-                                textBoxGroup.Text = dgvo?.cellValue[0]; //Take the name of selected group
-                                textBoxGroupDescription.Text = dgvo?.cellValue[1]; //Take the name of selected group
+                                textBoxGroup.Text = cellValue[0]; //Take the name of selected group
+                                textBoxGroupDescription.Text = cellValue[1]; //Take the name of selected group
                                 groupBoxPeriod.BackColor = Color.PaleGreen;
                                 groupBoxFilterReport.BackColor = SystemColors.Control;
-                                StatusLabel2.Text = @"Выбрана группа: " + dgvo?.cellValue[0];
+                                StatusLabel2.Text = @"Выбрана группа: " + cellValue[0];
                                 if (textBoxFIO.TextLength > 3)
                                 {
                                     comboBoxFio.SelectedIndex = comboBoxFio.FindString(textBoxFIO.Text);
@@ -6828,7 +6818,7 @@ namespace ASTA
                         case "PeopleGroup":
                         case "PersonRegistrationsList":
                             {
-                                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                                string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             Names.GROUP,
                             Names.FIO,
                             Names.CODE,
@@ -6836,12 +6826,12 @@ namespace ASTA
                             Names.DESIRED_TIME_OUT
                             });
 
-                                textBoxGroup.Text = dgvo?.cellValue[0];
-                                textBoxFIO.Text = dgvo?.cellValue[1];
-                                textBoxNav.Text = dgvo?.cellValue[2];
+                                textBoxGroup.Text = cellValue[0];
+                                textBoxFIO.Text = cellValue[1];
+                                textBoxNav.Text = cellValue[2];
 
-                                StatusLabel2.Text = @"Выбрана группа: " + dgvo?.cellValue[0] +
-                                    @" |Курсор на: " + ShortFIO(dgvo?.cellValue[1]);
+                                StatusLabel2.Text = @"Выбрана группа: " + cellValue[0] +
+                                    @" |Курсор на: " + ShortFIO(cellValue[1]);
 
                                 groupBoxPeriod.BackColor = Color.PaleGreen;
                                 groupBoxTimeStart.BackColor = Color.PaleGreen;
@@ -6852,8 +6842,8 @@ namespace ASTA
                                 decimal[] timeOut = new decimal[4];
                                 try
                                 {
-                                    timeIn = ConvertStringTimeHHMMToDecimalArray(dgvo?.cellValue[3]);
-                                    timeOut = ConvertStringTimeHHMMToDecimalArray(dgvo?.cellValue[4]);
+                                    timeIn = ConvertStringTimeHHMMToDecimalArray(cellValue[3]);
+                                    timeOut = ConvertStringTimeHHMMToDecimalArray(cellValue[4]);
                                     _SetNumUpDown(numUpDownHourStart, timeIn[0]);
                                     _SetNumUpDown(numUpDownMinuteStart, timeIn[1]);
                                     _SetNumUpDown(numUpDownHourEnd, timeOut[0]);
@@ -6861,12 +6851,12 @@ namespace ASTA
                                 }
                                 catch { logger.Warn("dataGridView1CellClick: " + timeIn[0]); }
 
-                                if (dgvo?.cellValue[1]?.Length > 3)
+                                if (cellValue[1]?.Length > 3)
                                 {
-                                    try { comboBoxFio.SelectedIndex = comboBoxFio.FindString(dgvo?.cellValue[1]); }
+                                    try { comboBoxFio.SelectedIndex = comboBoxFio.FindString(cellValue[1]); }
                                     catch
                                     {
-                                        logger.Warn("dataGridView1CellClick: " + dgvo?.cellValue[1] + " not found");
+                                        logger.Warn("dataGridView1CellClick: " + cellValue[1] + " not found");
                                     }
                                 }
                                 break;
@@ -6874,16 +6864,16 @@ namespace ASTA
 
                         case "LastIputsOutputs":
                             {
-                                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                                string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             Names.N_ID_STRING,
                             Names.FIO,
                             Names.CHECKPOINT_ACTION
                             });
 
-                                textBoxFIO.Text = dgvo?.cellValue[1];
+                                textBoxFIO.Text = cellValue[1];
                                 textBoxNav.Text = "";
 
-                                StatusLabel2.Text = @" |Курсор на: " + ShortFIO(dgvo?.cellValue[1]);
+                                StatusLabel2.Text = @" |Курсор на: " + ShortFIO(cellValue[1]);
                             }
                             break;
 
@@ -6912,13 +6902,13 @@ namespace ASTA
             string fio = "";
             string nav = "";
             string group = "";
-            int currRow = dgvo.RowsCount(dataGridView1);
+            int currRow = DataGridViewOperations.RowsCount(dataGridView1);
 
             if (currRow > -1)
             {
                 try
                 {
-                    string currColumn = dgvo.ColumnName(dataGridView1, dgvo.CurrentColumnIndex(dataGridView1));
+                    string currColumn = DataGridViewOperations.ColumnName(dataGridView1, DataGridViewOperations.CurrentColumnIndex(dataGridView1));
                     string currCellValue = dgvo.CurrentCellValue(dataGridView1);
                     string editedCell = "";
 
@@ -6926,7 +6916,7 @@ namespace ASTA
                     {
                         case "BoldedDates":
                             {
-                                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                                string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             Names.DAYOFF_DATE,
                             Names.DAYOFF_USED_BY,
                             Names.DAYOFF_TYPE });
@@ -6941,9 +6931,9 @@ namespace ASTA
                                 else { nav = textBoxNav.Text.Trim(); }
 
                                 string navD = "";
-                                if (dgvo.cellValue[1]?.Length != 6)
+                                if (cellValue[1]?.Length != 6)
                                 { navD = "всех"; }
-                                else { navD = dgvo.cellValue[1]; }
+                                else { navD = cellValue[1]; }
 
                                 using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
                                 {
@@ -6965,7 +6955,7 @@ namespace ASTA
                         case "PeopleGroup":
                         case "ListFIO":
                             {
-                                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                                string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             Names.FIO,
                             Names.CODE,
                             Names.GROUP,
@@ -6978,13 +6968,13 @@ namespace ASTA
                             Names.DEPARTMENT_ID
                             });
 
-                                fio = dgvo.cellValue[0];
+                                fio = cellValue[0];
                                 textBoxFIO.Text = fio;
 
-                                nav = dgvo.cellValue[1];
+                                nav = cellValue[1];
                                 textBoxNav.Text = nav;
 
-                                group = dgvo.cellValue[2];
+                                group = cellValue[2];
                                 textBoxGroup.Text = group;
 
                                 //todo
@@ -7005,15 +6995,15 @@ namespace ASTA
                                         sqlCommand.Parameters.Add("@NAV", DbType.String).Value = nav;
 
                                         sqlCommand.Parameters.Add("@GroupPerson", DbType.String).Value = group;
-                                        sqlCommand.Parameters.Add("@Department", DbType.String).Value = dgvo.cellValue[5];
-                                        sqlCommand.Parameters.Add("@PositionInDepartment", DbType.String).Value = dgvo.cellValue[6];
-                                        sqlCommand.Parameters.Add("@DepartmentId", DbType.String).Value = dgvo.cellValue[9];
+                                        sqlCommand.Parameters.Add("@Department", DbType.String).Value = cellValue[5];
+                                        sqlCommand.Parameters.Add("@PositionInDepartment", DbType.String).Value = cellValue[6];
+                                        sqlCommand.Parameters.Add("@DepartmentId", DbType.String).Value = cellValue[9];
 
-                                        sqlCommand.Parameters.Add("@ControllingHHMM", DbType.String).Value = dgvo.cellValue[3];
-                                        sqlCommand.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = dgvo.cellValue[4];
+                                        sqlCommand.Parameters.Add("@ControllingHHMM", DbType.String).Value = cellValue[3];
+                                        sqlCommand.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = cellValue[4];
 
-                                        sqlCommand.Parameters.Add("@Shift", DbType.String).Value = dgvo.cellValue[7];
-                                        sqlCommand.Parameters.Add("@Comment", DbType.String).Value = dgvo.cellValue[8];
+                                        sqlCommand.Parameters.Add("@Shift", DbType.String).Value = cellValue[7];
+                                        sqlCommand.Parameters.Add("@Comment", DbType.String).Value = cellValue[8];
 
                                         try { sqlCommand.ExecuteNonQuery(); } catch { }
                                     }
@@ -7025,31 +7015,31 @@ namespace ASTA
                             }
                         case "PeopleGroupDescription":
                             {
-                                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                                string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             Names.GROUP,
                             Names.GROUP_DECRIPTION });
 
-                                textBoxGroup.Text = dgvo.cellValue[0]; //Take the name of selected group
-                                textBoxGroupDescription.Text = dgvo.cellValue[1]; //Take the name of selected group
+                                textBoxGroup.Text = cellValue[0]; //Take the name of selected group
+                                textBoxGroupDescription.Text = cellValue[1]; //Take the name of selected group
                                 groupBoxPeriod.BackColor = Color.PaleGreen;
                                 groupBoxFilterReport.BackColor = SystemColors.Control;
-                                StatusLabel2.Text = @"Выбрана группа: " + dgvo.cellValue[0];
+                                StatusLabel2.Text = @"Выбрана группа: " + cellValue[0];
                                 break;
                             }
                         case "Mailing":
                             {
-                                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                                string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             @"Получатель", @"Отчет по группам", @"Наименование", @"Описание",
                             @"Период", @"Статус", @"Тип отчета", @"День отправки отчета" });
 
                                 switch (currColumn)
                                 {
                                     case "День отправки отчета":
-                                        editedCell = ReturnStrongNameDayOfSendingReports(dgvo.cellValue[7]);
-                                        ExecuteSqlAsync("UPDATE 'Mailing' SET DayReport='" + editedCell + "' WHERE RecipientEmail='" + dgvo.cellValue[0]
-                                          + "' AND NameReport='" + dgvo.cellValue[2] + "' AND GroupsReport ='" + dgvo.cellValue[1]
-                                          + "' AND Period='" + dgvo.cellValue[4] + "' AND TypeReport ='" + dgvo.cellValue[6]
-                                          + "' AND Status ='" + dgvo.cellValue[5] + "' AND Description ='" + dgvo.cellValue[3] + "';")
+                                        editedCell = ReturnStrongNameDayOfSendingReports(cellValue[7]);
+                                        ExecuteSqlAsync("UPDATE 'Mailing' SET DayReport='" + editedCell + "' WHERE RecipientEmail='" + cellValue[0]
+                                          + "' AND NameReport='" + cellValue[2] + "' AND GroupsReport ='" + cellValue[1]
+                                          + "' AND Period='" + cellValue[4] + "' AND TypeReport ='" + cellValue[6]
+                                          + "' AND Status ='" + cellValue[5] + "' AND Description ='" + cellValue[3] + "';")
                                           .GetAwaiter().GetResult();
                                         break;
 
@@ -7057,10 +7047,10 @@ namespace ASTA
                                         if (currCellValue == "Полный") { editedCell = "Полный"; }
                                         else { editedCell = "Упрощенный"; }
 
-                                        ExecuteSqlAsync("UPDATE 'Mailing' SET TypeReport='" + editedCell + "' WHERE RecipientEmail='" + dgvo.cellValue[0]
-                                          + "' AND NameReport='" + dgvo.cellValue[2] + "' AND GroupsReport ='" + dgvo.cellValue[1]
-                                          + "' AND Period='" + dgvo.cellValue[4] + "' AND DayReport='" + dgvo.cellValue[7]
-                                          + "' AND Status ='" + dgvo.cellValue[5] + "' AND Description ='" + dgvo.cellValue[3] + "';")
+                                        ExecuteSqlAsync("UPDATE 'Mailing' SET TypeReport='" + editedCell + "' WHERE RecipientEmail='" + cellValue[0]
+                                          + "' AND NameReport='" + cellValue[2] + "' AND GroupsReport ='" + cellValue[1]
+                                          + "' AND Period='" + cellValue[4] + "' AND DayReport='" + cellValue[7]
+                                          + "' AND Status ='" + cellValue[5] + "' AND Description ='" + cellValue[3] + "';")
                                           .GetAwaiter().GetResult();
                                         break;
 
@@ -7068,10 +7058,10 @@ namespace ASTA
                                         if (currCellValue == "Активная") { editedCell = "Активная"; }
                                         else { editedCell = "Неактивная"; }
 
-                                        ExecuteSqlAsync("UPDATE 'Mailing' SET Status='" + editedCell + "' WHERE RecipientEmail='" + dgvo.cellValue[0]
-                                          + "' AND NameReport='" + dgvo.cellValue[2] + "' AND GroupsReport ='" + dgvo.cellValue[1]
-                                          + "' AND Period='" + dgvo.cellValue[4] + "' AND DayReport='" + dgvo.cellValue[7]
-                                          + "' AND TypeReport ='" + dgvo.cellValue[6] + "' AND Description ='" + dgvo.cellValue[3] + "';")
+                                        ExecuteSqlAsync("UPDATE 'Mailing' SET Status='" + editedCell + "' WHERE RecipientEmail='" + cellValue[0]
+                                          + "' AND NameReport='" + cellValue[2] + "' AND GroupsReport ='" + cellValue[1]
+                                          + "' AND Period='" + cellValue[4] + "' AND DayReport='" + cellValue[7]
+                                          + "' AND TypeReport ='" + cellValue[6] + "' AND Description ='" + cellValue[3] + "';")
                                           .GetAwaiter().GetResult();
                                         break;
 
@@ -7079,30 +7069,30 @@ namespace ASTA
                                         if (currCellValue == "Текущий месяц") { editedCell = "Текущий месяц"; }
                                         else { editedCell = "Предыдущий месяц"; }
 
-                                        ExecuteSqlAsync("UPDATE 'Mailing' SET Period='" + editedCell + "' WHERE RecipientEmail='" + dgvo.cellValue[0]
-                                           + "' AND NameReport='" + dgvo.cellValue[2] + "' AND GroupsReport ='" + dgvo.cellValue[1]
-                                           + "' AND TypeReport ='" + dgvo.cellValue[6] + "' AND DayReport='" + dgvo.cellValue[7]
-                                           + "' AND Status ='" + dgvo.cellValue[5] + "' AND Description ='" + dgvo.cellValue[3] + "';")
+                                        ExecuteSqlAsync("UPDATE 'Mailing' SET Period='" + editedCell + "' WHERE RecipientEmail='" + cellValue[0]
+                                           + "' AND NameReport='" + cellValue[2] + "' AND GroupsReport ='" + cellValue[1]
+                                           + "' AND TypeReport ='" + cellValue[6] + "' AND DayReport='" + cellValue[7]
+                                           + "' AND Status ='" + cellValue[5] + "' AND Description ='" + cellValue[3] + "';")
                                            .GetAwaiter().GetResult();
                                         break;
 
                                     case "Описание":
                                         editedCell = currCellValue;
 
-                                        ExecuteSqlAsync("UPDATE 'Mailing' SET Description='" + editedCell + "' WHERE RecipientEmail='" + dgvo.cellValue[0]
-                                          + "' AND NameReport='" + dgvo.cellValue[2] + "' AND GroupsReport ='" + dgvo.cellValue[1]
-                                          + "' AND TypeReport ='" + dgvo.cellValue[6] + "' AND DayReport='" + dgvo.cellValue[7]
-                                          + "' AND Status ='" + dgvo.cellValue[5] + "' AND Period='" + dgvo.cellValue[4] + "';")
+                                        ExecuteSqlAsync("UPDATE 'Mailing' SET Description='" + editedCell + "' WHERE RecipientEmail='" + cellValue[0]
+                                          + "' AND NameReport='" + cellValue[2] + "' AND GroupsReport ='" + cellValue[1]
+                                          + "' AND TypeReport ='" + cellValue[6] + "' AND DayReport='" + cellValue[7]
+                                          + "' AND Status ='" + cellValue[5] + "' AND Period='" + cellValue[4] + "';")
                                           .GetAwaiter().GetResult();
                                         break;
 
                                     case "Отчет по группам":
                                         editedCell = currCellValue;
 
-                                        ExecuteSqlAsync("UPDATE 'Mailing' SET GroupsReport ='" + editedCell + "' WHERE RecipientEmail='" + dgvo.cellValue[0]
-                                          + "' AND NameReport='" + dgvo.cellValue[2] + "' AND Description ='" + dgvo.cellValue[3]
-                                          + "' AND Status ='" + dgvo.cellValue[5] + "' AND Period='" + dgvo.cellValue[4]
-                                          + "' AND TypeReport ='" + dgvo.cellValue[6] + "' AND DayReport='" + dgvo.cellValue[7] + "';")
+                                        ExecuteSqlAsync("UPDATE 'Mailing' SET GroupsReport ='" + editedCell + "' WHERE RecipientEmail='" + cellValue[0]
+                                          + "' AND NameReport='" + cellValue[2] + "' AND Description ='" + cellValue[3]
+                                          + "' AND Status ='" + cellValue[5] + "' AND Period='" + cellValue[4]
+                                          + "' AND TypeReport ='" + cellValue[6] + "' AND DayReport='" + cellValue[7] + "';")
                                           .GetAwaiter().GetResult();
                                         break;
 
@@ -7111,10 +7101,10 @@ namespace ASTA
                                         {
                                             editedCell = currCellValue;
 
-                                            ExecuteSqlAsync("UPDATE 'Mailing' SET RecipientEmail ='" + editedCell + "' WHERE TypeReport ='" + dgvo.cellValue[6]
-                                              + "' AND NameReport='" + dgvo.cellValue[2] + "' AND GroupsReport ='" + dgvo.cellValue[1]
-                                              + "' AND DayReport='" + dgvo.cellValue[7] + "' AND Period='" + dgvo.cellValue[4]
-                                              + "' AND Status ='" + dgvo.cellValue[5] + "' AND Description ='" + dgvo.cellValue[3] + "';")
+                                            ExecuteSqlAsync("UPDATE 'Mailing' SET RecipientEmail ='" + editedCell + "' WHERE TypeReport ='" + cellValue[6]
+                                              + "' AND NameReport='" + cellValue[2] + "' AND GroupsReport ='" + cellValue[1]
+                                              + "' AND DayReport='" + cellValue[7] + "' AND Period='" + cellValue[4]
+                                              + "' AND Status ='" + cellValue[5] + "' AND Description ='" + cellValue[3] + "';")
                                               .GetAwaiter().GetResult();
                                         }
                                         break;
@@ -7122,10 +7112,10 @@ namespace ASTA
                                     case "Наименование":
                                         editedCell = currCellValue;
 
-                                        ExecuteSqlAsync("UPDATE 'Mailing' SET NameReport ='" + editedCell + "' WHERE RecipientEmail='" + dgvo.cellValue[0]
-                                          + "' AND Description='" + dgvo.cellValue[3] + "' AND GroupsReport ='" + dgvo.cellValue[1]
-                                          + "' AND DayReport='" + dgvo.cellValue[7] + "' AND TypeReport ='" + dgvo.cellValue[6]
-                                          + "' AND Period ='" + dgvo.cellValue[4] + "' AND Status ='" + dgvo.cellValue[5] + "';")
+                                        ExecuteSqlAsync("UPDATE 'Mailing' SET NameReport ='" + editedCell + "' WHERE RecipientEmail='" + cellValue[0]
+                                          + "' AND Description='" + cellValue[3] + "' AND GroupsReport ='" + cellValue[1]
+                                          + "' AND DayReport='" + cellValue[7] + "' AND TypeReport ='" + cellValue[6]
+                                          + "' AND Period ='" + cellValue[4] + "' AND Status ='" + cellValue[5] + "';")
                                           .GetAwaiter().GetResult();
                                         break;
 
@@ -7141,18 +7131,18 @@ namespace ASTA
                             }
                         case "MailingException":
                             {
-                                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { @"Получатель", @"Описание" });
+                                string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { @"Получатель", @"Описание" });
 
                                 switch (currColumn)
                                 {
                                     case "Получатель":
                                         ExecuteSqlAsync("UPDATE 'MailingException' SET RecipientEmail='" + currCellValue +
-                                            "' WHERE Description='" + dgvo.cellValue[1] + "';").GetAwaiter().GetResult();
+                                            "' WHERE Description='" + cellValue[1] + "';").GetAwaiter().GetResult();
                                         break;
 
                                     case "Описание":
                                         ExecuteSqlAsync("UPDATE 'MailingException' SET Description='" + currCellValue +
-                                            "' WHERE RecipientEmail='" + dgvo.cellValue[0] + "';").GetAwaiter().GetResult();
+                                            "' WHERE RecipientEmail='" + cellValue[0] + "';").GetAwaiter().GetResult();
                                         break;
                                     default:
                                         break;
@@ -7165,15 +7155,15 @@ namespace ASTA
                             }
                         case "SelectedCityToLoadFromWeb":
                             {
-                                dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                                string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             Names.PLACE_EMPLOYEE,
                             @"Дата создания" });
 
                                 switch (currColumn)
                                 {
                                     case "Местонахождение сотрудника":
-                                        ExecuteSqlAsync("UPDATE 'SelectedCityToLoadFromWeb' SET City='" + dgvo.cellValue[0] +
-                                                            "' WHERE DateCreated='" + dgvo.cellValue[1] + "';").GetAwaiter().GetResult();
+                                        ExecuteSqlAsync("UPDATE 'SelectedCityToLoadFromWeb' SET City='" + cellValue[0] +
+                                                            "' WHERE DateCreated='" + cellValue[1] + "';").GetAwaiter().GetResult();
                                         break;
                                     default:
                                         break;
@@ -7187,7 +7177,7 @@ namespace ASTA
                             break;
                     }
                 }
-                catch(Exception expt) { logger.Trace("DataGridView1CellEndEdit: " + expt.ToString()); }
+                catch (Exception expt) { logger.Trace("DataGridView1CellEndEdit: " + expt.ToString()); }
             }
         }
 
@@ -7208,7 +7198,7 @@ namespace ASTA
 
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
-            if (dgvo.ColumnsCount(dataGridView1) > 0 && dgvo.RowsCount(dataGridView1) > 0)
+            if (DataGridViewOperations.ColumnsCount(dataGridView1) > 0 && DataGridViewOperations.RowsCount(dataGridView1) > 0)
             {
                 if (
                     nameOfLastTable == @"PeopleGroup" ||
@@ -7245,29 +7235,29 @@ namespace ASTA
                     case "PeopleGroupDescription":
                         {
                             string recepient = "";
-                            dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { Names.GROUP, Names.GROUP_DECRIPTION, Names.RECEPIENTS_OF_REPORTS });
+                            string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { Names.GROUP, Names.GROUP_DECRIPTION, Names.RECEPIENTS_OF_REPORTS });
 
-                            if (dgvo.cellValue[2]?.Length > 0)
-                            { recepient = dgvo.cellValue[2]; }
+                            if (cellValue[2]?.Length > 0)
+                            { recepient = cellValue[2]; }
                             else if (mailSenderAddress?.Length > 0)
                             { recepient = mailSenderAddress; }
 
                             mRightClick.MenuItems.Add(new MenuItem(
                                 text: "Загрузить регистрации пропусков сотрудников группы: '" +
-                                        dgvo.cellValue[1] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
+                                        cellValue[1] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
                                 onClick: GetDataOfGroup_Click));
                             mRightClick.MenuItems.Add(new MenuItem(
                                 text: "Загрузить  входы-выходы сотрудников группы: '" +
-                                        dgvo.cellValue[1] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear() + " и подготовить отчет",
+                                        cellValue[1] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear() + " и подготовить отчет",
                                 onClick: DoReportByRightClick));
                             mRightClick.MenuItems.Add(new MenuItem(
                                 text: "Загрузить регистрации пропусков сотрудников группы: '" +
-                                        dgvo.cellValue[1] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear() + " и отправить: " + recepient,
+                                        cellValue[1] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear() + " и отправить: " + recepient,
                                 onClick: DoReportAndEmailByRightClick));
 
                             mRightClick.MenuItems.Add("-");
                             mRightClick.MenuItems.Add(new MenuItem(
-                                text: "Удалить группу: '" + dgvo.cellValue[0] + "'(" + dgvo.cellValue[1] + ")",
+                                text: "Удалить группу: '" + cellValue[0] + "'(" + cellValue[1] + ")",
                                 onClick: DeleteCurrentRow));
                             mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
 
@@ -7275,42 +7265,42 @@ namespace ASTA
                         }
                     case "LastIputsOutputs":
                         {
-                            dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { Names.FIO, Names.N_ID_STRING, Names.CHECKPOINT_ACTION });
+                            string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { Names.FIO, Names.N_ID_STRING, Names.CHECKPOINT_ACTION });
 
                             mRightClick.MenuItems.Add(new MenuItem(
                                 text: "Обновить данные о регистрации входов-выходов сотрудников",
                                onClick: LoadLastIputsOutputs_Update_Click));
 
                             mRightClick.MenuItems.Add(new MenuItem(
-                                text: "Подсветить все входы-выходы '" + dgvo.cellValue[0] + "'",
+                                text: "Подсветить все входы-выходы '" + cellValue[0] + "'",
                                onClick: PaintRowsFioItem_Click));
                             mRightClick.MenuItems.Add(new MenuItem(
                                 text: "Сбросить фильтр",
                                onClick: ResetFilterLoadLastIputsOutput_Click));
                             mRightClick.MenuItems.Add(new MenuItem(
-                                text: "Подсветить все состояния '" + dgvo.cellValue[2] + "'",
+                                text: "Подсветить все состояния '" + cellValue[2] + "'",
                                onClick: PaintRowsActionItem_Click));
                             mRightClick.MenuItems.Add("-");
                             mRightClick.MenuItems.Add(new MenuItem(
                                 text: "Загрузить данные регистраций входов-выходов '" +
-                                        dgvo.cellValue[0] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
+                                        cellValue[0] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
                                 onClick: GetDataOfPerson_Click));
                             mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                             break;
                         }
                     case "Mailing":
                         {
-                            dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                            string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                         @"Наименование", @"Описание", @"День отправки отчета", @"Период", @"Тип отчета", @"Получатель"});
 
                             mRightClick.MenuItems.Add(new MenuItem(
                                 text: @"Выполнить активные рассылки по всем у кого: тип отчета - " +
-                                        dgvo.cellValue[4] + " за " + dgvo.cellValue[3] + " на " + dgvo.cellValue[2],
+                                        cellValue[4] + " за " + cellValue[3] + " на " + cellValue[2],
                                 onClick: SendAllReportsInSelectedPeriod));
                             mRightClick.MenuItems.Add("-");
 
                             mRightClick.MenuItems.Add(new MenuItem(
-                                text: @"Выполнить рассылку:   " + dgvo.cellValue[0] + "(" + dgvo.cellValue[1] + ") для " + dgvo.cellValue[5],
+                                text: @"Выполнить рассылку:   " + cellValue[0] + "(" + cellValue[1] + ") для " + cellValue[5],
                                 onClick: DoMainAction));
                             mRightClick.MenuItems.Add("-");
 
@@ -7318,31 +7308,31 @@ namespace ASTA
                                 text: @"Создать новую рассылку",
                                 onClick: PrepareForMakingFormMailing));
                             mRightClick.MenuItems.Add(new MenuItem(
-                                text: @"Клонировать рассылку:   " + dgvo.cellValue[0] + "(" + dgvo.cellValue[1] + ")",
+                                text: @"Клонировать рассылку:   " + cellValue[0] + "(" + cellValue[1] + ")",
                                 onClick: MakeCloneMailing));
                             mRightClick.MenuItems.Add("-");
 
                             mRightClick.MenuItems.Add(new MenuItem(
-                                text: @"Состав рассылки:   " + dgvo.cellValue[0] + "(" + dgvo.cellValue[1] + ")",
+                                text: @"Состав рассылки:   " + cellValue[0] + "(" + cellValue[1] + ")",
                                 onClick: MembersGroupItem_Click));
                             mRightClick.MenuItems.Add("-");
 
                             mRightClick.MenuItems.Add(new MenuItem(
-                                text: @"Удалить рассылку:   " + dgvo.cellValue[0] + "(" + dgvo.cellValue[1] + ")",
+                                text: @"Удалить рассылку:   " + cellValue[0] + "(" + cellValue[1] + ")",
                                 onClick: DeleteCurrentRow));
                             mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                             break;
                         }
                     case "MailingException":
                         {
-                            dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { @"Получатель" });
+                            string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { @"Получатель" });
 
                             mRightClick.MenuItems.Add(new MenuItem(
                                 text: @"Добавить новый адрес для исключения из рассылок отчетов",
                                 onClick: MakeNewRecepientExcept));
                             mRightClick.MenuItems.Add("-");
                             mRightClick.MenuItems.Add(new MenuItem(
-                                text: @"Удалить адрес, ранее внесенный как 'исключеный из рассылок':   " + dgvo.cellValue[0],
+                                text: @"Удалить адрес, ранее внесенный как 'исключеный из рассылок':   " + cellValue[0],
                                 onClick: DeleteCurrentRow));
                             mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                             break;
@@ -7350,7 +7340,7 @@ namespace ASTA
                     case "PeopleGroup":
                     case "ListFIO":
                         {
-                            dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                            string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                                     Names.FIO,
                                     Names.CODE,
                                     Names.DEPARTMENT,
@@ -7362,30 +7352,30 @@ namespace ASTA
                                     Names.GROUP
                                         });
 
-                            if (string.Compare(dgvo.cellValue[8], txtboxGroup) != 0 && txtboxGroup?.Length > 0) //добавить пункт меню если в текстбоксе группа другая
+                            if (string.Compare(cellValue[8], txtboxGroup) != 0 && txtboxGroup?.Length > 0) //добавить пункт меню если в текстбоксе группа другая
                             {
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: "Добавить '" + dgvo.cellValue[0] + "' в группу '" + txtboxGroup + "'",
+                                    text: "Добавить '" + cellValue[0] + "' в группу '" + txtboxGroup + "'",
                                     onClick: AddPersonToGroupItem_Click));
                                 mRightClick.MenuItems.Add("-");
                             }
 
                             mRightClick.MenuItems.Add(new MenuItem(
-                                text: "Загрузить регистрации пропусков на входе в офис группы сотрудников '" + dgvo.cellValue[8] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
+                                text: "Загрузить регистрации пропусков на входе в офис группы сотрудников '" + cellValue[8] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
                                 onClick: GetDataOfGroup_Click));
 
                             mRightClick.MenuItems.Add(new MenuItem(
-                                text: "Загрузить регистрации пропусков на входе в офис сотрудника: '" + dgvo.cellValue[0] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
+                                text: "Загрузить регистрации пропусков на входе в офис сотрудника: '" + cellValue[0] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
                                 onClick: GetDataOfPerson_Click));
                             mRightClick.MenuItems.Add("-");
                             mRightClick.MenuItems.Add(new MenuItem(
-                                text: "Удалить '" + dgvo.cellValue[0] + "' из группы '" + txtboxGroup + "'",
+                                text: "Удалить '" + cellValue[0] + "' из группы '" + txtboxGroup + "'",
                                 onClick: DeleteCurrentRow));
                             mRightClick.Show(dataGridView1, new Point(e.X, e.Y)); break;
                         }
                     case "BoldedDates":
                         {
-                            dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { Names.DAYOFF_DATE, Names.DAYOFF_USED_BY, Names.DAYOFF_TYPE });
+                            string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { Names.DAYOFF_DATE, Names.DAYOFF_USED_BY, Names.DAYOFF_TYPE });
 
                             string dayType = "";
                             if (txtboxGroup?.Length == 0 || txtboxGroup?.ToLower() == "выходной")
@@ -7398,16 +7388,16 @@ namespace ASTA
                             else { nav = textBoxNav.Text.Trim(); }
 
                             string navD = "";
-                            if (dgvo.cellValue[1]?.Length != 6)
+                            if (cellValue[1]?.Length != 6)
                             { navD = "всех"; }
-                            else { navD = dgvo.cellValue[1]; }
+                            else { navD = cellValue[1]; }
 
                             mRightClick.MenuItems.Add(new MenuItem(
                                 text: @"Сохранить для " + nav + @" как '" + dayType + @"' " + monthCalendar.SelectionStart.ToYYYYMMDD(),
                                 onClick: AddAnualDateItem_Click));
                             mRightClick.MenuItems.Add("-");
                             mRightClick.MenuItems.Add(new MenuItem(
-                                text: @"Удалить из сохранненых '" + dgvo.cellValue[2] + @"'  '" + dgvo.cellValue[0] + @"' для " + navD,
+                                text: @"Удалить из сохранненых '" + cellValue[2] + @"'  '" + cellValue[0] + @"' для " + navD,
                                 onClick: DeleteAnualDateItem_Click));
                             mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                             break;
@@ -7476,12 +7466,12 @@ namespace ASTA
 
         private void DeleteCityToLoad()
         {
-            dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+            string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                 Names.PLACE_EMPLOYEE,
                 @"Дата создания" });
 
             DeleteDataTableQueryParameters(dbApplication, "SelectedCityToLoadFromWeb",
-                            "City", dgvo.cellValue[0]).GetAwaiter().GetResult();
+                            "City", cellValue[0]).GetAwaiter().GetResult();
         }
 
 
@@ -7495,7 +7485,7 @@ namespace ASTA
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
-            dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+            string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                 Names.GROUP,
                 Names.GROUP_DECRIPTION,
                 Names.RECEPIENTS_OF_REPORTS
@@ -7503,26 +7493,26 @@ namespace ASTA
             resultOfSendingReports = new List<Mailing>();
             logger.Trace("DoReportAndEmailByRightClick");
 
-            _SetStatusLabelText(StatusLabel2, "Готовлю отчет по группе" + dgvo.cellValue[0]);
+            _SetStatusLabelText(StatusLabel2, "Готовлю отчет по группе" + cellValue[0]);
 
-            if (dgvo.cellValue[2]?.Length > 0)
+            if (cellValue[2]?.Length > 0)
             {
                 MailingAction(
-                    "sendEmail", dgvo.cellValue[2].Trim(), mailSenderAddress,
-                    dgvo.cellValue[0], dgvo.cellValue[0], dgvo.cellValue[1], SelectedDatetimePickersPeriodMonth(), "Активная", "Упрощенный", DateTime.Now.ToYYYYMMDDHHMM());
+                    "sendEmail", cellValue[2].Trim(), mailSenderAddress,
+                    cellValue[0], cellValue[0], cellValue[1], SelectedDatetimePickersPeriodMonth(), "Активная", "Упрощенный", DateTime.Now.ToYYYYMMDDHHMM());
             }
             else if (mailSenderAddress?.Length > 0)
             {
                 MailingAction("sendEmail", mailSenderAddress, mailSenderAddress,
-             dgvo.cellValue[0], dgvo.cellValue[0], dgvo.cellValue[1], SelectedDatetimePickersPeriodMonth(), "Активная", "Упрощенный", DateTime.Now.ToYYYYMMDDHHMM());
+             cellValue[0], cellValue[0], cellValue[1], SelectedDatetimePickersPeriodMonth(), "Активная", "Упрощенный", DateTime.Now.ToYYYYMMDDHHMM());
             }
             else
             {
                 _SetStatusLabelText(
                     StatusLabel2,
-                    "Попытка отправить отчет " + dgvo.cellValue[0] + " не существующему получателю",
+                    "Попытка отправить отчет " + cellValue[0] + " не существующему получателю",
                     true,
-                    "DoReportAndEmailByRightClick, the report was attempted to send to non existent user: " + dgvo.cellValue[0]);
+                    "DoReportAndEmailByRightClick, the report was attempted to send to non existent user: " + cellValue[0]);
             }
 
             _SetStatusLabelForeColor(StatusLabel2, Color.Black);
@@ -7542,17 +7532,17 @@ namespace ASTA
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
-            dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+            string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                 Names.GROUP,
                 Names.GROUP_DECRIPTION
             });
 
-            _SetStatusLabelText(StatusLabel2, "Готовлю отчет по группе" + dgvo.cellValue[0]);
-            logger.Trace("DoReportByRightClick: " + dgvo.cellValue[0]);
+            _SetStatusLabelText(StatusLabel2, "Готовлю отчет по группе" + cellValue[0]);
+            logger.Trace("DoReportByRightClick: " + cellValue[0]);
 
             resultOfSendingReports = new List<Mailing>();
 
-            GetRegistrationAndSendReport(dgvo.cellValue[0], dgvo.cellValue[0], dgvo.cellValue[1], SelectedDatetimePickersPeriodMonth(), "Активная", "Полный", DateTime.Now.ToYYYYMMDDHHMM(), false, "", "");
+            GetRegistrationAndSendReport(cellValue[0], cellValue[0], cellValue[1], SelectedDatetimePickersPeriodMonth(), "Активная", "Полный", DateTime.Now.ToYYYYMMDDHHMM(), false, "", "");
 
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer.exe", " /select, " + filePathExcelReport + @".xlsx")); // //System.Reflection.Assembly.GetExecutingAssembly().Location)
 
@@ -7573,12 +7563,12 @@ namespace ASTA
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
-            dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+            string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                 @"Получатель", @"Отчет по группам", @"Наименование", @"Описание", @"Период"});
 
             SaveMailing(
-               dgvo.cellValue[0], mailSenderAddress, dgvo.cellValue[1], dgvo.cellValue[2] + "_1",
-               dgvo.cellValue[3] + "_1", dgvo.cellValue[4], "Неактивная", DateTime.Now.ToYYYYMMDDHHMM(), "", "Копия", DEFAULT_DAY_OF_SENDING_REPORT);
+               cellValue[0], mailSenderAddress, cellValue[1], cellValue[2] + "_1",
+               cellValue[3] + "_1", cellValue[4], "Неактивная", DateTime.Now.ToYYYYMMDDHHMM(), "", "Копия", DEFAULT_DAY_OF_SENDING_REPORT);
 
             ShowDataTableDbQuery(dbApplication, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
             "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
@@ -7666,26 +7656,26 @@ namespace ASTA
                         currentAction = "sendEmail";
                         resultOfSendingReports = new List<Mailing>();
 
-                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                        string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             @"Получатель", @"Отчет по группам", @"Наименование", @"Описание",
                             @"Период", @"Статус", @"Тип отчета", @"День отправки отчета" });
-                        _SetStatusLabelText(StatusLabel2, "Готовлю отчет " + dgvo.cellValue[2]);
+                        _SetStatusLabelText(StatusLabel2, "Готовлю отчет " + cellValue[2]);
 
                         ExecuteSqlAsync("UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToYYYYMMDDHHMM()
-                            + "' WHERE RecipientEmail='" + dgvo.cellValue[0] + "' AND GroupsReport ='" + dgvo.cellValue[1]
-                            + "' AND NameReport='" + dgvo.cellValue[2] + "' AND Description ='" + dgvo.cellValue[3]
-                            + "' AND Period='" + dgvo.cellValue[4] + "' AND Status='" + dgvo.cellValue[5]
-                            + "' AND TypeReport='" + dgvo.cellValue[6] + "' AND DayReport ='" + dgvo.cellValue[7]
+                            + "' WHERE RecipientEmail='" + cellValue[0] + "' AND GroupsReport ='" + cellValue[1]
+                            + "' AND NameReport='" + cellValue[2] + "' AND Description ='" + cellValue[3]
+                            + "' AND Period='" + cellValue[4] + "' AND Status='" + cellValue[5]
+                            + "' AND TypeReport='" + cellValue[6] + "' AND DayReport ='" + cellValue[7]
                             + "';").GetAwaiter().GetResult();
 
-                        MailingAction("sendEmail", dgvo.cellValue[0], mailSenderAddress,
-                            dgvo.cellValue[1], dgvo.cellValue[2], dgvo.cellValue[3], dgvo.cellValue[4],
-                            dgvo.cellValue[5], dgvo.cellValue[6], dgvo.cellValue[7]);
+                        MailingAction("sendEmail", cellValue[0], mailSenderAddress,
+                            cellValue[1], cellValue[2], cellValue[3], cellValue[4],
+                            cellValue[5], cellValue[6], cellValue[7]);
 
                         logger.Info("DoMainAction, sendEmail: Получатель: " +
-                            dgvo.cellValue[0] + "|" + dgvo.cellValue[1] + "|Наименование: " + dgvo.cellValue[2] + "|" +
-                            dgvo.cellValue[3] + "|Период: " + dgvo.cellValue[4] + "|" + dgvo.cellValue[5] + "|" +
-                            dgvo.cellValue[6] + "|" + dgvo.cellValue[7]);
+                            cellValue[0] + "|" + cellValue[1] + "|Наименование: " + cellValue[2] + "|" +
+                            cellValue[3] + "|Период: " + cellValue[4] + "|" + cellValue[5] + "|" +
+                            cellValue[6] + "|" + cellValue[7]);
 
                         ShowDataTableDbQuery(dbApplication, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
                         "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
@@ -7718,10 +7708,10 @@ namespace ASTA
 
             resultOfSendingReports = new List<Mailing>();
 
-            dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+            string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             @"Получатель", @"Отчет по группам", @"Наименование", @"Описание",
                             @"Период", @"Статус", @"Тип отчета", @"День отправки отчета" });
-            _SetStatusLabelText(StatusLabel2, "Готовлю все активные рассылки с отчетами " + dgvo.cellValue[6] + " за " + dgvo.cellValue[4] + " на " + dgvo.cellValue[7]);
+            _SetStatusLabelText(StatusLabel2, "Готовлю все активные рассылки с отчетами " + cellValue[6] + " за " + cellValue[4] + " на " + cellValue[7]);
 
             currentAction = "sendEmail";
             DoListsFioGroupsMailings().GetAwaiter().GetResult();
@@ -7748,9 +7738,9 @@ namespace ASTA
             DaysWhenSendReports daysToSendReports = new DaysWhenSendReports(workSelectedDays, ShiftDaysBackOfSendingFromLastWorkDay, DateTime.Now.LastDayOfMonth().Day);
             DaysOfSendingMail daysOfSendingMail = daysToSendReports.GetDays();
 
-            logger.Trace("SendAllReportsInSelectedPeriod: активные отчеты " + dgvo.cellValue[6] + " за " + dgvo.cellValue[4] +
+            logger.Trace("SendAllReportsInSelectedPeriod: активные отчеты " + cellValue[6] + " за " + cellValue[4] +
                 DateTime.Now.FirstDayOfMonth().ToYYYYMMDD() + " - " + DateTime.Now.LastDayOfMonth().ToYYYYMMDD() +
-                " на дату - " + dgvo.cellValue[7]
+                " на дату - " + cellValue[7]
                 );
 
             HashSet<Mailing> mailingList = new HashSet<Mailing>();
@@ -7767,7 +7757,7 @@ namespace ASTA
                         {
                             if (
                                 record["RecipientEmail"]?.ToString()?.Length > 0 &&
-                                record["DayReport"]?.ToString()?.Trim()?.ToUpper() == dgvo.cellValue[7]
+                                record["DayReport"]?.ToString()?.Trim()?.ToUpper() == cellValue[7]
                                 )
                             {
                                 recipient = record["RecipientEmail"].ToString();
@@ -7787,9 +7777,9 @@ namespace ASTA
 
                                 if (
                                         status == "Активная" &&
-                                        typeReport == dgvo.cellValue[6] &&
-                                        period == dgvo.cellValue[4] &&
-                                        dayReportInDB == dgvo.cellValue[7]
+                                        typeReport == cellValue[6] &&
+                                        period == cellValue[4] &&
+                                        dayReportInDB == cellValue[7]
                                         )
                                 {
                                     mailingList.Add(new Mailing()
@@ -7847,7 +7837,7 @@ namespace ASTA
 
         private void DeleteCurrentRow(object sender, EventArgs e) //DeleteCurrentRow()
         {
-            if (dgvo.RowsCount(dataGridView1) > -1)
+            if (DataGridViewOperations.RowsCount(dataGridView1) > -1)
             { DeleteCurrentRow(); }
         }
 
@@ -7862,33 +7852,33 @@ namespace ASTA
             {
                 case "PeopleGroupDescription":
                     {
-                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                        string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             Names.GROUP
                         });
 
-                        DeleteDataTableQueryParameters(dbApplication, "PeopleGroup", "GroupPerson", dgvo.cellValue[0], "", "", "", "").GetAwaiter().GetResult();
-                        DeleteDataTableQueryParameters(dbApplication, "PeopleGroupDescription", "GroupPerson", dgvo.cellValue[0], "", "", "", "").GetAwaiter().GetResult();
+                        DeleteDataTableQueryParameters(dbApplication, "PeopleGroup", "GroupPerson", cellValue[0], "", "", "", "").GetAwaiter().GetResult();
+                        DeleteDataTableQueryParameters(dbApplication, "PeopleGroupDescription", "GroupPerson", cellValue[0], "", "", "", "").GetAwaiter().GetResult();
 
                         UpdateAmountAndRecepientOfPeopleGroupDescription();
                         ShowDataTableDbQuery(dbApplication, "PeopleGroupDescription", "SELECT GroupPerson AS 'Группа', GroupPersonDescription AS 'Описание группы', AmountStaffInDepartment AS 'Колличество сотрудников в группе' ", " group by GroupPerson ORDER BY GroupPerson asc; ");
-                        _SetStatusLabelText(StatusLabel2, "Удалена группа: " + dgvo.cellValue[0] + "| Всего групп: " + dgvo.RowsCount(dataGridView1));
+                        _SetStatusLabelText(StatusLabel2, "Удалена группа: " + cellValue[0] + "| Всего групп: " + DataGridViewOperations.RowsCount(dataGridView1));
                         MembersGroupItem.Enabled = true;
                         break;
                     }
                 case "PeopleGroup" when group?.Length > 0:
                     {
-                        int indexCurrentRow = dgvo.RowsCount(dataGridView1);
+                        int indexCurrentRow = DataGridViewOperations.RowsCount(dataGridView1);
 
-                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                        string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             Names.CODE,
                             Names.GROUP });
-                        DeleteDataTableQueryParameters(dbApplication, "PeopleGroup", "GroupPerson", dgvo.cellValue[1], "NAV", dgvo.cellValue[0], "", "").GetAwaiter().GetResult();
+                        DeleteDataTableQueryParameters(dbApplication, "PeopleGroup", "GroupPerson", cellValue[1], "NAV", cellValue[0], "", "").GetAwaiter().GetResult();
 
                         if (indexCurrentRow > 2)
                         { SeekAndShowMembersOfGroup(group); }
                         else
                         {
-                            DeleteDataTableQueryParameters(dbApplication, "PeopleGroupDescription", "GroupPerson", dgvo.cellValue[1], "", "", "", "").GetAwaiter().GetResult();
+                            DeleteDataTableQueryParameters(dbApplication, "PeopleGroupDescription", "GroupPerson", cellValue[1], "", "", "", "").GetAwaiter().GetResult();
 
                             UpdateAmountAndRecepientOfPeopleGroupDescription();
                             ShowDataTableDbQuery(dbApplication, "PeopleGroupDescription", "SELECT GroupPerson AS 'Группа', GroupPersonDescription AS 'Описание группы', AmountStaffInDepartment AS 'Колличество сотрудников в группе' ", " group by GroupPerson ORDER BY GroupPerson asc; ");
@@ -7900,35 +7890,35 @@ namespace ASTA
                     }
                 case "Mailing":
                     {
-                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                        string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             @"Получатель", @"Наименование", @"Дата создания/модификации",
                             @"Отчет по группам", @"Период", @"Тип отчета" });
                         DeleteDataTableQueryParameters(dbApplication, "Mailing",
-                            "RecipientEmail", dgvo.cellValue[0],
-                            "NameReport", dgvo.cellValue[1],
-                            "DateCreated", dgvo.cellValue[2],
-                            "GroupsReport", dgvo.cellValue[3],
-                            "TypeReport", dgvo.cellValue[5],
-                            "Period", dgvo.cellValue[4]).GetAwaiter().GetResult();
+                            "RecipientEmail", cellValue[0],
+                            "NameReport", cellValue[1],
+                            "DateCreated", cellValue[2],
+                            "GroupsReport", cellValue[3],
+                            "TypeReport", cellValue[5],
+                            "Period", cellValue[4]).GetAwaiter().GetResult();
 
                         ShowDataTableDbQuery(dbApplication, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
                         "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
                         "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
                         " ORDER BY RecipientEmail asc, DateCreated desc; ");
-                        _SetStatusLabelText(StatusLabel2, "Удалена рассылка отчета " + dgvo.cellValue[1] + "| Всего рассылок: " + dgvo.RowsCount(dataGridView1));
+                        _SetStatusLabelText(StatusLabel2, "Удалена рассылка отчета " + cellValue[1] + "| Всего рассылок: " + DataGridViewOperations.RowsCount(dataGridView1));
                         break;
                     }
                 case "MailingException":
                     {
-                        dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                        string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             @"Получатель"});
                         DeleteDataTableQueryParameters(dbApplication, "MailingException",
-                            "RecipientEmail", dgvo.cellValue[0]).GetAwaiter().GetResult();
+                            "RecipientEmail", cellValue[0]).GetAwaiter().GetResult();
 
                         ShowDataTableDbQuery(dbApplication, "MailingException", "SELECT RecipientEmail AS 'Получатель', " +
                         "NameReport AS 'Наименование', Description AS 'Описание', DateCreated AS 'Дата создания/модификации', " +
                         "DayReport AS 'День отправки отчета'", " ORDER BY RecipientEmail asc, DateCreated desc; ");
-                        _SetStatusLabelText(StatusLabel2, "Удален из исключений " + dgvo.cellValue[0] + "| Всего исключений: " + dgvo.RowsCount(dataGridView1));
+                        _SetStatusLabelText(StatusLabel2, "Удален из исключений " + cellValue[0] + "| Всего исключений: " + DataGridViewOperations.RowsCount(dataGridView1));
                         break;
                     }
                 default:

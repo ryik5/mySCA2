@@ -1,4 +1,6 @@
-﻿namespace ASTA
+﻿using System.Data;
+
+namespace ASTA
 {
     partial class WinFormASTA
     {
@@ -17,7 +19,48 @@
             {
                 components.Dispose();
                 WinFormASTA.bmpLogo?.Dispose();
+                bmp?.Dispose();
+                pictureBox1?.Dispose();
+                 labelMailServerName?.Dispose();
+                 textBoxMailServerName?.Dispose();
+                 labelMailServerUserName?.Dispose();
+                 textBoxMailServerUserName?.Dispose();
+                 labelMailServerUserPassword?.Dispose();
+                 textBoxMailServerUserPassword?.Dispose();
+                 labelServer1?.Dispose();
+                 textBoxServer1?.Dispose();
+                 labelServer1UserName?.Dispose();
+                 textBoxServer1UserName?.Dispose();
+                 labelServer1UserPassword?.Dispose();
+                 textBoxServer1UserPassword?.Dispose();
+                 labelmysqlServer?.Dispose();
+                 textBoxmysqlServer?.Dispose();
+                 labelmysqlServerUserName?.Dispose();
+                 textBoxmysqlServerUserName?.Dispose();
+                 labelmysqlServerUserPassword?.Dispose();
+                 textBoxmysqlServerUserPassword?.Dispose();
+                 listComboLabel?.Dispose();
+                 listCombo?.Dispose();
+                 periodComboLabel?.Dispose();
+                 periodCombo?.Dispose();
+                 labelSettings9?.Dispose();
+                 comboSettings9?.Dispose();
+                 labelSettings15?.Dispose(); 
+                 comboSettings15?.Dispose();
+                 labelSettings16?.Dispose();
+                 textBoxSettings16?.Dispose();
+                 checkBox1?.Dispose();
 
+
+                dtPersonTemp?.Dispose();
+                dtPersonTempAllColumns?.Dispose();
+                dtPersonRegistrationsFullList?.Dispose();
+                dtPeopleGroup?.Dispose();
+                dtPeopleListLoaded?.Dispose();
+                dtPeople?.Dispose();
+                notifyIcon?.Dispose();
+                contextMenu?.Dispose();
+                mRightClick?.Dispose();
             }
             base.Dispose(disposing);
         }

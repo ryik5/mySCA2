@@ -6,7 +6,7 @@ namespace ASTA.Classes
     /// <summary>
     /// Used to notify about upgrader errors.
     /// </summary>
-    public class DbUpgradeException : Exception,ISerializable
+    public class DbUpgradeException : Exception
     {
         #region Constructors
         private DbUpgradeException(DbUpgradeError error, params object[] args)

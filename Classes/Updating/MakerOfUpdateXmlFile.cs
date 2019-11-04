@@ -47,9 +47,11 @@ namespace ASTA.Classes.Updating
             XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
             ns.Add("", "");//clear any xmlns attributes from the root element
 
-            XMLDocument document = new XMLDocument();
-            document.version = _parameters.appVersion;
-            document.url = _parameters.appUpdateFolderURL+ _parameters.appFileZip;
+            XMLDocument document = new XMLDocument
+            {
+                version = _parameters.appVersion,
+                url = _parameters.appUpdateFolderURL + _parameters.appFileZip
+            };
 
             if (_parameters.appUpdateMD5 != null)
             {

@@ -64,7 +64,7 @@ namespace ASTA.Classes.People
             return CompareTwoPerson(x, y);
         }
 
-        public int CompareTwoPerson(Visitor x, Visitor y)
+        public static int CompareTwoPerson(Visitor x, Visitor y)
         {
             string a = x.fio + x.idCard + x.date + x.time;
             string b = y.fio + y.idCard + y.date + y.time;

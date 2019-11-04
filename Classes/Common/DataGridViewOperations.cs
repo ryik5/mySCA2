@@ -6,17 +6,17 @@ namespace ASTA.Classes
 {
     public class DataGridViewOperations
     {
-        public int ColumnsCount(DataGridView dgv) //add string into  from other threads
+        public static int ColumnsCount(DataGridView dgv) //add string into  from other threads
         {
             return dgv?.ColumnCount ?? -1;
         }
 
-        public int RowsCount(DataGridView dgv) //add string into  from other threads
+        public static int RowsCount(DataGridView dgv) //add string into  from other threads
         {
             return dgv?.Rows?.Count ?? -1;
         }
 
-        public string ColumnName(DataGridView dgv, int indexColumn) //add string into  from other threads
+        public static string ColumnName(DataGridView dgv, int indexColumn) //add string into  from other threads
         {
             return indexColumn < 0 ? null : dgv?.Columns[indexColumn]?.HeaderText;
         }
@@ -31,12 +31,12 @@ namespace ASTA.Classes
                 : dgv?.Rows[currentRowIndex]?.Cells[currentColumnIndex]?.Value?.ToString()?.Trim() ?? null;
         }
 
-        private static int CurrentRowIndex(DataGridView dgv) //add string into  from other threads
+        public static int CurrentRowIndex(DataGridView dgv) //add string into  from other threads
         {
             return dgv?.CurrentRow?.Index ?? -1;
         }
 
-        public int CurrentColumnIndex(DataGridView dgv) //add string into  from other threads
+        public static int CurrentColumnIndex(DataGridView dgv) //add string into  from other threads
         {
             return dgv?.CurrentCell?.ColumnIndex ?? -1;
         }
@@ -59,21 +59,21 @@ namespace ASTA.Classes
         }
 
         //   public string[] cellValue = new string[10];
-        private bool correctData { get; set; }
+        private bool CheckCorrectData { get; set; }
 
         public string[] FindValuesInCurrentRow(DataGridView dgv, params string[] columnsName)
         {
-            string[] cellValue =null;
+            string[] cellValue = null;
             int IndexCurrentRow = CurrentRowIndex(dgv);
 
-            correctData = (-1 < IndexCurrentRow & 0 < columnsName.Length);
+            CheckCorrectData = (-1 < IndexCurrentRow & 0 < columnsName.Length);
 
-            if (correctData)
+            if (CheckCorrectData)
             {
                 cellValue = new string[columnsName.Length];
                 for (int i = 0; i < dgv.ColumnCount; i++)
                 {
-                    for(int j=0;j< columnsName.Length;j++)
+                    for (int j = 0; j < columnsName.Length; j++)
                     {
                         if (columnsName.Length > j && dgv.Columns[i].HeaderText == columnsName[j])
                         {

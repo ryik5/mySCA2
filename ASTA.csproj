@@ -213,6 +213,7 @@
       <DependentUpon>AboutBox1.cs</DependentUpon>
     </Compile>
     <Compile Include="Classes\Common\BoolEventArgs.cs" />
+    <Compile Include="Classes\Common\CompareTwoStrings.cs" />
     <Compile Include="Classes\Common\TextEventArgs.cs" />
     <Compile Include="Classes\Common\ColorEventArgs.cs" />
     <Compile Include="Classes\People\ActiveDirectoryOperations.cs" />

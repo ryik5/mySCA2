@@ -93,8 +93,8 @@ namespace ASTA.Classes
                 }
                 else
                 {
-                    SideOfPassagePoint chkPoint;
-                    if (!listSideOfPassagePoints.TryGetValue(_idPoint, out chkPoint))
+
+                    if (!listSideOfPassagePoints.TryGetValue(_idPoint, out SideOfPassagePoint chkPoint))
                     {
                         listSideOfPassagePoints.Add(_idPoint, sideOfPassagePoint);
                     }
