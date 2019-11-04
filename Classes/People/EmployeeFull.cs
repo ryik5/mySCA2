@@ -35,11 +35,10 @@ namespace ASTA.Classes.People
             if (obj == null)
                 return false;
 
-            EmployeeFull df = obj as EmployeeFull;
-            if ((Object)df == null)
+            if (!(obj is EmployeeFull df))
                 return false;
 
-            return this.ToString() == df.ToString();
+            return ToString() == df.ToString();
         }
 
         public override int GetHashCode()

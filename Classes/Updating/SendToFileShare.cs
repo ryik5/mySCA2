@@ -1,6 +1,6 @@
-﻿using System;
-using System.Diagnostics.Contracts;
-using ASTA.Classes.People; 
+﻿//using System;
+//using System.Diagnostics.Contracts;
+//using ASTA.Classes.People; 
 
 namespace ASTA.Updating
 {  

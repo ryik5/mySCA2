@@ -40,8 +40,10 @@ namespace ASTA.Classes
             }
             else
             {
-                _mailUser = new MailUser();
-                _mailUser._name = name ?? string.Empty;
+                _mailUser = new MailUser
+                {
+                    _name = name ?? string.Empty
+                };
             }
         }
         public void SetEmail(string email)
@@ -52,8 +54,10 @@ namespace ASTA.Classes
             }
             else
             {
-                _mailUser = new MailUser();
-                _mailUser._email = email;
+                _mailUser = new MailUser
+                {
+                    _email = email
+                };
             }
         }
 
@@ -73,10 +77,10 @@ namespace ASTA.Classes
                 return false;
 
             MailUser df = obj as MailUser;
-            if ((Object)df == null)
+            if (df == null)
                 return false;
 
-            return this.ToString() == df.ToString();
+            return ToString() == df.ToString();
         }
 
         public override int GetHashCode()

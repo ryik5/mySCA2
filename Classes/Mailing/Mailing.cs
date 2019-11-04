@@ -26,10 +26,10 @@ namespace ASTA.Classes
                 return false;
 
             Mailing df = obj as Mailing;
-            if ((Object)df == null)
+            if (df == null)
                 return false;
 
-            return this.ToString() == df.ToString();
+            return ToString() == df.ToString();
         }
 
         public override int GetHashCode()

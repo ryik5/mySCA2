@@ -19,10 +19,10 @@ namespace ASTA.Classes.People
                 return false;
 
             ParametersOfGroup df = obj as ParametersOfGroup;
-            if ((Object)df == null)
+            if (df == null)
                 return false;
 
-            return this.ToString() == df.ToString();
+            return ToString() == df.ToString();
         }
         public override int GetHashCode()
         {

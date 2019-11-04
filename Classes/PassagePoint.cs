@@ -22,10 +22,10 @@ namespace ASTA.Classes
                 return false;
 
             PassagePoint df = obj as PassagePoint;
-            if ((Object)df == null)
+            if (df == null)
                 return false;
 
-            return this.ToString() == df.ToString();
+            return ToString() == df.ToString();
         }
 
         public override int GetHashCode()
@@ -49,10 +49,10 @@ namespace ASTA.Classes
                 return false;
 
             SideOfPassagePoint df = obj as SideOfPassagePoint;
-            if ((Object)df == null)
+            if (df == null)
                 return false;
 
-            return this.ToString() == df.ToString();
+            return ToString() == df.ToString();
         }
 
         public override int GetHashCode()
@@ -136,5 +136,4 @@ namespace ASTA.Classes
                 listSideOfPassagePoints = new Dictionary<string, SideOfPassagePoint>();
         }
     }
-
 }

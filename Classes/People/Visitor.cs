@@ -34,10 +34,10 @@ namespace ASTA.Classes.People
                 return false;
 
             Visitor df = obj as Visitor;
-            if ((Object)df == null)
+            if (df == null)
                 return false;
 
-            return this.ToString() == df.ToString();
+            return ToString() == df.ToString();
         }
 
         public override int GetHashCode()
@@ -61,7 +61,7 @@ namespace ASTA.Classes.People
     {
         public int Compare(Visitor x, Visitor y)
         {
-            return this.CompareTwoPerson(x, y);
+            return CompareTwoPerson(x, y);
         }
 
         public int CompareTwoPerson(Visitor x, Visitor y)
@@ -69,21 +69,7 @@ namespace ASTA.Classes.People
             string a = x.fio + x.idCard + x.date + x.time;
             string b = y.fio + y.idCard + y.date + y.time;
 
-            string[] words = { a, b };
-            Array.Sort(words);
-
-            if (words[0] != a)
-            {
-                return 1;
-            }
-            else if (a == b)
-            {
-                return 0;
-            }
-            else
-            {
-                return -1;
-            }
+            return CompareTwoStrings.Compare(a, b);
         }
     }
 

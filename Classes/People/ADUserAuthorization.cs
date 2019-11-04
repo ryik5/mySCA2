@@ -19,11 +19,10 @@ namespace ASTA.Classes.People
             if (obj == null)
                 return false;
 
-            ADUserAuthorization df = obj as ADUserAuthorization;
-            if ((Object)df == null)
+            if (!(obj is ADUserAuthorization df))
                 return false;
 
-            return this.ToString() == df.ToString();
+            return ToString() == df.ToString();
         }
 
         public override int GetHashCode()
@@ -31,5 +30,4 @@ namespace ASTA.Classes.People
             return ToString().GetHashCode();
         }
     }
-
 }

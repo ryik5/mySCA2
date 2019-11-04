@@ -20,10 +20,10 @@ namespace ASTA.Classes.People
                 return false;
 
             OutReasons df = obj as OutReasons;
-            if ((Object)df == null)
+            if (df == null)
                 return false;
 
-            return this.ToString() == df.ToString();
+            return ToString() == df.ToString();
         }
 
         public override int GetHashCode()
@@ -52,10 +52,10 @@ namespace ASTA.Classes.People
                 return false;
 
             OutPerson df = obj as OutPerson;
-            if ((Object)df == null)
+            if (df == null)
                 return false;
 
-            return this.ToString() == df.ToString();
+            return ToString() == df.ToString();
         }
 
         public override int GetHashCode()
@@ -85,5 +85,4 @@ namespace ASTA.Classes.People
         public string _Status;
         public string _Comment;
     }
-
 }

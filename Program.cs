@@ -20,7 +20,7 @@ namespace ASTA
             // get GIUD application
             string appGuid =
             ((System.Runtime.InteropServices.GuidAttribute)System.Reflection.Assembly.GetExecutingAssembly().
-            GetCustomAttributes(typeof(System.Runtime.InteropServices.GuidAttribute), false).GetValue(0)).Value.ToString();
+            GetCustomAttributes(typeof(System.Runtime.InteropServices.GuidAttribute), false).GetValue(0)).Value;
 
             logger.Info("");
             logger.Info("-------------------------------");

@@ -40,7 +40,7 @@ namespace ASTA.Classes
             //while a slow one may greatly overshoot the desired time
             //interval. Iterations too high = overshoot, too low = excessive overhead 
 
-            System.Threading.SpinWait swt = new System.Threading.SpinWait();
+            var swt = new System.Threading.SpinWait();
 
             while (swt.Count < seconds * 10000)
             {

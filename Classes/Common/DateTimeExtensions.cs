@@ -22,11 +22,9 @@ namespace ASTA.Classes
 
         public static string ToMonthNameAndYear(this DateTime dateTime)
         {
-            return dateTime.ToMonthName()+" "+ dateTime.ToString("yyyy");
+            return dateTime.ToMonthName() + " " + dateTime.ToString("yyyy");
         }
-
-
-
+        
         public static string ToShortMonthName(this DateTime dateTime)
         {
             return System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(dateTime.Month);
@@ -44,18 +42,16 @@ namespace ASTA.Classes
 
         public static string ToYYYYMMDDHHMM(this DateTime dateTime)
         {
-            return DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+            return dateTime.ToString("yyyy-MM-dd HH:mm");
         }
 
         public static string ToYYYYMMDDHHMMSS(this DateTime dateTime)
         {
-            return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            return dateTime.ToString("yyyy-MM-dd HH:mm:ss");
         }
         public static string ToYYYYMMDDHHMMSSmmm(this DateTime dateTime)
         {
-            return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+            return dateTime.ToString("yyyy-MM-dd HH:mm:ss.fff");
         }
-
     }
-
 }

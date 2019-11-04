@@ -18,11 +18,10 @@ namespace ASTA.Classes.People
             if (obj == null)
                 return false;
 
-            Employee df = obj as Employee;
-            if ((Object)df == null)
+            if (!(obj is Employee df))
                 return false;
 
-            return this.ToString() == df.ToString();
+            return ToString() == df.ToString();
         }
 
         public override int GetHashCode()
@@ -46,29 +45,15 @@ namespace ASTA.Classes.People
     {
         public int Compare(Employee x, Employee y)
         {
-            return this.CompareTwoPerson(x, y);
+            return CompareTwoPerson(x, y);
         }
 
-        public int CompareTwoPerson(Employee x, Employee y)
+        private static int CompareTwoPerson(Employee x, Employee y)
         {
-            string a = x.fio + x.code;
-            string b = y.fio + y.code;
+            var a = x.fio + x.code;
+            var b = y.fio + y.code;
 
-            string[] words = { a, b };
-            Array.Sort(words);
-
-            if (words[0] != a)
-            {
-                return 1;
-            }
-            else if (a == b)
-            {
-                return 0;
-            }
-            else
-            {
-                return -1;
-            }
+            return CompareTwoStrings.Compare(a, b);
         }
     }
 }
