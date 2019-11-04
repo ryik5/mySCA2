@@ -45,8 +45,8 @@ namespace ASTA
 
         //System settings
        readonly static string guid =  System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения// получаем GIUD приложения
-        readonly static string appVersionAssembly = Application.ProductVersion;// System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString();
-        readonly static System.Diagnostics.FileVersionInfo appFileVersionInfo;
+        readonly static string appVersionAssembly =  System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString();//Application.ProductVersion;//
+        static System.Diagnostics.FileVersionInfo appFileVersionInfo;
         static string appCopyright;
         static string appName;
         static string appNameXML;
@@ -339,13 +339,13 @@ namespace ASTA
         private void Form1Load()
         {
             //set startup variables
-         //   appFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(appFilePath);
+            appFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(appFilePath);
           //  localAppFolderPath = System.IO.Path.GetDirectoryName(appFilePath); //Environment.CurrentDirectory
             appFolderTempPath = System.IO.Path.Combine(localAppFolderPath, "Temp");
             appFolderUpdatePath = System.IO.Path.Combine(localAppFolderPath, "Update");
             appFolderBackUpPath = System.IO.Path.Combine(localAppFolderPath, "Backup");
             appCopyright = Application.CompanyName;// appFileVersionInfo.LegalCopyright;
-            appName = appFileVersionInfo.ProductName;
+            appName = Application.ProductName;// appFileVersionInfo.ProductName;
             appNameXML = appName + @".xml";
             appFileZip = appName + @".zip";
 
@@ -501,6 +501,8 @@ namespace ASTA
             notifyIcon.Visible = true;
             notifyIcon.BalloonTipText = "Developed by " + appCopyright;
             notifyIcon.ShowBalloonTip(500);
+
+           // notifyIcon.Text = Application.ProductName + "\nv." + Application.ProductVersion + " (" + appFileVersionInfo.FileVersion + ")" + "\n" + Application.CompanyName;
             notifyIcon.Text = appName + "\nv." + appVersionAssembly + " (" + appFileVersionInfo.FileVersion + ")" + "\n" + appFileVersionInfo.CompanyName;
             notifyIcon.ContextMenu = contextMenu;
 
@@ -824,8 +826,8 @@ namespace ASTA
                     using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter.sqlConnection))
                     {
                         SqlQuery.Parameters.Add("@PCName", DbType.String).Value = Environment.MachineName + "|" + Environment.OSVersion;
-                        SqlQuery.Parameters.Add("@POName", DbType.String).Value = appFileVersionInfo.FileName + "(" + appName + ")";
-                        SqlQuery.Parameters.Add("@POVersion", DbType.String).Value = appFileVersionInfo.FileVersion;
+                        SqlQuery.Parameters.Add("@POName", DbType.String).Value = Application.ExecutablePath + "(" + Application.ProductName + ")"; // appFileVersionInfo.FileName + "(+ appName + ")"
+                        SqlQuery.Parameters.Add("@POVersion", DbType.String).Value = Application.ProductVersion;// appFileVersionInfo.FileVersion;
                         SqlQuery.Parameters.Add("@LastDateStarted", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
                         SqlQuery.Parameters.Add("@CurrentUser", DbType.String).Value = Environment.UserName;
                         SqlQuery.Parameters.Add("@FreeRam", DbType.String).Value = "RAM: " + Environment.WorkingSet.ToString();
@@ -9301,6 +9303,8 @@ namespace ASTA
 
         private int _ReturnPanelParentHeight(Panel panel) //access from other threads
         {
+            if (panel == null) return 0;
+
             int height = 0;
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -9318,6 +9322,8 @@ namespace ASTA
 
         private int _ReturnPanelHeight(Panel panel) //access from other threads
         {
+            if (panel == null) return 0;
+
             int height = 0;
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -9335,6 +9341,8 @@ namespace ASTA
 
         private int _ReturnPanelWidth(Panel panel) //access from other threads
         {
+            if (panel == null) return 0;
+
             int width = 0;
             if (InvokeRequired)
             {
@@ -9354,6 +9362,8 @@ namespace ASTA
 
         private int _ReturnPanelControlsCount(Panel panel) //access from other threads
         {
+            if (panel == null) return 0;
+
             int count = 0;
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -9393,8 +9403,12 @@ namespace ASTA
 
 
 
-
-        private void timer1_Tick(object sender, EventArgs e) //Change a Color of the Font on Status by the Timer
+        /// <summary>
+        /// Change a Color of the Font on Status by the Timer
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void timer1_Tick(object sender, EventArgs e)
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -9425,7 +9439,10 @@ namespace ASTA
             }
         }
 
-        private void _ProgressWork1Step() //add into progressBar Value 2 from other threads
+        /// <summary>
+        /// Rise Value of progressBar at 1
+        /// </summary>
+        private void _ProgressWork1Step() 
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -9444,6 +9461,9 @@ namespace ASTA
             }
         }
 
+        /// <summary>
+        /// Run timer, set value of progressbar at 0, set StatusLabel2.BackColor = SystemColors.Control
+        /// </summary>
         private void _ProgressBar1Start() //Set progressBar Value into 0 from other threads
         {
             if (InvokeRequired)
@@ -9461,6 +9481,9 @@ namespace ASTA
             }
         }
 
+        /// <summary>
+        /// Stop timer, set progressbar at 100, set StatusLabel2.ForeColor =  Color.Black
+        /// </summary>
         private void _ProgressBar1Stop() //Set progressBar Value into 100 from other threads
         {
             if (InvokeRequired)
@@ -9468,7 +9491,6 @@ namespace ASTA
                 {
                     timer1.Stop();
                     StatusLabel2.Text = stimerPrev;
-
                     ProgressBar1.Value = 100;
                     StatusLabel2.ForeColor = Color.Black;
                 }));
@@ -9476,7 +9498,6 @@ namespace ASTA
             {
                 timer1.Stop();
                 StatusLabel2.Text = stimerPrev;
-
                 ProgressBar1.Value = 100;
                 StatusLabel2.ForeColor = Color.Black;
             }
@@ -9499,7 +9520,6 @@ namespace ASTA
             { return 0; }
 
             decimal.TryParse(number, out decimal result);
-
             return result;
         }
 
@@ -9955,14 +9975,14 @@ namespace ASTA
 
             using (Uploader uploader = new Uploader(parameters, source, target))
             {
-                uploader.Info += SetStatusLabelText;
-                uploader.ColorOfStatus += _SetStatusLabelBackColor;
-                uploader.Status += SetUploadingStatus;
+                uploader.StatusText += SetStatusLabelText;
+                uploader.StatusColor += _SetStatusLabelBackColor;
+                uploader.StatusFinishedUploading += SetUploadingStatus;
                 uploader.Upload();
 
-                uploader.Info -= SetStatusLabelText;
-                uploader.ColorOfStatus -= _SetStatusLabelBackColor;
-                uploader.Status -= SetUploadingStatus;
+                uploader.StatusText -= SetStatusLabelText;
+                uploader.StatusColor -= _SetStatusLabelBackColor;
+                uploader.StatusFinishedUploading -= SetUploadingStatus;
             }
             parameters = null;
 

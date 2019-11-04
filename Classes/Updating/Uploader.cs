@@ -7,15 +7,15 @@ namespace ASTA.Classes.Updating
 {
     public class Uploader : IDisposable
     {
-        public delegate void Message(object sender, TextEventArgs e);
-        public event Message Info;
+        public delegate void Info<TextEventArgs>(object sender, TextEventArgs e);
+        public event Info<TextEventArgs> StatusText;
 
         public delegate void MarkerOfUploading(object sender, ColorEventArgs e);
-        public event MarkerOfUploading ColorOfStatus;
+        public event MarkerOfUploading StatusColor;
         string messageOfErrorUploading = null;
 
         public delegate void Uploaded(object sender, BoolEventArgs e);
-        public event Uploaded Status;
+        public event Uploaded StatusFinishedUploading;
 
         private string[] _source;
         private string[] _target;
@@ -24,7 +24,7 @@ namespace ASTA.Classes.Updating
 
         public Uploader(UpdatingParameters parameters, string[] source, string[] target)
         {
-            Info?.Invoke(this, new TextEventArgs(""));
+            StatusText?.Invoke(this, new TextEventArgs(""));
             _parameters = parameters;
             _source = source;
             _target = target;
@@ -32,9 +32,9 @@ namespace ASTA.Classes.Updating
 
         public async void Upload()
         {
-            Info?.Invoke(this, new TextEventArgs("Начало отправки обновлений..."));
+            StatusText?.Invoke(this, new TextEventArgs("Начало отправки обновлений..."));
 
-            ColorOfStatus?.Invoke(this, new ColorEventArgs( System.Drawing.SystemColors.Control));
+            StatusColor?.Invoke(this, new ColorEventArgs( System.Drawing.SystemColors.Control));
             uploadingError = false;
 
             // ReSharper disable InvocationIsSkipped
@@ -53,13 +53,13 @@ namespace ASTA.Classes.Updating
 
             if (!uploadingError)
             {
-                Info?.Invoke(this, new TextEventArgs("Обновление отправлено -> " + _parameters.remoteFolderUpdatingURL));
-                ColorOfStatus?.Invoke(this, new ColorEventArgs( System.Drawing.Color.PaleGreen));
+                StatusText?.Invoke(this, new TextEventArgs("Обновление отправлено -> " + _parameters.remoteFolderUpdatingURL));
+                StatusColor?.Invoke(this, new ColorEventArgs( System.Drawing.Color.PaleGreen));
             }
             else
             {
-                Info?.Invoke(this, new TextEventArgs("Ошибки отправки обновления -> " + _parameters.remoteFolderUpdatingURL + "\r\n" + messageOfErrorUploading));
-                ColorOfStatus?.Invoke(this, new ColorEventArgs( System.Drawing.Color.DarkOrange));
+                StatusText?.Invoke(this, new TextEventArgs("Ошибки отправки обновления -> " + _parameters.remoteFolderUpdatingURL + "\r\n" + messageOfErrorUploading));
+                StatusColor?.Invoke(this, new ColorEventArgs( System.Drawing.Color.DarkOrange));
             }
         }
 
@@ -82,33 +82,33 @@ namespace ASTA.Classes.Updating
 #pragma warning restore CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
         {
             Contract.Requires(!source.Equals(target));
-            Info?.Invoke(this, new TextEventArgs("Идет отправка файла " + source + " -> " + target));
-            Status?.Invoke(this, new BoolEventArgs(false));
-            ColorOfStatus?.Invoke(this, new ColorEventArgs(System.Drawing.SystemColors.Control));
+            StatusText?.Invoke(this, new TextEventArgs("Идет отправка файла " + source + " -> " + target));
+            StatusFinishedUploading?.Invoke(this, new BoolEventArgs(false));
+            StatusColor?.Invoke(this, new ColorEventArgs(System.Drawing.SystemColors.Control));
 
             try
             {
                 // var fileByte = System.IO.File.ReadAllBytes(source);
                 // System.IO.File.WriteAllBytes(target, fileByte);
                 try { System.IO.File.Delete(target); }
-                catch { Info?.Invoke(this, new TextEventArgs("Файл на сервере: " + target + " удалить не удалось")); } //@"\\server\folder\Myfile.txt"
+                catch { StatusText?.Invoke(this, new TextEventArgs("Файл на сервере: " + target + " удалить не удалось")); } //@"\\server\folder\Myfile.txt"
 
                 System.IO.File.Copy(source, target, true); //@"\\server\folder\Myfile.txt"
                 
-                Info?.Invoke(this, new TextEventArgs("Отправка файла на сервер выполнена " + target));
-                ColorOfStatus?.Invoke(this, new ColorEventArgs(System.Drawing.Color.LightGreen));
-                Status?.Invoke(this, new BoolEventArgs(true));
+                StatusText?.Invoke(this, new TextEventArgs("Отправка файла на сервер выполнена " + target));
+                StatusColor?.Invoke(this, new ColorEventArgs(System.Drawing.Color.LightGreen));
+                StatusFinishedUploading?.Invoke(this, new BoolEventArgs(true));
             }
             catch (Exception err)
             {
-                Info?.Invoke(this, new TextEventArgs("Отправка файла на сервер " + target + " завершена с ошибкой: " + err.ToString()));
+                StatusText?.Invoke(this, new TextEventArgs("Отправка файла на сервер " + target + " завершена с ошибкой: " + err.ToString()));
                 uploadingError = true;
 
                 if (string.IsNullOrEmpty(messageOfErrorUploading))
                     messageOfErrorUploading = err.Message;
                 else
                     messageOfErrorUploading += "|" + err.Message;
-                ColorOfStatus?.Invoke(this, new ColorEventArgs(System.Drawing.Color.LightYellow));
+                StatusColor?.Invoke(this, new ColorEventArgs(System.Drawing.Color.LightYellow));
             }
         }
         private static async Task InvokeAsync(IEnumerable<Func<Task>> taskFactories, int maxDegreeOfParallelism)
@@ -153,9 +153,9 @@ namespace ASTA.Classes.Updating
                     _parameters = null;
                     _source = _target = null;
                     messageOfErrorUploading = null;
-                    ColorOfStatus = null;
-                    Info = null;
-                    Status = null;
+                    StatusColor = null;
+                    StatusText = null;
+                    StatusFinishedUploading = null;
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
