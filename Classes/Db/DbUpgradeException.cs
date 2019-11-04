@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace ASTA.Classes
 {
     /// <summary>
     /// Used to notify about upgrader errors.
     /// </summary>
-    public class DbUpgradeException : Exception
+    public class DbUpgradeException : Exception,ISerializable
     {
         #region Constructors
         private DbUpgradeException(DbUpgradeError error, params object[] args)

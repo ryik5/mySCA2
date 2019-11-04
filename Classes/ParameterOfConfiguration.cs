@@ -132,7 +132,7 @@ namespace ASTA.Classes
         ParameterOfConfiguration _parameterOfConfiguration;
         System.IO.FileInfo _databasePerson;
 
-        public delegate void Status(object sender, EventTextArgs e);
+        public delegate void Status(object sender, TextEventArgs e);
         public event Status status;
 
         readonly byte[] keyEncryption = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
@@ -224,7 +224,7 @@ namespace ASTA.Classes
                             }
                             sqlCommand.CommandType = System.Data.CommandType.Text;
 
-                            status?.Invoke(this, new EventTextArgs("ParameterOfConfigurationInSQLiteDB: " + sqlCommand.CommandText));
+                            status?.Invoke(this, new TextEventArgs("ParameterOfConfigurationInSQLiteDB: " + sqlCommand.CommandText));
 
                             using (SQLiteDataReader reader = sqlCommand.ExecuteReader())
                             {
@@ -255,7 +255,7 @@ namespace ASTA.Classes
 
                                         parametersConfig.Add(parameterConfig);
 
-                                        status?.Invoke(this, new EventTextArgs("Read a parameter from DB: " + name));
+                                        status?.Invoke(this, new TextEventArgs("Read a parameter from DB: " + name));
                                     }
                                 }
                             }
@@ -263,7 +263,7 @@ namespace ASTA.Classes
                     }
                     catch (Exception expt)
                     {
-                        status?.Invoke(this, new EventTextArgs("ParameterOfConfigurationInSQLiteDB, error: " + expt.ToString()));
+                        status?.Invoke(this, new TextEventArgs("ParameterOfConfigurationInSQLiteDB, error: " + expt.ToString()));
                     }
                 }
             }

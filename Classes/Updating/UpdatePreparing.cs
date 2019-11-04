@@ -6,7 +6,7 @@
         IMakeable _makerXml;
         UpdatingParameters _parameters { set; get; }
 
-        public delegate void Status(object sender, EventTextArgs e);
+        public delegate void Status(object sender, TextEventArgs e);
         public event Status status;
 
         public UpdatePreparing(IMakeable makerLinks, IMakeable makerXml, UpdatingParameters parameters)
@@ -27,7 +27,7 @@
             _makerXml.Make();
             _parameters = _makerXml.GetParameters();
 
-            status?.Invoke(this, new EventTextArgs("Обновление для отправки на сервер подготовлено..."));
+            status?.Invoke(this, new TextEventArgs("Обновление для отправки на сервер подготовлено..."));
         }
         public UpdatingParameters GetParameters()
         {

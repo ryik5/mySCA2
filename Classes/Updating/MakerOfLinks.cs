@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.Contracts;
+using System;
 
 namespace ASTA.Classes.Updating
 {
@@ -6,8 +7,8 @@ namespace ASTA.Classes.Updating
     {
         UpdatingParameters _parameters { get; set; }
 
-        public delegate void Status(object sender, EventTextArgs e);
-        public event Status status;
+        public delegate void Status<TextEventArgs>(object sender, TextEventArgs e);
+        public event Status<TextEventArgs> status;
         public MakerOfLinks() { }
 
         public void SetParameters(UpdatingParameters parameters)
@@ -31,7 +32,7 @@ namespace ASTA.Classes.Updating
             _parameters.appUpdateFolderURI = @"\\" + _parameters.remoteFolderUpdatingURL.Replace(@"/", @"\") + @"\";
             _parameters.appUpdateURL = _parameters.appUpdateFolderURL + _parameters.appFileXml;
 
-            status?.Invoke(this, new EventTextArgs("Все ссылки сгенерированы!"));
+            status?.Invoke(this, new TextEventArgs("Все ссылки сгенерированы!"));
         }
 
         public UpdatingParameters GetParameters()

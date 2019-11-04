@@ -754,7 +754,7 @@ namespace ASTA
             _SetStatusLabelText(StatusLabel2, "Создаю таблицы в БД на основе запроса из текстового файла: " + fpath);
             using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
             {
-                dbWriter.ExecuteQueryBegin();
+                dbWriter.ExecuteQuery("begin");
                 foreach (var s in txt)
                 {
                     if (s.StartsWith("CREATE TABLE"))
@@ -768,7 +768,7 @@ namespace ASTA
                     }
                 }//foreach
 
-                dbWriter.ExecuteQueryEnd();
+                dbWriter.ExecuteQuery("end");
                 _SetStatusLabelText(StatusLabel2, "Таблицы в БД созданы.");
             }
         }
@@ -785,7 +785,7 @@ namespace ASTA
 
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
                 {
-                    using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter._sqlConnection))
+                    using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter.sqlConnection))
                     {
                         SqlQuery.Parameters.Add("@PCName", DbType.String).Value = Environment.MachineName + "|" + Environment.OSVersion;
                         SqlQuery.Parameters.Add("@POName", DbType.String).Value = appFileVersionInfo.FileName + "(" + appName + ")";
@@ -1279,7 +1279,7 @@ namespace ASTA
                 string result = string.Empty;
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
                 {
-                    using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter._sqlConnection))
+                    using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter.sqlConnection))
                     {
                         dbWriter.ExecuteQuery(SqlQuery);
                         result += dbWriter.Status;
@@ -1309,7 +1309,7 @@ namespace ASTA
                     if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0 && sqlParameter4.Length > 0
                     && sqlParameter5.Length > 0 && sqlParameter6.Length > 0)
                     {
-                        sqlCommand = new SQLiteCommand(query, dbWriter._sqlConnection);
+                        sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
 
                         sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
                         sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
@@ -1325,7 +1325,7 @@ namespace ASTA
                             " AND " + sqlParameter2 + "= @" + sqlParameter2 + " AND " + sqlParameter3 + "= @" + sqlParameter3 +
                             " AND " + sqlParameter4 + "= @" + sqlParameter4 + " AND " + sqlParameter5 + "= @" + sqlParameter5 + ";";
 
-                        sqlCommand = new SQLiteCommand(query, dbWriter._sqlConnection);
+                        sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
                         sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
                         sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
                         sqlCommand.Parameters.Add("@" + sqlParameter3, DbType.String).Value = sqlData3;
@@ -1348,7 +1348,7 @@ namespace ASTA
                             sqlParameter1 + " AND " + sqlParameter2 + "= @" + sqlParameter2 + " AND " +
                             sqlParameter3 + "= @" + sqlParameter3 + ";";
 
-                        sqlCommand = new SQLiteCommand(query, dbWriter._sqlConnection);
+                        sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
                         sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
                         sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
                         sqlCommand.Parameters.Add("@" + sqlParameter3, DbType.String).Value = sqlData3;
@@ -1359,7 +1359,7 @@ namespace ASTA
                         query = "DELETE FROM '" + myTable + "' Where " + sqlParameter1 + "= @" + sqlParameter1 + " AND " +
                             sqlParameter2 + "= @" + sqlParameter2 + ";";
 
-                        sqlCommand = new SQLiteCommand(query, dbWriter._sqlConnection);
+                        sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
                         sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
                         sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
                     }
@@ -1367,7 +1367,7 @@ namespace ASTA
                     {
                         query = "DELETE FROM '" + myTable + "' Where " + sqlParameter1 + "= @" + sqlParameter1 + ";";
 
-                        sqlCommand = new SQLiteCommand(query, dbWriter._sqlConnection);
+                        sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
                         sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
                     }
                     dbWriter.ExecuteQuery(sqlCommand);
@@ -3002,12 +3002,12 @@ namespace ASTA
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
                 {
                     result = string.Empty;
-                    dbWriter.ExecuteQueryBegin();
+                    dbWriter.ExecuteQuery("begin");
                     foreach (var dr in dtSource.AsEnumerable())
                     {
                         if (dr[Names.FIO]?.ToString()?.Length > 0 && dr[Names.CODE]?.ToString()?.Length > 0)
                         {
-                            using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter._sqlConnection))
+                            using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter.sqlConnection))
                             {
                                 SqlQuery.Parameters.Add("@FIO", DbType.String).Value = dr[Names.FIO]?.ToString();
                                 SqlQuery.Parameters.Add("@NAV", DbType.String).Value = dr[Names.CODE]?.ToString();
@@ -3032,16 +3032,16 @@ namespace ASTA
                         }
                     }
                     logger.Trace(method + ": query: " + query + "\nresult: " + result);//method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-                    dbWriter.ExecuteQueryEnd();
+                    dbWriter.ExecuteQuery("end");
 
                     result = string.Empty;
-                    dbWriter.ExecuteQueryBegin();
+                    dbWriter.ExecuteQuery("begin");
                     query = "INSERT OR REPLACE INTO 'LastTakenPeopleComboList' (ComboList) VALUES (@ComboList)";
                     foreach (var str in listFIO)
                     {
                         if (str.fio?.Length > 0 && str.code?.Length > 0)
                         {
-                            using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter._sqlConnection))
+                            using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter.sqlConnection))
                             {
                                 SqlQuery.Parameters.Add("@ComboList", DbType.String).Value = str.fio + "|" + str.code;
 
@@ -3052,7 +3052,7 @@ namespace ASTA
                         }
                     }
                     logger.Trace(method + ": query: " + query + "\nresult:" + result);//method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-                    dbWriter.ExecuteQueryEnd();
+                    dbWriter.ExecuteQuery("end");
                 }
             }
 
@@ -3082,12 +3082,12 @@ namespace ASTA
 
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
                 {
-                    dbWriter.ExecuteQueryBegin();
+                    dbWriter.ExecuteQuery("begin");
                     foreach (var group in departmentsUniq)
                     {
                         if (group?._departmentId?.Length > 0)
                         {
-                            using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter._sqlConnection))
+                            using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter.sqlConnection))
                             {
                                 SqlQuery.Parameters.Add("@GroupPerson", DbType.String).Value = group._departmentId;
                                 SqlQuery.Parameters.Add("@GroupPersonDescription", DbType.String).Value = group._departmentDescription;
@@ -3098,7 +3098,7 @@ namespace ASTA
                             }
                         }
                     }
-                    dbWriter.ExecuteQueryEnd();
+                    dbWriter.ExecuteQuery("end");
                     logger.Info(method + ": query: " + query + "\n" + result);//method = System.Reflection.MethodBase.GetCurrentMethod().Name;
                 }
             }
@@ -5827,7 +5827,7 @@ namespace ASTA
                         }
                     }
                 }
-                sqlConnection.Close();
+                sqlConnection?.Close();
             }
             listComboParameters.Add("Все");
 
@@ -9724,16 +9724,16 @@ namespace ASTA
 
 
 
-        private void StatusLabelAddInfo(object sender, EventTextArgs e)
+        private void StatusLabelAddInfo(object sender, TextEventArgs e)
         {
             _SetStatusLabelText(StatusLabel2, e.Message);
         }
-        private void StatusLabelSetBackColor(object sender, EventColorArgs e)
+        private void StatusLabelSetBackColor(object sender, ColorEventArgs e)
         {
             _SetStatusLabelBackColor(StatusLabel2, e.Color);
         }
 
-        private void UploadingStatus(object sender, EventBoolArgs e)
+        private void UploadingStatus(object sender, BoolEventArgs e)
         {
             resultOfUploading = e.Status;
         }
@@ -9743,7 +9743,7 @@ namespace ASTA
             _SetStatusLabelText(StatusLabel2, message);
         }
 
-        private void LoggerAddTrace(object sender, EventTextArgs e)
+        private void LoggerAddTrace(object sender, TextEventArgs e)
         {
             logger.Trace(e.Message);
         }
