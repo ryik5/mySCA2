@@ -62,7 +62,7 @@
             this.FunctionMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.GetFioItem = new System.Windows.Forms.ToolStripMenuItem();
             this.Separator8 = new System.Windows.Forms.ToolStripSeparator();
-            this.listFioItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ShowListFioItem = new System.Windows.Forms.ToolStripMenuItem();
             this.Separator9 = new System.Windows.Forms.ToolStripSeparator();
             this.LoadDataItem = new System.Windows.Forms.ToolStripMenuItem();
             this.LoadLastInputsOutputsItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -386,7 +386,7 @@
             this.FunctionMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.GetFioItem,
             this.Separator8,
-            this.listFioItem,
+            this.ShowListFioItem,
             this.Separator9,
             this.LoadDataItem,
             this.LoadLastInputsOutputsItem,
@@ -412,11 +412,11 @@
             this.Separator8.Name = "Separator8";
             resources.ApplyResources(this.Separator8, "Separator8");
             // 
-            // listFioItem
+            // ShowListFioItem
             // 
-            this.listFioItem.Name = "listFioItem";
-            resources.ApplyResources(this.listFioItem, "listFioItem");
-            this.listFioItem.Click += new System.EventHandler(this.listFioItem_Click);
+            this.ShowListFioItem.Name = "ShowListFioItem";
+            resources.ApplyResources(this.ShowListFioItem, "ShowListFioItem");
+            this.ShowListFioItem.Click += new System.EventHandler(this.listFioItem_Click);
             // 
             // Separator9
             // 
@@ -972,7 +972,7 @@
         private System.Windows.Forms.Label labelHourEnd;
         private System.Windows.Forms.NumericUpDown numUpDownMinuteEnd;
         private System.Windows.Forms.Label labelMinuteEnd;
-        private System.Windows.Forms.ToolStripMenuItem listFioItem;
+        private System.Windows.Forms.ToolStripMenuItem ShowListFioItem;
         private System.Windows.Forms.ToolStripMenuItem MailingAddItem;
         private System.Windows.Forms.ToolStripMenuItem ModeItem;
         private System.Windows.Forms.ToolStripSeparator Separator4;

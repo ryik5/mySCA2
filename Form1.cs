@@ -535,7 +535,7 @@ namespace ASTA
             VisualModeItem.Visible = false;
             ChangeColorMenuItem.Visible = false;
             TableExportToExcelItem.Visible = false;
-            listFioItem.Visible = false;
+            ShowListFioItem.Visible = false;
             groupBoxProperties.Visible = false;
 
             dataGridView1.ShowCellToolTips = true;
@@ -634,7 +634,7 @@ namespace ASTA
 
             if (_ReturnComboBoxCountItems(comboBoxFio) > 0)
             {
-                _VisibleMenuItem(listFioItem, true);
+                _VisibleMenuItem(ShowListFioItem, true);
                 _SetComboBoxIndex(comboBoxFio, 0);
             }
             comboBoxFio.DrawMode = DrawMode.OwnerDrawFixed;
@@ -1534,7 +1534,7 @@ namespace ASTA
             {
                 await Task.Run(() => DoListsFioGroupsMailings().GetAwaiter().GetResult());
 
-                _VisibleMenuItem(listFioItem, true);
+                _VisibleMenuItem(ShowListFioItem, true);
                 _EnableMenuItem(SettingsMenuItem, true);
                 _EnableMenuItem(GetFioItem, true);
                 _EnableMenuItem(FunctionMenuItem, true);
