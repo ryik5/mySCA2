@@ -10,7 +10,7 @@ namespace ASTA.Classes.Updating
     {
        UpdatingParameters _parameters { get; set; }
 
-        public delegate void Status(object sender, EventTextArgs e);
+        public delegate void Status(object sender, TextEventArgs e);
         public event Status status;
         public MakerOfUpdateXmlFile() { }
 
@@ -31,7 +31,7 @@ namespace ASTA.Classes.Updating
 
         public void Make()
         {
-            status?.Invoke(this, new EventTextArgs("MakeFile "));
+            status?.Invoke(this, new TextEventArgs("MakeFile "));
 
             Contract.Requires(_parameters != null,
                     "Не создан экземпляр UpdatingParameters!");
@@ -47,9 +47,11 @@ namespace ASTA.Classes.Updating
             XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
             ns.Add("", "");//clear any xmlns attributes from the root element
 
-            XMLDocument document = new XMLDocument();
-            document.version = _parameters.appVersion;
-            document.url = _parameters.appUpdateFolderURL+ _parameters.appFileZip;
+            XMLDocument document = new XMLDocument
+            {
+                version = _parameters.appVersion,
+                url = _parameters.appUpdateFolderURL + _parameters.appFileZip
+            };
 
             if (_parameters.appUpdateMD5 != null)
             {
@@ -60,7 +62,7 @@ namespace ASTA.Classes.Updating
                 };
                 document.checksum = checksum;
             }
-            status?.Invoke(this, new EventTextArgs("XML файл:" + _parameters.appFileXml));
+            status?.Invoke(this, new TextEventArgs("XML файл:" + _parameters.appFileXml));
 
             //  var nodesToStore = new List<XMLDocument> { document };
             try
@@ -73,11 +75,11 @@ namespace ASTA.Classes.Updating
                     XmlSerializer serializer = new XmlSerializer(document.GetType());//, atribXmlOver
                     serializer.Serialize(fs, document, ns); //clear any xmlns attributes from the root element
                 }
-                status?.Invoke(this, new EventTextArgs("XML файл сохранен как " + Path.GetFullPath(_parameters.appFileXml)));
+                status?.Invoke(this, new TextEventArgs("XML файл сохранен как " + Path.GetFullPath(_parameters.appFileXml)));
             }
             catch
             {
-                status?.Invoke(this, new EventTextArgs("Ошибка сохранения XML файла"));
+                status?.Invoke(this, new TextEventArgs("Ошибка сохранения XML файла"));
             }
 
             /* var readNodes = new List<document>();

@@ -1,4 +1,6 @@
-﻿namespace ASTA
+﻿using System.Data;
+
+namespace ASTA
 {
     partial class WinFormASTA
     {
@@ -16,6 +18,49 @@
             if (disposing && (components != null))
             {
                 components.Dispose();
+                WinFormASTA.bmpLogo?.Dispose();
+                bmp?.Dispose();
+                pictureBox1?.Dispose();
+                 labelMailServerName?.Dispose();
+                 textBoxMailServerName?.Dispose();
+                 labelMailServerUserName?.Dispose();
+                 textBoxMailServerUserName?.Dispose();
+                 labelMailServerUserPassword?.Dispose();
+                 textBoxMailServerUserPassword?.Dispose();
+                 labelServer1?.Dispose();
+                 textBoxServer1?.Dispose();
+                 labelServer1UserName?.Dispose();
+                 textBoxServer1UserName?.Dispose();
+                 labelServer1UserPassword?.Dispose();
+                 textBoxServer1UserPassword?.Dispose();
+                 labelmysqlServer?.Dispose();
+                 textBoxmysqlServer?.Dispose();
+                 labelmysqlServerUserName?.Dispose();
+                 textBoxmysqlServerUserName?.Dispose();
+                 labelmysqlServerUserPassword?.Dispose();
+                 textBoxmysqlServerUserPassword?.Dispose();
+                 listComboLabel?.Dispose();
+                 listCombo?.Dispose();
+                 periodComboLabel?.Dispose();
+                 periodCombo?.Dispose();
+                 labelSettings9?.Dispose();
+                 comboSettings9?.Dispose();
+                 labelSettings15?.Dispose(); 
+                 comboSettings15?.Dispose();
+                 labelSettings16?.Dispose();
+                 textBoxSettings16?.Dispose();
+                 checkBox1?.Dispose();
+
+
+                dtPersonTemp?.Dispose();
+                dtPersonTempAllColumns?.Dispose();
+                dtPersonRegistrationsFullList?.Dispose();
+                dtPeopleGroup?.Dispose();
+                dtPeopleListLoaded?.Dispose();
+                dtPeople?.Dispose();
+                notifyIcon?.Dispose();
+                contextMenu?.Dispose();
+                mRightClick?.Dispose();
             }
             base.Dispose(disposing);
         }
@@ -29,9 +74,9 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(WinFormASTA));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.comboBoxFio = new System.Windows.Forms.ComboBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
@@ -87,6 +132,7 @@
             this.Separator6 = new System.Windows.Forms.ToolStripSeparator();
             this.ImportPeopleInLocalDBItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SettingsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.OpenMenuAsLocalAdminItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.SettingsProgrammItem = new System.Windows.Forms.ToolStripMenuItem();
             this.AddParameterInConfigItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -108,10 +154,8 @@
             this.GetCurrentSchemeItem = new System.Windows.Forms.ToolStripMenuItem();
             this.CreateDBItem = new System.Windows.Forms.ToolStripMenuItem();
             this.RefreshConfigInMainDBItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.ClearRegistryItem = new System.Windows.Forms.ToolStripMenuItem();
             this.CalculateHashItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
-            this.OpenMenuAsLocalAdminItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ClearRegistryItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HelpAboutItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SetupItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -129,6 +173,7 @@
             this.groupBoxTimeEnd = new System.Windows.Forms.GroupBox();
             this.labelHourEnd = new System.Windows.Forms.Label();
             this.labelMinuteEnd = new System.Windows.Forms.Label();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownHourStart)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownMinuteStart)).BeginInit();
@@ -147,28 +192,29 @@
             // dataGridView1
             // 
             this.dataGridView1.AllowUserToOrderColumns = true;
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.Color.SteelBlue;
-            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.Color.SteelBlue;
+            this.dataGridView1.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle3;
             resources.ApplyResources(this.dataGridView1, "dataGridView1");
             this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dataGridView1.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedHeaders;
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            dataGridViewCellStyle2.ForeColor = System.Drawing.Color.Black;
-            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.LightBlue;
-            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.DarkSlateGray;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.Color.LightBlue;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.Color.DarkSlateGray;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridView1.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnF2;
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.StandardTab = true;
+            this.dataGridView1.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellClick);
             this.dataGridView1.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellEndEdit);
             this.dataGridView1.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.dataGridView1_CellFormatting);
             this.dataGridView1.DoubleClick += new System.EventHandler(this.dataGridView1_DoubleClick);
-            this.dataGridView1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.dataGridView1_MouseClick);
+            this.dataGridView1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.dataGridView1_MouseRightClick);
             // 
             // comboBoxFio
             // 
@@ -598,6 +644,12 @@
             this.SettingsMenuItem.Name = "SettingsMenuItem";
             resources.ApplyResources(this.SettingsMenuItem, "SettingsMenuItem");
             // 
+            // OpenMenuAsLocalAdminMenuItem
+            // 
+            this.OpenMenuAsLocalAdminItem.Name = "OpenMenuAsLocalAdminMenuItem";
+            resources.ApplyResources(this.OpenMenuAsLocalAdminItem, "OpenMenuAsLocalAdminMenuItem");
+            this.OpenMenuAsLocalAdminItem.Click += new System.EventHandler(this.OpenMenuItemsAsLocalAdmin_Click);
+            // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
@@ -684,11 +736,11 @@
             this.Separator3.Name = "Separator3";
             resources.ApplyResources(this.Separator3, "Separator3");
             // 
-            // UpdateItem
+            // AutoupdateItem
             // 
-            this.UpdateItem.Name = "UpdateItem";
-            resources.ApplyResources(this.UpdateItem, "UpdateItem");
-            this.UpdateItem.Click += new System.EventHandler(this.RunUpdateItem_Click);
+            this.UpdateItem.Name = "AutoupdateItem";
+            resources.ApplyResources(this.UpdateItem, "AutoupdateItem");
+            this.UpdateItem.Click += new System.EventHandler(this.AutoupdatItem_Click);
             // 
             // UploadApplicationItem
             // 
@@ -720,28 +772,17 @@
             resources.ApplyResources(this.RefreshConfigInMainDBItem, "RefreshConfigInMainDBItem");
             this.RefreshConfigInMainDBItem.Click += new System.EventHandler(this.RefreshConfigInMainDBItem_Click);
             // 
-            // ClearRegistryItem
-            // 
-            this.ClearRegistryItem.Name = "ClearRegistryItem";
-            resources.ApplyResources(this.ClearRegistryItem, "ClearRegistryItem");
-            this.ClearRegistryItem.Click += new System.EventHandler(this.ClearRegistryItem_Click);
-            // 
             // CalculateHashItem
             // 
             this.CalculateHashItem.Name = "CalculateHashItem";
             resources.ApplyResources(this.CalculateHashItem, "CalculateHashItem");
             this.CalculateHashItem.Click += new System.EventHandler(this.CalculateHashItem_Click);
             // 
-            // toolStripSeparator2
+            // ClearRegistryItem
             // 
-            this.toolStripSeparator2.Name = "toolStripSeparator2";
-            resources.ApplyResources(this.toolStripSeparator2, "toolStripSeparator2");
-            // 
-            // OpenMenuAsLocalAdminItem
-            // 
-            this.OpenMenuAsLocalAdminItem.Name = "OpenMenuAsLocalAdminItem";
-            resources.ApplyResources(this.OpenMenuAsLocalAdminItem, "OpenMenuAsLocalAdminItem");
-            this.OpenMenuAsLocalAdminItem.Click += new System.EventHandler(this.OpenMenuItemsAsLocalAdmin_Click);
+            this.ClearRegistryItem.Name = "ClearRegistryItem";
+            resources.ApplyResources(this.ClearRegistryItem, "ClearRegistryItem");
+            this.ClearRegistryItem.Click += new System.EventHandler(this.ClearRegistryItem_Click);
             // 
             // HelpMenuItem
             // 
@@ -854,6 +895,11 @@
             // 
             resources.ApplyResources(this.labelMinuteEnd, "labelMinuteEnd");
             this.labelMinuteEnd.Name = "labelMinuteEnd";
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            resources.ApplyResources(this.toolStripSeparator2, "toolStripSeparator2");
             // 
             // WinFormASTA
             // 

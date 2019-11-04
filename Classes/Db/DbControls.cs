@@ -3,25 +3,15 @@ using System.Data;
 
 namespace ASTA.Classes
 {
-    public abstract class DBConnector
-    {
-        public virtual void CloseConnection() { }
-        public virtual void Dispose() { }
-    }
-
     //SQL
     class SqlDbReader : IDisposable
     {
         System.Data.SqlClient.SqlConnection _sqlConnection;
-        System.Data.SqlClient.SqlCommand _sqlCommand;
         static string _dbConnectionString;
 
         public SqlDbReader(string dbConnectionString)
         {
             _dbConnectionString = dbConnectionString;
-
-            CheckDB(_dbConnectionString);
-            ConnectToDB(_dbConnectionString);
         }
 
         private void CheckDB(string dbConnectionString)
@@ -45,26 +35,49 @@ namespace ASTA.Classes
 
         public System.Data.SqlClient.SqlDataReader GetData(string sqlQuery)
         {
-            _sqlCommand = new System.Data.SqlClient.SqlCommand(sqlQuery, _sqlConnection);
-            return _sqlCommand.ExecuteReader();
+            CheckDB(_dbConnectionString);
+            ConnectToDB(_dbConnectionString);
+
+            using (var sqlCommand = new System.Data.SqlClient.SqlCommand(sqlQuery, _sqlConnection))
+            { return sqlCommand.ExecuteReader(); }
         }
 
-        public void CloseConnection()
-        {
-            if (_sqlCommand != null)
-            { _sqlCommand.Dispose(); }
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
 
-            if (_sqlConnection != null)
+         private void Dispose(bool disposing)
+        {
+            if (!disposedValue)
             {
-                _sqlConnection.Close();
-                _sqlConnection.Dispose();
+                if (disposing)
+                {
+                    if (_sqlConnection != null)
+                    {
+                        try
+                        {
+                            _sqlConnection?.Close();
+                            _sqlConnection?.Dispose();
+                        }
+                        catch { }
+                    }
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                // TODO: set large fields to null.
+
+                disposedValue = true;
             }
         }
 
-        public void Dispose()
+        // This code added to correctly implement the disposable pattern.
+        public virtual void Dispose()
         {
-            CloseConnection();
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            // GC.SuppressFinalize(this);
         }
+        #endregion
     }
 
 
@@ -72,10 +85,16 @@ namespace ASTA.Classes
     class MySqlDbReader : IDisposable
     {
         MySql.Data.MySqlClient.MySqlConnection sqlConnection;
-        MySql.Data.MySqlClient.MySqlCommand sqlCommand;
+        string _dbConnectionString;
 
         public MySqlDbReader(string dbConnectionString)
         {
+            _dbConnectionString = dbConnectionString;
+        }
+
+        private void ConnectToDB(string dbConnectionString)
+        {
+
             if (dbConnectionString?.Length > 0)
             {
                 ConnectToDB(dbConnectionString);
@@ -83,11 +102,8 @@ namespace ASTA.Classes
             else
             {
                 new NullReferenceException();
-            }
-        }
-
-        private void ConnectToDB(string dbConnectionString)
-        {
+            }            
+            
             sqlConnection = new MySql.Data.MySqlClient.MySqlConnection(dbConnectionString);
             sqlConnection.Open();
             /*
@@ -118,50 +134,57 @@ namespace ASTA.Classes
 
         public MySql.Data.MySqlClient.MySqlDataReader GetData(string sqlQuery)
         {
-            sqlCommand = new MySql.Data.MySqlClient.MySqlCommand(sqlQuery, sqlConnection);
-            return sqlCommand.ExecuteReader();
+            ConnectToDB(_dbConnectionString);
+            using (var sqlCommand = new MySql.Data.MySqlClient.MySqlCommand(sqlQuery, sqlConnection))
+            { return sqlCommand.ExecuteReader(); }
         }
 
-        public void CloseDataAndConnection()
-        {
-            if (sqlCommand != null)
-            { sqlCommand.Dispose(); }
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
 
-            if (sqlConnection != null)
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
             {
-                sqlConnection.Close();
-                sqlConnection.Dispose();
+                if (disposing)
+                {
+                    if (sqlConnection != null)
+                    {
+                        try
+                        {
+                            sqlConnection?.Close();
+                            sqlConnection?.Dispose();
+                        }
+                        catch { }
+                    }
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                // TODO: set large fields to null.
+
+                disposedValue = true;
             }
         }
 
-        /*
-         try
-    {
-        connection.Close();
-        return true;
-    }
-    catch (MySqlException ex)
-    {
-        MessageBox.Show(ex.Message);
-        return false;
-    }
-             */
-
+        // This code added to correctly implement the disposable pattern.
         public void Dispose()
         {
-            CloseDataAndConnection();
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            // GC.SuppressFinalize(this);
         }
+        #endregion
     }
 
 
     //SQLite
-    public abstract class SQLiteDbBase : DBConnector, IDisposable
+    public abstract class SQLiteDbBase : IDisposable
     {
-        public System.Data.SQLite.SQLiteConnection _sqlConnection;
-        public System.Data.SQLite.SQLiteCommand _sqlCommand;
+        public System.Data.SQLite.SQLiteConnection sqlConnection;
         string _dbConnectionString;
 
-        protected SQLiteDbBase(string dbConnectionString, System.IO.FileInfo dbFileInfo)
+        public SQLiteDbBase(string dbConnectionString, System.IO.FileInfo dbFileInfo)
         {
             _dbConnectionString = dbConnectionString;
             CheckDB(_dbConnectionString, dbFileInfo);
@@ -175,36 +198,62 @@ namespace ASTA.Classes
 
         private void CheckDB(string dbConnectionString, System.IO.FileInfo dbFileInfo)
         {
-            if (!(dbFileInfo?.Length>0))
-                throw new System.ArgumentException("dbFileInfo cannot be null!");
-
             if (!dbFileInfo.Exists)
-                throw new System.ArgumentException("dbFileInfo is not exist");
+            {
+                throw new System.ArgumentException("DB is not Exist");
+            }
 
-            if (!(dbConnectionString?.Trim()?.Length >0))
-                throw new System.ArgumentException("dbConnectionString string can not be Empty or short");
+            if (dbConnectionString?.Trim()?.Length < 1)
+            {
+                throw new System.ArgumentException("Connection string can not be Empty or short");
+            }
         }
 
         private void ConnectToDB(string dbConnectionString)
         {
-            _sqlConnection = new System.Data.SQLite.SQLiteConnection(dbConnectionString);
-            _sqlConnection.Open();
+            sqlConnection = new System.Data.SQLite.SQLiteConnection(dbConnectionString);
+            sqlConnection.Open();
         }
 
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    if (sqlConnection != null)
+                    {
+                        try
+                        {
+                            sqlConnection?.Close();
+                            sqlConnection?.Dispose();
+                        }
+                        catch { }
+                    }
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                // TODO: set large fields to null.
+
+                disposedValue = true;
+            }
+        }
+
+        // This code added to correctly implement the disposable pattern.
         public void Dispose()
         {
-            if (_sqlCommand != null)
-            { _sqlCommand?.Dispose(); }
-
-            if (_sqlConnection != null)
-            {
-                    _sqlConnection?.Close();
-                    _sqlConnection?.Dispose();
-             }
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            // GC.SuppressFinalize(this);
         }
+        #endregion
     }
 
-   internal class SqLiteDbReader : SQLiteDbBase, IDisposable
+    class SqLiteDbReader : SQLiteDbBase, IDisposable
     {
         public SqLiteDbReader(string dbConnectionString, System.IO.FileInfo dbFileInfo) :
             base(dbConnectionString, dbFileInfo)
@@ -212,15 +261,15 @@ namespace ASTA.Classes
 
         public System.Data.SQLite.SQLiteDataReader GetData(string query)
         {
-            _sqlCommand = new System.Data.SQLite.SQLiteCommand(query, _sqlConnection);
-            return _sqlCommand.ExecuteReader();
+            using (var sqlCommand = new System.Data.SQLite.SQLiteCommand(query, sqlConnection))
+            { return sqlCommand.ExecuteReader(); }
         }
 
         public DataTable GetDataTable(string query)
         {
             using (DataTable dt = new DataTable())
             {
-                using (var _sqlDataAdapter = new System.Data.SQLite.SQLiteDataAdapter(query, _sqlConnection))
+                using (var _sqlDataAdapter = new System.Data.SQLite.SQLiteDataAdapter(query, sqlConnection))
                 {
                     _sqlDataAdapter.Fill(dt);
 
@@ -230,99 +279,78 @@ namespace ASTA.Classes
         }
     }
 
-   internal class SqLiteDbWriter : SQLiteDbBase, IDisposable
+    class SqLiteDbWriter : SQLiteDbBase, IDisposable
     {
-        public delegate void InfoStatus(object sender, EventTextArgs e);
-        public event InfoStatus Status;
-
+        public string Status { get; private set; }
+        string temporaryResult;
         public SqLiteDbWriter(string dbConnectionString, System.IO.FileInfo dbFileInfo) :
             base(dbConnectionString, dbFileInfo)
         { }
 
         public void ExecuteQuery(System.Data.SQLite.SQLiteCommand sqlCommand)
         {
-            Status?.Invoke(this, new EventTextArgs("Ok"));
+            Status = "Ok";
 
             if (sqlCommand == null)
             {
-                Status?.Invoke(this, new EventTextArgs("Error. The SQLCommand can not be empty or null!"));
+                Status = "Error. The SQLCommand can not be empty or null!";
                 new ArgumentNullException();
             }
 
-            using (var sqlCommand1 = new System.Data.SQLite.SQLiteCommand("begin", _sqlConnection))
+            using (var sqlCommand1 = new System.Data.SQLite.SQLiteCommand("begin", sqlConnection))
             { sqlCommand1.ExecuteNonQuery(); }
 
             try { sqlCommand.ExecuteNonQuery(); }
-            catch (Exception expt)
-            { Status?.Invoke(this, new EventTextArgs("Error! " + expt.ToString())); }
+            catch (Exception expt) { Status = expt.ToString(); }
 
-            using (var sqlCommand1 = new System.Data.SQLite.SQLiteCommand("end", _sqlConnection))
+            using (var sqlCommand1 = new System.Data.SQLite.SQLiteCommand("end", sqlConnection))
             { sqlCommand1.ExecuteNonQuery(); }
         }
 
         public void ExecuteQuery(string query)
         {
-            Status?.Invoke(this, new EventTextArgs("Ok"));
+            Status = "Ok";
             if (query == null)
             {
-                Status?.Invoke(this, new EventTextArgs("Error. The SQLCommand can not be empty or null!"));
+                Status = "Error. The query can not be empty or null!";
                 new ArgumentNullException();
             }
 
-            using (var sqlCommand = new System.Data.SQLite.SQLiteCommand(query, _sqlConnection))
+            using (var sqlCommand = new System.Data.SQLite.SQLiteCommand(query, sqlConnection))
             {
                 try { sqlCommand.ExecuteNonQuery(); }
-                catch (Exception expt)
-                { Status?.Invoke(this, new EventTextArgs("Error! " + expt.ToString())); }
+                catch (Exception expt) { Status = expt.ToString(); }
             }
-        }
-
-        public void ExecuteQueryBegin()
-        {
-            using (var sqlCommand = new System.Data.SQLite.SQLiteCommand("begin", _sqlConnection))
-            { sqlCommand.ExecuteNonQuery(); }
-        }
-
-        public void ExecuteQueryEnd()
-        {
-            using (var sqlCommand = new System.Data.SQLite.SQLiteCommand("end", _sqlConnection))
-            { sqlCommand.ExecuteNonQuery(); }
         }
 
         public void ExecuteQueryForBulkStepByStep(System.Data.SQLite.SQLiteCommand sqlCommand)
         {
+            temporaryResult = "Ok";
             if (sqlCommand == null)
             {
-                Status?.Invoke(this, new EventTextArgs("Error. The SQLCommand can not be empty or null!"));
+                temporaryResult = "Error. The SQLCommand can not be empty or null!";
                 new ArgumentNullException();
             }
 
-            try
-            {
-                sqlCommand.ExecuteNonQuery();
-                Status?.Invoke(this, new EventTextArgs("Ok"));
-            }
-            catch (Exception expt)
-            { Status?.Invoke(this, new EventTextArgs("Error! " + expt.ToString())); }
+            try { sqlCommand.ExecuteNonQuery(); }
+            catch (Exception expt) { temporaryResult = expt.Message; }
+            Status += temporaryResult;
         }
 
         public void ExecuteQueryForBulkStepByStep(string query)
         {
+            temporaryResult = "Ok";
             if (query?.Length == 0)
             {
-                Status?.Invoke(this, new EventTextArgs("Error. The query can not be empty or null!"));
+                temporaryResult = "Error. The SQLCommand can not be empty or null!";
                 new ArgumentNullException();
             }
-            using (var sqlCommand = new System.Data.SQLite.SQLiteCommand(query, _sqlConnection))
+            using (var sqlCommand = new System.Data.SQLite.SQLiteCommand(query, sqlConnection))
             {
-                try
-                {
-                    sqlCommand.ExecuteNonQuery();
-                    Status?.Invoke(this, new EventTextArgs("Ok"));
-                }
-                catch (Exception expt)
-                { Status?.Invoke(this, new EventTextArgs("Error! " + expt.ToString())); }
+                try { sqlCommand.ExecuteNonQuery(); }
+                catch (Exception expt) { temporaryResult = expt.Message; }
             }
+            Status += temporaryResult;
         }
     }
 }
