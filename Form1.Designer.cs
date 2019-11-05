@@ -40,7 +40,7 @@
                 listComboLabel?.Dispose();
                 listCombo?.Dispose();
                 periodComboLabel?.Dispose();
-                periodCombo?.Dispose();
+                listboxPeriod?.Dispose();
                 labelSettings9?.Dispose();
                 comboSettings9?.Dispose();
                 labelSettings15?.Dispose();
@@ -459,7 +459,7 @@
             // 
             this.listFioItem.Name = "listFioItem";
             resources.ApplyResources(this.listFioItem, "listFioItem");
-            this.listFioItem.Click += new System.EventHandler(this.listFioItem_Click);
+            this.listFioItem.Click += new System.EventHandler(this.ShowListFioItem_Click);
             // 
             // Separator9
             // 
@@ -815,7 +815,7 @@
             // 
             // timer1
             // 
-            this.timer1.Interval = 500;
+            this.timer1.Interval = 1000;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
             // labelHourStart

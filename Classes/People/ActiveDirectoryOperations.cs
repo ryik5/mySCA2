@@ -4,50 +4,68 @@ using System;
 using System.Linq;
 using System.Collections.ObjectModel;
 using System.DirectoryServices;
+using System.Collections.Generic;
 
 namespace ASTA.Classes.People
-{   
+{
     class ADData
     {
-        static NLog.Logger logger;
         ADUserAuthorization _ADUserAuthorization;
+        public List<UserAD> ADUsersCollection;
 
-        public ObservableCollection<UserAD> ADUsersCollection;
+        public delegate void Status<T>(object obj, T data);
+        public event Status<TextEventArgs> Trace;
+        public event Status<TextEventArgs> Info;
 
-        public ADData(string _user, string _domain, string _password, string _domainPath)
+        public ADData(string login, string domain, string password, string domainPath)
         {
-            logger = NLog.LogManager.GetCurrentClassLogger();
             _ADUserAuthorization = new ADUserAuthorization()
             {
-                Name = _user,
-                Password = _password,
-                Domain = _domain,
-                DomainPath = _domainPath
+                Login = login,
+                Password = password,
+                Domain = domain,
+                DomainPath = domainPath
             };
-                 
+            Trace?.Invoke(this, new TextEventArgs(
+                "ADData, Domain Controller: " + _ADUserAuthorization.DomainPath +
+                ", login: " + _ADUserAuthorization.Login +
+                ", password: " + _ADUserAuthorization.Password +
+                ", domain: " + _ADUserAuthorization.Domain));
             // isValid = ValidateCredentials(_ADUserAuthorization);       // it sometimes doesn't work correctly
-            //  logger.Trace("!Test only!  "+"Доступ к домену '" + _ADUserAuthorization.Domain + "' предоставлен: " + isValid);
-            ADUsersCollection = new ObservableCollection<UserAD>();
         }
 
-        public ObservableCollection<UserAD> GetADUsers()
+        public List<UserAD> GetADUsers()
         {
-            logger.Trace(_ADUserAuthorization.DomainPath);
-            int userCount = 0;
-       
+            Trace?.Invoke(this, new TextEventArgs("ADData, domain: " + _ADUserAuthorization.Domain + ", login: " + _ADUserAuthorization.Login + ", password: " + _ADUserAuthorization.Password));
+
+            ADUsersCollection = new List<UserAD>();
+
+            if (string.IsNullOrEmpty(_ADUserAuthorization.Domain))
+            { throw new ArgumentNullException("domain can not be null"); }
+            else if (string.IsNullOrEmpty(_ADUserAuthorization.Login))
+            { throw new ArgumentNullException("login can not be null"); }
+            else if (string.IsNullOrEmpty(_ADUserAuthorization.Password))
+            { throw new ArgumentNullException("password can not be null"); }
+            else if (string.IsNullOrEmpty(_ADUserAuthorization.DomainPath))
+            { throw new ArgumentNullException("DomainPath can not be null"); }
+
             // if (isValid)     //it sometimes doesn't work correctly
             {
                 using (var context = new PrincipalContext(
                     ContextType.Domain,
                     _ADUserAuthorization.DomainPath,
 
-                    /*1. look starting for users from 'OU=Domain Users' */
-                    //"OU=Domain Users,DC=" + _ADUserAuthorization.Domain.Split('.')[0] + ",DC=" + _ADUserAuthorization.Domain.Split('.')[1],
-                    /* 2. if need to start from the root of the domain  - previous string should be commented */
+                   /*1. look starting for users from 'OU=Domain Users' */
+                   //"OU=Domain Users,DC=" + _ADUserAuthorization.Domain.Split('.')[0] + ",DC=" + _ADUserAuthorization.Domain.Split('.')[1],
+                   /* 2. if need to start from the root of the domain  - previous string should be commented */
 
-                    _ADUserAuthorization.Name,
+                   _ADUserAuthorization.Login + @"@" + _ADUserAuthorization.Domain,
                     _ADUserAuthorization.Password))
                 {
+                    Trace?.Invoke(this, new TextEventArgs(
+                        "GetADUsers, domain controller: " + _ADUserAuthorization.DomainPath +
+                        ", login: " + _ADUserAuthorization.Login + "@" + _ADUserAuthorization.Domain +
+                        ", password: " + _ADUserAuthorization.Password));
                     using (var UserExt = new UserPrincipalExtended(context))
                     {
                         UserPrincipalExtended foundUser = null;
@@ -58,7 +76,7 @@ namespace ASTA.Classes.People
                                 _mailNickName = null, _mailServer = null, _department = null,
                                 _stateAccount = null, stateUAC = null;
                             UACAccountState statesUACOfAccount;
-                            int sumOfUACStatesOfPerson = 0;
+
                             foreach (var result in searcher.FindAll())
                             {
                                 using (DirectoryEntry de = result.GetUnderlyingObject() as DirectoryEntry)
@@ -69,8 +87,8 @@ namespace ASTA.Classes.People
                                     _decription = de?.Properties["description"]?.Value?.ToString()?.Trim()?.ToLower() ?? string.Empty;
 
                                     stateUAC = de?.Properties["userAccountControl"]?.Value?.ToString() ?? string.Empty;
-                                    sumOfUACStatesOfPerson = 0;
-                                    int.TryParse(stateUAC, out sumOfUACStatesOfPerson);
+
+                                    int.TryParse(stateUAC, out int sumOfUACStatesOfPerson);
                                     statesUACOfAccount = new UACAccountState(sumOfUACStatesOfPerson);
                                     _stateAccount = "uac(" + sumOfUACStatesOfPerson + "): " + statesUACOfAccount.GetUACStatesOfAccount();
 
@@ -81,59 +99,64 @@ namespace ASTA.Classes.People
                                         _mail.Contains("@") &&      //user's info must be had an email
                                         _code?.Length > 0 &&        //user's info must be had a code
                                         !_stateAccount.Contains("ACCOUNTDISABLE") && //a disabled account do not write in the collection 
-                                      (!_decription.Contains("dismiss") | !!_decription.Contains("fwd"))//object.Equals(_decription,
+                                      (!_decription.Contains("dismiss") || !_decription.Contains("fwd"))//object.Equals(_decription,
                                       )
                                     {
                                         foundUser = UserPrincipalExtended.FindByIdentity(context, IdentityType.SamAccountName, _login);
 
-                                        _fio = foundUser?.DisplayName?.ToString() ?? string.Empty;
-
-                                        DateTime dt = DateTime.Parse("1970-01-01");
-                                        DateTime.TryParse(foundUser?.LastLogon?.ToString(), out dt);
+                                        DateTime.TryParse(foundUser?.LastLogon?.ToString(), out DateTime dt);
                                         _lastLogon = dt.ToString("yyyy-MM-dd HH:mm:ss");
 
-                                        dt = DateTime.Parse("2200-01-01");
-
+                                        _fio = foundUser?.DisplayName?.ToString() ?? string.Empty;
                                         _mailNickName = foundUser?.MailNickname ?? string.Empty;
                                         _department = foundUser?.Department ?? string.Empty;
                                         _mailServer = foundUser?.MailServerName ?? string.Empty;
                                         // _sid = foundUser?.Sid?.ToString();
                                         // _guid = foundUser?.Guid?.ToString();
 
-                                        userCount += 1;
-                                        ADUsersCollection.Add(new UserAD
+                                        if (!string.IsNullOrEmpty(_fio))
                                         {
-                                            id = userCount,
-                                            login = _login,
-                                            stateAccount = _stateAccount,
-                                            // sid = _sid,
-                                            // guid = _guid,
-                                            mail = _mail,
-                                            mailNickName = _mailNickName,
-                                            mailServer = _mailServer,
-                                            fio = _fio,
-                                            code = _code,
-                                            description = _decription,
-                                            department = _department,
-                                            lastLogon = _lastLogon
-                                        });
+                                            ADUsersCollection.Add(new UserAD
+                                            {
+                                                //  id = userCount,
+                                                login = _login,
+                                                stateAccount = _stateAccount,
+                                                // sid = _sid,
+                                                // guid = _guid,
+                                                mail = _mail,
+                                                mailNickName = _mailNickName,
+                                                mailServer = _mailServer,
+                                                fio = _fio,
+                                                code = _code,
+                                                description = _decription,
+                                                department = _department,
+                                                lastLogon = _lastLogon
+                                            });
+
+                                            if (ADUsersCollection?.Count > 1 && ADUsersCollection?.Count % 5 == 0)
+                                            {
+                                                Info?.Invoke(this, new TextEventArgs(
+                                                    "Из домена " + _ADUserAuthorization.Domain +
+                                                    " получено " + ADUsersCollection?.Count + " аккаунтов, последний " + _fio.ConvertFullNameToShortForm()));
+                                            }
+                                        }
                                     }
                                 }
                             }
-                            logger.Trace("ActiveDirectoryGetData,GetDataAD from -= finished =-");
                             statesUACOfAccount = null;
                         }
                         foundUser.Dispose();
                     }
                 }
             }
-            logger.Trace("ActiveDirectoryGetData, counted users: " + userCount);
+            Trace?.Invoke(this, new TextEventArgs("ActiveDirectoryGetData, collected accounts: " + ADUsersCollection?.Count));
+
             foreach (var user in ADUsersCollection)
             {
-                logger.Trace(
-                   user.mailNickName + "| " + user.mail + "| " + user.mailServer + "| " +
-                   user.login + "| " + user.code + "| " + user.fio + "| " + user.department + "| " + user.description + "| " +
-                   user.lastLogon + "| " + user.stateAccount);
+                Trace?.Invoke(this, new TextEventArgs(
+                  user.mailNickName + "| " + user.mail + "| " + user.mailServer + "| " +
+                  user.login + "| " + user.code + "| " + user.fio + "| " + user.department + "| " + user.description + "| " +
+                  user.lastLogon + "| " + user.stateAccount));
             }
             return ADUsersCollection;
         }
@@ -393,8 +416,5 @@ namespace ASTA.Classes.People
             else
                 return _result;
         }
-
     }
-
-
 }

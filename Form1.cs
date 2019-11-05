@@ -44,8 +44,8 @@ namespace ASTA
         // logger.Trace("-= " + method + " =-");
 
         //System settings
-       readonly static string guid =  System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения// получаем GIUD приложения
-        readonly static string appVersionAssembly =  System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString();//Application.ProductVersion;//
+        readonly static string guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения// получаем GIUD приложения
+        readonly static string appVersionAssembly = System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString();//Application.ProductVersion;//
         static System.Diagnostics.FileVersionInfo appFileVersionInfo;
         static string appCopyright;
         static string appName;
@@ -59,7 +59,7 @@ namespace ASTA
         static bool uploadingStatus = false;
 
         readonly static string appFilePath = Application.ExecutablePath;// System.Reflection.Assembly.GetEntryAssembly().Location;// Application.ExecutablePath;
-        readonly static string localAppFolderPath= Application.StartupPath; //Environment.CurrentDirectory
+        readonly static string localAppFolderPath = Application.StartupPath; //Environment.CurrentDirectory
         static string appFolderTempPath;
         static string appFolderUpdatePath;
         static string appFolderBackUpPath;
@@ -134,8 +134,8 @@ namespace ASTA
 
 
         //reports
-        readonly static int offsetTimeIn = 60;    // смещение времени прихода после учетного, в секундах, в течении которого не учитывается опоздание
-        readonly static int offsetTimeOut = 60;   // смещение времени ухода до учетного, в секундах в течении которого не учитывается ранний уход
+        const int offsetTimeIn = 60;    // смещение времени прихода после учетного, в секундах, в течении которого не учитывается опоздание
+        const int offsetTimeOut = 60;   // смещение времени ухода до учетного, в секундах в течении которого не учитывается ранний уход
         string[] myBoldedDates;
         string[] workSelectedDays;
         static string reportStartDay = "";
@@ -217,7 +217,7 @@ namespace ASTA
         ComboBox listCombo;
 
         Label periodComboLabel;
-        ListBox periodCombo;
+        ListBox listboxPeriod;
 
         Label labelSettings9;
         ComboBox comboSettings9;
@@ -340,7 +340,7 @@ namespace ASTA
         {
             //set startup variables
             appFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(appFilePath);
-          //  localAppFolderPath = System.IO.Path.GetDirectoryName(appFilePath); //Environment.CurrentDirectory
+            //  localAppFolderPath = System.IO.Path.GetDirectoryName(appFilePath); //Environment.CurrentDirectory
             appFolderTempPath = System.IO.Path.Combine(localAppFolderPath, "Temp");
             appFolderUpdatePath = System.IO.Path.Combine(localAppFolderPath, "Update");
             appFolderBackUpPath = System.IO.Path.Combine(localAppFolderPath, "Backup");
@@ -502,7 +502,7 @@ namespace ASTA
             notifyIcon.BalloonTipText = "Developed by " + appCopyright;
             notifyIcon.ShowBalloonTip(500);
 
-           // notifyIcon.Text = Application.ProductName + "\nv." + Application.ProductVersion + " (" + appFileVersionInfo.FileVersion + ")" + "\n" + Application.CompanyName;
+            // notifyIcon.Text = Application.ProductName + "\nv." + Application.ProductVersion + " (" + appFileVersionInfo.FileVersion + ")" + "\n" + Application.CompanyName;
             notifyIcon.Text = appName + "\nv." + appVersionAssembly + " (" + appFileVersionInfo.FileVersion + ")" + "\n" + appFileVersionInfo.CompanyName;
             notifyIcon.ContextMenu = contextMenu;
 
@@ -556,11 +556,11 @@ namespace ASTA
             if (currentDbEmpty)
             {
                 logger.Warn("Form loading is finishing, but the local db is still empty!");
-                ChangeVisibleOfAdminMenuItems(true);
+                VisibleOfAdminMenuItems(true);
             }
             else
             {
-                ChangeVisibleOfAdminMenuItems(false);
+                VisibleOfAdminMenuItems(false);
                 if (currentModeAppManual)
                 {
                     nameOfLastTable = "ListFIO";
@@ -642,7 +642,7 @@ namespace ASTA
                 _SetComboBoxIndex(comboBoxFio, 0);
             }
             comboBoxFio.DrawMode = DrawMode.OwnerDrawFixed;
-            comboBoxFio.DrawItem += new DrawItemEventHandler(Set_DrawItem);
+            comboBoxFio.DrawItem += new DrawItemEventHandler(Set_ComboBox_DrawItem);
 
             //Naming of Menu Items
             _SetMenuItemText(ModeItem, "Включить режим автоматических e-mail рассылок");
@@ -698,7 +698,7 @@ namespace ASTA
             aboutBox?.Dispose();
             bmp?.Dispose();
             bmpLogo?.Dispose();
-            
+
             dtPersonTemp?.Dispose();
             dtPersonTempAllColumns?.Dispose();
             dtPersonRegistrationsFullList?.Dispose();
@@ -789,7 +789,7 @@ namespace ASTA
             {
                 dbWriter.Status += AddLoggerTraceText;
 
-                dbWriter.ExecuteQuery("begin");
+                dbWriter.Execute("begin");
                 foreach (var s in txt)
                 {
                     if (s.StartsWith("CREATE TABLE"))
@@ -799,11 +799,11 @@ namespace ASTA
                     logger.Trace("query: " + query);
                     if (s.EndsWith(";"))
                     {
-                        dbWriter.ExecuteQuery(query);
+                        dbWriter.Execute(query);
                     }
                 }//foreach
 
-                dbWriter.ExecuteQuery("end");
+                dbWriter.Execute("end");
 
                 dbWriter.Status -= AddLoggerTraceText;
 
@@ -833,7 +833,7 @@ namespace ASTA
                         SqlQuery.Parameters.Add("@FreeRam", DbType.String).Value = "RAM: " + Environment.WorkingSet.ToString();
                         SqlQuery.Parameters.Add("@GuidAppication", DbType.String).Value = guid;
 
-                        dbWriter.ExecuteQuery(SqlQuery);
+                        dbWriter.Execute(SqlQuery);
                     }
                     dbWriter.Status -= AddLoggerTraceText;
                 }
@@ -1052,12 +1052,14 @@ namespace ASTA
 
         private void AddParameterInConfig()
         {
+            EnableMainMenuItems(false);
+
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
             _VisibleControl(panelView, false);
-            _SetControlText(btnPropertiesSave, "Сохранить параметр");
             ClearButtonClickEvent(btnPropertiesSave);
+            _SetControlText(btnPropertiesSave, "Сохранить параметр");
             btnPropertiesSave.Click += new EventHandler(ButtonPropertiesSave_inConfig);
 
             listParameters = GetConfigOfASTA();
@@ -1102,7 +1104,7 @@ namespace ASTA
 
             panelViewResize(numberPeopleInLoading);
 
-            periodCombo = new ListBox
+            listboxPeriod = new ListBox
             {
                 Location = new Point(20, 120),
                 Size = new Size(590, 100),
@@ -1111,10 +1113,10 @@ namespace ASTA
                 Sorted = true
             };
 
-            periodCombo.DrawItem += new DrawItemEventHandler(Set_DrawItem);
-            periodCombo.DataSource = listParameters.Select(x => x.name).ToList();
-            if (listParameters.Count > 0) periodCombo.SelectedIndex = 0;
-            toolTip1.SetToolTip(periodCombo, "Перечень параметров");
+            listboxPeriod.DrawItem += new DrawItemEventHandler(Set_ListBox_DrawItem);
+            listboxPeriod.DataSource = listParameters.Select(x => x.name).ToList();
+            if (listParameters.Count > 0) listboxPeriod.SelectedIndex = 0;
+            toolTip1.SetToolTip(listboxPeriod, "Перечень параметров");
 
             labelServer1 = new Label
             {
@@ -1157,7 +1159,7 @@ namespace ASTA
                 Parent = groupBoxProperties,
                 Checked = false
             };
-            periodCombo.SelectedIndexChanged += new EventHandler(ListBox_SelectedIndexChanged);
+            listboxPeriod.SelectedIndexChanged += new EventHandler(ListBox_SelectedIndexChanged);
             textBoxSettings16.KeyPress += new KeyPressEventHandler(textboxDate_KeyPress);
 
             checkBox1.CheckStateChanged += new EventHandler(checkBox1_CheckStateChanged);
@@ -1260,6 +1262,8 @@ namespace ASTA
             ShowDataTableDbQuery(dbApplication, "ConfigDB", "SELECT ParameterName AS 'Имя параметра', " +
             "Value AS 'Данные', Description AS 'Описание', DateCreated AS 'Дата создания/модификации'",
             " ORDER BY ParameterName asc, DateCreated desc; ");
+
+            EnableMainMenuItems(true);
         }
 
 
@@ -1321,7 +1325,7 @@ namespace ASTA
                     using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter.sqlConnection))
 #pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
                     {
-                        dbWriter.ExecuteQuery(SqlQuery);
+                        dbWriter.Execute(SqlQuery);
                     }
                     dbWriter.Status -= AddLoggerTraceText;
                 }
@@ -1375,9 +1379,7 @@ namespace ASTA
                     }
                     else if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0 && sqlParameter4.Length > 0)
                     {
-                        sqlCommand = new SQLiteCommand("DELETE FROM '" + myTable + "' Where " + sqlParameter1 + "= @" + sqlParameter1 +
-                            " AND " + sqlParameter2 + "= @" + sqlParameter2 + " AND " + sqlParameter3 + "= @" + sqlParameter3 +
-                            " AND " + sqlParameter4 + "= @" + sqlParameter4 + ";");
+                        sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
                         sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
                         sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
                         sqlCommand.Parameters.Add("@" + sqlParameter3, DbType.String).Value = sqlData3;
@@ -1411,7 +1413,7 @@ namespace ASTA
                         sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
                         sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
                     }
-                    dbWriter.ExecuteQuery(sqlCommand);
+                    dbWriter.Execute(sqlCommand);
 
                     logger.Trace("query: " + query);
                     dbWriter.Status -= AddLoggerTraceText;
@@ -1425,7 +1427,7 @@ namespace ASTA
             //stop checking last registrations
             checkInputsOutputs = false;
 
-            logger.Trace("Проверка доступности " + serverName + ". Ждите окончания процесса...");
+            stimerCurr = ("Проверка доступности " + serverName + ". Ждите окончания процесса...");
             bServer1Exist = false;
 
             string query = "SELECT database_id FROM sys.databases WHERE Name ='intellect' ";
@@ -1442,9 +1444,9 @@ namespace ASTA
             }
             catch (Exception err)
             {
-                AddLoggerTraceText("Ошибка доступа к " + serverName + " SQL БД СКД-сервера! "+ err.ToString());
+                AddLoggerTraceText("Ошибка доступа к " + serverName + " SQL БД СКД-сервера! " + err.ToString());
             }
-
+            stimerCurr = "Ждите!";
         }
 
 
@@ -1455,6 +1457,8 @@ namespace ASTA
 
         private void GetUsersFromAD()
         {
+            stimerCurr = null;
+
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
@@ -1481,49 +1485,59 @@ namespace ASTA
                 _SetStatusLabelText(StatusLabel2, "Получаю данные из домена: " + domainOfUser);
 
                 ad = new ADData(user, domainOfUser, password, domainController);
-                ad.ADUsersCollection.CollectionChanged += Users_CollectionChanged;
-                usersAD = ad.GetADUsers().ToList();
+                ad.Info += SetStatusLabelText;
+
+                ad.Trace += AddLoggerTraceText;
+                //    ad.ADUsersCollection.CollectionChanged += Users_CollectionChanged;
+                usersAD = ad.GetADUsers();
+
+                ad.Info -= SetStatusLabelText;
+                ad.Trace -= AddLoggerTraceText; ;
+                ad = null;
+
                 usersAD.Sort();
 
-                logger.Trace("GetUsersFromAD: count users in list: " + usersAD.Count);
+                logger.Trace("GetUsersFromAD: count users in list: " + usersAD?.Count);
+                AddLoggerTraceText("Из домена " + domainOfUser + " получено " + usersAD?.Count + " ФИО сотрудников");
 
                 //передать дальше в обработку:
                 foreach (var person in usersAD)
                 {
-                    logger.Trace(person?.fio + " |" + person?.login + " |" + person?.code + " |" + person?.mail + " |" + person?.lastLogon);
+                    AddLoggerTraceText(person?.fio + " |" + person?.login + " |" + person?.code + " |" + person?.mail + " |" + person?.lastLogon);
                 }
-                countUsers = usersAD.Count;
-                _SetStatusLabelText(StatusLabel2, "Из домена " + domainOfUser + " получено " + countUsers + " ФИО сотрудников");
             }
             else
             {
+                logger.Error("Ошибка доступа к домену. " + "user: " + user + " |domain: " + domainOfUser + " |password: " + password + " |server: " + domainController);
+
                 _SetStatusLabelText(
                     StatusLabel2,
                     "Ошибка доступа к домену " + domainOfUser,
                     true);
             }
+            stimerCurr = "Ждите!";
         }
 
-        //уведомление о количестве и последнем полученном из AD пользователей
-        private void Users_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-        {
-            switch (e.Action)
-            {
-                case NotifyCollectionChangedAction.Add: // если добавление
-                    UserAD newUser = e.NewItems[0] as UserAD;
-                    stimerPrev = "Получено из AD: " + newUser.id + " пользователей, последний: " + ConvertFullNameToShortForm(newUser.fio);
-                    break;
-                /*   case NotifyCollectionChangedAction.Remove: // если удаление
-                       UserAD oldUser = e.OldItems[0] as UserAD;
-                       break;
-                   case NotifyCollectionChangedAction.Replace: // если замена
-                       UserAD replacedUser = e.OldItems[0] as UserAD;
-                       UserAD replacingUser = e.NewItems[0] as UserAD;
-                       break;*/
-                default:
-                    break;
-            }
-        }
+        //  уведомление о количестве и последнем полученном из AD пользователей
+        //private void Users_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        //{
+        //    switch (e.Action)
+        //    {
+        //        case NotifyCollectionChangedAction.Add: // если добавление
+        //            UserAD newUser = e.NewItems[0] as UserAD;
+        //            stimerPrev = "Получено из AD: " + newUser.id + " пользователей, последний: " + newUser.fio.ConvertFullNameToShortForm();
+        //            break;
+        //        /*   case NotifyCollectionChangedAction.Remove: // если удаление
+        //               UserAD oldUser = e.OldItems[0] as UserAD;
+        //               break;
+        //           case NotifyCollectionChangedAction.Replace: // если замена
+        //               UserAD replacedUser = e.OldItems[0] as UserAD;
+        //               UserAD replacingUser = e.NewItems[0] as UserAD;
+        //               break;*/
+        //        default:
+        //            break;
+        //    }
+        //}
 
         private async void GetFio_Click(object sender, EventArgs e)  //DoListsFioGroupsMailings()
         {
@@ -1577,10 +1591,13 @@ namespace ASTA
 
             if (currentAction != @"sendEmail")
             { _SetStatusLabelText(StatusLabel2, "Получаю данные с серверов..."); }
+
+            //Get list people FIO and mail from AD
             GetUsersFromAD();
 
             using (DataTable dtTempIntermediate = dtPeople.Clone())
             {
+                //Get list FIO + chief from www and SCA
                 GetDataFromRemoteServers(dtTempIntermediate, peopleShifts);
 
                 if (currentAction != @"sendEmail")
@@ -1617,8 +1634,8 @@ namespace ASTA
             string nav = "";
             string groupName = "";
             string idGroup = "";
-            string depName = "";
-            string depBoss = "";
+            string depDescription = "";
+            string depBossCode = "";
 
             string timeStart = ConvertDecimalTimeToStringHHMM(_ReturnNumUpDown(numUpDownHourStart), _ReturnNumUpDown(numUpDownMinuteStart));
             string timeEnd = ConvertDecimalTimeToStringHHMM(_ReturnNumUpDown(numUpDownHourEnd), _ReturnNumUpDown(numUpDownMinuteEnd));
@@ -1627,105 +1644,115 @@ namespace ASTA
 
             listFIO = new List<Employee>();
             Dictionary<string, Department> departments = new Dictionary<string, Department>();
-       //     Department departmentFromDictionary;
+            Department departmentFromDictionary;
 
             _ClearComboBox(comboBoxFio);
             _SetStatusLabelText(StatusLabel2, "Запрашиваю данные с " + sServer1 + ". Ждите окончания процесса...");
 
-            string confitionToLoad = "";
-            using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
-            {
-                sqlConnection.Open();
-
-                AddLoggerTraceText("Получаю из локальной базы список городов для загрузки списка ФИО из MySQL базы...");
-                using (var sqlCommand = new SQLiteCommand("SELECT City FROM SelectedCityToLoadFromWeb;", sqlConnection))
-                {
-                    using (var reader = sqlCommand.ExecuteReader())
-                    {
-                        foreach (DbDataRecord record in reader)
-                        {
-                            if (record["City"]?.ToString()?.Length > 0 && !record["City"].ToString().ToLower().Contains("city"))
-                            {
-                                if (confitionToLoad.Length == 0)
-                                {
-                                    confitionToLoad += " WHERE city LIKE '" + record["City"].ToString() + "'";
-                                }
-                                else
-                                { confitionToLoad += " OR city LIKE '" + record["City"].ToString() + "'"; }
-                            }
-                        }
-                    }
-                }
-            }
 
             try
             {
-                // import users and group from SCA server
-                query = "SELECT id,level_id,name,owner_id,parent_id,region_id,schedule_id FROM OBJ_DEPARTMENT";
-                using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
+                string confitionToLoad = "";
+                using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
                 {
-                    System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetData(query);
+                    sqlConnection.Open();
 
-                    //import group from SCA server
-                    foreach (DbDataRecord record in sqlData)
+                    AddLoggerTraceText("Получаю из локальной базы список городов для построения условий загрузки ФИО из MySQL(www) базы...");
+                    using (var sqlCommand = new SQLiteCommand("SELECT City FROM SelectedCityToLoadFromWeb;", sqlConnection))
                     {
-                        idGroup = record["id"]?.ToString()?.Trim();
-                        groupName = record?["name"]?.ToString()?.Trim();
-                        if (groupName?.Length > 0 && idGroup?.Length > 0 && !departments.ContainsKey(idGroup))
+                        using (var reader = sqlCommand.ExecuteReader())
                         {
-                            departments.Add(idGroup, new Department()
+                            foreach (DbDataRecord record in reader)
                             {
-                                _departmentId = idGroup,
-                                _departmentDescription = groupName,
-                                _departmentBossCode = sServer1
-                            });
+                                if (record["City"]?.ToString()?.Length > 0 && !record["City"].ToString().ToLower().Contains("city"))
+                                {
+                                    if (confitionToLoad.Length == 0)
+                                    {
+                                        confitionToLoad += " WHERE city LIKE '" + record["City"].ToString() + "'";
+                                    }
+                                    else
+                                    { confitionToLoad += " OR city LIKE '" + record["City"].ToString() + "'"; }
+                                }
+                            }
                         }
-                        _ProgressWork1Step();
                     }
                 }
-
-                //import users from с SCA server
-                query = "SELECT id, name, surname, patronymic, post, tabnum, parent_id, facility_code, card FROM OBJ_PERSON WHERE is_locked = '0' AND facility_code NOT LIKE '' AND card NOT LIKE '' ";
-                logger.Trace(query);
+                // import users and group from SCA server
                 using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
                 {
-                    System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetData(query);
-                    foreach (DbDataRecord record in sqlData)
+                    query = "SELECT id,level_id,name,owner_id,parent_id,region_id,schedule_id FROM OBJ_DEPARTMENT";
+                    AddLoggerTraceText("from SCA server, query: " + query);
+                    sqlDbTableReader.Status += AddLoggerTraceText;
+
+                    //import group from MSSQL SCA server
+                    using (System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetData(query))
                     {
-                        if (record["name"]?.ToString()?.Trim()?.Length > 0)
+                        foreach (DbDataRecord record in sqlData)
                         {
-                            row = dataTablePeople.NewRow();
-                            fio = (record["name"]?.ToString()?.Trim() + " " + record["surname"]?.ToString()?.Trim() + " " + record["patronymic"]?.ToString()?.Trim()).Replace(@"  ", @" ");
-                            groupName = record["parent_id"]?.ToString()?.Trim();
-                            nav = record["tabnum"]?.ToString()?.Trim()?.ToUpper();
-
-
-                            if (departments.TryGetValue(groupName, out Department departmentFromDictionary))
+                            idGroup = record["id"]?.ToString()?.Trim();
+                            groupName = record?["name"]?.ToString()?.Trim();
+                            if (groupName?.Length > 0 && idGroup?.Length > 0 && !departments.ContainsKey(idGroup))
                             {
-                                depName = departmentFromDictionary._departmentDescription;
+                                departments.Add(idGroup, new Department()
+                                {
+                                    _departmentId = idGroup,
+                                    _departmentDescription = groupName,
+                                    _departmentBossCode = sServer1
+                                });
                             }
-                            else { depName = ""; }
-
-                            row[Names.N_ID] = Convert.ToInt32(record["id"]?.ToString()?.Trim());
-                            row[Names.FIO] = fio;
-                            row[Names.CODE] = nav;
-
-                            row[Names.GROUP] = groupName;
-                            row[Names.DEPARTMENT] = depName;
-                            row[Names.DEPARTMENT_ID] = sServer1.IndexOf('.') > -1 ? sServer1.Remove(sServer1.IndexOf('.')) : sServer1;
-
-                            row[Names.EMPLOYEE_POSITION] = record["post"]?.ToString()?.Trim();
-
-                            row[Names.DESIRED_TIME_IN] = timeStart;
-                            row[Names.DESIRED_TIME_OUT] = timeEnd;
-
-                            dataTablePeople.Rows.Add(row);
-
-                            listFIO.Add(new Employee { fio = fio, code = nav });
-
                             _ProgressWork1Step();
                         }
                     }
+                    sqlDbTableReader.Status -= AddLoggerTraceText;
+                }
+
+                //import users from с SCA server
+                using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
+                {
+                    query = "SELECT id, name, surname, patronymic, post, tabnum, parent_id, facility_code, card FROM OBJ_PERSON WHERE is_locked = '0' AND facility_code NOT LIKE '' AND card NOT LIKE '' ";
+                    AddLoggerTraceText("query: " + query);
+                    sqlDbTableReader.Status += AddLoggerTraceText;
+
+                    using (System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetData(query))
+                    {
+                        foreach (DbDataRecord record in sqlData)
+                        {
+                            if (record["name"]?.ToString()?.Trim()?.Length > 0)
+                            {
+                                row = dataTablePeople.NewRow();
+                                fio = (record["name"]?.ToString()?.Trim() + " " + record["surname"]?.ToString()?.Trim() + " " + record["patronymic"]?.ToString()?.Trim()).Replace(@"  ", @" ");
+                                groupName = record["parent_id"]?.ToString()?.Trim();
+                                nav = record["tabnum"]?.ToString()?.Trim()?.ToUpper();
+
+
+                                if (departments.TryGetValue(groupName, out departmentFromDictionary))
+                                {
+                                    depDescription = departmentFromDictionary._departmentDescription;
+                                }
+                                else { depDescription = ""; }
+
+                                row[Names.N_ID] = Convert.ToInt32(record["id"]?.ToString()?.Trim());
+                                row[Names.FIO] = fio;
+                                row[Names.CODE] = nav;
+
+                                row[Names.GROUP] = groupName;
+                                row[Names.DEPARTMENT] = depDescription;
+                                row[Names.DEPARTMENT_ID] = sServer1.IndexOf('.') > -1 ? sServer1.Remove(sServer1.IndexOf('.')) : sServer1;
+
+                                row[Names.EMPLOYEE_POSITION] = record["post"]?.ToString()?.Trim();
+
+                                row[Names.DESIRED_TIME_IN] = timeStart;
+                                row[Names.DESIRED_TIME_OUT] = timeEnd;
+
+                                dataTablePeople.Rows.Add(row);
+
+                                listFIO.Add(new Employee { fio = fio, code = nav });
+
+                                _ProgressWork1Step();
+                            }
+                        }
+                    }
+                    sqlDbTableReader.Status -= AddLoggerTraceText;
                 }
 
                 // import users, shifts and group from web DB
@@ -1735,177 +1762,195 @@ namespace ASTA
 
 
                 // import departments from web DB
-                logger.Trace(mysqlServerConnectionStringDB1);
-                query = "SELECT id, parent_id, name, boss_code FROM dep_struct ORDER by id";
-                logger.Trace(query);
                 using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionStringDB1))
                 {
-                    MySql.Data.MySqlClient.MySqlDataReader mysqlData = mysqlDbTableReader.GetData(query);
-                    while (mysqlData.Read())
-                    {
-                        idGroup = mysqlData?.GetString(@"id");
+                    query = "SELECT id, parent_id, name, boss_code FROM dep_struct ORDER by id";
 
-                        if (mysqlData?.GetString(@"name")?.Length > 0 && idGroup?.Length > 0 && !departments.ContainsKey(idGroup))
+                    AddLoggerTraceText("query: " + query);
+                    mysqlDbTableReader.Status += AddLoggerTraceText;
+
+                    using (MySql.Data.MySqlClient.MySqlDataReader mysqlData = mysqlDbTableReader.GetData(query))
+                    {
+                        while (mysqlData.Read())
                         {
-                            departments.Add(idGroup, new Department()
+                            idGroup = mysqlData?.GetString(@"id");
+
+                            if (mysqlData?.GetString(@"name")?.Length > 0 && idGroup?.Length > 0 && !departments.ContainsKey(idGroup))
                             {
-                                _departmentId = idGroup,
-                                _departmentDescription = mysqlData.GetString(@"name"),
-                                _departmentBossCode = mysqlData?.GetString(@"boss_code")
-                            });
+                                departments.Add(idGroup, new Department()
+                                {
+                                    _departmentId = idGroup,
+                                    _departmentDescription = mysqlData.GetString(@"name"),
+                                    _departmentBossCode = mysqlData?.GetString(@"boss_code")
+                                });
+                            }
+                            _ProgressWork1Step();
                         }
-                        _ProgressWork1Step();
                     }
+                    mysqlDbTableReader.Status -= AddLoggerTraceText;
                 }
 
                 // import individual shifts of people from web DB
-                query = "Select code,start_date,mo_start,mo_end,tu_start,tu_end,we_start,we_end,th_start,th_end,fr_start,fr_end, " +
-                                "sa_start,sa_end,su_start,su_end,comment FROM work_time ORDER by start_date";
-                logger.Trace(query);
                 using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionStringDB1))
                 {
-                    MySql.Data.MySqlClient.MySqlDataReader mysqlData = mysqlDbTableReader.GetData(query);
-                    while (mysqlData.Read())
+                    query = "Select code,start_date,mo_start,mo_end,tu_start,tu_end,we_start,we_end,th_start,th_end,fr_start,fr_end, " +
+                                    "sa_start,sa_end,su_start,su_end,comment FROM work_time ORDER by start_date";
+                    AddLoggerTraceText("query: " + query);
+                    mysqlDbTableReader.Status += AddLoggerTraceText;
+
+                    using (MySql.Data.MySqlClient.MySqlDataReader mysqlData = mysqlDbTableReader.GetData(query))
                     {
-                        if (mysqlData.GetString(@"code")?.Length > 0)
+                        while (mysqlData.Read())
                         {
-                            try { dayStartShift = DateTime.Parse(mysqlData.GetMySqlDateTime(@"start_date").ToString()).ToYYYYMMDD(); }
-                            catch
-                            { dayStartShift = DateTime.Parse("1980-01-01").ToYYYYMMDD(); }
-
-                            peopleShifts.Add(new PeopleShift()
+                            if (mysqlData.GetString(@"code")?.Length > 0)
                             {
-                                _nav = mysqlData.GetString(@"code").Replace('C', 'S'),
-                                _dayStartShift = dayStartShift,
-                                _MoStart = Convert.ToInt32(mysqlData.GetString(@"mo_start")),
-                                _MoEnd = Convert.ToInt32(mysqlData.GetString(@"mo_end")),
-                                _TuStart = Convert.ToInt32(mysqlData.GetString(@"tu_start")),
-                                _TuEnd = Convert.ToInt32(mysqlData.GetString(@"tu_end")),
-                                _WeStart = Convert.ToInt32(mysqlData.GetString(@"we_start")),
-                                _WeEnd = Convert.ToInt32(mysqlData.GetString(@"we_end")),
-                                _ThStart = Convert.ToInt32(mysqlData.GetString(@"th_start")),
-                                _ThEnd = Convert.ToInt32(mysqlData.GetString(@"th_end")),
-                                _FrStart = Convert.ToInt32(mysqlData.GetString(@"fr_start")),
-                                _FrEnd = Convert.ToInt32(mysqlData.GetString(@"fr_end")),
-                                _SaStart = Convert.ToInt32(mysqlData.GetString(@"sa_start")),
-                                _SaEnd = Convert.ToInt32(mysqlData.GetString(@"sa_end")),
-                                _SuStart = Convert.ToInt32(mysqlData.GetString(@"su_start")),
-                                _SuEnd = Convert.ToInt32(mysqlData.GetString(@"su_end")),
-                                _Status = "",
-                                _Comment = mysqlData.GetString(@"comment")
-                            });
-                            _ProgressWork1Step();
+                                try { dayStartShift = DateTime.Parse(mysqlData.GetMySqlDateTime(@"start_date").ToString()).ToYYYYMMDD(); }
+                                catch
+                                { dayStartShift = DateTime.Parse("1980-01-01").ToYYYYMMDD(); }
+
+                                peopleShifts.Add(new PeopleShift()
+                                {
+                                    _nav = mysqlData.GetString(@"code").Replace('C', 'S'),
+                                    _dayStartShift = dayStartShift,
+                                    _MoStart = Convert.ToInt32(mysqlData.GetString(@"mo_start")),
+                                    _MoEnd = Convert.ToInt32(mysqlData.GetString(@"mo_end")),
+                                    _TuStart = Convert.ToInt32(mysqlData.GetString(@"tu_start")),
+                                    _TuEnd = Convert.ToInt32(mysqlData.GetString(@"tu_end")),
+                                    _WeStart = Convert.ToInt32(mysqlData.GetString(@"we_start")),
+                                    _WeEnd = Convert.ToInt32(mysqlData.GetString(@"we_end")),
+                                    _ThStart = Convert.ToInt32(mysqlData.GetString(@"th_start")),
+                                    _ThEnd = Convert.ToInt32(mysqlData.GetString(@"th_end")),
+                                    _FrStart = Convert.ToInt32(mysqlData.GetString(@"fr_start")),
+                                    _FrEnd = Convert.ToInt32(mysqlData.GetString(@"fr_end")),
+                                    _SaStart = Convert.ToInt32(mysqlData.GetString(@"sa_start")),
+                                    _SaEnd = Convert.ToInt32(mysqlData.GetString(@"sa_end")),
+                                    _SuStart = Convert.ToInt32(mysqlData.GetString(@"su_start")),
+                                    _SuEnd = Convert.ToInt32(mysqlData.GetString(@"su_end")),
+                                    _Status = "",
+                                    _Comment = mysqlData.GetString(@"comment")
+                                });
+                                _ProgressWork1Step();
+                            }
+                            try
+                            {
+                                dayStartShift = peopleShifts.FindLast((x) => x._nav == "0")._dayStartShift;
+                                dayStartShift_ = "Общий график с " + dayStartShift;
+
+                                tmpSeconds = peopleShifts.FindLast((x) => x._nav == "0" && x._dayStartShift == dayStartShift)._MoStart;
+                                timeStart = (tmpSeconds.ConvertSecondsIntoStringsHHmmArray())[2];
+
+                                tmpSeconds = peopleShifts.FindLast((x) => x._nav == "0" && x._dayStartShift == dayStartShift)._MoEnd;
+                                timeEnd = (tmpSeconds.ConvertSecondsIntoStringsHHmmArray())[2];
+
+                                logger.Trace("Общий график с " + dayStartShift);
+                            }
+                            catch {/*nothing todo on any errors */ }
                         }
-                        try
-                        {
-                            dayStartShift = peopleShifts.FindLast((x) => x._nav == "0")._dayStartShift;
-                            dayStartShift_ = "Общий график с " + dayStartShift;
-
-                            tmpSeconds = peopleShifts.FindLast((x) => x._nav == "0" && x._dayStartShift == dayStartShift)._MoStart;
-                            timeStart = (tmpSeconds.ConvertSecondsIntoStringsHHmmArray())[2];
-
-                            tmpSeconds = peopleShifts.FindLast((x) => x._nav == "0" && x._dayStartShift == dayStartShift)._MoEnd;
-                            timeEnd = (tmpSeconds.ConvertSecondsIntoStringsHHmmArray())[2];
-
-                            logger.Trace("Общий график с " + dayStartShift);
-                        }
-                        catch {/*nothing todo on any errors */ }
                     }
+                    mysqlDbTableReader.Status -= AddLoggerTraceText;
                 }
+
+
                 // import people from web DB
-                query = "Select code, family_name, first_name, last_name, vacancy, department, boss_id, city FROM personal " + confitionToLoad;//where hidden=0
-                logger.Trace(query);
                 using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionStringDB1))
                 {
-                    MySql.Data.MySqlClient.MySqlDataReader mysqlData = mysqlDbTableReader.GetData(query);
-                    while (mysqlData.Read())
+                    query = "Select code, family_name, first_name, last_name, vacancy, department, boss_id, city FROM personal " + confitionToLoad;//where hidden=0
+
+                    AddLoggerTraceText("query: " + query);
+                    mysqlDbTableReader.Status += AddLoggerTraceText;
+
+                    using (MySql.Data.MySqlClient.MySqlDataReader mysqlData = mysqlDbTableReader.GetData(query))
                     {
-                        if (mysqlData.GetString(@"family_name")?.Trim()?.Length > 0)
+                        while (mysqlData.Read())
                         {
-                            row = dataTablePeople.NewRow();
-                            personFromServer = new EmployeeFull();
-
-                            fio = (mysqlData.GetString(@"family_name")?.Trim() + " " + mysqlData.GetString(@"first_name")?.Trim() + " " + mysqlData.GetString(@"last_name")?.Trim())?.Replace(@"  ", @" ");
-
-                            personFromServer.fio = fio.Replace("&acute;", "'");
-                            personFromServer.code = mysqlData.GetString(@"code")?.Trim()?.ToUpper()?.Replace('C', 'S');
-                            personFromServer.DepartmentId = mysqlData.GetString(@"department")?.Trim();
-                            personFromServer.City = mysqlData.GetString(@"city")?.Trim();
-                            personFromServer.PositionInDepartment = mysqlData.GetString(@"vacancy")?.Trim();
-
-                            if (departments.TryGetValue(personFromServer?.DepartmentId, out Department departmentFromDictionary))
+                            if (mysqlData.GetString(@"family_name")?.Trim()?.Length > 0)
                             {
-                                depName = departmentFromDictionary?._departmentDescription;
-                                depBoss = departmentFromDictionary?._departmentBossCode;
+                                row = dataTablePeople.NewRow();
+                                personFromServer = new EmployeeFull();
+
+                                fio = (mysqlData.GetString(@"family_name")?.Trim() + " " + mysqlData.GetString(@"first_name")?.Trim() + " " + mysqlData.GetString(@"last_name")?.Trim())?.Replace(@"  ", @" ");
+
+                                personFromServer.fio = fio.Replace("&acute;", "'");
+                                personFromServer.code = mysqlData.GetString(@"code")?.Trim()?.ToUpper()?.Replace('C', 'S');
+                                personFromServer.DepartmentId = mysqlData.GetString(@"department")?.Trim();
+                                personFromServer.City = mysqlData.GetString(@"city")?.Trim();
+                                personFromServer.PositionInDepartment = mysqlData.GetString(@"vacancy")?.Trim();
+
+                                if (departments.TryGetValue(personFromServer?.DepartmentId, out departmentFromDictionary))
+                                {
+                                    depDescription = departmentFromDictionary?._departmentDescription;
+                                    depBossCode = departmentFromDictionary?._departmentBossCode;
+                                }
+
+                                personFromServer.Department = depDescription ?? personFromServer?.DepartmentId;
+
+                                personFromServer.DepartmentBossCode = depBossCode ?? mysqlData.GetString(@"boss_id")?.Trim();
+
+                                personFromServer.GroupPerson = groupName;
+                                personFromServer.Shift = dayStartShift_;
+                                personFromServer.ControlInHHMM = timeStart;
+                                personFromServer.ControlOutHHMM = timeEnd;
+
+                                dayStartShift = peopleShifts.FindLast((x) => x._nav == personFromServer.code)._dayStartShift;
+                                if (dayStartShift?.Length > 0)
+                                {
+                                    personFromServer.Shift = "Индивидуальный график с " + dayStartShift;
+
+                                    tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.code)._MoStart;
+                                    personFromServer.ControlInHHMM = tmpSeconds.ConvertSecondsIntoStringsHHmmArray()[2];
+
+                                    tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.code)._MoEnd;
+                                    personFromServer.ControlOutHHMM = tmpSeconds.ConvertSecondsIntoStringsHHmmArray()[2];
+
+                                    personFromServer.Comment = peopleShifts.FindLast((x) => x._nav == personFromServer.code)._Comment;
+
+                                    AddLoggerTraceText("Индивидуальный график с " + dayStartShift + " " + personFromServer.code + " " + personFromServer.Comment);
+                                }
+
+
+                                row[Names.FIO] = personFromServer.fio;
+                                row[Names.CODE] = personFromServer.code;
+
+                                row[Names.GROUP] = personFromServer.GroupPerson;
+                                row[Names.PLACE_EMPLOYEE] = personFromServer.City;
+
+                                row[Names.DEPARTMENT] = personFromServer.Department;
+                                row[Names.DEPARTMENT_ID] = personFromServer.DepartmentId;
+                                row[Names.EMPLOYEE_POSITION] = personFromServer.PositionInDepartment;
+                                row[Names.CHIEF_ID] = personFromServer.DepartmentBossCode;
+
+                                row[Names.EMPLOYEE_SHIFT] = personFromServer.Shift;
+
+                                row[Names.DESIRED_TIME_IN] = personFromServer.ControlInHHMM;
+                                row[Names.DESIRED_TIME_OUT] = personFromServer.ControlOutHHMM;
+
+                                dataTablePeople.Rows.Add(row);
+
+                                listFIO.Add(new Employee { fio = personFromServer.fio, code = personFromServer.code });
+
+                                _ProgressWork1Step();
                             }
-
-                            personFromServer.Department = depName ?? personFromServer?.DepartmentId;
-
-                            personFromServer.DepartmentBossCode = depBoss?.Length > 0 ? depBoss : mysqlData.GetString(@"boss_id")?.Trim();
-
-
-                            personFromServer.GroupPerson = groupName;
-
-                            personFromServer.Shift = dayStartShift_;
-
-                            personFromServer.ControlInHHMM = timeStart;
-                            personFromServer.ControlOutHHMM = timeEnd;
-
-                            dayStartShift = peopleShifts.FindLast((x) => x._nav == personFromServer.code)._dayStartShift;
-                            if (dayStartShift?.Length > 0)
-                            {
-                                personFromServer.Shift = "Индивидуальный график с " + dayStartShift;
-
-                                tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.code)._MoStart;
-                                personFromServer.ControlInHHMM = tmpSeconds.ConvertSecondsIntoStringsHHmmArray()[2];
-
-                                tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.code)._MoEnd;
-                                personFromServer.ControlOutHHMM = tmpSeconds.ConvertSecondsIntoStringsHHmmArray()[2];
-
-                                personFromServer.Comment = peopleShifts.FindLast((x) => x._nav == personFromServer.code)._Comment;
-
-                                logger.Trace("Индивидуальный график с " + dayStartShift + " " + personFromServer.code + " " + personFromServer.Comment);
-                            }
-
-
-                            row[Names.FIO] = personFromServer.fio;
-                            row[Names.CODE] = personFromServer.code;
-
-                            row[Names.GROUP] = personFromServer.GroupPerson;
-                            row[Names.PLACE_EMPLOYEE] = personFromServer.City;
-
-                            row[Names.DEPARTMENT] = personFromServer.Department;
-                            row[Names.DEPARTMENT_ID] = personFromServer.DepartmentId;
-                            row[Names.EMPLOYEE_POSITION] = personFromServer.PositionInDepartment;
-                            row[Names.CHIEF_ID] = personFromServer.DepartmentBossCode;
-
-                            row[Names.EMPLOYEE_SHIFT] = personFromServer.Shift;
-
-                            row[Names.DESIRED_TIME_IN] = personFromServer.ControlInHHMM;
-                            row[Names.DESIRED_TIME_OUT] = personFromServer.ControlOutHHMM;
-
-                            dataTablePeople.Rows.Add(row);
-
-                            listFIO.Add(new Employee { fio = personFromServer.fio, code = personFromServer.code });
-
-                            _ProgressWork1Step();
                         }
                     }
+                    mysqlDbTableReader.Status -= AddLoggerTraceText;
                 }
 
                 dataTablePeople.AcceptChanges();
-                logger.Trace("departments.count: " + departments.Count);
+
+                AddLoggerTraceText("departments.count: " + departments.Count);
                 _SetStatusLabelText(StatusLabel2, "ФИО и наименования департаментов получены.");
             }
             catch (Exception err)
             {
+                AddLoggerTraceText("departments.count: " + err.ToString());
+
                 _SetStatusLabelText(
                     StatusLabel2,
                     "Возникла ошибка во время получения данных с серверов.",
                     true);
             }
 
-            query = fio = nav = groupName = depName = depBoss = timeStart = timeEnd = dayStartShift = dayStartShift_ = confitionToLoad = null;
+            query = fio = nav = groupName = depDescription = depBossCode = timeStart = timeEnd = dayStartShift = dayStartShift_ = null;
             row = null; departments = null; personFromServer = null;
         }
 
@@ -2036,8 +2081,8 @@ namespace ASTA
                 {
                     sqlConnection.Open();
 
-                    var sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
+                    using (var sqlCommand1 = new SQLiteCommand("begin", sqlConnection))
+                    { sqlCommand1.ExecuteNonQuery(); }
 
                     logger.Info("Готовлю списки исключений из рассылок...");
                     query = "SELECT RecipientEmail FROM MailingException;";
@@ -2059,12 +2104,13 @@ namespace ASTA
                             }
                         }
                     }
-                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
+                    using (var sqlCommand1 = new SQLiteCommand("end", sqlConnection))
+                    { sqlCommand1.ExecuteNonQuery(); }
 
                     logger.Info("Записываю новые группы ...");
-                    sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
+                    using (var sqlCommand1 = new SQLiteCommand("begin", sqlConnection))
+                    { sqlCommand1.ExecuteNonQuery(); }
+
                     foreach (var deprtment in departmentsUniq.ToList().Distinct())
                     {
                         depName = deprtment._departmentId;
@@ -2083,13 +2129,13 @@ namespace ASTA
                         logger.Trace("CreatedGroup: " + depName + "(" + depDescr + ")");
                         _ProgressWork1Step();
                     }
-                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
+                    using (var sqlCommand1 = new SQLiteCommand("end", sqlConnection))
+                    { sqlCommand1.ExecuteNonQuery(); }
 
                     logger.Info("Записываю новые рассылки по группам с учетом исключений...");
                     string recipientEmail = "";
-                    sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
+                    using (var sqlCommand1 = new SQLiteCommand("begin", sqlConnection))
+                    { sqlCommand1.ExecuteNonQuery(); }
                     foreach (var deprtment in departmentsEmailUniq?.ToList()?.Distinct())
                     {
                         depName = deprtment?._departmentId;
@@ -2120,12 +2166,12 @@ namespace ASTA
                         }
                         _ProgressWork1Step();
                     }
-                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
+                    using (var sqlCommand1 = new SQLiteCommand("end", sqlConnection))
+                    { sqlCommand1.ExecuteNonQuery(); }
 
                     logger.Info("Записываю новые индивидуальные графики...");
-                    sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
+                    using (var sqlCommand1 = new SQLiteCommand("begin", sqlConnection))
+                    { sqlCommand1.ExecuteNonQuery(); }
                     foreach (var shift in peopleShifts?.ToArray())
                     {
                         if (shift._nav?.Length > 0)
@@ -2159,8 +2205,8 @@ namespace ASTA
                             }
                         }
                     }
-                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
+                    using (var sqlCommand1 = new SQLiteCommand("end", sqlConnection))
+                    { sqlCommand1.ExecuteNonQuery(); }
 
                     int.TryParse(departmentsUniq?.ToArray()?.Distinct()?.Count().ToString(), out countGroups);
                     int.TryParse(departmentsEmailUniq?.ToArray()?.Distinct()?.Count().ToString(), out countMailers);
@@ -2177,7 +2223,7 @@ namespace ASTA
             _SetStatusLabelText(StatusLabel2, "Списки ФИО и департаментов получены.");
         }
 
-        private void listFioItem_Click(object sender, EventArgs e) //ListFioReturn()
+        private void ShowListFioItem_Click(object sender, EventArgs e) //ListFioReturn()
         {
             nameOfLastTable = "ListFIO";
 
@@ -2431,6 +2477,7 @@ namespace ASTA
                     StatusLabel2,
                     "Ошибка генерации файла. Проверьте наличие установленного Excel",
                     true);
+                AddLoggerTraceText(err.ToString());
             }
             finally
             {
@@ -2503,7 +2550,7 @@ namespace ASTA
             if (sComboboxFIO?.Length > 0)
             {
                 textBoxFIO.Text = sComboboxFIO[0]?.Trim();
-                StatusLabel2.Text = @"Выбран: " + ConvertFullNameToShortForm(textBoxFIO?.Text);
+                StatusLabel2.Text = @"Выбран: " + textBoxFIO?.Text?.ConvertFullNameToShortForm();
 
                 if (sComboboxFIO?.Length > 1)
                 {
@@ -2911,12 +2958,12 @@ namespace ASTA
                             sqlCommand.Parameters.Add("@Shift", DbType.String).Value = cellValue[7];
                             try { sqlCommand.ExecuteNonQuery(); } catch (Exception ept) { logger.Warn("PeopleGroup: " + ept.ToString()); }
                         }
-                        _SetStatusLabelText(StatusLabel2, "'" + ConvertFullNameToShortForm(cellValue[0]) + "'" + " добавлен в группу '" + group + "'");
+                        _SetStatusLabelText(StatusLabel2, "'" + cellValue[0]?.ConvertFullNameToShortForm() + "'" + " добавлен в группу '" + group + "'");
                         _SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
                     }
                     else if (group?.Length > 0 && cellValue[1]?.Length == 0)
                     {
-                        _SetStatusLabelText(StatusLabel2, "Отсутствует NAV-код у: " + ConvertFullNameToShortForm(textBoxFIO.Text));
+                        _SetStatusLabelText(StatusLabel2, "Отсутствует NAV-код у: " + textBoxFIO.Text?.ConvertFullNameToShortForm());
                         _SetStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
                     }
                     else if (group?.Length == 0 && cellValue[1]?.Length > 0)
@@ -3038,7 +3085,7 @@ namespace ASTA
                     logger.Trace("query: " + query);
                     dbWriter.Status += AddLoggerTraceText;
 
-                    dbWriter.ExecuteQuery("begin");
+                    dbWriter.Execute("begin");
                     foreach (var dr in dtSource.AsEnumerable())
                     {
                         if (dr[Names.FIO]?.ToString()?.Length > 0 && dr[Names.CODE]?.ToString()?.Length > 0)
@@ -3061,14 +3108,14 @@ namespace ASTA
                                 SqlQuery.Parameters.Add("@Shift", DbType.String).Value = dr[Names.EMPLOYEE_SHIFT]?.ToString();
                                 SqlQuery.Parameters.Add("@Comment", DbType.String).Value = dr[Names.EMPLOYEE_SHIFT_COMMENT]?.ToString();
 
-                                dbWriter.ExecuteQueryForBulkStepByStep(SqlQuery);
+                                dbWriter.ExecuteBulk(SqlQuery);
                                 _ProgressWork1Step();
                             }
                         }
                     }
 
-                    dbWriter.ExecuteQuery("end");
-                    dbWriter.ExecuteQuery("begin");
+                    dbWriter.Execute("end");
+                    dbWriter.Execute("begin");
 
                     query = "INSERT OR REPLACE INTO 'LastTakenPeopleComboList' (ComboList) VALUES (@ComboList)";
                     logger.Trace("query: " + query);
@@ -3080,12 +3127,12 @@ namespace ASTA
                             {
                                 SqlQuery.Parameters.Add("@ComboList", DbType.String).Value = str.fio + "|" + str.code;
 
-                                dbWriter.ExecuteQueryForBulkStepByStep(SqlQuery);
+                                dbWriter.ExecuteBulk(SqlQuery);
                                 _ProgressWork1Step();
                             }
                         }
                     }
-                    dbWriter.ExecuteQuery("end");
+                    dbWriter.Execute("end");
 
                     dbWriter.Status -= AddLoggerTraceText;
                 }
@@ -3117,7 +3164,7 @@ namespace ASTA
                     logger.Trace("query: " + query);
                     dbWriter.Status += AddLoggerTraceText;
 
-                    dbWriter.ExecuteQuery("begin");
+                    dbWriter.Execute("begin");
                     foreach (var group in departmentsUniq)
                     {
                         if (group?._departmentId?.Length > 0)
@@ -3128,11 +3175,11 @@ namespace ASTA
                                 SqlQuery.Parameters.Add("@GroupPersonDescription", DbType.String).Value = group._departmentDescription;
                                 SqlQuery.Parameters.Add("@Recipient", DbType.String).Value = group._departmentBossCode;
 
-                                dbWriter.ExecuteQueryForBulkStepByStep(SqlQuery);
+                                dbWriter.ExecuteBulk(SqlQuery);
                             }
                         }
                     }
-                    dbWriter.ExecuteQuery("end");
+                    dbWriter.Execute("end");
                     dbWriter.Status -= AddLoggerTraceText;
                 }
             }
@@ -3429,7 +3476,7 @@ namespace ASTA
 
         private void SendListLastRegistrationsToDataTable(ObservableRangeCollection<Visitor> _visitors, DataTable dt, Visitor selected = null)
         {
-            DataRow row = dt.NewRow();
+            DataRow row;
             foreach (var visitor in _visitors.ToArray())
             {
                 if (visitor != null)
@@ -3718,7 +3765,7 @@ namespace ASTA
                 person.code = _ReturnTextOfControl(textBoxNav);
                 person.fio = _ReturnTextOfControl(textBoxFIO);
 
-                _SetStatusLabelText(StatusLabel2, "Получаю данные по \"" + ConvertFullNameToShortForm(person.fio) + "\" ");
+                _SetStatusLabelText(StatusLabel2, "Получаю данные по \"" + person.fio?.ConvertFullNameToShortForm() + "\" ");
 
                 person.GroupPerson = "One User";
                 person.Department = "";
@@ -3737,7 +3784,7 @@ namespace ASTA
 
                 GetPersonRegistrationFromServer(ref dtPersonRegistrationsFullList, person, startDate, endDate);
 
-                _SetStatusLabelText(StatusLabel2, "Данные с СКД по \"" + ConvertFullNameToShortForm(_ReturnTextOfControl(textBoxFIO)) + "\" получены!");
+                _SetStatusLabelText(StatusLabel2, "Данные с СКД по \"" + _ReturnTextOfControl(textBoxFIO)?.ConvertFullNameToShortForm() + "\" получены!");
             }
         }
 
@@ -4924,6 +4971,7 @@ namespace ASTA
                 _SetStatusLabelText(StatusLabel2,
                     "Ошибки с доступом у реестру на запись. Данные не удалены.",
                     true);
+                AddLoggerTraceText(err.ToString());
             }
 
             GC.Collect();
@@ -5315,7 +5363,7 @@ namespace ASTA
                                 {
                                     pointForN_A.Y += iOffsetBetweenHorizontalLines;
                                     gr.DrawString(
-                                        workDay + " (" + ConvertFullNameToShortForm(fio) + ")",
+                                        workDay + " (" + fio?.ConvertFullNameToShortForm() + ")",
                                         font,
                                         myBrushAxis,
                                         pointForN_A); //Paint workdays and people' FIO
@@ -5553,7 +5601,7 @@ namespace ASTA
                                 {
                                     pointForN_A.Y += iOffsetBetweenHorizontalLines;
                                     gr.DrawString(
-                                        workDay + " (" + ConvertFullNameToShortForm(fio) + ")",
+                                        workDay + " (" + fio?.ConvertFullNameToShortForm() + ")",
                                         font,
                                         myBrushAxis,
                                         pointForN_A); //Paint workdays and people' FIO
@@ -5928,11 +5976,14 @@ namespace ASTA
         }
 
         private void SettingsProgrammItem_Click(object sender, EventArgs e)
-        { MakeFormSettings(); }
+        {
+            MakeFormSettings();
+        }
 
         private void MakeFormSettings()
         {
             EnableMainMenuItems(false);
+
             _VisibleControl(panelView, false);
 
             btnPropertiesSave.Text = "Сохранить настройки";
@@ -6151,16 +6202,16 @@ namespace ASTA
                     Parent = groupBoxProperties
                 };
 
-                periodCombo = new ListBox
+                listboxPeriod = new ListBox
                 {
                     Location = new Point(300, 121),
                     Size = new Size(120, 20),
                     Parent = groupBoxProperties
                 };
-                toolTip1.SetToolTip(periodCombo, tooltip8);
+                toolTip1.SetToolTip(listboxPeriod, tooltip8);
 
-                periodCombo.DataSource = periodStrings8;
-                periodCombo.KeyPress += new KeyPressEventHandler(periodCombo_KeyPress);
+                listboxPeriod.DataSource = periodStrings8;
+                listboxPeriod.KeyPress += new KeyPressEventHandler(periodCombo_KeyPress);
             }
 
             if (listStrings9.Count > 1 && label9.Length > 0)
@@ -6331,7 +6382,7 @@ namespace ASTA
             textBoxmysqlServerUserPassword?.BringToFront();
 
             periodComboLabel?.BringToFront();
-            periodCombo?.BringToFront();
+            listboxPeriod?.BringToFront();
 
             labelSettings9?.BringToFront();
             comboSettings9?.BringToFront();
@@ -6393,7 +6444,7 @@ namespace ASTA
             _DisposeControl(labelSettings9);
 
             _DisposeControl(listCombo);
-            _DisposeControl(periodCombo);
+            _DisposeControl(listboxPeriod);
             _DisposeControl(comboSettings9);
 
             _DisposeControl(labelSettings15);
@@ -6425,7 +6476,7 @@ namespace ASTA
             string nameReport = _ReturnTextOfControl(textBoxMailServerName);
             string description = _ReturnTextOfControl(textBoxMailServerUserName);
             string report = _ReturnComboBoxSelectedItem(listCombo);
-            string period = _ReturnListBoxSelectedItem(periodCombo);
+            string period = _ReturnListBoxSelectedItem(listboxPeriod);
             string status = _ReturnComboBoxSelectedItem(comboSettings9);
             string typeReport = _ReturnComboBoxSelectedItem(comboSettings15);
             string dayReport = _ReturnTextOfControl(textBoxSettings16);
@@ -6620,7 +6671,7 @@ namespace ASTA
         {
             if (e.KeyChar == (char)13)//если нажата Enter
             {
-                periodCombo.Items.Add(periodCombo.Text);
+                listboxPeriod.Items.Add(listboxPeriod.Text);
             }
         }
 
@@ -6641,14 +6692,6 @@ namespace ASTA
             }
         }
 
-        private void EnableMainMenuItems(bool enabled)
-        {
-            _EnableMenuItem(SettingsMenuItem, enabled);
-            _EnableMenuItem(FunctionMenuItem, enabled);
-            _EnableMenuItem(GroupsMenuItem, enabled);
-
-            CheckBoxesFiltersAll_Enable(enabled);
-        }
 
         private void CreateGroupItem_MouseHover(object sender, EventArgs e)
         {  //Save previous color          
@@ -6938,7 +6981,7 @@ namespace ASTA
                                 }
                                 //  nameOfLastTable = "PeopleGroup";
                                 SeekAndShowMembersOfGroup(group);
-                                StatusLabel2.Text = @"Обновлено время прихода " + ConvertFullNameToShortForm(fio) + " в группе: " + group;
+                                StatusLabel2.Text = @"Обновлено время прихода " + fio?.ConvertFullNameToShortForm() + " в группе: " + group;
                                 break;
                             }
                         case "PeopleGroupDescription":
@@ -7118,7 +7161,7 @@ namespace ASTA
                     logger.Trace("query: " + query);
                     dbWriter.Status += AddLoggerTraceText;
 
-                    dbWriter.ExecuteQuery(query);
+                    dbWriter.Execute(query);
 
                     dbWriter.Status -= AddLoggerTraceText;
                 }
@@ -7397,7 +7440,7 @@ namespace ASTA
                                         logger.Trace(cellValue[0] + " " + cellValue[1] + " " + cellValue[2]);
 
                                         StatusLabel2.Text = @"Выбрана группа: " + cellValue[0] +
-                                            @" |Курсор на: " + ConvertFullNameToShortForm(cellValue[1]);
+                                            @" |Курсор на: " + cellValue[1]?.ConvertFullNameToShortForm();
 
                                         groupBoxPeriod.BackColor = Color.PaleGreen;
                                         groupBoxTimeStart.BackColor = Color.PaleGreen;
@@ -7418,7 +7461,7 @@ namespace ASTA
                                         textBoxFIO.Text = cellValue[1];
                                         textBoxNav.Text = "";
 
-                                        StatusLabel2.Text = @" |Курсор на: " + ConvertFullNameToShortForm(cellValue[1]);
+                                        StatusLabel2.Text = @" |Курсор на: " + cellValue[1]?.ConvertFullNameToShortForm();
                                     }
                                     break;
 
@@ -8784,23 +8827,23 @@ namespace ASTA
         /// <param name="sender"></param>
         /// <param name="e"></param>
 
-        private void Set_DrawItem(object sender, DrawItemEventArgs e) //Colorize the Combobox
+        private void Set_ComboBox_DrawItem(object sender, DrawItemEventArgs e) //Colorize the Combobox
         {
-            Font font = (sender as Control).Font;
+            Font font = (sender as ComboBox).Font;
             Brush backgroundColor;
-            Brush textColor;
+            Brush textColor = Brushes.Black;
 
             if (e.Index % 2 != 0)
             {
                 if ((e.State & DrawItemState.Selected) == DrawItemState.Selected)
                 {
                     backgroundColor = Brushes.SandyBrown;
-                    textColor = Brushes.Black;
+                    //  textColor = Brushes.Black;
                 }
                 else
                 {
                     backgroundColor = SystemBrushes.Window;
-                    textColor = Brushes.Black;
+                    //   textColor = Brushes.Black;
                 }
             }
             else
@@ -8808,19 +8851,53 @@ namespace ASTA
                 if ((e.State & DrawItemState.Selected) == DrawItemState.Selected)
                 {
                     backgroundColor = Brushes.SandyBrown;// SystemBrushes.Highlight;
-                    textColor = textColor = Brushes.Black;// SystemBrushes.HighlightText;
+                                                         // textColor = Brushes.Black;// SystemBrushes.HighlightText;
                 }
                 else
                 {
                     backgroundColor = Brushes.PaleTurquoise; // SystemBrushes.Window;
-                    textColor = Brushes.Black;// SystemBrushes.WindowText;
+                                                             //  textColor = Brushes.Black;// SystemBrushes.WindowText;
                 }
             }
             e.Graphics.FillRectangle(backgroundColor, e.Bounds);
             e.Graphics.DrawString((sender as ComboBox).Items[e.Index].ToString(), font, textColor, e.Bounds);
         }
 
+        private void Set_ListBox_DrawItem(object sender, DrawItemEventArgs e) //Colorize the Combobox
+        {
+            Font font = (sender as ListBox).Font;
+            Brush backgroundColor;
+            Brush textColor = Brushes.Black;
 
+            if (e.Index % 2 != 0)
+            {
+                if ((e.State & DrawItemState.Selected) == DrawItemState.Selected)
+                {
+                    backgroundColor = Brushes.SandyBrown;
+                    //  textColor = Brushes.Black;
+                }
+                else
+                {
+                    backgroundColor = SystemBrushes.Window;
+                    //   textColor = Brushes.Black;
+                }
+            }
+            else
+            {
+                if ((e.State & DrawItemState.Selected) == DrawItemState.Selected)
+                {
+                    backgroundColor = Brushes.SandyBrown;// SystemBrushes.Highlight;
+                                                         // textColor = Brushes.Black;// SystemBrushes.HighlightText;
+                }
+                else
+                {
+                    backgroundColor = Brushes.PaleTurquoise; // SystemBrushes.Window;
+                                                             //  textColor = Brushes.Black;// SystemBrushes.WindowText;
+                }
+            }
+            e.Graphics.FillRectangle(backgroundColor, e.Bounds);
+            e.Graphics.DrawString((sender as ListBox).Items[e.Index].ToString(), font, textColor, e.Bounds);
+        }
 
         //clear all registered Click events on the selected button
         private void ClearButtonClickEvent(Button b)
@@ -9110,6 +9187,15 @@ namespace ASTA
             else
                 tMenuItem.Visible = status;
         }
+
+        private void _VisibleMenuSeparator(ToolStripSeparator separator, bool status) //add string into  from other threads
+        {
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(delegate { separator.Visible = status; }));
+            else
+                separator.Visible = status;
+        }
+
 
         private string _ReturnMenuItemText(ToolStripMenuItem menuItem) //access from other threads
         {
@@ -9416,7 +9502,7 @@ namespace ASTA
                     if (StatusLabel2.ForeColor == Color.DarkBlue)
                     {
                         StatusLabel2.ForeColor = Color.DarkRed;
-                        StatusLabel2.Text = stimerCurr;
+                        if (!string.IsNullOrEmpty(stimerCurr)) StatusLabel2.Text = stimerCurr;
                     }
                     else
                     {
@@ -9429,7 +9515,7 @@ namespace ASTA
                 if (StatusLabel2.ForeColor == Color.DarkBlue)
                 {
                     StatusLabel2.ForeColor = Color.DarkRed;
-                    StatusLabel2.Text = stimerCurr;
+                    if (!string.IsNullOrEmpty(stimerCurr)) StatusLabel2.Text = stimerCurr;
                 }
                 else
                 {
@@ -9442,7 +9528,7 @@ namespace ASTA
         /// <summary>
         /// Rise Value of progressBar at 1
         /// </summary>
-        private void _ProgressWork1Step() 
+        private void _ProgressWork1Step()
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -9524,21 +9610,6 @@ namespace ASTA
         }
 
 
-        /// <summary>
-        /// Convert full Name 'Ryabchenko Yuriy Ivanovich' to short form 'Ryabchenko Y.I.'
-        /// </summary>
-        /// <param name="s"></param>
-        /// <returns></returns>
-        private static string ConvertFullNameToShortForm(string s)
-        {
-            var stmp = s?.Split(' ');
-            var sFullNameOnly = stmp?[0];
-
-            try { sFullNameOnly += " " + stmp?[1].Substring(0, 1) + @"."; } catch { }
-            try { sFullNameOnly += " " + stmp?[2].Substring(0, 1) + @"."; } catch { }
-
-            return sFullNameOnly;
-        }
 
 
         /// <summary>
@@ -10133,11 +10204,11 @@ namespace ASTA
 
         private void OpenMenuItemsAsLocalAdmin_Click(object sender, EventArgs e)
         {
-            ChangeVisibleOfAdminMenuItems(true);
+            VisibleOfAdminMenuItems(true);
             _SetStatusLabelText(StatusLabel2, "Включено отображение меню как Администратора");
         }
 
-        private void ChangeVisibleOfAdminMenuItems(bool show)
+        private void VisibleOfAdminMenuItems(bool show)
         {
             _VisibleMenuItem(RefreshConfigInMainDBItem, show);
             _VisibleMenuItem(CalculateHashItem, show);
@@ -10157,6 +10228,17 @@ namespace ASTA
             _VisibleMenuItem(DeletePersonFromGroupItem, show);
             _VisibleMenuItem(ImportPeopleInLocalDBItem, show);
             _VisibleMenuItem(OpenMenuAsLocalAdminItem, !show);
+
+            _VisibleMenuSeparator(toolStripSeparator2, !show);
+        }
+        private void EnableMainMenuItems(bool show)
+        {
+            _EnableMenuItem(FunctionMenuItem, show);
+            _EnableMenuItem(GroupsMenuItem, show);
+            _EnableMenuItem(SettingsMenuItem, show);
+            _EnableMenuItem(HelpMenuItem, show);
+
+            CheckBoxesFiltersAll_Enable(show);
         }
     }
 }

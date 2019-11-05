@@ -6,7 +6,8 @@ namespace ASTA.Classes
     //SQL
     class SqlDbReader : IDisposable
     {
-        System.Data.SqlClient.SqlConnection _sqlConnection;
+        System.Data.SqlClient.SqlConnection sqlConnection;
+        System.Data.SqlClient.SqlCommand sqlCommand;
         static string _dbConnectionString;
 
         public delegate void Message(object sender, TextEventArgs e);
@@ -28,13 +29,13 @@ namespace ASTA.Classes
 
         private void ConnectToDB(string dbConnectionString)
         {
-            if (_sqlConnection != null)
+            if (sqlConnection != null)
             {
                 Dispose();
             }
             _dbConnectionString = dbConnectionString;
-            _sqlConnection = new System.Data.SqlClient.SqlConnection(_dbConnectionString);
-            _sqlConnection.Open();
+            sqlConnection = new System.Data.SqlClient.SqlConnection(_dbConnectionString);
+            sqlConnection.Open();
         }
 
         public System.Data.SqlClient.SqlDataReader GetData(string query)
@@ -44,8 +45,8 @@ namespace ASTA.Classes
 
             Status?.Invoke(this, new TextEventArgs("query: " + query));
 
-            using (var sqlCommand = new System.Data.SqlClient.SqlCommand(query, _sqlConnection))
-            { return sqlCommand.ExecuteReader(); }
+            sqlCommand = new System.Data.SqlClient.SqlCommand(query, sqlConnection);
+            return sqlCommand.ExecuteReader();
         }
 
         #region IDisposable Support
@@ -57,12 +58,17 @@ namespace ASTA.Classes
             {
                 if (disposing)
                 {
-                    if (_sqlConnection != null)
+                    if (sqlCommand != null)
+                    {
+                        sqlCommand?.Dispose();
+                    }
+
+                    if (sqlConnection != null)
                     {
                         try
                         {
-                            _sqlConnection?.Close();
-                            _sqlConnection?.Dispose();
+                            sqlConnection?.Close();
+                            sqlConnection?.Dispose();
                         }
                         catch { }
                     }
@@ -87,10 +93,11 @@ namespace ASTA.Classes
     }
 
 
-        //MySQL
-        class MySqlDbReader : IDisposable
+    //MySQL
+    class MySqlDbReader : IDisposable
     {
         MySql.Data.MySqlClient.MySqlConnection sqlConnection;
+        MySql.Data.MySqlClient.MySqlCommand sqlCommand;
         public delegate void Message(object sender, TextEventArgs e);
         public event Message Status;
         string _dbConnectionString;
@@ -102,21 +109,8 @@ namespace ASTA.Classes
 
         private void ConnectToDB(string dbConnectionString)
         {
-            if (dbConnectionString?.Length > 0)
-            {
-                if (sqlConnection != null)
-                {
-                    Dispose();
-                }
-
-                sqlConnection = new MySql.Data.MySqlClient.MySqlConnection(dbConnectionString);
-                sqlConnection.Open();
-            }
-            else
-            {
-                new NullReferenceException();
-            }
-
+            sqlConnection = new MySql.Data.MySqlClient.MySqlConnection(dbConnectionString);
+            sqlConnection.Open();
             /*
              try
     {
@@ -145,10 +139,18 @@ namespace ASTA.Classes
 
         public MySql.Data.MySqlClient.MySqlDataReader GetData(string query)
         {
-            ConnectToDB(_dbConnectionString);
+            if (_dbConnectionString?.Length > 0)
+            {
+                ConnectToDB(_dbConnectionString);
+            }
+            else
+            {
+                throw new NullReferenceException("query can not be null or empty!");
+            }
+
             Status?.Invoke(this, new TextEventArgs("query: " + query));
-            using (var sqlCommand = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection))
-            { return sqlCommand.ExecuteReader(); }
+            sqlCommand = new MySql.Data.MySqlClient.MySqlCommand(query, sqlConnection);
+            return sqlCommand.ExecuteReader();
         }
 
         #region IDisposable Support
@@ -160,6 +162,10 @@ namespace ASTA.Classes
             {
                 if (disposing)
                 {
+                    if (sqlCommand != null)
+                    {
+                        sqlCommand?.Dispose();
+                    }
                     if (sqlConnection != null)
                     {
                         try
@@ -191,12 +197,12 @@ namespace ASTA.Classes
 
 
     //SQLite
-    public abstract class SQLiteDbBase :  IDisposable
+    public abstract class SQLiteDbBase : IDisposable
     {
         public delegate void Message(object sender, TextEventArgs e);
 
         public System.Data.SQLite.SQLiteConnection sqlConnection;
-        public System.Data.SQLite.SQLiteCommand _sqlCommand;
+        public System.Data.SQLite.SQLiteCommand sqlCommand;
         string _dbConnectionString;
 
         protected SQLiteDbBase(string dbConnectionString, System.IO.FileInfo dbFileInfo)
@@ -213,13 +219,13 @@ namespace ASTA.Classes
 
         private void CheckDB(string dbConnectionString, System.IO.FileInfo dbFileInfo)
         {
-            if (!(dbFileInfo?.Length>0))
+            if (!(dbFileInfo?.Length > 0))
                 throw new System.ArgumentException("dbFileInfo cannot be null!");
 
             if (!dbFileInfo.Exists)
                 throw new System.ArgumentException("dbFileInfo is not exist");
 
-            if (!(dbConnectionString?.Trim()?.Length >0))
+            if (!(dbConnectionString?.Trim()?.Length > 0))
                 throw new System.ArgumentException("dbConnectionString string can not be Empty or short");
         }
 
@@ -243,6 +249,10 @@ namespace ASTA.Classes
             {
                 if (disposing)
                 {
+                    if (sqlCommand != null)
+                    {
+                        sqlCommand?.Dispose();
+                    }
                     if (sqlConnection != null)
                     {
                         try
@@ -282,12 +292,9 @@ namespace ASTA.Classes
 
         public System.Data.SQLite.SQLiteDataReader GetData(string query)
         {
-            Status?.Invoke(this, new TextEventArgs("query: "+ query));
+            Status?.Invoke(this, new TextEventArgs("query: " + query));
             using (var _sqlCommand = new System.Data.SQLite.SQLiteCommand(query, sqlConnection))
-            {
-                Status?.Invoke(this, new TextEventArgs("query: " + query));
-                return _sqlCommand.ExecuteReader(); 
-            }
+            { return _sqlCommand.ExecuteReader(); }
         }
 
         public DataTable GetDataTable(string query)
@@ -305,7 +312,7 @@ namespace ASTA.Classes
         }
     }
 
-   internal class SqLiteDbWriter : SQLiteDbBase, IDisposable
+    internal class SqLiteDbWriter : SQLiteDbBase, IDisposable
     {
         public SqLiteDbWriter(string dbConnectionString, System.IO.FileInfo dbFileInfo) :
             base(dbConnectionString, dbFileInfo)
@@ -313,7 +320,7 @@ namespace ASTA.Classes
 
         public event Message Status;
 
-        public void ExecuteQuery(System.Data.SQLite.SQLiteCommand sqlCommand)
+        public void Execute(System.Data.SQLite.SQLiteCommand sqlCommand)
         {
             if (sqlCommand == null)
             {
@@ -327,7 +334,7 @@ namespace ASTA.Classes
             try
             {
                 sqlCommand.ExecuteNonQuery();
-                Status?.Invoke(this, new TextEventArgs("ExecuteQuery - Ok"));
+                Status?.Invoke(this, new TextEventArgs("Execute sqlCommand - Ok"));
             }
             catch (Exception expt)
             { Status?.Invoke(this, new TextEventArgs("Error! " + expt.ToString())); }
@@ -336,7 +343,7 @@ namespace ASTA.Classes
             { sqlCommand1.ExecuteNonQuery(); }
         }
 
-        public void ExecuteQuery(string query)
+        public void Execute(string query)
         {
             if (query == null)
             {
@@ -346,16 +353,21 @@ namespace ASTA.Classes
 
             using (var sqlCommand = new System.Data.SQLite.SQLiteCommand(query, sqlConnection))
             {
-                try {
+                try
+                {
                     sqlCommand.ExecuteNonQuery();
-                    Status?.Invoke(this, new TextEventArgs("query: " + query+" - ok"));
+                    Status?.Invoke(this, new TextEventArgs("Execute query: " + query + " - ok"));
                 }
                 catch (Exception expt)
-                { Status?.Invoke(this, new TextEventArgs("query: "+ query+" ->Error! " + expt.ToString())); }
+                { Status?.Invoke(this, new TextEventArgs("query: " + query + " ->Error! " + expt.ToString())); }
             }
         }
 
-        public void ExecuteQueryForBulkStepByStep(System.Data.SQLite.SQLiteCommand sqlCommand)
+        /// <summary>
+        /// To use with transaction keywords - "begin" and "end"
+        /// </summary>
+        /// <param name="sqlCommand"></param>
+        public void ExecuteBulk(System.Data.SQLite.SQLiteCommand sqlCommand)
         {
             if (sqlCommand == null)
             {
@@ -366,10 +378,10 @@ namespace ASTA.Classes
             try
             {
                 sqlCommand.ExecuteNonQuery();
-                Status?.Invoke(this, new TextEventArgs("ExecuteQueryForBulkStepByStep - Ok"));
+                Status?.Invoke(this, new TextEventArgs("Execute ExecuteBulk - Ok"));
             }
             catch (Exception expt)
-            { Status?.Invoke(this, new TextEventArgs("ExecuteQueryForBulkStepByStep -> Error! " + expt.ToString())); }
+            { Status?.Invoke(this, new TextEventArgs("Execute -> Error! " + expt.ToString())); }
         }
     }
 }

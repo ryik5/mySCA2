@@ -7,6 +7,23 @@ namespace ASTA.Classes
     {
 
         /// <summary>
+        /// Convert full name to its short form. 
+        /// Example: 'Ryabchenko Yuriy Ivanovich' -> 'Ryabchenko Y.I.'
+        /// </summary>
+        /// <param name="s"></param>
+        /// <returns></returns>
+        public static string ConvertFullNameToShortForm(this string s)
+        {
+            var stmp = s?.Split(' ');
+            var sFullNameOnly = stmp?[0];
+
+            try { sFullNameOnly += " " + stmp?[1].Substring(0, 1) + @"."; } catch { }
+            try { sFullNameOnly += " " + stmp?[2].Substring(0, 1) + @"."; } catch { }
+
+            return sFullNameOnly;
+        }
+
+        /// <summary>
         /// Convert date-as-string into array  int[] { 1970, 1, 1 }    .  
         /// date-as-string can be written as 'yyyyMMdd' or 'YYYY-MM-DD' or 'YYYY-MM-DD HH:MM' or 'YYYY-MM-DD HH:MM:SS' or 'YYYY-MM-DD HH:MM:SS.mmm'
         /// </summary>
@@ -90,5 +107,6 @@ namespace ASTA.Classes
             }
             return new int[] { hours, minutes, seconds };
         }
+    
     }
 }

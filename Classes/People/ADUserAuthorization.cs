@@ -4,14 +4,14 @@ namespace ASTA.Classes.People
 {
     class ADUserAuthorization
     {
-        public string Name { get; set; }       // имя
+        public string Login { get; set; }       // имя
         public string Domain { get; set; }      // домен
         public string Password { get; set; }    // пароль
         public string DomainPath { get; set; }    // URI сервера
 
         public override string ToString()
         {
-            return Name + "\t" + Domain + "\t" + Password + "\t" + DomainPath;
+            return Login + "\t" + Domain + "\t" + Password + "\t" + DomainPath;
         }
 
         public override bool Equals(object obj)
