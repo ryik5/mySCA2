@@ -358,8 +358,8 @@ namespace ASTA
 
             sLastSelectedElement = "MainForm";
             nameOfLastTable = "PersonRegistrationsList";
-            _SetStatusLabelText(StatusLabel1, "");
-            _SetStatusLabelText(StatusLabel2, "");
+            SetStatusLabelText(StatusLabel1, "");
+            SetStatusLabelText(StatusLabel2, "");
 
 
             //Начало лога
@@ -738,7 +738,7 @@ namespace ASTA
                 }
 
                 logger.Trace("ReadTXTFile");
-                _SetStatusLabelText(StatusLabel2, "Читаю файл: " + fpath);
+                SetStatusLabelText(StatusLabel2, "Читаю файл: " + fpath);
                 try
                 {
                     using (System.IO.StreamReader Reader =
@@ -759,13 +759,13 @@ namespace ASTA
 
                 if (!readOk)
                 {
-                    _SetStatusLabelText(StatusLabel2, "Не могу прочитать файл: " + fpath, true);
+                    SetStatusLabelText(StatusLabel2, "Не могу прочитать файл: " + fpath, true);
                 }
                 else
                 {
-                    _SetStatusLabelBackColor(StatusLabel2, prevColor);
+                    SetStatusLabelBackColor(StatusLabel2, prevColor);
                     if (prevText?.Length > 0 && !nameof(StatusLabel2).Equals(prevText))
-                    { _SetStatusLabelText(StatusLabel2, prevText); }
+                    { SetStatusLabelText(StatusLabel2, prevText); }
                 }
             };
             this.Invoke(mi);
@@ -784,7 +784,7 @@ namespace ASTA
             List<string> txt = ReadTXTFile(fpath);
             string query = string.Empty;
 
-            _SetStatusLabelText(StatusLabel2, "Создаю таблицы в БД на основе запроса из текстового файла: " + fpath);
+            SetStatusLabelText(StatusLabel2, "Создаю таблицы в БД на основе запроса из текстового файла: " + fpath);
             using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
             {
                 dbWriter.Status += AddLoggerTraceText;
@@ -807,7 +807,7 @@ namespace ASTA
 
                 dbWriter.Status -= AddLoggerTraceText;
 
-                _SetStatusLabelText(StatusLabel2, "Таблицы в БД созданы.");
+                SetStatusLabelText(StatusLabel2, "Таблицы в БД созданы.");
             }
         }
 
@@ -1015,7 +1015,7 @@ namespace ASTA
 
         private void AddExceptedParametersIntoConfigurationDb()    //add not existed example of parameters into ConfigTable in the Main Local DB
         {
-            _SetStatusLabelText(StatusLabel2, "Проверяю список параметров конфигурации локальной БД...");
+            SetStatusLabelText(StatusLabel2, "Проверяю список параметров конфигурации локальной БД...");
 
             ConfigurationOfASTA config = new ConfigurationOfASTA(dbApplication);
             config.status += AddLoggerTraceText;
@@ -1042,7 +1042,7 @@ namespace ASTA
             config.status -= AddLoggerTraceText;
             config = null;
 
-            _SetStatusLabelText(StatusLabel2, "Обновление параметров конфигурации локальной БД завершено");
+            SetStatusLabelText(StatusLabel2, "Обновление параметров конфигурации локальной БД завершено");
         }
 
         private void AddParameterInConfigItem_Click(object sender, EventArgs e)
@@ -1304,7 +1304,7 @@ namespace ASTA
                         try { dataTable.Columns[nameHidenColumnsArray1[i]].ColumnMapping = MappingType.Hidden; } catch { }
                 }
 
-                _SetStatusLabelText(StatusLabel2, "Всего записей: " + dataTable.Rows.Count);
+                SetStatusLabelText(StatusLabel2, "Всего записей: " + dataTable.Rows.Count);
                 dgvo.ShowData(dataGridView1, dataTable);
             }
             nameOfLastTable = nameLastTable;
@@ -1482,7 +1482,7 @@ namespace ASTA
 
             if (user?.Length > 0 && password?.Length > 0 && domainOfUser?.Length > 0 && domainController?.Length > 0)
             {
-                _SetStatusLabelText(StatusLabel2, "Получаю данные из домена: " + domainOfUser);
+                SetStatusLabelText(StatusLabel2, "Получаю данные из домена: " + domainOfUser);
 
                 ad = new ADData(user, domainOfUser, password, domainController);
                 ad.Info += SetStatusLabelText;
@@ -1510,7 +1510,7 @@ namespace ASTA
             {
                 logger.Error("Ошибка доступа к домену. " + "user: " + user + " |domain: " + domainOfUser + " |password: " + password + " |server: " + domainController);
 
-                _SetStatusLabelText(
+                SetStatusLabelText(
                     StatusLabel2,
                     "Ошибка доступа к домену " + domainOfUser,
                     true);
@@ -1590,7 +1590,7 @@ namespace ASTA
             countMailers = 0;
 
             if (currentAction != @"sendEmail")
-            { _SetStatusLabelText(StatusLabel2, "Получаю данные с серверов..."); }
+            { SetStatusLabelText(StatusLabel2, "Получаю данные с серверов..."); }
 
             //Get list people FIO and mail from AD
             GetUsersFromAD();
@@ -1601,11 +1601,11 @@ namespace ASTA
                 GetDataFromRemoteServers(dtTempIntermediate, peopleShifts);
 
                 if (currentAction != @"sendEmail")
-                { _SetStatusLabelText(StatusLabel2, "Формирую и записываю группы в локальную базу..."); }
+                { SetStatusLabelText(StatusLabel2, "Формирую и записываю группы в локальную базу..."); }
                 WriteGroupsMailingsInLocalDb(dtTempIntermediate, peopleShifts);
 
                 if (currentAction != @"sendEmail")
-                { _SetStatusLabelText(StatusLabel2, "Записываю ФИО в локальную базу..."); }
+                { SetStatusLabelText(StatusLabel2, "Записываю ФИО в локальную базу..."); }
 
                 WritePeopleInLocalDB(dbApplication.ToString(), dtTempIntermediate);
 
@@ -1615,7 +1615,7 @@ namespace ASTA
 
                     ShowDatatableOnDatagridview(dtPersonTemp, "ListFIO");
 
-                    _SetStatusLabelText(StatusLabel2, "Записано в локальную базу: " + countUsers + " ФИО, " + countGroups + " групп и " + countMailers + " рассылок");
+                    SetStatusLabelText(StatusLabel2, "Записано в локальную базу: " + countUsers + " ФИО, " + countGroups + " групп и " + countMailers + " рассылок");
                 }
             }
         }
@@ -1647,7 +1647,7 @@ namespace ASTA
             Department departmentFromDictionary;
 
             _ClearComboBox(comboBoxFio);
-            _SetStatusLabelText(StatusLabel2, "Запрашиваю данные с " + sServer1 + ". Ждите окончания процесса...");
+            SetStatusLabelText(StatusLabel2, "Запрашиваю данные с " + sServer1 + ". Ждите окончания процесса...");
 
 
             try
@@ -1758,7 +1758,7 @@ namespace ASTA
                 // import users, shifts and group from web DB
                 int tmpSeconds = 0;
                 groupName = mysqlServer;
-                _SetStatusLabelText(StatusLabel2, "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...");
+                SetStatusLabelText(StatusLabel2, "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...");
 
 
                 // import departments from web DB
@@ -1938,13 +1938,13 @@ namespace ASTA
                 dataTablePeople.AcceptChanges();
 
                 AddLoggerTraceText("departments.count: " + departments.Count);
-                _SetStatusLabelText(StatusLabel2, "ФИО и наименования департаментов получены.");
+                SetStatusLabelText(StatusLabel2, "ФИО и наименования департаментов получены.");
             }
             catch (Exception err)
             {
                 AddLoggerTraceText("departments.count: " + err.ToString());
 
-                _SetStatusLabelText(
+                SetStatusLabelText(
                     StatusLabel2,
                     "Возникла ошибка во время получения данных с серверов.",
                     true);
@@ -1959,7 +1959,7 @@ namespace ASTA
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
-            _SetStatusLabelText(StatusLabel2, "Формирую обновленные списки ФИО, департаментов и рассылок...");
+            SetStatusLabelText(StatusLabel2, "Формирую обновленные списки ФИО, департаментов и рассылок...");
 
             logger.Info("Приступаю к формированию списков ФИО и департаментов...");
             string query;
@@ -2220,7 +2220,7 @@ namespace ASTA
             departmentsEmailUniq = null;
 
             _ProgressWork1Step();
-            _SetStatusLabelText(StatusLabel2, "Списки ФИО и департаментов получены.");
+            SetStatusLabelText(StatusLabel2, "Списки ФИО и департаментов получены.");
         }
 
         private void ShowListFioItem_Click(object sender, EventArgs e) //ListFioReturn()
@@ -2295,7 +2295,7 @@ namespace ASTA
 
             logger.Trace("Сортировка: " + sort);
             logger.Trace("В таблице " + dataTable.TableName + " столбцов всего - " + dtExport.Columns.Count + ", строк - " + dtExport.Rows.Count);
-            _SetStatusLabelText(StatusLabel2, "Генерирую Excel-файл по отчету: '" + nameReport + "'");
+            SetStatusLabelText(StatusLabel2, "Генерирую Excel-файл по отчету: '" + nameReport + "'");
             _ProgressWork1Step();
 
             Microsoft.Office.Interop.Excel.Application excel = new Microsoft.Office.Interop.Excel.Application
@@ -2463,7 +2463,7 @@ namespace ASTA
                     System.Reflection.Missing.Value);
                 _ProgressWork1Step();
 
-                _SetStatusLabelText(StatusLabel2, "Отчет сохранен в файл: " + pathToFile + @".xlsx");
+                SetStatusLabelText(StatusLabel2, "Отчет сохранен в файл: " + pathToFile + @".xlsx");
 
                 filePath = pathToFile;
                 _SetStatusLabelForeColor(StatusLabel2, Color.Black);
@@ -2473,7 +2473,7 @@ namespace ASTA
             }
             catch (Exception err)
             {
-                _SetStatusLabelText(
+                SetStatusLabelText(
                     StatusLabel2,
                     "Ошибка генерации файла. Проверьте наличие установленного Excel",
                     true);
@@ -2613,7 +2613,7 @@ namespace ASTA
                         try { command.ExecuteNonQuery(); } catch { }
                     }
                 }
-                _SetStatusLabelText(StatusLabel2, "Группа - \"" + nameGroup + "\" создана");
+                SetStatusLabelText(StatusLabel2, "Группа - \"" + nameGroup + "\" создана");
             }
         }
 
@@ -2958,18 +2958,18 @@ namespace ASTA
                             sqlCommand.Parameters.Add("@Shift", DbType.String).Value = cellValue[7];
                             try { sqlCommand.ExecuteNonQuery(); } catch (Exception ept) { logger.Warn("PeopleGroup: " + ept.ToString()); }
                         }
-                        _SetStatusLabelText(StatusLabel2, "'" + cellValue[0]?.ConvertFullNameToShortForm() + "'" + " добавлен в группу '" + group + "'");
-                        _SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
+                        SetStatusLabelText(StatusLabel2, "'" + cellValue[0]?.ConvertFullNameToShortForm() + "'" + " добавлен в группу '" + group + "'");
+                        SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
                     }
                     else if (group?.Length > 0 && cellValue[1]?.Length == 0)
                     {
-                        _SetStatusLabelText(StatusLabel2, "Отсутствует NAV-код у: " + textBoxFIO.Text?.ConvertFullNameToShortForm());
-                        _SetStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
+                        SetStatusLabelText(StatusLabel2, "Отсутствует NAV-код у: " + textBoxFIO.Text?.ConvertFullNameToShortForm());
+                        SetStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
                     }
                     else if (group?.Length == 0 && cellValue[1]?.Length > 0)
                     {
-                        _SetStatusLabelText(StatusLabel2, "Не указана группа, в которую нужно добавить!");
-                        _SetStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
+                        SetStatusLabelText(StatusLabel2, "Не указана группа, в которую нужно добавить!");
+                        SetStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
                     }
                 }
             }
@@ -3356,13 +3356,13 @@ namespace ASTA
                 if (timesChecking <= 0)
                 { checkInputsOutputs = false; }
 
-                _SetStatusLabelText(StatusLabel2, "Загружены данные о регистрации пропусков до: " + startDay + " " + startTime);
+                SetStatusLabelText(StatusLabel2, "Загружены данные о регистрации пропусков до: " + startDay + " " + startTime);
 
                 startStopTimer.WaitTime();
 
             } while (checkInputsOutputs);
 
-            _SetStatusLabelText(StatusLabel2, "Сбор данных регистрации пропусков завершен");
+            SetStatusLabelText(StatusLabel2, "Сбор данных регистрации пропусков завершен");
         }
 
         private List<Visitor> GetInputsOutputs(ref string startDay, ref string startTime, ref string endDay, ref string endTime)
@@ -3620,7 +3620,7 @@ namespace ASTA
             if (dtPersonTemp?.Rows.Count > 0)
             {
                 _VisibleMenuItem(TableExportToExcelItem, true);
-                _SetStatusLabelText(StatusLabel2, "Данные регистрации пропусков загружены");
+                SetStatusLabelText(StatusLabel2, "Данные регистрации пропусков загружены");
             }
         }
 
@@ -3727,7 +3727,7 @@ namespace ASTA
             if ((nameOfLastTable == "PeopleGroupDescription" || nameOfLastTable == "PeopleGroup" || nameOfLastTable == "Mailing" ||
                 nameOfLastTable == "ListFIO" || doPostAction == "sendEmail") && nameGroup?.Length > 0)
             {
-                _SetStatusLabelText(StatusLabel2, "Получаю данные по группе " + nameGroup);
+                SetStatusLabelText(StatusLabel2, "Получаю данные по группе " + nameGroup);
                 dtPeopleGroup = LoadGroupMembersFromDbToDataTable(nameGroup);
 
                 logger.Trace("LoadRecords, DT - " + dtPeopleGroup.TableName + " , всего записей - " + dtPeopleGroup.Rows.Count);
@@ -3757,7 +3757,7 @@ namespace ASTA
                     }
                 }
                 nameOfLastTable = "PeopleGroup";
-                _SetStatusLabelText(StatusLabel2, "Данные по группе \"" + nameGroup + "\" получены");
+                SetStatusLabelText(StatusLabel2, "Данные по группе \"" + nameGroup + "\" получены");
             }
             else
             {
@@ -3765,7 +3765,7 @@ namespace ASTA
                 person.code = _ReturnTextOfControl(textBoxNav);
                 person.fio = _ReturnTextOfControl(textBoxFIO);
 
-                _SetStatusLabelText(StatusLabel2, "Получаю данные по \"" + person.fio?.ConvertFullNameToShortForm() + "\" ");
+                SetStatusLabelText(StatusLabel2, "Получаю данные по \"" + person.fio?.ConvertFullNameToShortForm() + "\" ");
 
                 person.GroupPerson = "One User";
                 person.Department = "";
@@ -3784,7 +3784,7 @@ namespace ASTA
 
                 GetPersonRegistrationFromServer(ref dtPersonRegistrationsFullList, person, startDate, endDate);
 
-                _SetStatusLabelText(StatusLabel2, "Данные с СКД по \"" + _ReturnTextOfControl(textBoxFIO)?.ConvertFullNameToShortForm() + "\" получены!");
+                SetStatusLabelText(StatusLabel2, "Данные с СКД по \"" + _ReturnTextOfControl(textBoxFIO)?.ConvertFullNameToShortForm() + "\" получены!");
             }
         }
 
@@ -4106,7 +4106,7 @@ namespace ASTA
             _EnableMenuItem(FunctionMenuItem, false);
             _EnableMenuItem(GroupsMenuItem, false);
             _EnableMenuItem(AddAnualDateItem, true);
-            _SetCheckBoxesAllFilters_Visible(false);
+            SetCheckBoxesAllFilters_Visible(false);
 
             comboBoxFio.Items.Add("");
             comboBoxFio.SelectedIndex = 0;
@@ -4120,7 +4120,7 @@ namespace ASTA
             EditAnualDaysItem.Text = @"Завершить редактирование";
 
             EditAnualDaysItem.ToolTipText = @"Выйти из режима редактирования рабочих и выходных дней";
-            _SetStatusLabelText(StatusLabel2, @"Режим редактирования рабочих и выходных дней");
+            SetStatusLabelText(StatusLabel2, @"Режим редактирования рабочих и выходных дней");
         }
 
         private void ExitEditAnual()
@@ -4136,7 +4136,7 @@ namespace ASTA
             _EnableMenuItem(GroupsMenuItem, true);
             _EnableMenuItem(AddAnualDateItem, false);
 
-            _SetCheckBoxesAllFilters_Visible(true);
+            SetCheckBoxesAllFilters_Visible(true);
 
             EditAnualDaysItem.Text = Names.DAY_OFF_OR_WORK;
             EditAnualDaysItem.ToolTipText = Names.DAY_OFF_OR_WORK_EDIT;
@@ -4147,7 +4147,7 @@ namespace ASTA
             textBoxGroup.Text = "";
 
             _SetStatusLabelForeColor(StatusLabel2, Color.Black);
-            _SetStatusLabelText(StatusLabel2, @"Завершен 'Режим редактирования в локальной БД дат праздников и выходных'");
+            SetStatusLabelText(StatusLabel2, @"Завершен 'Режим редактирования в локальной БД дат праздников и выходных'");
 
             nameOfLastTable = "ListFIO";
             SeekAndShowMembersOfGroup("");
@@ -4235,7 +4235,7 @@ namespace ASTA
             _EnableControl(checkBoxWeekend, state);
         }
 
-        private void _SetCheckBoxesAllFilters_Visible(bool state)
+        private void SetCheckBoxesAllFilters_Visible(bool state)
         {
             _VisibleControl(checkBoxTimeViolations, state);
             _VisibleControl(checkBoxReEnter, state);
@@ -4968,7 +4968,7 @@ namespace ASTA
             }
             catch (Exception err)
             {
-                _SetStatusLabelText(StatusLabel2,
+                SetStatusLabelText(StatusLabel2,
                     "Ошибки с доступом у реестру на запись. Данные не удалены.",
                     true);
                 AddLoggerTraceText(err.ToString());
@@ -5964,7 +5964,7 @@ namespace ASTA
                     sqlCommand1 = new SQLiteCommand("end", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
                 }
-                _SetStatusLabelText(StatusLabel2, "Добавлена рассылка: " + nameReport + "| Всего рассылок: " + DataGridViewOperations.RowsCount(dataGridView1));
+                SetStatusLabelText(StatusLabel2, "Добавлена рассылка: " + nameReport + "| Всего рассылок: " + DataGridViewOperations.RowsCount(dataGridView1));
             }
         }
 
@@ -7552,7 +7552,7 @@ namespace ASTA
             resultOfSendingReports = new List<Mailing>();
             logger.Trace("DoReportAndEmailByRightClick");
 
-            _SetStatusLabelText(StatusLabel2, "Готовлю отчет по группе" + cellValue[0]);
+            SetStatusLabelText(StatusLabel2, "Готовлю отчет по группе" + cellValue[0]);
 
             if (cellValue[2]?.Length > 0)
             {
@@ -7567,7 +7567,7 @@ namespace ASTA
             }
             else
             {
-                _SetStatusLabelText(
+                SetStatusLabelText(
                     StatusLabel2,
                     "Попытка отправить отчет " + cellValue[0] + " не существующему получателю",
                     true);
@@ -7595,7 +7595,7 @@ namespace ASTA
                 Names.GROUP_DECRIPTION
             });
 
-            _SetStatusLabelText(StatusLabel2, "Готовлю отчет по группе" + cellValue[0]);
+            SetStatusLabelText(StatusLabel2, "Готовлю отчет по группе" + cellValue[0]);
             logger.Trace("DoReportByRightClick: " + cellValue[0]);
 
             resultOfSendingReports = new List<Mailing>();
@@ -7717,7 +7717,7 @@ namespace ASTA
                         string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             @"Получатель", @"Отчет по группам", @"Наименование", @"Описание",
                             @"Период", @"Статус", @"Тип отчета", @"День отправки отчета" });
-                        _SetStatusLabelText(StatusLabel2, "Готовлю отчет " + cellValue[2]);
+                        SetStatusLabelText(StatusLabel2, "Готовлю отчет " + cellValue[2]);
 
                         ExecuteSqlAsync("UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToYYYYMMDDHHMM()
                             + "' WHERE RecipientEmail='" + cellValue[0] + "' AND GroupsReport ='" + cellValue[1]
@@ -7769,7 +7769,7 @@ namespace ASTA
             string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             @"Получатель", @"Отчет по группам", @"Наименование", @"Описание",
                             @"Период", @"Статус", @"Тип отчета", @"День отправки отчета" });
-            _SetStatusLabelText(StatusLabel2, "Готовлю все активные рассылки с отчетами " + cellValue[6] + " за " + cellValue[4] + " на " + cellValue[7]);
+            SetStatusLabelText(StatusLabel2, "Готовлю все активные рассылки с отчетами " + cellValue[6] + " за " + cellValue[4] + " на " + cellValue[7]);
 
             currentAction = "sendEmail";
             DoListsFioGroupsMailings();
@@ -7860,7 +7860,7 @@ namespace ASTA
 
             foreach (Mailing mailng in mailingList)
             {
-                _SetStatusLabelText(StatusLabel2, "Готовлю отчет " + mailng._nameReport);
+                SetStatusLabelText(StatusLabel2, "Готовлю отчет " + mailng._nameReport);
 
                 str = "UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToYYYYMMDDHHMM() +
                     "' WHERE RecipientEmail='" + mailng._recipient +
@@ -7921,7 +7921,7 @@ namespace ASTA
                         ShowDataTableDbQuery(dbApplication,
                             "PeopleGroupDescription",
                             "SELECT GroupPerson AS 'Группа', GroupPersonDescription AS 'Описание группы', AmountStaffInDepartment AS 'Колличество сотрудников в группе' ", " group by GroupPerson ORDER BY GroupPerson asc; ");
-                        _SetStatusLabelText(StatusLabel2, "Удалена группа: " + cellValue[0] + "| Всего групп: " + DataGridViewOperations.RowsCount(dataGridView1));
+                        SetStatusLabelText(StatusLabel2, "Удалена группа: " + cellValue[0] + "| Всего групп: " + DataGridViewOperations.RowsCount(dataGridView1));
                         MembersGroupItem.Enabled = true;
                         break;
                     }
@@ -7965,7 +7965,7 @@ namespace ASTA
                         "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
                         "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
                         " ORDER BY RecipientEmail asc, DateCreated desc; ");
-                        _SetStatusLabelText(StatusLabel2, "Удалена рассылка отчета " + cellValue[1] + "| Всего рассылок: " + DataGridViewOperations.RowsCount(dataGridView1));
+                        SetStatusLabelText(StatusLabel2, "Удалена рассылка отчета " + cellValue[1] + "| Всего рассылок: " + DataGridViewOperations.RowsCount(dataGridView1));
                         break;
                     }
                 case "MailingException":
@@ -7978,7 +7978,7 @@ namespace ASTA
                         ShowDataTableDbQuery(dbApplication, "MailingException", "SELECT RecipientEmail AS 'Получатель', " +
                         "NameReport AS 'Наименование', Description AS 'Описание', DateCreated AS 'Дата создания/модификации', " +
                         "DayReport AS 'День отправки отчета'", " ORDER BY RecipientEmail asc, DateCreated desc; ");
-                        _SetStatusLabelText(StatusLabel2, "Удален из исключений " + cellValue[0] + "| Всего исключений: " + DataGridViewOperations.RowsCount(dataGridView1));
+                        SetStatusLabelText(StatusLabel2, "Удален из исключений " + cellValue[0] + "| Всего исключений: " + DataGridViewOperations.RowsCount(dataGridView1));
                         break;
                     }
                 default:
@@ -8008,8 +8008,8 @@ namespace ASTA
                 _SetMenuItemTooltip(ModeItem, "Включен автоматический режим. Выполняются Активные рассылки из БД.");
                 _SetMenuItemBackColor(ModeItem, Color.DarkOrange);
 
-                _SetStatusLabelText(StatusLabel2, "Включен режим рассылки отчетов по почте");
-                _SetStatusLabelBackColor(StatusLabel2, Color.PaleGreen); //Color.DarkOrange
+                SetStatusLabelText(StatusLabel2, "Включен режим рассылки отчетов по почте");
+                SetStatusLabelBackColor(StatusLabel2, Color.PaleGreen); //Color.DarkOrange
 
                 try
                 {
@@ -8035,8 +8035,8 @@ namespace ASTA
                 _SetMenuItemTooltip(ModeItem, "Включен интерактивный режим. Все рассылки остановлены.");
                 _SetMenuItemBackColor(ModeItem, SystemColors.Control);
 
-                _SetStatusLabelText(StatusLabel2, "Интерактивный режим");
-                _SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
+                SetStatusLabelText(StatusLabel2, "Интерактивный режим");
+                SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
 
                 try
                 {
@@ -8077,8 +8077,8 @@ namespace ASTA
                 _SetMenuItemText(ModeItem, "Выключить режим e-mail рассылок");
                 _SetMenuItemTooltip(ModeItem, "Включен автоматический режим. Выполняются Активные рассылки из БД.");
                 _SetMenuItemBackColor(ModeItem, Color.DarkOrange);
-                _SetStatusLabelText(StatusLabel2, "Включен режим авторассылки отчетов");
-                _SetStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
+                SetStatusLabelText(StatusLabel2, "Включен режим авторассылки отчетов");
+                SetStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
 
                 timer?.Dispose();
                 currentAction = "sendEmail";
@@ -8091,8 +8091,8 @@ namespace ASTA
                 _SetMenuItemTooltip(ModeItem, "Включен интерактивный режим. Все рассылки остановлены.");
                 _SetMenuItemBackColor(ModeItem, SystemColors.Control);
 
-                _SetStatusLabelText(StatusLabel2, "Интерактивный режим");
-                _SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
+                SetStatusLabelText(StatusLabel2, "Интерактивный режим");
+                SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
 
                 timer?.Dispose();
             }
@@ -8108,12 +8108,12 @@ namespace ASTA
                 DateTime dd = DateTime.Now;
                 if (dd.Hour == 4 && dd.Minute == 10 && sent == false) //do something at Hour 2 and 5 minute //dd.Day == 1 && 
                 {
-                    _SetStatusLabelText(StatusLabel2, "Ведется работа по подготовке отчетов " + DateTime.Now.ToYYYYMMDDHHMM() + " ...");
-                    _SetStatusLabelBackColor(StatusLabel2, Color.LightPink);
+                    SetStatusLabelText(StatusLabel2, "Ведется работа по подготовке отчетов " + DateTime.Now.ToYYYYMMDDHHMM() + " ...");
+                    SetStatusLabelBackColor(StatusLabel2, Color.LightPink);
                     CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword);
                     SelectMailingDoAction();
                     sent = true;
-                    _SetStatusLabelText(StatusLabel2, "Все задачи по подготовке и отправке отчетов завершены.");
+                    SetStatusLabelText(StatusLabel2, "Все задачи по подготовке и отправке отчетов завершены.");
                     logger.Info("");
                     logger.Info("---/  " + DateTime.Now.ToYYYYMMDDHHMMSS() + "  /---");
                 }
@@ -8124,8 +8124,8 @@ namespace ASTA
 
                 if (dd.Hour == 7 && dd.Minute == 1)
                 {
-                    _SetStatusLabelText(StatusLabel2, "Режим почтовых рассылок. " + DateTime.Now.ToYYYYMMDDHHMM());
-                    _SetStatusLabelBackColor(StatusLabel2, Color.LightCyan);
+                    SetStatusLabelText(StatusLabel2, "Режим почтовых рассылок. " + DateTime.Now.ToYYYYMMDDHHMM());
+                    SetStatusLabelBackColor(StatusLabel2, Color.LightCyan);
                     ClearItemsInFolder(@"*.xlsx");
                 }
             }
@@ -8319,7 +8319,7 @@ namespace ASTA
 
                 foreach (Mailing mailng in mailingList)
                 {
-                    _SetStatusLabelText(StatusLabel2, "Готовлю отчет " + mailng._nameReport);
+                    SetStatusLabelText(StatusLabel2, "Готовлю отчет " + mailng._nameReport);
 
                     str = "UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToYYYYMMDDHHMM() +
                         "' WHERE RecipientEmail='" + mailng._recipient +
@@ -8455,7 +8455,7 @@ namespace ASTA
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace("-= " + method + " =-");
 
-            _SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
+            SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
 
             switch (mainAction)
             {
@@ -8528,7 +8528,7 @@ namespace ASTA
 
             foreach (string groupName in groups)
             {
-                _SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
+                SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
                 nameGroup = groupName.Trim();
                 if (nameGroup.Length > 0)
                 {
@@ -8590,7 +8590,7 @@ namespace ASTA
                             if (reportExcelReady)
                             {
                                 titleOfbodyMail = "с " + reportStartDay.Split(' ')[0] + " по " + reportLastDay.Split(' ')[0];
-                                _SetStatusLabelText(StatusLabel2, "Выполняю отправку отчета адресату: " + recipientEmail);
+                                SetStatusLabelText(StatusLabel2, "Выполняю отправку отчета адресату: " + recipientEmail);
 
                                 foreach (var oneAddress in recipientEmail.Split(','))
                                 {
@@ -8604,12 +8604,12 @@ namespace ASTA
                                     }
                                 }
 
-                                _SetStatusLabelText(StatusLabel2, DateTime.Now.ToYYYYMMDDHHMM() + " Отчет '" + nameReport + "'(" + groupName + ") отправлен " + recipientEmail);
-                                _SetStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
+                                SetStatusLabelText(StatusLabel2, DateTime.Now.ToYYYYMMDDHHMM() + " Отчет '" + nameReport + "'(" + groupName + ") отправлен " + recipientEmail);
+                                SetStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
                             }
                             else
                             {
-                                _SetStatusLabelText(
+                                SetStatusLabelText(
                                     StatusLabel2,
                                     DateTime.Now.ToYYYYMMDDHHMM() + " Ошибка экспорта в файл отчета: " + nameReport + "(" + groupName + ")",
                                     true
@@ -8619,7 +8619,7 @@ namespace ASTA
                     }
                     else
                     {
-                        _SetStatusLabelText(
+                        SetStatusLabelText(
                             StatusLabel2,
                             DateTime.Now.ToYYYYMMDDHHMM() + "Ошибка получения данных для отчета: " + nameReport,
                             true
@@ -9079,7 +9079,7 @@ namespace ASTA
 
 
 
-        private void _SetStatusLabelText(ToolStripStatusLabel statusLabel, string s, bool error = false) //add string into  from other threads
+        private void SetStatusLabelText(ToolStripStatusLabel statusLabel, string s, bool error = false) //add string into  from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -9102,7 +9102,7 @@ namespace ASTA
                 statusLabel.ForeColor = s;
         }
 
-        private void _SetStatusLabelBackColor(ToolStripStatusLabel statusLabel, Color s) //add string into  from other threads
+        private void SetStatusLabelBackColor(ToolStripStatusLabel statusLabel, Color s) //add string into  from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate { statusLabel.BackColor = s; }));
@@ -9382,9 +9382,7 @@ namespace ASTA
                     panel.Height = height;
                 }));
             else
-            {
-                panel.Height = height;
-            }
+            {                panel.Height = height;            }
         }
 
         private int _ReturnPanelParentHeight(Panel panel) //access from other threads
@@ -9396,12 +9394,12 @@ namespace ASTA
                 Invoke(new MethodInvoker(delegate
                 {
                     if (panel?.Parent?.Height > 0)
-                        height = panel.Parent.Height;
+                    { height = panel.Parent.Height; }
                 }));
             else
             {
                 if (panel?.Parent?.Height > 0)
-                    height = panel.Parent.Height;
+                { height = panel.Parent.Height; }
             }
             return height;
         }
@@ -9412,15 +9410,17 @@ namespace ASTA
 
             int height = 0;
             if (InvokeRequired)
+            {
                 Invoke(new MethodInvoker(delegate
                 {
                     if (panel?.Height > 0)
-                        height = panel.Height;
+                    { height = panel.Height; }
                 }));
+            }
             else
             {
                 if (panel?.Height > 0)
-                    height = panel.Height;
+                { height = panel.Height; }
             }
             return height;
         }
@@ -9435,13 +9435,13 @@ namespace ASTA
                 Invoke(new MethodInvoker(delegate
                 {
                     if (panel?.Width > 0)
-                        width = panel.Width;
+                    { width = panel.Width; }
                 }));
             }
             else
             {
                 if (panel?.Width > 0)
-                    width = panel.Width;
+                { width = panel.Width; }
             }
             return width;
         }
@@ -9452,11 +9452,13 @@ namespace ASTA
 
             int count = 0;
             if (InvokeRequired)
+            {
                 Invoke(new MethodInvoker(delegate
-                {
-                    if (panel?.Controls?.Count > 0)
-                        count = panel.Controls.Count;
-                }));
+                  {
+                      if (panel?.Controls?.Count > 0)
+                          count = panel.Controls.Count;
+                  }));
+            }
             else
             {
                 if (panel?.Controls?.Count > 0)
@@ -9469,14 +9471,16 @@ namespace ASTA
         private void _RefreshPictureBox(PictureBox picBox, Bitmap picImage) // не работает
         {
             if (InvokeRequired)
+            {
                 Invoke(new MethodInvoker(delegate
-                {
-                    if (picBox != null)
-                    {
-                        picBox.Image = RefreshBitmap(picImage, _ReturnPanelWidth(panelView) - 2, _ReturnPanelHeight(panelView) - 2); //сжатая картина
+                 {
+                     if (picBox != null)
+                     {
+                         picBox.Image = RefreshBitmap(picImage, _ReturnPanelWidth(panelView) - 2, _ReturnPanelHeight(panelView) - 2); //сжатая картина
                         picBox.Refresh();
-                    }
-                }));
+                     }
+                 }));
+            }
             else
             {
                 if (picBox != null)
@@ -9487,8 +9491,7 @@ namespace ASTA
             }
         }
 
-
-
+        
         /// <summary>
         /// Change a Color of the Font on Status by the Timer
         /// </summary>
@@ -9497,19 +9500,21 @@ namespace ASTA
         private void timer1_Tick(object sender, EventArgs e)
         {
             if (InvokeRequired)
+            {
                 Invoke(new MethodInvoker(delegate
-                {
-                    if (StatusLabel2.ForeColor == Color.DarkBlue)
-                    {
-                        StatusLabel2.ForeColor = Color.DarkRed;
-                        if (!string.IsNullOrEmpty(stimerCurr)) StatusLabel2.Text = stimerCurr;
-                    }
-                    else
-                    {
-                        StatusLabel2.ForeColor = Color.DarkBlue;
-                        StatusLabel2.Text = stimerPrev;
-                    }
-                }));
+                 {
+                     if (StatusLabel2.ForeColor == Color.DarkBlue)
+                     {
+                         StatusLabel2.ForeColor = Color.DarkRed;
+                         if (!string.IsNullOrEmpty(stimerCurr)) StatusLabel2.Text = stimerCurr;
+                     }
+                     else
+                     {
+                         StatusLabel2.ForeColor = Color.DarkBlue;
+                         StatusLabel2.Text = stimerPrev;
+                     }
+                 }));
+            }
             else
             {
                 if (StatusLabel2.ForeColor == Color.DarkBlue)
@@ -9531,13 +9536,15 @@ namespace ASTA
         private void _ProgressWork1Step()
         {
             if (InvokeRequired)
+            {
                 Invoke(new MethodInvoker(delegate
-                {
-                    if (ProgressBar1.Value > 99)
-                    { ProgressBar1.Value = 0; }
-                    ProgressBar1.Maximum = 100;
-                    ProgressBar1.Value += 1;
-                }));
+                  {
+                      if (ProgressBar1.Value > 99)
+                      { ProgressBar1.Value = 0; }
+                      ProgressBar1.Maximum = 100;
+                      ProgressBar1.Value += 1;
+                  }));
+            }
             else
             {
                 if (ProgressBar1.Value > 99)
@@ -9553,12 +9560,14 @@ namespace ASTA
         private void _ProgressBar1Start() //Set progressBar Value into 0 from other threads
         {
             if (InvokeRequired)
+            {
                 Invoke(new MethodInvoker(delegate
-                {
-                    timer1.Enabled = true;
-                    ProgressBar1.Value = 0;
-                    StatusLabel2.BackColor = SystemColors.Control;
-                }));
+               {
+                   timer1.Enabled = true;
+                   ProgressBar1.Value = 0;
+                   StatusLabel2.BackColor = SystemColors.Control;
+               }));
+            }
             else
             {
                 timer1.Enabled = true;
@@ -9573,6 +9582,7 @@ namespace ASTA
         private void _ProgressBar1Stop() //Set progressBar Value into 100 from other threads
         {
             if (InvokeRequired)
+            {
                 Invoke(new MethodInvoker(delegate
                 {
                     timer1.Stop();
@@ -9580,6 +9590,7 @@ namespace ASTA
                     ProgressBar1.Value = 100;
                     StatusLabel2.ForeColor = Color.Black;
                 }));
+            }
             else
             {
                 timer1.Stop();
@@ -9610,8 +9621,7 @@ namespace ASTA
         }
 
 
-
-
+        
         /// <summary>
         /// result is total_seconds 
         /// </summary>
@@ -9685,10 +9695,10 @@ namespace ASTA
 
 
         private void SetStatusLabelText(object sender, TextEventArgs e)
-        { _SetStatusLabelText(StatusLabel2, e.Message); }
+        { SetStatusLabelText(StatusLabel2, e.Message); }
 
-        private void _SetStatusLabelBackColor(object sender, ColorEventArgs e)
-        { _SetStatusLabelBackColor(StatusLabel2, e.Color); }
+        private void SetStatusLabelBackColor(object sender, ColorEventArgs e)
+        { SetStatusLabelBackColor(StatusLabel2, e.Color); }
 
         private void SetUploadingStatus(object sender, BoolEventArgs e)
         { resultOfUploading = e.Status; }
@@ -9706,46 +9716,43 @@ namespace ASTA
         { TryMakeLocalDB(); }
 
         private void GetCurrentSchemeItem_Click(object sender, EventArgs e)
-        {
-            GetSQLiteDbScheme();
-        }
+        { GetSQLiteDbScheme(); }
 
         private void GetSQLiteDbScheme()
         {
             StringBuilder sb = new StringBuilder();
             string fpath = SelectFileOpenFileDialog("Выберите файл", "SQL файлы (*.sql)|*.sql|Все files (*.*)|*.*");
-
+           
+            if (fpath == null)
+                fpath = dbApplication.FullName.ToString();
+            
             if (fpath == null)
                 return;
-
-            fpath = dbApplication.FullName.ToString();
-
+            
             Cursor = Cursors.WaitCursor;
             System.Threading.Thread worker = new System.Threading.Thread(new System.Threading.ThreadStart(delegate
             {
                 try
                 {
-                    SQLiteConnectionStringBuilder builder = new SQLiteConnectionStringBuilder();
-                    builder.DataSource = fpath;
-                    builder.PageSize = 4096;
-                    builder.UseUTF16Encoding = true;
+                    SQLiteConnectionStringBuilder builder = new SQLiteConnectionStringBuilder
+                    {
+                        DataSource = fpath,
+                        PageSize = 4096,
+                        UseUTF16Encoding = true
+                    };
+                   
                     using (SQLiteConnection conn = new SQLiteConnection(builder.ConnectionString))
                     {
                         conn.Open();
 
-                        SQLiteCommand count = new SQLiteCommand(
-                            @"SELECT COUNT(*) FROM SQLITE_MASTER", conn);
-                        long num = (long)count.ExecuteScalar();
+                    //    SQLiteCommand count = new SQLiteCommand(@"SELECT COUNT(*) FROM SQLITE_MASTER", conn);
+                     //   long num = (long)count.ExecuteScalar();
 
-                        int step = 0;
-                        SQLiteCommand query = new SQLiteCommand(
-                            @"SELECT * FROM SQLITE_MASTER", conn);
+                        SQLiteCommand query = new SQLiteCommand(@"SELECT * FROM SQLITE_MASTER", conn);
                         using (SQLiteDataReader reader = query.ExecuteReader())
                         {
                             while (reader.Read())
                             {
-                                step++;
-
                                 string type = (string)reader["type"];
                                 string name = (string)reader["name"];
                                 string tblName = (string)reader["tbl_name"];
@@ -9823,10 +9830,8 @@ namespace ASTA
                 //Changing settings
                 AutoUpdater.Mandatory = true;
                 AutoUpdater.RunUpdateAsAdmin = false;
-
                 AutoUpdater.DownloadPath = appFolderUpdatePath;
                 AutoUpdater.OpenDownloadPage = true;
-
                 AutoUpdater.UpdateMode = Mode.Normal;
                 AutoUpdater.ReportErrors = true;
                 // AutoUpdater.AppCastURL = parameters.appUpdateURL;
@@ -9836,7 +9841,7 @@ namespace ASTA
             }
             else
             {
-                _SetStatusLabelText(StatusLabel2, @"Ждите! На сервер загружается новая версия ПО");
+                SetStatusLabelText(StatusLabel2, @"Ждите! На сервер загружается новая версия ПО");
             }
         }
 
@@ -9873,11 +9878,9 @@ namespace ASTA
                     AutoUpdater.Mandatory = true;
                     AutoUpdater.UpdateMode = Mode.ForcedDownload;
                     AutoUpdater.RunUpdateAsAdmin = false;
-
                     AutoUpdater.LetUserSelectRemindLater = false;
                     AutoUpdater.RemindLaterTimeSpan = RemindLaterFormat.Days;
                     AutoUpdater.RemindLaterAt = 2;
-
                     AutoUpdater.DownloadPath = appFolderUpdatePath;
                     AutoUpdater.CheckForUpdateEvent += RunAutoUpdate_Event; //write errors if had no access to the folder
                     AutoUpdater.Start(parameters.appUpdateURL);
@@ -9900,7 +9903,7 @@ namespace ASTA
                     {
                         if (AutoUpdater.DownloadUpdate())
                         {
-                            _SetStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
+                            SetStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
                             UpdatingParameters parameters = MakeStartParametersOfUpdating();
 
                             System.Xml.XmlDocument xmldoc = new System.Xml.XmlDocument();
@@ -9913,7 +9916,7 @@ namespace ASTA
                             logger.Info("");
                             logger.Trace("-= Update =-");
                             logger.Trace("...");
-                            _SetStatusLabelText(
+                            SetStatusLabelText(
                                 StatusLabel2,
                                 @" обнаружена новая версия " + appName + " ver." + foundNewVersionApp);
                             logger.Trace("...");
@@ -9945,19 +9948,21 @@ namespace ASTA
                 }
                 else
                 {
-                    _SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
-                    _SetStatusLabelText(StatusLabel2, @"Новых версий ПО '" + appName + "' не обнаружено");
+                    SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
+                    SetStatusLabelText(StatusLabel2, @"Новых версий ПО '" + appName + "' не обнаружено");
                 }
             }
             else
             {
-                _SetStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
+                SetStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
+                SetStatusLabelText(StatusLabel2, @"Обновление не возможно. Проверьте URL: "+ remoteFolderUpdateURL);
 
-                _SetStatusLabelText(StatusLabel2, @"Update check failed: There is a problem reaching update server URL.");
-                urlUpdateReachError = true;
+                logger.Warn( @"Update check failed: There was a problem reaching update server URL.");
                 logger.Warn(@"Измените формат URL сервера обновлений");
                 logger.Warn(@"Если адрес был server.domain.subdomain/folder -> server/folder");
                 logger.Warn(@"Если адрес был server/folder -> server.domain.subdomain/folder");
+                
+                urlUpdateReachError = true;
             }
         }
         bool urlUpdateReachError = false;
@@ -9996,6 +10001,9 @@ namespace ASTA
             makerXML.status -= SetStatusLabelText;
             makerLinks.status -= SetStatusLabelText;
             preparing.status -= SetStatusLabelText;
+            makerXML = null;
+            makerLinks = null;
+            parameters = null;
 
             return preparing.GetParameters();
         }
@@ -10021,13 +10029,13 @@ namespace ASTA
                     isSecret = false,
                     isExample = "no"
                 });
-                _SetStatusLabelText(StatusLabel2, message);
+                SetStatusLabelText(StatusLabel2, message);
             }
         }
 
         private void Uploading() //UploadApplicationToShare()
         {
-            _SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
+            SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
 
             uploadingStatus = true;
             resultOfUploading = false;
@@ -10047,12 +10055,12 @@ namespace ASTA
             using (Uploader uploader = new Uploader(parameters, source, target))
             {
                 uploader.StatusText += SetStatusLabelText;
-                uploader.StatusColor += _SetStatusLabelBackColor;
+                uploader.StatusColor += SetStatusLabelBackColor;
                 uploader.StatusFinishedUploading += SetUploadingStatus;
                 uploader.Upload();
 
                 uploader.StatusText -= SetStatusLabelText;
-                uploader.StatusColor -= _SetStatusLabelBackColor;
+                uploader.StatusColor -= SetStatusLabelBackColor;
                 uploader.StatusFinishedUploading -= SetUploadingStatus;
             }
             parameters = null;
@@ -10205,7 +10213,7 @@ namespace ASTA
         private void OpenMenuItemsAsLocalAdmin_Click(object sender, EventArgs e)
         {
             VisibleOfAdminMenuItems(true);
-            _SetStatusLabelText(StatusLabel2, "Включено отображение меню как Администратора");
+            SetStatusLabelText(StatusLabel2, "Включено отображение меню как Администратора");
         }
 
         private void VisibleOfAdminMenuItems(bool show)
