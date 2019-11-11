@@ -353,7 +353,7 @@ namespace ASTA
             dbApplication = new System.IO.FileInfo(System.IO.Path.Combine(localAppFolderPath, @"main.db"));
             appDbPath = dbApplication.FullName;
             appDbName = System.IO.Path.GetFileName(appDbPath);
-            sqLiteLocalConnectionString = string.Format("Data Source = {0}; Version=3;", dbApplication); ////$"Data Source={dbApplication.FullName};Version=3;"
+            sqLiteLocalConnectionString = $"Data Source = {dbApplication}; Version=3;"; ////$"Data Source={dbApplication.FullName};Version=3;"
             statusBar = appName + " ver." + appVersionAssembly + " by " + appCopyright;
 
             sLastSelectedElement = "MainForm";
