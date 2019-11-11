@@ -23,6 +23,21 @@ namespace ASTA.Classes
             return sFullNameOnly;
         }
 
+
+        /// <summary>
+        /// string -> decimal. if string is null  return 0
+        /// </summary>
+        /// <param name="number"></param>
+        /// <returns></returns>
+        public static decimal TryParseNumberAsStringToDecimal(this string number)
+        {
+            if (number is null)
+            { return 0; }
+
+            decimal.TryParse(number, out decimal result);
+            return result;
+        }
+
         /// <summary>
         /// Convert date-as-string into array  int[] { 1970, 1, 1 }    .  
         /// date-as-string can be written as 'yyyyMMdd' or 'YYYY-MM-DD' or 'YYYY-MM-DD HH:MM' or 'YYYY-MM-DD HH:MM:SS' or 'YYYY-MM-DD HH:MM:SS.mmm'
@@ -82,7 +97,7 @@ namespace ASTA.Classes
         public static string ConvertTimeIntoStandartTime(this string time) //time HH:MM:SS converted to decimal value
         {
             int[] result = ConvertTimeIntoStandartTimeIntArray(time);
-            return string.Format("{0:d2}:{1:d2}:{2:d2}", result[0], result[1], result[2]);
+            return $"{result[0]:d2}:{result[1]:d2}:{result[2]:d2}";
         }
 
         /// <summary>
@@ -107,6 +122,6 @@ namespace ASTA.Classes
             }
             return new int[] { hours, minutes, seconds };
         }
-    
+
     }
 }

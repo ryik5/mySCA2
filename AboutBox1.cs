@@ -19,20 +19,19 @@ namespace ASTA
             { label.Font = new System.Drawing.Font("Courier New", 8, System.Drawing.FontStyle.Regular); }
 
             string ver1 = System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString();
-            string ver2 = fileVersionInfo.FileVersion;
             // string ver3 = Application.ProductVersion;
 
-            Text = String.Format("{0,-14}{1}", "О программе:", fileVersionInfo.ProductName);
-            labelProductName.Text = String.Format("{0,-14}{1}", "Название:", fileVersionInfo.Comments);
-            labelVersion.Text = String.Format("{0,-14}{1,0} ({2,0})", "Версия:", ver1, ver2);
-            labelCopyright.Text = String.Format("{0,-14}{1}", "Разработчик:", fileVersionInfo.LegalCopyright);
-            labelPath.Text = String.Format("{0,-14}{1}", "Полный путь:", Application.ExecutablePath);
-            labelFile.Text = String.Format("{0,-14}{1}", "Имя файла:", fileVersionInfo.OriginalFilename);
-            labelPC.Text = String.Format("{0,-14}{1}", "Имя ПК:", Environment.MachineName);
-            labelOS.Text = String.Format("{0,-14}{1}", "Верися ОС:", Environment.OSVersion);
-            labelOcupiedRAM.Text = String.Format("{0,-14}{1}", "Память, MB:", (Environment.WorkingSet / 1024 / 1024).ToString());
+            Text = $"{"О программе:",-14}{fileVersionInfo.ProductName}";
+            labelProductName.Text = $"{"Название:",-14}{fileVersionInfo.Comments}" ;
+            labelVersion.Text = $"{"Версия:",-14}{ver1,0} ({fileVersionInfo.FileVersion,0})" ;
+            labelCopyright.Text = $"{"Разработчик:",-14}{fileVersionInfo.LegalCopyright}";
+            labelPath.Text = $"{"Полный путь:",-14}{Application.ExecutablePath}";
+            labelFile.Text = $"{"Имя файла:",-14}{fileVersionInfo.OriginalFilename}";
+            labelPC.Text = $"{"Имя ПК:",-14}{Environment.MachineName}";
+            labelOS.Text = $"{"Версия ОС:",-14}{Environment.OSVersion}";
+            labelOcupiedRAM.Text = $"{"Память,MB:",-14}{(Environment.WorkingSet / 1024 / 1024).ToString()}";
             toolTip1.SetToolTip(labelVersion, "Версия сборки и версия файла");
-            toolTip1.SetToolTip(labelOcupiedRAM, "Занятый приложением объем памяти в RAM");
+            toolTip1.SetToolTip(labelOcupiedRAM, "Объем памяти в RAM, занятый приложением");
             toolTip1.SetToolTip(labelPath, Application.ExecutablePath);
         }
 

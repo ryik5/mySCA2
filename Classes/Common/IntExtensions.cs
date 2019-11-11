@@ -12,15 +12,15 @@ namespace ASTA.Classes
         public static string ConvertSecondsToStringHHMMSS(this int seconds)
         {
             if (seconds == 0)
-                return string.Format("{0:d2}:{1:d2}:{2:d2}", 0, 0, 0);
+                return $"{0:d2}:{0:d2}:{0:d2}";
 
             int hours = seconds / 3600;
             int minutes = (seconds % 3600) / 60;
             int sec = seconds - hours * 3600 - minutes * 60;
 
-            return string.Format("{0:d2}:{1:d2}:{2:d2}", hours, minutes, sec);
+            return $"{hours:d2}:{minutes:d2}:{sec:d2}";
         }
-        
+
         /// <summary>
         /// Convert seconds into array hours and minutes as strings[] {"hh", "MM", "hh:MM"}
         /// </summary>
@@ -30,9 +30,9 @@ namespace ASTA.Classes
         {
             string[] result = new string[3];
             var ts = TimeSpan.FromSeconds(seconds);
-            result[0] = string.Format("{0:d2}", (int)ts.TotalHours);
-            result[1] = string.Format("{0:d2}", (int)ts.Minutes);
-            result[2] = string.Format("{0:d2}:{1:d2}", (int)ts.TotalHours, (int)ts.Minutes);
+            result[0] = $"{(int)ts.TotalHours:d2}";
+            result[1] = $"{(int)ts.Minutes:d2}";
+            result[2] = $"{(int)ts.TotalHours:d2}:{(int)ts.Minutes:d2}";
 
             return result;
         }

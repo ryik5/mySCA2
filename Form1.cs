@@ -353,7 +353,7 @@ namespace ASTA
             dbApplication = new System.IO.FileInfo(System.IO.Path.Combine(localAppFolderPath, @"main.db"));
             appDbPath = dbApplication.FullName;
             appDbName = System.IO.Path.GetFileName(appDbPath);
-            sqLiteLocalConnectionString = $"Data Source = {dbApplication}; Version=3;"; ////$"Data Source={dbApplication.FullName};Version=3;"
+            sqLiteLocalConnectionString = $"Data Source = {appDbPath}; Version=3;"; ////$"Data Source={dbApplication.FullName};Version=3;"
             statusBar = appName + " ver." + appVersionAssembly + " by " + appCopyright;
 
             sLastSelectedElement = "MainForm";
@@ -3046,13 +3046,13 @@ namespace ASTA
                             });
 
                             checkHourS = cell[5];
-                            if (TryParseStringToDecimal(checkHourS) == 0)
+                            if (checkHourS.TryParseNumberAsStringToDecimal() == 0)
                             { checkHourS = numUpHourStart.ToString(); }
 
                             row[Names.DESIRED_TIME_IN] = ConvertStringsTimeToStringHHMM(checkHourS, cell[6]);
 
                             checkHourE = cell[7];
-                            if (TryParseStringToDecimal(checkHourE) == 0)
+                            if (checkHourE.TryParseNumberAsStringToDecimal() == 0)
                             { checkHourE = numUpDownHourEnd.ToString(); }
 
                             row[Names.DESIRED_TIME_OUT] = ConvertStringsTimeToStringHHMM(checkHourE, cell[8]);
@@ -8717,23 +8717,21 @@ namespace ASTA
             //original - var generic = new MimePart("application", "octet-stream") { ContentObject = new ContentObject(new MemoryStream()), IsAttachment = true };
 
             // Set the html version of the message text
-            builder.HtmlBody = string.Format(
-            @"<p><font size='3' color='black' face='Arial'>Здравствуйте,</p>
+            builder.HtmlBody = $@"<p><font size='3' color='black' face='Arial'>Здравствуйте,</p>
             Во вложении «Отчет по учету рабочего времени сотрудников».<p>
-            <b>Период: </b>{0}
-            <br/><b>Подразделение: </b>'{1}'<br/><p>Уважаемые руководители,</p>
+            <b>Период: </b>{period}
+            <br/><b>Подразделение: </b>'{department}'<br/><p>Уважаемые руководители,</p>
             <p>согласно Приказу ГК АИС «О функционировании процессов кадрового делопроизводства»,<br/><br/>
             <b>Внесите,</b> пожалуйста, <b>до конца текущего месяца</b> по сотрудникам подразделения 
             информацию о командировках, больничных, отпусках, прогулах и т.п. <b>на сайт</b> www.ais .<br/><br/>
             Руководители <b>подразделений</b> ЦОК, <b>не отображающихся на сайте,<br/>вышлите, </b>пожалуйста, 
             <b>Табель</b> учета рабочего времени<br/>
             <b>в отдел компенсаций и льгот до последнего рабочего дня месяца.</b><br/></p>
-            <font size='3' color='black' face='Arial'>С, Уважением,<br/>{2}
+            <font size='3' color='black' face='Arial'>С, Уважением,<br/>{NAME_OF_SENDER_REPORTS}
             </font><br/><br/><font size='2' color='black' face='Arial'><i>
             Данное сообщение и отчет созданы автоматически<br/>программой по учету рабочего времени сотрудников.
-            </i></font><br/><font size='1' color='red' face='Arial'><br/>{3}
-            </font></p><hr><img alt='ASTA' src='cid:{4}'/><br/><a href='mailto:ryik.yuri@gmail.com'>_</a>"
-            , period, department, NAME_OF_SENDER_REPORTS, DateTime.Now.ToYYYYMMDDHHMM(), image.ContentId);
+            </i></font><br/><font size='1' color='red' face='Arial'><br/>{DateTime.Now.ToYYYYMMDDHHMM()}
+            </font></p><hr><img alt='ASTA' src='cid:{image.ContentId}'/><br/><a href='mailto:ryik.yuri@gmail.com'>_</a>";
 
             // We may also want to attach a calendar event for Yuri's party...
             //  builder.Attachments.Add(@"C:\Users\Yuri\Documents\party.ics");
@@ -9604,24 +9602,7 @@ namespace ASTA
 
 
 
-        //---- Start. Convertors of data types ----//
-
-        /// <summary>
-        /// string -> decimal. if string is null  return 0
-        /// </summary>
-        /// <param name="number"></param>
-        /// <returns></returns>
-        private decimal TryParseStringToDecimal(string number)
-        {
-            if (number is null)
-            { return 0; }
-
-            decimal.TryParse(number, out decimal result);
-            return result;
-        }
-
-
-        
+        //---- Start. Convertors of data types ----//     
         /// <summary>
         /// result is total_seconds 
         /// </summary>
@@ -9643,7 +9624,7 @@ namespace ASTA
         private static string ConvertStringsTimeToStringHHMM(string hours, string minutes)
         {
             int[] result = ConvertStringsTimeToInt(hours, minutes);
-            return String.Format("{0:d2}:{1:d2}", result[0], result[1]);
+            return $"{result[0]:d2}:{result[1]:d2}";
         }
 
         /// <summary>
@@ -9667,7 +9648,7 @@ namespace ASTA
         /// <returns></returns>
         private static string ConvertDecimalTimeToStringHHMM(decimal hours, decimal minutes)
         {
-            return string.Format("{0:d2}:{1:d2}", (int)hours, (int)minutes);
+            return $"{(int)hours:d2}:{(int)minutes:d2}";
         }
 
         /// <summary>
