@@ -5017,7 +5017,8 @@ namespace ASTA
             else
             {
                 var dir = System.IO.Path.GetDirectoryName(maskFiles);//get path of dir
-                System.IO.FileInfo[] filesPath = new System.IO.DirectoryInfo(dir).GetFiles(
+
+                                               System.IO.FileInfo[] filesPath = new System.IO.DirectoryInfo(dir).GetFiles(
                        maskFiles.Remove(0, maskFiles.LastIndexOf(@"\") + 1),
                        System.IO.SearchOption.AllDirectories); //get files from dir
                 if (filesPath?.Length > 0)
@@ -10014,6 +10015,11 @@ namespace ASTA
             }
         }
 
+       public System.IO.FileInfo ReturnNewFileInfo(string filePath)
+        {
+            return new System.IO.FileInfo(filePath);
+        }
+
         private void Uploading() //UploadApplicationToShare()
         {
             SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
@@ -10027,6 +10033,15 @@ namespace ASTA
                 parameters.localFolderUpdatingURL + @"\" + parameters.appFileXml,
                 parameters.localFolderUpdatingURL + @"\" + parameters.appFileZip
             };
+
+           List< string> source1 = new List<string> {
+                parameters.localFolderUpdatingURL + @"\" + parameters.appFileXml,
+                parameters.localFolderUpdatingURL + @"\" + parameters.appFileZip
+            };
+
+            List<System.IO.Abstractions.IFileInfo> fileSystem = new List<System.IO.Abstractions.IFileInfo>();
+             source1.ForEach(p => fileSystem.Add((System.IO.Abstractions.FileInfoBase)ReturnNewFileInfo(p)));
+
 
             string[] target = {
                 parameters.appUpdateFolderURI + parameters.appFileXml,

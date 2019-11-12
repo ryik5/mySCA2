@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Diagnostics.Contracts;
+using System.IO.Abstractions;
 
 namespace ASTA.Classes.Updating
 {
     public class Uploader : IDisposable
     {
+        readonly IFileSystem fileSystem;
         public delegate void Info<TextEventArgs>(object sender, TextEventArgs e);
         public event Info<TextEventArgs> StatusText;
 
@@ -22,7 +24,9 @@ namespace ASTA.Classes.Updating
         private bool uploadingError = false;
         UpdatingParameters _parameters { get; set; }
 
-        public Uploader(UpdatingParameters parameters, string[] source, string[] target)
+        public Uploader(IFileSystem fileSystem) { this.fileSystem = fileSystem; }
+
+        public Uploader(UpdatingParameters parameters, string[] source, string[] target): this(fileSystem: new FileSystem())     //use default implementation which calls System.IO
         {
             StatusText?.Invoke(this, new TextEventArgs(""));
             _parameters = parameters;
@@ -33,11 +37,9 @@ namespace ASTA.Classes.Updating
         public async void Upload()
         {
             StatusText?.Invoke(this, new TextEventArgs("Начало отправки обновлений..."));
-
             StatusColor?.Invoke(this, new ColorEventArgs( System.Drawing.SystemColors.Control));
             uploadingError = false;
 
-            // ReSharper disable InvocationIsSkipped
             Contract.Requires(_parameters != null);
             Contract.Requires(_parameters.localFolderUpdatingURL != null);
             Contract.Requires(_parameters.appUpdateFolderURI != null);
@@ -48,9 +50,9 @@ namespace ASTA.Classes.Updating
             Contract.Requires(_target.Length == _source.Length);
 
             Func<Task>[] tasks = MakeFuncTask();
+            
             await InvokeAsync(tasks, maxDegreeOfParallelism: 2);
-
-
+            
             if (!uploadingError)
             {
                 StatusText?.Invoke(this, new TextEventArgs("Обновление отправлено -> " + _parameters.remoteFolderUpdatingURL));
@@ -71,15 +73,14 @@ namespace ASTA.Classes.Updating
             for (int index = 0; index < len; index++)
             {
                 int i = index;
-                tasks[i] = (() => UploadApplicationToShare(_source[i], _target[i]));
+                tasks[i] = () => UploadApplicationToShare(_source[i], _target[i]);
             }
 
             return tasks;
         }
 
-#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-        private async Task UploadApplicationToShare(string source, string target)
-#pragma warning restore CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+
+        public async Task UploadApplicationToShare(string source, string target)
         {
             Contract.Requires(!source.Equals(target));
             StatusText?.Invoke(this, new TextEventArgs("Идет отправка файла " + source + " -> " + target));
@@ -144,7 +145,7 @@ namespace ASTA.Classes.Updating
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (!disposedValue)
             {
