@@ -13,7 +13,7 @@ namespace ASTA.Classes
 
         public override string ToString()
         {
-            return _idPoint + "\t" + _namePoint + "\t" + _connectedToServer;
+            return $"{_idPoint}\t{_namePoint}\t{_connectedToServer}";
         }
 
         public override bool Equals(object obj)
@@ -40,7 +40,7 @@ namespace ASTA.Classes
 
         public override string ToString()
         {
-            return _namePoint + " (" + _idPoint + ")";
+            return $"{_namePoint} ({_idPoint})";
         }
 
         public override bool Equals(object obj)

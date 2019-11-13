@@ -36,7 +36,7 @@ namespace ASTA
         //todo!!!!!!!!!
         //Check of All variables, const and controls
         //they will be needed to Remove if they are not needed
-        private DataGridViewOperations dgvo;
+        DataGridViewOperations dgvo;
 
         //logging
         readonly static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
@@ -46,24 +46,20 @@ namespace ASTA
         //System settings
         readonly static string guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения// получаем GIUD приложения
         readonly static string appVersionAssembly = System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString();//Application.ProductVersion;//
-        static System.Diagnostics.FileVersionInfo appFileVersionInfo;
-        static string appCopyright;
-        static string appName;
-        static string appNameXML;
-        static string appFileZip;
-        static string appFileMD5;
 
-        static string remoteFolderUpdateURL; // format - server.domain.subdomain/folder  or   server/folder
-        static string appUpdateURL;          // = appUpdateFolderURL + appNameXML;
-
-        static bool uploadingStatus = false;
-
-        readonly static string appFilePath = Application.ExecutablePath;// System.Reflection.Assembly.GetEntryAssembly().Location;// Application.ExecutablePath;
+        readonly static string appCopyright = Application.CompanyName;// appFileVersionInfo.LegalCopyright;
+        readonly static string appName = Application.ProductName;// appFileVersionInfo.ProductName;;
+        readonly static string fileNameToUpdateXML = $"{appName}.xml";
+        readonly static string fileNameToUpdateZip = $"{appName}.zip";
+        
+        readonly static string filePathApp = Application.ExecutablePath;// System.Reflection.Assembly.GetEntryAssembly().Location;// Application.ExecutablePath;
+        readonly static System.Diagnostics.FileVersionInfo appFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(filePathApp);
+        
         readonly static string localAppFolderPath = Application.StartupPath; //Environment.CurrentDirectory
-        static string appFolderTempPath;
-        static string appFolderUpdatePath;
-        static string appFolderBackUpPath;
-        string domainOfUser = null;
+        readonly static string pathToQueryToCreateMainDb = System.IO.Path.Combine(localAppFolderPath, $"{appName}.sql"); //System.IO.Path.GetFileNameWithoutExtension(appFilePath)
+        readonly static string appFolderTempPath = System.IO.Path.Combine(localAppFolderPath, "Temp");
+        readonly static string appFolderUpdatePath = System.IO.Path.Combine(localAppFolderPath, "Update");
+        readonly static string appFolderBackUpPath = System.IO.Path.Combine(localAppFolderPath, "Backup");
         readonly static string[] appAllFiles =  {
                 @"ASTA.exe" , @"NLog.config", @"AutoUpdater.NET.dll",
                 @"ASTA.sql", @"Google.Protobuf.dll", @"NLog.dll",
@@ -71,28 +67,36 @@ namespace ASTA
                 @"MailKit.dll", @"MimeKit.dll",
                 @"BouncyCastle.Crypto.dll", @"System.Data.SQLite.dll",
                 @"x64\SQLite.Interop.dll", @"x86\SQLite.Interop.dll",
-                
+                //Abstraction for static System.IO library
+                @"System.IO.Abstractions.dll",
                 //Analysing packages
                 @"ASTA.exe.config"
                         };
-        const string appRegistryKey = @"SOFTWARE\RYIK\ASTA";
-
-        static string appQueryCreatingDB;
-
-
+        readonly static string appRegistryKey = @"SOFTWARE\RYIK\ASTA";
+        
         readonly static byte[] keyEncryption = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
         readonly static byte[] keyDencryption = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
 
-        static System.IO.FileInfo dbApplication;
-        static string appDbPath;
-        static string appDbName;
+        readonly static System.IO.FileInfo dbApplication = new System.IO.FileInfo(System.IO.Path.Combine(localAppFolderPath, @"main.db"));      
+        readonly static string appDbPath = dbApplication.FullName;
+        readonly static string appDbName = System.IO.Path.GetFileName(appDbPath);
 
-        static string sqLiteLocalConnectionString; ////$"Data Source={dbApplication.FullName};Version=3;"
+        readonly static string sqLiteLocalConnectionString = $"Data Source = {appDbPath}; Version=3;"; ////$"Data Source={dbApplication.FullName};Version=3;" ////$"Data Source={dbApplication.FullName};Version=3;"
 
         static string sqlServerConnectionString;// = "Data Source=" + serverName + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + userName + ";Password=" + userPasswords + "; Connect Timeout=5";
         static string mysqlServerConnectionStringDB1;//@"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60";
 
 
+        static string remoteFolderUpdateURL; // format - server.domain.subdomain/folder  or   server/folder
+        static string appUpdateURL;          // = appUpdateFolderURL + appNameXML;
+
+        static bool uploadingStatus = false;
+        string appFileMD5;
+        string domain;
+
+            
+            
+            
         //todo
         //Все константы в локальную БД
         //todo
@@ -102,8 +106,6 @@ namespace ASTA
         static string nameOfLastTable;
         static string currentAction = "";
         static bool currentModeAppManual;
-
-        static string statusBar;        //ToolStripStatusBar
 
         // taskbar and logo
         static Bitmap bmpLogo;
@@ -315,19 +317,13 @@ namespace ASTA
         //  int iPanelBorder = 2;
         static readonly int iShiftStart = 300;
         static readonly int iShiftHeightAll = 36;
-
         static readonly int iOffsetBetweenHorizontalLines = 19; //смещение между горизонтальными линиями
         static readonly int iOffsetBetweenVerticalLines = 60; //смещение между "часовыми" линиями
         static readonly int iNumbersOfHoursInDay = 24;        //количество часов в сутках(количество вертикальных часовых линий)
-
         static readonly int iHeightLineWork = 4; //толщина линии рабочего времени на графике
-
         static readonly int iHeightLineRealWork = 14; //толщина линии фактически отработанного веремени на графике
-
-
-
-
-
+        
+               
 
 
         public WinFormASTA()
@@ -338,23 +334,7 @@ namespace ASTA
 
         private void Form1Load()
         {
-            //set startup variables
-            appFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(appFilePath);
-            //  localAppFolderPath = System.IO.Path.GetDirectoryName(appFilePath); //Environment.CurrentDirectory
-            appFolderTempPath = System.IO.Path.Combine(localAppFolderPath, "Temp");
-            appFolderUpdatePath = System.IO.Path.Combine(localAppFolderPath, "Update");
-            appFolderBackUpPath = System.IO.Path.Combine(localAppFolderPath, "Backup");
-            appCopyright = Application.CompanyName;// appFileVersionInfo.LegalCopyright;
-            appName = Application.ProductName;// appFileVersionInfo.ProductName;
-            appNameXML = appName + @".xml";
-            appFileZip = appName + @".zip";
-
-            appQueryCreatingDB = System.IO.Path.Combine(localAppFolderPath, appName + @".sql"); //System.IO.Path.GetFileNameWithoutExtension(appFilePath)
-            dbApplication = new System.IO.FileInfo(System.IO.Path.Combine(localAppFolderPath, @"main.db"));
-            appDbPath = dbApplication.FullName;
-            appDbName = System.IO.Path.GetFileName(appDbPath);
-            sqLiteLocalConnectionString = $"Data Source = {appDbPath}; Version=3;"; ////$"Data Source={dbApplication.FullName};Version=3;"
-            statusBar = appName + " ver." + appVersionAssembly + " by " + appCopyright;
+           string statusInfo = appName + " ver." + appVersionAssembly + " by " + appCopyright;
 
             sLastSelectedElement = "MainForm";
             nameOfLastTable = "PersonRegistrationsList";
@@ -365,7 +345,7 @@ namespace ASTA
             //Начало лога
             logger.Info("");
             logger.Info("");
-            logger.Info("-= " + statusBar + " =-");
+            logger.Info("-= " + statusInfo + " =-");
             logger.Info("");
             logger.Info("");
 
@@ -386,14 +366,14 @@ namespace ASTA
 
             ClearItemsInFolder(appFolderTempPath);   //Clear temporary folder 
             ClearItemsInFolder(appFolderUpdatePath); //System.IO.Path.Combine(appFolderUpdatePath, @"*.*")
-            ClearItemsInFolder(System.IO.Path.Combine(localAppFolderPath, appFileZip));
+            ClearItemsInFolder(System.IO.Path.Combine(localAppFolderPath, fileNameToUpdateZip));
 
             //Make archives:
             //1. from app's *.exe and main lib files of the app
-            MakeZip(appAllFiles, appFileZip);
-            if (System.IO.File.Exists(appFileZip))
+            MakeZip(appAllFiles, fileNameToUpdateZip);
+            if (System.IO.File.Exists(fileNameToUpdateZip))
             {
-                System.IO.File.Move(appFileZip, System.IO.Path.Combine(appFolderBackUpPath, appName + "." + GetSafeFilename(DateTime.Now.ToYYYYMMDDHHMMSS(), "") + @".zip"));
+                System.IO.File.Move(fileNameToUpdateZip, System.IO.Path.Combine(appFolderBackUpPath, appName + "." + GetSafeFilename(DateTime.Now.ToYYYYMMDDHHMMSS(), "") + @".zip"));
             }
             //refresh temp folder
             ClearItemsInFolder(appFolderTempPath); //+ @"\*.*"
@@ -424,23 +404,23 @@ namespace ASTA
             foreach (var table in schemaDB.Tables)
             { logger.Trace("the table is existed: " + table.Key); }
 
-            string txtSQLs = String.Join(" ", ReadTXTFile(appQueryCreatingDB)); //List<string> -> a single string
+            string txtSQLs = String.Join(" ", ReadTXTFile(pathToQueryToCreateMainDb)); //List<string> -> a single string
             DbSchema schemaTXT = DbSchema.ParseSql(txtSQLs);
-            logger.Trace("txtSQL is wanted to make: " + schemaTXT?.Tables?.Count + " tables from: " + appQueryCreatingDB);
+            logger.Trace("txtSQL is wanted to make: " + schemaTXT?.Tables?.Count + " tables from: " + pathToQueryToCreateMainDb);
 
             foreach (var table in schemaTXT.Tables)
             { logger.Trace("the table is wanted: " + table.Key); }
 
             bool equalDB = schemaTXT.Equals(schemaDB);
-            if (equalDB) { logger.Trace("Схема конфигурации текущей БД соответствует схеме загруженной с файла: " + appQueryCreatingDB); }
-            else { logger.Info("Схема конфигурации текущей БД Отличается от схеме загруженной с файла: " + appQueryCreatingDB); }
+            if (equalDB) { logger.Trace("Схема конфигурации текущей БД соответствует схеме загруженной с файла: " + pathToQueryToCreateMainDb); }
+            else { logger.Info("Схема конфигурации текущей БД Отличается от схеме загруженной с файла: " + pathToQueryToCreateMainDb); }
 
             logger.Trace("tables in loaded DB: " + schemaDB?.Tables?.Count + ", " + " must be tables: " + schemaTXT?.Tables?.Count);
 
             if (currentDbEmpty || !equalDB || !(schemaDB.Tables.Equals(schemaTXT.Tables)))
             {
                 logger.Info("Заполняю схему локальной DB");
-                TryMakeLocalDB(appQueryCreatingDB);
+                TryMakeLocalDB(pathToQueryToCreateMainDb);
             }
 
 
@@ -519,7 +499,7 @@ namespace ASTA
             numUpDownHourEnd.Value = 18;
             numUpDownMinuteEnd.Value = 0;
 
-            StatusLabel1.Text = statusBar;
+            StatusLabel1.Text = statusInfo;
             StatusLabel1.Alignment = ToolStripItemAlignment.Right;
 
             /////////////////////////////////
@@ -632,7 +612,7 @@ namespace ASTA
                         resultParameters += (p.name + " is empty\n\r");
                     }
 
-                    logger.Warn("Empty parameters in local config db: " + resultParameters);
+                    logger.Warn($"Empty parameters in local config db: {resultParameters}");
                 }
             }
 
@@ -738,7 +718,7 @@ namespace ASTA
                 }
 
                 logger.Trace("ReadTXTFile");
-                SetStatusLabelText(StatusLabel2, "Читаю файл: " + fpath);
+                SetStatusLabelText(StatusLabel2, $"Читаю файл: {fpath}");
                 try
                 {
                     using (System.IO.StreamReader Reader =
@@ -754,12 +734,12 @@ namespace ASTA
                 catch (Exception err)
                 {
                     readOk = false;
-                    logger.Warn("Не могу прочитать файл: " + fpath + " \nException: " + err.ToString());
+                    logger.Warn($"Не могу прочитать файл: {fpath} \nException: {err.ToString()}");
                 }
 
                 if (!readOk)
                 {
-                    SetStatusLabelText(StatusLabel2, "Не могу прочитать файл: " + fpath, true);
+                    SetStatusLabelText(StatusLabel2, $"Не могу прочитать файл: {fpath}", true);
                 }
                 else
                 {
@@ -784,7 +764,7 @@ namespace ASTA
             List<string> txt = ReadTXTFile(fpath);
             string query = string.Empty;
 
-            SetStatusLabelText(StatusLabel2, "Создаю таблицы в БД на основе запроса из текстового файла: " + fpath);
+            SetStatusLabelText(StatusLabel2, $"Создаю таблицы в БД на основе запроса из текстового файла: {fpath}");
             using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
             {
                 dbWriter.Status += AddLoggerTraceText;
@@ -796,7 +776,7 @@ namespace ASTA
                     { query = s.Trim(); }
                     else { query += s.Trim(); }
 
-                    logger.Trace("query: " + query);
+                    logger.Trace($"query: {query}");
                     if (s.EndsWith(";"))
                     {
                         dbWriter.Execute(query);
@@ -821,7 +801,7 @@ namespace ASTA
 
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
                 {
-                    logger.Trace("query: " + query);
+                    logger.Trace($"query: {query}");
                     dbWriter.Status += AddLoggerTraceText;
                     using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter.sqlConnection))
                     {
@@ -897,7 +877,7 @@ namespace ASTA
                             catch (Exception err) { logger.Info(err.ToString()); }
                         }
                     }
-                    logger.Trace("LoadPreviouslySavedParameters: query: " + query + "\n" + count + " rows loaded from 'LastTakenPeopleComboList'");
+                    logger.Trace($"LoadPreviouslySavedParameters: query: {query}\n{count} rows loaded from 'LastTakenPeopleComboList'");
 
                     query = "SELECT FIO FROM PeopleGroup;";
                     count = 0;
@@ -914,7 +894,7 @@ namespace ASTA
                                 count++;
                             }
                         }
-                    logger.Trace("LoadPreviouslySavedParameters: query:" + query + "\n" + count + " rows loaded from 'PeopleGroup'");
+                    logger.Trace($"LoadPreviouslySavedParameters: query: {query}\n{count} rows loaded from 'PeopleGroup'");
                 }
 
                 //loading parameters
@@ -948,7 +928,7 @@ namespace ASTA
                 string defaultURL = remoteFolderUpdateURL;
                 remoteFolderUpdateURL = GetValueOfConfigParameter(listParameters, @"RemoteFolderUpdateURL", defaultURL);
 
-                domainOfUser = GetValueOfConfigParameter(listParameters, @"DomainOfUser", null);
+                domain = GetValueOfConfigParameter(listParameters, @"DomainOfUser", null);
             }
 
             //set app's variables
@@ -966,8 +946,8 @@ namespace ASTA
                 mysqlServerUserName = mysqlServerUserNameRegistry?.Length > 0 ? mysqlServerUserNameRegistry : mysqlServerUserNameDB;
                 mysqlServerUserPassword = mysqlServerUserPasswordRegistry?.Length > 0 ? mysqlServerUserPasswordRegistry : mysqlServerUserPasswordDB;
 
-                sqlServerConnectionString = "Data Source=" + sServer1 + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=30";
-                mysqlServerConnectionStringDB1 = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60";
+                sqlServerConnectionString = $"Data Source={sServer1}\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID={sServer1UserName};Password={sServer1UserPassword};Connect Timeout=30";
+                mysqlServerConnectionStringDB1 = $"server={mysqlServer};User={mysqlServerUserName};Password={mysqlServerUserPassword};database=wwwais;convert zero datetime=True;Connect Timeout=60";
 
                 clrRealRegistration = clrRealRegistrationRegistry != Color.PaleGreen ? clrRealRegistrationRegistry : Color.PaleGreen;
             }
@@ -985,7 +965,7 @@ namespace ASTA
                     break;
             }
 
-            logger.Trace("LoadPreviouslySavedParameters: " + nameof(modeApp) + " - " + modeApp + ", " + nameof(currentModeAppManual) + " - " + currentModeAppManual);
+            logger.Trace($"LoadPreviouslySavedParameters: {nameof(modeApp)} - {modeApp}, {nameof(currentModeAppManual)} - {currentModeAppManual}");
         }
 
         private string GetValueOfConfigParameter(List<ParameterConfig> listOfParameters, string nameParameter, string defaultValue, bool pass = false)
@@ -1009,9 +989,7 @@ namespace ASTA
         }
 
         private void RefreshConfigInMainDBItem_Click(object sender, EventArgs e)
-        {
-            AddExceptedParametersIntoConfigurationDb();
-        }
+        { AddExceptedParametersIntoConfigurationDb(); }
 
         private void AddExceptedParametersIntoConfigurationDb()    //add not existed example of parameters into ConfigTable in the Main Local DB
         {
@@ -1025,7 +1003,7 @@ namespace ASTA
 
             foreach (string sParameter in Names.allParametersOfConfig)
             {
-                logger.Trace("looking for: " + sParameter + " in local DB");
+                logger.Trace($"looking for: {sParameter} in local DB");
                 if (!listParameters.Any(x => x?.name == sParameter))
                 {
                     parameterOfConfiguration = new ParameterOfConfigurationBuilder().
@@ -1036,7 +1014,7 @@ namespace ASTA
                         SetIsExample("yes");
 
                     string resultSaving = config.SaveParameter(parameterOfConfiguration);
-                    logger.Info("Попытка добавить новый параметр в конфигурацию: " + resultSaving);
+                    logger.Info($"Попытка добавить новый параметр в конфигурацию: {resultSaving}");
                 }
             }
             config.status -= AddLoggerTraceText;
@@ -1055,7 +1033,7 @@ namespace ASTA
             EnableMainMenuItems(false);
 
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             _VisibleControl(panelView, false);
             ClearButtonClickEvent(btnPropertiesSave);
@@ -1100,7 +1078,7 @@ namespace ASTA
         private void InitializeParameterFormSettings(List<ParameterConfig> listParameters)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             panelViewResize(numberPeopleInLoading);
 
@@ -1231,7 +1209,7 @@ namespace ASTA
         private void ButtonPropertiesSave_inConfig(object sender, EventArgs e) //SaveProperties()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
             string textLabel = _ReturnTextOfControl(labelSettings9);
 
             ParameterConfig parameter = new ParameterConfig()
@@ -1271,18 +1249,18 @@ namespace ASTA
         private void ShowDataTableDbQuery(System.IO.FileInfo dbApplication, string myTable, string mySqlQuery, string mySqlWhere) //Query data from the Table of the DB
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
             DataTable dt;
 
             if (dbApplication.Exists)
             {
-                string query = mySqlQuery + " FROM '" + myTable + "' " + mySqlWhere + "; ";
+                string query = $"{mySqlQuery} FROM '{myTable}' {mySqlWhere};";
                 using (SqLiteDbReader dbReader = new SqLiteDbReader(sqLiteLocalConnectionString, dbApplication))
                 {
                     dt = dbReader.GetDataTable(query);
                 }
                 iCounterLine = dt.Rows.Count;
-                logger.Trace("ShowDataTableDbQuery: " + iCounterLine);
+                logger.Trace($"ShowDataTableDbQuery: {iCounterLine}");
 
                 dgvo.ShowData(dataGridView1, dt);
                 dt?.Dispose();
@@ -1294,7 +1272,7 @@ namespace ASTA
         private void ShowDatatableOnDatagridview(DataTable dt, string nameLastTable, string[] nameHidenColumnsArray1 = null) //Query data from the Table of the DB
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             using (DataTable dataTable = dt.Copy())
             {
@@ -1304,7 +1282,7 @@ namespace ASTA
                         try { dataTable.Columns[nameHidenColumnsArray1[i]].ColumnMapping = MappingType.Hidden; } catch { }
                 }
 
-                SetStatusLabelText(StatusLabel2, "Всего записей: " + dataTable.Rows.Count);
+                SetStatusLabelText(StatusLabel2, $"Всего записей: {dataTable.Rows.Count}");
                 dgvo.ShowData(dataGridView1, dataTable);
             }
             nameOfLastTable = nameLastTable;
@@ -1318,12 +1296,10 @@ namespace ASTA
             {
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
                 {
-                    logger.Trace("query: " + query);
+                    logger.Trace($"query: {query}");
                     dbWriter.Status += AddLoggerTraceText;
 
-#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
                     using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter.sqlConnection))
-#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
                     {
                         dbWriter.Execute(SqlQuery);
                     }
@@ -1339,10 +1315,9 @@ namespace ASTA
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
 
             string result = string.Empty;
-            string query = "DELETE FROM '" + myTable + "' Where " + sqlParameter1 + "= @" + sqlParameter1 +
-                           " AND " + sqlParameter2 + "= @" + sqlParameter2 + " AND " + sqlParameter3 + "= @" + sqlParameter3 +
-                           " AND " + sqlParameter4 + "= @" + sqlParameter4 + " AND " + sqlParameter5 + "= @" + sqlParameter5 +
-                           " AND " + sqlParameter6 + "= @" + sqlParameter6 + ";";
+            string query = $"DELETE FROM '{myTable}' Where {sqlParameter1}= @" + sqlParameter1 +
+                           $" AND {sqlParameter2}= @{sqlParameter2} AND {sqlParameter3}= @" + sqlParameter3 +
+                           $" AND {sqlParameter4}= @{sqlParameter4} AND {sqlParameter5}= @{sqlParameter5} AND {sqlParameter6}= @{sqlParameter6};";
 
             if (dbApplication.Exists)
             {
@@ -1366,9 +1341,9 @@ namespace ASTA
                     else if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0 && sqlParameter4.Length > 0
                         && sqlParameter5.Length > 0)
                     {
-                        query = "DELETE FROM '" + myTable + "' Where " + sqlParameter1 + "= @" + sqlParameter1 +
-                            " AND " + sqlParameter2 + "= @" + sqlParameter2 + " AND " + sqlParameter3 + "= @" + sqlParameter3 +
-                            " AND " + sqlParameter4 + "= @" + sqlParameter4 + " AND " + sqlParameter5 + "= @" + sqlParameter5 + ";";
+                        query = $"DELETE FROM '{myTable}' Where {sqlParameter1}= @" + sqlParameter1 +
+                            $" AND {sqlParameter2}= @{sqlParameter2} AND {sqlParameter3}= @" + sqlParameter3 +
+                            $" AND {sqlParameter4}= @{sqlParameter4} AND {sqlParameter5}= @{sqlParameter5};";
 
                         sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
                         sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
@@ -1387,9 +1362,8 @@ namespace ASTA
                     }
                     else if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0)
                     {
-                        query = "DELETE FROM '" + myTable + "' Where " + sqlParameter1 + "= @" +
-                            sqlParameter1 + " AND " + sqlParameter2 + "= @" + sqlParameter2 + " AND " +
-                            sqlParameter3 + "= @" + sqlParameter3 + ";";
+                        query = $"DELETE FROM '{myTable}' Where {sqlParameter1}= @" + sqlParameter1 +
+                            $" AND {sqlParameter2}= @{sqlParameter2} AND {sqlParameter3}= @{sqlParameter3};";
 
                         sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
                         sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
@@ -1399,8 +1373,7 @@ namespace ASTA
                     }
                     else if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0)
                     {
-                        query = "DELETE FROM '" + myTable + "' Where " + sqlParameter1 + "= @" + sqlParameter1 + " AND " +
-                            sqlParameter2 + "= @" + sqlParameter2 + ";";
+                        query = $"DELETE FROM '{myTable}' Where {sqlParameter1}= @{sqlParameter1} AND {sqlParameter2}= @{sqlParameter2};";
 
                         sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
                         sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
@@ -1408,15 +1381,16 @@ namespace ASTA
                     }
                     else if (sqlParameter1.Length > 0)
                     {
-                        query = "DELETE FROM '" + myTable + "' Where " + sqlParameter1 + "= @" + sqlParameter1 + ";";
+                        query = $"DELETE FROM '{myTable}' Where {sqlParameter1}= @{sqlParameter1};";
 
                         sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
                         sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
                     }
                     dbWriter.Execute(sqlCommand);
 
-                    logger.Trace("query: " + query);
+                    logger.Trace($"query: {query}");
                     dbWriter.Status -= AddLoggerTraceText;
+                    sqlCommand?.Dispose();
                 }
             }
         }
@@ -1427,11 +1401,11 @@ namespace ASTA
             //stop checking last registrations
             checkInputsOutputs = false;
 
-            stimerCurr = ("Проверка доступности " + serverName + ". Ждите окончания процесса...");
+            stimerCurr = $"Проверка доступности {serverName}. Ждите окончания процесса...";
             bServer1Exist = false;
 
             string query = "SELECT database_id FROM sys.databases WHERE Name ='intellect' ";
-            AddLoggerTraceText("CheckAliveIntellectServer: query: " + query);
+            AddLoggerTraceText($"CheckAliveIntellectServer: query: {query}");
 
             try
             {
@@ -1440,27 +1414,26 @@ namespace ASTA
                     sqlDbTableReader.Status += AddLoggerTraceText;
                     sqlDbTableReader.GetData(query);
                     bServer1Exist = true;
+                    AddLoggerTraceText($"Сервер {serverName} с SQL БД СКД-сервера доступен");
                 }
             }
             catch (Exception err)
             {
-                AddLoggerTraceText("Ошибка доступа к " + serverName + " SQL БД СКД-сервера! " + err.ToString());
+                AddLoggerTraceText($"Ошибка доступа к {serverName} SQL БД СКД-сервера! {err.ToString()}");
             }
             stimerCurr = "Ждите!";
         }
 
 
         private async void GetADUsersItem_Click(object sender, EventArgs e)
-        {
-            await Task.Run(() => GetUsersFromAD());
-        }
+        { await Task.Run(() => GetUsersFromAD()); }
 
         private void GetUsersFromAD()
         {
             stimerCurr = null;
 
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             logger.Trace("GetUsersFromAD: ");
             string user = null;
@@ -1476,15 +1449,15 @@ namespace ASTA
             user = listParameters.FindLast(x => x?.name == @"UserName")?.value;
             password = listParameters.FindLast(x => x?.name == @"UserPassword")?.value;
             domainController = listParameters.FindLast(x => x?.name == @"DomainController")?.value;
-            domainOfUser = listParameters.FindLast(x => x?.name == @"DomainOfUser")?.value;
+            domain = listParameters.FindLast(x => x?.name == @"DomainOfUser")?.value;
 
-            logger.Trace("user, domain, password, server: " + user + " |" + domainOfUser + " |" + password + " |" + domainController);
+            logger.Trace($"user, domain, password, server: {user} |{domain} |{password} |{domainController}");
 
-            if (user?.Length > 0 && password?.Length > 0 && domainOfUser?.Length > 0 && domainController?.Length > 0)
+            if (user?.Length > 0 && password?.Length > 0 && domain?.Length > 0 && domainController?.Length > 0)
             {
-                SetStatusLabelText(StatusLabel2, "Получаю данные из домена: " + domainOfUser);
+                SetStatusLabelText(StatusLabel2, $"Получаю данные из домена: {domain}");
 
-                ad = new ADData(user, domainOfUser, password, domainController);
+                ad = new ADData(user, domain, password, domainController);
                 ad.Info += SetStatusLabelText;
 
                 ad.Trace += AddLoggerTraceText;
@@ -1497,22 +1470,22 @@ namespace ASTA
 
                 usersAD.Sort();
 
-                logger.Trace("GetUsersFromAD: count users in list: " + usersAD?.Count);
-                AddLoggerTraceText("Из домена " + domainOfUser + " получено " + usersAD?.Count + " ФИО сотрудников");
+                logger.Trace($"GetUsersFromAD: count users in list: {usersAD?.Count}");
+                AddLoggerTraceText($"Из домена {domain} получено {usersAD?.Count} учетных записей");
 
                 //передать дальше в обработку:
                 foreach (var person in usersAD)
                 {
-                    AddLoggerTraceText(person?.fio + " |" + person?.login + " |" + person?.code + " |" + person?.mail + " |" + person?.lastLogon);
+                    AddLoggerTraceText($"{person?.fio} |{person?.login} |{person?.code} |{person?.mail} |{person?.lastLogon}");
                 }
             }
             else
             {
-                logger.Error("Ошибка доступа к домену. " + "user: " + user + " |domain: " + domainOfUser + " |password: " + password + " |server: " + domainController);
+                logger.Error($"Ошибка доступа к домену. user: {user} |domain: {domain} |password: {password} |server: {domainController}");
 
                 SetStatusLabelText(
                     StatusLabel2,
-                    "Ошибка доступа к домену " + domainOfUser,
+                    $"Ошибка доступа к домену {domain}",
                     true);
             }
             stimerCurr = "Ждите!";
@@ -1583,13 +1556,13 @@ namespace ASTA
         private void DoListsFioGroupsMailings()  //  GetDataFromRemoteServers()  ImportTablePeopleToTableGroupsInLocalDB()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             countGroups = 0;
             countUsers = 0;
             countMailers = 0;
 
-            if (currentAction != @"sendEmail")
+            if (currentAction != "sendEmail")
             { SetStatusLabelText(StatusLabel2, "Получаю данные с серверов..."); }
 
             //Get list people FIO and mail from AD
@@ -1600,22 +1573,22 @@ namespace ASTA
                 //Get list FIO + chief from www and SCA
                 GetDataFromRemoteServers(dtTempIntermediate, peopleShifts);
 
-                if (currentAction != @"sendEmail")
+                if (currentAction != "sendEmail")
                 { SetStatusLabelText(StatusLabel2, "Формирую и записываю группы в локальную базу..."); }
                 WriteGroupsMailingsInLocalDb(dtTempIntermediate, peopleShifts);
 
-                if (currentAction != @"sendEmail")
+                if (currentAction != "sendEmail")
                 { SetStatusLabelText(StatusLabel2, "Записываю ФИО в локальную базу..."); }
 
                 WritePeopleInLocalDB(dbApplication.ToString(), dtTempIntermediate);
 
-                if (currentAction != @"sendEmail")
+                if (currentAction != "sendEmail")
                 {
                     dtPersonTemp = LeaveAndOrderColumnsOfDataTable(dtTempIntermediate, Names.orderColumnsFIO);
 
                     ShowDatatableOnDatagridview(dtPersonTemp, "ListFIO");
 
-                    SetStatusLabelText(StatusLabel2, "Записано в локальную базу: " + countUsers + " ФИО, " + countGroups + " групп и " + countMailers + " рассылок");
+                    SetStatusLabelText(StatusLabel2, $"Записано в локальную базу: {countUsers} ФИО, {countGroups} групп и {countMailers} рассылок");
                 }
             }
         }
@@ -1624,7 +1597,7 @@ namespace ASTA
         private void GetDataFromRemoteServers(DataTable dataTablePeople, List<PeopleShift> peopleShifts)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             EmployeeFull personFromServer = new EmployeeFull();
             DataRow row;
@@ -1647,7 +1620,7 @@ namespace ASTA
             Department departmentFromDictionary;
 
             _ClearComboBox(comboBoxFio);
-            SetStatusLabelText(StatusLabel2, "Запрашиваю данные с " + sServer1 + ". Ждите окончания процесса...");
+            SetStatusLabelText(StatusLabel2, $"Запрашиваю данные с {sServer1}. Ждите окончания процесса...");
 
 
             try
@@ -1681,7 +1654,7 @@ namespace ASTA
                 using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
                 {
                     query = "SELECT id,level_id,name,owner_id,parent_id,region_id,schedule_id FROM OBJ_DEPARTMENT";
-                    AddLoggerTraceText("from SCA server, query: " + query);
+                    AddLoggerTraceText($"from SCA server, query: {query}");
                     sqlDbTableReader.Status += AddLoggerTraceText;
 
                     //import group from MSSQL SCA server
@@ -1710,7 +1683,7 @@ namespace ASTA
                 using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
                 {
                     query = "SELECT id, name, surname, patronymic, post, tabnum, parent_id, facility_code, card FROM OBJ_PERSON WHERE is_locked = '0' AND facility_code NOT LIKE '' AND card NOT LIKE '' ";
-                    AddLoggerTraceText("query: " + query);
+                    AddLoggerTraceText($"query: {query}");
                     sqlDbTableReader.Status += AddLoggerTraceText;
 
                     using (System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetData(query))
@@ -1758,7 +1731,7 @@ namespace ASTA
                 // import users, shifts and group from web DB
                 int tmpSeconds = 0;
                 groupName = mysqlServer;
-                SetStatusLabelText(StatusLabel2, "Запрашиваю данные с " + mysqlServer + ". Ждите окончания процесса...");
+                SetStatusLabelText(StatusLabel2, $"Запрашиваю данные с {mysqlServer}. Ждите окончания процесса...");
 
 
                 // import departments from web DB
@@ -1766,7 +1739,7 @@ namespace ASTA
                 {
                     query = "SELECT id, parent_id, name, boss_code FROM dep_struct ORDER by id";
 
-                    AddLoggerTraceText("query: " + query);
+                    AddLoggerTraceText($"query: {query}");
                     mysqlDbTableReader.Status += AddLoggerTraceText;
 
                     using (MySql.Data.MySqlClient.MySqlDataReader mysqlData = mysqlDbTableReader.GetData(query))
@@ -1795,7 +1768,7 @@ namespace ASTA
                 {
                     query = "Select code,start_date,mo_start,mo_end,tu_start,tu_end,we_start,we_end,th_start,th_end,fr_start,fr_end, " +
                                     "sa_start,sa_end,su_start,su_end,comment FROM work_time ORDER by start_date";
-                    AddLoggerTraceText("query: " + query);
+                    AddLoggerTraceText($"query: {query}");
                     mysqlDbTableReader.Status += AddLoggerTraceText;
 
                     using (MySql.Data.MySqlClient.MySqlDataReader mysqlData = mysqlDbTableReader.GetData(query))
@@ -1856,7 +1829,7 @@ namespace ASTA
                 {
                     query = "Select code, family_name, first_name, last_name, vacancy, department, boss_id, city FROM personal " + confitionToLoad;//where hidden=0
 
-                    AddLoggerTraceText("query: " + query);
+                    AddLoggerTraceText($"query: {query}");
                     mysqlDbTableReader.Status += AddLoggerTraceText;
 
                     using (MySql.Data.MySqlClient.MySqlDataReader mysqlData = mysqlDbTableReader.GetData(query))
@@ -1894,7 +1867,7 @@ namespace ASTA
                                 dayStartShift = peopleShifts.FindLast((x) => x._nav == personFromServer.code)._dayStartShift;
                                 if (dayStartShift?.Length > 0)
                                 {
-                                    personFromServer.Shift = "Индивидуальный график с " + dayStartShift;
+                                    personFromServer.Shift = $"Индивидуальный график с {dayStartShift}";
 
                                     tmpSeconds = peopleShifts.FindLast((x) => x._nav == personFromServer.code)._MoStart;
                                     personFromServer.ControlInHHMM = tmpSeconds.ConvertSecondsIntoStringsHHmmArray()[2];
@@ -1904,7 +1877,7 @@ namespace ASTA
 
                                     personFromServer.Comment = peopleShifts.FindLast((x) => x._nav == personFromServer.code)._Comment;
 
-                                    AddLoggerTraceText("Индивидуальный график с " + dayStartShift + " " + personFromServer.code + " " + personFromServer.Comment);
+                                    AddLoggerTraceText($"Индивидуальный график с {dayStartShift} {personFromServer.code} {personFromServer.Comment}");
                                 }
 
 
@@ -1937,12 +1910,12 @@ namespace ASTA
 
                 dataTablePeople.AcceptChanges();
 
-                AddLoggerTraceText("departments.count: " + departments.Count);
+                AddLoggerTraceText($"departments.count: {departments.Count}");
                 SetStatusLabelText(StatusLabel2, "ФИО и наименования департаментов получены.");
             }
             catch (Exception err)
             {
-                AddLoggerTraceText("departments.count: " + err.ToString());
+                AddLoggerTraceText($"departments.count: {err.ToString()}");
 
                 SetStatusLabelText(
                     StatusLabel2,
@@ -1957,7 +1930,7 @@ namespace ASTA
         private void WriteGroupsMailingsInLocalDb(DataTable dataTablePeople, List<PeopleShift> peopleShifts)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             SetStatusLabelText(StatusLabel2, "Формирую обновленные списки ФИО, департаментов и рассылок...");
 
@@ -2036,7 +2009,7 @@ namespace ASTA
             }
             foreach (var dep in groups)
             {
-                logger.Trace(dep.Value._departmentId + " " + dep.Value._departmentDescription + " " + dep.Value._departmentBossCode + " " + dep.Value._departmentBossEmail);
+                logger.Trace($"{dep.Value._departmentId} {dep.Value._departmentDescription} {dep.Value._departmentBossCode} {dep.Value._departmentBossEmail}");
             }
             logger.Trace("groups.count: " + groups.Distinct().Count());
 
@@ -2162,7 +2135,7 @@ namespace ASTA
                                 try { sqlCommand.ExecuteNonQuery(); } catch { }
                             }
 
-                            logger.Trace("SaveMailing: " + recipientEmail + " " + depName + " " + depDescr);
+                            logger.Trace($"SaveMailing: {recipientEmail} {depName} {depDescr}");
                         }
                         _ProgressWork1Step();
                     }
@@ -2234,7 +2207,7 @@ namespace ASTA
         private async void Export_Click(object sender, EventArgs e)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             _ProgressBar1Start();
             _EnableMenuItem(FunctionMenuItem, false);
@@ -2242,7 +2215,7 @@ namespace ASTA
             _EnableMenuItem(GroupsMenuItem, false);
             _EnableControl(dataGridView1, false);
 
-            filePathExcelReport = System.IO.Path.Combine(localAppFolderPath, "InputOutputs " + DateTime.Now.ToString("yyyyMMdd_HHmmss"));
+            filePathExcelReport = System.IO.Path.Combine(localAppFolderPath, $"InputOutputs {DateTime.Now.ToString("yyyyMMdd_HHmmss")}");
 
             await Task.Run(() => ExportDatatableSelectedColumnsToExcel(dtPersonTemp, "InputOutputsOfStaff", filePathExcelReport).GetAwaiter().GetResult());
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer.exe", " /select, " + filePathExcelReport + @".xlsx")); // //System.Reflection.Assembly.GetExecutingAssembly().Location)
@@ -2257,7 +2230,7 @@ namespace ASTA
         private string TryToMakeNameFile(string fileName)
         {
             string pathToFile = fileName;
-            if (System.IO.File.Exists(fileName + @".xlsx"))
+            if (System.IO.File.Exists($"{fileName}.xlsx"))
             {
                 pathToFile = fileName + "_1";
                 TryToMakeNameFile(pathToFile);
@@ -2269,7 +2242,7 @@ namespace ASTA
         private async Task ExportDatatableSelectedColumnsToExcel(DataTable dataTable, string nameReport, string filePath)  //Export DataTable to Excel 
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             string pathToFile = TryToMakeNameFile(filePath);
 
@@ -2293,9 +2266,9 @@ namespace ASTA
                 dtExport = dv.ToTable();
             }
 
-            logger.Trace("Сортировка: " + sort);
-            logger.Trace("В таблице " + dataTable.TableName + " столбцов всего - " + dtExport.Columns.Count + ", строк - " + dtExport.Rows.Count);
-            SetStatusLabelText(StatusLabel2, "Генерирую Excel-файл по отчету: '" + nameReport + "'");
+            logger.Trace($"Сортировка: {sort}");
+            logger.Trace($"В таблице {dataTable.TableName} столбцов - {dtExport.Columns.Count}, строк - {dtExport.Rows.Count}");
+            SetStatusLabelText(StatusLabel2, $"Генерирую Excel-файл по отчету: '{nameReport}'");
             _ProgressWork1Step();
 
             Microsoft.Office.Interop.Excel.Application excel = new Microsoft.Office.Interop.Excel.Application
@@ -2361,7 +2334,7 @@ namespace ASTA
                     Microsoft.Office.Interop.Excel.Range rangeColumnB = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(Names.EMPLOYEE_EARLY_DEPARTURE)) + 1)];
                     rangeColumnB.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
-                catch (Exception err) { logger.Warn("Нарушения: " + err.ToString()); }
+                catch (Exception err) { logger.Warn($"Нарушения: {err.ToString()}"); }
                 _ProgressWork1Step();
 
                 try
@@ -2369,28 +2342,28 @@ namespace ASTA
                     Microsoft.Office.Interop.Excel.Range rangeColumnC = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(@"Отпуск")) + 1)];
                     rangeColumnC.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
-                catch (Exception err) { logger.Warn("Отпуск: " + err.ToString()); }
+                catch (Exception err) { logger.Warn($"Отпуск: {err.ToString()}"); }
 
                 try
                 {
                     Microsoft.Office.Interop.Excel.Range rangeColumnD = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(Names.EMPLOYEE_HOOKY)) + 1)];
                     rangeColumnD.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
-                catch (Exception err) { logger.Warn("Отгул: " + err.ToString()); }
+                catch (Exception err) { logger.Warn($"Отгул: {err.ToString()}"); }
 
                 try
                 {
                     Microsoft.Office.Interop.Excel.Range rangeColumnE = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(Names.EMPLOYEE_SICK_LEAVE)) + 1)];
                     rangeColumnE.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
-                catch (Exception err) { logger.Warn("Больничный: " + err.ToString()); }
+                catch (Exception err) { logger.Warn($"Больничный: {err.ToString()}"); }
 
                 try
                 {
                     Microsoft.Office.Interop.Excel.Range rangeColumnF = sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(Names.EMPLOYEE_ABSENCE)) + 1)];
                     rangeColumnF.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
-                catch (Exception err) { logger.Warn("Отсутствовал: " + err.ToString()); }
+                catch (Exception err) { logger.Warn($"Отсутствовал: {err.ToString()}"); }
                 _ProgressWork1Step();
 
                 //first row
@@ -2463,7 +2436,7 @@ namespace ASTA
                     System.Reflection.Missing.Value);
                 _ProgressWork1Step();
 
-                SetStatusLabelText(StatusLabel2, "Отчет сохранен в файл: " + pathToFile + @".xlsx");
+                SetStatusLabelText(StatusLabel2, $"Отчет сохранен в файл: {pathToFile}.xlsx");
 
                 filePath = pathToFile;
                 _SetStatusLabelForeColor(StatusLabel2, Color.Black);
@@ -2510,7 +2483,7 @@ namespace ASTA
             catch (Exception ex)
             {
                 obj = null;
-                logger.Trace("Exception releasing object of Excel: " + ex.Message);
+                logger.Trace($"Exception releasing object of Excel: {ex.ToString()}");
             }
             finally
             { GC.Collect(); }
@@ -2539,7 +2512,7 @@ namespace ASTA
         private void SelectFioAndNavFromCombobox()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             textBoxFIO.Text = "";
             textBoxNav.Text = "";
@@ -2583,7 +2556,7 @@ namespace ASTA
         private void CreateGroupItem_Click(object sender, EventArgs e)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             if (textBoxGroup.Text.Trim().Length > 0)
             {
@@ -2598,7 +2571,7 @@ namespace ASTA
         private void CreateGroupInDB(System.IO.FileInfo fileInfo, string nameGroup, string descriptionGroup)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             if (nameGroup.Length > 0)
             {
@@ -2625,7 +2598,7 @@ namespace ASTA
         private void ListGroups()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             _VisibleControl(groupBoxProperties, false);
             _VisibleControl(dataGridView1, false);
@@ -2657,7 +2630,7 @@ namespace ASTA
         private void UpdateAmountAndRecepientOfPeopleGroupDescription()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             logger.Trace("UpdateAmountAndRecepientOfPeopleGroupDescription");
             List<string> groupsUncount = new List<string>();
@@ -2836,7 +2809,7 @@ namespace ASTA
         private void SeekAndShowMembersOfGroup(string nameGroup)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             using (var dtTemp = dtPeople.Clone())
             {
@@ -2905,7 +2878,7 @@ namespace ASTA
         private void AddPersonToGroup() //Add the selected person into the named group
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             string group = _ReturnTextOfControl(textBoxGroup);
             string groupDescription = _ReturnTextOfControl(textBoxGroupDescription);
@@ -2985,7 +2958,7 @@ namespace ASTA
         private void importPeopleInLocalDBToolStripMenuItem_Click(object sender, EventArgs e)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             dtPersonTemp?.Clear();
             dtPersonTemp = dtPeople.Copy();
@@ -3000,7 +2973,7 @@ namespace ASTA
         private void ImportTextToTable(DataTable dt, ref HashSet<Department> departmentsUniq) //Fill dtPeople
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             List<string> listRows = ReadTXTFile();
 
@@ -3072,7 +3045,7 @@ namespace ASTA
         private void WritePeopleInLocalDB(string pathToPersonDB, DataTable dtSource) //use listGroups /add reserv1 reserv2
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
             logger.Trace("WritePeopleInLocalDB: table - " + dtSource + ", row - " + dtSource.Rows.Count);
 
             if (dbApplication.Exists)
@@ -3082,7 +3055,7 @@ namespace ASTA
 
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
                 {
-                    logger.Trace("query: " + query);
+                    logger.Trace($"query: {query}");
                     dbWriter.Status += AddLoggerTraceText;
 
                     dbWriter.Execute("begin");
@@ -3118,7 +3091,7 @@ namespace ASTA
                     dbWriter.Execute("begin");
 
                     query = "INSERT OR REPLACE INTO 'LastTakenPeopleComboList' (ComboList) VALUES (@ComboList)";
-                    logger.Trace("query: " + query);
+                    logger.Trace($"query: {query}");
                     foreach (var str in listFIO)
                     {
                         if (str.fio?.Length > 0 && str.code?.Length > 0)
@@ -3152,7 +3125,7 @@ namespace ASTA
         private void ImportListGroupsDescriptionInLocalDB(string pathToPersonDB, HashSet<Department> departmentsUniq) //use listGroups
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             if (dbApplication.Exists)
             {
@@ -3161,7 +3134,7 @@ namespace ASTA
 
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
                 {
-                    logger.Trace("query: " + query);
+                    logger.Trace($"query: {query}");
                     dbWriter.Status += AddLoggerTraceText;
 
                     dbWriter.Execute("begin");
@@ -3189,7 +3162,7 @@ namespace ASTA
         private void GetNamesOfPassagePoints() //Get names of the pass by points
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             logger.Trace("GetNamePoints");
             collectionOfPassagePoints = new CollectionOfPassagePoints();
@@ -3197,7 +3170,7 @@ namespace ASTA
             if (dbApplication.Exists)
             {
                 string query = "Select id, name FROM OBJ_ABC_ARC_READER;";
-                logger.Trace("query: " + query);
+                logger.Trace($"query: {query}");
                 string idPoint, namePoint, direction;
 
                 using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
@@ -3306,7 +3279,7 @@ namespace ASTA
             _EnableControl(comboBoxFio, true);
 
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
             CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword);
             nameOfLastTable = "LastIputsOutputs";
             List<Visitor> visitorsTillNow;
@@ -3387,7 +3360,7 @@ namespace ASTA
             " AND date > '" + startDay + " " + startTime + "' AND date <= '" + endDay + " " + endTime + "' " +
             " ORDER BY date DESC, time DESC;"; //sorting 
 
-            logger.Trace("query: " + query);
+            logger.Trace($"query: {query}");
 
             using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
             {
@@ -3559,7 +3532,7 @@ namespace ASTA
         private async void LoadIdCardRegistrations(string _group) //GetData()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             _ProgressBar1Start();
 
@@ -3627,7 +3600,7 @@ namespace ASTA
         private void GetData(string _group, string _reportStartDay, string _reportLastDay)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             //Clear work tables
             dtPersonRegistrationsFullList.Clear();
@@ -3660,7 +3633,7 @@ namespace ASTA
         private void LoadRecords(string nameGroup, string startDate, string endDate, string doPostAction)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             EmployeeFull person = new EmployeeFull();
             outPerson = new List<OutPerson>();
@@ -3791,7 +3764,7 @@ namespace ASTA
         private void GetPersonRegistrationFromServer(ref DataTable dtTarget, EmployeeFull person, string startDay, string endDay)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             SideOfPassagePoint sideOfPassagePoint;
 
@@ -4016,7 +3989,7 @@ namespace ASTA
         {
             DataTable peopleGroup = dtPeople.Clone();
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             DataRow dataRow;
 
@@ -4096,7 +4069,7 @@ namespace ASTA
         private void EnterEditAnual()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             ShowDataTableDbQuery(dbApplication, "BoldedDates",
                 "SELECT DayBolded AS '" + Names.DAYOFF_DATE + "', DayType AS '" + Names.DAYOFF_TYPE + "', " +
@@ -4126,7 +4099,7 @@ namespace ASTA
         private void ExitEditAnual()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             comboBoxFio.Items?.RemoveAt(comboBoxFio.FindStringExact(""));
             if (comboBoxFio.Items.Count > 0)
@@ -4164,7 +4137,7 @@ namespace ASTA
         private void AddAnualDate()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             monthCalendar.AddAnnuallyBoldedDate(monthCalendar.SelectionStart);
             monthCalendar.UpdateBoldedDates();
@@ -4205,7 +4178,7 @@ namespace ASTA
         private void DeleteAnualDay()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                  Names.DAYOFF_DATE, Names.DAYOFF_TYPE, Names.DAYOFF_USED_BY, Names.DAYOFF_ADDED });
@@ -4249,7 +4222,7 @@ namespace ASTA
         private void checkBoxCheckStateChanged()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             DataTable dtEmpty = new DataTable();
             EmployeeFull emptyPerson = new EmployeeFull();
@@ -4368,7 +4341,7 @@ namespace ASTA
         private void FilterRegistrationsOfPerson(ref EmployeeFull person, DataTable dataTableSource, ref DataTable dataTableForStoring, string typeReport = "Полный")
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             logger.Trace("FilterRegistrationsOfPerson: " + person.code + "| dataTableSource: " + dataTableSource.Rows.Count, "| typeReport: " + typeReport);
             DataRow rowDtStoring;
@@ -4533,7 +4506,7 @@ namespace ASTA
         private void SeekAnualDays(ref DataTable dt, ref EmployeeFull person, bool delRow, int[] startOfPeriod, int[] endOfPeriod, ref string[] boldedDays, ref string[] workDays)//   //Exclude Anual Days from the table "PersonTemp" DB
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             if (person == null)
             { person = new EmployeeFull(); }
@@ -4765,11 +4738,11 @@ namespace ASTA
             string query = null;
             if (nav.Length == 6)
             {
-                query = "SELECT DayBolded FROM BoldedDates WHERE (NAV LIKE '" + nav + "' OR  NAV LIKE '0') AND DayType LIKE '" + dayType + "';";
+                query = $"SELECT DayBolded FROM BoldedDates WHERE (NAV LIKE '{nav}' OR  NAV LIKE '0') AND DayType LIKE '{dayType}';";
             }
             else
             {
-                query = "SELECT DayBolded FROM BoldedDates WHERE (NAV LIKE '0') AND DayType LIKE '" + dayType + "';";
+                query = $"SELECT DayBolded FROM BoldedDates WHERE (NAV LIKE '0') AND DayType LIKE '{dayType}';";
             }
 
             using (SqLiteDbReader dbReader = new SqLiteDbReader(sqLiteLocalConnectionString, dbApplication))
@@ -4792,7 +4765,7 @@ namespace ASTA
 
                     }
                 }
-                logger.Trace("ReturnBoldedDaysFromDB: query: " + query + "\n" + boldedDays.Count + " rows loaded");
+                logger.Trace($"ReturnBoldedDaysFromDB: query: {query}\n{boldedDays.Count} rows loaded");
             }
 
             return boldedDays;
@@ -4895,7 +4868,7 @@ namespace ASTA
         private void MakeZip(string[] files, string fullNameZip)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             foreach (string dirPath in files)
             {
@@ -4907,7 +4880,7 @@ namespace ASTA
                     }
                     catch (Exception err)
                     {
-                        logger.Trace(dirPath + " - " + err.ToString());
+                        logger.Trace($"{dirPath} - {err.ToString()}");
                     }
                 }
             }
@@ -4917,16 +4890,16 @@ namespace ASTA
                 {
                     System.IO.File.Copy(file, System.IO.Path.Combine(appFolderTempPath, file), true);
                 }
-                catch (Exception err) { logger.Trace("MakeZip,System.IO.File.Copy: " + file + " - " + err.ToString()); }
+                catch (Exception err) { logger.Trace($"MakeZip,System.IO.File.Copy: {file} - {err.ToString()}"); }
             }
             System.IO.Compression.ZipFile.CreateFromDirectory(appFolderTempPath, localAppFolderPath + @"\" + fullNameZip, System.IO.Compression.CompressionLevel.Optimal, false);
-            logger.Info("Архив создан: " + localAppFolderPath + @"\" + fullNameZip);
+            logger.Info($"Архив создан: {localAppFolderPath}\\{fullNameZip}");
         }
 
         private void MakeZip(string filePath, string fullNameZip)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             if (filePath.Contains(@"\"))
             {
@@ -4937,10 +4910,10 @@ namespace ASTA
             {
                 System.IO.File.Copy(filePath, appFolderTempPath + @"\" + filePath, true);
             }
-            catch (Exception err) { logger.Trace(filePath + " - " + err.ToString()); }
+            catch (Exception err) { logger.Trace($"{filePath} - {err.ToString()}"); }
 
             System.IO.Compression.ZipFile.CreateFromDirectory(appFolderTempPath, localAppFolderPath + @"\" + fullNameZip, System.IO.Compression.CompressionLevel.Optimal, false);
-            logger.Info("Made archive: " + localAppFolderPath + @"\" + fullNameZip);
+            logger.Info($"Made archive: {localAppFolderPath}\\{fullNameZip}");
         }
 
 
@@ -4948,6 +4921,7 @@ namespace ASTA
 
         private void ClearRegistryItem_Click(object sender, EventArgs e) //ClearRegistryData()
         { ClearData(); }
+       
         private void ClearData()
         {
             try
@@ -4987,11 +4961,11 @@ namespace ASTA
             {
                 try
                 {
-                    logger.Trace("maskFiles: " + maskFiles);
+                    logger.Trace($"maskFiles: {maskFiles}");
                     System.IO.File.Delete(maskFiles);
-                    logger.Trace("Удален файл: " + maskFiles);
+                    logger.Trace($"Удален файл: {maskFiles}");
                 }
-                catch (Exception e) { logger.Warn("Файл '" + maskFiles + "'не удален из-за ошибки: " + e.Message); }
+                catch (Exception e) { logger.Warn($"Файл '{maskFiles}'не удален из-за ошибки: {e.Message}"); }
             }
             else if (System.IO.Directory.Exists(maskFiles))
             {
@@ -4999,20 +4973,20 @@ namespace ASTA
 
                 try
                 {
-                    logger.Trace("dir.FullName: " + dir.FullName);
+                    logger.Trace($"dir.FullName: {dir.FullName}");
                     dir.Delete(true);
-                    logger.Trace("Папка удалена: " + maskFiles);
+                    logger.Trace($"Папка удалена: {maskFiles}");
                 }
-                catch (Exception e) { logger.Warn("Папка не удалена: " + maskFiles + " " + e.Message); }
+                catch (Exception e) { logger.Warn($"Папка не удалена: {maskFiles} {e.Message}"); }
 
                 try
                 {
                     System.Threading.Thread.Sleep(200); //for prevent error of creating directory immediately after delete of one
-                    logger.Trace("dir.FullName: " + dir.FullName);
+                    logger.Trace($"dir.FullName: {dir.FullName}");
                     dir.Create();
-                    logger.Trace("Папка создана: " + maskFiles);
+                    logger.Trace($"Папка создана: {maskFiles}");
                 }
-                catch (Exception e) { logger.Warn("Папка не создана: " + maskFiles + " " + e.Message); }
+                catch (Exception e) { logger.Warn($"Папка не создана: {maskFiles} {e.Message}"); }
             }
             else
             {
@@ -5027,11 +5001,11 @@ namespace ASTA
                     {
                         try
                         {
-                            logger.Trace("file: " + file.FullName);
+                            logger.Trace($"file: {file.FullName}");
                             file.Delete();
-                            logger.Trace("Удален файл: " + file.FullName);
+                            logger.Trace($"Удален файл: {file.FullName}");
                         }
-                        catch (Exception e) { logger.Warn("Файл '" + file.Name + "'не удален из-за ошибки: " + e.Message); }
+                        catch (Exception e) { logger.Warn($"Файл '{file.Name}'не удален из-за ошибки: {e.Message}"); }
                     }
                 }
             }
@@ -5076,7 +5050,7 @@ namespace ASTA
         private void VisualItem_Click(object sender, EventArgs e) //FindWorkDaysInSelected() , DrawFullWorkedPeriodRegistration()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             EmployeeFull personVisual = new EmployeeFull();
 
@@ -5126,17 +5100,17 @@ namespace ASTA
                     if (nameOfLastTable == "PeopleGroup" || nameOfLastTable == "ListFIO")
                     {
                         personVisual.GroupPerson = cellValue[2]; //Take the name of selected group
-                        StatusLabel2.Text = @"Выбрана группа: " + personVisual.GroupPerson + @" | Курсор на: " + personVisual.fio;
+                        StatusLabel2.Text = $"Выбрана группа: {personVisual.GroupPerson} | Курсор на: {personVisual.fio}";
                         groupBoxPeriod.BackColor = Color.PaleGreen;
                     }
                     else if (nameOfLastTable == "PersonRegistrationsList")
                     {
                         personVisual.GroupPerson = _ReturnTextOfControl(textBoxGroup);
-                        StatusLabel2.Text = @"Выбран: " + personVisual.fio;
+                        StatusLabel2.Text = $"Выбран: {personVisual.fio}";
                     }
                 }
             }
-            catch (Exception err) { logger.Info("VisualItem_Click: " + err.ToString()); }
+            catch (Exception err) { logger.Warn($"VisualItem_Click: {err.ToString()}"); }
 
             if (personVisual.fio.Length == 0)
             {
@@ -5170,7 +5144,7 @@ namespace ASTA
         private void DrawRegistration(ref EmployeeFull personDraw)  // Visualisation of registration
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             int pointDrawYfor_rects = 44; //начальное смещение линии рабочего графика
             int pointDrawYfor_rectsReal = 39; // начальное смещение линии отработанного графика
@@ -5450,7 +5424,7 @@ namespace ASTA
         private void DrawFullWorkedPeriodRegistration(ref EmployeeFull personDraw)  // Draw the whole period registration
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
 
             int pointDrawYfor_rects = 44; //начальное смещение линии рабочего графика
@@ -5925,7 +5899,7 @@ namespace ASTA
             string periodPreparing, string status, string dateCreatingMailing, string SendingDate, string typeReport, string daySendingReport)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             bool recipientValid = false;
             bool senderValid = false;
@@ -5965,7 +5939,7 @@ namespace ASTA
                     sqlCommand1 = new SQLiteCommand("end", sqlConnection);
                     sqlCommand1.ExecuteNonQuery();
                 }
-                SetStatusLabelText(StatusLabel2, "Добавлена рассылка: " + nameReport + "| Всего рассылок: " + DataGridViewOperations.RowsCount(dataGridView1));
+                SetStatusLabelText(StatusLabel2, $"Добавлена рассылка: {nameReport}| Всего рассылок: {DataGridViewOperations.RowsCount(dataGridView1)}");
             }
         }
 
@@ -5977,9 +5951,7 @@ namespace ASTA
         }
 
         private void SettingsProgrammItem_Click(object sender, EventArgs e)
-        {
-            MakeFormSettings();
-        }
+        { MakeFormSettings(); }
 
         private void MakeFormSettings()
         {
@@ -6018,7 +5990,7 @@ namespace ASTA
             )
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             panelViewResize(numberPeopleInLoading);
 
@@ -6400,7 +6372,7 @@ namespace ASTA
         private void buttonPropertiesCancel_Click(object sender, EventArgs e)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             string btnName = btnPropertiesSave.Text;
 
@@ -6468,7 +6440,7 @@ namespace ASTA
         private void ButtonPropertiesSave_MailingSave(object sender, EventArgs e)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             string recipientEmail = _ReturnTextOfControl(textBoxServer1UserName);
             string senderEmail = mailSenderAddress;
@@ -6502,7 +6474,7 @@ namespace ASTA
         private void SaveProperties() //Save Parameters into Registry and variables
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             string server = _ReturnTextOfControl(textBoxServer1);
             string user = _ReturnTextOfControl(textBoxServer1UserName);
@@ -6660,14 +6632,11 @@ namespace ASTA
                 GetInfoSetup();
             }
         }
-
-
         //--- End. Features of programm ---//
 
 
 
         //--- Start. Behaviour Controls ---//
-
         private void periodCombo_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == (char)13)//если нажата Enter
@@ -6755,13 +6724,24 @@ namespace ASTA
             }
         }
 
-        private void textBoxGroupDescription_TextChanged(object sender, EventArgs e)
+        private void SetGroupNameInStatusLabel()
         {
-            if (textBoxGroupDescription.Text.Trim().Length > 0)
-            { StatusLabel2.Text = @"Создать или добавить в группу: " + textBoxGroup.Text.Trim().ToString() + "(" + textBoxGroupDescription.Text.Trim() + ")"; }
+            if (_ReturnTextOfControl(textBoxGroupDescription)?.Length > 0)
+            {
+                SetStatusLabelText(
+                    StatusLabel2,
+                    $"Создать или добавить в группу: {_ReturnTextOfControl(textBoxGroup)}({_ReturnTextOfControl(textBoxGroupDescription)})");
+            }
             else
-            { StatusLabel2.Text = @"Создать или добавить в группу: " + textBoxGroup.Text.Trim().ToString(); }
+            {
+                SetStatusLabelText(
+                    StatusLabel2,
+                    $"Создать или добавить в группу: {_ReturnTextOfControl(textBoxGroup)}");
+            }
         }
+
+        private void textBoxGroupDescription_TextChanged(object sender, EventArgs e)
+        { SetGroupNameInStatusLabel(); }
 
         private void textBoxGroup_TextChanged(object sender, EventArgs e)
         {
@@ -6769,14 +6749,8 @@ namespace ASTA
             {
                 AddPersonToGroupItem.Enabled = true;
                 CreateGroupItem.Enabled = true;
-                if (textBoxGroupDescription.Text.Trim().Length > 0)
-                {
-                    StatusLabel2.Text = @"Создать или добавить в группу: " + textBoxGroup.Text.Trim().ToString() + "(" + textBoxGroupDescription.Text.Trim() + ")";
-                }
-                else
-                {
-                    StatusLabel2.Text = @"Создать или добавить в группу: " + textBoxGroup.Text.Trim().ToString();
-                }
+
+                SetGroupNameInStatusLabel();
             }
             else
             {
@@ -6806,21 +6780,19 @@ namespace ASTA
         }
 
         private void dateTimePickerEnd_CloseUp(object sender, EventArgs e)
-        {
-            SetMenuItemsTextAfterClosingDateTimePicker();
-        }
+        { SetMenuItemsTextAfterClosingDateTimePicker(); }
 
         private void SetMenuItemsTextAfterClosingDateTimePicker()
         {
             string dayStart = _ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD();
             string dayEnd = _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD();
 
-            _SetMenuItemText(LoadLastInputsOutputsItem, "Загрузить регистрации пропусков за сегодня (" + DateTime.Now.ToYYYYMMDD() + ")");
+            _SetMenuItemText(LoadLastInputsOutputsItem, $"Загрузить все события СКД за сегодня ({ DateTime.Now.ToYYYYMMDD()})");
 
             if (dayStart != dayEnd)
-                _SetMenuItemText(LoadInputsOutputsItem, "Загрузить регистрации пропусков с " + dayStart + " по " + dayEnd);
+                _SetMenuItemText(LoadInputsOutputsItem, $"Загрузить все события СКД с {dayStart} по {dayEnd}");
             else
-                _SetMenuItemText(LoadInputsOutputsItem, "Загрузить регистрации пропусков за " + dayStart);
+                _SetMenuItemText(LoadInputsOutputsItem, $"Загрузить все события СКД за {dayStart}");
         }
 
 
@@ -6869,7 +6841,7 @@ namespace ASTA
         private void DataGridView1CellEndEdit()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             string fio = "";
             string nav = "";
@@ -6919,7 +6891,7 @@ namespace ASTA
                                         sqlCommand.Parameters.Add("@DayType", DbType.String).Value = dayType;
                                         sqlCommand.Parameters.Add("@DayDescription", DbType.String).Value = textBoxGroupDescription.Text.Trim();
                                         sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDD();
-                                        try { sqlCommand.ExecuteNonQuery(); } catch (Exception err) { MessageBox.Show(err.ToString()); }
+                                        try { sqlCommand.ExecuteNonQuery(); } catch { }
                                     }
                                 }
                                 break;
@@ -6982,7 +6954,7 @@ namespace ASTA
                                 }
                                 //  nameOfLastTable = "PeopleGroup";
                                 SeekAndShowMembersOfGroup(group);
-                                StatusLabel2.Text = @"Обновлено время прихода " + fio?.ConvertFullNameToShortForm() + " в группе: " + group;
+                                SetStatusLabelText(StatusLabel2, $"Обновлено время прихода {fio?.ConvertFullNameToShortForm()} в группе: {group}");
                                 break;
                             }
                         case "PeopleGroupDescription":
@@ -6995,7 +6967,7 @@ namespace ASTA
                                 textBoxGroupDescription.Text = cellValue[1]; //Take the name of selected group
                                 groupBoxPeriod.BackColor = Color.PaleGreen;
                                 groupBoxFilterReport.BackColor = SystemColors.Control;
-                                StatusLabel2.Text = @"Выбрана группа: " + cellValue[0];
+                                SetStatusLabelText(StatusLabel2, $"Выбрана группа: {cellValue[0]}");
                                 break;
                             }
                         case "Mailing":
@@ -7010,8 +6982,7 @@ namespace ASTA
                                         editedCell = ReturnStrongNameDayOfSendingReports(cellValue[7]);
                                         ExecuteSqlAsync("UPDATE 'Mailing' SET DayReport='" + editedCell + "' WHERE RecipientEmail='" + cellValue[0]
                                           + "' AND NameReport='" + cellValue[2] + "' AND GroupsReport ='" + cellValue[1]
-                                          + "' AND Period='" + cellValue[4] + "' AND TypeReport ='" + cellValue[6]
-                                          + "' AND Status ='" + cellValue[5] + "' AND Description ='" + cellValue[3] + "';")
+                                          + $"' AND Period='{cellValue[4]}' AND TypeReport ='{cellValue[6]}' AND Status ='{cellValue[5]}' AND Description ='{cellValue[3]}';")
                                           .GetAwaiter().GetResult();
                                         break;
 
@@ -7019,32 +6990,30 @@ namespace ASTA
                                         if (currCellValue == "Полный") { editedCell = "Полный"; }
                                         else { editedCell = "Упрощенный"; }
 
-                                        ExecuteSqlAsync("UPDATE 'Mailing' SET TypeReport='" + editedCell + "' WHERE RecipientEmail='" + cellValue[0]
-                                          + "' AND NameReport='" + cellValue[2] + "' AND GroupsReport ='" + cellValue[1]
-                                          + "' AND Period='" + cellValue[4] + "' AND DayReport='" + cellValue[7]
-                                          + "' AND Status ='" + cellValue[5] + "' AND Description ='" + cellValue[3] + "';")
+                                        ExecuteSqlAsync($"UPDATE 'Mailing' SET TypeReport='{editedCell}' WHERE RecipientEmail='" + cellValue[0]
+                                          + $"' AND NameReport='{cellValue[2]}' AND GroupsReport ='" + cellValue[1]
+                                          + $"' AND Period='{cellValue[4]}' AND DayReport='{cellValue[7]}' AND Status ='{cellValue[5]}' AND Description ='{cellValue[3]}';")
                                           .GetAwaiter().GetResult();
                                         break;
 
                                     case "Статус":
-                                        if (currCellValue == "Активная") { editedCell = "Активная"; }
-                                        else { editedCell = "Неактивная"; }
+                                        if (currCellValue.ToLower().Contains("неактивн")) { editedCell = "Неактивная"; }
+                                        else { editedCell = "Активная"; }
 
-                                        ExecuteSqlAsync("UPDATE 'Mailing' SET Status='" + editedCell + "' WHERE RecipientEmail='" + cellValue[0]
-                                          + "' AND NameReport='" + cellValue[2] + "' AND GroupsReport ='" + cellValue[1]
-                                          + "' AND Period='" + cellValue[4] + "' AND DayReport='" + cellValue[7]
-                                          + "' AND TypeReport ='" + cellValue[6] + "' AND Description ='" + cellValue[3] + "';")
+                                        ExecuteSqlAsync($"UPDATE 'Mailing' SET Status='{editedCell}' WHERE RecipientEmail='" + cellValue[0]
+                                          + $"' AND NameReport='{cellValue[2]}' AND GroupsReport ='" + cellValue[1]
+                                          + $"' AND Period='{cellValue[4]}' AND DayReport='{cellValue[7]}' AND TypeReport ='{cellValue[6]}' AND Description ='{cellValue[3]}';")
                                           .GetAwaiter().GetResult();
                                         break;
 
                                     case "Период":
-                                        if (currCellValue == "Текущий месяц") { editedCell = "Текущий месяц"; }
-                                        else { editedCell = "Предыдущий месяц"; }
+                                        if (currCellValue.ToLower().Contains("текущ")) { editedCell = "Текущий месяц"; }
+                                        else if (currCellValue.ToLower().Contains("предыд")) { editedCell = "Предыдущий месяц"; }
+                                        else { editedCell = currCellValue; }
 
-                                        ExecuteSqlAsync("UPDATE 'Mailing' SET Period='" + editedCell + "' WHERE RecipientEmail='" + cellValue[0]
-                                           + "' AND NameReport='" + cellValue[2] + "' AND GroupsReport ='" + cellValue[1]
-                                           + "' AND TypeReport ='" + cellValue[6] + "' AND DayReport='" + cellValue[7]
-                                           + "' AND Status ='" + cellValue[5] + "' AND Description ='" + cellValue[3] + "';")
+                                        ExecuteSqlAsync($"UPDATE 'Mailing' SET Period='{editedCell}' WHERE RecipientEmail='" + cellValue[0]
+                                           + $"' AND NameReport='{cellValue[2]}' AND GroupsReport ='" + cellValue[1]
+                                           + $"' AND TypeReport ='{cellValue[6]}' AND DayReport='{cellValue[7]}' AND Status ='{cellValue[5]}' AND Description ='{cellValue[3]}';")
                                            .GetAwaiter().GetResult();
                                         break;
 
@@ -7070,15 +7039,16 @@ namespace ASTA
 
                                     case "Получатель":
                                         if (currCellValue.Contains('@') && currCellValue.Contains('.'))
-                                        {
-                                            editedCell = currCellValue;
+                                        { editedCell = currCellValue; }
+                                        else
+                                        { editedCell = mailJobReportsOfNameOfReceiver; }
 
-                                            ExecuteSqlAsync("UPDATE 'Mailing' SET RecipientEmail ='" + editedCell + "' WHERE TypeReport ='" + cellValue[6]
+                                        ExecuteSqlAsync("UPDATE 'Mailing' SET RecipientEmail ='" + editedCell + "' WHERE TypeReport ='" + cellValue[6]
                                               + "' AND NameReport='" + cellValue[2] + "' AND GroupsReport ='" + cellValue[1]
                                               + "' AND DayReport='" + cellValue[7] + "' AND Period='" + cellValue[4]
                                               + "' AND Status ='" + cellValue[5] + "' AND Description ='" + cellValue[3] + "';")
                                               .GetAwaiter().GetResult();
-                                        }
+
                                         break;
 
                                     case "Наименование":
@@ -7103,7 +7073,8 @@ namespace ASTA
                             }
                         case "MailingException":
                             {
-                                string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { @"Получатель", @"Описание" });
+                                string[] cellValue =
+                                    dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { @"Получатель", @"Описание" });
 
                                 switch (currColumn)
                                 {
@@ -7127,9 +7098,8 @@ namespace ASTA
                             }
                         case "SelectedCityToLoadFromWeb":
                             {
-                                string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
-                            Names.PLACE_EMPLOYEE,
-                            @"Дата создания" });
+                                string[] cellValue =
+                                    dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { Names.PLACE_EMPLOYEE, @"Дата создания" });
 
                                 switch (currColumn)
                                 {
@@ -7149,7 +7119,7 @@ namespace ASTA
                             break;
                     }
                 }
-                catch (Exception expt) { logger.Trace("DataGridView1CellEndEdit: " + expt.ToString()); }
+                catch (Exception expt) { logger.Trace($"DataGridView1CellEndEdit: {expt.ToString()}"); }
             }
         }
 
@@ -7159,17 +7129,15 @@ namespace ASTA
             {
                 using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
                 {
-                    logger.Trace("query: " + query);
+                    logger.Trace($"query: {query}");
+
                     dbWriter.Status += AddLoggerTraceText;
-
                     dbWriter.Execute(query);
-
                     dbWriter.Status -= AddLoggerTraceText;
                 }
             }
         }
-
-
+        
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
             if (DataGridViewOperations.ColumnsCount(dataGridView1) > 0 && DataGridViewOperations.RowsCount(dataGridView1) > 0)
@@ -7192,8 +7160,8 @@ namespace ASTA
         private void dataGridView1_MouseClick(object sender, MouseEventArgs e)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
-
+            logger.Trace($"-= {method} =-");
+            string[] cellValue;
             int currentMouseOverRow = dataGridView1.HitTest(e.X, e.Y).RowIndex;
 
             if (-1 < currentMouseOverRow)
@@ -7210,7 +7178,7 @@ namespace ASTA
                         case "PeopleGroupDescription":
                             {
                                 string recepient = "";
-                                string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { Names.GROUP, Names.GROUP_DECRIPTION, Names.RECEPIENTS_OF_REPORTS });
+                                cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { Names.GROUP, Names.GROUP_DECRIPTION, Names.RECEPIENTS_OF_REPORTS });
 
                                 if (cellValue[2]?.Length > 0)
                                 { recepient = cellValue[2]; }
@@ -7218,21 +7186,21 @@ namespace ASTA
                                 { recepient = mailSenderAddress; }
 
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: "Загрузить регистрации пропусков сотрудников группы: '" +
-                                            cellValue[1] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
+                                    text: $"Загрузить регистрации пропусков группы: '{cellValue[1]}' за {_ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()}",
                                     onClick: GetDataOfGroup_Click));
+
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: "Загрузить  входы-выходы сотрудников группы: '" +
-                                            cellValue[1] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear() + " и подготовить отчет",
+                                    text: $"Загрузить регистрации пропусков группы: '{cellValue[1]}' за {_ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()} и подготовить отчет",
                                     onClick: DoReportByRightClick));
+                                
+                                
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: "Загрузить регистрации пропусков сотрудников группы: '" +
-                                            cellValue[1] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear() + " и отправить: " + recepient,
+                                    text: $"Загрузить регистрации пропусков группы: '{cellValue[1]}' за {_ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()} и отправить: {recepient}",
                                     onClick: DoReportAndEmailByRightClick));
 
                                 mRightClick.MenuItems.Add("-");
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: "Удалить группу: '" + cellValue[0] + "'(" + cellValue[1] + ")",
+                                    text: $"Удалить группу: '{cellValue[0]}'({cellValue[1]})",
                                     onClick: DeleteCurrentRow));
                                 mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
 
@@ -7240,74 +7208,76 @@ namespace ASTA
                             }
                         case "LastIputsOutputs":
                             {
-                                string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { Names.FIO, Names.N_ID_STRING, Names.CHECKPOINT_ACTION });
+                                cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { Names.FIO, Names.N_ID_STRING, Names.CHECKPOINT_ACTION });
 
                                 mRightClick.MenuItems.Add(new MenuItem(
                                     text: "Обновить данные о регистрации входов-выходов сотрудников",
                                    onClick: LoadLastIputsOutputs_Update_Click));
-
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: "Подсветить все входы-выходы '" + cellValue[0] + "'",
+                                    text: $"Подсветить все входы-выходы '{cellValue[0]}'",
                                    onClick: PaintRowsFioItem_Click));
                                 mRightClick.MenuItems.Add(new MenuItem(
                                     text: "Сбросить фильтр",
                                    onClick: ResetFilterLoadLastIputsOutput_Click));
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: "Подсветить все состояния '" + cellValue[2] + "'",
+                                    text: $"Подсветить все состояния '{cellValue[2]}'",
                                    onClick: PaintRowsActionItem_Click));
                                 mRightClick.MenuItems.Add("-");
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: "Загрузить данные регистраций входов-выходов '" +
-                                            cellValue[0] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
+                                    text: $"Загрузить данные регистраций входов-выходов '{cellValue[0]}' за { _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()}",
                                     onClick: GetDataOfPerson_Click));
                                 mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                                 break;
                             }
                         case "Mailing":
                             {
-                                string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
-                        @"Наименование", @"Описание", @"День отправки отчета", @"Период", @"Тип отчета", @"Получатель"});
+                                cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                                @"Наименование", @"Описание", @"День отправки отчета", @"Период", @"Тип отчета", @"Получатель"});
 
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: @"Выполнить активные рассылки по всем у кого: тип отчета - " +
-                                            cellValue[4] + " за " + cellValue[3] + " на " + cellValue[2],
+                                    text: $"Выполнить активные рассылки по всем у кого: тип отчета - {cellValue[4]} за {cellValue[3]} на {cellValue[2]}",
                                     onClick: SendAllReportsInSelectedPeriod));
                                 mRightClick.MenuItems.Add("-");
 
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: @"Выполнить рассылку:   " + cellValue[0] + "(" + cellValue[1] + ") для " + cellValue[5],
+                                    text: $"Выполнить рассылку: {cellValue[0]}({cellValue[1]}) для {cellValue[5]}",
                                     onClick: DoMainAction));
                                 mRightClick.MenuItems.Add("-");
 
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: @"Создать новую рассылку",
+                                    text: $"Выполнить рассылку: {cellValue[0]}({cellValue[1]}) за {_ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()} для {cellValue[5]}",
+                                    onClick: DoMainAction));
+                                mRightClick.MenuItems.Add("-");
+
+                                mRightClick.MenuItems.Add(new MenuItem(
+                                    text: "Создать новую рассылку",
                                     onClick: PrepareForMakingFormMailing));
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: @"Клонировать рассылку:   " + cellValue[0] + "(" + cellValue[1] + ")",
+                                    text: $"Клонировать рассылку: {cellValue[0]} ({cellValue[1]})",
                                     onClick: MakeCloneMailing));
                                 mRightClick.MenuItems.Add("-");
 
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: @"Состав рассылки:   " + cellValue[0] + "(" + cellValue[1] + ")",
+                                    text: $"Состав рассылки: {cellValue[0]} ({cellValue[1]})",
                                     onClick: MembersGroupItem_Click));
                                 mRightClick.MenuItems.Add("-");
 
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: @"Удалить рассылку:   " + cellValue[0] + "(" + cellValue[1] + ")",
+                                    text: $"Удалить рассылку: {cellValue[0]} ({cellValue[1]})",
                                     onClick: DeleteCurrentRow));
                                 mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                                 break;
                             }
                         case "MailingException":
                             {
-                                string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { @"Получатель" });
+                                cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { @"Получатель" });
 
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: @"Добавить новый адрес для исключения из рассылок отчетов",
+                                    text: "Добавить новый адрес для исключения из рассылок отчетов",
                                     onClick: MakeNewRecepientExcept));
                                 mRightClick.MenuItems.Add("-");
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: @"Удалить адрес, ранее внесенный как 'исключеный из рассылок':   " + cellValue[0],
+                                    text: $"Удалить адрес, ранее внесенный как 'исключеный из рассылок': {cellValue[0]}",
                                     onClick: DeleteCurrentRow));
                                 mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                                 break;
@@ -7315,7 +7285,7 @@ namespace ASTA
                         case "PeopleGroup":
                         case "ListFIO":
                             {
-                                string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                                cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                                     Names.FIO,
                                     Names.CODE,
                                     Names.DEPARTMENT,
@@ -7330,27 +7300,25 @@ namespace ASTA
                                 if (string.Compare(cellValue[8], txtboxGroup) != 0 && txtboxGroup?.Length > 0) //добавить пункт меню если в текстбоксе группа другая
                                 {
                                     mRightClick.MenuItems.Add(new MenuItem(
-                                        text: "Добавить '" + cellValue[0] + "' в группу '" + txtboxGroup + "'",
+                                        text: $"Добавить '{cellValue[0]}' в группу '{txtboxGroup}'",
                                         onClick: AddPersonToGroupItem_Click));
                                     mRightClick.MenuItems.Add("-");
                                 }
-
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: "Загрузить регистрации пропусков на входе в офис группы сотрудников '" + cellValue[8] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
+                                    text: $"Загрузить регистрации пропусков группы: '{cellValue[8]}' за {_ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()}",
                                     onClick: GetDataOfGroup_Click));
-
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: "Загрузить регистрации пропусков на входе в офис сотрудника: '" + cellValue[0] + "' за " + _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
+                                    text: $"Загрузить регистрации пропусков: '{cellValue[0]}' за {_ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()}",
                                     onClick: GetDataOfPerson_Click));
                                 mRightClick.MenuItems.Add("-");
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: "Удалить '" + cellValue[0] + "' из группы '" + txtboxGroup + "'",
+                                    text: $"Удалить '{cellValue[0]}' из группы '{txtboxGroup}'",
                                     onClick: DeleteCurrentRow));
                                 mRightClick.Show(dataGridView1, new Point(e.X, e.Y)); break;
                             }
                         case "BoldedDates":
                             {
-                                string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { Names.DAYOFF_DATE, Names.DAYOFF_USED_BY, Names.DAYOFF_TYPE });
+                                cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] { Names.DAYOFF_DATE, Names.DAYOFF_USED_BY, Names.DAYOFF_TYPE });
 
                                 string dayType = "";
                                 if (txtboxGroup?.Length == 0 || txtboxGroup?.ToLower() == "выходной")
@@ -7368,11 +7336,11 @@ namespace ASTA
                                 else { navD = cellValue[1]; }
 
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: @"Сохранить для " + nav + @" как '" + dayType + @"' " + monthCalendar.SelectionStart.ToYYYYMMDD(),
+                                    text: $"Сохранить для {nav} как '{dayType} '{monthCalendar.SelectionStart.ToYYYYMMDD()}",
                                     onClick: AddAnualDateItem_Click));
                                 mRightClick.MenuItems.Add("-");
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: @"Удалить из сохранненых '" + cellValue[2] + @"'  '" + cellValue[0] + @"' для " + navD,
+                                    text: $"Удалить из сохранненых '{cellValue[2]}'  '{cellValue[0]}' для {navD}",
                                     onClick: DeleteAnualDateItem_Click));
                                 mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                                 break;
@@ -7380,16 +7348,17 @@ namespace ASTA
                         case "SelectedCityToLoadFromWeb":
                             {
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: @"Добавить новый город",
+                                    text: "Добавить новый город",
                                     onClick: AddNewCityToLoadByRightClick));
                                 mRightClick.MenuItems.Add("-");
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: @"Удалить выбранный город",
+                                    text: "Удалить выбранный город",
                                     onClick: DeleteCityToLoadByRightClick));
                                 mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                                 break;
                             }
                         default:
+                            StatusLabel2.Text = "";
                             break;
                     }
                 }
@@ -7405,17 +7374,21 @@ namespace ASTA
                             {
                                 case "PeopleGroupDescription":
                                     {
-                                        string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
-                            Names.GROUP,
-                            Names.GROUP_DECRIPTION
-                            });
+                                        cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                                        Names.GROUP,
+                                        Names.GROUP_DECRIPTION,
+                                        Names.DEPARTMENT
+                                        });
 
                                         textBoxGroup.Text = cellValue[0]; //Take the name of selected group
                                         textBoxGroupDescription.Text = cellValue[1]; //Take the name of selected group
                                         groupBoxPeriod.BackColor = Color.PaleGreen;
                                         groupBoxFilterReport.BackColor = SystemColors.Control;
-                                        StatusLabel2.Text = @"Выбрана группа: " + cellValue[0];
-                                        if (textBoxFIO.TextLength > 3)
+
+                                        string descr = cellValue[2] ?? cellValue[1] ?? cellValue[0];
+                                        
+                                        StatusLabel2.Text = $"Выбрано: {descr}";
+                                        if (textBoxFIO?.TextLength > 3)
                                         {
                                             comboBoxFio.SelectedIndex = comboBoxFio.FindString(textBoxFIO.Text);
                                         }
@@ -7426,22 +7399,21 @@ namespace ASTA
                                 case "PeopleGroup":
                                 case "PersonRegistrationsList":
                                     {
-                                        string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
-                            Names.GROUP,
-                            Names.FIO,
-                            Names.CODE,
-                            Names.DESIRED_TIME_IN,
-                            Names.DESIRED_TIME_OUT
-                            });
-
+                                        cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                                        Names.GROUP,
+                                        Names.FIO,
+                                        Names.CODE,
+                                        Names.DEPARTMENT,
+                                        Names.GROUP_DECRIPTION
+                                        });
+                                        
                                         textBoxGroup.Text = cellValue[0];
                                         textBoxFIO.Text = cellValue[1];
                                         textBoxNav.Text = cellValue[2];
+                                        string descr = cellValue[3] ?? cellValue[4] ?? cellValue[2];
+                                        logger.Trace($"{cellValue[0]} {cellValue[1]} {cellValue[2]} {cellValue[3]} {cellValue[4]} ");
 
-                                        logger.Trace(cellValue[0] + " " + cellValue[1] + " " + cellValue[2]);
-
-                                        StatusLabel2.Text = @"Выбрана группа: " + cellValue[0] +
-                                            @" |Курсор на: " + cellValue[1]?.ConvertFullNameToShortForm();
+                                        StatusLabel2.Text = $"Выбрано: {descr} |Курсор на: {cellValue[1]?.ConvertFullNameToShortForm()}";
 
                                         groupBoxPeriod.BackColor = Color.PaleGreen;
                                         groupBoxTimeStart.BackColor = Color.PaleGreen;
@@ -7453,26 +7425,36 @@ namespace ASTA
 
                                 case "LastIputsOutputs":
                                     {
-                                        string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
-                            Names.N_ID_STRING,
-                            Names.FIO,
-                            Names.CHECKPOINT_ACTION
-                            });
+                                        cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                                        Names.N_ID_STRING,
+                                        Names.FIO,
+                                        Names.CHECKPOINT_ACTION
+                                        });
 
                                         textBoxFIO.Text = cellValue[1];
                                         textBoxNav.Text = "";
 
-                                        StatusLabel2.Text = @" |Курсор на: " + cellValue[1]?.ConvertFullNameToShortForm();
+                                        StatusLabel2.Text = $" |Курсор на: {cellValue[1]?.ConvertFullNameToShortForm()}";
+                                    }
+                                    break;
+
+                                case "Mailing":
+                                    {
+                                        cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
+                                        @"Наименование", @"Описание", @"День отправки отчета", @"Период", @"Тип отчета", @"Получатель"});
+
+                                        StatusLabel2.Text = $"Выбран получатель {cellValue[5]}, день отправки {cellValue[2]}";
                                     }
                                     break;
 
                                 default:
+                                    StatusLabel2.Text = "";
                                     break;
                             }
                         }
                         catch (Exception err)
                         {
-                            logger.Warn("dataGridView1CellClick," + nameOfLastTable + ":" + err.ToString());
+                            logger.Warn($"dataGridView1CellClick, {nameOfLastTable}: {err.ToString()}");
                         }
                     }
                 }
@@ -7500,7 +7482,7 @@ namespace ASTA
         private void AddNewCityToLoad()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             if (dbApplication.Exists)
             {
@@ -7527,11 +7509,9 @@ namespace ASTA
         private void DeleteCityToLoad()
         {
             string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
-                Names.PLACE_EMPLOYEE,
-                @"Дата создания" });
+                Names.PLACE_EMPLOYEE, "Дата создания"});
 
-            DeleteDataTableQueryParameters(dbApplication, "SelectedCityToLoadFromWeb",
-                            "City", cellValue[0]).GetAwaiter().GetResult();
+            DeleteDataTableQueryParameters(dbApplication, "SelectedCityToLoadFromWeb", "City", cellValue[0]).GetAwaiter();
         }
 
 
@@ -7543,7 +7523,7 @@ namespace ASTA
         private void DoReportAndEmailByRightClick()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                 Names.GROUP,
@@ -7553,14 +7533,24 @@ namespace ASTA
             resultOfSendingReports = new List<Mailing>();
             logger.Trace("DoReportAndEmailByRightClick");
 
-            SetStatusLabelText(StatusLabel2, "Готовлю отчет по группе" + cellValue[0]);
+            SetStatusLabelText(StatusLabel2, $"Готовлю отчет по группе {cellValue[0]}");
+            nameOfLastTable = "Mailing";
+            currentAction = "sendEmail";
 
             if (cellValue[2]?.Length > 0)
             {
                 MailingAction(
-                    "sendEmail", cellValue[2].Trim(), mailSenderAddress,
-                    cellValue[0], cellValue[0], cellValue[1], SelectedDatetimePickersPeriodMonth(), "Активная", "Упрощенный", DateTime.Now.ToYYYYMMDDHHMM());
-            }
+                    "sendEmail", 
+                    cellValue[2], 
+                    mailSenderAddress,
+                    cellValue[0], 
+                    cellValue[0], 
+                    cellValue[1], 
+                   _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(), 
+                    "Активная", 
+                    "Упрощенный",
+                    "END_OF_MONTH");
+                            }
             else if (mailSenderAddress?.Length > 0)
             {
                 MailingAction("sendEmail", mailSenderAddress, mailSenderAddress,
@@ -7570,7 +7560,7 @@ namespace ASTA
             {
                 SetStatusLabelText(
                     StatusLabel2,
-                    "Попытка отправить отчет " + cellValue[0] + " не существующему получателю",
+                    $"Попытка отправить отчет {cellValue[0]} не существующему получателю",
                     true);
             }
 
@@ -7589,20 +7579,29 @@ namespace ASTA
         private void DoReportByRightClick()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                 Names.GROUP,
-                Names.GROUP_DECRIPTION
+                Names.GROUP_DECRIPTION,
+                Names.RECEPIENTS_OF_REPORTS
             });
 
-            SetStatusLabelText(StatusLabel2, "Готовлю отчет по группе" + cellValue[0]);
+            SetStatusLabelText(StatusLabel2, $"Готовлю отчет по группе {cellValue[0]}");
             logger.Trace("DoReportByRightClick: " + cellValue[0]);
 
             resultOfSendingReports = new List<Mailing>();
 
-            GetRegistrationAndSendReport(cellValue[0], cellValue[0], cellValue[1], SelectedDatetimePickersPeriodMonth(), "Активная", "Полный", DateTime.Now.ToYYYYMMDDHHMM(), false, "", "");
-
+            GetRegistrationAndSendReport(
+                cellValue[0], 
+                cellValue[0], 
+                cellValue[1], 
+                _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(), 
+                "Активная",
+                "Упрощенный", 
+                DateTime.Now.ToYYYYMMDDHHMM(), 
+                false, "", "");
+            
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer.exe", " /select, " + filePathExcelReport + @".xlsx")); // //System.Reflection.Assembly.GetExecutingAssembly().Location)
 
             _SetStatusLabelForeColor(StatusLabel2, Color.Black);
@@ -7620,7 +7619,7 @@ namespace ASTA
         private void MakeCloneMailing()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                 @"Получатель", @"Отчет по группам", @"Наименование", @"Описание", @"Период"});
@@ -7646,7 +7645,7 @@ namespace ASTA
         private void MakeNewRecepientExcept()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             if (dbApplication.Exists)
             {
@@ -7695,7 +7694,7 @@ namespace ASTA
         private void DoMainAction()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             _ProgressBar1Start();
 
@@ -7703,6 +7702,8 @@ namespace ASTA
             {
                 case "PeopleGroupDescription":
                     {
+
+
                         break;
                     }
                 case "PeopleGroup" when textBoxGroup.Text.Trim().Length > 0:
@@ -7718,7 +7719,7 @@ namespace ASTA
                         string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             @"Получатель", @"Отчет по группам", @"Наименование", @"Описание",
                             @"Период", @"Статус", @"Тип отчета", @"День отправки отчета" });
-                        SetStatusLabelText(StatusLabel2, "Готовлю отчет " + cellValue[2]);
+                        SetStatusLabelText(StatusLabel2, $"Готовлю отчет {cellValue[2]}");
 
                         ExecuteSqlAsync("UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToYYYYMMDDHHMM()
                             + "' WHERE RecipientEmail='" + cellValue[0] + "' AND GroupsReport ='" + cellValue[1]
@@ -7761,7 +7762,7 @@ namespace ASTA
         private void SendAllReportsInSelectedPeriod()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             _ProgressBar1Start();
 
@@ -7770,7 +7771,7 @@ namespace ASTA
             string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             @"Получатель", @"Отчет по группам", @"Наименование", @"Описание",
                             @"Период", @"Статус", @"Тип отчета", @"День отправки отчета" });
-            SetStatusLabelText(StatusLabel2, "Готовлю все активные рассылки с отчетами " + cellValue[6] + " за " + cellValue[4] + " на " + cellValue[7]);
+            SetStatusLabelText(StatusLabel2, $"Готовлю все активные рассылки с отчетами {cellValue[6]} за {cellValue[4]} на {cellValue[7]}");
 
             currentAction = "sendEmail";
             DoListsFioGroupsMailings();
@@ -7797,10 +7798,8 @@ namespace ASTA
             DaysWhenSendReports daysToSendReports = new DaysWhenSendReports(workSelectedDays, ShiftDaysBackOfSendingFromLastWorkDay, DateTime.Now.LastDayOfMonth().Day);
             DaysOfSendingMail daysOfSendingMail = daysToSendReports.GetDays();
 
-            logger.Trace("SendAllReportsInSelectedPeriod: активные отчеты " + cellValue[6] + " за " + cellValue[4] +
-                DateTime.Now.FirstDayOfMonth().ToYYYYMMDD() + " - " + DateTime.Now.LastDayOfMonth().ToYYYYMMDD() +
-                " на дату - " + cellValue[7]
-                );
+            logger.Trace(
+                $"SendAllReportsInSelectedPeriod: активные отчеты {cellValue[6]} за {cellValue[4]} {DateTime.Now.FirstDayOfMonth().ToYYYYMMDD()} - {DateTime.Now.LastDayOfMonth().ToYYYYMMDD()} на дату - {cellValue[7]}");
 
             HashSet<Mailing> mailingList = new HashSet<Mailing>();
 
@@ -7832,7 +7831,7 @@ namespace ASTA
 
                                 int dayToSendReport = ReturnNumberStrongNameDayOfSendingReports(dayReport, daysOfSendingMail);
 
-                                logger.Trace("DayReport: " + dayReportInDB + " " + dayReport + " " + dayToSendReport);
+                                logger.Trace($"DayReport: {dayReportInDB} {dayReport} {dayToSendReport}");
 
                                 if (
                                         status == "Активная" &&
@@ -7861,7 +7860,7 @@ namespace ASTA
 
             foreach (Mailing mailng in mailingList)
             {
-                SetStatusLabelText(StatusLabel2, "Готовлю отчет " + mailng._nameReport);
+                SetStatusLabelText(StatusLabel2, $"Готовлю отчет {mailng._nameReport}");
 
                 str = "UPDATE 'Mailing' SET SendingLastDate='" + DateTime.Now.ToYYYYMMDDHHMM() +
                     "' WHERE RecipientEmail='" + mailng._recipient +
@@ -7903,7 +7902,7 @@ namespace ASTA
         private void DeleteCurrentRow()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             string group = _ReturnTextOfControl(textBoxGroup);
 
@@ -8001,7 +8000,7 @@ namespace ASTA
         private void SwitchAppMode()       // ExecuteAutoMode()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             if (currentModeAppManual)
             {
@@ -8102,7 +8101,7 @@ namespace ASTA
         private void ScheduleTask(object obj) //SelectMailingDoAction()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             lock (synclock)
             {
@@ -8140,7 +8139,7 @@ namespace ASTA
         private async Task TestToSendAllMailings()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             await Task.Run(() => CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword));
             await Task.Run(() => UpdateMailingInDB());
@@ -8205,7 +8204,7 @@ namespace ASTA
         private void SelectMailingDoAction()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             _ProgressBar1Start();
 
@@ -8356,7 +8355,7 @@ namespace ASTA
         private void UpdateMailingInDB()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             _ProgressBar1Start();
 
@@ -8454,7 +8453,8 @@ namespace ASTA
         private void MailingAction(string mainAction, string recipientEmail, string senderEmail, string groupsReport, string nameReport, string description, string period, string status, string typeReport, string dayReport)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
+            logger.Trace($"mainAction: { mainAction} |recipientEmail: { recipientEmail} |senderEmail: { senderEmail} |groupsReport: { groupsReport} |nameReport: { nameReport} |description: { description} |period: { period} |status: { status} |typeReport: { typeReport} |dayReport: { dayReport} ");
 
             SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
 
@@ -8489,32 +8489,29 @@ namespace ASTA
         private void GetRegistrationAndSendReport(string groupsReport, string nameReport, string description, string period, string status, string typeReport, string dayReport, bool sendReport, string recipientEmail, string senderEmail)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             DataTable dtTempIntermediate = dtPeople.Clone();
-            DateTime dtCurrentDate = DateTime.Now;
             EmployeeFull person = new EmployeeFull();
             DateTime selectedDate = DateTime.Now;
 
             GetNamesOfPassagePoints();  //Get names of the Passage Points
 
             if (period.ToLower().Contains("текущ"))
-            {
-                selectedDate = dtCurrentDate;
-            }
+            { }
             else if (period.ToLower().Contains("предыдущ"))
-            {
-                selectedDate = new DateTime(dtCurrentDate.Year, dtCurrentDate.Month, 1).AddDays(-1);
-            }
+            { selectedDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddDays(-1); }
+            else
+            { selectedDate = _ReturnDateTimePicker(dateTimePickerStart); }
 
             reportStartDay = selectedDate.FirstDayOfMonth().ToYYYYMMDD() + " 00:00:00";
             reportLastDay = selectedDate.LastDayOfMonth().ToYYYYMMDD() + " 23:59:59";
 
-            if (!period.ToLower().Contains("предыдущ") && !period.ToLower().Contains("текущ"))
+          /*  if (!period.ToLower().Contains("предыдущ") && !period.ToLower().Contains("текущ"))
             {
                 reportStartDay = SelectedDatetimePickersPeriodMonth().Split('|')[0];
                 reportLastDay = SelectedDatetimePickersPeriodMonth().Split('|')[1];
-            }
+            }*/
 
             DateTime start = DateTime.Parse(reportStartDay);
             DateTime end = DateTime.Parse(reportLastDay);
@@ -8639,7 +8636,7 @@ namespace ASTA
         private static string SendEmailAsync(MailServer server, MailUser from, MailUser to, string _subject, BodyBuilder builder)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             MailSender mailSender = new MailSender(server);
             mailSender.SetFrom(from);
@@ -8653,7 +8650,7 @@ namespace ASTA
         private static void SendStandartReport(string to, string period, string department, string pathToFile, string messageAfterPicture)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             MailUser _to = new MailUser(to.Split('@')[0], to);
             string subject = "Отчет по посещаемости за период: " + period;
@@ -8743,7 +8740,7 @@ namespace ASTA
         private static void SendAdminReport()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace("-= " + method + " =-");
+            logger.Trace($"-= {method} =-");
 
             string period = DateTime.Now.ToYYYYMMDD();
             string subject = "Результат отправки отчетов за " + period;
@@ -9679,11 +9676,11 @@ namespace ASTA
         private void SetStatusLabelText(object sender, TextEventArgs e)
         { SetStatusLabelText(StatusLabel2, e.Message); }
 
-        private void SetStatusLabelBackColor(object sender, ColorEventArgs e)
+        private void SetStatusLabel2BackColor(object sender, ColorEventArgs e)
         { SetStatusLabelBackColor(StatusLabel2, e.Color); }
 
         private void SetUploadingStatus(object sender, BoolEventArgs e)
-        { resultOfUploading = e.Status; }
+        { isUploaded = e.Status; }
 
         private void AddLoggerTraceText(object sender, TextEventArgs e)
         { logger.Trace(e.Message); }
@@ -9954,19 +9951,19 @@ namespace ASTA
             logger.Info(remoteFolderUpdateURL);
 
             //Make an archive with the currrent app's version 
-            MakeZip(appAllFiles, appFileZip);
+            MakeZip(appAllFiles, fileNameToUpdateZip);
 
             //Make MD5 of ZIP archive
-            appFileMD5 = CalculateHash(appFileZip);
+            appFileMD5 = CalculateHash(fileNameToUpdateZip);
 
             UpdatingParameters parameters = new UpdatingParameters
             {
                 localFolderUpdatingURL = localAppFolderPath,
                 remoteFolderUpdatingURL = remoteFolderUpdateURL,
                 appVersion = appVersionAssembly,
-                appFileXml = appNameXML,
+                appFileXml = fileNameToUpdateXML,
                 appUpdateMD5 = appFileMD5,
-                appFileZip = appFileZip
+                appFileZip = fileNameToUpdateZip
             };
 
             MakerOfLinks makerLinks = new MakerOfLinks();
@@ -10001,7 +9998,7 @@ namespace ASTA
         {
             Uploading();
 
-            if (replaceBrokenRemoteFolderUpdateURL && resultOfUploading)
+            if (replaceBrokenRemoteFolderUpdateURL && isUploaded)
             {
                 string message = SaveParameterInConfigASTA(new ParameterConfig()
                 {
@@ -10025,53 +10022,40 @@ namespace ASTA
             SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
 
             uploadingStatus = true;
-            resultOfUploading = false;
+            isUploaded = false;
 
             UpdatingParameters parameters = PrepareUpdating();
 
-            string[] source =  {
+
+           List< string> source = new List<string> {
                 parameters.localFolderUpdatingURL + @"\" + parameters.appFileXml,
                 parameters.localFolderUpdatingURL + @"\" + parameters.appFileZip
             };
 
-           List< string> source1 = new List<string> {
-                parameters.localFolderUpdatingURL + @"\" + parameters.appFileXml,
-                parameters.localFolderUpdatingURL + @"\" + parameters.appFileZip
-            };
-
-            List<System.IO.Abstractions.IFileInfo> fileSystem = new List<System.IO.Abstractions.IFileInfo>();
-             source1.ForEach(p => fileSystem.Add((System.IO.Abstractions.FileInfoBase)ReturnNewFileInfo(p)));
+            List<System.IO.Abstractions.IFileInfo> listSource = new List<System.IO.Abstractions.IFileInfo>();
+            source.ForEach(p => listSource.Add((System.IO.Abstractions.FileInfoBase)ReturnNewFileInfo(p)));
 
 
-            string[] target = {
-                parameters.appUpdateFolderURI + parameters.appFileXml,
+            List<string> target = new List<string> {
+               parameters.appUpdateFolderURI + parameters.appFileXml,
                 parameters.appUpdateFolderURI + parameters.appFileZip
             };
+            List<System.IO.Abstractions.IFileInfo> listTarget = new List<System.IO.Abstractions.IFileInfo>();
+            target.ForEach(p => listTarget.Add((System.IO.Abstractions.FileInfoBase)ReturnNewFileInfo(p)));
 
-            using (Uploader uploader = new Uploader(parameters, source, target))
+            using (Uploader uploader = new Uploader(parameters, listSource, listTarget))
             {
-                uploader.StatusText += SetStatusLabelText;
-                uploader.StatusColor += SetStatusLabelBackColor;
+                uploader.StatusText += AddLoggerTraceText;
+                uploader.StatusColor += SetStatusLabel2BackColor;
                 uploader.StatusFinishedUploading += SetUploadingStatus;
                 uploader.Upload();
 
-                uploader.StatusText -= SetStatusLabelText;
-                uploader.StatusColor -= SetStatusLabelBackColor;
+                uploader.StatusText -= AddLoggerTraceText;
+                uploader.StatusColor -= SetStatusLabel2BackColor;
                 uploader.StatusFinishedUploading -= SetUploadingStatus;
             }
-            parameters = null;
 
-            foreach (var file in source)
-            {
-                if (System.IO.File.Exists(file))
-                {
-                    try { System.IO.File.Delete(file); }
-                    catch { }
-                }
-
-            }
-
-            if (!resultOfUploading && uploadingStatus && firstAttemptsUpdate)
+             if (!isUploaded && uploadingStatus && firstAttemptsUpdate)
             {
 
                 ReplaceBrokenRemoteFolderUpdateURL();
@@ -10083,24 +10067,51 @@ namespace ASTA
             }
 
             uploadingStatus = false;
-        }
 
+           foreach (var file in source)
+            {
+                if (System.IO.File.Exists(file))
+                {
+                    try {
+                        System.IO.File.Delete(file);
+                        AddLoggerTraceText($"Файл удален: {file}");
+                    }
+                    catch(Exception expt)
+                    {
+                        AddLoggerTraceText($"Файл {file} не удален из-за {expt.ToString()}");
+                    }
+                }
+            }
+           
+           if (!isUploaded)
+            {
+                SetStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
+                SetStatusLabelText(StatusLabel2, $"Загрузить обновление ver.{parameters.appVersion} на {parameters.remoteFolderUpdatingURL} не удалось");
+            }
+            else
+            {
+                SetStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
+                SetStatusLabelText(StatusLabel2, $"Обновление ver.{parameters.appVersion} загружено в {parameters.remoteFolderUpdatingURL}");
+            }
+            parameters = null;
+        }
+        
         static bool firstAttemptsUpdate = true;
-        static bool resultOfUploading = false;
+        static bool isUploaded = false;
 
         static bool replaceBrokenRemoteFolderUpdateURL = false;
 
         private string ChangeRemoteServerUrl(string urlOfUpdatingServer)
         {
             string url = null;
-            if (urlOfUpdatingServer.ToLower().Contains(domainOfUser.ToLower()))
-                url = urlOfUpdatingServer.Replace("." + domainOfUser, "");
+            if (urlOfUpdatingServer.ToLower().Contains(domain.ToLower()))
+                url = urlOfUpdatingServer.Replace("." + domain, "");
             else
             {
                 if (urlOfUpdatingServer.Contains('/'))
-                    url = urlOfUpdatingServer.Insert(urlOfUpdatingServer.IndexOf('/'), "." + domainOfUser);
+                    url = urlOfUpdatingServer.Insert(urlOfUpdatingServer.IndexOf('/'), "." + domain);
                 else if (urlOfUpdatingServer.Contains(@"\"))
-                    url = urlOfUpdatingServer.Insert(urlOfUpdatingServer.IndexOf(@"\"), "." + domainOfUser);
+                    url = urlOfUpdatingServer.Insert(urlOfUpdatingServer.IndexOf(@"\"), "." + domain);
             }
             return url;
         }
@@ -10126,9 +10137,9 @@ namespace ASTA
                 localFolderUpdatingURL = localAppFolderPath,
                 remoteFolderUpdatingURL = remoteFolderUpdateURL,
                 appVersion = appVersionAssembly,
-                appFileXml = appNameXML,
+                appFileXml = fileNameToUpdateXML,
                 appUpdateMD5 = appFileMD5,
-                appFileZip = appFileZip
+                appFileZip = fileNameToUpdateZip
             };
 
             MakerOfLinks makerLinks = new MakerOfLinks();
@@ -10209,7 +10220,7 @@ namespace ASTA
         private void OpenMenuItemsAsLocalAdmin_Click(object sender, EventArgs e)
         {
             VisibleOfAdminMenuItems(true);
-            SetStatusLabelText(StatusLabel2, "Включено отображение меню как Администратора");
+            SetStatusLabelText(StatusLabel2, "Включено отображение меню для Администратора системы");
         }
 
         private void VisibleOfAdminMenuItems(bool show)

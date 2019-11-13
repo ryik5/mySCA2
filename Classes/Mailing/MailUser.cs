@@ -65,7 +65,7 @@ namespace ASTA.Classes
         {
             if (_mailUser != null)
             {
-                return _mailUser?._name + "\t" + _mailUser?._email;
+                return $"{_mailUser?._name}\t{_mailUser?._email}";
             }
             else
             { return null; }

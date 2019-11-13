@@ -60,7 +60,7 @@ namespace ASTA.Classes.Updating
                 };
                 document.checksum = checksum;
             }
-            status?.Invoke(this, new TextEventArgs("XML файл:" + _parameters.appFileXml));
+            status?.Invoke(this, new TextEventArgs($"XML файл: {_parameters.appFileXml}"));
 
             //  var nodesToStore = new List<XMLDocument> { document };
             try
@@ -73,7 +73,7 @@ namespace ASTA.Classes.Updating
                     XmlSerializer serializer = new XmlSerializer(document.GetType());//, atribXmlOver
                     serializer.Serialize(fs, document, ns); //clear any xmlns attributes from the root element
                 }
-                status?.Invoke(this, new TextEventArgs("XML файл сохранен как " + Path.GetFullPath(_parameters.appFileXml)));
+                status?.Invoke(this, new TextEventArgs($"XML файл сохранен как {Path.GetFullPath(_parameters.appFileXml)}"));
             }
             catch
             {

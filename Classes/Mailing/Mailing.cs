@@ -15,9 +15,7 @@ namespace ASTA.Classes
 
         public override string ToString()
         {
-            return _recipient + "\t" +
-                _groupsReport + "\t" + _nameReport + "\t" + _descriptionReport + "\t" + _period + "\t" +
-                _status + "\t" + _typeReport + "\t" + _dayReport;
+            return $"{_recipient}\t{_groupsReport}\t{_nameReport}\t{_descriptionReport}\t{_period}\t{_status}\t{_typeReport}\t{_dayReport}";
         }
 
         public override bool Equals(object obj)
