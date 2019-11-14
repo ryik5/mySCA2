@@ -7386,8 +7386,10 @@ namespace ASTA
                                         groupBoxFilterReport.BackColor = SystemColors.Control;
 
                                         string descr = cellValue[2] ?? cellValue[1] ?? cellValue[0];
-                                        
-                                        StatusLabel2.Text = $"Выбрано: {descr}";
+
+                                        StatusLabel2.Text = descr?.Length > 0 ? 
+                                            $"Выбрано: {descr}" 
+                                            : "";
                                         if (textBoxFIO?.TextLength > 3)
                                         {
                                             comboBoxFio.SelectedIndex = comboBoxFio.FindString(textBoxFIO.Text);
@@ -7413,7 +7415,9 @@ namespace ASTA
                                         string descr = cellValue[3] ?? cellValue[4] ?? cellValue[2];
                                         logger.Trace($"{cellValue[0]} {cellValue[1]} {cellValue[2]} {cellValue[3]} {cellValue[4]} ");
 
-                                        StatusLabel2.Text = $"Выбрано: {descr} |Курсор на: {cellValue[1]?.ConvertFullNameToShortForm()}";
+                                        StatusLabel2.Text = descr?.Length > 0 || cellValue[1]?.Length > 0 ? 
+                                            $"Выбрано: {descr} |Курсор на: {cellValue[1]?.ConvertFullNameToShortForm()}" 
+                                            : "";
 
                                         groupBoxPeriod.BackColor = Color.PaleGreen;
                                         groupBoxTimeStart.BackColor = Color.PaleGreen;
@@ -7434,7 +7438,9 @@ namespace ASTA
                                         textBoxFIO.Text = cellValue[1];
                                         textBoxNav.Text = "";
 
-                                        StatusLabel2.Text = $" |Курсор на: {cellValue[1]?.ConvertFullNameToShortForm()}";
+                                        StatusLabel2.Text = cellValue[1]?.Length > 0 ?
+                                            $"Выбрано : {cellValue[1]?.ConvertFullNameToShortForm()}"
+                                            : "";
                                     }
                                     break;
 
@@ -7459,7 +7465,6 @@ namespace ASTA
                     }
                 }
             }
-
         }
 
 
@@ -9801,10 +9806,10 @@ namespace ASTA
         {
             if (!uploadingStatus)
             {
-                UpdatingParameters parameters = MakeStartParametersOfUpdating();
+                UpdatingParameters parameters = MakeParametersToUpdate();
                 appUpdateURL = parameters.appUpdateURL;
 
-                logger.Trace(@"Update URL: " + parameters.appUpdateURL);
+                logger.Trace($"Update URL: {parameters.appUpdateURL}");
 
                 //Changing settings
                 AutoUpdater.Mandatory = true;
@@ -9817,10 +9822,12 @@ namespace ASTA
                 AutoUpdater.CheckForUpdateEvent += RunAutoUpdate_Event; //write errors if had no access to the folder
                 AutoUpdater.ApplicationExitEvent += ApplicationExit;    //https://archive.codeplex.com/?p=autoupdaterdotnet
                 AutoUpdater.Start(parameters.appUpdateURL);
+                AutoUpdater.CheckForUpdateEvent -= RunAutoUpdate_Event;
+                AutoUpdater.ApplicationExitEvent -= ApplicationExit;
             }
             else
             {
-                SetStatusLabelText(StatusLabel2, @"Ждите! На сервер загружается новая версия ПО");
+                SetStatusLabelText(StatusLabel2, "Ждите! На сервер загружается новая версия ПО");
             }
         }
 
@@ -9849,8 +9856,8 @@ namespace ASTA
                 // AutoUpdater.ApplicationExitEvent += ApplicationExit;
                 if (!uploadingStatus)
                 {
-                    UpdatingParameters parameters = MakeStartParametersOfUpdating();
-                    logger.Trace(@"Update URL: " + parameters.appUpdateURL);
+                    UpdatingParameters parameters = MakeParametersToUpdate();
+                    logger.Trace("Update URL: {parameters.appUpdateURL}");
 
                     //  AutoUpdater.ApplicationExitEvent += AutoUpdater_ApplicationExitEvent;    //https://archive.codeplex.com/?p=autoupdaterdotnet
 
@@ -9866,7 +9873,7 @@ namespace ASTA
                     //AutoUpdater.Start("ftp://kv-sb-server.corp.ais/Common/ASTA/ASTA.xml", new NetworkCredential("FtpUserName", "FtpPassword")); //download from FTP
                 }
                 else
-                { logger.Trace(@"Обновление приостановлено. На сервер сейчас загружается новая версия ПО"); }
+                { logger.Trace("Обновление приостановлено. На сервер сейчас загружается новая версия ПО"); }
             };
             timer.Start();
         }
@@ -9883,7 +9890,7 @@ namespace ASTA
                         if (AutoUpdater.DownloadUpdate())
                         {
                             SetStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
-                            UpdatingParameters parameters = MakeStartParametersOfUpdating();
+                            UpdatingParameters parameters = MakeParametersToUpdate();
 
                             System.Xml.XmlDocument xmldoc = new System.Xml.XmlDocument();
                             System.Xml.XmlNodeList xmlnode;
@@ -9897,7 +9904,7 @@ namespace ASTA
                             logger.Trace("...");
                             SetStatusLabelText(
                                 StatusLabel2,
-                                @" обнаружена новая версия " + appName + " ver." + foundNewVersionApp);
+                                $"Oбнаружена новая версия {appName} ver. {foundNewVersionApp}");
                             logger.Trace("...");
                             logger.Trace("-= Update =-");
                             logger.Info("");
@@ -9909,7 +9916,7 @@ namespace ASTA
                                 {
                                     name = "RemoteFolderUpdateURL",
                                     value = remoteFolderUpdateURL,
-                                    description = "Параметр обновлен " + DateTime.Now.ToYYYYMMDDHHMMSS(),
+                                    description = $"Параметр обновлен {DateTime.Now.ToYYYYMMDDHHMMSS()}",
                                     isSecret = false,
                                     isExample = "no"
                                 });
@@ -9921,25 +9928,21 @@ namespace ASTA
                         }
                     }
                     catch (Exception exception)
-                    { logger.Warn(@"Update's check was failed: " + exception.Message + "| " + exception.GetType().ToString()); }
+                    { logger.Warn($"Update's check was failed: {exception.Message} | {exception.GetType().ToString()}"); }
                     // Uncomment the following line if you want to show standard update dialog instead.
                     // AutoUpdater.ShowUpdateForm();
                 }
                 else
                 {
                     SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
-                    SetStatusLabelText(StatusLabel2, @"Новых версий ПО '" + appName + "' не обнаружено");
+                    SetStatusLabelText(StatusLabel2, $"Новых версий ПО '{appName}' не обнаружено");
                 }
             }
             else
             {
                 SetStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
-                SetStatusLabelText(StatusLabel2, @"Обновление не возможно. Проверьте URL: "+ remoteFolderUpdateURL);
-
-                logger.Warn( @"Update check failed: There was a problem reaching update server URL.");
-                logger.Warn(@"Измените формат URL сервера обновлений");
-                logger.Warn(@"Если адрес был server.domain.subdomain/folder -> server/folder");
-                logger.Warn(@"Если адрес был server/folder -> server.domain.subdomain/folder");
+                SetStatusLabelText(StatusLabel2, $"Обновление не возможно. Проверьте URL: {remoteFolderUpdateURL}");
+                logger.Warn($"Не верный URL сервера обновлений: {remoteFolderUpdateURL}");
                 
                 urlUpdateReachError = true;
             }
@@ -10101,31 +10104,48 @@ namespace ASTA
 
         static bool replaceBrokenRemoteFolderUpdateURL = false;
 
-        private string ChangeRemoteServerUrl(string urlOfUpdatingServer)
+        private string ChangeFormUrl(string serverUrl)
         {
-            string url = null;
-            if (urlOfUpdatingServer.ToLower().Contains(domain.ToLower()))
-                url = urlOfUpdatingServer.Replace("." + domain, "");
+            AddLoggerTraceText("-= ChangeFormUrl =-");
+            string url;
+            if (serverUrl.ToLower().Contains(domain.ToLower()))//change url: server.domain -> server
+            {
+                url = $"{serverUrl.Remove(serverUrl.IndexOf('.'))}";
+            }
             else
             {
-                if (urlOfUpdatingServer.Contains('/'))
-                    url = urlOfUpdatingServer.Insert(urlOfUpdatingServer.IndexOf('/'), "." + domain);
-                else if (urlOfUpdatingServer.Contains(@"\"))
-                    url = urlOfUpdatingServer.Insert(urlOfUpdatingServer.IndexOf(@"\"), "." + domain);
+                if (serverUrl.Contains('/'))
+                {
+                    url = $"{serverUrl.Remove(serverUrl.IndexOf('/'))}.{domain}";
+                    //url = urlOfUpdatingServer.Insert(urlOfUpdatingServer.IndexOf('/'), "." + domain);
+                }
+                else if (serverUrl.Contains('\\'))
+                {
+                    url = $"{serverUrl.Remove(serverUrl.IndexOf('\\'))}.{domain}";
+                    //   url = urlOfUpdatingServer.Insert(urlOfUpdatingServer.IndexOf('\\'), "." + domain);
+                }
+                else
+                {
+                    url = $"{serverUrl}.{domain}";
+                }
             }
+            AddLoggerTraceText("Old URL: " + serverUrl + " - > New URL: " + url);
+
             return url;
         }
 
         private void ReplaceBrokenRemoteFolderUpdateURL()
         {
+            AddLoggerTraceText("-= ReplaceBrokenRemoteFolderUpdateURL =-");
+
             string oldUrl = remoteFolderUpdateURL;
             logger.Info("old remoteFolderUpdateURL:" + oldUrl);
-            remoteFolderUpdateURL = ChangeRemoteServerUrl(oldUrl);
+            remoteFolderUpdateURL = ChangeFormUrl(oldUrl);
             logger.Info("remoteFolderUpdateURL: " + oldUrl + " -> " + remoteFolderUpdateURL);
             replaceBrokenRemoteFolderUpdateURL = true;
         }
 
-        UpdatingParameters MakeStartParametersOfUpdating()
+        UpdatingParameters MakeParametersToUpdate()
         {
             if (urlUpdateReachError)
             {
@@ -10150,21 +10170,16 @@ namespace ASTA
 
             return makerLinks.GetParameters();
         }
-
-
-
-
+               
         //Calculate MD5 checksum of local file
         private string CalculateHash(string filePath)
         {
             CalculatingHash calculatedHash = new CalculatingHash(filePath);
             return calculatedHash.Calculate();
         }
+        
         private void CalculateHashItem_Click(object sender, EventArgs e) //Selectfiles()
-        {
-            SelectfilesForCalculatingHash();
-            //  TestHash();
-        }
+        { SelectfilesForCalculatingHash(); }
 
         private void SelectfilesForCalculatingHash() //SelectFileOpenFileDialog() CalculateFileHash()
         {
@@ -10177,13 +10192,13 @@ namespace ASTA
                       MessageBoxIcon.Exclamation,
                       MessageBoxDefaultButton.Button1);
 
-            filePath = SelectFileOpenFileDialog("Выберите первый файл для вычисления хэша");
+            filePath = SelectFileOpenFileDialog("Выберите файл для вычисления его хэша");
             calculatedHash = new CalculatingHash(filePath);
             result += calculatedHash.Calculate() + "\n";
 
             if (selectTwoFiles == DialogResult.Yes)
             {
-                filePath = SelectFileOpenFileDialog("Выберите следующий файл для вычисления хэша");
+                filePath = SelectFileOpenFileDialog("Выберите следующий файл для вычисления его хэша");
                 calculatedHash = new CalculatingHash(filePath);
                 result += "\n" + calculatedHash.Calculate() + "\n";
             }
@@ -10214,9 +10229,7 @@ namespace ASTA
             this.Invoke(mi);
             return filePath;
         }
-
-
-
+        
         private void OpenMenuItemsAsLocalAdmin_Click(object sender, EventArgs e)
         {
             VisibleOfAdminMenuItems(true);
@@ -10246,6 +10259,7 @@ namespace ASTA
 
             _VisibleMenuSeparator(toolStripSeparator2, !show);
         }
+        
         private void EnableMainMenuItems(bool show)
         {
             _EnableMenuItem(FunctionMenuItem, show);

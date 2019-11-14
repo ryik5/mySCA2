@@ -1,6 +1,6 @@
 ﻿namespace ASTA.Classes.Updating
 {
-    public class UpdatingParameters
+    public class UpdatingParameters: IParameters
     {
         public static string Name { get { return nameof(UpdatingParameters); } }
         public string appFileZip { get; set; }
@@ -30,7 +30,22 @@
             appFileZip = parameters.appFileZip;
         }
 
-        public UpdatingParameters GetUpdating()
+        public void SetParameters(UpdatingParameters parameters)
+        {
+            remoteFolderUpdatingURL = parameters.remoteFolderUpdatingURL;
+            localFolderUpdatingURL = parameters.localFolderUpdatingURL;
+            appUpdateFolderURL = parameters.appUpdateFolderURL;
+            appUpdateFolderURI = parameters.appUpdateFolderURI;
+            appUpdateURL = parameters.appUpdateURL;
+            appFileXml = parameters.appFileXml;
+            appUpdateChangeLogURL = parameters.appUpdateChangeLogURL;
+            appUpdateMD5 = parameters.appUpdateMD5;
+            appVersion = parameters.appVersion;
+            appFileZip = parameters.appFileZip;
+        }
+
+
+        public UpdatingParameters GetParameters()
         {
             return new UpdatingParameters
             {
@@ -46,5 +61,11 @@
                 appFileZip = appFileZip
             };
         }
+    }
+
+  public  interface IParameters
+    {
+        UpdatingParameters GetParameters();
+        void SetParameters(UpdatingParameters parameters);
     }
 }

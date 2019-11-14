@@ -6,9 +6,9 @@ using System.Xml.Serialization;
 
 namespace ASTA.Classes.Updating
 {
-    public class MakerOfUpdateXmlFile : IMakeable
+    public class MakerOfUpdateXmlFile:IMakeable
     {
-       UpdatingParameters _parameters { get; set; }
+        IParameters _parameters { get; set; }
 
         public delegate void Status(object sender, TextEventArgs e);
         public event Status status;
@@ -16,17 +16,17 @@ namespace ASTA.Classes.Updating
 
         public MakerOfUpdateXmlFile(UpdatingParameters parameters)
         {
-            _parameters = new UpdatingParameters(parameters);
+            _parameters = parameters.GetParameters();
         }
 
         public void SetParameters(UpdatingParameters parameters)
         {
-            _parameters = new UpdatingParameters(parameters);
+            _parameters = parameters.GetParameters();
         }
 
         public UpdatingParameters GetParameters()
         {
-            return new UpdatingParameters(_parameters);
+            return _parameters.GetParameters();
         }
 
         public void Make()
@@ -36,10 +36,10 @@ namespace ASTA.Classes.Updating
             Contract.Requires(_parameters != null,
                     "Не создан экземпляр UpdatingParameters!");
 
-            Contract.Requires(!string.IsNullOrWhiteSpace(_parameters.appFileXml),
+            Contract.Requires(!string.IsNullOrWhiteSpace(_parameters.GetParameters().appFileXml),
                     "Отсутствует параметр appFileXml или ссылка пустая!");
 
-            Contract.Requires(!string.IsNullOrWhiteSpace(_parameters.appVersion),
+            Contract.Requires(!string.IsNullOrWhiteSpace(_parameters.GetParameters().appVersion),
                     "Отсутствует параметр appVersion или ссылка пустая!");
 
             //https://stackoverflow.com/questions/44477727/writing-xml-and-reading-it-back-c-sharp
@@ -48,24 +48,24 @@ namespace ASTA.Classes.Updating
             ns.Add("", "");//clear any xmlns attributes from the root element
 
             XMLDocument document = new XMLDocument();
-            document.version = _parameters.appVersion;
-            document.url = _parameters.appUpdateFolderURL+ _parameters.appFileZip;
+            document.version = _parameters.GetParameters().appVersion;
+            document.url = _parameters.GetParameters().appUpdateFolderURL+ _parameters.GetParameters().appFileZip;
 
-            if (_parameters.appUpdateMD5 != null)
+            if (_parameters.GetParameters().appUpdateMD5 != null)
             {
                 var checksum = new XMLElementChecksum
                 {
-                    value = _parameters.appUpdateMD5,
+                    value = _parameters.GetParameters().appUpdateMD5,
                     algorithm = "MD5"
                 };
                 document.checksum = checksum;
             }
-            status?.Invoke(this, new TextEventArgs($"XML файл: {_parameters.appFileXml}"));
+            status?.Invoke(this, new TextEventArgs($"XML файл: {_parameters.GetParameters().appFileXml}"));
 
             //  var nodesToStore = new List<XMLDocument> { document };
             try
             {
-                using (FileStream fs = new FileStream(_parameters.appFileXml, FileMode.Create))
+                using (FileStream fs = new FileStream(_parameters.GetParameters().appFileXml, FileMode.Create))
                 {
                     // XmlSerializer serializer = new XmlSerializer(nodesToStore.GetType());
                     // serializer.Serialize(fs, nodesToStore);
@@ -73,7 +73,7 @@ namespace ASTA.Classes.Updating
                     XmlSerializer serializer = new XmlSerializer(document.GetType());//, atribXmlOver
                     serializer.Serialize(fs, document, ns); //clear any xmlns attributes from the root element
                 }
-                status?.Invoke(this, new TextEventArgs($"XML файл сохранен как {Path.GetFullPath(_parameters.appFileXml)}"));
+                status?.Invoke(this, new TextEventArgs($"XML файл сохранен как {Path.GetFullPath(_parameters.GetParameters().appFileXml)}"));
             }
             catch
             {

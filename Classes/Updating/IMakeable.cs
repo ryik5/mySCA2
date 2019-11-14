@@ -1,9 +1,7 @@
 ﻿namespace ASTA.Classes.Updating
 {
-   public interface IMakeable
+    public interface IMakeable : IParameters
     {
         void Make();
-        void SetParameters(UpdatingParameters parameters);
-        UpdatingParameters GetParameters();
     }
 }
