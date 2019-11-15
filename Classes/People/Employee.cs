@@ -3,14 +3,17 @@ using System.Collections.Generic;
 
 namespace ASTA.Classes.People
 {
-    public class Employee : Person, IComparable<Employee>
+    public class Employee : IComparable<Employee>
     {
-        public Employee() : base() { }
-        public string code { get; set; }
+        public string fio { get; set; }
+
+        public string Code { get; set; }
+
+        public Employee() { }
 
         public override string ToString()
         {
-            return fio + "\t" + code;
+            return fio + "\t" + Code;
         }
 
         public override bool Equals(object obj)
@@ -50,8 +53,8 @@ namespace ASTA.Classes.People
 
         private static int CompareTwoPerson(Employee x, Employee y)
         {
-            var a = x.fio + x.code;
-            var b = y.fio + y.code;
+            var a = x.fio + x.Code;
+            var b = y.fio + y.Code;
 
             return CompareTwoStrings.Compare(a, b);
         }

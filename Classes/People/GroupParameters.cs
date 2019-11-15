@@ -2,16 +2,15 @@
 
 namespace ASTA.Classes.People
 {
-    class ADUserAuthorization
+    public class GroupParameters
     {
-        public string Login { get; set; }       // имя
-        public string Domain { get; set; }      // домен
-        public string Password { get; set; }    // пароль
-        public string DomainPath { get; set; }    // URI сервера
+        public int AmountMembers;
+        public string GroupName;
+        public string Emails;
 
         public override string ToString()
         {
-            return Login + "\t" + Domain + "\t" + Password + "\t" + DomainPath;
+            return $"{AmountMembers}\t{GroupName}\t{Emails}";
         }
 
         public override bool Equals(object obj)
@@ -19,7 +18,8 @@ namespace ASTA.Classes.People
             if (obj == null)
                 return false;
 
-            if (!(obj is ADUserAuthorization df))
+            GroupParameters df = obj as GroupParameters;
+            if (df == null)
                 return false;
 
             return ToString() == df.ToString();

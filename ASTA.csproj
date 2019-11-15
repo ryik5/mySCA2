@@ -221,7 +221,7 @@
     <Compile Include="Classes\Common\StringExtensions.cs" />
     <Compile Include="Classes\Common\TextEventArgs.cs" />
     <Compile Include="Classes\Common\ColorEventArgs.cs" />
-    <Compile Include="Classes\People\ActiveDirectoryOperations.cs" />
+    <Compile Include="Classes\People\ADUsers.cs" />
     <Compile Include="Classes\Updating\IMakeable.cs" />
     <Compile Include="Classes\Updating\MakerOfLinks.cs" />
     <Compile Include="Classes\Updating\MakerOfUpdateXmlFile.cs" />
@@ -235,9 +235,9 @@
     <Compile Include="Classes\People\Employee.cs" />
     <Compile Include="Classes\People\EmployeeFull.cs" />
     <Compile Include="Classes\People\EmployeeVisitor.cs" />
-    <Compile Include="Classes\People\UserAD.cs" />
-    <Compile Include="Classes\People\ADUserAuthorization.cs" />
-    <Compile Include="Classes\People\ParametersOfGroup.cs" />
+    <Compile Include="Classes\People\ADUserFullAccount.cs" />
+    <Compile Include="Classes\People\ADUser.cs" />
+    <Compile Include="Classes\People\GroupParameters.cs" />
     <Compile Include="Classes\Db\DbColumn.cs" />
     <Compile Include="Classes\Db\DbIndex.cs" />
     <Compile Include="Classes\Db\DbSchema.cs" />
@@ -263,7 +263,6 @@
     <Compile Include="Classes\People\Visitor.cs" />
     <Compile Include="Classes\Mailing\Mailing.cs" />
     <Compile Include="Classes\ParameterOfConfiguration.cs" />
-    <Compile Include="Classes\People\Person.cs" />
     <Compile Include="Classes\People\Visitors.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

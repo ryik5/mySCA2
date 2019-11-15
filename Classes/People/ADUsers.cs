@@ -8,59 +8,53 @@ using System.Collections.Generic;
 
 namespace ASTA.Classes.People
 {
-    class ADData
+    public class ADUsers
     {
-        ADUserAuthorization _ADUserAuthorization;
-        public List<UserAD> ADUsersCollection;
+        IADUser adUser;
+        public List<ADUserFullAccount> ADUsersCollection;
 
         public delegate void Status<T>(object obj, T data);
         public event Status<TextEventArgs> Trace;
         public event Status<TextEventArgs> Info;
 
-        public ADData(string login, string domain, string password, string domainPath)
+        public ADUsers(IADUser user)
         {
-            _ADUserAuthorization = new ADUserAuthorization()
-            {
-                Login = login,
-                Password = password,
-                Domain = domain,
-                DomainPath = domainPath
-            };
-            Trace?.Invoke(this, new TextEventArgs(
-                $"ADData, Domain Controller: {_ADUserAuthorization.DomainPath}, login: { _ADUserAuthorization.Login}, password: {_ADUserAuthorization.Password}, domain: {_ADUserAuthorization.Domain}"));
+            adUser = user;
+             Trace?.Invoke(this, new TextEventArgs(
+                $"ADData, Domain Controller: {adUser.DomainControllerPath}, login: { adUser.Login}, password: {adUser.Password}, domain: {adUser.Domain}"));
             // isValid = ValidateCredentials(_ADUserAuthorization);       // it sometimes doesn't work correctly
         }
 
-        public List<UserAD> GetADUsers()
+        public List<ADUserFullAccount> GetADUsersFromDomain()
         {
-            Trace?.Invoke(this, new TextEventArgs($"ADData, domain: {_ADUserAuthorization.Domain}, login: {_ADUserAuthorization.Login}, password: {_ADUserAuthorization.Password}"));
+            Trace?.Invoke(this, new TextEventArgs($"ADData, domain: {adUser.Domain}, login: {adUser.Login}, password: {adUser.Password}"));
 
-            ADUsersCollection = new List<UserAD>();
+            ADUsersCollection = new List<ADUserFullAccount>();
 
-            if (string.IsNullOrEmpty(_ADUserAuthorization.Domain))
+            if (string.IsNullOrEmpty(adUser.Domain))
             { throw new ArgumentNullException("domain can not be null"); }
-            else if (string.IsNullOrEmpty(_ADUserAuthorization.Login))
+            else if (string.IsNullOrEmpty(adUser.Login))
             { throw new ArgumentNullException("login can not be null"); }
-            else if (string.IsNullOrEmpty(_ADUserAuthorization.Password))
+            else if (string.IsNullOrEmpty(adUser.Password))
             { throw new ArgumentNullException("password can not be null"); }
-            else if (string.IsNullOrEmpty(_ADUserAuthorization.DomainPath))
+            else if (string.IsNullOrEmpty(adUser.DomainControllerPath))
             { throw new ArgumentNullException("DomainPath can not be null"); }
 
             // if (isValid)     //it sometimes doesn't work correctly
             {
                 using (var context = new PrincipalContext(
                     ContextType.Domain,
-                    _ADUserAuthorization.DomainPath,
+                    adUser.DomainControllerPath,
 
                    /*1. look starting for users from 'OU=Domain Users' */
                    //"OU=Domain Users,DC=" + _ADUserAuthorization.Domain.Split('.')[0] + ",DC=" + _ADUserAuthorization.Domain.Split('.')[1],
                    /* 2. if need to start from the root of the domain  - previous string should be commented */
 
-                   _ADUserAuthorization.Login + @"@" + _ADUserAuthorization.Domain,
-                    _ADUserAuthorization.Password))
+                   adUser.Login + @"@" + adUser.Domain,
+                    adUser.Password))
                 {
                     Trace?.Invoke(this, new TextEventArgs(
-                        $"GetADUsers, DC: {_ADUserAuthorization.DomainPath}, login: {_ADUserAuthorization.Login}@{_ADUserAuthorization.Domain}, password: {_ADUserAuthorization.Password}"));
+                        $"GetADUsers, DC: {adUser.DomainControllerPath}, login: {adUser.Login}@{adUser.Domain}, password: {adUser.Password}"));
                     using (var UserExt = new UserPrincipalExtended(context))
                     {
                         UserPrincipalExtended foundUser = null;
@@ -111,10 +105,10 @@ namespace ASTA.Classes.People
 
                                         if (!string.IsNullOrEmpty(_fio))
                                         {
-                                            ADUsersCollection.Add(new UserAD
+                                            ADUsersCollection.Add(new ADUserFullAccount
                                             {
                                                 //  id = userCount,
-                                                login = _login,
+                                                Login = _login,
                                                 stateAccount = _stateAccount,
                                                 // sid = _sid,
                                                 // guid = _guid,
@@ -122,7 +116,7 @@ namespace ASTA.Classes.People
                                                 mailNickName = _mailNickName,
                                                 mailServer = _mailServer,
                                                 fio = _fio,
-                                                code = _code,
+                                                Code = _code,
                                                 description = _decription,
                                                 department = _department,
                                                 lastLogon = _lastLogon
@@ -131,7 +125,7 @@ namespace ASTA.Classes.People
                                             if (ADUsersCollection?.Count > 1 && ADUsersCollection?.Count % 5 == 0)
                                             {
                                                 Info?.Invoke(this, new TextEventArgs(
-                                                    $"Из домена {_ADUserAuthorization.Domain} получено {ADUsersCollection?.Count} аккаунтов, последний {_fio.ConvertFullNameToShortForm()}"));
+                                                    $"Из домена {adUser.Domain} получено {ADUsersCollection?.Count} аккаунтов, последний {_fio.ConvertFullNameToShortForm()}"));
                                             }
                                         }
                                     }
@@ -148,7 +142,7 @@ namespace ASTA.Classes.People
             foreach (var user in ADUsersCollection)
             {
                 Trace?.Invoke(this, new TextEventArgs(
-                 $"{user.mailNickName}| {user.mail}| {user.mailServer}| {user.login}| {user.code}| { user.fio}| {user.department}| {user.description}| {user.lastLogon}| {user.stateAccount}"));
+                 $"{user.mailNickName}| {user.mail}| {user.mailServer}| {user.Login}| {user.Code}| { user.fio}| {user.department}| {user.description}| {user.lastLogon}| {user.stateAccount}"));
             }
             return ADUsersCollection;
         }
@@ -174,7 +168,7 @@ namespace ASTA.Classes.People
 
     [DirectoryRdnPrefix("CN")]
     [DirectoryObjectClass("user")]
-    class UserPrincipalExtended : UserPrincipal
+    public class UserPrincipalExtended : UserPrincipal
     {
         public UserPrincipalExtended(PrincipalContext context) : base(context) { }
 
@@ -329,7 +323,7 @@ namespace ASTA.Classes.People
 
     }
 
-    class UACAccountState
+    public class UACAccountState
     {
         // existed acc.states in the string and digital forms
         const int DONT_EXPIRE_PASSWORD = 65536;
@@ -409,4 +403,5 @@ namespace ASTA.Classes.People
                 return _result;
         }
     }
+
 }

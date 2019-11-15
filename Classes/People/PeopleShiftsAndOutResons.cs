@@ -1,17 +1,17 @@
 ﻿using System;
 
 namespace ASTA.Classes.People
-{    
-    class OutReasons
+{
+    public class PeopleOutReasons
     {
-        public string _id;
-        public string _name;
-        public string _visibleName;
-        public int _hourly;
+        public string id;
+        public string nameReason;
+        public string visibleNameReason;
+        public int hourly;
 
         public override string ToString()
         {
-            return _id + "\t" + _name + "\t" + _visibleName + "\t" + _hourly;
+            return $"{id}\t{nameReason}\t{visibleNameReason}\t{hourly}";
         }
 
         public override bool Equals(object obj)
@@ -19,8 +19,7 @@ namespace ASTA.Classes.People
             if (obj == null)
                 return false;
 
-            OutReasons df = obj as OutReasons;
-            if (df == null)
+            if (!(obj is PeopleOutReasons df))
                 return false;
 
             return ToString() == df.ToString();
@@ -34,16 +33,16 @@ namespace ASTA.Classes.People
 
     class OutPerson
     {
-        public string _reason_id;//= "0"
-        public string _nav;//= ""
-        public string _date;//= ""
-        public int _from;//= 0
-        public int _to;//= 0
-        public int _hourly;//= 0
+        public string id;//= "0"
+        public string code;//= ""
+        public string date;//= ""
+        public int from;//= 0
+        public int to;//= 0
+        public int hourly;//= 0
 
         public override string ToString()
         {
-            return _reason_id + "\t" + _nav + "\t" + _date + "\t" + _from + "\t" + _to + "\t" + _hourly;
+            return $"{id}\t{code}\t{date}\t{from}\t{to}\t{hourly}";
         }
 
         public override bool Equals(object obj)
@@ -51,8 +50,7 @@ namespace ASTA.Classes.People
             if (obj == null)
                 return false;
 
-            OutPerson df = obj as OutPerson;
-            if (df == null)
+            if (!(obj is OutPerson df))
                 return false;
 
             return ToString() == df.ToString();
@@ -64,25 +62,25 @@ namespace ASTA.Classes.People
         }
     }
 
-    struct PeopleShift
+    public class PeopleShift
     {
-        public string _nav;
-        public string _dayStartShift;
-        public int _MoStart;
-        public int _MoEnd;
-        public int _TuStart;
-        public int _TuEnd;
-        public int _WeStart;
-        public int _WeEnd;
-        public int _ThStart;
-        public int _ThEnd;
-        public int _FrStart;
-        public int _FrEnd;
-        public int _SaStart;
-        public int _SaEnd;
-        public int _SuStart;
-        public int _SuEnd;
-        public string _Status;
-        public string _Comment;
+        public string code;
+        public string dayStartShift;
+        public int MoStart;
+        public int MoEnd;
+        public int TuStart;
+        public int TuEnd;
+        public int WeStart;
+        public int WeEnd;
+        public int ThStart;
+        public int ThEnd;
+        public int FrStart;
+        public int FrEnd;
+        public int SaStart;
+        public int SaEnd;
+        public int SuStart;
+        public int SuEnd;
+        public string Status;
+        public string Comment;
     }
 }

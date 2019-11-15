@@ -6,6 +6,7 @@ namespace ASTA.Classes.People
     public class EmployeeVisitor : Visitor, IComparable<EmployeeVisitor>
     {
         public string code { get; set; }
+
         public EmployeeVisitor() : base() { }
 
         public override string ToString()
@@ -53,7 +54,7 @@ namespace ASTA.Classes.People
             string a = x.fio + x.code + x.idCard + x.date + x.time;
             string b = y.fio + y.code + y.idCard + y.date + y.time;
 
-           return CompareTwoStrings.Compare(a, b);
+            return CompareTwoStrings.Compare(a, b);
         }
     }
 }

@@ -1,23 +1,23 @@
 ﻿using System;
 
 namespace ASTA.Classes.People
-{    
+{
     interface IDepartment
     {
-        string _departmentId { get; set; }
-        string _departmentDescription { get; set; }
-        string _departmentBossCode { get; set; }
+        string DepartmentId { get; set; }
+        string DepartmentDescr { get; set; }
+        string DepartmentBossCode { get; set; }
     }
 
-   public class Department : IDepartment
+    public class Department : IDepartment
     {
-        public string _departmentId { get; set; }
-        public string _departmentDescription { get; set; }
-        public string _departmentBossCode { get; set; }
+        public string DepartmentId { get; set; }
+        public string DepartmentDescr { get; set; }
+        public string DepartmentBossCode { get; set; }
 
         public override string ToString()
         {
-            return _departmentId + "\t" + _departmentDescription + "\t" + _departmentBossCode;
+            return $"{DepartmentId}\t{DepartmentDescr}\t{DepartmentBossCode}";
         }
 
         public override bool Equals(object obj)
@@ -25,28 +25,29 @@ namespace ASTA.Classes.People
             if (obj == null)
                 return false;
 
-            var df = (Department) obj;
+            var df = (Department)obj;
             if (df == null)
                 return false;
 
             return ToString() == df.ToString();
         }
+
         public override int GetHashCode()
         {
             return ToString().GetHashCode();
         }
     }
 
-   public class DepartmentFull : IDepartment
+    public class DepartmentFull : IDepartment
     {
-        public string _departmentId { get; set; }
-        public string _departmentDescription { get; set; }
-        public string _departmentBossCode { get; set; }
-        public string _departmentBossEmail { get; set; }
+        public string DepartmentId { get; set; }
+        public string DepartmentDescr { get; set; }
+        public string DepartmentBossCode { get; set; }
+        public string DepartmentBossEmail { get; set; }
 
         public override string ToString()
         {
-            return _departmentId + "\t" + _departmentDescription + "\t" + _departmentBossCode + "\t" + _departmentBossEmail;
+            return $"{DepartmentId}\t{DepartmentDescr}\t{DepartmentBossCode}\t{DepartmentBossEmail}";
         }
 
         public override bool Equals(object obj)
@@ -60,10 +61,10 @@ namespace ASTA.Classes.People
 
             return this.ToString() == df.ToString();
         }
+
         public override int GetHashCode()
         {
             return ToString().GetHashCode();
         }
     }
-    
 }
