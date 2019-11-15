@@ -276,7 +276,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Include="Classes\Db\DbControls.cs" />
+    <Compile Include="Classes\Db\DbWrapper.cs" />
     <Compile Include="README1.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

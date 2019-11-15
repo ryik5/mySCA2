@@ -197,7 +197,7 @@ namespace ASTA.Classes
 
 
     //SQLite
-    public abstract class SQLiteDbBase : IDisposable
+    public abstract class SQLiteDbAbstract : IDisposable
     {
         public delegate void Message(object sender, TextEventArgs e);
 
@@ -205,7 +205,7 @@ namespace ASTA.Classes
         public System.Data.SQLite.SQLiteCommand sqlCommand;
         string _dbConnectionString;
 
-        protected SQLiteDbBase(string dbConnectionString, System.IO.FileInfo dbFileInfo)
+        protected SQLiteDbAbstract(string dbConnectionString, System.IO.FileInfo dbFileInfo)
         {
             _dbConnectionString = dbConnectionString;
             CheckDB(_dbConnectionString, dbFileInfo);
@@ -282,14 +282,15 @@ namespace ASTA.Classes
         #endregion
     }
 
-    internal class SqLiteDbReader : SQLiteDbBase, IDisposable
+    internal class SqLiteDbWrapper : SQLiteDbAbstract, IDisposable
     {
-        public event Message Status;
-
-        public SqLiteDbReader(string dbConnectionString, System.IO.FileInfo dbFileInfo) :
+        public SqLiteDbWrapper(string dbConnectionString, System.IO.FileInfo dbFileInfo) :
             base(dbConnectionString, dbFileInfo)
         { }
 
+        public event Message Status;
+
+        //Read Data
         public System.Data.SQLite.SQLiteDataReader GetData(string query)
         {
             Status?.Invoke(this, new TextEventArgs("query: " + query));
@@ -310,16 +311,8 @@ namespace ASTA.Classes
                 }
             }
         }
-    }
 
-    internal class SqLiteDbWriter : SQLiteDbBase, IDisposable
-    {
-        public SqLiteDbWriter(string dbConnectionString, System.IO.FileInfo dbFileInfo) :
-            base(dbConnectionString, dbFileInfo)
-        { }
-
-        public event Message Status;
-
+        //Write Data or Execute query
         public void Execute(System.Data.SQLite.SQLiteCommand sqlCommand)
         {
             if (sqlCommand == null)

@@ -765,7 +765,7 @@ namespace ASTA
             string query = string.Empty;
 
             SetStatusLabelText(StatusLabel2, $"Создаю таблицы в БД на основе запроса из текстового файла: {fpath}");
-            using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
+            using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
             {
                 dbWriter.Status += AddLoggerTraceText;
 
@@ -790,8 +790,7 @@ namespace ASTA
                 SetStatusLabelText(StatusLabel2, "Таблицы в БД созданы.");
             }
         }
-
-
+        
         private void SetTechInfoIntoDB() //Write Technical Info in DB 
         {
             if (dbApplication.Exists)
@@ -799,7 +798,7 @@ namespace ASTA
                 string query = "INSERT OR REPLACE INTO 'TechnicalInfo' (PCName, POName, POVersion, LastDateStarted, CurrentUser, FreeRam, GuidAppication) " +
                           " VALUES (@PCName, @POName, @POVersion, @LastDateStarted, @CurrentUser, @FreeRam, @GuidAppication)";
 
-                using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
+                using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
                 {
                     logger.Trace($"query: {query}");
                     dbWriter.Status += AddLoggerTraceText;
@@ -852,7 +851,7 @@ namespace ASTA
             {
                 string query;
                 int count = 0;
-                using (SqLiteDbReader dbReader = new SqLiteDbReader(sqLiteLocalConnectionString, dbApplication))
+                using (SqLiteDbWrapper dbReader = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
                 {
                     System.Data.SQLite.SQLiteDataReader data = null;
                     query = "SELECT ComboList FROM LastTakenPeopleComboList;";
@@ -1255,7 +1254,7 @@ namespace ASTA
             if (dbApplication.Exists)
             {
                 string query = $"{mySqlQuery} FROM '{myTable}' {mySqlWhere};";
-                using (SqLiteDbReader dbReader = new SqLiteDbReader(sqLiteLocalConnectionString, dbApplication))
+                using (SqLiteDbWrapper dbReader = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
                 {
                     dt = dbReader.GetDataTable(query);
                 }
@@ -1288,13 +1287,12 @@ namespace ASTA
             nameOfLastTable = nameLastTable;
             sLastSelectedElement = "dataGridView";
         }
-
-
+        
         private async Task ExecuteQueryOnLocalDB(System.IO.FileInfo dbApplication, string query) //Delete All data from the selected Table of the DB (both parameters are string)
         {
             if (dbApplication.Exists)
             {
-                using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
+                using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
                 {
                     logger.Trace($"query: {query}");
                     dbWriter.Status += AddLoggerTraceText;
@@ -1321,7 +1319,7 @@ namespace ASTA
 
             if (dbApplication.Exists)
             {
-                using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
+                using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
                 {
                     dbWriter.Status += AddLoggerTraceText;
 
@@ -1388,11 +1386,11 @@ namespace ASTA
                     }
                     dbWriter.Execute(sqlCommand);
 
-                    logger.Trace($"query: {query}");
                     dbWriter.Status -= AddLoggerTraceText;
                     sqlCommand?.Dispose();
                 }
             }
+            logger.Trace($"Удалены данные из таблицы {myTable} - query: {query}");
         }
 
 
@@ -1430,14 +1428,15 @@ namespace ASTA
 
         private IADUser ReturnADUserFromLocalDb()
         {
-            IADUser ad = new ADUser();
+            IADUser user = new ADUser();
             listParameters = GetConfigOfASTA().FindAll(x => x.isExample == "no"); //load only real data
 
-            ad.Login = listParameters.FindLast(x => x?.name == @"UserName")?.value;
-            ad.Password = listParameters.FindLast(x => x?.name == @"UserPassword")?.value;
-            ad.DomainControllerPath = listParameters.FindLast(x => x?.name == @"DomainController")?.value;
-            ad.Domain = listParameters.FindLast(x => x?.name == @"DomainOfUser")?.value;
-            return ad;
+            user.Login = listParameters.FindLast(x => x?.name == @"UserName")?.value;
+            user.Password = listParameters.FindLast(x => x?.name == @"UserPassword")?.value;
+            user.DomainControllerPath = listParameters.FindLast(x => x?.name == @"DomainController")?.value;
+            user.Domain = listParameters.FindLast(x => x?.name == @"DomainOfUser")?.value;
+            
+            return user;
         }
 
         private void GetUsersFromAD()
@@ -1624,6 +1623,7 @@ namespace ASTA
             try
             {
                 string confitionToLoad = "";
+
                 using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
                 {
                     sqlConnection.Open();
@@ -1648,6 +1648,8 @@ namespace ASTA
                         }
                     }
                 }
+
+
                 // import users and group from SCA server
                 using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
                 {
@@ -2009,7 +2011,7 @@ namespace ASTA
             {
                 logger.Trace($"{dep.Value.DepartmentId} {dep.Value.DepartmentDescr} {dep.Value.DepartmentBossCode} {dep.Value.DepartmentBossEmail}");
             }
-            logger.Trace("groups.count: " + groups.Distinct().Count());
+            logger.Trace($"groups.count: {groups.Distinct().Count()}");
 
             foreach (var strDepartment in groups)
             {
@@ -2047,6 +2049,32 @@ namespace ASTA
                     _ProgressWork1Step();
                 }
                 _ProgressWork1Step();
+
+
+                /*
+                 string query = "INSERT OR REPLACE INTO 'TechnicalInfo' (PCName, POName, POVersion, LastDateStarted, CurrentUser, FreeRam, GuidAppication) " +
+                              " VALUES (@PCName, @POName, @POVersion, @LastDateStarted, @CurrentUser, @FreeRam, @GuidAppication)";
+
+                    using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
+                    {
+                        logger.Trace($"query: {query}");
+                        dbWriter.Status += AddLoggerTraceText;
+                        using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter.sqlConnection))
+                        {
+                            SqlQuery.Parameters.Add("@PCName", DbType.String).Value = Environment.MachineName + "|" + Environment.OSVersion;
+                            SqlQuery.Parameters.Add("@POName", DbType.String).Value = Application.ExecutablePath + "(" + Application.ProductName + ")"; // appFileVersionInfo.FileName + "(+ appName + ")"
+                            SqlQuery.Parameters.Add("@POVersion", DbType.String).Value = Application.ProductVersion;// appFileVersionInfo.FileVersion;
+                            SqlQuery.Parameters.Add("@LastDateStarted", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
+                            SqlQuery.Parameters.Add("@CurrentUser", DbType.String).Value = Environment.UserName;
+                            SqlQuery.Parameters.Add("@FreeRam", DbType.String).Value = "RAM: " + Environment.WorkingSet.ToString();
+                            SqlQuery.Parameters.Add("@GuidAppication", DbType.String).Value = guid;
+
+                            dbWriter.Execute(SqlQuery);
+                        }
+                        dbWriter.Status -= AddLoggerTraceText;
+                    }
+                 */
+                 
 
                 using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
                 {
@@ -2179,8 +2207,8 @@ namespace ASTA
                     using (var sqlCommand1 = new SQLiteCommand("end", sqlConnection))
                     { sqlCommand1.ExecuteNonQuery(); }
 
-                    int.TryParse(departmentsUniq?.ToArray()?.Distinct()?.Count().ToString(), out countGroups);
-                    int.TryParse(departmentsEmailUniq?.ToArray()?.Distinct()?.Count().ToString(), out countMailers);
+                    int.TryParse(departmentsUniq?.ToArray()?.Distinct()?.Count().ToString(), out int countGroups);
+                    int.TryParse(departmentsEmailUniq?.ToArray()?.Distinct()?.Count().ToString(), out int countMailers);
 
                     logger.Info("Записано групп: " + countGroups);
                     logger.Info("Записано рассылок: " + countMailers);
@@ -2227,14 +2255,14 @@ namespace ASTA
 
         private string TryToMakeNameFile(string fileName)
         {
-            string pathToFile = fileName;
+            string newNameOfFile = fileName;
             if (System.IO.File.Exists($"{fileName}.xlsx"))
             {
-                pathToFile = fileName + "_1";
-                TryToMakeNameFile(pathToFile);
+                newNameOfFile = $"{fileName}_1";
+                TryToMakeNameFile(newNameOfFile);
             }
 
-            return pathToFile;
+            return newNameOfFile;
         }
 
         private async Task ExportDatatableSelectedColumnsToExcel(DataTable dataTable, string nameReport, string filePath)  //Export DataTable to Excel 
@@ -2245,25 +2273,25 @@ namespace ASTA
             string pathToFile = TryToMakeNameFile(filePath);
 
             reportExcelReady = false;
-
-
+            
             dataTable.SetColumnsOrder(Names.orderColumnsFinacialReport);
             DataTable dtExport;
             string sort = Names.DEPARTMENT + ", " + Names.FIO + ", " + Names.DATE_REGISTRATION + " ASC";
             // Order of collumns
-            DataView dv = dataTable.DefaultView;
-            try
+            using (DataView dv = dataTable.DefaultView)
             {
-                dv.Sort = sort;
-                dtExport = dv.ToTable();
+                try
+                {
+                    dv.Sort = sort;
+                    dtExport = dv.ToTable();
+                }
+                catch
+                {
+                    sort = Names.GROUP + ", " + Names.FIO + ", " + Names.DATE_REGISTRATION + " ASC";
+                    dv.Sort = sort;
+                    dtExport = dv.ToTable();
+                }
             }
-            catch
-            {
-                sort = Names.GROUP + ", " + Names.FIO + ", " + Names.DATE_REGISTRATION + " ASC";
-                dv.Sort = sort;
-                dtExport = dv.ToTable();
-            }
-
             logger.Trace($"Сортировка: {sort}");
             logger.Trace($"В таблице {dataTable.TableName} столбцов - {dtExport.Columns.Count}, строк - {dtExport.Rows.Count}");
             SetStatusLabelText(StatusLabel2, $"Генерирую Excel-файл по отчету: '{nameReport}'");
@@ -2439,8 +2467,8 @@ namespace ASTA
                 filePath = pathToFile;
                 _SetStatusLabelForeColor(StatusLabel2, Color.Black);
                 reportExcelReady = true;
-                releaseObject(range);
-                releaseObject(rangeColumnName);
+                ReleaseObject(range);
+                ReleaseObject(rangeColumnName);
             }
             catch (Exception err)
             {
@@ -2457,13 +2485,12 @@ namespace ASTA
                 workbooks.Close();
 
                 //clear temporary objects
-                releaseObject(sheet);
-                releaseObject(workbook);
-                releaseObject(workbooks);
+                ReleaseObject(sheet);
+                ReleaseObject(workbook);
+                ReleaseObject(workbooks);
                 excel.Quit();
-                releaseObject(excel);
+                ReleaseObject(excel);
 
-                dv?.Dispose();
                 dtExport?.Dispose();
             }
             _ProgressWork1Step();
@@ -2471,7 +2498,7 @@ namespace ASTA
             sLastSelectedElement = "ExportExcel";
         }
 
-        private void releaseObject(object obj) //for function - ExportToExcel()
+        private void ReleaseObject(object obj) //for function - ExportToExcel()
         {
             try
             {
@@ -2481,7 +2508,7 @@ namespace ASTA
             catch (Exception ex)
             {
                 obj = null;
-                logger.Trace($"Exception releasing object of Excel: {ex.ToString()}");
+                logger.Trace($"Exception releasing object of {nameof(obj)}: {ex.ToString()}");
             }
             finally
             { GC.Collect(); }
@@ -2505,19 +2532,17 @@ namespace ASTA
 
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
-        { SelectFioAndNavFromCombobox(); }
+        { SetTextBoxFIOAndTextBoxNAVFromSelectedComboboxFio(); }
 
-        private void SelectFioAndNavFromCombobox()
+        private void  SetTextBoxFIOAndTextBoxNAVFromSelectedComboboxFio()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace($"-= {method} =-");
-
-            textBoxFIO.Text = "";
+                        
             textBoxNav.Text = "";
             CheckBoxesFiltersAll_Enable(false);
             string[] sComboboxFIO = comboBoxFio?.SelectedItem?.ToString()?.Trim()?.Split('|');
-            //    try
-            //    {
+
             if (sComboboxFIO?.Length > 0)
             {
                 textBoxFIO.Text = sComboboxFIO[0]?.Trim();
@@ -2528,10 +2553,7 @@ namespace ASTA
                     textBoxNav.Text = sComboboxFIO[1]?.Trim();
                 }
             }
-
-            //    }
-            //    catch { }
-
+            else { textBoxFIO.Text = ""; }
 
             if (comboBoxFio.SelectedIndex > -1)
             {
@@ -2544,8 +2566,13 @@ namespace ASTA
 
             if (nameOfLastTable == "LastIputsOutputs")
             {
-                _selectedEmployeeVisitor = new EmployeeVisitor { fio = textBoxFIO.Text, code = textBoxNav.Text };
-                logger.Trace(_selectedEmployeeVisitor.fio + " " + _selectedEmployeeVisitor.code);
+                _selectedEmployeeVisitor = new EmployeeVisitor
+                {
+                    fio = _ReturnTextOfControl(textBoxFIO),
+                    code = _ReturnTextOfControl(textBoxNav)
+                };
+
+                logger.Trace($"{_selectedEmployeeVisitor.fio} { _selectedEmployeeVisitor.code}");
                 ShowVisitorsOnDataGridView(visitors, _selectedEmployeeVisitor);
             }
         }
@@ -2555,10 +2582,12 @@ namespace ASTA
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace($"-= {method} =-");
+            string group = _ReturnTextOfControl(textBoxGroup);
+            string groupDescr = _ReturnTextOfControl(textBoxGroupDescription);
 
-            if (textBoxGroup.Text.Trim().Length > 0)
+            if (group?.Length > 0)
             {
-                CreateGroupInDB(dbApplication, textBoxGroup.Text.Trim(), textBoxGroupDescription.Text.Trim());
+                CreateGroupInDB(group, groupDescr);
             }
 
             PersonOrGroupItem.Text = Names.WORK_WITH_A_PERSON;
@@ -2566,12 +2595,12 @@ namespace ASTA
             ListGroups();
         }
 
-        private void CreateGroupInDB(System.IO.FileInfo fileInfo, string nameGroup, string descriptionGroup)
+        private void CreateGroupInDB(string nameGroup, string descriptionGroup)
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace($"-= {method} =-");
 
-            if (nameGroup.Length > 0)
+            if (nameGroup?.Length > 0)
             {
                 using (var connection = new SQLiteConnection(sqLiteLocalConnectionString))
                 {
@@ -2584,7 +2613,7 @@ namespace ASTA
                         try { command.ExecuteNonQuery(); } catch { }
                     }
                 }
-                SetStatusLabelText(StatusLabel2, "Группа - \"" + nameGroup + "\" создана");
+                SetStatusLabelText(StatusLabel2, $"Группа '{nameGroup}' создана");
             }
         }
 
@@ -2824,7 +2853,7 @@ namespace ASTA
                 query += ";";
                 logger.Trace("SeekAndShowMembersOfGroup: " + query);
 
-                using (SqLiteDbReader dbReader = new SqLiteDbReader(sqLiteLocalConnectionString, dbApplication))
+                using (SqLiteDbWrapper dbReader = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
                 {
                     try
                     {
@@ -3051,7 +3080,7 @@ namespace ASTA
                 string query = "INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Department, PositionInDepartment, DepartmentId, City, Boss) " +
                           "VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Comment, @Department, @PositionInDepartment, @DepartmentId, @City, @Boss)";
 
-                using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
+                using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
                 {
                     logger.Trace($"query: {query}");
                     dbWriter.Status += AddLoggerTraceText;
@@ -3130,7 +3159,7 @@ namespace ASTA
                 string query = "INSERT OR REPLACE INTO 'PeopleGroupDescription' (GroupPerson, GroupPersonDescription, Recipient) " +
                                            "VALUES (@GroupPerson, @GroupPersonDescription, @Recipient)";
 
-                using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
+                using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
                 {
                     logger.Trace($"query: {query}");
                     dbWriter.Status += AddLoggerTraceText;
@@ -4056,7 +4085,7 @@ namespace ASTA
                 EditAnualDaysItem.Font = new Font(this.Font, FontStyle.Bold);
                 EnterEditAnual();
             }
-            else if (EditAnualDaysItem.Text.Contains(@"Завершить редактирование"))
+            else if (EditAnualDaysItem.Text.Contains(Names.END_EDIT))
             {
                 ExitEditAnual();
                 EditAnualDaysItem.Font = new Font(this.Font, FontStyle.Regular);
@@ -4088,7 +4117,7 @@ namespace ASTA
             textBoxGroup.Text = "";
 
             StatusLabel2.ForeColor = Color.Crimson;
-            EditAnualDaysItem.Text = @"Завершить редактирование";
+            EditAnualDaysItem.Text = Names.END_EDIT;
 
             EditAnualDaysItem.ToolTipText = @"Выйти из режима редактирования рабочих и выходных дней";
             SetStatusLabelText(StatusLabel2, @"Режим редактирования рабочих и выходных дней");
@@ -4114,11 +4143,11 @@ namespace ASTA
 
             toolTip1.SetToolTip(textBoxGroup, "Создать или добавить в группу");
             toolTip1.SetToolTip(textBoxGroupDescription, "Изменить описание группы");
-            labelGroup.Text = "Группа";
+            labelGroup.Text = Names.GROUP;
             textBoxGroup.Text = "";
 
             _SetStatusLabelForeColor(StatusLabel2, Color.Black);
-            SetStatusLabelText(StatusLabel2, @"Завершен 'Режим редактирования в локальной БД дат праздников и выходных'");
+            SetStatusLabelText(StatusLabel2, @"Завершен 'Режим редактирования дат праздников и выходных в локальной БД'");
 
             nameOfLastTable = "ListFIO";
             SeekAndShowMembersOfGroup("");
@@ -4333,6 +4362,7 @@ namespace ASTA
             DataTable dtUniqRecords = dt.DefaultView.ToTable(true, columns);
 
             dtUniqRecords.SetColumnsOrder(columns);
+
             return dtUniqRecords;
         }
 
@@ -4743,7 +4773,7 @@ namespace ASTA
                 query = $"SELECT DayBolded FROM BoldedDates WHERE (NAV LIKE '0') AND DayType LIKE '{dayType}';";
             }
 
-            using (SqLiteDbReader dbReader = new SqLiteDbReader(sqLiteLocalConnectionString, dbApplication))
+            using (SqLiteDbWrapper dbReader = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
             {
                 System.Data.SQLite.SQLiteDataReader data = null;
                 try
@@ -4784,8 +4814,8 @@ namespace ASTA
             }
             catch (Exception err)
             { logger.Warn(err.ToString()); }
+           
             dt.AcceptChanges();
-            rows = null;
         }
 
         /*
@@ -4916,7 +4946,6 @@ namespace ASTA
 
 
         //----- Clearing. Start ---------//
-
         private void ClearRegistryItem_Click(object sender, EventArgs e) //ClearRegistryData()
         { ClearData(); }
 
@@ -5025,7 +5054,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 vacuum.ExecuteNonQuery();
             }
         }
-
         //----- Clearing. End ---------//
 
 
@@ -5044,16 +5072,12 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
 
         //---- Start. Drawing ---//
-
         private void VisualItem_Click(object sender, EventArgs e) //FindWorkDaysInSelected() , DrawFullWorkedPeriodRegistration()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace($"-= {method} =-");
 
             EmployeeFull personVisual = new EmployeeFull();
-
-            decimal[] timeIn = new decimal[5];
-            decimal[] timeOut = new decimal[5];
 
             try
             {
@@ -5076,11 +5100,11 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                     personVisual.Code = cellValue[1]; //Take the name of selected group
                     personVisual.ControlInHHMM = cellValue[3]; //Take the name of selected group
 
-                    timeIn = ConvertStringTimeHHMMToDecimalArray(personVisual.ControlInHHMM);
+                    decimal[] timeIn = ConvertStringTimeHHMMToDecimalArray(personVisual.ControlInHHMM);
                     personVisual.ControlInSeconds = (int)timeIn[4];
 
                     personVisual.ControlOutHHMM = cellValue[4]; //Take the name of selected group
-                    timeOut = ConvertStringTimeHHMMToDecimalArray(personVisual.ControlOutHHMM);
+                    decimal[] timeOut = ConvertStringTimeHHMMToDecimalArray(personVisual.ControlOutHHMM);
 
                     personVisual.ControlOutSeconds = (int)timeOut[4];
                     _SetNumUpDown(numUpDownHourStart, timeIn[0]);
@@ -5789,34 +5813,33 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void GetInfoSetup()
         {
-            DialogResult result = MessageBox.Show(
-                @"Перед получением информации необходимо в Настройках:\n\n" +
-                 @"1.1. Добавить URI адрес СКД-сервера с ПО 'Интеллект' (SERVER.DOMAIN.SUBDOMAIN),\nа также логин и пароль пользователя для доступа к SQL-серверу СКД\n" +
-                 @"1.2. Добавить URI адрес сервера с базой сотрудников корпоративного сайта вэб-сервера (SERVER.DOMAIN),\nnа также логин и пароль пользователя для доступа к MySQL-серверу\n" +
-                 @"1.3. Добавить URI адрес сервера с контроллером домена (SERVER.DOMAIN.SUBDOMAIN),\nа также логин, пароль и домен(DOMAIN.SUBDOMAIN) логина пользователя для доступа к данным\n" +
-                 @"1.4. Добавить URI адрес почтового сервера (SERVER.DOMAIN.SUBDOMAIN),\nа также email и (не обязательно) пароль пользователя для отправки рассылок с отчетами\n" +
-                 @"2. Сохранить введенные параметры\n" +
-                 @"2.1. В случае ввода некорректных данных получение данных и/или отправка рассылок будут заблокированы\n" +
-                 @"2.2. Если данные введены корректно (будут отсутствовать ошибки о вводе некорректных данных), необходимо перезапустить программу\n" +
-                 @"3. После этого можно:\n" +
-                 @"3.1. Получать списки сотрудников\n" +
-                 @"3.2. Создавать и использовать ранее сохраненные локально группы пользователей\n" +
-                 @"3.3. Добавлять или корректировать праздничные дни, отгулы, отпуски - персонального для каждого или для всех\n" +
-                 @"3.4. Загружать регистрации пропусков по группам или отдельным сотрудников, генерировать отчеты, " +
-                 @"визуализировать полученные данные, отправлять отчеты по спискам рассылок, сгенерированным автоматически или вручную\n" +
-                 @"3.5. Создавать собственные группы генерации отчетов, собственные рассылки отчетов\n" +
-                 @"3.6. Проводить анализ полученных данных как в табличном виде так и визуально, экспортировать данные в Excel файл." +
-                 @"3.7. Загружать все попытки регистрации пропусков, включая запрещенные попытки прохода, за текущий день или выбранный период." +
-                 @"\nФильтровать эти данные по пользователям или попыткам прохода" +
-                 @"4. ПО способно самостоятельно или принудительно проверять наличие обновления на сервере." +
-                 @"4.1. Для использования данного функционала заполните в конфигурации в параметр 'serverUpdateURL' URI адрес папки сервера с обновлениями (SERVER.DOMAIN.SUBDOMAIN\FOLDER_WITH_UPDATES)." +
-                 @"\n\nДата и время локального ПК: " + _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDDHHMMSS(),
+            MessageBox.Show(
+               @"Перед получением информации необходимо в Настройках:\n\n" +
+                @"1.1. Добавить URI адрес СКД-сервера с ПО 'Интеллект' (SERVER.DOMAIN.SUBDOMAIN),\nа также логин и пароль пользователя для доступа к SQL-серверу СКД\n" +
+                @"1.2. Добавить URI адрес сервера с базой сотрудников корпоративного сайта вэб-сервера (SERVER.DOMAIN),\nnа также логин и пароль пользователя для доступа к MySQL-серверу\n" +
+                @"1.3. Добавить URI адрес сервера с контроллером домена (SERVER.DOMAIN.SUBDOMAIN),\nа также логин, пароль и домен(DOMAIN.SUBDOMAIN) логина пользователя для доступа к данным\n" +
+                @"1.4. Добавить URI адрес почтового сервера (SERVER.DOMAIN.SUBDOMAIN),\nа также email и (не обязательно) пароль пользователя для отправки рассылок с отчетами\n" +
+                @"2. Сохранить введенные параметры\n" +
+                @"2.1. В случае ввода некорректных данных получение данных и/или отправка рассылок будут заблокированы\n" +
+                @"2.2. Если данные введены корректно (будут отсутствовать ошибки о вводе некорректных данных), необходимо перезапустить программу\n" +
+                @"3. После этого можно:\n" +
+                @"3.1. Получать списки сотрудников\n" +
+                @"3.2. Создавать и использовать ранее сохраненные локально группы пользователей\n" +
+                @"3.3. Добавлять или корректировать праздничные дни, отгулы, отпуски - персонального для каждого или для всех\n" +
+                @"3.4. Загружать регистрации пропусков по группам или отдельным сотрудников, генерировать отчеты, " +
+                @"визуализировать полученные данные, отправлять отчеты по спискам рассылок, сгенерированным автоматически или вручную\n" +
+                @"3.5. Создавать собственные группы генерации отчетов, собственные рассылки отчетов\n" +
+                @"3.6. Проводить анализ полученных данных как в табличном виде так и визуально, экспортировать данные в Excel файл." +
+                @"3.7. Загружать все попытки регистрации пропусков, включая запрещенные попытки прохода, за текущий день или выбранный период." +
+                @"\nФильтровать эти данные по пользователям или попыткам прохода" +
+                @"4. ПО способно самостоятельно или принудительно проверять наличие обновления на сервере." +
+                @"4.1. Для использования данного функционала заполните в конфигурации в параметр 'serverUpdateURL' URI адрес папки сервера с обновлениями (SERVER.DOMAIN.SUBDOMAIN\FOLDER_WITH_UPDATES)." +
+                @"\n\nДата и время локального ПК: " + _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDDHHMMSS(),
 
-                "Информация о программе",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information,
-                MessageBoxDefaultButton.Button1);
-
+               "Информация о программе",
+               MessageBoxButtons.OK,
+               MessageBoxIcon.Information,
+               MessageBoxDefaultButton.Button1);
         }
 
         private void PrepareForMakingFormMailing(object sender, EventArgs e) //MailingItem()
@@ -5837,25 +5860,34 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void MakeFormMailing()
         {
-            List<string> listComboParameters = new List<string>();
+            List<string> periodComboParameters = new List<string>
+            {
+                "Предыдущий месяц",
+                "Текущий месяц"
+            };
 
-            List<string> periodComboParameters = new List<string>();
-            periodComboParameters.Add("Предыдущий месяц");
-            periodComboParameters.Add("Текущий месяц");
+            List<string> listComboParameters9 = new List<string>
+            {
+                "Активная",
+                "Неактивная"
+            };
 
-            List<string> listComboParameters9 = new List<string>();
-            listComboParameters9.Add("Активная");
-            listComboParameters9.Add("Неактивная");
+            List<string> listComboParameters15 = new List<string>
+            {
+                "Полный",
+                "Упрощенный"
+            };
 
-            List<string> listComboParameters15 = new List<string>();
-            listComboParameters15.Add("Полный");
-            listComboParameters15.Add("Упрощенный");
+            List<string> listComboParameters = new List<string>
+            {
+                "Все"
+            };
 
             //get list groups from DB and add to listComboParameters
             using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
             {
                 sqlConnection.Open();
-                string group;
+
                 using (var sqlCommand = new SQLiteCommand(
                     "SELECT GroupPerson FROM PeopleGroupDescription;", sqlConnection))
                 {
@@ -5863,7 +5895,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                     {
                         foreach (DbDataRecord record in sqlReader)
                         {
-                            group = record["GroupPerson"]?.ToString();
+                            string group = record["GroupPerson"]?.ToString();
                             if (group?.Length > 0)
                             {
                                 listComboParameters.Add(group);
@@ -5873,7 +5905,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 }
                 sqlConnection.Close();
             }
-            listComboParameters.Add("Все");
 
             ViewFormSettings(
                     "", "", "",
@@ -6656,7 +6687,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             if (e.KeyChar == (char)13)//если нажата Enter
             {
                 comboBoxFio.Items.Add(comboBoxFio.Text);
-                SelectFioAndNavFromCombobox();
+                SetTextBoxFIOAndTextBoxNAVFromSelectedComboboxFio();
             }
         }
 
@@ -7125,7 +7156,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         {
             if (dbApplication.Exists)
             {
-                using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
+                using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
                 {
                     logger.Trace($"query: {query}");
 
