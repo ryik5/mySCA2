@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using System.Diagnostics.Contracts;
 using System.IO.Abstractions;
@@ -19,10 +20,12 @@ namespace ASTA.Classes.Updating
         public delegate void Uploaded(object sender, BoolEventArgs e);
         public event Uploaded StatusFinishedUploading;
 
-       // private string[] _source;
+        // private string[] _source;
         System.IO.Abstractions.IFileInfo[] _source;
+       List <System.IO.Abstractions.IFileInfo> _sourceList;
         //private string[] _target;
         System.IO.Abstractions.IFileInfo[] _target;
+        List<System.IO.Abstractions.IFileInfo> _targetList;
 
         private bool uploadingError = false;
         UpdatingParameters _parameters { get; set; }
@@ -38,6 +41,10 @@ namespace ASTA.Classes.Updating
             _parameters = parameters;
             _source = source.ToArray();
             _target = target.ToArray();
+
+            _sourceList = source;
+            _targetList = target;
+
         }
 
         public async void Upload()
@@ -84,6 +91,23 @@ namespace ASTA.Classes.Updating
             return tasks;
         }
 
+        private async Task ForEachAsync(List<CoupleTwoFiles> couples)
+        {
+            var tasks = couples.ForEachAsync(async couple =>
+            {
+                return new { Couple = couple, Result = await UploadApplicationToShare(couple) };
+            }, 2);
+        }
+
+        private List<CoupleTwoFiles> MakeListFromTwoList(List<System.IO.Abstractions.IFileInfo> source, List<System.IO.Abstractions.IFileInfo> target)
+        {
+            List<CoupleTwoFiles> couples = new List<CoupleTwoFiles>();
+            for (int i = 0; i < source.Count; i++)
+            {
+                couples.Add(new CoupleTwoFiles(source[i], target[i]));
+            }
+            return couples;
+        }
 
         public async Task UploadApplicationToShare(string source, string target)
         {
@@ -117,6 +141,7 @@ namespace ASTA.Classes.Updating
                 StatusColor?.Invoke(this, new ColorEventArgs(System.Drawing.Color.LightYellow));
             }
         }
+       
         private static async Task InvokeAsync(IEnumerable<Func<Task>> taskFactories, int maxDegreeOfParallelism)
         {
             var queue = new Queue<Func<Task>>(taskFactories);
@@ -181,5 +206,21 @@ namespace ASTA.Classes.Updating
         }
         #endregion
     }
+
+    public class CoupleTwoFiles
+    {
+        private System.IO.Abstractions.IFileInfo _source { get; set; }
+        private System.IO.Abstractions.IFileInfo _target { get; set; }
+        public CoupleTwoFiles Get()
+        {
+            return new CoupleTwoFiles(_source, _target);
+        }
+        public CoupleTwoFiles(System.IO.Abstractions.IFileInfo source, System.IO.Abstractions.IFileInfo target)
+        {
+            _source = source;
+            _target = target;
+        }
+    }
+
 }
 

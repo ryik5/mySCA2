@@ -2252,25 +2252,14 @@ namespace ASTA
             _EnableControl(dataGridView1, true);
             _ProgressBar1Stop();
         }
-
-        private string TryToMakeNameFile(string fileName)
-        {
-            string newNameOfFile = fileName;
-            if (System.IO.File.Exists($"{fileName}.xlsx"))
-            {
-                newNameOfFile = $"{fileName}_1";
-                TryToMakeNameFile(newNameOfFile);
-            }
-
-            return newNameOfFile;
-        }
-
+        
         private async Task ExportDatatableSelectedColumnsToExcel(DataTable dataTable, string nameReport, string filePath)  //Export DataTable to Excel 
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace($"-= {method} =-");
 
-            string pathToFile = TryToMakeNameFile(filePath);
+            BuilderFileName fileName = new BuilderFileName(filePath);
+            string pathToFile = BuilderFileName.MakeNewFileNameIfItHereExists(filePath, "xlsx");
 
             reportExcelReady = false;
             
