@@ -790,32 +790,29 @@ namespace ASTA
                 SetStatusLabelText(StatusLabel2, "Таблицы в БД созданы.");
             }
         }
-        
+
         private void SetTechInfoIntoDB() //Write Technical Info in DB 
         {
-            if (dbApplication.Exists)
+            string query = "INSERT OR REPLACE INTO 'TechnicalInfo' (PCName, POName, POVersion, LastDateStarted, CurrentUser, FreeRam, GuidAppication) " +
+                      " VALUES (@PCName, @POName, @POVersion, @LastDateStarted, @CurrentUser, @FreeRam, @GuidAppication)";
+
+            using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
             {
-                string query = "INSERT OR REPLACE INTO 'TechnicalInfo' (PCName, POName, POVersion, LastDateStarted, CurrentUser, FreeRam, GuidAppication) " +
-                          " VALUES (@PCName, @POName, @POVersion, @LastDateStarted, @CurrentUser, @FreeRam, @GuidAppication)";
-
-                using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
+                logger.Trace($"query: {query}");
+                dbWriter.Status += AddLoggerTraceText;
+                using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter.sqlConnection))
                 {
-                    logger.Trace($"query: {query}");
-                    dbWriter.Status += AddLoggerTraceText;
-                    using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter.sqlConnection))
-                    {
-                        SqlQuery.Parameters.Add("@PCName", DbType.String).Value = Environment.MachineName + "|" + Environment.OSVersion;
-                        SqlQuery.Parameters.Add("@POName", DbType.String).Value = Application.ExecutablePath + "(" + Application.ProductName + ")"; // appFileVersionInfo.FileName + "(+ appName + ")"
-                        SqlQuery.Parameters.Add("@POVersion", DbType.String).Value = Application.ProductVersion;// appFileVersionInfo.FileVersion;
-                        SqlQuery.Parameters.Add("@LastDateStarted", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
-                        SqlQuery.Parameters.Add("@CurrentUser", DbType.String).Value = Environment.UserName;
-                        SqlQuery.Parameters.Add("@FreeRam", DbType.String).Value = "RAM: " + Environment.WorkingSet.ToString();
-                        SqlQuery.Parameters.Add("@GuidAppication", DbType.String).Value = guid;
+                    SqlQuery.Parameters.Add("@PCName", DbType.String).Value = Environment.MachineName + "|" + Environment.OSVersion;
+                    SqlQuery.Parameters.Add("@POName", DbType.String).Value = Application.ExecutablePath + "(" + Application.ProductName + ")"; // appFileVersionInfo.FileName + "(+ appName + ")"
+                    SqlQuery.Parameters.Add("@POVersion", DbType.String).Value = Application.ProductVersion;// appFileVersionInfo.FileVersion;
+                    SqlQuery.Parameters.Add("@LastDateStarted", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
+                    SqlQuery.Parameters.Add("@CurrentUser", DbType.String).Value = Environment.UserName;
+                    SqlQuery.Parameters.Add("@FreeRam", DbType.String).Value = "RAM: " + Environment.WorkingSet.ToString();
+                    SqlQuery.Parameters.Add("@GuidAppication", DbType.String).Value = guid;
 
-                        dbWriter.Execute(SqlQuery);
-                    }
-                    dbWriter.Status -= AddLoggerTraceText;
+                    dbWriter.Execute(SqlQuery);
                 }
+                dbWriter.Status -= AddLoggerTraceText;
             }
         }
 
@@ -847,88 +844,85 @@ namespace ASTA
             }
 
             //Get data from local DB
-            if (dbApplication.Exists)
+            string query;
+            int count = 0;
+            using (SqLiteDbWrapper dbReader = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
             {
-                string query;
-                int count = 0;
-                using (SqLiteDbWrapper dbReader = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
+                System.Data.SQLite.SQLiteDataReader data = null;
+                query = "SELECT ComboList FROM LastTakenPeopleComboList;";
+                try
                 {
-                    System.Data.SQLite.SQLiteDataReader data = null;
-                    query = "SELECT ComboList FROM LastTakenPeopleComboList;";
-                    try
-                    {
-                        data = dbReader?.GetData(query);
-                    }
-                    catch { logger.Info("LoadPreviouslySavedParameters: no any info in 'LastTakenPeopleComboList'"); }
+                    data = dbReader?.GetData(query);
+                }
+                catch { logger.Info("LoadPreviouslySavedParameters: no any info in 'LastTakenPeopleComboList'"); }
 
-                    if (data != null)
+                if (data != null)
+                {
+                    foreach (DbDataRecord record in data)
                     {
-                        foreach (DbDataRecord record in data)
+                        try
                         {
-                            try
+                            if (record["ComboList"]?.ToString()?.Trim()?.Length > 0)
                             {
-                                if (record["ComboList"]?.ToString()?.Trim()?.Length > 0)
-                                {
-                                    _AddComboBoxItem(comboBoxFio, record["ComboList"].ToString().Trim());
-                                    count++;
-                                }
-                            }
-                            catch (Exception err) { logger.Info(err.ToString()); }
-                        }
-                    }
-                    logger.Trace($"LoadPreviouslySavedParameters: query: {query}\n{count} rows loaded from 'LastTakenPeopleComboList'");
-
-                    query = "SELECT FIO FROM PeopleGroup;";
-                    count = 0;
-                    try
-                    {
-                        data = dbReader.GetData(query);
-                    }
-                    catch { logger.Info("LoadPreviouslySavedParameters: no any info in 'PeopleGroup'"); }
-                    if (data != null)
-                        foreach (DbDataRecord record in data)
-                        {
-                            if (record["FIO"]?.ToString()?.Length > 0)
-                            {
+                                _AddComboBoxItem(comboBoxFio, record["ComboList"].ToString().Trim());
                                 count++;
                             }
                         }
-                    logger.Trace($"LoadPreviouslySavedParameters: query: {query}\n{count} rows loaded from 'PeopleGroup'");
+                        catch (Exception err) { logger.Info(err.ToString()); }
+                    }
                 }
+                logger.Trace($"LoadPreviouslySavedParameters: query: {query}\n{count} rows loaded from 'LastTakenPeopleComboList'");
 
-                //loading parameters
-                listParameters = GetConfigOfASTA().FindAll(x => x?.isExample == "no"); //load only real data
-
-                DEFAULT_DAY_OF_SENDING_REPORT = GetValueOfConfigParameter(listParameters, @"DEFAULT_DAY_OF_SENDING_REPORT", END_OF_MONTH);
-
-                int.TryParse(GetValueOfConfigParameter(listParameters, @"ShiftDaysBackOfSendingFromLastWorkDay", ""), out int days);
-
-                if (days < 0 || days > 27)
-                { ShiftDaysBackOfSendingFromLastWorkDay = 3; }
-                else
-                { ShiftDaysBackOfSendingFromLastWorkDay = days; }
-
-                clrRealRegistrationRegistry = Color.FromName(GetValueOfConfigParameter(listParameters, @"clrRealRegistration", "PaleGreen"));
-
-                sServer1DB = GetValueOfConfigParameter(listParameters, @"SKDServer", null);
-                sServer1UserNameDB = GetValueOfConfigParameter(listParameters, @"SKDUser", null);
-                sServer1UserPasswordDB = GetValueOfConfigParameter(listParameters, @"SKDUserPassword", null, true);
-
-                mysqlServerDB = GetValueOfConfigParameter(listParameters, @"MySQLServer", null);
-                mysqlServerUserNameDB = GetValueOfConfigParameter(listParameters, @"MySQLUser", null);
-                mysqlServerUserPasswordDB = GetValueOfConfigParameter(listParameters, @"MySQLUserPassword", null, true);
-
-                mailServerDB = GetValueOfConfigParameter(listParameters, @"MailServer", null);
-                mailServerSMTPPortDB = GetValueOfConfigParameter(listParameters, @"MailServerSMTPport", null);
-                mailsOfSenderOfNameDB = GetValueOfConfigParameter(listParameters, @"MailUser", null);
-                mailsOfSenderOfPasswordDB = GetValueOfConfigParameter(listParameters, @"MailUserPassword", null, true);
-
-                mailJobReportsOfNameOfReceiver = GetValueOfConfigParameter(listParameters, @"JobReportsReceiver", null, true);
-                string defaultURL = remoteFolderUpdateURL;
-                remoteFolderUpdateURL = GetValueOfConfigParameter(listParameters, @"RemoteFolderUpdateURL", defaultURL);
-
-                domain = GetValueOfConfigParameter(listParameters, @"DomainOfUser", null);
+                query = "SELECT FIO FROM PeopleGroup;";
+                count = 0;
+                try
+                {
+                    data = dbReader.GetData(query);
+                }
+                catch { logger.Info("LoadPreviouslySavedParameters: no any info in 'PeopleGroup'"); }
+                if (data != null)
+                    foreach (DbDataRecord record in data)
+                    {
+                        if (record["FIO"]?.ToString()?.Length > 0)
+                        {
+                            count++;
+                        }
+                    }
+                logger.Trace($"LoadPreviouslySavedParameters: query: {query}\n{count} rows loaded from 'PeopleGroup'");
             }
+
+            //loading parameters
+            listParameters = GetConfigOfASTA().FindAll(x => x?.isExample == "no"); //load only real data
+
+            DEFAULT_DAY_OF_SENDING_REPORT = GetValueOfConfigParameter(listParameters, @"DEFAULT_DAY_OF_SENDING_REPORT", END_OF_MONTH);
+
+            int.TryParse(GetValueOfConfigParameter(listParameters, @"ShiftDaysBackOfSendingFromLastWorkDay", ""), out int days);
+
+            if (days < 0 || days > 27)
+            { ShiftDaysBackOfSendingFromLastWorkDay = 3; }
+            else
+            { ShiftDaysBackOfSendingFromLastWorkDay = days; }
+
+            clrRealRegistrationRegistry = Color.FromName(GetValueOfConfigParameter(listParameters, @"clrRealRegistration", "PaleGreen"));
+
+            sServer1DB = GetValueOfConfigParameter(listParameters, @"SKDServer", null);
+            sServer1UserNameDB = GetValueOfConfigParameter(listParameters, @"SKDUser", null);
+            sServer1UserPasswordDB = GetValueOfConfigParameter(listParameters, @"SKDUserPassword", null, true);
+
+            mysqlServerDB = GetValueOfConfigParameter(listParameters, @"MySQLServer", null);
+            mysqlServerUserNameDB = GetValueOfConfigParameter(listParameters, @"MySQLUser", null);
+            mysqlServerUserPasswordDB = GetValueOfConfigParameter(listParameters, @"MySQLUserPassword", null, true);
+
+            mailServerDB = GetValueOfConfigParameter(listParameters, @"MailServer", null);
+            mailServerSMTPPortDB = GetValueOfConfigParameter(listParameters, @"MailServerSMTPport", null);
+            mailsOfSenderOfNameDB = GetValueOfConfigParameter(listParameters, @"MailUser", null);
+            mailsOfSenderOfPasswordDB = GetValueOfConfigParameter(listParameters, @"MailUserPassword", null, true);
+
+            mailJobReportsOfNameOfReceiver = GetValueOfConfigParameter(listParameters, @"JobReportsReceiver", null, true);
+            string defaultURL = remoteFolderUpdateURL;
+            remoteFolderUpdateURL = GetValueOfConfigParameter(listParameters, @"RemoteFolderUpdateURL", defaultURL);
+
+            domain = GetValueOfConfigParameter(listParameters, @"DomainOfUser", null);
 
             //set app's variables
             {
@@ -1251,21 +1245,18 @@ namespace ASTA
             logger.Trace($"-= {method} =-");
             DataTable dt;
 
-            if (dbApplication.Exists)
+            string query = $"{mySqlQuery} FROM '{myTable}' {mySqlWhere};";
+            using (SqLiteDbWrapper dbReader = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
             {
-                string query = $"{mySqlQuery} FROM '{myTable}' {mySqlWhere};";
-                using (SqLiteDbWrapper dbReader = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
-                {
-                    dt = dbReader.GetDataTable(query);
-                }
-                iCounterLine = dt.Rows.Count;
-                logger.Trace($"ShowDataTableDbQuery: {iCounterLine}");
-
-                dgvo.ShowData(dataGridView1, dt);
-                dt?.Dispose();
-                nameOfLastTable = myTable;
-                sLastSelectedElement = "dataGridView";
+                dt = dbReader.GetDataTable(query);
             }
+            iCounterLine = dt.Rows.Count;
+            logger.Trace($"ShowDataTableDbQuery: {iCounterLine}");
+
+            dgvo.ShowData(dataGridView1, dt);
+            dt?.Dispose();
+            nameOfLastTable = myTable;
+            sLastSelectedElement = "dataGridView";
         }
 
         private void ShowDatatableOnDatagridview(DataTable dt, string nameLastTable, string[] nameHidenColumnsArray1 = null) //Query data from the Table of the DB
@@ -1287,7 +1278,7 @@ namespace ASTA
             nameOfLastTable = nameLastTable;
             sLastSelectedElement = "dataGridView";
         }
-        
+
         private async Task ExecuteQueryOnLocalDB(System.IO.FileInfo dbApplication, string query) //Delete All data from the selected Table of the DB (both parameters are string)
         {
             if (dbApplication.Exists)
@@ -1317,79 +1308,77 @@ namespace ASTA
                            $" AND {sqlParameter2}= @{sqlParameter2} AND {sqlParameter3}= @" + sqlParameter3 +
                            $" AND {sqlParameter4}= @{sqlParameter4} AND {sqlParameter5}= @{sqlParameter5} AND {sqlParameter6}= @{sqlParameter6};";
 
-            if (dbApplication.Exists)
+            using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
             {
-                using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
+                dbWriter.Status += AddLoggerTraceText;
+
+                SQLiteCommand sqlCommand = null;
+                if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0 && sqlParameter4.Length > 0
+                && sqlParameter5.Length > 0 && sqlParameter6.Length > 0)
                 {
-                    dbWriter.Status += AddLoggerTraceText;
+                    sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
 
-                    SQLiteCommand sqlCommand = null;
-                    if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0 && sqlParameter4.Length > 0
-                    && sqlParameter5.Length > 0 && sqlParameter6.Length > 0)
-                    {
-                        sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
-
-                        sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
-                        sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
-                        sqlCommand.Parameters.Add("@" + sqlParameter3, DbType.String).Value = sqlData3;
-                        sqlCommand.Parameters.Add("@" + sqlParameter4, DbType.String).Value = sqlData4;
-                        sqlCommand.Parameters.Add("@" + sqlParameter5, DbType.String).Value = sqlData5;
-                        sqlCommand.Parameters.Add("@" + sqlParameter6, DbType.String).Value = sqlData6;
-                    }
-                    else if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0 && sqlParameter4.Length > 0
-                        && sqlParameter5.Length > 0)
-                    {
-                        query = $"DELETE FROM '{myTable}' Where {sqlParameter1}= @" + sqlParameter1 +
-                            $" AND {sqlParameter2}= @{sqlParameter2} AND {sqlParameter3}= @" + sqlParameter3 +
-                            $" AND {sqlParameter4}= @{sqlParameter4} AND {sqlParameter5}= @{sqlParameter5};";
-
-                        sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
-                        sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
-                        sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
-                        sqlCommand.Parameters.Add("@" + sqlParameter3, DbType.String).Value = sqlData3;
-                        sqlCommand.Parameters.Add("@" + sqlParameter4, DbType.String).Value = sqlData4;
-                        sqlCommand.Parameters.Add("@" + sqlParameter5, DbType.String).Value = sqlData5;
-                    }
-                    else if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0 && sqlParameter4.Length > 0)
-                    {
-                        sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
-                        sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
-                        sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
-                        sqlCommand.Parameters.Add("@" + sqlParameter3, DbType.String).Value = sqlData3;
-                        sqlCommand.Parameters.Add("@" + sqlParameter4, DbType.String).Value = sqlData4;
-                    }
-                    else if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0)
-                    {
-                        query = $"DELETE FROM '{myTable}' Where {sqlParameter1}= @" + sqlParameter1 +
-                            $" AND {sqlParameter2}= @{sqlParameter2} AND {sqlParameter3}= @{sqlParameter3};";
-
-                        sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
-                        sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
-                        sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
-                        sqlCommand.Parameters.Add("@" + sqlParameter3, DbType.String).Value = sqlData3;
-
-                    }
-                    else if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0)
-                    {
-                        query = $"DELETE FROM '{myTable}' Where {sqlParameter1}= @{sqlParameter1} AND {sqlParameter2}= @{sqlParameter2};";
-
-                        sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
-                        sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
-                        sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
-                    }
-                    else if (sqlParameter1.Length > 0)
-                    {
-                        query = $"DELETE FROM '{myTable}' Where {sqlParameter1}= @{sqlParameter1};";
-
-                        sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
-                        sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
-                    }
-                    dbWriter.Execute(sqlCommand);
-
-                    dbWriter.Status -= AddLoggerTraceText;
-                    sqlCommand?.Dispose();
+                    sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
+                    sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
+                    sqlCommand.Parameters.Add("@" + sqlParameter3, DbType.String).Value = sqlData3;
+                    sqlCommand.Parameters.Add("@" + sqlParameter4, DbType.String).Value = sqlData4;
+                    sqlCommand.Parameters.Add("@" + sqlParameter5, DbType.String).Value = sqlData5;
+                    sqlCommand.Parameters.Add("@" + sqlParameter6, DbType.String).Value = sqlData6;
                 }
+                else if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0 && sqlParameter4.Length > 0
+                    && sqlParameter5.Length > 0)
+                {
+                    query = $"DELETE FROM '{myTable}' Where {sqlParameter1}= @" + sqlParameter1 +
+                        $" AND {sqlParameter2}= @{sqlParameter2} AND {sqlParameter3}= @" + sqlParameter3 +
+                        $" AND {sqlParameter4}= @{sqlParameter4} AND {sqlParameter5}= @{sqlParameter5};";
+
+                    sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
+                    sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
+                    sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
+                    sqlCommand.Parameters.Add("@" + sqlParameter3, DbType.String).Value = sqlData3;
+                    sqlCommand.Parameters.Add("@" + sqlParameter4, DbType.String).Value = sqlData4;
+                    sqlCommand.Parameters.Add("@" + sqlParameter5, DbType.String).Value = sqlData5;
+                }
+                else if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0 && sqlParameter4.Length > 0)
+                {
+                    sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
+                    sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
+                    sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
+                    sqlCommand.Parameters.Add("@" + sqlParameter3, DbType.String).Value = sqlData3;
+                    sqlCommand.Parameters.Add("@" + sqlParameter4, DbType.String).Value = sqlData4;
+                }
+                else if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0)
+                {
+                    query = $"DELETE FROM '{myTable}' Where {sqlParameter1}= @" + sqlParameter1 +
+                        $" AND {sqlParameter2}= @{sqlParameter2} AND {sqlParameter3}= @{sqlParameter3};";
+
+                    sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
+                    sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
+                    sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
+                    sqlCommand.Parameters.Add("@" + sqlParameter3, DbType.String).Value = sqlData3;
+
+                }
+                else if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0)
+                {
+                    query = $"DELETE FROM '{myTable}' Where {sqlParameter1}= @{sqlParameter1} AND {sqlParameter2}= @{sqlParameter2};";
+
+                    sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
+                    sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
+                    sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
+                }
+                else if (sqlParameter1.Length > 0)
+                {
+                    query = $"DELETE FROM '{myTable}' Where {sqlParameter1}= @{sqlParameter1};";
+
+                    sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
+                    sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
+                }
+                dbWriter.Execute(sqlCommand);
+
+                dbWriter.Status -= AddLoggerTraceText;
+                sqlCommand?.Dispose();
             }
+
             logger.Trace($"Удалены данные из таблицы {myTable} - query: {query}");
         }
 
@@ -1435,7 +1424,7 @@ namespace ASTA
             user.Password = listParameters.FindLast(x => x?.name == @"UserPassword")?.value;
             user.DomainControllerPath = listParameters.FindLast(x => x?.name == @"DomainController")?.value;
             user.Domain = listParameters.FindLast(x => x?.name == @"DomainOfUser")?.value;
-            
+
             return user;
         }
 
@@ -2037,182 +2026,153 @@ namespace ASTA
             }
             _ProgressWork1Step();
 
-            if (dbApplication.Exists)
+            logger.Trace("Чищу базу от старых списков с ФИО...");
+
+            ExecuteQueryOnLocalDB(dbApplication, "DELETE FROM 'LastTakenPeopleComboList';").GetAwaiter().GetResult();
+
+            foreach (var department in departmentsUniq?.ToList()?.Distinct())
             {
-                logger.Trace("Чищу базу от старых списков с ФИО...");
+                DeleteDataTableQueryParameters(dbApplication, "PeopleGroup", "GroupPerson", department?.DepartmentId).GetAwaiter().GetResult();
+                _ProgressWork1Step();
+            }
+            _ProgressWork1Step();
 
-                ExecuteQueryOnLocalDB(dbApplication, "DELETE FROM 'LastTakenPeopleComboList';").GetAwaiter().GetResult();
+            using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
+            {
+                sqlConnection.Open();
 
-                foreach (var department in departmentsUniq?.ToList()?.Distinct())
+                using (var sqlCommand1 = new SQLiteCommand("begin", sqlConnection))
+                { sqlCommand1.ExecuteNonQuery(); }
+
+                logger.Info("Готовлю списки исключений из рассылок...");
+                query = "SELECT RecipientEmail FROM MailingException;";
+                logger.Trace(query);
+                string dbRecordTemp;
+                using (var sqlCommand = new SQLiteCommand(query, sqlConnection))
                 {
-                    DeleteDataTableQueryParameters(dbApplication, "PeopleGroup", "GroupPerson", department?.DepartmentId).GetAwaiter().GetResult();
+                    using (var reader = sqlCommand.ExecuteReader())
+                    {
+                        foreach (DbDataRecord record in reader)
+                        {
+                            dbRecordTemp = record["RecipientEmail"]?.ToString();
+
+                            if (dbRecordTemp?.Length > 0)
+                            {
+                                logger.Trace(dbRecordTemp);
+                                departmentsEmailUniq.RemoveWhere(x => x.DepartmentBossEmail == dbRecordTemp);
+                            }
+                        }
+                    }
+                }
+                using (var sqlCommand1 = new SQLiteCommand("end", sqlConnection))
+                { sqlCommand1.ExecuteNonQuery(); }
+
+                logger.Info("Записываю новые группы ...");
+                using (var sqlCommand1 = new SQLiteCommand("begin", sqlConnection))
+                { sqlCommand1.ExecuteNonQuery(); }
+
+                foreach (var deprtment in departmentsUniq.ToList().Distinct())
+                {
+                    depName = deprtment.DepartmentId;
+                    depDescr = deprtment.DepartmentDescr;
+
+                    depBoss = deprtment.DepartmentBossCode?.Length > 0 ? deprtment.DepartmentBossCode : "Default_Recepient_code_From_Db";
+                    using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroupDescription' (GroupPerson, GroupPersonDescription, Recipient) " +
+                                           "VALUES (@GroupPerson, @GroupPersonDescription, @Recipient)", sqlConnection))
+                    {
+                        command.Parameters.Add("@GroupPerson", DbType.String).Value = depName;
+                        command.Parameters.Add("@GroupPersonDescription", DbType.String).Value = depDescr;
+                        command.Parameters.Add("@Recipient", DbType.String).Value = depBoss;
+                        try { command.ExecuteNonQuery(); } catch { }
+                    }
+
+                    logger.Trace("CreatedGroup: " + depName + "(" + depDescr + ")");
                     _ProgressWork1Step();
                 }
-                _ProgressWork1Step();
+                using (var sqlCommand1 = new SQLiteCommand("end", sqlConnection))
+                { sqlCommand1.ExecuteNonQuery(); }
 
-
-                /*
-                 string query = "INSERT OR REPLACE INTO 'TechnicalInfo' (PCName, POName, POVersion, LastDateStarted, CurrentUser, FreeRam, GuidAppication) " +
-                              " VALUES (@PCName, @POName, @POVersion, @LastDateStarted, @CurrentUser, @FreeRam, @GuidAppication)";
-
-                    using (SqLiteDbWriter dbWriter = new SqLiteDbWriter(sqLiteLocalConnectionString, dbApplication))
-                    {
-                        logger.Trace($"query: {query}");
-                        dbWriter.Status += AddLoggerTraceText;
-                        using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter.sqlConnection))
-                        {
-                            SqlQuery.Parameters.Add("@PCName", DbType.String).Value = Environment.MachineName + "|" + Environment.OSVersion;
-                            SqlQuery.Parameters.Add("@POName", DbType.String).Value = Application.ExecutablePath + "(" + Application.ProductName + ")"; // appFileVersionInfo.FileName + "(+ appName + ")"
-                            SqlQuery.Parameters.Add("@POVersion", DbType.String).Value = Application.ProductVersion;// appFileVersionInfo.FileVersion;
-                            SqlQuery.Parameters.Add("@LastDateStarted", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
-                            SqlQuery.Parameters.Add("@CurrentUser", DbType.String).Value = Environment.UserName;
-                            SqlQuery.Parameters.Add("@FreeRam", DbType.String).Value = "RAM: " + Environment.WorkingSet.ToString();
-                            SqlQuery.Parameters.Add("@GuidAppication", DbType.String).Value = guid;
-
-                            dbWriter.Execute(SqlQuery);
-                        }
-                        dbWriter.Status -= AddLoggerTraceText;
-                    }
-                 */
-                 
-
-                using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
+                logger.Info("Записываю новые рассылки по группам с учетом исключений...");
+                string recipientEmail = "";
+                using (var sqlCommand1 = new SQLiteCommand("begin", sqlConnection))
+                { sqlCommand1.ExecuteNonQuery(); }
+                foreach (var deprtment in departmentsEmailUniq?.ToList()?.Distinct())
                 {
-                    sqlConnection.Open();
+                    depName = deprtment?.DepartmentId;
+                    depDescr = deprtment?.DepartmentDescr;
+                    depBoss = deprtment?.DepartmentBossCode;
+                    recipientEmail = deprtment?.DepartmentBossEmail;
 
-                    using (var sqlCommand1 = new SQLiteCommand("begin", sqlConnection))
-                    { sqlCommand1.ExecuteNonQuery(); }
-
-                    logger.Info("Готовлю списки исключений из рассылок...");
-                    query = "SELECT RecipientEmail FROM MailingException;";
-                    logger.Trace(query);
-                    string dbRecordTemp;
-                    using (var sqlCommand = new SQLiteCommand(query, sqlConnection))
+                    if (depName.StartsWith("@") && recipientEmail.Contains('@'))
                     {
-                        using (var reader = sqlCommand.ExecuteReader())
+                        using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'Mailing' (RecipientEmail, GroupsReport, NameReport, Description, Period, Status, DateCreated, SendingLastDate, TypeReport, DayReport)" +
+                           " VALUES (@RecipientEmail, @GroupsReport, @NameReport, @Description, @Period, @Status, @DateCreated, @SendingLastDate, @TypeReport, @DayReport)", sqlConnection))
                         {
-                            foreach (DbDataRecord record in reader)
-                            {
-                                dbRecordTemp = record["RecipientEmail"]?.ToString();
+                            sqlCommand.Parameters.Add("@RecipientEmail", DbType.String).Value = recipientEmail;
+                            sqlCommand.Parameters.Add("@GroupsReport", DbType.String).Value = depName;
+                            sqlCommand.Parameters.Add("@NameReport", DbType.String).Value = depName;
+                            sqlCommand.Parameters.Add("@Description", DbType.String).Value = depDescr;
+                            sqlCommand.Parameters.Add("@Period", DbType.String).Value = "Текущий месяц";
+                            sqlCommand.Parameters.Add("@Status", DbType.String).Value = "Активная";
+                            sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
+                            sqlCommand.Parameters.Add("@SendingLastDate", DbType.String).Value = "";
+                            sqlCommand.Parameters.Add("@TypeReport", DbType.String).Value = "Полный";
+                            sqlCommand.Parameters.Add("@DayReport", DbType.String).Value = DEFAULT_DAY_OF_SENDING_REPORT;
 
-                                if (dbRecordTemp?.Length > 0)
-                                {
-                                    logger.Trace(dbRecordTemp);
-                                    departmentsEmailUniq.RemoveWhere(x => x.DepartmentBossEmail == dbRecordTemp);
-                                }
-                            }
-                        }
-                    }
-                    using (var sqlCommand1 = new SQLiteCommand("end", sqlConnection))
-                    { sqlCommand1.ExecuteNonQuery(); }
-
-                    logger.Info("Записываю новые группы ...");
-                    using (var sqlCommand1 = new SQLiteCommand("begin", sqlConnection))
-                    { sqlCommand1.ExecuteNonQuery(); }
-
-                    foreach (var deprtment in departmentsUniq.ToList().Distinct())
-                    {
-                        depName = deprtment.DepartmentId;
-                        depDescr = deprtment.DepartmentDescr;
-
-                        depBoss = deprtment.DepartmentBossCode?.Length > 0 ? deprtment.DepartmentBossCode : "Default_Recepient_code_From_Db";
-                        using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroupDescription' (GroupPerson, GroupPersonDescription, Recipient) " +
-                                               "VALUES (@GroupPerson, @GroupPersonDescription, @Recipient)", sqlConnection))
-                        {
-                            command.Parameters.Add("@GroupPerson", DbType.String).Value = depName;
-                            command.Parameters.Add("@GroupPersonDescription", DbType.String).Value = depDescr;
-                            command.Parameters.Add("@Recipient", DbType.String).Value = depBoss;
-                            try { command.ExecuteNonQuery(); } catch { }
+                            try { sqlCommand.ExecuteNonQuery(); } catch { }
                         }
 
-                        logger.Trace("CreatedGroup: " + depName + "(" + depDescr + ")");
-                        _ProgressWork1Step();
+                        logger.Trace($"SaveMailing: {recipientEmail} {depName} {depDescr}");
                     }
-                    using (var sqlCommand1 = new SQLiteCommand("end", sqlConnection))
-                    { sqlCommand1.ExecuteNonQuery(); }
-
-                    logger.Info("Записываю новые рассылки по группам с учетом исключений...");
-                    string recipientEmail = "";
-                    using (var sqlCommand1 = new SQLiteCommand("begin", sqlConnection))
-                    { sqlCommand1.ExecuteNonQuery(); }
-                    foreach (var deprtment in departmentsEmailUniq?.ToList()?.Distinct())
-                    {
-                        depName = deprtment?.DepartmentId;
-                        depDescr = deprtment?.DepartmentDescr;
-                        depBoss = deprtment?.DepartmentBossCode;
-                        recipientEmail = deprtment?.DepartmentBossEmail;
-
-                        if (depName.StartsWith("@") && recipientEmail.Contains('@'))
-                        {
-                            using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'Mailing' (RecipientEmail, GroupsReport, NameReport, Description, Period, Status, DateCreated, SendingLastDate, TypeReport, DayReport)" +
-                               " VALUES (@RecipientEmail, @GroupsReport, @NameReport, @Description, @Period, @Status, @DateCreated, @SendingLastDate, @TypeReport, @DayReport)", sqlConnection))
-                            {
-                                sqlCommand.Parameters.Add("@RecipientEmail", DbType.String).Value = recipientEmail;
-                                sqlCommand.Parameters.Add("@GroupsReport", DbType.String).Value = depName;
-                                sqlCommand.Parameters.Add("@NameReport", DbType.String).Value = depName;
-                                sqlCommand.Parameters.Add("@Description", DbType.String).Value = depDescr;
-                                sqlCommand.Parameters.Add("@Period", DbType.String).Value = "Текущий месяц";
-                                sqlCommand.Parameters.Add("@Status", DbType.String).Value = "Активная";
-                                sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
-                                sqlCommand.Parameters.Add("@SendingLastDate", DbType.String).Value = "";
-                                sqlCommand.Parameters.Add("@TypeReport", DbType.String).Value = "Полный";
-                                sqlCommand.Parameters.Add("@DayReport", DbType.String).Value = DEFAULT_DAY_OF_SENDING_REPORT;
-
-                                try { sqlCommand.ExecuteNonQuery(); } catch { }
-                            }
-
-                            logger.Trace($"SaveMailing: {recipientEmail} {depName} {depDescr}");
-                        }
-                        _ProgressWork1Step();
-                    }
-                    using (var sqlCommand1 = new SQLiteCommand("end", sqlConnection))
-                    { sqlCommand1.ExecuteNonQuery(); }
-
-                    logger.Info("Записываю новые индивидуальные графики...");
-                    using (var sqlCommand1 = new SQLiteCommand("begin", sqlConnection))
-                    { sqlCommand1.ExecuteNonQuery(); }
-                    foreach (var shift in peopleShifts?.ToArray())
-                    {
-                        if (shift.code?.Length > 0)
-                        {
-                            using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'ListOfWorkTimeShifts' (NAV, DayStartShift, MoStart, MoEnd, " +
-                                "TuStart, TuEnd, WeStart, WeEnd, ThStart, ThEnd, FrStart, FrEnd, SaStart, SaEnd, SuStart, SuEnd, Status, Comment, DayInputed) " +
-                            " VALUES (@NAV, @DayStartShift, @MoStart, @MoEnd, @TuStart, @TuEnd, @WeStart, @WeEnd, @ThStart, @ThEnd, @FrStart, @FrEnd, " +
-                            " @SaStart, @SaEnd, @SuStart, @SuEnd, @Status, @Comment, @DayInputed)", sqlConnection))
-                            {
-                                sqlCommand.Parameters.Add("@NAV", DbType.String).Value = shift.code;
-                                sqlCommand.Parameters.Add("@DayStartShift", DbType.String).Value = shift.dayStartShift;
-                                sqlCommand.Parameters.Add("@MoStart", DbType.Int32).Value = shift.MoStart;
-                                sqlCommand.Parameters.Add("@MoEnd", DbType.Int32).Value = shift.MoEnd;
-                                sqlCommand.Parameters.Add("@TuStart", DbType.Int32).Value = shift.TuStart;
-                                sqlCommand.Parameters.Add("@TuEnd", DbType.Int32).Value = shift.TuEnd;
-                                sqlCommand.Parameters.Add("@WeStart", DbType.Int32).Value = shift.WeStart;
-                                sqlCommand.Parameters.Add("@WeEnd", DbType.Int32).Value = shift.WeEnd;
-                                sqlCommand.Parameters.Add("@ThStart", DbType.Int32).Value = shift.ThStart;
-                                sqlCommand.Parameters.Add("@ThEnd", DbType.Int32).Value = shift.ThEnd;
-                                sqlCommand.Parameters.Add("@FrStart", DbType.Int32).Value = shift.FrStart;
-                                sqlCommand.Parameters.Add("@FrEnd", DbType.Int32).Value = shift.FrEnd;
-                                sqlCommand.Parameters.Add("@SaStart", DbType.Int32).Value = shift.SaStart;
-                                sqlCommand.Parameters.Add("@SaEnd", DbType.Int32).Value = shift.SaEnd;
-                                sqlCommand.Parameters.Add("@SuStart", DbType.Int32).Value = shift.SuStart;
-                                sqlCommand.Parameters.Add("@SuEnd", DbType.Int32).Value = shift.SuEnd;
-                                sqlCommand.Parameters.Add("@Status", DbType.String).Value = shift.Status;
-                                sqlCommand.Parameters.Add("@Comment", DbType.String).Value = shift.Comment;
-                                sqlCommand.Parameters.Add("@DayInputed", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
-                                try { sqlCommand.ExecuteNonQuery(); } catch (Exception err) { MessageBox.Show(err.ToString()); }
-                                _ProgressWork1Step();
-                            }
-                        }
-                    }
-                    using (var sqlCommand1 = new SQLiteCommand("end", sqlConnection))
-                    { sqlCommand1.ExecuteNonQuery(); }
-
-                    int.TryParse(departmentsUniq?.ToArray()?.Distinct()?.Count().ToString(), out int countGroups);
-                    int.TryParse(departmentsEmailUniq?.ToArray()?.Distinct()?.Count().ToString(), out int countMailers);
-
-                    logger.Info("Записано групп: " + countGroups);
-                    logger.Info("Записано рассылок: " + countMailers);
+                    _ProgressWork1Step();
                 }
+                using (var sqlCommand1 = new SQLiteCommand("end", sqlConnection))
+                { sqlCommand1.ExecuteNonQuery(); }
+
+                logger.Info("Записываю новые индивидуальные графики...");
+                using (var sqlCommand1 = new SQLiteCommand("begin", sqlConnection))
+                { sqlCommand1.ExecuteNonQuery(); }
+                foreach (var shift in peopleShifts?.ToArray())
+                {
+                    if (shift.code?.Length > 0)
+                    {
+                        using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'ListOfWorkTimeShifts' (NAV, DayStartShift, MoStart, MoEnd, " +
+                            "TuStart, TuEnd, WeStart, WeEnd, ThStart, ThEnd, FrStart, FrEnd, SaStart, SaEnd, SuStart, SuEnd, Status, Comment, DayInputed) " +
+                        " VALUES (@NAV, @DayStartShift, @MoStart, @MoEnd, @TuStart, @TuEnd, @WeStart, @WeEnd, @ThStart, @ThEnd, @FrStart, @FrEnd, " +
+                        " @SaStart, @SaEnd, @SuStart, @SuEnd, @Status, @Comment, @DayInputed)", sqlConnection))
+                        {
+                            sqlCommand.Parameters.Add("@NAV", DbType.String).Value = shift.code;
+                            sqlCommand.Parameters.Add("@DayStartShift", DbType.String).Value = shift.dayStartShift;
+                            sqlCommand.Parameters.Add("@MoStart", DbType.Int32).Value = shift.MoStart;
+                            sqlCommand.Parameters.Add("@MoEnd", DbType.Int32).Value = shift.MoEnd;
+                            sqlCommand.Parameters.Add("@TuStart", DbType.Int32).Value = shift.TuStart;
+                            sqlCommand.Parameters.Add("@TuEnd", DbType.Int32).Value = shift.TuEnd;
+                            sqlCommand.Parameters.Add("@WeStart", DbType.Int32).Value = shift.WeStart;
+                            sqlCommand.Parameters.Add("@WeEnd", DbType.Int32).Value = shift.WeEnd;
+                            sqlCommand.Parameters.Add("@ThStart", DbType.Int32).Value = shift.ThStart;
+                            sqlCommand.Parameters.Add("@ThEnd", DbType.Int32).Value = shift.ThEnd;
+                            sqlCommand.Parameters.Add("@FrStart", DbType.Int32).Value = shift.FrStart;
+                            sqlCommand.Parameters.Add("@FrEnd", DbType.Int32).Value = shift.FrEnd;
+                            sqlCommand.Parameters.Add("@SaStart", DbType.Int32).Value = shift.SaStart;
+                            sqlCommand.Parameters.Add("@SaEnd", DbType.Int32).Value = shift.SaEnd;
+                            sqlCommand.Parameters.Add("@SuStart", DbType.Int32).Value = shift.SuStart;
+                            sqlCommand.Parameters.Add("@SuEnd", DbType.Int32).Value = shift.SuEnd;
+                            sqlCommand.Parameters.Add("@Status", DbType.String).Value = shift.Status;
+                            sqlCommand.Parameters.Add("@Comment", DbType.String).Value = shift.Comment;
+                            sqlCommand.Parameters.Add("@DayInputed", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
+                            try { sqlCommand.ExecuteNonQuery(); } catch (Exception err) { MessageBox.Show(err.ToString()); }
+                            _ProgressWork1Step();
+                        }
+                    }
+                }
+                using (var sqlCommand1 = new SQLiteCommand("end", sqlConnection))
+                { sqlCommand1.ExecuteNonQuery(); }
+
+                int.TryParse(departmentsUniq?.ToArray()?.Distinct()?.Count().ToString(), out int countGroups);
+                int.TryParse(departmentsEmailUniq?.ToArray()?.Distinct()?.Count().ToString(), out int countMailers);
+
+                logger.Info("Записано групп: " + countGroups);
+                logger.Info("Записано рассылок: " + countMailers);
             }
 
             departmentsUniq = null;
@@ -2252,17 +2212,17 @@ namespace ASTA
             _EnableControl(dataGridView1, true);
             _ProgressBar1Stop();
         }
-        
+
         private async Task ExportDatatableSelectedColumnsToExcel(DataTable dataTable, string nameReport, string filePath)  //Export DataTable to Excel 
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace($"-= {method} =-");
 
-            BuilderFileName fileName = new BuilderFileName(filePath);
-            string pathToFile = BuilderFileName.MakeNewFileNameIfItHereExists(filePath, "xlsx");
+            BuilderFileName fileName = new BuilderFileName(filePath, "xlsx");
+            string pathToFile = fileName.BuildPath();
 
             reportExcelReady = false;
-            
+
             dataTable.SetColumnsOrder(Names.orderColumnsFinacialReport);
             DataTable dtExport;
             string sort = Names.DEPARTMENT + ", " + Names.FIO + ", " + Names.DATE_REGISTRATION + " ASC";
@@ -2441,7 +2401,7 @@ namespace ASTA
                 range.AutoFilter(1, Type.Missing, Microsoft.Office.Interop.Excel.XlAutoFilterOperator.xlAnd, Type.Missing, true);
 
                 //save document
-                workbook.SaveAs(pathToFile + @".xlsx",
+                workbook.SaveAs(pathToFile,
                     Microsoft.Office.Interop.Excel.XlFileFormat.xlOpenXMLWorkbook,
                     System.Reflection.Missing.Value, System.Reflection.Missing.Value,
                     false, false,
@@ -2523,11 +2483,11 @@ namespace ASTA
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         { SetTextBoxFIOAndTextBoxNAVFromSelectedComboboxFio(); }
 
-        private void  SetTextBoxFIOAndTextBoxNAVFromSelectedComboboxFio()
+        private void SetTextBoxFIOAndTextBoxNAVFromSelectedComboboxFio()
         {
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace($"-= {method} =-");
-                        
+
             textBoxNav.Text = "";
             CheckBoxesFiltersAll_Enable(false);
             string[] sComboboxFIO = comboBoxFio?.SelectedItem?.ToString()?.Trim()?.Split('|');
@@ -2656,148 +2616,146 @@ namespace ASTA
             string tmpRec = "";
             string query = "";
 
-            if (dbApplication.Exists)
+            using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
             {
-                using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
+                sqlConnection.Open();
+
+                using (SQLiteCommand sqlCommand = new SQLiteCommand("begin", sqlConnection))
+                { sqlCommand.ExecuteNonQuery(); }
+
+                //set to empty for amounts and recepients in the PeopleGroupDescription
+                query = "UPDATE 'PeopleGroupDescription' SET AmountStaffInDepartment='0';";
+                using (var command = new SQLiteCommand(query, sqlConnection))
+                { command.ExecuteNonQuery(); }
+
+                query = "UPDATE 'PeopleGroupDescription' SET Recipient='';";
+                using (var command = new SQLiteCommand(query, sqlConnection))
+                { command.ExecuteNonQuery(); }
+                logger.Trace(query);
+
+                using (var sqlCommand = new SQLiteCommand("end", sqlConnection))
+                { sqlCommand.ExecuteNonQuery(); }
+
+                query = "SELECT GroupPerson, DepartmentId FROM PeopleGroup;";
+                logger.Trace(query);
+                using (var sqlCommand = new SQLiteCommand(query, sqlConnection))
                 {
-                    sqlConnection.Open();
-
-                    using (SQLiteCommand sqlCommand = new SQLiteCommand("begin", sqlConnection))
-                    { sqlCommand.ExecuteNonQuery(); }
-
-                    //set to empty for amounts and recepients in the PeopleGroupDescription
-                    query = "UPDATE 'PeopleGroupDescription' SET AmountStaffInDepartment='0';";
-                    using (var command = new SQLiteCommand(query, sqlConnection))
-                    { command.ExecuteNonQuery(); }
-
-                    query = "UPDATE 'PeopleGroupDescription' SET Recipient='';";
-                    using (var command = new SQLiteCommand(query, sqlConnection))
-                    { command.ExecuteNonQuery(); }
-                    logger.Trace(query);
-
-                    using (var sqlCommand = new SQLiteCommand("end", sqlConnection))
-                    { sqlCommand.ExecuteNonQuery(); }
-
-                    query = "SELECT GroupPerson, DepartmentId FROM PeopleGroup;";
-                    logger.Trace(query);
-                    using (var sqlCommand = new SQLiteCommand(query, sqlConnection))
+                    string idGroup = "";
+                    string group = "";
+                    using (var reader = sqlCommand.ExecuteReader())
                     {
-                        string idGroup = "";
-                        string group = "";
-                        using (var reader = sqlCommand.ExecuteReader())
+                        foreach (DbDataRecord record in reader)
                         {
-                            foreach (DbDataRecord record in reader)
+                            if (record != null)
                             {
-                                if (record != null)
-                                {
-                                    group = record["GroupPerson"]?.ToString();
-                                    idGroup = "@" + record["DepartmentId"]?.ToString();
+                                group = record["GroupPerson"]?.ToString();
+                                idGroup = "@" + record["DepartmentId"]?.ToString();
 
-                                    if (group?.Length > 0)
-                                    {
-                                        groupsUncount.Add(group);
-                                    }
-                                    if (idGroup?.Length > 1)
-                                    {
-                                        groupsUncount.Add(idGroup);
-                                    }
+                                if (group?.Length > 0)
+                                {
+                                    groupsUncount.Add(group);
+                                }
+                                if (idGroup?.Length > 1)
+                                {
+                                    groupsUncount.Add(idGroup);
                                 }
                             }
                         }
                     }
-
-                    query = "SELECT GroupPerson FROM PeopleGroupDescription;";
-                    logger.Trace(query);
-                    using (var sqlCommand = new SQLiteCommand(query, sqlConnection))
-                    {
-                        using (var reader = sqlCommand.ExecuteReader())
-                        {
-                            foreach (DbDataRecord record in reader)
-                            {
-                                if (record != null)
-                                {
-                                    tmpRec = record["GroupPerson"]?.ToString();
-                                    if (tmpRec?.Length > 0)
-                                    { groupsUniq.Add(tmpRec); }
-                                }
-                            }
-                        }
-                    }
-
-                    if (groupsUniq?.Count > 0)
-                    {
-                        foreach (string grp in groupsUniq)
-                        {
-                            tmpRec = "";
-                            query = "SELECT GroupsReport, RecipientEmail FROM Mailing  WHERE GroupsReport like '" + grp + "' ;";
-                            logger.Trace(query);
-                            using (var sqlCommand = new SQLiteCommand(query, sqlConnection))
-                            {
-                                using (var reader = sqlCommand.ExecuteReader())
-                                {
-                                    foreach (DbDataRecord record in reader)
-                                    {
-                                        if (record != null)
-                                        {
-                                            if (tmpRec.Length == 0)
-                                            { tmpRec += record["RecipientEmail"]?.ToString(); }
-                                            else { tmpRec += ", " + record["RecipientEmail"]?.ToString(); }
-                                        }
-                                    }
-                                }
-                            }
-                            if (grp?.Length > 0)
-                            {
-                                emails.Add(new DepartmentFull
-                                {
-                                    DepartmentId = grp,
-                                    DepartmentBossEmail = tmpRec
-                                });
-                            }
-                        }
-                    }
-                    logger.Trace("groupsUncount: " + (new HashSet<string>(groupsUncount)).Count());
-                    if (groupsUncount?.Count > 0)
-                    {
-                        foreach (string group in new HashSet<string>(groupsUncount))
-                        {
-                            if (group?.Length > 0)
-                            {
-                                amounts.Add(new GroupParameters()
-                                {
-                                    GroupName = group,
-                                    AmountMembers = groupsUncount.Where(x => x == group).Count(),
-                                    Emails = emails.Find(x => x.DepartmentId == group)?.DepartmentBossEmail
-                                });
-                            }
-                        }
-                    }
-
-                    using (var sqlCommand = new SQLiteCommand("begin", sqlConnection))
-                    { sqlCommand.ExecuteNonQuery(); }
-                    if (amounts?.Count > 0)
-                    {
-                        foreach (var group in amounts.ToArray())
-                        {
-                            if (group != null)
-                            {
-                                query = "UPDATE 'PeopleGroupDescription' SET AmountStaffInDepartment='" + group?.AmountMembers + "' WHERE GroupPerson like '" + group?.GroupName + "';";
-                                logger.Trace(query);
-                                using (var command = new SQLiteCommand(query, sqlConnection))
-                                { command.ExecuteNonQuery(); }
-
-                                query = "UPDATE 'PeopleGroupDescription' SET Recipient='" + group.Emails + "' WHERE GroupPerson like '" + group.GroupName + "';";
-                                logger.Trace(query);
-                                using (var command = new SQLiteCommand(query, sqlConnection))
-                                { command.ExecuteNonQuery(); }
-                            }
-                        }
-                    }
-
-                    using (var sqlCommand = new SQLiteCommand("end", sqlConnection))
-                    { sqlCommand.ExecuteNonQuery(); }
                 }
+
+                query = "SELECT GroupPerson FROM PeopleGroupDescription;";
+                logger.Trace(query);
+                using (var sqlCommand = new SQLiteCommand(query, sqlConnection))
+                {
+                    using (var reader = sqlCommand.ExecuteReader())
+                    {
+                        foreach (DbDataRecord record in reader)
+                        {
+                            if (record != null)
+                            {
+                                tmpRec = record["GroupPerson"]?.ToString();
+                                if (tmpRec?.Length > 0)
+                                { groupsUniq.Add(tmpRec); }
+                            }
+                        }
+                    }
+                }
+
+                if (groupsUniq?.Count > 0)
+                {
+                    foreach (string grp in groupsUniq)
+                    {
+                        tmpRec = "";
+                        query = "SELECT GroupsReport, RecipientEmail FROM Mailing  WHERE GroupsReport like '" + grp + "' ;";
+                        logger.Trace(query);
+                        using (var sqlCommand = new SQLiteCommand(query, sqlConnection))
+                        {
+                            using (var reader = sqlCommand.ExecuteReader())
+                            {
+                                foreach (DbDataRecord record in reader)
+                                {
+                                    if (record != null)
+                                    {
+                                        if (tmpRec.Length == 0)
+                                        { tmpRec += record["RecipientEmail"]?.ToString(); }
+                                        else { tmpRec += ", " + record["RecipientEmail"]?.ToString(); }
+                                    }
+                                }
+                            }
+                        }
+                        if (grp?.Length > 0)
+                        {
+                            emails.Add(new DepartmentFull
+                            {
+                                DepartmentId = grp,
+                                DepartmentBossEmail = tmpRec
+                            });
+                        }
+                    }
+                }
+                logger.Trace("groupsUncount: " + (new HashSet<string>(groupsUncount)).Count());
+                if (groupsUncount?.Count > 0)
+                {
+                    foreach (string group in new HashSet<string>(groupsUncount))
+                    {
+                        if (group?.Length > 0)
+                        {
+                            amounts.Add(new GroupParameters()
+                            {
+                                GroupName = group,
+                                AmountMembers = groupsUncount.Where(x => x == group).Count(),
+                                Emails = emails.Find(x => x.DepartmentId == group)?.DepartmentBossEmail
+                            });
+                        }
+                    }
+                }
+
+                using (var sqlCommand = new SQLiteCommand("begin", sqlConnection))
+                { sqlCommand.ExecuteNonQuery(); }
+                if (amounts?.Count > 0)
+                {
+                    foreach (var group in amounts.ToArray())
+                    {
+                        if (group != null)
+                        {
+                            query = "UPDATE 'PeopleGroupDescription' SET AmountStaffInDepartment='" + group?.AmountMembers + "' WHERE GroupPerson like '" + group?.GroupName + "';";
+                            logger.Trace(query);
+                            using (var command = new SQLiteCommand(query, sqlConnection))
+                            { command.ExecuteNonQuery(); }
+
+                            query = "UPDATE 'PeopleGroupDescription' SET Recipient='" + group.Emails + "' WHERE GroupPerson like '" + group.GroupName + "';";
+                            logger.Trace(query);
+                            using (var command = new SQLiteCommand(query, sqlConnection))
+                            { command.ExecuteNonQuery(); }
+                        }
+                    }
+                }
+
+                using (var sqlCommand = new SQLiteCommand("end", sqlConnection))
+                { sqlCommand.ExecuteNonQuery(); }
             }
+
         }
 
         private void MembersGroupItem_Click(object sender, EventArgs e)//SearchMembersSelectedGroup()
@@ -3064,68 +3022,66 @@ namespace ASTA
             logger.Trace($"-= {method} =-");
             logger.Trace("WritePeopleInLocalDB: table - " + dtSource + ", row - " + dtSource.Rows.Count);
 
-            if (dbApplication.Exists)
+            string query = "INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Department, PositionInDepartment, DepartmentId, City, Boss) " +
+                      "VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Comment, @Department, @PositionInDepartment, @DepartmentId, @City, @Boss)";
+
+            using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
             {
-                string query = "INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Department, PositionInDepartment, DepartmentId, City, Boss) " +
-                          "VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Comment, @Department, @PositionInDepartment, @DepartmentId, @City, @Boss)";
+                logger.Trace($"query: {query}");
+                dbWriter.Status += AddLoggerTraceText;
 
-                using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
+                dbWriter.Execute("begin");
+                foreach (var dr in dtSource.AsEnumerable())
                 {
-                    logger.Trace($"query: {query}");
-                    dbWriter.Status += AddLoggerTraceText;
-
-                    dbWriter.Execute("begin");
-                    foreach (var dr in dtSource.AsEnumerable())
+                    if (dr[Names.FIO]?.ToString()?.Length > 0 && dr[Names.CODE]?.ToString()?.Length > 0)
                     {
-                        if (dr[Names.FIO]?.ToString()?.Length > 0 && dr[Names.CODE]?.ToString()?.Length > 0)
+                        using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter.sqlConnection))
                         {
-                            using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter.sqlConnection))
-                            {
-                                SqlQuery.Parameters.Add("@FIO", DbType.String).Value = dr[Names.FIO]?.ToString();
-                                SqlQuery.Parameters.Add("@NAV", DbType.String).Value = dr[Names.CODE]?.ToString();
+                            SqlQuery.Parameters.Add("@FIO", DbType.String).Value = dr[Names.FIO]?.ToString();
+                            SqlQuery.Parameters.Add("@NAV", DbType.String).Value = dr[Names.CODE]?.ToString();
 
-                                SqlQuery.Parameters.Add("@GroupPerson", DbType.String).Value = dr[Names.GROUP]?.ToString();
-                                SqlQuery.Parameters.Add("@Department", DbType.String).Value = dr[Names.DEPARTMENT]?.ToString();
-                                SqlQuery.Parameters.Add("@DepartmentId", DbType.String).Value = dr[Names.DEPARTMENT_ID].ToString();
-                                SqlQuery.Parameters.Add("@PositionInDepartment", DbType.String).Value = dr[Names.EMPLOYEE_POSITION]?.ToString();
-                                SqlQuery.Parameters.Add("@City", DbType.String).Value = dr[Names.PLACE_EMPLOYEE]?.ToString();
-                                SqlQuery.Parameters.Add("@Boss", DbType.String).Value = dr[Names.CHIEF_ID]?.ToString();
+                            SqlQuery.Parameters.Add("@GroupPerson", DbType.String).Value = dr[Names.GROUP]?.ToString();
+                            SqlQuery.Parameters.Add("@Department", DbType.String).Value = dr[Names.DEPARTMENT]?.ToString();
+                            SqlQuery.Parameters.Add("@DepartmentId", DbType.String).Value = dr[Names.DEPARTMENT_ID].ToString();
+                            SqlQuery.Parameters.Add("@PositionInDepartment", DbType.String).Value = dr[Names.EMPLOYEE_POSITION]?.ToString();
+                            SqlQuery.Parameters.Add("@City", DbType.String).Value = dr[Names.PLACE_EMPLOYEE]?.ToString();
+                            SqlQuery.Parameters.Add("@Boss", DbType.String).Value = dr[Names.CHIEF_ID]?.ToString();
 
-                                SqlQuery.Parameters.Add("@ControllingHHMM", DbType.String).Value = dr[Names.DESIRED_TIME_IN]?.ToString();
-                                SqlQuery.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = dr[Names.DESIRED_TIME_OUT]?.ToString();
+                            SqlQuery.Parameters.Add("@ControllingHHMM", DbType.String).Value = dr[Names.DESIRED_TIME_IN]?.ToString();
+                            SqlQuery.Parameters.Add("@ControllingOUTHHMM", DbType.String).Value = dr[Names.DESIRED_TIME_OUT]?.ToString();
 
-                                SqlQuery.Parameters.Add("@Shift", DbType.String).Value = dr[Names.EMPLOYEE_SHIFT]?.ToString();
-                                SqlQuery.Parameters.Add("@Comment", DbType.String).Value = dr[Names.EMPLOYEE_SHIFT_COMMENT]?.ToString();
+                            SqlQuery.Parameters.Add("@Shift", DbType.String).Value = dr[Names.EMPLOYEE_SHIFT]?.ToString();
+                            SqlQuery.Parameters.Add("@Comment", DbType.String).Value = dr[Names.EMPLOYEE_SHIFT_COMMENT]?.ToString();
 
-                                dbWriter.ExecuteBulk(SqlQuery);
-                                _ProgressWork1Step();
-                            }
+                            dbWriter.ExecuteBulk(SqlQuery);
+                            _ProgressWork1Step();
                         }
                     }
-
-                    dbWriter.Execute("end");
-                    dbWriter.Execute("begin");
-
-                    query = "INSERT OR REPLACE INTO 'LastTakenPeopleComboList' (ComboList) VALUES (@ComboList)";
-                    logger.Trace($"query: {query}");
-                    foreach (var str in listFIO)
-                    {
-                        if (str.fio?.Length > 0 && str.Code?.Length > 0)
-                        {
-                            using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter.sqlConnection))
-                            {
-                                SqlQuery.Parameters.Add("@ComboList", DbType.String).Value = str.fio + "|" + str.Code;
-
-                                dbWriter.ExecuteBulk(SqlQuery);
-                                _ProgressWork1Step();
-                            }
-                        }
-                    }
-                    dbWriter.Execute("end");
-
-                    dbWriter.Status -= AddLoggerTraceText;
                 }
+
+                dbWriter.Execute("end");
+                dbWriter.Execute("begin");
+
+                query = "INSERT OR REPLACE INTO 'LastTakenPeopleComboList' (ComboList) VALUES (@ComboList)";
+                logger.Trace($"query: {query}");
+                foreach (var str in listFIO)
+                {
+                    if (str.fio?.Length > 0 && str.Code?.Length > 0)
+                    {
+                        using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter.sqlConnection))
+                        {
+                            SqlQuery.Parameters.Add("@ComboList", DbType.String).Value = str.fio + "|" + str.Code;
+
+                            dbWriter.ExecuteBulk(SqlQuery);
+                            _ProgressWork1Step();
+                        }
+                    }
+                }
+                dbWriter.Execute("end");
+
+                dbWriter.Status -= AddLoggerTraceText;
             }
+
 
             foreach (var str in listFIO)
             { _AddComboBoxItem(comboBoxFio, str.fio + "|" + str.Code); }
@@ -3143,34 +3099,31 @@ namespace ASTA
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace($"-= {method} =-");
 
-            if (dbApplication.Exists)
+            string query = "INSERT OR REPLACE INTO 'PeopleGroupDescription' (GroupPerson, GroupPersonDescription, Recipient) " +
+                                       "VALUES (@GroupPerson, @GroupPersonDescription, @Recipient)";
+
+            using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
             {
-                string query = "INSERT OR REPLACE INTO 'PeopleGroupDescription' (GroupPerson, GroupPersonDescription, Recipient) " +
-                                           "VALUES (@GroupPerson, @GroupPersonDescription, @Recipient)";
+                logger.Trace($"query: {query}");
+                dbWriter.Status += AddLoggerTraceText;
 
-                using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
+                dbWriter.Execute("begin");
+                foreach (var group in departmentsUniq)
                 {
-                    logger.Trace($"query: {query}");
-                    dbWriter.Status += AddLoggerTraceText;
-
-                    dbWriter.Execute("begin");
-                    foreach (var group in departmentsUniq)
+                    if (group?.DepartmentId?.Length > 0)
                     {
-                        if (group?.DepartmentId?.Length > 0)
+                        using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter.sqlConnection))
                         {
-                            using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter.sqlConnection))
-                            {
-                                SqlQuery.Parameters.Add("@GroupPerson", DbType.String).Value = group.DepartmentId;
-                                SqlQuery.Parameters.Add("@GroupPersonDescription", DbType.String).Value = group.DepartmentDescr;
-                                SqlQuery.Parameters.Add("@Recipient", DbType.String).Value = group.DepartmentBossCode;
+                            SqlQuery.Parameters.Add("@GroupPerson", DbType.String).Value = group.DepartmentId;
+                            SqlQuery.Parameters.Add("@GroupPersonDescription", DbType.String).Value = group.DepartmentDescr;
+                            SqlQuery.Parameters.Add("@Recipient", DbType.String).Value = group.DepartmentBossCode;
 
-                                dbWriter.ExecuteBulk(SqlQuery);
-                            }
+                            dbWriter.ExecuteBulk(SqlQuery);
                         }
                     }
-                    dbWriter.Execute("end");
-                    dbWriter.Status -= AddLoggerTraceText;
                 }
+                dbWriter.Execute("end");
+                dbWriter.Status -= AddLoggerTraceText;
             }
         }
 
@@ -3183,31 +3136,29 @@ namespace ASTA
             logger.Trace("GetNamePoints");
             collectionOfPassagePoints = new CollectionOfPassagePoints();
 
-            if (dbApplication.Exists)
+            string query = "Select id, name FROM OBJ_ABC_ARC_READER;";
+            logger.Trace($"query: {query}");
+            string idPoint, namePoint, direction;
+
+            using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
+            using (System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetData(query))
             {
-                string query = "Select id, name FROM OBJ_ABC_ARC_READER;";
-                logger.Trace($"query: {query}");
-                string idPoint, namePoint, direction;
-
-                using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
-                using (System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetData(query))
+                foreach (DbDataRecord record in sqlData)
                 {
-                    foreach (DbDataRecord record in sqlData)
-                    {
-                        namePoint = record?["name"]?.ToString()?.Trim();
-                        idPoint = record["id"]?.ToString()?.Trim();
-                        if (namePoint?.ToLower()?.Contains("выход") == true)
-                        { direction = "Выход"; }
-                        else
-                        { direction = "Вход"; }
+                    namePoint = record?["name"]?.ToString()?.Trim();
+                    idPoint = record["id"]?.ToString()?.Trim();
+                    if (namePoint?.ToLower()?.Contains("выход") == true)
+                    { direction = "Выход"; }
+                    else
+                    { direction = "Вход"; }
 
-                        if (idPoint?.Length > 0 && namePoint?.Length > 0)
-                        {
-                            collectionOfPassagePoints.AddPoint(idPoint, namePoint, direction, sServer1);
-                        }
+                    if (idPoint?.Length > 0 && namePoint?.Length > 0)
+                    {
+                        collectionOfPassagePoints.AddPoint(idPoint, namePoint, direction, sServer1);
                     }
                 }
             }
+
             foreach (var tmp in collectionOfPassagePoints.GetCollection())
             {
                 logger.Trace(tmp.Key + " " + tmp.Value._idPoint + " " + tmp.Value._namePoint + " " + tmp.Value._direction + " " + tmp.Value._connectedToServer);
@@ -4168,24 +4119,22 @@ namespace ASTA
             { nav = "0"; }
             else { nav = textBoxNav.Text.Trim(); }
 
-            if (dbApplication.Exists)
+            using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
             {
-                using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
-                {
-                    sqlConnection.Open();
+                sqlConnection.Open();
 
-                    using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'BoldedDates' (DayBolded, NAV, DayType, DayDescription, DateCreated) " +
-                        " VALUES (@BoldedDate, @NAV, @DayType, @DayDescription, @DateCreated)", sqlConnection))
-                    {
-                        sqlCommand.Parameters.Add("@BoldedDate", DbType.String).Value = monthCalendar.SelectionStart.ToYYYYMMDD();
-                        sqlCommand.Parameters.Add("@NAV", DbType.String).Value = nav;
-                        sqlCommand.Parameters.Add("@DayType", DbType.String).Value = dayType;
-                        sqlCommand.Parameters.Add("@DayDescription", DbType.String).Value = textBoxGroupDescription.Text.Trim();
-                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDD();
-                        try { sqlCommand.ExecuteNonQuery(); } catch (Exception err) { MessageBox.Show(err.ToString()); }
-                    }
+                using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'BoldedDates' (DayBolded, NAV, DayType, DayDescription, DateCreated) " +
+                    " VALUES (@BoldedDate, @NAV, @DayType, @DayDescription, @DateCreated)", sqlConnection))
+                {
+                    sqlCommand.Parameters.Add("@BoldedDate", DbType.String).Value = monthCalendar.SelectionStart.ToYYYYMMDD();
+                    sqlCommand.Parameters.Add("@NAV", DbType.String).Value = nav;
+                    sqlCommand.Parameters.Add("@DayType", DbType.String).Value = dayType;
+                    sqlCommand.Parameters.Add("@DayDescription", DbType.String).Value = textBoxGroupDescription.Text.Trim();
+                    sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDD();
+                    try { sqlCommand.ExecuteNonQuery(); } catch (Exception err) { MessageBox.Show(err.ToString()); }
                 }
             }
+
         }
 
         private void DeleteAnualDateItem_Click(object sender, EventArgs e) //DeleteAnualDay()
@@ -4803,7 +4752,7 @@ namespace ASTA
             }
             catch (Exception err)
             { logger.Warn(err.ToString()); }
-           
+
             dt.AcceptChanges();
         }
 
@@ -5752,19 +5701,16 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                     break;
             }
 
-            if (dbApplication.Exists)
+            using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
             {
-                using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
+                sqlConnection.Open();
+                using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'ConfigDB' (ParameterName, Value, DateCreated) " +
+                    " VALUES (@ParameterName, @Value, @DateCreated)", sqlConnection))
                 {
-                    sqlConnection.Open();
-                    using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'ConfigDB' (ParameterName, Value, DateCreated) " +
-                        " VALUES (@ParameterName, @Value, @DateCreated)", sqlConnection))
-                    {
-                        sqlCommand.Parameters.Add("@ParameterName", DbType.String).Value = "clrRealRegistration";
-                        sqlCommand.Parameters.Add("@Value", DbType.String).Value = clrRealRegistration.Name;
-                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
-                        try { sqlCommand.ExecuteNonQuery(); } catch (Exception err) { MessageBox.Show(err.ToString()); }
-                    }
+                    sqlCommand.Parameters.Add("@ParameterName", DbType.String).Value = "clrRealRegistration";
+                    sqlCommand.Parameters.Add("@Value", DbType.String).Value = clrRealRegistration.Name;
+                    sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
+                    try { sqlCommand.ExecuteNonQuery(); } catch (Exception err) { MessageBox.Show(err.ToString()); }
                 }
             }
 
@@ -5928,37 +5874,34 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             if (senderEmail?.Length > 0 && senderEmail.Contains('.') && senderEmail.Contains('@') && senderEmail?.Split('.').Count() > 1)
             { senderValid = true; }
 
-            if (dbApplication.Exists && nameReport?.Length > 0 && senderValid && recipientValid)
+            using (SQLiteConnection sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
             {
-                using (SQLiteConnection sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
+                sqlConnection.Open();
+
+                SQLiteCommand sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
+                sqlCommand1.ExecuteNonQuery();
+
+                using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'Mailing' (RecipientEmail, GroupsReport, NameReport, Description, Period, Status, DateCreated, SendingLastDate, TypeReport, DayReport)" +
+                           " VALUES (@RecipientEmail, @GroupsReport, @NameReport, @Description, @Period, @Status, @DateCreated, @SendingLastDate, @TypeReport, @DayReport)", sqlConnection))
                 {
-                    sqlConnection.Open();
+                    sqlCommand.Parameters.Add("@RecipientEmail", DbType.String).Value = recipientEmail;
+                    sqlCommand.Parameters.Add("@GroupsReport", DbType.String).Value = groupsReport;
+                    sqlCommand.Parameters.Add("@NameReport", DbType.String).Value = nameReport;
+                    sqlCommand.Parameters.Add("@Description", DbType.String).Value = descriptionReport;
+                    sqlCommand.Parameters.Add("@Period", DbType.String).Value = periodPreparing;
+                    sqlCommand.Parameters.Add("@Status", DbType.String).Value = status;
+                    sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = dateCreatingMailing;
+                    sqlCommand.Parameters.Add("@SendingLastDate", DbType.String).Value = SendingDate;
+                    sqlCommand.Parameters.Add("@TypeReport", DbType.String).Value = typeReport;
+                    sqlCommand.Parameters.Add("@DayReport", DbType.String).Value = daySendingReport;
 
-                    SQLiteCommand sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
-
-                    using (SQLiteCommand sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'Mailing' (RecipientEmail, GroupsReport, NameReport, Description, Period, Status, DateCreated, SendingLastDate, TypeReport, DayReport)" +
-                               " VALUES (@RecipientEmail, @GroupsReport, @NameReport, @Description, @Period, @Status, @DateCreated, @SendingLastDate, @TypeReport, @DayReport)", sqlConnection))
-                    {
-                        sqlCommand.Parameters.Add("@RecipientEmail", DbType.String).Value = recipientEmail;
-                        sqlCommand.Parameters.Add("@GroupsReport", DbType.String).Value = groupsReport;
-                        sqlCommand.Parameters.Add("@NameReport", DbType.String).Value = nameReport;
-                        sqlCommand.Parameters.Add("@Description", DbType.String).Value = descriptionReport;
-                        sqlCommand.Parameters.Add("@Period", DbType.String).Value = periodPreparing;
-                        sqlCommand.Parameters.Add("@Status", DbType.String).Value = status;
-                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = dateCreatingMailing;
-                        sqlCommand.Parameters.Add("@SendingLastDate", DbType.String).Value = SendingDate;
-                        sqlCommand.Parameters.Add("@TypeReport", DbType.String).Value = typeReport;
-                        sqlCommand.Parameters.Add("@DayReport", DbType.String).Value = daySendingReport;
-
-                        try { sqlCommand.ExecuteNonQuery(); } catch { }
-                    }
-
-                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
+                    try { sqlCommand.ExecuteNonQuery(); } catch { }
                 }
-                SetStatusLabelText(StatusLabel2, $"Добавлена рассылка: {nameReport}| Всего рассылок: {DataGridViewOperations.RowsCount(dataGridView1)}");
+
+                sqlCommand1 = new SQLiteCommand("end", sqlConnection);
+                sqlCommand1.ExecuteNonQuery();
             }
+            SetStatusLabelText(StatusLabel2, $"Добавлена рассылка: {nameReport}| Всего рассылок: {DataGridViewOperations.RowsCount(dataGridView1)}");
         }
 
         private void ConfigurationItem_Click(object sender, EventArgs e)
@@ -7507,18 +7450,15 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace($"-= {method} =-");
 
-            if (dbApplication.Exists)
+            using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
             {
-                using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
+                sqlConnection.Open();
+                using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'SelectedCityToLoadFromWeb' (City, DateCreated) " +
+                    " VALUES (@City, @DateCreated)", sqlConnection))
                 {
-                    sqlConnection.Open();
-                    using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'SelectedCityToLoadFromWeb' (City, DateCreated) " +
-                        " VALUES (@City, @DateCreated)", sqlConnection))
-                    {
-                        sqlCommand.Parameters.Add("@City", DbType.String).Value = "City";
-                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
-                        try { sqlCommand.ExecuteNonQuery(); } catch (Exception err) { MessageBox.Show(err.ToString()); }
-                    }
+                    sqlCommand.Parameters.Add("@City", DbType.String).Value = "City";
+                    sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
+                    try { sqlCommand.ExecuteNonQuery(); } catch (Exception err) { MessageBox.Show(err.ToString()); }
                 }
             }
         }
@@ -7670,20 +7610,17 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             method = System.Reflection.MethodBase.GetCurrentMethod().Name;
             logger.Trace($"-= {method} =-");
 
-            if (dbApplication.Exists)
+            using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
             {
-                using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
+                sqlConnection.Open();
+                using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'MailingException' (RecipientEmail, GroupsReport, Description, DateCreated) " +
+                    " VALUES (@RecipientEmail, @GroupsReport, @Description, @DateCreated)", sqlConnection))
                 {
-                    sqlConnection.Open();
-                    using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'MailingException' (RecipientEmail, GroupsReport, Description, DateCreated) " +
-                        " VALUES (@RecipientEmail, @GroupsReport, @Description, @DateCreated)", sqlConnection))
-                    {
-                        sqlCommand.Parameters.Add("@RecipientEmail", DbType.String).Value = "example@mail.com";
-                        sqlCommand.Parameters.Add("@GroupsReport", DbType.String).Value = "";
-                        sqlCommand.Parameters.Add("@Description", DbType.String).Value = "example";
-                        sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
-                        try { sqlCommand.ExecuteNonQuery(); } catch (Exception err) { MessageBox.Show(err.ToString()); }
-                    }
+                    sqlCommand.Parameters.Add("@RecipientEmail", DbType.String).Value = "example@mail.com";
+                    sqlCommand.Parameters.Add("@GroupsReport", DbType.String).Value = "";
+                    sqlCommand.Parameters.Add("@Description", DbType.String).Value = "example";
+                    sqlCommand.Parameters.Add("@DateCreated", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
+                    try { sqlCommand.ExecuteNonQuery(); } catch (Exception err) { MessageBox.Show(err.ToString()); }
                 }
             }
         }

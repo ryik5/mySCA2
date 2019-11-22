@@ -1,18 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO.Abstractions;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO.Abstractions;
 
 namespace ASTA.Classes
 {
-  public  class BuilderFileName
+    public class BuilderFileName
     {
         private readonly IFileSystem _fileSystem;
         private string _inputFileName;
         private string _extension;
-        public string OutputFileName { get; set; };
+        private string _outputFileNameWithExtention;
 
         public BuilderFileName() : this(new FileSystem()) { }
 
@@ -26,21 +21,33 @@ namespace ASTA.Classes
             _inputFileName = inputFileName;
             _extension = extension;
         }
-        public void BuildPath()
+
+        public string BuildPath()
         {
-            OutputFileName= MakeNewFileNameIfItHereExists(_inputFileName, _extension);
+            _outputFileNameWithExtention = ReturnFileNameWithExtention(_inputFileName, _extension);
+            return _outputFileNameWithExtention;
         }
 
-        private string MakeNewFileNameIfItHereExists(string inputFileName, string extension)
+        /// <summary>
+        /// If File 'inputFileName.extension' on the that place exists it returns 'inputFileName_1.extension' else return 'inputFileName.extension'
+        /// </summary>
+        /// <param name="inputFileName"></param>
+        /// <param name="extension"></param>
+        /// <returns></returns>
+        private string ReturnFileNameWithExtention(string inputFileName, string extension)
         {
             string newNameOfFile = inputFileName;
-            if (_fileSystem.File.Exists($"{inputFileName}.{extension}"))
+            using (CheckerFileOnDisk fileExists = new CheckerFileOnDisk(inputFileName, extension))
             {
-                newNameOfFile = $"{inputFileName}_1";
-                MakeNewFileNameIfItHereExists(newNameOfFile, extension);
+                if (fileExists.Exists())
+                {
+                    newNameOfFile = $"{inputFileName}_1";
+                    ReturnFileNameWithExtention(newNameOfFile, extension);
+                }
             }
-
-            return newNameOfFile;
+            return $"{newNameOfFile}.{extension}";
         }
     }
 }
+    
+
