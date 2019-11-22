@@ -22,18 +22,19 @@ namespace ASTA.Classes.Updating
         readonly IFileSystem fileSystem;
         List<System.IO.Abstractions.IFileInfo> _sourceList;
         List<System.IO.Abstractions.IFileInfo> _targetList;
-
         FilePathSourceAndTarget[] _couples;
 
         private bool uploadingError = false;
         UpdatingParameters _parameters { get; set; }
-
-
+        
 
         public Uploader(IFileSystem fileSystem) { this.fileSystem = fileSystem; }
 
         //public Uploader(UpdatingParameters parameters, string[] source, string[] target) : this(fileSystem: new FileSystem())     //use default implementation which calls System.IO
-        public Uploader(UpdatingParameters parameters, List<System.IO.Abstractions.IFileInfo> source, List<System.IO.Abstractions.IFileInfo> target) : this(fileSystem: new FileSystem())     //use default implementation which calls System.IO
+        public Uploader(
+            UpdatingParameters parameters, 
+            List<System.IO.Abstractions.IFileInfo> source, 
+            List<System.IO.Abstractions.IFileInfo> target) : this(fileSystem: new FileSystem())     //use default implementation which calls System.IO
         {
             StatusText?.Invoke(this, new TextEventArgs(""));
             _parameters = parameters;
@@ -42,25 +43,34 @@ namespace ASTA.Classes.Updating
             _targetList = target;
         }
 
-        public async void Upload()
+        public void Upload()
         {
             StatusText?.Invoke(this, new TextEventArgs("Начало отправки обновлений..."));
             StatusColor?.Invoke(this, new ColorEventArgs(System.Drawing.SystemColors.Control));
             uploadingError = false;
 
-            Contract.Requires(!string.IsNullOrWhiteSpace(_parameters?.localFolderUpdatingURL));
-            Contract.Requires(!string.IsNullOrWhiteSpace(_parameters?.appUpdateFolderURI));
-            Contract.Requires(!string.IsNullOrWhiteSpace(_parameters?.appFileZip));
-            Contract.Requires(!string.IsNullOrWhiteSpace(_parameters?.appFileXml));
-
+            Contract.Requires(_parameters!=null);
+            Contract.Requires(!string.IsNullOrWhiteSpace(_parameters.localFolderUpdatingURL));
+            Contract.Requires(!string.IsNullOrWhiteSpace(_parameters.appUpdateFolderURI));
+            Contract.Requires(!string.IsNullOrWhiteSpace(_parameters.appFileZip));
+            Contract.Requires(!string.IsNullOrWhiteSpace(_parameters.appFileXml));
             Contract.Requires(_sourceList?.Count > 0);
             Contract.Requires(_targetList.Count == _sourceList.Count);
 
             _couples = MakeArrayFilePathesFromTwoListsOfFilePathes(_sourceList, _targetList);
 
-            Func<Task>[] tasks = MakeFuncTask(_couples);
+            Task.Run(async () =>
+             {
+                 await _couples.ForEachAsync(6, async file =>   //4 - количество одновременно отправляемых файлов на сервер
+                 {
+                     await UploadFileToShare(file);
+                 });
+             }).Wait();
 
-            await InvokeAsync(tasks, maxDegreeOfParallelism: 2);
+
+            // -= InvokeAsync =-
+            //  Func<Task>[] tasks = MakeFuncTask(_couples);
+            //  await InvokeAsync(tasks, maxDegreeOfParallelism: 2);
 
             if (!uploadingError)
             {
@@ -74,19 +84,20 @@ namespace ASTA.Classes.Updating
             }
         }
 
-        private Func<Task>[] MakeFuncTask(FilePathSourceAndTarget[] couples)
-        {
-            int len = couples.Length;
-            Func<Task>[] tasks = new Func<Task>[len];
-
-            for (int i = 0; i < len; i++)
+        // -= InvokeAsync =-
+        /*    private Func<Task>[] MakeFuncTask(FilePathSourceAndTarget[] couples)
             {
-                int index = i;
-                tasks[index] = () => UploadFileToShare(couples[index]);
-            }
+                int len = couples.Length;
+                Func<Task>[] tasks = new Func<Task>[len];
 
-            return tasks;
-        }
+                for (int i = 0; i < len; i++)
+                {
+                    int index = i;
+                    tasks[index] = () => UploadFileToShare(couples[index]);
+                }
+
+                return tasks;
+            }*/
 
         private FilePathSourceAndTarget[] MakeArrayFilePathesFromTwoListsOfFilePathes(List<System.IO.Abstractions.IFileInfo> source, List<System.IO.Abstractions.IFileInfo> target)
         {
@@ -102,7 +113,8 @@ namespace ASTA.Classes.Updating
         {
             var source = pathes.Get()._sourcePath;
             var target = pathes.Get()._targetPath;
-            Contract.Requires(!source.Equals(target));
+            Contract.Requires(source != null && !string.IsNullOrEmpty(source.FullName) && !source.Equals(target));
+
             StatusText?.Invoke(this, new TextEventArgs($"Идет отправка файла {source.FullName} -> {target.FullName}"));
             StatusFinishedUploading?.Invoke(this, new BoolEventArgs(false));
             StatusColor?.Invoke(this, new ColorEventArgs(System.Drawing.SystemColors.Control));
@@ -111,12 +123,17 @@ namespace ASTA.Classes.Updating
             {
                 // var fileByte = System.IO.File.ReadAllBytes(source);
                 // System.IO.File.WriteAllBytes(target, fileByte);
-                try { target.Delete(); }
-                catch { StatusText?.Invoke(this, new TextEventArgs($"Файл на сервере: {target.FullName} удалить не удалось")); } //@"\\server\folder\Myfile.txt"
+                try 
+                { 
+                    await Task.Run(() => target.Delete());
+                    StatusText?.Invoke(this, new TextEventArgs($"Файл {target.FullName} удален успешно"));
+                }
+                catch(Exception err) 
+                { StatusText?.Invoke(this, new TextEventArgs($"Файл {target.FullName} удалить не удалось: {err.ToString()}")); } //@"\\server\folder\Myfile.txt"
 
-                fileSystem.File.Copy(source.FullName, target.FullName, true); //@"\\server\folder\Myfile.txt"
+                await Task.Run(() => fileSystem.File.Copy(source.FullName, target.FullName, true)); //@"\\server\folder\Myfile.txt"
 
-                StatusText?.Invoke(this, new TextEventArgs($"Отправка файла на сервер выполнена " + target));
+                StatusText?.Invoke(this, new TextEventArgs($"Отправка файла на сервер выполнена {target.FullName}"));
                 StatusColor?.Invoke(this, new ColorEventArgs(System.Drawing.Color.LightGreen));
                 StatusFinishedUploading?.Invoke(this, new BoolEventArgs(true));
             }
@@ -131,42 +148,44 @@ namespace ASTA.Classes.Updating
                     messageOfErrorUploading += "|" + err.Message;
                 StatusColor?.Invoke(this, new ColorEventArgs(System.Drawing.Color.LightYellow));
             }
+           // Task.WaitAll();
         }
 
-        private static async Task InvokeAsync(IEnumerable<Func<Task>> taskFactories, int maxDegreeOfParallelism)
-        {
-            var queue = new Queue<Func<Task>>(taskFactories);
+        // -= InvokeAsync =-
+        /*  private static async Task InvokeAsync(IEnumerable<Func<Task>> taskFactories, int maxDegreeOfParallelism)
+               {
+                   var queue = new Queue<Func<Task>>(taskFactories);
 
-            if (queue.Count == 0)
-            {
-                return;
-            }
+                   if (queue.Count == 0)
+                   {
+                       return;
+                   }
 
-            var tasksInFlight = new List<Task>(maxDegreeOfParallelism);
+                   var tasksInFlight = new List<Task>(maxDegreeOfParallelism);
 
-            do
-            {
-                while (tasksInFlight.Count < maxDegreeOfParallelism && queue.Count != 0)
-                {
-                    var taskFactory = queue.Dequeue();
+                   do
+                   {
+                       while (tasksInFlight.Count < maxDegreeOfParallelism && queue.Count != 0)
+                       {
+                           var taskFactory = queue.Dequeue();
 
-                    tasksInFlight.Add(taskFactory());
-                }
+                           tasksInFlight.Add(taskFactory());
+                       }
 
-                var completedTask = await Task.WhenAny(tasksInFlight).ConfigureAwait(false);
+                       var completedTask = await Task.WhenAny(tasksInFlight).ConfigureAwait(false);
 
-                // Propagate exceptions. In-flight tasks will be abandoned if this throws.
-                await completedTask.ConfigureAwait(false);
+                       // Propagate exceptions. In-flight tasks will be abandoned if this throws.
+                       await completedTask.ConfigureAwait(false);
 
-                tasksInFlight.Remove(completedTask);
-            }
-            while (queue.Count != 0 || tasksInFlight.Count != 0);
-        }
+                       tasksInFlight.Remove(completedTask);
+                   }
+                   while (queue.Count != 0 || tasksInFlight.Count != 0);
+               }*/
 
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
 
-        private void Dispose(bool disposing)
+        public void Dispose(bool disposing)
         {
             if (!disposedValue)
             {

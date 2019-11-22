@@ -125,7 +125,7 @@ namespace ASTA.Classes.People
                                             if (ADUsersCollection?.Count > 1 && ADUsersCollection?.Count % 5 == 0)
                                             {
                                                 Info?.Invoke(this, new TextEventArgs(
-                                                    $"Из домена {adUser.Domain} получено {ADUsersCollection?.Count} аккаунтов, последний {_fio.ConvertFullNameToShortForm()}"));
+                                                    $"Из домена получено {ADUsersCollection?.Count} аккаунтов, последний {_fio.ConvertFullNameToShortForm()}"));
                                             }
                                         }
                                     }

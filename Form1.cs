@@ -29,10 +29,6 @@ namespace ASTA
 {
     public partial class WinFormASTA : Form
     {
-
-        //About
-        AboutBox1 aboutBox;
-
         //todo!!!!!!!!!
         //Check of All variables, const and controls
         //they will be needed to Remove if they are not needed
@@ -40,7 +36,7 @@ namespace ASTA
 
         //logging
         readonly static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
-        static string method = System.Reflection.MethodBase.GetCurrentMethod().Name;
+        // static string method = System.Reflection.MethodBase.GetCurrentMethod().Name;
         // logger.Trace("-= " + method + " =-");
 
         //System settings
@@ -675,7 +671,6 @@ namespace ASTA
 
             dgvo = null;
 
-            aboutBox?.Dispose();
             bmp?.Dispose();
             bmpLogo?.Dispose();
 
@@ -707,7 +702,7 @@ namespace ASTA
 
             MethodInvoker mi = delegate
             {
-                string prevText = _ReturnStatusLabelText(StatusLabel2);
+                string prevText = ReturnStatusLabelText(StatusLabel2);
                 Color prevColor = _ReturnStatusLabelBackColor(StatusLabel2);
                 bool readOk = true;
 
@@ -1025,8 +1020,7 @@ namespace ASTA
         {
             EnableMainMenuItems(false);
 
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(AddParameterInConfigItem_Click)} =-");
 
             _VisibleControl(panelView, false);
             ClearButtonClickEvent(btnPropertiesSave);
@@ -1070,8 +1064,7 @@ namespace ASTA
 
         private void InitializeParameterFormSettings(List<ParameterConfig> listParameters)
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(InitializeParameterFormSettings)} =-");
 
             panelViewResize(numberPeopleInLoading);
 
@@ -1201,8 +1194,8 @@ namespace ASTA
 
         private void ButtonPropertiesSave_inConfig(object sender, EventArgs e) //SaveProperties()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(ButtonPropertiesSave_inConfig)} =-");
+
             string textLabel = _ReturnTextOfControl(labelSettings9);
 
             ParameterConfig parameter = new ParameterConfig()
@@ -1237,12 +1230,11 @@ namespace ASTA
             EnableMainMenuItems(true);
         }
 
-
         //void ShowDataTableDbQuery(
         private void ShowDataTableDbQuery(System.IO.FileInfo dbApplication, string myTable, string mySqlQuery, string mySqlWhere) //Query data from the Table of the DB
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(ShowDataTableDbQuery)} =-");
+
             DataTable dt;
 
             string query = $"{mySqlQuery} FROM '{myTable}' {mySqlWhere};";
@@ -1261,8 +1253,7 @@ namespace ASTA
 
         private void ShowDatatableOnDatagridview(DataTable dt, string nameLastTable, string[] nameHidenColumnsArray1 = null) //Query data from the Table of the DB
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(ShowDatatableOnDatagridview)} =-");
 
             using (DataTable dataTable = dt.Copy())
             {
@@ -1290,7 +1281,10 @@ namespace ASTA
 
                     using (SQLiteCommand SqlQuery = new SQLiteCommand(query, dbWriter.sqlConnection))
                     {
-                        dbWriter.Execute(SqlQuery);
+                        await Task.Run(() =>
+                        {
+                            dbWriter.Execute(SqlQuery);
+                        });
                     }
                     dbWriter.Status -= AddLoggerTraceText;
                 }
@@ -1301,84 +1295,84 @@ namespace ASTA
             string sqlParameter2 = "", string sqlData2 = "", string sqlParameter3 = "", string sqlData3 = "",
             string sqlParameter4 = "", string sqlData4 = "", string sqlParameter5 = "", string sqlData5 = "", string sqlParameter6 = "", string sqlData6 = "") //Delete data from the Table of the DB by NAV (both parameters are string)
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-
             string result = string.Empty;
-            string query = $"DELETE FROM '{myTable}' Where {sqlParameter1}= @" + sqlParameter1 +
-                           $" AND {sqlParameter2}= @{sqlParameter2} AND {sqlParameter3}= @" + sqlParameter3 +
-                           $" AND {sqlParameter4}= @{sqlParameter4} AND {sqlParameter5}= @{sqlParameter5} AND {sqlParameter6}= @{sqlParameter6};";
+            string query = $"DELETE FROM '{myTable}' Where {sqlParameter1}= @{sqlParameter1} " +
+                           $"AND {sqlParameter2}= @{sqlParameter2} AND {sqlParameter3}= @{sqlParameter3} " +
+                           $"AND {sqlParameter4}= @{sqlParameter4} AND {sqlParameter5}= @{sqlParameter5} AND {sqlParameter6}= @{sqlParameter6};";
 
-            using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
+            await Task.Run(() =>
             {
-                dbWriter.Status += AddLoggerTraceText;
-
-                SQLiteCommand sqlCommand = null;
-                if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0 && sqlParameter4.Length > 0
-                && sqlParameter5.Length > 0 && sqlParameter6.Length > 0)
+                using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
                 {
-                    sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
+                    dbWriter.Status += AddLoggerTraceText;
 
-                    sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
-                    sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
-                    sqlCommand.Parameters.Add("@" + sqlParameter3, DbType.String).Value = sqlData3;
-                    sqlCommand.Parameters.Add("@" + sqlParameter4, DbType.String).Value = sqlData4;
-                    sqlCommand.Parameters.Add("@" + sqlParameter5, DbType.String).Value = sqlData5;
-                    sqlCommand.Parameters.Add("@" + sqlParameter6, DbType.String).Value = sqlData6;
+                    SQLiteCommand sqlCommand = null;
+                    if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0 && sqlParameter4.Length > 0
+                    && sqlParameter5.Length > 0 && sqlParameter6.Length > 0)
+                    {
+                        sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
+
+                        sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
+                        sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
+                        sqlCommand.Parameters.Add("@" + sqlParameter3, DbType.String).Value = sqlData3;
+                        sqlCommand.Parameters.Add("@" + sqlParameter4, DbType.String).Value = sqlData4;
+                        sqlCommand.Parameters.Add("@" + sqlParameter5, DbType.String).Value = sqlData5;
+                        sqlCommand.Parameters.Add("@" + sqlParameter6, DbType.String).Value = sqlData6;
+                    }
+                    else if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0 && sqlParameter4.Length > 0
+                        && sqlParameter5.Length > 0)
+                    {
+                        query = $"DELETE FROM '{myTable}' Where {sqlParameter1}= @{sqlParameter1} " +
+                                $"AND {sqlParameter2}= @{sqlParameter2} AND {sqlParameter3}= @{sqlParameter3} " +
+                                $"AND {sqlParameter4}= @{sqlParameter4} AND {sqlParameter5}= @{sqlParameter5} ;";
+
+                        sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
+                        sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
+                        sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
+                        sqlCommand.Parameters.Add("@" + sqlParameter3, DbType.String).Value = sqlData3;
+                        sqlCommand.Parameters.Add("@" + sqlParameter4, DbType.String).Value = sqlData4;
+                        sqlCommand.Parameters.Add("@" + sqlParameter5, DbType.String).Value = sqlData5;
+                    }
+                    else if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0 && sqlParameter4.Length > 0)
+                    {
+                        sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
+                        sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
+                        sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
+                        sqlCommand.Parameters.Add("@" + sqlParameter3, DbType.String).Value = sqlData3;
+                        sqlCommand.Parameters.Add("@" + sqlParameter4, DbType.String).Value = sqlData4;
+                    }
+                    else if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0)
+                    {
+                        query = $"DELETE FROM '{myTable}' Where {sqlParameter1}= @{sqlParameter1} " +
+                                $"AND {sqlParameter2}= @{sqlParameter2} AND {sqlParameter3}= @{sqlParameter3};";
+
+                        sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
+                        sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
+                        sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
+                        sqlCommand.Parameters.Add("@" + sqlParameter3, DbType.String).Value = sqlData3;
+
+                    }
+                    else if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0)
+                    {
+                        query = $"DELETE FROM '{myTable}' Where {sqlParameter1}= @{sqlParameter1} AND {sqlParameter2}= @{sqlParameter2};";
+
+                        sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
+                        sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
+                        sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
+                    }
+                    else if (sqlParameter1.Length > 0)
+                    {
+                        query = $"DELETE FROM '{myTable}' Where {sqlParameter1}= @{sqlParameter1};";
+
+                        sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
+                        sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
+                    }
+                    dbWriter.Execute(sqlCommand);
+
+                    dbWriter.Status -= AddLoggerTraceText;
+                    sqlCommand?.Dispose();
                 }
-                else if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0 && sqlParameter4.Length > 0
-                    && sqlParameter5.Length > 0)
-                {
-                    query = $"DELETE FROM '{myTable}' Where {sqlParameter1}= @" + sqlParameter1 +
-                        $" AND {sqlParameter2}= @{sqlParameter2} AND {sqlParameter3}= @" + sqlParameter3 +
-                        $" AND {sqlParameter4}= @{sqlParameter4} AND {sqlParameter5}= @{sqlParameter5};";
-
-                    sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
-                    sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
-                    sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
-                    sqlCommand.Parameters.Add("@" + sqlParameter3, DbType.String).Value = sqlData3;
-                    sqlCommand.Parameters.Add("@" + sqlParameter4, DbType.String).Value = sqlData4;
-                    sqlCommand.Parameters.Add("@" + sqlParameter5, DbType.String).Value = sqlData5;
-                }
-                else if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0 && sqlParameter4.Length > 0)
-                {
-                    sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
-                    sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
-                    sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
-                    sqlCommand.Parameters.Add("@" + sqlParameter3, DbType.String).Value = sqlData3;
-                    sqlCommand.Parameters.Add("@" + sqlParameter4, DbType.String).Value = sqlData4;
-                }
-                else if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0 && sqlParameter3.Length > 0)
-                {
-                    query = $"DELETE FROM '{myTable}' Where {sqlParameter1}= @" + sqlParameter1 +
-                        $" AND {sqlParameter2}= @{sqlParameter2} AND {sqlParameter3}= @{sqlParameter3};";
-
-                    sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
-                    sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
-                    sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
-                    sqlCommand.Parameters.Add("@" + sqlParameter3, DbType.String).Value = sqlData3;
-
-                }
-                else if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0)
-                {
-                    query = $"DELETE FROM '{myTable}' Where {sqlParameter1}= @{sqlParameter1} AND {sqlParameter2}= @{sqlParameter2};";
-
-                    sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
-                    sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
-                    sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
-                }
-                else if (sqlParameter1.Length > 0)
-                {
-                    query = $"DELETE FROM '{myTable}' Where {sqlParameter1}= @{sqlParameter1};";
-
-                    sqlCommand = new SQLiteCommand(query, dbWriter.sqlConnection);
-                    sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
-                }
-                dbWriter.Execute(sqlCommand);
-
-                dbWriter.Status -= AddLoggerTraceText;
-                sqlCommand?.Dispose();
-            }
-
+            });
             logger.Trace($"Удалены данные из таблицы {myTable} - query: {query}");
         }
 
@@ -1430,19 +1424,18 @@ namespace ASTA
 
         private void GetUsersFromAD()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(GetUsersFromAD)} =-");
+            string prevStatusLabel1Text = ReturnStatusLabelText(StatusLabel1);
 
             stimerCurr = null;
             listUsersAD = new List<ADUserFullAccount>();
             IADUser ad = ReturnADUserFromLocalDb();
 
-
             logger.Trace($"user, domain, password, server: {ad.Login} |{ad.Domain} |{ad.Password} |{ad.DomainControllerPath}");
 
             if (ad.Login?.Length > 0 && ad.Password?.Length > 0 && ad.Domain?.Length > 0 && ad.DomainControllerPath?.Length > 0)
             {
-                SetStatusLabelText(StatusLabel2, $"Получаю данные из домена: {ad.Domain}");
+                SetStatusLabelText(StatusLabel1, $"Получаю данные из домена: '{ad.Domain}'");
 
                 ADUsers users = new ADUsers(ad);
                 users.Info += SetStatusLabelText;
@@ -1475,6 +1468,8 @@ namespace ASTA
                     true);
             }
             stimerCurr = "Ждите!";
+
+            SetStatusLabelText(StatusLabel1, prevStatusLabel1Text);
         }
 
         //  уведомление о количестве и последнем полученном из AD пользователей
@@ -1541,8 +1536,7 @@ namespace ASTA
 
         private void DoListsFioGroupsMailings()  //  GetDataFromRemoteServers()  ImportTablePeopleToTableGroupsInLocalDB()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(DoListsFioGroupsMailings)} =-");
 
             countGroups = 0;
             countUsers = 0;
@@ -1582,8 +1576,7 @@ namespace ASTA
         //Get the list of registered users
         private void GetDataFromRemoteServers(DataTable dataTablePeople, List<PeopleShift> peopleShifts)
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(GetDataFromRemoteServers)} =-");
 
             EmployeeFull personFromServer = new EmployeeFull();
             DataRow row;
@@ -1918,8 +1911,7 @@ namespace ASTA
 
         private void WriteGroupsMailingsInLocalDb(DataTable dataTablePeople, List<PeopleShift> peopleShifts)
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(WriteGroupsMailingsInLocalDb)} =-");
 
             SetStatusLabelText(StatusLabel2, "Формирую обновленные списки ФИО, департаментов и рассылок...");
 
@@ -2192,8 +2184,7 @@ namespace ASTA
 
         private async void Export_Click(object sender, EventArgs e)
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(Export_Click)} =-");
 
             _ProgressBar1Start();
             _EnableMenuItem(FunctionMenuItem, false);
@@ -2215,8 +2206,7 @@ namespace ASTA
 
         private async Task ExportDatatableSelectedColumnsToExcel(DataTable dataTable, string nameReport, string filePath)  //Export DataTable to Excel 
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(ExportDatatableSelectedColumnsToExcel)} =-");
 
             BuilderFileName fileName = new BuilderFileName(filePath, "xlsx");
             string pathToFile = fileName.BuildPath();
@@ -2348,23 +2338,26 @@ namespace ASTA
                 rangeColumnName.Cells.Font.Size = 7;
                 // rangeColumnName.Cells.Font.Bold = true;
 
-                for (int column = 0; column < columnsInTable; column++)
+                await Task.Run(() =>
                 {
-                    sheet.Cells[1, column + 1].Value = nameColumns[column];
-                    sheet.Columns[column + 1].NumberFormat = "@"; // set format data of cells - text
-                }
-                _ProgressWork1Step();
 
-                foreach (DataRow row in dtExport.Rows)
-                {
-                    rows++;
                     for (int column = 0; column < columnsInTable; column++)
                     {
-                        sheet.Cells[rows, column + 1].Value = row[indexColumns[column]];
+                        sheet.Cells[1, column + 1].Value = nameColumns[column];
+                        sheet.Columns[column + 1].NumberFormat = "@"; // set format data of cells - text
                     }
                     _ProgressWork1Step();
-                }
 
+                    foreach (DataRow row in dtExport.Rows)
+                    {
+                        rows++;
+                        for (int column = 0; column < columnsInTable; column++)
+                        {
+                            sheet.Cells[rows, column + 1].Value = row[indexColumns[column]];
+                        }
+                        _ProgressWork1Step();
+                    }
+                });
                 //colourize parts of text in the selected cell by different colors
                 /*
                 Microsoft.Office.Interop.Excel.Range rng = (Microsoft.Office.Interop.Excel.Range)workSheet.Cells[1, (i + 1)];
@@ -2485,8 +2478,7 @@ namespace ASTA
 
         private void SetTextBoxFIOAndTextBoxNAVFromSelectedComboboxFio()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(SetTextBoxFIOAndTextBoxNAVFromSelectedComboboxFio)} =-");
 
             textBoxNav.Text = "";
             CheckBoxesFiltersAll_Enable(false);
@@ -2529,8 +2521,8 @@ namespace ASTA
 
         private void CreateGroupItem_Click(object sender, EventArgs e)
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(CreateGroupItem_Click)} =-");
+
             string group = _ReturnTextOfControl(textBoxGroup);
             string groupDescr = _ReturnTextOfControl(textBoxGroupDescription);
 
@@ -2546,8 +2538,7 @@ namespace ASTA
 
         private void CreateGroupInDB(string nameGroup, string descriptionGroup)
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(CreateGroupInDB)} =-");
 
             if (nameGroup?.Length > 0)
             {
@@ -2573,8 +2564,7 @@ namespace ASTA
 
         private void ListGroups()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(ListGroups)} =-");
 
             _VisibleControl(groupBoxProperties, false);
             _VisibleControl(dataGridView1, false);
@@ -2605,8 +2595,7 @@ namespace ASTA
 
         private void UpdateAmountAndRecepientOfPeopleGroupDescription()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(UpdateAmountAndRecepientOfPeopleGroupDescription)} =-");
 
             logger.Trace("UpdateAmountAndRecepientOfPeopleGroupDescription");
             List<string> groupsUncount = new List<string>();
@@ -2782,8 +2771,7 @@ namespace ASTA
 
         private void SeekAndShowMembersOfGroup(string nameGroup)
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(SeekAndShowMembersOfGroup)} =-");
 
             using (var dtTemp = dtPeople.Clone())
             {
@@ -2851,8 +2839,7 @@ namespace ASTA
 
         private void AddPersonToGroup() //Add the selected person into the named group
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(AddPersonToGroup)} =-");
 
             string group = _ReturnTextOfControl(textBoxGroup);
             string groupDescription = _ReturnTextOfControl(textBoxGroupDescription);
@@ -2931,8 +2918,7 @@ namespace ASTA
 
         private void importPeopleInLocalDBToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(importPeopleInLocalDBToolStripMenuItem_Click)} =-");
 
             dtPersonTemp?.Clear();
             dtPersonTemp = dtPeople.Copy();
@@ -2946,8 +2932,7 @@ namespace ASTA
 
         private void ImportTextToTable(DataTable dt, ref HashSet<Department> departmentsUniq) //Fill dtPeople
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(ImportTextToTable)} =-");
 
             List<string> listRows = ReadTXTFile();
 
@@ -3018,9 +3003,7 @@ namespace ASTA
         //Write people in local DB
         private void WritePeopleInLocalDB(string pathToPersonDB, DataTable dtSource) //use listGroups /add reserv1 reserv2
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
-            logger.Trace("WritePeopleInLocalDB: table - " + dtSource + ", row - " + dtSource.Rows.Count);
+            logger.Trace($"{nameof(WritePeopleInLocalDB)}: table - {dtSource}, row - {dtSource.Rows.Count}");
 
             string query = "INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Department, PositionInDepartment, DepartmentId, City, Boss) " +
                       "VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Comment, @Department, @PositionInDepartment, @DepartmentId, @City, @Boss)";
@@ -3096,8 +3079,7 @@ namespace ASTA
 
         private void ImportListGroupsDescriptionInLocalDB(string pathToPersonDB, HashSet<Department> departmentsUniq) //use listGroups
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(ImportListGroupsDescriptionInLocalDB)} =-");
 
             string query = "INSERT OR REPLACE INTO 'PeopleGroupDescription' (GroupPerson, GroupPersonDescription, Recipient) " +
                                        "VALUES (@GroupPerson, @GroupPersonDescription, @Recipient)";
@@ -3130,10 +3112,8 @@ namespace ASTA
 
         private void GetNamesOfPassagePoints() //Get names of the pass by points
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(GetNamesOfPassagePoints)} =-");
 
-            logger.Trace("GetNamePoints");
             collectionOfPassagePoints = new CollectionOfPassagePoints();
 
             string query = "Select id, name FROM OBJ_ABC_ARC_READER;";
@@ -3171,7 +3151,6 @@ namespace ASTA
             _selectedEmployeeVisitor = null;
             ShowVisitorsOnDataGridView(visitors);
         }
-
 
         private async void LoadLastIputsOutputs_Click(object sender, EventArgs e) //LoadInputsOutputsOfVisitors()
         {
@@ -3245,8 +3224,8 @@ namespace ASTA
         {
             _EnableControl(comboBoxFio, true);
 
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(LoadInputsOutputsOfVisitors)} =-");
+
             CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword);
             nameOfLastTable = "LastIputsOutputs";
             List<Visitor> visitorsTillNow;
@@ -3498,8 +3477,7 @@ namespace ASTA
 
         private async void LoadIdCardRegistrations(string _group) //GetData()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(LoadIdCardRegistrations)} =-");
 
             _ProgressBar1Start();
 
@@ -3566,8 +3544,7 @@ namespace ASTA
 
         private void GetData(string _group, string _reportStartDay, string _reportLastDay)
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(GetData)} =-");
 
             //Clear work tables
             dtPersonRegistrationsFullList.Clear();
@@ -3594,13 +3571,11 @@ namespace ASTA
 
             //show selected data  within the selected collumns   
             ShowDatatableOnDatagridview(dtPersonTemp, "PeopleGroup");
-
         }
 
         private void LoadRecords(string nameGroup, string startDate, string endDate, string doPostAction)
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(LoadRecords)} =-");
 
             EmployeeFull person = new EmployeeFull();
             outPerson = new List<OutPerson>();
@@ -3631,7 +3606,6 @@ namespace ASTA
                 }
             }
             _ProgressWork1Step();
-
 
             string date = "";
             string resonId = "";
@@ -3697,7 +3671,7 @@ namespace ASTA
                     }
                 }
                 nameOfLastTable = "PeopleGroup";
-                SetStatusLabelText(StatusLabel2, "Данные по группе \"" + nameGroup + "\" получены");
+                SetStatusLabelText(StatusLabel2, $"Данные по группе '{nameGroup}' получены");
             }
             else
             {
@@ -3705,7 +3679,7 @@ namespace ASTA
                 person.Code = _ReturnTextOfControl(textBoxNav);
                 person.fio = _ReturnTextOfControl(textBoxFIO);
 
-                SetStatusLabelText(StatusLabel2, "Получаю данные по \"" + person.fio?.ConvertFullNameToShortForm() + "\" ");
+                SetStatusLabelText(StatusLabel2, $"Получаю данные по {person.fio?.ConvertFullNameToShortForm()}'");
 
                 person.GroupPerson = "One User";
                 person.Department = "";
@@ -3720,22 +3694,19 @@ namespace ASTA
                 person.ControlInHHMM = ConvertStringsTimeToStringHHMM(_ReturnNumUpDown(numUpDownHourStart).ToString(), _ReturnNumUpDown(numUpDownMinuteStart).ToString());
                 person.ControlOutHHMM = ConvertStringsTimeToStringHHMM(_ReturnNumUpDown(numUpDownHourEnd).ToString(), _ReturnNumUpDown(numUpDownMinuteEnd).ToString());
 
-                logger.Trace("LoadRecords,One User: " + person.fio);
+                logger.Trace($"LoadRecords,One User: {person.fio}");
 
                 GetPersonRegistrationFromServer(ref dtPersonRegistrationsFullList, person, startDate, endDate);
 
-                SetStatusLabelText(StatusLabel2, "Данные с СКД по \"" + _ReturnTextOfControl(textBoxFIO)?.ConvertFullNameToShortForm() + "\" получены!");
+                SetStatusLabelText(StatusLabel2, $"Данные с СКД по '{_ReturnTextOfControl(textBoxFIO)?.ConvertFullNameToShortForm()}' получены!");
             }
         }
 
         private void GetPersonRegistrationFromServer(ref DataTable dtTarget, EmployeeFull person, string startDay, string endDay)
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
-
             SideOfPassagePoint sideOfPassagePoint;
 
-            logger.Trace("GetPersonRegistrationFromServer, person - " + person.Code);
+            logger.Trace($"-= {nameof(GetPersonRegistrationFromServer)}=- , person {person.Code}");
 
             SeekAnualDays(ref dtTarget, ref person, false,
                 startDay.ConvertDateAsStringToIntArray(),
@@ -3954,13 +3925,12 @@ namespace ASTA
         //Get info the selected group from DB and make a few lists with these data
         private DataTable LoadGroupMembersFromDbToDataTable(string namePointedGroup) // dtPeopleGroup //"Select * FROM PeopleGroup where GroupPerson like '" + _textBoxReturnText(textBoxGroup) + "';"
         {
-            DataTable peopleGroup = dtPeople.Clone();
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(LoadGroupMembersFromDbToDataTable)} =-");
 
+            DataTable peopleGroup = dtPeople.Clone();
             DataRow dataRow;
 
-            string query = "Select FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Department, PositionInDepartment, DepartmentId, City, Boss  FROM PeopleGroup ";
+            string query = "Select FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Department, PositionInDepartment, DepartmentId, City, Boss FROM PeopleGroup ";
             if (namePointedGroup.StartsWith(@"@"))
             { query += "where DepartmentId like '" + namePointedGroup.Remove(0, 1) + "'; "; }
             else if (namePointedGroup.Length > 0)
@@ -4005,8 +3975,7 @@ namespace ASTA
 
             return peopleGroup;
         }
-
-
+        
         private void infoItem_Click(object sender, EventArgs e)
         {
 
@@ -4035,8 +4004,7 @@ namespace ASTA
 
         private void EnterEditAnual()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(EnterEditAnual)} =-");
 
             ShowDataTableDbQuery(dbApplication, "BoldedDates",
                 "SELECT DayBolded AS '" + Names.DAYOFF_DATE + "', DayType AS '" + Names.DAYOFF_TYPE + "', " +
@@ -4065,8 +4033,7 @@ namespace ASTA
 
         private void ExitEditAnual()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(ExitEditAnual)} =-");
 
             comboBoxFio.Items?.RemoveAt(comboBoxFio.FindStringExact(""));
             if (comboBoxFio.Items.Count > 0)
@@ -4103,8 +4070,7 @@ namespace ASTA
 
         private void AddAnualDate()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(AddAnualDate)} =-");
 
             monthCalendar.AddAnnuallyBoldedDate(monthCalendar.SelectionStart);
             monthCalendar.UpdateBoldedDates();
@@ -4142,8 +4108,7 @@ namespace ASTA
 
         private void DeleteAnualDay()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(DeleteAnualDay)} =-");
 
             string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                  Names.DAYOFF_DATE, Names.DAYOFF_TYPE, Names.DAYOFF_USED_BY, Names.DAYOFF_ADDED });
@@ -4186,8 +4151,7 @@ namespace ASTA
 
         private void checkBoxCheckStateChanged()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(checkBoxCheckStateChanged)} =-");
 
             DataTable dtEmpty = new DataTable();
             EmployeeFull emptyPerson = new EmployeeFull();
@@ -4306,10 +4270,9 @@ namespace ASTA
 
         private void FilterRegistrationsOfPerson(ref EmployeeFull person, DataTable dataTableSource, ref DataTable dataTableForStoring, string typeReport = "Полный")
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(FilterRegistrationsOfPerson)} =-");
+            logger.Trace("code: " + person.Code + "| dataTableSource: " + dataTableSource.Rows.Count, "| typeReport: " + typeReport);
 
-            logger.Trace("FilterRegistrationsOfPerson: " + person.Code + "| dataTableSource: " + dataTableSource.Rows.Count, "| typeReport: " + typeReport);
             DataRow rowDtStoring;
             DataTable dtTemp = dataTableSource.Clone();
 
@@ -4468,11 +4431,9 @@ namespace ASTA
             dtAllRegistrationsInSelectedDay?.Dispose();
         }
 
-
         private void SeekAnualDays(ref DataTable dt, ref EmployeeFull person, bool delRow, int[] startOfPeriod, int[] endOfPeriod, ref string[] boldedDays, ref string[] workDays)//   //Exclude Anual Days from the table "PersonTemp" DB
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(SeekAnualDays)} =-");
 
             if (person == null)
             { person = new EmployeeFull(); }
@@ -4833,8 +4794,7 @@ namespace ASTA
 
         private void MakeZip(string[] files, string fullNameZip)
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(MakeZip)} =-");
 
             foreach (string dirPath in files)
             {
@@ -4864,8 +4824,7 @@ namespace ASTA
 
         private void MakeZip(string filePath, string fullNameZip)
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(MakeZip)} =-");
 
             if (filePath.Contains(@"\"))
             {
@@ -5012,8 +4971,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         //---- Start. Drawing ---//
         private void VisualItem_Click(object sender, EventArgs e) //FindWorkDaysInSelected() , DrawFullWorkedPeriodRegistration()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(VisualItem_Click)} =-");
 
             EmployeeFull personVisual = new EmployeeFull();
 
@@ -5103,8 +5061,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void DrawRegistration(ref EmployeeFull personDraw)  // Visualisation of registration
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(DrawRegistration)} =-");
 
             int pointDrawYfor_rects = 44; //начальное смещение линии рабочего графика
             int pointDrawYfor_rectsReal = 39; // начальное смещение линии отработанного графика
@@ -5383,9 +5340,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void DrawFullWorkedPeriodRegistration(ref EmployeeFull personDraw)  // Draw the whole period registration
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
-
+            logger.Trace($"-= {nameof(DrawFullWorkedPeriodRegistration)} =-");
 
             int pointDrawYfor_rects = 44; //начальное смещение линии рабочего графика
             int pointDrawYfor_rectsReal = 39; // начальное смещение линии отработанного графика
@@ -5859,20 +5814,20 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                     );
         }
 
-        private void SaveMailing(string recipientEmail, string senderEmail, string groupsReport, string nameReport, string descriptionReport,
+        private void SaveMailing(string recipientEmail, string groupsReport, string nameReport, string descriptionReport,
             string periodPreparing, string status, string dateCreatingMailing, string SendingDate, string typeReport, string daySendingReport)
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            //  method = System.Reflection.MethodBase.GetCurrentMethod().Name;
+            logger.Trace(nameof(SaveMailing));
 
-            bool recipientValid = false;
-            bool senderValid = false;
+            //     bool recipientValid = false;
+            //    bool senderValid = false;
 
-            if (recipientEmail?.Length > 0 && recipientEmail.Contains('.') && recipientEmail.Contains('@') && recipientEmail?.Split('.').Count() > 1)
-            { recipientValid = true; }
+            //     if (recipientEmail?.Length > 0 && recipientEmail.Contains('.') && recipientEmail.Contains('@') && recipientEmail?.Split('.').Count() > 1)
+            //    { recipientValid = true; }
 
-            if (senderEmail?.Length > 0 && senderEmail.Contains('.') && senderEmail.Contains('@') && senderEmail?.Split('.').Count() > 1)
-            { senderValid = true; }
+            //    if (senderEmail?.Length > 0 && senderEmail.Contains('.') && senderEmail.Contains('@') && senderEmail?.Split('.').Count() > 1)
+            //   { senderValid = true; }
 
             using (SQLiteConnection sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
             {
@@ -5950,8 +5905,8 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             string label16, string txtbox16, string tooltip16
             )
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            //   method = System.Reflection.MethodBase.GetCurrentMethod().Name;
+            logger.Trace($"-= {nameof(ViewFormSettings)} =-");
 
             panelViewResize(numberPeopleInLoading);
 
@@ -6332,8 +6287,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void buttonPropertiesCancel_Click(object sender, EventArgs e)
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(buttonPropertiesCancel_Click)} =-");
 
             string btnName = btnPropertiesSave.Text;
 
@@ -6400,8 +6354,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void ButtonPropertiesSave_MailingSave(object sender, EventArgs e)
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(ButtonPropertiesSave_MailingSave)} =-");
 
             string recipientEmail = _ReturnTextOfControl(textBoxServer1UserName);
             string senderEmail = mailSenderAddress;
@@ -6417,8 +6370,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
             if (recipientEmail.Length > 5 && nameReport.Length > 0)
             {
-                SaveMailing(recipientEmail, senderEmail,
-                    report, nameReport, description, period, status,
+                SaveMailing(recipientEmail, report, nameReport, description, period, status,
                     DateTime.Now.ToYYYYMMDDHHMM(), "", typeReport, dayReport);
             }
 
@@ -6434,8 +6386,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void SaveProperties() //Save Parameters into Registry and variables
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(SaveProperties)} =-");
 
             string server = _ReturnTextOfControl(textBoxServer1);
             string user = _ReturnTextOfControl(textBoxServer1UserName);
@@ -6801,8 +6752,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void DataGridView1CellEndEdit()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(DataGridView1CellEndEdit)} =-");
 
             string fio = "";
             string nav = "";
@@ -7093,7 +7043,10 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                     logger.Trace($"query: {query}");
 
                     dbWriter.Status += AddLoggerTraceText;
-                    dbWriter.Execute(query);
+                    await Task.Run(() =>
+                    {
+                        dbWriter.Execute(query);
+                    });
                     dbWriter.Status -= AddLoggerTraceText;
                 }
             }
@@ -7120,8 +7073,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         //right click of mouse on the datagridview
         private void dataGridView1_MouseClick(object sender, MouseEventArgs e)
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(dataGridView1_MouseClick)} =-");
             string[] cellValue;
             int currentMouseOverRow = dataGridView1.HitTest(e.X, e.Y).RowIndex;
 
@@ -7447,8 +7399,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void AddNewCityToLoad()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(AddNewCityToLoad)} =-");
 
             using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
             {
@@ -7485,8 +7436,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void DoReportAndEmailByRightClick()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(DoReportAndEmailByRightClick)} =-");
 
             string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                 Names.GROUP,
@@ -7541,8 +7491,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void DoReportByRightClick()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(DoReportByRightClick)} =-");
 
             string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                 Names.GROUP,
@@ -7581,14 +7530,13 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void MakeCloneMailing()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(MakeCloneMailing)} =-");
 
             string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                 @"Получатель", @"Отчет по группам", @"Наименование", @"Описание", @"Период"});
 
             SaveMailing(
-               cellValue[0], mailSenderAddress, cellValue[1], cellValue[2] + "_1",
+               cellValue[0], cellValue[1], cellValue[2] + "_1",
                cellValue[3] + "_1", cellValue[4], "Неактивная", DateTime.Now.ToYYYYMMDDHHMM(), "", "Копия", DEFAULT_DAY_OF_SENDING_REPORT);
 
             ShowDataTableDbQuery(dbApplication, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
@@ -7607,8 +7555,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void MakeNewRecepientExcept()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(MakeNewRecepientExcept)} =-");
 
             using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
             {
@@ -7653,23 +7600,14 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void DoMainAction()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
-
+            logger.Trace($"-= {nameof(DoMainAction)} =-");
             _ProgressBar1Start();
 
             switch (nameOfLastTable)
             {
                 case "PeopleGroupDescription":
-                    {
-
-
-                        break;
-                    }
-                case "PeopleGroup" when textBoxGroup.Text.Trim().Length > 0:
-                    {
-                        break;
-                    }
+                case "PeopleGroup":
+                    { break; }
                 case "Mailing": //send report by e-mail
                     {
                         //текущий режим работы приложения
@@ -7721,9 +7659,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void SendAllReportsInSelectedPeriod()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
-
+            logger.Trace($"-= {nameof(SendAllReportsInSelectedPeriod)} =-");
             _ProgressBar1Start();
 
             resultOfSendingReports = new List<Mailing>();
@@ -7838,7 +7774,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 _ProgressWork1Step();
             }
 
-            logger.Info(method + ": Перечень задач по подготовке и отправке отчетов завершен...");
+            logger.Info("Перечень задач по подготовке и отправке отчетов завершен...");
 
             ShowDataTableDbQuery(dbApplication, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
             "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
@@ -7861,9 +7797,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void DeleteCurrentRow()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
-
+            logger.Trace($"-= {nameof(DeleteCurrentRow)} =-");
             string group = _ReturnTextOfControl(textBoxGroup);
 
             switch (nameOfLastTable)
@@ -7959,8 +7893,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void SwitchAppMode()       // ExecuteAutoMode()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(SwitchAppMode)} =-");
 
             if (currentModeAppManual)
             {
@@ -8025,9 +7958,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         }
 
         private void ExecuteAutoMode(bool manualMode) //InitScheduleTask()
-        {
-            Task.Run(() => InitScheduleTask(manualMode));
-        }
+        { Task.Run(() => InitScheduleTask(manualMode)); }
 
         private void InitScheduleTask(bool manualMode) //ScheduleTask()
         {
@@ -8060,8 +7991,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void ScheduleTask(object obj) //SelectMailingDoAction()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(ScheduleTask)} =-");
 
             lock (synclock)
             {
@@ -8092,14 +8022,11 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         }
 
         private void TestToSendAllMailingsItem_Click(object sender, EventArgs e) //SelectMailingDoAction()
-        {
-            TestToSendAllMailings().GetAwaiter().GetResult();
-        }
+        { TestToSendAllMailings(); }
 
-        private async Task TestToSendAllMailings()
+        private async void TestToSendAllMailings()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(TestToSendAllMailings)} =-");
 
             await Task.Run(() => CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword));
             await Task.Run(() => UpdateMailingInDB());
@@ -8108,7 +8035,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private string ReturnStrongNameDayOfSendingReports(string inputDate)
         {
-            string result = "END_OF_MONTH";
+            string result;
 
             if (inputDate.Equals("1") || inputDate.Equals("01") || inputDate.Contains("ПЕРВ") || inputDate.Contains("НАЧАЛ") || inputDate.Contains("START"))
             {
@@ -8118,13 +8045,14 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             {
                 result = "MIDDLE_OF_MONTH";
             }
+            else { result = "END_OF_MONTH"; }
 
             return result;
         }
 
         private int ReturnNumberStrongNameDayOfSendingReports(string inputDate, DaysOfSendingMail daysOfSendingMail)
         {
-            int result = 0;
+            int result;
 
             if (inputDate.Equals("START_OF_MONTH"))
             {
@@ -8141,35 +8069,13 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             return result;
         }
 
-        private string ReturnStrongNameDayOfSendingReports(int inputDate)
-        {
-            string result = "";
-
-            if (inputDate == 1 || inputDate == 2 || inputDate == 3)
-            {
-                result = "START_OF_MONTH";
-            }
-            else if (inputDate == 14 || inputDate == 15 || inputDate == 16)
-            {
-                result = "MIDDLE_OF_MONTH";
-            }
-            else
-            {
-                result = "END_OF_MONTH";
-            }
-
-            return result;
-        }
-
         private void SelectMailingDoAction()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(SelectMailingDoAction)} =-");
 
             _ProgressBar1Start();
 
             currentAction = "sendEmail";
-
             resultOfSendingReports = new List<Mailing>();
             HashSet<Mailing> mailingList = new HashSet<Mailing>();
 
@@ -8311,11 +8217,9 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             _ProgressBar1Stop();
         }
 
-
         private void UpdateMailingInDB()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(UpdateMailingInDB)} =-");
 
             _ProgressBar1Start();
 
@@ -8412,8 +8316,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void MailingAction(string mainAction, string recipientEmail, string senderEmail, string groupsReport, string nameReport, string description, string period, string status, string typeReport, string dayReport)
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(MailingAction)} =-");
             logger.Trace($"mainAction: { mainAction} |recipientEmail: { recipientEmail} |senderEmail: { senderEmail} |groupsReport: { groupsReport} |nameReport: { nameReport} |description: { description} |period: { period} |status: { status} |typeReport: { typeReport} |dayReport: { dayReport} ");
 
             SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
@@ -8422,7 +8325,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             {
                 case "saveEmail":
                     {
-                        SaveMailing(mailSenderAddress, senderEmail, groupsReport, nameReport, description, period, status, DateTime.Now.ToYYYYMMDDHHMM(), "", typeReport, dayReport);
+                        SaveMailing(mailSenderAddress, groupsReport, nameReport, description, period, status, DateTime.Now.ToYYYYMMDDHHMM(), "", typeReport, dayReport);
 
                         ShowDataTableDbQuery(dbApplication, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
                         "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
@@ -8448,8 +8351,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void GetRegistrationAndSendReport(string groupsReport, string nameReport, string description, string period, string status, string typeReport, string dayReport, bool sendReport, string recipientEmail, string senderEmail)
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(GetRegistrationAndSendReport)} =-");
 
             DataTable dtTempIntermediate = dtPeople.Clone();
             EmployeeFull person = new EmployeeFull();
@@ -8555,21 +8457,19 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                                     if (oneAddress.Contains('@'))
                                     {
                                         SendStandartReport(oneAddress.Trim(), titleOfbodyMail, description, filePathExcelReport + @".xlsx", appName);
-                                        logger.Trace(method + ", SendEmail succesfull: From:" +
-                                            mailSenderAddress + "| To: " + oneAddress + "| Subject: " + titleOfbodyMail + "| " +
-                                            description + "| attached: " + filePathExcelReport + @".xlsx"
+                                        logger.Trace($"SendEmail, From: {mailSenderAddress}| To: {oneAddress}| Subject: {titleOfbodyMail}| {description}| attached: {filePathExcelReport}.xlsx"
                                             );
                                     }
                                 }
 
-                                SetStatusLabelText(StatusLabel2, DateTime.Now.ToYYYYMMDDHHMM() + " Отчет '" + nameReport + "'(" + groupName + ") отправлен " + recipientEmail);
+                                SetStatusLabelText(StatusLabel2, $"{DateTime.Now.ToYYYYMMDDHHMM()} Отчет '{nameReport}'({groupName}) отправлен {recipientEmail}");
                                 SetStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
                             }
                             else
                             {
                                 SetStatusLabelText(
                                     StatusLabel2,
-                                    DateTime.Now.ToYYYYMMDDHHMM() + " Ошибка экспорта в файл отчета: " + nameReport + "(" + groupName + ")",
+                                    $"{DateTime.Now.ToYYYYMMDDHHMM()} Ошибка экспорта в файл отчета: {nameReport}({groupName})",
                                     true
                                     );
                             }
@@ -8579,7 +8479,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                     {
                         SetStatusLabelText(
                             StatusLabel2,
-                            DateTime.Now.ToYYYYMMDDHHMM() + "Ошибка получения данных для отчета: " + nameReport,
+                            $"{DateTime.Now.ToYYYYMMDDHHMM()} Ошибка получения данных для отчета: {nameReport}",
                             true
                             );
                     }
@@ -8595,8 +8495,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         //send e-mail
         private static string SendEmailAsync(MailServer server, MailUser from, MailUser to, string _subject, BodyBuilder builder)
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(SendEmailAsync)} =-");
 
             MailSender mailSender = new MailSender(server);
             mailSender.SetFrom(from);
@@ -8609,8 +8508,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         //Compose Standart Report and send e-mail to recepient
         private static void SendStandartReport(string to, string period, string department, string pathToFile, string messageAfterPicture)
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(SendStandartReport)} =-");
 
             MailUser _to = new MailUser(to.Split('@')[0], to);
             string subject = "Отчет по посещаемости за период: " + period;
@@ -8699,19 +8597,18 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         //Compose Admin Report and send e-mail to Administrator
         private static void SendAdminReport()
         {
-            method = System.Reflection.MethodBase.GetCurrentMethod().Name;
-            logger.Trace($"-= {method} =-");
+            logger.Trace($"-= {nameof(SendAdminReport)} =-");
 
             string period = DateTime.Now.ToYYYYMMDD();
-            string subject = "Результат отправки отчетов за " + period;
+            string subject = $"Результат отправки отчетов за {period}";
             MailUser _to = new MailUser(mailJobReportsOfNameOfReceiver.Split('@')[0], mailJobReportsOfNameOfReceiver);
 
             BodyBuilder builder = MessageBodyAdminReport(period, resultOfSendingReports);
             string statusOfSentEmail = SendEmailAsync(_mailServer, _mailUser, _to, subject, builder);
 
-            logger.Trace("SendAdminReport: Try to send From:" + mailSenderAddress + "| To:" + mailJobReportsOfNameOfReceiver + "| " + period);
-            logger.Info("SendAdminReport: " + statusOfSentEmail);
-            stimerPrev = "Административный отчет отправлен " + statusOfSentEmail;
+            logger.Trace($"Try to send, From: {mailSenderAddress}| To:{mailJobReportsOfNameOfReceiver}| {period}");
+            logger.Info($"SendAdminReport: {statusOfSentEmail}");
+            stimerPrev = $"Административный отчет отправлен {statusOfSentEmail}";
         }
 
         private static BodyBuilder MessageBodyAdminReport(string period, List<Mailing> reportOfResultSending)
@@ -8879,8 +8776,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 text = control?.Text?.Trim();
             return text;
         }
-
-
+        
 
         private void _AddComboBoxItem(ComboBox comboBx, string s) //add string into  from other threads
         {
@@ -8945,8 +8841,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
             return result;
         }
-
-
+        
 
         private string _ReturnListBoxSelectedItem(ListBox listBox) //from other threads
         {
@@ -8968,8 +8863,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
             return result;
         }
-
-
+        
 
         private void _SetNumUpDown(NumericUpDown numericUpDown, decimal i) //add string into comboBoxTargedPC from other threads
         {
@@ -8992,8 +8886,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 iCombo = numericUpDown.Value;
             return iCombo;
         }
-
-
+        
 
         private DateTime _ReturnDateTimePicker(DateTimePicker dateTimePicker) //add string into  from other threads
         {
@@ -9010,8 +8903,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
             return result;
         }
-
-
+        
         private int[] _ReturnDateTimePickerArray(DateTimePicker dateTimePicker) //add string into  from other threads
         {
             int[] result = new int[3];
@@ -9032,41 +8924,42 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
             return result;
         }
+        
 
-
-
-        private void SetStatusLabelText(ToolStripStatusLabel statusLabel, string s, bool error = false) //add string into  from other threads
+       private void SetStatusLabelText(ToolStripStatusLabel statusLabel, string text, bool error = false) //add string into  from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
                 {
-                    statusLabel.Text = s;
+                    statusLabel.Text = text;
                     if (error) statusLabel.BackColor = Color.DarkOrange;
                 }));
             else
             {
-                statusLabel.Text = s;
+                statusLabel.Text = text;
                 if (error) statusLabel.BackColor = Color.DarkOrange;
             }
-        }
 
-        private void _SetStatusLabelForeColor(ToolStripStatusLabel statusLabel, Color s)
+            AddLoggerTraceText($"{nameof(SetStatusLabelText)} set text as {text}");
+        }
+        
+        private void _SetStatusLabelForeColor(ToolStripStatusLabel statusLabel, Color color)
         {
             if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { statusLabel.ForeColor = s; }));
+                Invoke(new MethodInvoker(delegate { statusLabel.ForeColor = color; }));
             else
-                statusLabel.ForeColor = s;
+                statusLabel.ForeColor = color;
         }
 
-        private void SetStatusLabelBackColor(ToolStripStatusLabel statusLabel, Color s) //add string into  from other threads
+        private void SetStatusLabelBackColor(ToolStripStatusLabel statusLabel, Color color) //add string into  from other threads
         {
             if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { statusLabel.BackColor = s; }));
+                Invoke(new MethodInvoker(delegate { statusLabel.BackColor = color; }));
             else
-                statusLabel.BackColor = s;
+                statusLabel.BackColor = color;
         }
 
-        private string _ReturnStatusLabelText(ToolStripStatusLabel statusLabel)
+        private string ReturnStatusLabelText(ToolStripStatusLabel statusLabel)
         {
             string s = null;
             if (InvokeRequired)
@@ -9091,15 +8984,13 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
             return s;
         }
-
-
-
-        private void _SetMenuItemBackColor(ToolStripMenuItem tMenuItem, Color colorMenu) //add string into  from other threads
+               
+        private void _SetMenuItemBackColor(ToolStripMenuItem menuItem, Color color) //add string into  from other threads
         {
             if (InvokeRequired)
-                Invoke(new MethodInvoker(delegate { tMenuItem.BackColor = colorMenu; }));
+                Invoke(new MethodInvoker(delegate { menuItem.BackColor = color; }));
             else
-                tMenuItem.BackColor = colorMenu; ;
+                menuItem.BackColor = color; ;
         }
 
         private void _SetMenuItemText(ToolStripMenuItem menuItem, string text) //access from other threads
@@ -9113,6 +9004,8 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             {
                 menuItem.Text = text;
             }
+
+            AddLoggerTraceText($"{nameof(_SetMenuItemText)}: {nameof(menuItem.Name)} set text as '{text}'");
         }
 
         private void _SetMenuItemTooltip(ToolStripMenuItem menuItem, string text) //access from other threads
@@ -9126,6 +9019,8 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             {
                 menuItem.ToolTipText = text;
             }
+
+            AddLoggerTraceText($"{nameof(_SetMenuItemTooltip)}: {nameof(menuItem.Name)} set ToolTip as '{text}'");
         }
 
         private void _EnableMenuItem(ToolStripMenuItem tMenuItem, bool status) //add string into  from other threads
@@ -9151,8 +9046,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             else
                 separator.Visible = status;
         }
-
-
+        
         private string _ReturnMenuItemText(ToolStripMenuItem menuItem) //access from other threads
         {
             string name = "";
@@ -9167,9 +9061,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
             return name;
         }
-
-
-
+                
         private void _VisibleControl(Control control, bool state) //access from other threads
         {
             if (InvokeRequired)
@@ -9236,6 +9128,8 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             {
                 toolTip1.SetToolTip(control, text);
             }
+
+            AddLoggerTraceText($"{nameof(_SetControlToolTip)}: {nameof(control.Name)} set text as '{text}'");
         }
 
         private void _SetControlText(Control control, string text)
@@ -9249,10 +9143,10 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             {
                 control.Text = text;
             }
+
+            AddLoggerTraceText($"{nameof(_SetControlText)}: {nameof(control.Name)} set ToolTip as '{text}'");
         }
-
-
-
+               
         private void _SetCheckBoxCheckedStatus(CheckBox checkBox, bool checkboxChecked) //add string into  from other threads
         {
             if (InvokeRequired)
@@ -9449,7 +9343,9 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
 
         /// <summary>
-        /// Change a Color of the Font on Status by the Timer
+        /// Change a Color of the Font on Status by the Timer  
+        /// stimerCurr = "Ждите!"   
+        /// stimerPrev - Информация СтатусТулСтрип  
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -9835,7 +9731,10 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 else
                 { logger.Trace("Обновление приостановлено. На сервер сейчас загружается новая версия ПО"); }
             };
-            timer.Start();
+            await Task.Run(() =>
+            {
+                timer.Start();
+            });
         }
 
         private void RunAutoUpdate_Event(UpdateInfoEventArgs args)
@@ -9930,18 +9829,18 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             };
 
             MakerOfLinks makerLinks = new MakerOfLinks();
-            makerLinks.status += SetStatusLabelText;
+            makerLinks.status += AddLoggerTraceText;
 
             MakerOfUpdateXmlFile makerXML = new MakerOfUpdateXmlFile();
-            makerXML.status += SetStatusLabelText;
+            makerXML.status += AddLoggerTraceText;
 
             UpdatePreparing preparing = new UpdatePreparing(makerLinks, makerXML, parameters);
             preparing.status += SetStatusLabelText;
 
             preparing.Do();
 
-            makerXML.status -= SetStatusLabelText;
-            makerLinks.status -= SetStatusLabelText;
+            makerXML.status -= AddLoggerTraceText;
+            makerLinks.status -= AddLoggerTraceText;
             preparing.status -= SetStatusLabelText;
             makerXML = null;
             makerLinks = null;
@@ -9955,11 +9854,14 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         private void UploadApplicationItem_Click(object sender, EventArgs e) //Uploading()
         {
             firstAttemptsUpdate = true;
-            Task.Run(() => UploadUpdatinfAplication());
+            UploadUpdatinfAplication();
         }
         private async void UploadUpdatinfAplication()
         {
-            Uploading();
+            string temp = ReturnStatusLabelText(StatusLabel1);
+            SetStatusLabelText(StatusLabel1, "Обновление выгружается!");
+            timer1.Start();
+            await Task.Run(() => Uploading());
 
             if (replaceBrokenRemoteFolderUpdateURL && isUploaded)
             {
@@ -9973,9 +9875,14 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 });
                 SetStatusLabelText(StatusLabel2, message);
             }
+            timer1.Stop();
+
+            stimerCurr = temp;
+            SetStatusLabelText(StatusLabel1, temp);
+            StatusLabel2.ForeColor = Color.Black;
         }
 
-        public System.IO.FileInfo ReturnNewFileInfo(string filePath)
+    public System.IO.FileInfo ReturnNewFileInfo(string filePath)
         {
             return new System.IO.FileInfo(filePath);
         }
@@ -10067,30 +9974,20 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private string ChangeFormUrl(string serverUrl)
         {
-            AddLoggerTraceText("-= ChangeFormUrl =-");
+            AddLoggerTraceText($"-= {nameof(ChangeFormUrl)} =-");
             string url;
             if (serverUrl.ToLower().Contains(domain.ToLower()))//change url: server.domain -> server
-            {
-                url = $"{serverUrl.Remove(serverUrl.IndexOf('.'))}";
-            }
+            { url = $"{serverUrl.Remove(serverUrl.IndexOf('.'))}"; }
             else
             {
                 if (serverUrl.Contains('/'))
-                {
-                    url = $"{serverUrl.Remove(serverUrl.IndexOf('/'))}.{domain}";
-                    //url = urlOfUpdatingServer.Insert(urlOfUpdatingServer.IndexOf('/'), "." + domain);
-                }
+                { url = $"{serverUrl.Remove(serverUrl.IndexOf('/'))}.{domain}"; }
                 else if (serverUrl.Contains('\\'))
-                {
-                    url = $"{serverUrl.Remove(serverUrl.IndexOf('\\'))}.{domain}";
-                    //   url = urlOfUpdatingServer.Insert(urlOfUpdatingServer.IndexOf('\\'), "." + domain);
-                }
+                { url = $"{serverUrl.Remove(serverUrl.IndexOf('\\'))}.{domain}"; }
                 else
-                {
-                    url = $"{serverUrl}.{domain}";
-                }
+                { url = $"{serverUrl}.{domain}"; }
             }
-            AddLoggerTraceText("Old URL: " + serverUrl + " - > New URL: " + url);
+            AddLoggerTraceText($"Old URL: {serverUrl} - > New URL: {url}");
 
             return url;
         }
@@ -10100,18 +9997,16 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             AddLoggerTraceText("-= ReplaceBrokenRemoteFolderUpdateURL =-");
 
             string oldUrl = remoteFolderUpdateURL;
-            logger.Info("old remoteFolderUpdateURL:" + oldUrl);
+            logger.Info($"old {nameof(remoteFolderUpdateURL)}: {oldUrl}");
             remoteFolderUpdateURL = ChangeFormUrl(oldUrl);
-            logger.Info("remoteFolderUpdateURL: " + oldUrl + " -> " + remoteFolderUpdateURL);
+            logger.Info($"{nameof(remoteFolderUpdateURL)}: {oldUrl} -> {remoteFolderUpdateURL}");
             replaceBrokenRemoteFolderUpdateURL = true;
         }
 
         UpdatingParameters MakeParametersToUpdate()
         {
             if (urlUpdateReachError)
-            {
-                ReplaceBrokenRemoteFolderUpdateURL();
-            }
+            { ReplaceBrokenRemoteFolderUpdateURL(); }
 
             UpdatingParameters parameters = new UpdatingParameters
             {

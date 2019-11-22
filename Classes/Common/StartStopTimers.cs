@@ -11,12 +11,19 @@ namespace ASTA.Classes
     class StartStopTimer : IStartStopTimer
     {
         int _seconds = 0;
+        string _sizeTime;
         string time1 = "";
         string time2 = "";
 
-        public StartStopTimer(int seconds)
+        /// <summary>
+        /// if sizeTime="seconds" then sizeTime is milliseconds
+        /// </summary>
+        /// <param name="seconds"></param>
+        /// <param name="sizeTime"></param>
+        public StartStopTimer(int seconds, string sizeTime="seconds")
         {
             _seconds = seconds;
+            _sizeTime = sizeTime;
         }
 
         public void WaitTime() //MidleLoad not Precision
@@ -33,6 +40,7 @@ namespace ASTA.Classes
 
         private void WaitSeconds(int seconds) //high precision timer
         {
+            int interval= 10000;
             //No need to risk overflowing an int
             //No need to count iterations, just set them
             //Really need to account for CPU speed, etc. though, as a
@@ -41,8 +49,10 @@ namespace ASTA.Classes
             //interval. Iterations too high = overshoot, too low = excessive overhead 
 
             var swt = new System.Threading.SpinWait();
+            if (_sizeTime != "seconds")
+            { interval = 100; }
 
-            while (swt.Count < seconds * 10000)
+            while (swt.Count < seconds * interval)
             {
                 // The NextSpinWillYield property returns true if
                 // calling sw.SpinOnce() will result in yielding the
