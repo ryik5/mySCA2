@@ -2,30 +2,12 @@
 
 namespace ASTA.Classes
 {
-    public class BuilderFileName
+    public static class BuilderFileName
     {
-        private readonly IFileSystem _fileSystem;
-        private string _inputFileName;
-        private string _extension;
-        private string _outputFileNameWithExtention;
 
-        public BuilderFileName() : this(new FileSystem()) { }
-
-        public BuilderFileName(IFileSystem fileSystem)
+        public static string BuildPath(string inputFileName, string extension)
         {
-            _fileSystem = fileSystem;
-        }
-
-        public BuilderFileName(string inputFileName, string extension)
-        {
-            _inputFileName = inputFileName;
-            _extension = extension;
-        }
-
-        public string BuildPath()
-        {
-            _outputFileNameWithExtention = ReturnFileNameWithExtention(_inputFileName, _extension);
-            return _outputFileNameWithExtention;
+            return ReturnFileNameWithExtention(inputFileName, extension); 
         }
 
         /// <summary>
@@ -34,7 +16,7 @@ namespace ASTA.Classes
         /// <param name="inputFileName"></param>
         /// <param name="extension"></param>
         /// <returns></returns>
-        private string ReturnFileNameWithExtention(string inputFileName, string extension)
+        static string ReturnFileNameWithExtention(string inputFileName, string extension)
         {
             string newNameOfFile = inputFileName;
             using (CheckerFileOnDisk fileExists = new CheckerFileOnDisk(inputFileName, extension))

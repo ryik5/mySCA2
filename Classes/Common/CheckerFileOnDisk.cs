@@ -8,14 +8,17 @@ namespace ASTA.Classes
     /// </summary>
     public class CheckerFileOnDisk : IDisposable
     {
-        public CheckerFileOnDisk() : this(new FileSystem()) { }
-        public CheckerFileOnDisk(IFileSystem fileSystem)
-        {
-            _fileSystem = fileSystem;
-        }
+        public delegate void Status(object sender, TextEventArgs e);
+        public event Status status;
+
+        //public CheckerFileOnDisk() : this(new FileSystem()) { }
+        //public CheckerFileOnDisk(IFileSystem fileSystem)
+        //{
+        //    _fileSystem = fileSystem;
+        //}
 
         private string _inputFileName, _extension, _inputFileNameWithExtention;
-        private readonly IFileSystem _fileSystem;
+//        private  IFileSystem _fileSystem;
 
         public CheckerFileOnDisk(string inputFileName, string extension)
         {
@@ -43,11 +46,24 @@ namespace ASTA.Classes
         public bool Exists()
         {
             System.Diagnostics.Contracts.Contract.Requires(_inputFileName != null || _inputFileNameWithExtention != null);
+            status?.Invoke(this, new TextEventArgs(
+                $"{nameof(_inputFileName)}: {_inputFileName} |{nameof(_extension)}: {_extension} |{nameof(_inputFileNameWithExtention)}: {_inputFileNameWithExtention}"
+                ));
 
-            if (_inputFileName != null)
-                return _fileSystem.File.Exists($"{_inputFileName}.{_extension}");
+            if (_inputFileName != null && _extension != null)
+            {
+                return System.IO.File.Exists($"{_inputFileName}.{_extension}");
+            }
+            else if (_inputFileName != null)
+            {
+                return System.IO.File.Exists($"{_inputFileName}");
+                //return _fileSystem.File.Exists($"{_inputFileName}");
+            }
             else
-                return _fileSystem.File.Exists($"{_inputFileNameWithExtention}");
+            {
+                return System.IO.File.Exists($"{_inputFileNameWithExtention}");
+                //return _fileSystem.File.Exists($"{_inputFileNameWithExtention}");
+            }
         }
 
         #region IDisposable Support

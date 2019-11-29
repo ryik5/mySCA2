@@ -2207,9 +2207,9 @@ namespace ASTA
         private async Task ExportDatatableSelectedColumnsToExcel(DataTable dataTable, string nameReport, string filePath)  //Export DataTable to Excel 
         {
             logger.Trace($"-= {nameof(ExportDatatableSelectedColumnsToExcel)} =-");
+            logger.Trace($"{nameof(nameReport)}:{nameReport} |{nameof(filePath)}:{filePath} ");
 
-            BuilderFileName fileName = new BuilderFileName(filePath, "xlsx");
-            string pathToFile = fileName.BuildPath();
+            string pathToFile = BuilderFileName.BuildPath(filePath, "xlsx");
 
             reportExcelReady = false;
 
@@ -2338,8 +2338,6 @@ namespace ASTA
                 rangeColumnName.Cells.Font.Size = 7;
                 // rangeColumnName.Cells.Font.Bold = true;
 
-                await Task.Run(() =>
-                {
 
                     for (int column = 0; column < columnsInTable; column++)
                     {
@@ -2357,7 +2355,7 @@ namespace ASTA
                         }
                         _ProgressWork1Step();
                     }
-                });
+
                 //colourize parts of text in the selected cell by different colors
                 /*
                 Microsoft.Office.Interop.Excel.Range rng = (Microsoft.Office.Interop.Excel.Range)workSheet.Cells[1, (i + 1)];
@@ -7655,9 +7653,11 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         }
 
         private void SendAllReportsInSelectedPeriod(object sender, EventArgs e) //SendAllReportsInSelectedPeriod()
-        { SendAllReportsInSelectedPeriod(); }
+        {
+            Task.Run(() => SendAllReportsInSelectedPeriod()); 
+        }
 
-        private void SendAllReportsInSelectedPeriod()
+        private async Task SendAllReportsInSelectedPeriod()
         {
             logger.Trace($"-= {nameof(SendAllReportsInSelectedPeriod)} =-");
             _ProgressBar1Start();
@@ -7766,7 +7766,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                     "' AND TypeReport='" + mailng._typeReport +
                     "' AND GroupsReport ='" + mailng._groupsReport + "';";
                 logger.Trace(str);
-                ExecuteSqlAsync(str).GetAwaiter().GetResult();
+              await  ExecuteSqlAsync(str);
                 GetRegistrationAndSendReport(
                     mailng._groupsReport, mailng._nameReport, mailng._descriptionReport, mailng._period, mailng._status,
                     mailng._typeReport, mailng._dayReport, true, mailng._recipient, mailSenderAddress);
@@ -7784,7 +7784,9 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             _SetStatusLabelForeColor(StatusLabel2, Color.Black);
 
             if (resultOfSendingReports.Count > 0)
-            { SendAdminReport(); }
+            {
+                SendAdminReport();
+            }
 
             _ProgressBar1Stop();
         }
@@ -9646,6 +9648,36 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         }
 
 
+        private void RunUpdate(UpdatingParameters parameters, IADUser user)
+        {
+            logger.Trace($"Update URL: {parameters.appUpdateURL}");
+
+            //https://github.com/ravibpatel/AutoUpdater.NET
+            //http://www.cyberforum.ru/csharp-beginners/thread2169711.html
+
+            //Basic Authetication for XML, Update file and Change Log
+            // BasicAuthentication basicAuthentication = new BasicAuthentication("myUserName", "myPassword");
+            // AutoUpdater.BasicAuthXML = AutoUpdater.BasicAuthDownload = AutoUpdater.BasicAuthChangeLog = basicAuthentication;
+
+            // AutoUpdater.CheckForUpdateEvent += AutoUpdaterOnCheckForUpdateEvent; //check manualy only
+            // AutoUpdater.ReportErrors = true; // will show error message, if there is no update available or if it can't get to the XML file from web server.
+            // AutoUpdater.CheckForUpdateEvent -= AutoUpdaterOnAutoCheckForUpdateEvent;
+            // AutoUpdater.RemindLaterTimeSpan = RemindLaterFormat.Minutes;
+            // AutoUpdater.RemindLaterAt = 1;
+            // AutoUpdater.ApplicationExitEvent += ApplicationExit;
+            //  AutoUpdater.ApplicationExitEvent += AutoUpdater_ApplicationExitEvent;    //https://archive.codeplex.com/?p=autoupdaterdotnet
+            // AutoUpdater.BasicAuthChangeLog
+            
+            AutoUpdater.AppTitle = "ASTA's update page";
+            AutoUpdater.RunUpdateAsAdmin = false;
+            AutoUpdater.DownloadPath = appFolderUpdatePath;
+            AutoUpdater.CheckForUpdateEvent += RunAutoUpdate_Event; //write errors if had no access to the folder
+            AutoUpdater.ApplicationExitEvent += ApplicationExit;    //https://archive.codeplex.com/?p=autoupdaterdotnet
+
+            AutoUpdater.Start(parameters.appUpdateURL, new System.Net.NetworkCredential(user.Login, user.Password, user.Domain));
+        
+            //AutoUpdater.Start("ftp://kv-sb-server.corp.ais/Common/ASTA/ASTA.xml", new NetworkCredential("FtpUserName", "FtpPassword")); //download from FTP
+        }
 
 
         /// <summary>
@@ -9655,26 +9687,19 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         /// <param name="e"></param>
         private void RunUpdateItem_Click(object sender, EventArgs e)
         {
+            IADUser user;
             if (!uploadingStatus)
             {
                 UpdatingParameters parameters = MakeParametersToUpdate();
-                appUpdateURL = parameters.appUpdateURL;
-
-                logger.Trace($"Update URL: {parameters.appUpdateURL}");
+                user = ReturnADUserFromLocalDb();
 
                 //Changing settings
                 AutoUpdater.Mandatory = true;
-                AutoUpdater.AppTitle = "ASTA's update page";
-                // AutoUpdater.BasicAuthChangeLog
-                AutoUpdater.RunUpdateAsAdmin = false;
-                AutoUpdater.DownloadPath = appFolderUpdatePath;
-                AutoUpdater.OpenDownloadPage = true;
-                AutoUpdater.UpdateMode = Mode.Normal;
                 AutoUpdater.ReportErrors = true;
-                // AutoUpdater.AppCastURL = parameters.appUpdateURL;
-                AutoUpdater.CheckForUpdateEvent += RunAutoUpdate_Event; //write errors if had no access to the folder
-                AutoUpdater.ApplicationExitEvent += ApplicationExit;    //https://archive.codeplex.com/?p=autoupdaterdotnet
-                AutoUpdater.Start(parameters.appUpdateURL);
+                AutoUpdater.UpdateMode = Mode.Normal;
+
+                RunUpdate(parameters, user);
+
                 AutoUpdater.CheckForUpdateEvent -= RunAutoUpdate_Event;
                 AutoUpdater.ApplicationExitEvent -= ApplicationExit;
             }
@@ -9695,38 +9720,18 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             };
             timer.Elapsed += delegate
             {
-                //https://github.com/ravibpatel/AutoUpdater.NET
-                //http://www.cyberforum.ru/csharp-beginners/thread2169711.html
-
-                //Basic Authetication for XML, Update file and Change Log
-                // BasicAuthentication basicAuthentication = new BasicAuthentication("myUserName", "myPassword");
-                // AutoUpdater.BasicAuthXML = AutoUpdater.BasicAuthDownload = AutoUpdater.BasicAuthChangeLog = basicAuthentication;
-
-                // AutoUpdater.CheckForUpdateEvent += AutoUpdaterOnCheckForUpdateEvent; //check manualy only
-                // AutoUpdater.ReportErrors = true; // will show error message, if there is no update available or if it can't get to the XML file from web server.
-                // AutoUpdater.CheckForUpdateEvent -= AutoUpdaterOnAutoCheckForUpdateEvent;
-                // AutoUpdater.RemindLaterTimeSpan = RemindLaterFormat.Minutes;
-                // AutoUpdater.RemindLaterAt = 1;
-                // AutoUpdater.ApplicationExitEvent += ApplicationExit;
                 if (!uploadingStatus)
                 {
-                    user = ReturnADUserFromLocalDb();
                     UpdatingParameters parameters = MakeParametersToUpdate();
-                    logger.Trace("Update URL: {parameters.appUpdateURL}");
-
-                    //  AutoUpdater.ApplicationExitEvent += AutoUpdater_ApplicationExitEvent;    //https://archive.codeplex.com/?p=autoupdaterdotnet
+                    user = ReturnADUserFromLocalDb();
 
                     AutoUpdater.Mandatory = true;
-
                     AutoUpdater.UpdateMode = Mode.ForcedDownload;
-                    AutoUpdater.RunUpdateAsAdmin = false;
                     AutoUpdater.LetUserSelectRemindLater = false;
                     AutoUpdater.RemindLaterTimeSpan = RemindLaterFormat.Days;
                     AutoUpdater.RemindLaterAt = 2;
-                    AutoUpdater.DownloadPath = appFolderUpdatePath;
-                    AutoUpdater.CheckForUpdateEvent += RunAutoUpdate_Event; //write errors if had no access to the folder
-                    AutoUpdater.Start(parameters.appUpdateURL, new System.Net.NetworkCredential(user.Login, user.Password, user.Domain));
-                    //AutoUpdater.Start("ftp://kv-sb-server.corp.ais/Common/ASTA/ASTA.xml", new NetworkCredential("FtpUserName", "FtpPassword")); //download from FTP
+
+                    RunUpdate(parameters, user);
                 }
                 else
                 { logger.Trace("Обновление приостановлено. На сервер сейчас загружается новая версия ПО"); }
@@ -9736,6 +9741,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 timer.Start();
             });
         }
+
 
         private void RunAutoUpdate_Event(UpdateInfoEventArgs args)
         {
@@ -9882,10 +9888,13 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             StatusLabel2.ForeColor = Color.Black;
         }
 
-    public System.IO.FileInfo ReturnNewFileInfo(string filePath)
+        public System.IO.FileInfo ReturnNewFileInfo(string filePath)
         {
+            //System.IO.Abstractions.FileInfoBase;
             return new System.IO.FileInfo(filePath);
         }
+
+
 
         private void Uploading() //UploadApplicationToShare()
         {

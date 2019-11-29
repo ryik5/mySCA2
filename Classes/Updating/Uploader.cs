@@ -38,7 +38,7 @@ namespace ASTA.Classes.Updating
         {
             StatusText?.Invoke(this, new TextEventArgs(""));
             _parameters = parameters;
-
+            
             _sourceList = source;
             _targetList = target;
         }

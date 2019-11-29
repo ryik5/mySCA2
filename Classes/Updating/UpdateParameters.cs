@@ -47,19 +47,7 @@
 
         public UpdatingParameters GetParameters()
         {
-            return new UpdatingParameters
-            {
-                remoteFolderUpdatingURL = remoteFolderUpdatingURL,
-                localFolderUpdatingURL = localFolderUpdatingURL,
-                appUpdateFolderURL = appUpdateFolderURL,
-                appUpdateFolderURI = appUpdateFolderURI,
-                appUpdateURL = appUpdateURL,
-                appFileXml = appFileXml,
-                appUpdateChangeLogURL = appUpdateChangeLogURL,
-                appUpdateMD5 = appUpdateMD5,
-                appVersion = appVersion,
-                appFileZip = appFileZip
-            };
+            return this;
         }
     }
 
