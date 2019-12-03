@@ -82,15 +82,11 @@ namespace ASTA
         static string sqlServerConnectionString;// = "Data Source=" + serverName + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + userName + ";Password=" + userPasswords + "; Connect Timeout=5";
         static string mysqlServerConnectionStringDB1;//@"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60";
 
-
         static string remoteFolderUpdateURL; // format - server.domain.subdomain/folder  or   server/folder
-        static string appUpdateURL;          // = appUpdateFolderURL + appNameXML;
 
         static bool uploadingStatus = false;
         string appFileMD5;
         string domain;
-
-
 
 
         //todo
@@ -2204,7 +2200,9 @@ namespace ASTA
             _ProgressBar1Stop();
         }
 
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
         private async Task ExportDatatableSelectedColumnsToExcel(DataTable dataTable, string nameReport, string filePath)  //Export DataTable to Excel 
+#pragma warning restore CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
         {
             logger.Trace($"-= {nameof(ExportDatatableSelectedColumnsToExcel)} =-");
             logger.Trace($"{nameof(nameReport)}:{nameReport} |{nameof(filePath)}:{filePath} ");
