@@ -32,6 +32,6 @@ using System.Runtime.InteropServices;
 //
 [assembly: AssemblyVersion("3.9.5.187")]
 [assembly: AssemblyFileVersion("3.7.11.147")]
-[assembly: NeutralResourcesLanguage("ru")]
+[assembly: NeutralResourcesLanguage("")]
 [assembly: InternalsVisibleTo("ASTA.Tests")]
 [assembly: InternalsVisibleTo("ASTA.Explorables")]

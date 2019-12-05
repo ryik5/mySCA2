@@ -3725,15 +3725,31 @@
             An error occurred in the cryptographic message syntax subsystem.
             </exception>
         </member>
+        <member name="M:MimeKit.Cryptography.DefaultSecureMimeContext.Import(Org.BouncyCastle.X509.X509Certificate,System.Boolean)">
+            <summary>
+            Imports a certificate.
+            </summary>
+            <remarks>
+            <para>Imports the certificate.</para>
+            <para>If the certificate already exists in the database and <paramref name="trusted"/> is <c>true</c>,
+            then the IsTrusted state is updated otherwise the certificate is added to the database with the
+            specified trust.</para>
+            </remarks>
+            <param name="certificate">The certificate.</param>
+            <param name="trusted"><c>true</c> if the certificate is trusted; otherwise, <c>false</c>.</param>
+            <exception cref="T:System.ArgumentNullException">
+            <paramref name="certificate"/> is <c>null</c>.
+            </exception>
+        </member>
         <member name="M:MimeKit.Cryptography.DefaultSecureMimeContext.Import(System.IO.Stream,System.Boolean)">
             <summary>
             Imports a DER-encoded certificate stream.
             </summary>
             <remarks>
-            Imports all of the certificates in the DER-encoded stream.
+            Imports the certificate(s).
             </remarks>
             <param name="stream">The raw certificate(s).</param>
-            <param name="trusted"><c>true</c> if the certificates are trusted.</param>
+            <param name="trusted"><c>true</c> if the certificates are trusted; othewrwise, <c>false</c>.</param>
             <exception cref="T:System.ArgumentNullException">
             <paramref name="stream"/> is <c>null</c>.
             </exception>
@@ -9383,7 +9399,7 @@
         </member>
         <member name="M:MimeKit.Cryptography.SqlCertificateDatabase.GetSelectCommand(MimeKit.MailboxAddress,System.DateTime,System.Boolean,MimeKit.Cryptography.X509CertificateRecordFields)">
             <summary>
-            Gets the database command to select the certificate records for the specified mailbox.
+            Get the database command to select the certificate records for the specified mailbox.
             </summary>
             <remarks>
             Gets the database command to select the certificate records for the specified mailbox.
@@ -9396,15 +9412,15 @@
         </member>
         <member name="M:MimeKit.Cryptography.SqlCertificateDatabase.GetSelectCommand(Org.BouncyCastle.X509.Store.IX509Selector,System.Boolean,System.Boolean,MimeKit.Cryptography.X509CertificateRecordFields)">
             <summary>
-            Gets the database command to select the certificate records for the specified mailbox.
+            Get the database command to select the requested certificate records.
             </summary>
             <remarks>
-            Gets the database command to select the certificate records for the specified mailbox.
+            Gets the database command to select the requested certificate records.
             </remarks>
             <returns>The database command.</returns>
-            <param name="selector">Selector.</param>
-            <param name="trustedOnly">If set to <c>true</c> trusted only.</param>
-            <param name="requirePrivateKey">true</param>
+            <param name="selector">The certificate selector.</param>
+            <param name="trustedOnly"><c>true</c> if only trusted certificates should be matched; otherwise, <c>false</c>.</param>
+            <param name="requirePrivateKey"><c>true</c> if the certificate must have a private key; otherwise, <c>false</c>.</param>
             <param name="fields">The fields to return.</param>
         </member>
         <member name="M:MimeKit.Cryptography.SqlCertificateDatabase.GetSelectCommand(Org.BouncyCastle.Asn1.X509.X509Name,MimeKit.Cryptography.X509CrlRecordFields)">
@@ -10918,7 +10934,7 @@
             <returns>The database command.</returns>
             <param name="mailbox">The mailbox.</param>
             <param name="now">The date and time for which the certificate should be valid.</param>
-            <param name="requirePrivateKey"><c>true</c> if the certificate must have a private key.</param>
+            <param name="requirePrivateKey"><c>true</c> if the certificate must have a private key; otherwise, <c>false</c>.</param>
             <param name="fields">The fields to return.</param>
         </member>
         <member name="M:MimeKit.Cryptography.X509CertificateDatabase.GetSelectCommand(Org.BouncyCastle.X509.Store.IX509Selector,System.Boolean,System.Boolean,MimeKit.Cryptography.X509CertificateRecordFields)">
@@ -10929,9 +10945,9 @@
             Gets the database command to select certificate records matching the specified selector.
             </remarks>
             <returns>The database command.</returns>
-            <param name="selector">Selector.</param>
-            <param name="trustedOnly"><c>true</c> if only trusted certificates should be matched.</param>
-            <param name="requirePrivateKey"><c>true</c> if the certificate must have a private key.</param>
+            <param name="selector">The certificate selector.</param>
+            <param name="trustedOnly"><c>true</c> if only trusted certificates should be matched; otherwise, <c>false</c>.</param>
+            <param name="requirePrivateKey"><c>true</c> if the certificate must have a private key; otherwise, <c>false</c>.</param>
             <param name="fields">The fields to return.</param>
         </member>
         <member name="M:MimeKit.Cryptography.X509CertificateDatabase.GetColumnNames(MimeKit.Cryptography.X509CrlRecordFields)">
@@ -11242,7 +11258,7 @@
             <remarks>
             Gets a certificate revocation list store.
             </remarks>
-            <returns>A certificate recovation list store.</returns>
+            <returns>A certificate revocation list store.</returns>
         </member>
         <member name="M:MimeKit.Cryptography.X509CertificateDatabase.Org#BouncyCastle#X509#Store#IX509Store#GetMatches(Org.BouncyCastle.X509.Store.IX509Selector)">
             <summary>
@@ -16406,26 +16422,6 @@
             should be set to false.</para>
             </remarks>
             <value><c>true</c> if the trailing space on a wrapped line should be deleted; otherwise, <c>false</c>.</value>
-        </member>
-        <member name="P:MimeKit.Text.FlowedToText.Footer">
-            <summary>
-            Get or set the text that will be appended to the end of the output.
-            </summary>
-            <remarks>
-            <para>Gets or sets the text that will be appended to the end of the output.</para>
-            <para>The footer must be set before conversion begins.</para>
-            </remarks>
-            <value>The footer.</value>
-        </member>
-        <member name="P:MimeKit.Text.FlowedToText.Header">
-            <summary>
-            Get or set text that will be prepended to the beginning of the output.
-            </summary>
-            <remarks>
-            <para>Gets or sets the text that will be prepended to the beginning of the output.</para>
-            <para>The header must be set before conversion begins.</para>
-            </remarks>
-            <value>The header.</value>
         </member>
         <member name="M:MimeKit.Text.FlowedToText.Convert(System.IO.TextReader,System.IO.TextWriter)">
             <summary>

@@ -2444,15 +2444,6 @@
             </remarks>
             <value>The cancellation token.</value>
         </member>
-        <member name="P:MailKit.Net.Imap.ImapIdleContext.LinkedToken">
-            <summary>
-            Get the linked token.
-            </summary>
-            <remarks>
-            Gets the linked token.
-            </remarks>
-            <value>The linked token.</value>
-        </member>
         <member name="P:MailKit.Net.Imap.ImapIdleContext.DoneToken">
             <summary>
             Get the done token.
@@ -2462,23 +2453,18 @@
             </remarks>
             <value>The done token.</value>
         </member>
-        <member name="P:MailKit.Net.Imap.ImapIdleContext.IsCancellationRequested">
+        <member name="M:MailKit.Net.Imap.ImapIdleContext.ContinuationHandler(MailKit.Net.Imap.ImapEngine,MailKit.Net.Imap.ImapCommand,System.String,System.Boolean)">
             <summary>
-            Get whether or not cancellation has been requested.
+            Callback method to be used as the ImapCommand's ContinuationHandler.
             </summary>
             <remarks>
-            Gets whether or not cancellation has been requested.
+            Callback method to be used as the ImapCommand's ContinuationHandler.
             </remarks>
-            <value><c>true</c> if cancellation has been requested; otherwise, <c>false</c>.</value>
-        </member>
-        <member name="P:MailKit.Net.Imap.ImapIdleContext.IsDoneRequested">
-            <summary>
-            Get whether or not the IDLE command should be ended.
-            </summary>
-            <remarks>
-            Gets whether or not the IDLE command should be ended.
-            </remarks>
-            <value><c>true</c> if the IDLE command should end; otherwise, <c>false</c>.</value>
+            <param name="engine">The ImapEngine.</param>
+            <param name="ic">The ImapCommand.</param>
+            <param name="text">The text.</param>
+            <param name="doAsync"><c>true</c> if the command is being run asynchronously; otherwise, <c>false</c>.</param>
+            <returns></returns>
         </member>
         <member name="M:MailKit.Net.Imap.ImapIdleContext.Dispose">
             <summary>
@@ -14731,7 +14717,7 @@
             Reads literal string data.
             </summary>
         </member>
-        <member name="M:MailKit.Net.Imap.ImapStream.#ctor(System.IO.Stream,System.Net.Sockets.Socket,MailKit.IProtocolLogger)">
+        <member name="M:MailKit.Net.Imap.ImapStream.#ctor(System.IO.Stream,MailKit.IProtocolLogger)">
             <summary>
             Initializes a new instance of the <see cref="T:MailKit.Net.Imap.ImapStream"/> class.
             </summary>
@@ -14739,7 +14725,6 @@
             Creates a new <see cref="T:MailKit.Net.Imap.ImapStream"/>.
             </remarks>
             <param name="source">The underlying network stream.</param>
-            <param name="socket">The underlying network socket.</param>
             <param name="protocolLogger">The protocol logger.</param>
         </member>
         <member name="P:MailKit.Net.Imap.ImapStream.Stream">
@@ -14750,15 +14735,6 @@
             Gets or sets the underlying network stream.
             </remarks>
             <value>The underlying network stream.</value>
-        </member>
-        <member name="P:MailKit.Net.Imap.ImapStream.Socket">
-            <summary>
-            Get the underlying network socket.
-            </summary>
-            <remarks>
-            Gets the underlying network socket.
-            </remarks>
-            <value>The underlying network socket.</value>
         </member>
         <member name="P:MailKit.Net.Imap.ImapStream.Mode">
             <summary>
@@ -18630,7 +18606,7 @@
             or by raw byte streams (<see cref="F:MailKit.Net.Pop3.Pop3StreamMode.Data"/>).
             </remarks>
         </member>
-        <member name="M:MailKit.Net.Pop3.Pop3Stream.#ctor(System.IO.Stream,System.Net.Sockets.Socket,MailKit.IProtocolLogger)">
+        <member name="M:MailKit.Net.Pop3.Pop3Stream.#ctor(System.IO.Stream,MailKit.IProtocolLogger)">
             <summary>
             Initializes a new instance of the <see cref="T:MailKit.Net.Pop3.Pop3Stream"/> class.
             </summary>
@@ -18638,7 +18614,6 @@
             Creates a new <see cref="T:MailKit.Net.Pop3.Pop3Stream"/>.
             </remarks>
             <param name="source">The underlying network stream.</param>
-            <param name="socket">The underlying network socket.</param>
             <param name="protocolLogger">The protocol logger.</param>
         </member>
         <member name="P:MailKit.Net.Pop3.Pop3Stream.Stream">
@@ -18649,15 +18624,6 @@
             Gets or sets the underlying network stream.
             </remarks>
             <value>The underlying network stream.</value>
-        </member>
-        <member name="P:MailKit.Net.Pop3.Pop3Stream.Socket">
-            <summary>
-            Get the underlying network socket.
-            </summary>
-            <remarks>
-            Gets the underlying network socket.
-            </remarks>
-            <value>The underlying network socket.</value>
         </member>
         <member name="P:MailKit.Net.Pop3.Pop3Stream.Mode">
             <summary>
@@ -21735,26 +21701,51 @@
         </member>
         <member name="T:MailKit.Net.Smtp.SmtpDataFilter">
             <summary>
-            A special stream filter that escapes lines beginning with a '.'
-            as needed when uploading a message to an SMTP server.
+            An SMTP filter designed to format a message stream for the DATA command.
             </summary>
+            <remarks>
+            A special stream filter that escapes lines beginning with a '.' as needed when
+            sending a message via the SMTP protocol or when saving a message to an IIS
+            message pickup directory.
+            </remarks>
+            <example>
+            <code language="c#" source="Examples\SmtpExamples.cs" region="SaveToPickupDirectory" />
+            </example>
+        </member>
+        <member name="M:MailKit.Net.Smtp.SmtpDataFilter.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:MailKit.Net.Smtp.SmtpDataFilter"/> class.
+            </summary>
+            <remarks>
+            Creates a new <see cref="T:MailKit.Net.Smtp.SmtpDataFilter"/>.
+            </remarks>
+            <example>
+            <code language="c#" source="Examples\SmtpExamples.cs" region="SaveToPickupDirectory" />
+            </example>
         </member>
         <member name="M:MailKit.Net.Smtp.SmtpDataFilter.Filter(System.Byte[],System.Int32,System.Int32,System.Int32@,System.Int32@,System.Boolean)">
             <summary>
             Filter the specified input.
             </summary>
+            <remarks>
+            Filters the specified input buffer starting at the given index,
+            spanning across the specified number of bytes.
+            </remarks>
             <returns>The filtered output.</returns>
             <param name="input">The input buffer.</param>
             <param name="startIndex">The starting index of the input buffer.</param>
-            <param name="length">Length.</param>
-            <param name="outputIndex">Output index.</param>
-            <param name="outputLength">Output length.</param>
-            <param name="flush">If set to <c>true</c> flush.</param>
+            <param name="length">The length of the input buffer, starting at <paramref name="startIndex"/>.</param>
+            <param name="outputIndex">The output index.</param>
+            <param name="outputLength">The output length.</param>
+            <param name="flush">If set to <c>true</c>, all internally buffered data should be flushed to the output buffer.</param>
         </member>
         <member name="M:MailKit.Net.Smtp.SmtpDataFilter.Reset">
             <summary>
-            Resets the filter.
+            Reset the filter.
             </summary>
+            <remarks>
+            Resets the filter.
+            </remarks>
         </member>
         <member name="T:MailKit.Net.Smtp.SmtpProtocolException">
             <summary>
@@ -22016,7 +22007,7 @@
             A stream capable of reading SMTP server responses.
             </remarks>
         </member>
-        <member name="M:MailKit.Net.Smtp.SmtpStream.#ctor(System.IO.Stream,System.Net.Sockets.Socket,MailKit.IProtocolLogger)">
+        <member name="M:MailKit.Net.Smtp.SmtpStream.#ctor(System.IO.Stream,MailKit.IProtocolLogger)">
             <summary>
             Initializes a new instance of the <see cref="T:MailKit.Net.Smtp.SmtpStream"/> class.
             </summary>
@@ -22024,7 +22015,6 @@
             Creates a new <see cref="T:MailKit.Net.Smtp.SmtpStream"/>.
             </remarks>
             <param name="source">The underlying network stream.</param>
-            <param name="socket">The underlying network socket.</param>
             <param name="protocolLogger">The protocol logger.</param>
         </member>
         <member name="P:MailKit.Net.Smtp.SmtpStream.Stream">
@@ -22035,15 +22025,6 @@
             Gets or sets the underlying network stream.
             </remarks>
             <value>The underlying network stream.</value>
-        </member>
-        <member name="P:MailKit.Net.Smtp.SmtpStream.Socket">
-            <summary>
-            Get the underlying network socket.
-            </summary>
-            <remarks>
-            Gets the underlying network socket.
-            </remarks>
-            <value>The underlying network socket.</value>
         </member>
         <member name="P:MailKit.Net.Smtp.SmtpStream.IsConnected">
             <summary>
@@ -28077,11 +28058,11 @@
             A compressed stream.
             </summary>
         </member>
-        <member name="P:MailKit.CompressedStream.BaseStream">
+        <member name="P:MailKit.CompressedStream.InnerStream">
             <summary>
-            Gets the base stream.
+            Gets the inner stream.
             </summary>
-            <value>The base stream.</value>
+            <value>The inner stream.</value>
         </member>
         <member name="P:MailKit.CompressedStream.CanRead">
             <summary>
@@ -28303,7 +28284,7 @@
         </member>
         <member name="M:MailKit.CompressedStream.Dispose(System.Boolean)">
             <summary>
-            Releases the unmanaged resources used by the <see cref="T:MailKit.DuplexStream"/> and
+            Releases the unmanaged resources used by the <see cref="T:MailKit.CompressedStream"/> and
             optionally releases the managed resources.
             </summary>
             <param name="disposing"><c>true</c> to release both managed and unmanaged resources;
@@ -51855,8 +51836,8 @@
             </summary>
             <remarks>
             <para>Gets or sets the SSL and TLS protocol versions that the client is allowed to use.</para>
-            <para>By default, MailKit initializes this value to support only TLS v1.0 and greater and
-            does not support any version of SSL due to those protocols no longer being considered
+            <para>By default, MailKit initializes this value to support only TLS v1.1 and greater and
+            does not support TLS v1.0 or any version of SSL due to those protocols no longer being considered
             secure.</para>
             <para>This property should be set before calling any of the
             <a href="Overload_MailKit_MailService_Connect.htm">Connect</a> methods.</para>

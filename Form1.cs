@@ -80,7 +80,8 @@ namespace ASTA
         readonly static string sqLiteLocalConnectionString = $"Data Source = {appDbPath}; Version=3;"; ////$"Data Source={dbApplication.FullName};Version=3;" ////$"Data Source={dbApplication.FullName};Version=3;"
 
         static string sqlServerConnectionString;// = "Data Source=" + serverName + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + userName + ";Password=" + userPasswords + "; Connect Timeout=5";
-        static string mysqlServerConnectionStringDB1;//@"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60";
+        static System.Data.Entity.Core.EntityClient.EntityConnectionStringBuilder sqlServerConnectionStringEF;
+        static string mysqlServerConnectionString;//@"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60";
 
         static string remoteFolderUpdateURL; // format - server.domain.subdomain/folder  or   server/folder
 
@@ -931,7 +932,7 @@ namespace ASTA
                 mysqlServerUserPassword = mysqlServerUserPasswordRegistry?.Length > 0 ? mysqlServerUserPasswordRegistry : mysqlServerUserPasswordDB;
 
                 sqlServerConnectionString = $"Data Source={sServer1}\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID={sServer1UserName};Password={sServer1UserPassword};Connect Timeout=30";
-                mysqlServerConnectionStringDB1 = $"server={mysqlServer};User={mysqlServerUserName};Password={mysqlServerUserPassword};database=wwwais;convert zero datetime=True;Connect Timeout=60";
+                mysqlServerConnectionString = $"server={mysqlServer};User={mysqlServerUserName};Password={mysqlServerUserPassword};database=wwwais;convert zero datetime=True;Connect Timeout=60";
 
                 clrRealRegistration = clrRealRegistrationRegistry != Color.PaleGreen ? clrRealRegistrationRegistry : Color.PaleGreen;
             }
@@ -1713,7 +1714,7 @@ namespace ASTA
 
 
                 // import departments from web DB
-                using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionStringDB1))
+                using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionString))
                 {
                     query = "SELECT id, parent_id, name, boss_code FROM dep_struct ORDER by id";
 
@@ -1742,7 +1743,7 @@ namespace ASTA
                 }
 
                 // import individual shifts of people from web DB
-                using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionStringDB1))
+                using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionString))
                 {
                     query = "Select code,start_date,mo_start,mo_end,tu_start,tu_end,we_start,we_end,th_start,th_end,fr_start,fr_end, " +
                                     "sa_start,sa_end,su_start,su_end,comment FROM work_time ORDER by start_date";
@@ -1803,7 +1804,7 @@ namespace ASTA
 
 
                 // import people from web DB
-                using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionStringDB1))
+                using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionString))
                 {
                     query = "Select code, family_name, first_name, last_name, vacancy, department, boss_id, city FROM personal " + confitionToLoad;//where hidden=0
 
@@ -3151,16 +3152,40 @@ namespace ASTA
         private async void LoadLastIputsOutputs_Click(object sender, EventArgs e) //LoadInputsOutputsOfVisitors()
         {
             //how many times continiously to check registrations at the server
-            int timesCheckingRegistration = 10;
+       //     int timesCheckingRegistration = 10;
 
             //clear painting;
-            _paintedEmployeeVisitor = null;
-            _selectedEmployeeVisitor = null;
+         //   _paintedEmployeeVisitor = null;
+        //    _selectedEmployeeVisitor = null;
 
             //status of repeatedly loading of registrations cards from server
-            checkInputsOutputs = false;
+          //  checkInputsOutputs = false;
 
-            await Task.Run(() => LoadInputsOutputsOfVisitors(DateTime.Now.ToYYYYMMDD(), DateTime.Now.ToYYYYMMDD(), timesCheckingRegistration));
+         //   await Task.Run(() => LoadInputsOutputsOfVisitors(DateTime.Now.ToYYYYMMDD(), DateTime.Now.ToYYYYMMDD(), timesCheckingRegistration));
+
+
+
+            //////////////////////////
+            /// kjskjdh
+            /// /////////
+            /// 
+            /////////////////
+            /// todo
+            /// check Entity Framework work
+            /// 
+            using (DBConnectSQL db = new DBConnectSQL(sqlServerConnectionString))
+            {
+                // получаем объекты из бд и выводим на консоль
+                var visitors = db.ProtocolObjects.Where(x => x.date > DateTime.Parse("2019-01-01 01:01")).OrderBy(x => x.date).ToList();
+                Console.WriteLine("Список объектов:");
+                foreach (var v in visitors)
+                {
+                    Console.WriteLine($"{v.date}.{v.param0} - {v.param1}");
+                }
+            }
+            Console.Read();
+                       
+
         }
 
         private async void LoadInputsOutputsItem_Click(object sender, EventArgs e)
@@ -3583,7 +3608,7 @@ namespace ASTA
 
             string query = "Select id, name,hourly, visibled_name FROM out_reasons";
             logger.Trace(query);
-            using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionStringDB1))
+            using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionString))
             {
                 MySql.Data.MySqlClient.MySqlDataReader mysqlData = mysqlDbTableReader.GetData(query);
 
@@ -3607,7 +3632,7 @@ namespace ASTA
             string resonId = "";
             query = "Select * FROM out_users where reason_date >= '" + startDate.Split(' ')[0] + "' AND reason_date <= '" + endDate.Split(' ')[0] + "' ";
             logger.Trace(query);
-            using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionStringDB1))
+            using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionString))
             {
                 MySql.Data.MySqlClient.MySqlDataReader mysqlData = mysqlDbTableReader.GetData(query);
 
@@ -6526,8 +6551,15 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                     _mailUser = new MailUser(NAME_OF_SENDER_REPORTS, mailSenderAddress);
                 }
 
-                sqlServerConnectionString = "Data Source=" + sServer1 + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + sServer1UserName + ";Password=" + sServer1UserPassword + "; Connect Timeout=30";
-                mysqlServerConnectionStringDB1 = @"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60";
+                sqlServerConnectionString = $"Data Source={sServer1}\\SQLEXPRESS;initial catalog=intellect;Persist Security Info=True;User ID={sServer1UserName};Password={sServer1UserPassword}; Connect Timeout=30";
+                mysqlServerConnectionString = $"server={mysqlServer};User={mysqlServerUserName};Password={mysqlServerUserPassword};database=wwwais;convert zero datetime=True;Connect Timeout=60";
+
+                sqlServerConnectionStringEF = new System.Data.Entity.Core.EntityClient.EntityConnectionStringBuilder()
+                {
+                    Metadata = @"res://*/DBFirstCatalogModel.csdl|res://*/DBFirstCatalogModel.ssdl|res://*/DBFirstCatalogModel.msl",
+                    Provider = @"System.Data.SqlClient",
+                    ProviderConnectionString = $"{sqlServerConnectionString};multipleactiveresultsets=True;App=EntityFramework"
+                };
 
                 ShowDataTableDbQuery(dbApplication, "ConfigDB", "SELECT ParameterName AS 'Имя параметра', " +
                "Value AS 'Данные', Description AS 'Описание', DateCreated AS 'Дата создания/модификации'",
