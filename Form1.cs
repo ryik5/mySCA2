@@ -3152,40 +3152,16 @@ namespace ASTA
         private async void LoadLastIputsOutputs_Click(object sender, EventArgs e) //LoadInputsOutputsOfVisitors()
         {
             //how many times continiously to check registrations at the server
-       //     int timesCheckingRegistration = 10;
+            int timesCheckingRegistration = 10;
 
             //clear painting;
-         //   _paintedEmployeeVisitor = null;
-        //    _selectedEmployeeVisitor = null;
+            _paintedEmployeeVisitor = null;
+            _selectedEmployeeVisitor = null;
 
-            //status of repeatedly loading of registrations cards from server
-          //  checkInputsOutputs = false;
+            // status of repeatedly loading of registrations cards from server
+            checkInputsOutputs = false;
 
-         //   await Task.Run(() => LoadInputsOutputsOfVisitors(DateTime.Now.ToYYYYMMDD(), DateTime.Now.ToYYYYMMDD(), timesCheckingRegistration));
-
-
-
-            //////////////////////////
-            /// kjskjdh
-            /// /////////
-            /// 
-            /////////////////
-            /// todo
-            /// check Entity Framework work
-            /// 
-            using (DBConnectSQL db = new DBConnectSQL(sqlServerConnectionString))
-            {
-                // получаем объекты из бд и выводим на консоль
-                var visitors = db.ProtocolObjects.Where(x => x.date > DateTime.Parse("2019-01-01 01:01")).OrderBy(x => x.date).ToList();
-                Console.WriteLine("Список объектов:");
-                foreach (var v in visitors)
-                {
-                    Console.WriteLine($"{v.date}.{v.param0} - {v.param1}");
-                }
-            }
-            Console.Read();
-                       
-
+            await Task.Run(() => LoadInputsOutputsOfVisitors(DateTime.Now.ToYYYYMMDD(), DateTime.Now.ToYYYYMMDD(), timesCheckingRegistration));
         }
 
         private async void LoadInputsOutputsItem_Click(object sender, EventArgs e)
@@ -3329,7 +3305,38 @@ namespace ASTA
 
             logger.Trace($"query: {query}");
 
-            using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
+
+            using (DBConnectSQL db = new DBConnectSQL(sqlServerConnectionString))
+            {
+                DateTime dtStart = DateTime.Parse(startDay + " " + startTime);
+                DateTime dtEnd = DateTime.Parse(endDay + " " + endTime);
+
+                // получаем объекты из бд 
+                var Visitors = db.ProtocolObjects
+                    .Where(x => x.date > dtStart)
+                    .Where(x => x.date <= dtEnd)
+                    .Where(x => x.objtype == "ABC_ARC_READER")
+                    .OrderBy(x => x.date)
+                    .ToList();
+
+                foreach (var v in Visitors)
+                {
+                    visitors.Add(new Visitor(v.FIO, v.idCard, v.date.ToString().Split(' ')[0], v.time.ToString().Split(' ')[1].ConvertTimeIntoStandartTime(), "", null));
+
+                    //if (startTimeNotSet) //set starttime into last time at once
+                    //{
+                    //    startTime = v.time.ToString().Split(' ')[1].ConvertTimeIntoStandartTime();
+                    //    startTimeNotSet = false;
+                    //}
+
+                    _ProgressWork1Step();
+                }
+            }
+
+
+
+
+          /*  using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
             {
                 System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetData(query);
                 foreach (DbDataRecord record in sqlData)
@@ -3377,7 +3384,7 @@ namespace ASTA
                 }
                 logger.Trace("visitors added: " + visitors.Count());
             }
-            stimerPrev = "";
+           */ stimerPrev = "";
             _ProgressBar1Stop();
             return visitors;
         }
