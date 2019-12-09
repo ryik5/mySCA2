@@ -3306,22 +3306,22 @@ namespace ASTA
             logger.Trace($"query: {query}");
 
 
-            using (DBConnectSQL db = new DBConnectSQL(sqlServerConnectionString))
+            using (ProtocolConnector db = new ProtocolConnector(sqlServerConnectionString))
             {
                 DateTime dtStart = DateTime.Parse(startDay + " " + startTime);
                 DateTime dtEnd = DateTime.Parse(endDay + " " + endTime);
 
                 // получаем объекты из бд 
                 var Visitors = db.ProtocolObjects
-                    .Where(x => x.date > dtStart)
-                    .Where(x => x.date <= dtEnd)
-                    .Where(x => x.objtype == "ABC_ARC_READER")
-                    .OrderBy(x => x.date)
+                    .Where(x => x.ActionDate > dtStart)
+                    .Where(x => x.ActionDate <= dtEnd)
+                    .Where(x => x.ActionType == "ABC_ARC_READER")
+                    .OrderBy(x => x.ActionDate)
                     .ToList();
 
                 foreach (var v in Visitors)
                 {
-                    visitors.Add(new Visitor(v.FIO, v.idCard, v.date.ToString().Split(' ')[0], v.time.ToString().Split(' ')[1].ConvertTimeIntoStandartTime(), "", null));
+                    visitors.Add(new Visitor(v.FIO, v.IdCard, v.ActionDate.ToString().Split(' ')[0], v.ActionTime.ToString().Split(' ')[1].ConvertTimeIntoStandartTime(), "", null));
 
                     //if (startTimeNotSet) //set starttime into last time at once
                     //{
