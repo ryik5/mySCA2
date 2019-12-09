@@ -1,12 +1,8 @@
-﻿using ASTA.Classes.People;
-using System;
-using System.Collections.Generic;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
 using System.Data.Entity.ModelConfiguration;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ASTA.Classes
 {
@@ -16,6 +12,7 @@ namespace ASTA.Classes
     public class ProtocolConnector : DbContext
     {
         public DbSet<Protocol> ProtocolObjects { get; set; }
+        public DbSet<Person> PersonObjects { get; set; }
 
         public ProtocolConnector(string connection) : base(connection) //connection;//"Server=(localdb)\\mssqllocaldb;Database=helloappdb;Trusted_Connection=True;"
         {
@@ -25,27 +22,39 @@ namespace ASTA.Classes
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Configurations.Add(new ProtocolMap());
+            modelBuilder.Configurations.Add(new PersonMap());
         }
     }
 
-   /// <summary>
-   /// Model 'Protocol'
-   /// </summary>
+    /// <summary>
+    /// Model 'Protocol'
+    /// </summary>
+    [Table("PROTOCOL")]
     public class Protocol
     {
+        [StringLength(50)]
         public string ActionType { get; set; }
+        [StringLength(50)]
         public string PointName { get; set; }
+        [StringLength(50)]
         public string ActionDescr { get; set; }
+        [StringLength(50)]
         public string region_id { get; set; }
+        [StringLength(255)]
         public string FIO { get; set; }
+        [StringLength(60)]
         public string IdCard { get; set; }
+        [StringLength(255)]
         public string param2 { get; set; }
+        [StringLength(255)]
         public string param3 { get; set; }
-        public float user_param_double { get; set; }
-        public DateTime ActionDate { get; set; }
-        public DateTime ActionTime { get; set; }
-        public DateTime ActionTime2 { get; set; }
+        public double? user_param_double { get; set; }
+        public DateTime? ActionDate { get; set; }
+        public DateTime? ActionTime { get; set; }
+        public DateTime? ActionTime2 { get; set; }
+        [StringLength(50)]
         public string ActionRegistrator { get; set; }
+        [Key]
         public Guid UniqueKey { get; set; }
     }
 

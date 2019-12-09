@@ -27,7 +27,7 @@ namespace ASTA.Classes
             if (df == null)
                 return false;
 
-            return ToString() == df.ToString();
+            return ToString().Equals(df.ToString());
         }
 
         public override int GetHashCode()

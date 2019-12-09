@@ -30,7 +30,7 @@ namespace ASTA.Classes.People
             if (!(obj is ADUser df))
                 return false;
 
-            return ToString() == df.ToString();
+            return ToString().Equals(df.ToString());
         }
 
         public override int GetHashCode()

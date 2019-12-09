@@ -3312,24 +3312,98 @@ namespace ASTA
                 DateTime dtEnd = DateTime.Parse(endDay + " " + endTime);
 
                 // получаем объекты из бд 
-                var Visitors = db.ProtocolObjects
+                /*   var RegisteredAction = (from registeredAction in db.ProtocolObjects
+                                          join libraryUsers in db.PersonObjects 
+                                          on registeredAction.IdCard equals libraryUsers.id
+                                          where dtStart < registeredAction.ActionDate && registeredAction.ActionDate < dtEnd
+                                          orderby registeredAction.ActionTime descending
+                                          select new
+                                          {
+                                              FIO = registeredAction.FIO,
+                                              IdCard = registeredAction.IdCard,
+                                              ActionDate = registeredAction.ActionDate,
+                                              ActionTime = registeredAction.ActionTime,
+                                              ActionDescr = registeredAction.ActionDescr,
+                                              ActionType = registeredAction.ActionType,
+                                              PointName = registeredAction.PointName,
+                                              fac = libraryUsers.facility_code,
+                                              code = libraryUsers.tabnum,
+                                              card = libraryUsers.card
+                                          }).ToList();*/
+
+                var RegisteredAction = db.ProtocolObjects
+                    .Join(
+                        db.PersonObjects,
+                        registeredAction => registeredAction.IdCard,
+                        libraryUsers => libraryUsers.id,
+                        (registeredAction, libraryUsers) => new
+                        {
+                            FIO = registeredAction.FIO,
+                            IdCard = registeredAction.IdCard,
+                            ActionDate = registeredAction.ActionDate,
+                            ActionTime = registeredAction.ActionTime,
+                            ActionDescr = registeredAction.ActionDescr,
+                            ActionType = registeredAction.ActionType,
+                            PointName = registeredAction.PointName,
+                            fac = libraryUsers.facility_code,
+                            card = libraryUsers.card
+                        }
+                        )
                     .Where(x => x.ActionDate > dtStart)
                     .Where(x => x.ActionDate <= dtEnd)
                     .Where(x => x.ActionType == "ABC_ARC_READER")
                     .OrderBy(x => x.ActionDate)
                     .ToList();
-
-                foreach (var v in Visitors)
+                
+                foreach (var v in RegisteredAction)
                 {
-                    visitors.Add(new Visitor(v.FIO, v.IdCard, v.ActionDate.ToString().Split(' ')[0], v.ActionTime.ToString().Split(' ')[1].ConvertTimeIntoStandartTime(), "", null));
+                    if (v != null)
+                    {
+                        date = v.ActionDate?.ToString()?.Split(' ')[0];
+                        time = v.ActionTime?.ToString()?.Split(' ')[1];//?.ConvertTimeIntoStandartTime();
 
-                    //if (startTimeNotSet) //set starttime into last time at once
-                    //{
-                    //    startTime = v.time.ToString().Split(' ')[1].ConvertTimeIntoStandartTime();
-                    //    startTimeNotSet = false;
-                    //}
+                        //look for FIO
+                        fio = v.FIO?.Length > 0 ? v.FIO : sServer1;
 
-                    _ProgressWork1Step();
+                        //look for  idCard
+                        idCard = 0;
+                        int.TryParse(v.IdCard, out idCard);
+                        fac = v.fac;
+                        card = v.card;
+                        idCardDescr = idCard != 0 ? "№" + idCard + " (" + fac + "," + card + ")" : (fio == sServer1 ? "" : "Пропуск не зарегистрирован");
+
+                        //look for action with idCard
+                        action = v.ActionDescr;
+                        action_descr = null;
+                        if (Names.CARD_REGISTERED_ACTION.TryGetValue(action, out action_descr))
+                        { action = "Сервисное сообщение"; }
+                        else if (fio == sServer1)
+                        { action_descr = action; }
+
+                        sideOfPassagePoint = collectionOfPassagePoints.GetPoint(v.PointName);
+
+                        //write gathered data in the collection
+                        try
+                        {
+                            logger.Trace(fio + " " + action_descr + " " + idCard + " " + idCardDescr + " " + v?.ActionDescr + " " + date + " " + time + " " + sideOfPassagePoint?._namePoint + " " + sideOfPassagePoint?._direction);
+
+                            visitors.Add(new Visitor(fio, idCardDescr, date, time, action_descr, sideOfPassagePoint));
+                            if (startTimeNotSet) //set starttime into last time at once
+                            {
+                                startTime = time;
+                                startTimeNotSet = false;
+                            }
+                        }
+                        catch (Exception e) {
+                            logger.Warn(date + " " + time);
+                            logger.Warn(fio );
+                            logger.Warn(action_descr + " " + idCard + " " + idCardDescr + " " + v?.ActionDescr);
+                            logger.Warn(sideOfPassagePoint?._namePoint + " " + sideOfPassagePoint?._direction);
+                            logger.Warn(e.ToString()); 
+                        }
+
+                        _ProgressWork1Step();
+                    }
                 }
             }
 
