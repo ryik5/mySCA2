@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ASTA.Classes.People
+﻿namespace ASTA.Classes.People
 {
     public class EmployeeFull : Employee
     {

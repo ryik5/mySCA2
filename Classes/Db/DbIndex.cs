@@ -9,6 +9,7 @@ namespace ASTA.Classes
     public class DbIndex
     {
         #region Overrided Methods
+
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(this, obj))
@@ -50,9 +51,11 @@ namespace ASTA.Classes
                 "INDEX [" + _indexName + "] ON [" + _tableName + "] (" +
                 GetColumnNames(_columns) + ")";
         }
-        #endregion
+
+        #endregion Overrided Methods
 
         #region Public Properties
+
         /// <summary>
         /// Get/Set the uniqueness of the index.
         /// </summary>
@@ -88,9 +91,11 @@ namespace ASTA.Classes
             get { return _columns; }
             set { _columns = value; }
         }
-        #endregion
+
+        #endregion Public Properties
 
         #region Private Methods
+
         private string GetColumnNames(Dictionary<string, DbSortOrder> cols)
         {
             StringBuilder sb = new StringBuilder();
@@ -108,14 +113,17 @@ namespace ASTA.Classes
 
             return sb.ToString();
         }
-        #endregion
+
+        #endregion Private Methods
 
         #region Private Variables
+
         private bool _isUnique;
         private string _indexName;
         private string _tableName;
         private Dictionary<string, DbSortOrder> _columns;
-        #endregion
+
+        #endregion Private Variables
     }
 
     /// <summary>

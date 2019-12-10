@@ -9,7 +9,9 @@ namespace ASTA.Classes.People
 
         public string Code { get; set; }
 
-        public Employee() { }
+        public Employee()
+        {
+        }
 
         public override string ToString()
         {

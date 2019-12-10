@@ -1,18 +1,20 @@
-﻿using System;
+﻿using MimeKit;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
-using MimeKit;
 
 namespace ASTA.Classes
 {
-   sealed class MailSender
+    internal sealed class MailSender
     {
-        MailServer _mailServer;
-        MailUser _from;
-        MailUser _to;
+        private MailServer _mailServer;
+        private MailUser _from;
+        private MailUser _to;
         public string Status { get; private set; }
 
-        public MailSender() { }
+        public MailSender()
+        {
+        }
 
         public MailSender(MailServer mailServer)
         {
@@ -95,7 +97,7 @@ namespace ASTA.Classes
             client.Dispose();
         }
 
-        void OnMessageSent(object sender, MailKit.MessageSentEventArgs e)
+        private void OnMessageSent(object sender, MailKit.MessageSentEventArgs e)
         {
             Status = " успешно";
             // Status = e.Message.To + " - OK";
@@ -153,7 +155,7 @@ namespace ASTA.Classes
                             newMail.ReplyToList.Add(mailsOfSenderOfName);
 
                             // отправитель - устанавливаем адрес и отображаемое в письме имя
-                            //   newMail.ReplyToList.Add(mailsOfSenderOfName);                  
+                            //   newMail.ReplyToList.Add(mailsOfSenderOfName);
                             // newMail.Bcc.Add("user@mail.com.ua");      // Скрытая копия
 
                             // кому отправляем
@@ -263,7 +265,6 @@ namespace ASTA.Classes
             {  logger.Trace("Message sent to " + recepient + "|" + subject); }
             mailStopSent = true;
         }
-
 
         private static System.Net.Mail.AlternateView GetStandartReportMessageOfBody(string period, string department, string messageAfterPicture)
         {

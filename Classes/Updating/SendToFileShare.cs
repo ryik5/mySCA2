@@ -1,10 +1,9 @@
 ﻿//using System;
 //using System.Diagnostics.Contracts;
-//using ASTA.Classes.People; 
+//using ASTA.Classes.People;
 
 namespace ASTA.Updating
-{  
-    
+{
     /* public class SendToFileShare
     {
         private UserAD _user;
@@ -18,7 +17,6 @@ namespace ASTA.Updating
             Contract.Requires(source.Length > 0);
             Contract.Requires(target.Length > 0);
             Contract.Requires(!source.Equals(target));
-
 
             if (ImpersonateUser(user) == true)
             {
@@ -115,8 +113,8 @@ namespace ASTA.Updating
             impersonationContext.Undo();
         }
 
-
         #region Impersionation global variables
+
         public const int LOGON32_LOGON_INTERACTIVE = 2;
         public const int LOGON32_PROVIDER_DEFAULT = 0;
 
@@ -139,7 +137,8 @@ namespace ASTA.Updating
 
         [System.Runtime.InteropServices.DllImport("kernel32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto)]
         public static extern bool CloseHandle(IntPtr handle);
-        #endregion
+
+        #endregion Impersionation global variables
     }
 */
 }

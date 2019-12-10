@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace ASTA.Classes.People
 {
-   public class ADUserFullAccount : Employee, IADUser, IComparable<ADUserFullAccount>
+    public class ADUserFullAccount : Employee, IADUser, IComparable<ADUserFullAccount>
     {
         public int id;
         public string Domain { get; set; }
@@ -33,7 +33,7 @@ namespace ASTA.Classes.People
             if (obj == null || !(obj is ADUserFullAccount))
                 return false;
 
-            var df = (ADUserFullAccount) obj;
+            var df = (ADUserFullAccount)obj;
             if (df == null)
                 return false;
 
@@ -55,11 +55,10 @@ namespace ASTA.Classes.People
         {
             return next.CompareTo(this);
         }
-
     }
 
     //additional class для выполнения сортировки
-   public class ADUsersComparer : IComparer<ADUserFullAccount>
+    public class ADUsersComparer : IComparer<ADUserFullAccount>
     {
         public int Compare(ADUserFullAccount x, ADUserFullAccount y)
         {

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -63,10 +62,12 @@ namespace ASTA.Classes
 
     public class CollectionOfPassagePoints : IEnumerable
     {
-        SideOfPassagePoint sideOfPassagePoint;
-        Dictionary<string, SideOfPassagePoint> listSideOfPassagePoints;
+        private SideOfPassagePoint sideOfPassagePoint;
+        private Dictionary<string, SideOfPassagePoint> listSideOfPassagePoints;
 
-        public CollectionOfPassagePoints() { }
+        public CollectionOfPassagePoints()
+        {
+        }
 
         public void AddPoint(string _idPoint, string _namePoint, string _direction, string _connectedToServer)
         {

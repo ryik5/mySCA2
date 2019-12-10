@@ -2,11 +2,12 @@
 
 namespace ASTA.Classes.Updating
 {
-    public class MakerOfLinks: IMakeable
+    public class MakerOfLinks : IMakeable
     {
-        UpdatingParameters _parameters { get; set; }
+        private UpdatingParameters _parameters { get; set; }
 
         public delegate void Status(object sender, TextEventArgs e);
+
         public event Status status;
 
         public void SetParameters(UpdatingParameters parameters)
@@ -19,7 +20,7 @@ namespace ASTA.Classes.Updating
 
         public void Make()
         {
-            Contract.Requires(_parameters != null, 
+            Contract.Requires(_parameters != null,
                 "Не создан экземпляр UpdatingParameters!");
             Contract.Requires(!string.IsNullOrWhiteSpace(_parameters.remoteFolderUpdatingURL),
                 "Отсутствует параметр remoteFolderUpdatingURL или ссылка пустая!");
@@ -38,18 +39,17 @@ namespace ASTA.Classes.Updating
             return new UpdatingParameters(_parameters);
         }
 
-       /* public void PrintProperties()
-        {
-            foreach (var prop in _parameters.GetType().GetProperties())
-            {
-                status?.Invoke(this, new TextEventArgs(prop.Name + ": " + prop.GetValue(_parameters, null)));
-            }
+        /* public void PrintProperties()
+         {
+             foreach (var prop in _parameters.GetType().GetProperties())
+             {
+                 status?.Invoke(this, new TextEventArgs(prop.Name + ": " + prop.GetValue(_parameters, null)));
+             }
 
-            foreach (var field in _parameters.GetType().GetFields())
-            {
-                status?.Invoke(this, new TextEventArgs(field.Name + ": " + field.GetValue(_parameters)));
-            }
-        }*/
+             foreach (var field in _parameters.GetType().GetFields())
+             {
+                 status?.Invoke(this, new TextEventArgs(field.Name + ": " + field.GetValue(_parameters)));
+             }
+         }*/
     }
-
 }

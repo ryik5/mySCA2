@@ -7,7 +7,9 @@ namespace ASTA.Classes.People
     {
         public string code { get; set; }
 
-        public EmployeeVisitor() : base() { }
+        public EmployeeVisitor() : base()
+        {
+        }
 
         public override string ToString()
         {

@@ -3,13 +3,13 @@ using System.Windows.Forms;
 
 namespace ASTA
 {
-    static class Program
+    internal static class Program
     {
         /// <summary>
         /// Главная точка входа для приложения.
         /// </summary>
         [STAThread]
-        static void Main()
+        private static void Main()
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
@@ -33,7 +33,6 @@ namespace ASTA
             {
                 if (!mutex.WaitOne(0, false))
                 {
-
                     //writing info about attempt to run another copy of the application
                     logger.Warn("Попытка запуска второй копии программы");
                     System.Threading.Tasks.Task.Run(() => MessageBox.Show("Программа уже запущена. Попытка запуска второй копии программы"));

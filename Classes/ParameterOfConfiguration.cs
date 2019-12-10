@@ -1,9 +1,8 @@
-﻿using System;
+﻿using ASTA.Classes.Security;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
-
-using ASTA.Classes.Security;
 
 namespace ASTA.Classes
 {
@@ -33,6 +32,7 @@ namespace ASTA.Classes
 
             return ToString() == df.ToString();
         }
+
         public override int GetHashCode()
         {
             return ToString().GetHashCode();
@@ -83,26 +83,31 @@ namespace ASTA.Classes
         {
             _parameterOfConfiguration = new ParameterOfConfiguration();
         }
+
         public ParameterOfConfigurationBuilder SetName(string name)
         {
             _parameterOfConfiguration.name = name;
             return this;
         }
+
         public ParameterOfConfigurationBuilder SetValue(string name)
         {
             _parameterOfConfiguration.value = name;
             return this;
         }
+
         public ParameterOfConfigurationBuilder SetDescription(string name)
         {
             _parameterOfConfiguration.description = name;
             return this;
         }
+
         public ParameterOfConfigurationBuilder SetIsExample(string name)
         {
             _parameterOfConfiguration.isExample = name;
             return this;
         }
+
         public ParameterOfConfigurationBuilder SetIsSecret(bool state)
         {
             _parameterOfConfiguration.isSecret = state;
@@ -119,8 +124,6 @@ namespace ASTA.Classes
             return this;
         }
 
-
-
         public static implicit operator ParameterOfConfiguration(ParameterOfConfigurationBuilder parameter)
         {
             return parameter._parameterOfConfiguration;
@@ -129,14 +132,15 @@ namespace ASTA.Classes
 
     internal class ConfigurationOfASTA
     {
-        ParameterOfConfiguration _parameterOfConfiguration;
-        System.IO.FileInfo _databasePerson;
+        private ParameterOfConfiguration _parameterOfConfiguration;
+        private System.IO.FileInfo _databasePerson;
 
         public delegate void Status(object sender, TextEventArgs e);
+
         public event Status status;
 
-        readonly byte[] keyEncryption = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
-        readonly byte[] keyDencryption = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
+        private readonly byte[] keyEncryption = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
+        private readonly byte[] keyDencryption = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
 
         internal ConfigurationOfASTA(System.IO.FileInfo fileinfoOfMainDB)
         {
@@ -192,7 +196,6 @@ namespace ASTA.Classes
             {
                 return _parameterOfConfiguration.name + " - wasn't saved!\nDB: " + _databasePerson.ToString() + " is not exist!";
             }
-
         }
 
         internal List<ParameterConfig> GetParameters(string parameter)

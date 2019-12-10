@@ -1,9 +1,7 @@
-﻿using System;
-
-namespace ASTA.Classes
+﻿namespace ASTA.Classes
 {
     //todo replace
-    //using:         
+    //using:
     //class TestTimeConvertor
     //{
     //    public void testConvertor()
@@ -17,14 +15,14 @@ namespace ASTA.Classes
     //    }
     //}
 
-    class TimeStore
+    internal class TimeStore
     {
         public int Hours { get; set; }
         public int Minutes { get; set; }
         public int Seconds { get; set; }
     }
 
-    class TimeConvertor
+    internal class TimeConvertor
     {
         public int Seconds { get; set; }
 
@@ -32,16 +30,19 @@ namespace ASTA.Classes
         {
             return new TimeConvertor { Seconds = x };
         }
+
         public static explicit operator int(TimeConvertor timeConvertor)
         {
             return timeConvertor.Seconds;
         }
+
         public static explicit operator TimeConvertor(TimeStore timer)
         {
             int h = timer.Hours * 3600;
             int m = timer.Minutes * 60;
             return new TimeConvertor { Seconds = h + m + timer.Seconds };
         }
+
         public static implicit operator TimeStore(TimeConvertor timeConvertor)
         {
             int h = timeConvertor.Seconds / 3600;
@@ -50,5 +51,4 @@ namespace ASTA.Classes
             return new TimeStore { Hours = h, Minutes = m, Seconds = s };
         }
     }
-
 }

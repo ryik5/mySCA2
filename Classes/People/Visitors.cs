@@ -5,13 +5,13 @@ using System.Linq;
 
 namespace ASTA.Classes.People
 {
-    public class Visitors :INotifyPropertyChanged, IEnumerable
+    public class Visitors : INotifyPropertyChanged, IEnumerable
     {
-
         private Visitor visitor;
         public ObservableRangeCollection<Visitor> collection;
-        
+
         public event PropertyChangedEventHandler PropertyChanged;
+
         public void OnPropertyChanged(string prop)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
@@ -55,8 +55,8 @@ namespace ASTA.Classes.People
         {
             if (visitors?.Count > 0)
             {
-                    collection.AddRange(visitors);
-                    OnPropertyChanged("Visitor");
+                collection.AddRange(visitors);
+                OnPropertyChanged("Visitor");
             }
         }
 

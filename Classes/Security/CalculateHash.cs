@@ -5,13 +5,14 @@ namespace ASTA.Classes.Security
 {
     internal class CalculatorHash
     {
-        private  string FilName{ get; set; }
+        private string FilName { get; set; }
+
         public CalculatorHash(string filename)
         {
             FilName = filename;
         }
 
-        public  string Calculate(string algorithm = "MD5") //MD5, SHA1, SHA256, SHA384, SHA512
+        public string Calculate(string algorithm = "MD5") //MD5, SHA1, SHA256, SHA384, SHA512
         {
             string fileChecksum = null;
             using (var hashAlgorithm = HashAlgorithm.Create(algorithm))
@@ -74,6 +75,5 @@ namespace ASTA.Classes.Security
                     bool result = CompareChecksum(filePath, myFileHash);
                     MessageBox.Show("Result of evaluation of checking\n"+ result);
                 }*/
-
     }
 }

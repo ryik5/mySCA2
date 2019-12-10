@@ -6,6 +6,7 @@ namespace ASTA.Classes
     public class DbColumn
     {
         #region Overrided Methods
+
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(this, obj))
@@ -71,9 +72,11 @@ namespace ASTA.Classes
                     (_collation != null ? (" COLLATE " + _collation) : string.Empty);
             }
         }
-        #endregion
+
+        #endregion Overrided Methods
 
         #region Public Properties
+
         /// <summary>
         /// Get/Set the column name of the column.
         /// </summary>
@@ -173,9 +176,11 @@ namespace ASTA.Classes
             get { return _isUnique; }
             set { _isUnique = value; }
         }
-        #endregion
+
+        #endregion Public Properties
 
         #region Private Methods
+
         private string GetDefaultValueString()
         {
             if (_defaultFunction != null)
@@ -258,10 +263,11 @@ namespace ASTA.Classes
             else
                 return stype;
         }
-        #endregion
 
+        #endregion Private Methods
 
         #region Private Variables
+
         private int _size = -1;
         private int _precision = -1;
         private DbType _dbType;
@@ -273,6 +279,7 @@ namespace ASTA.Classes
         private bool _isUnique;
         private string _defaultFunction;
         private bool _isAutoIncrement;
-        #endregion
+
+        #endregion Private Variables
     }
 }

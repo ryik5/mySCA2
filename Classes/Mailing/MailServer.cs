@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace ASTA.Classes
+﻿namespace ASTA.Classes
 {
-   sealed class MailServer
+    internal sealed class MailServer
     {
         private int _mailServerPort = -1;
         private string _mailServerName;
@@ -15,18 +13,22 @@ namespace ASTA.Classes
             _mailServerPort = port;
             _mailServerName = name;
         }
+
         public void SetName(string name)
         {
             _mailServerName = name;
         }
+
         public void SetPort(int port)
         {
             _mailServerPort = port;
         }
+
         public string GetName()
         {
             return _mailServerName;
         }
+
         public int GetPort()
         {
             return _mailServerPort;
@@ -42,7 +44,7 @@ namespace ASTA.Classes
             if (obj == null || !(obj is MailServer))
                 return false;
 
-            var df = (MailServer) obj;
+            var df = (MailServer)obj;
             if (df == null)
                 return false;
 
@@ -54,5 +56,4 @@ namespace ASTA.Classes
             return ToString().GetHashCode();
         }
     }
-
 }

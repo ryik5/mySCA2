@@ -4,19 +4,19 @@ using System.Data;
 namespace ASTA.Classes
 {
     //SQL
-    class SqlDbReader : IDisposable
+    internal class SqlDbReader : IDisposable
     {
-        System.Data.SqlClient.SqlConnection sqlConnection;
-        System.Data.SqlClient.SqlCommand sqlCommand;
-        static string _dbConnectionString;
+        private System.Data.SqlClient.SqlConnection sqlConnection;
+        private System.Data.SqlClient.SqlCommand sqlCommand;
+        private static string _dbConnectionString;
 
         public delegate void Message(object sender, TextEventArgs e);
+
         public event Message Status;
 
         public SqlDbReader(string dbConnectionString)
         {
             _dbConnectionString = dbConnectionString;
-
         }
 
         private void CheckDB(string dbConnectionString)
@@ -50,6 +50,7 @@ namespace ASTA.Classes
         }
 
         #region IDisposable Support
+
         private bool disposedValue = false; // To detect redundant calls
 
         private void Dispose(bool disposing)
@@ -89,18 +90,21 @@ namespace ASTA.Classes
             // TODO: uncomment the following line if the finalizer is overridden above.
             // GC.SuppressFinalize(this);
         }
-        #endregion
+
+        #endregion IDisposable Support
     }
 
-
     //MySQL
-    class MySqlDbReader : IDisposable
+    internal class MySqlDbReader : IDisposable
     {
-        MySql.Data.MySqlClient.MySqlConnection sqlConnection;
-        MySql.Data.MySqlClient.MySqlCommand sqlCommand;
+        private MySql.Data.MySqlClient.MySqlConnection sqlConnection;
+        private MySql.Data.MySqlClient.MySqlCommand sqlCommand;
+
         public delegate void Message(object sender, TextEventArgs e);
+
         public event Message Status;
-        string _dbConnectionString;
+
+        private string _dbConnectionString;
 
         public MySqlDbReader(string dbConnectionString)
         {
@@ -154,6 +158,7 @@ namespace ASTA.Classes
         }
 
         #region IDisposable Support
+
         private bool disposedValue = false; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)
@@ -192,9 +197,9 @@ namespace ASTA.Classes
             // TODO: uncomment the following line if the finalizer is overridden above.
             // GC.SuppressFinalize(this);
         }
-        #endregion
-    }
 
+        #endregion IDisposable Support
+    }
 
     //SQLite
     public abstract class SQLiteDbAbstract : IDisposable
@@ -203,7 +208,7 @@ namespace ASTA.Classes
 
         public System.Data.SQLite.SQLiteConnection sqlConnection;
         public System.Data.SQLite.SQLiteCommand sqlCommand;
-        string _dbConnectionString;
+        private string _dbConnectionString;
 
         protected SQLiteDbAbstract(string dbConnectionString, System.IO.FileInfo dbFileInfo)
         {
@@ -241,6 +246,7 @@ namespace ASTA.Classes
         }
 
         #region IDisposable Support
+
         private bool disposedValue = false; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)
@@ -279,7 +285,8 @@ namespace ASTA.Classes
             // TODO: uncomment the following line if the finalizer is overridden above.
             // GC.SuppressFinalize(this);
         }
-        #endregion
+
+        #endregion IDisposable Support
     }
 
     internal class SqLiteDbWrapper : SQLiteDbAbstract, IDisposable

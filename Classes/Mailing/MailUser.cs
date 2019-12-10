@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace ASTA.Classes
+﻿namespace ASTA.Classes
 {
-    class MailUser
+    internal class MailUser
     {
         private MailUser _mailUser;
         private string _email;
@@ -27,6 +25,7 @@ namespace ASTA.Classes
         {
             return _mailUser?._name;
         }
+
         public string GetEmail()
         {
             return _mailUser?._email;
@@ -46,6 +45,7 @@ namespace ASTA.Classes
                 };
             }
         }
+
         public void SetEmail(string email)
         {
             if (_mailUser != null)

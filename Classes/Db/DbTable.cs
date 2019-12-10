@@ -9,6 +9,7 @@ namespace ASTA.Classes
     public class DbTable
     {
         #region Overrided Methods
+
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(this, obj))
@@ -52,9 +53,11 @@ namespace ASTA.Classes
         {
             return GetCreateTableStatement(_tableName);
         }
-        #endregion
+
+        #endregion Overrided Methods
 
         #region Public Methods
+
         /// <summary>
         /// Returns a CREATE TABLE DDL statement with the specified table name.
         /// </summary>
@@ -74,9 +77,11 @@ namespace ASTA.Classes
                     GetPrimaryKeySection(_primaryKeys) + ");\r\n";
             }
         }
-        #endregion
+
+        #endregion Public Methods
 
         #region Public Properties
+
         /// <summary>
         /// The table name
         /// </summary>
@@ -112,9 +117,11 @@ namespace ASTA.Classes
             get { return _primaryKeys; }
             set { _primaryKeys = value; }
         }
-        #endregion
+
+        #endregion Public Properties
 
         #region Private Methods
+
         private string GetColumnStatements(List<DbColumn> columns)
         {
             Dictionary<string, DbColumn> mcols = new Dictionary<string, DbColumn>();
@@ -158,12 +165,14 @@ namespace ASTA.Classes
             return sb.ToString();
         }
 
-        #endregion
+        #endregion Private Methods
 
         #region Private Variables
+
         private string _tableName;
         private List<DbColumn> _columns;
         private Dictionary<string, DbColumn> _primaryKeys;
-        #endregion
+
+        #endregion Private Variables
     }
 }

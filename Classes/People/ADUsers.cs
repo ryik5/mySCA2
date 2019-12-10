@@ -1,27 +1,28 @@
 ﻿//Reference: System.DirectoryServices.AccountManagement
-using System.DirectoryServices.AccountManagement;
 using System;
-using System.Linq;
-using System.Collections.ObjectModel;
-using System.DirectoryServices;
 using System.Collections.Generic;
+using System.DirectoryServices;
+using System.DirectoryServices.AccountManagement;
+using System.Linq;
 
 namespace ASTA.Classes.People
 {
     public class ADUsers
     {
-        IADUser adUser;
+        private IADUser adUser;
         public List<ADUserFullAccount> ADUsersCollection;
 
         public delegate void Status<T>(object obj, T data);
+
         public event Status<TextEventArgs> Trace;
+
         public event Status<TextEventArgs> Info;
 
         public ADUsers(IADUser user)
         {
             adUser = user;
-             Trace?.Invoke(this, new TextEventArgs(
-                $"ADData, Domain Controller: {adUser.DomainControllerPath}, login: { adUser.Login}, password: {adUser.Password}, domain: {adUser.Domain}"));
+            Trace?.Invoke(this, new TextEventArgs(
+               $"ADData, Domain Controller: {adUser.DomainControllerPath}, login: { adUser.Login}, password: {adUser.Password}, domain: {adUser.Domain}"));
             // isValid = ValidateCredentials(_ADUserAuthorization);       // it sometimes doesn't work correctly
         }
 
@@ -87,7 +88,7 @@ namespace ASTA.Classes.People
                                     if (_login?.Length > 0 &&       //user's info must be had a login
                                         _mail.Contains("@") &&      //user's info must be had an email
                                         _code?.Length > 0 &&        //user's info must be had a code
-                                        !_stateAccount.Contains("ACCOUNTDISABLE") && //a disabled account do not write in the collection 
+                                        !_stateAccount.Contains("ACCOUNTDISABLE") && //a disabled account do not write in the collection
                                       (!_decription.Contains("dismiss") || !_decription.Contains("fwd"))//object.Equals(_decription,
                                       )
                                     {
@@ -147,7 +148,6 @@ namespace ASTA.Classes.People
             return ADUsersCollection;
         }
 
-
         /*class NativeMethods*/
         /*
         // it sometimes doesn't work correctly
@@ -170,7 +170,9 @@ namespace ASTA.Classes.People
     [DirectoryObjectClass("user")]
     public class UserPrincipalExtended : UserPrincipal
     {
-        public UserPrincipalExtended(PrincipalContext context) : base(context) { }
+        public UserPrincipalExtended(PrincipalContext context) : base(context)
+        {
+        }
 
         public UserPrincipalExtended(PrincipalContext
             context,
@@ -198,6 +200,7 @@ namespace ASTA.Classes.People
         }
 
         //additional(Extended) properties
+
         #region custom attributes
 
         [DirectoryProperty("RealLastLogon")]
@@ -318,31 +321,30 @@ namespace ASTA.Classes.People
             }
         }
 
-        #endregion
-
-
+        #endregion custom attributes
     }
 
     public class UACAccountState
     {
         // existed acc.states in the string and digital forms
-        const int DONT_EXPIRE_PASSWORD = 65536;
-        const int NORMAL_ACCOUNT = 512;
-        const int PASSWD_CANT_CHANGE = 64;
-        const int PASSWD_NOTREQD = 32;
-        const int LOCKOUT = 16;
-        const int HOMEDIR_REQUIRED = 8;
-        const int ACCOUNTDISABLE = 2;
-        const int NOPE = 0;
+        private const int DONT_EXPIRE_PASSWORD = 65536;
 
-        System.Collections.Generic.Dictionary<int, string> dicOfUACs;//dictionary with all of existed acc.states in the digital and string forms
-        static int[] statesUAC; //all of existed acc.states in the digital forms
-        int shiftStart; //next position in digital form to calculate acc.states
-        int sumOfUACStates; //sum all of existed acc.states
-        int numberOfUACStates; //number all of existed acc.states
-        int indexOfFoundState; //index of last found acc.state
-        int _flag; //sum of UAC states of Person's account in AD
-        static string _result; //decomposition information of Account states
+        private const int NORMAL_ACCOUNT = 512;
+        private const int PASSWD_CANT_CHANGE = 64;
+        private const int PASSWD_NOTREQD = 32;
+        private const int LOCKOUT = 16;
+        private const int HOMEDIR_REQUIRED = 8;
+        private const int ACCOUNTDISABLE = 2;
+        private const int NOPE = 0;
+
+        private System.Collections.Generic.Dictionary<int, string> dicOfUACs;//dictionary with all of existed acc.states in the digital and string forms
+        private static int[] statesUAC; //all of existed acc.states in the digital forms
+        private int shiftStart; //next position in digital form to calculate acc.states
+        private int sumOfUACStates; //sum all of existed acc.states
+        private int numberOfUACStates; //number all of existed acc.states
+        private int indexOfFoundState; //index of last found acc.state
+        private int _flag; //sum of UAC states of Person's account in AD
+        private static string _result; //decomposition information of Account states
 
         public UACAccountState(int sumOfStates)
         {
@@ -403,5 +405,4 @@ namespace ASTA.Classes.People
                 return _result;
         }
     }
-
 }

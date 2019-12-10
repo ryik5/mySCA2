@@ -2,9 +2,9 @@
 
 namespace ASTA.Classes
 {
-  public static class CompareTwoStrings
+    public static class CompareTwoStrings
     {
-         public static int Compare(string a, string b)
+        public static int Compare(string a, string b)
         {
             string[] words = { a, b };
             Array.Sort(words);

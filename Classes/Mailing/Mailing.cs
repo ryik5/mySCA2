@@ -46,15 +46,14 @@ namespace ASTA.Classes
 
     internal class DaysWhenSendReports
     {
-        DaysOfSendingMail daysOfSendingMail;
+        private DaysOfSendingMail daysOfSendingMail;
 
         public DaysWhenSendReports(string[] workDays, int ShiftDaysBackOfSendingFromLastWorkDay, int lastDayInMonth)
         {
             SetDaysWhenToSend(workDays, ShiftDaysBackOfSendingFromLastWorkDay, lastDayInMonth);
         }
 
-
-        void SetDaysWhenToSend(string[] workDays, int ShiftDaysBackOfSendingFromLastWorkDay, int lastDayInMonth)
+        private void SetDaysWhenToSend(string[] workDays, int ShiftDaysBackOfSendingFromLastWorkDay, int lastDayInMonth)
         {
             daysOfSendingMail = new DaysOfSendingMail
             {
@@ -82,7 +81,7 @@ namespace ASTA.Classes
 
         public DaysOfSendingMail GetDays()
         {
-            return  daysOfSendingMail;
+            return daysOfSendingMail;
         }
     }
 }

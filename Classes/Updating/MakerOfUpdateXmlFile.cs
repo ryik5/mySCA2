@@ -6,13 +6,17 @@ using System.Xml.Serialization;
 
 namespace ASTA.Classes.Updating
 {
-    public class MakerOfUpdateXmlFile:IMakeable
+    public class MakerOfUpdateXmlFile : IMakeable
     {
-        IParameters _parameters { get; set; }
+        private IParameters _parameters { get; set; }
 
         public delegate void Status(object sender, TextEventArgs e);
+
         public event Status status;
-        public MakerOfUpdateXmlFile() { }
+
+        public MakerOfUpdateXmlFile()
+        {
+        }
 
         public MakerOfUpdateXmlFile(UpdatingParameters parameters)
         {
@@ -49,7 +53,7 @@ namespace ASTA.Classes.Updating
 
             XMLDocument document = new XMLDocument();
             document.version = _parameters.GetParameters().appVersion;
-            document.url = _parameters.GetParameters().appUpdateFolderURL+ _parameters.GetParameters().appFileZip;
+            document.url = _parameters.GetParameters().appUpdateFolderURL + _parameters.GetParameters().appFileZip;
 
             if (_parameters.GetParameters().appUpdateMD5 != null)
             {
@@ -127,9 +131,9 @@ namespace ASTA.Classes.Updating
             checksum.Attributes.Append(algorithm);
             checksum.AppendChild(checksumText);
             item.AppendChild(checksum);
-                        
+
           // <changelog>https://github.com/ravibpatel/AutoUpdater.NET/releases</changelog>
-          // <checksum algorithm="MD5">Update file Checksum</checksum>           
+          // <checksum algorithm="MD5">Update file Checksum</checksum>
 
             doc.Save(appNameXML);
         }
@@ -137,12 +141,13 @@ namespace ASTA.Classes.Updating
     }
 
     [XmlRoot(ElementName = "item", IsNullable = false)]
-    public class XMLDocument //Класс должен иметь модификатор public 
+    public class XMLDocument //Класс должен иметь модификатор public
     {
-        //Класс для сериализации должен иметь стандартный конструктор без параметров. 
-        //поля или свойства с модификатором private, при сериализации будут игнорироваться. 
+        //Класс для сериализации должен иметь стандартный конструктор без параметров.
+        //поля или свойства с модификатором private, при сериализации будут игнорироваться.
         [XmlElement]
         public string version { get; set; }
+
         public string url { get; set; }
         public string changelogUrl { get; set; }
         public XMLElementChecksum checksum { get; set; }
@@ -153,10 +158,10 @@ namespace ASTA.Classes.Updating
         }
     }
 
-    public class XMLElementChecksum //Класс должен иметь модификатор public 
+    public class XMLElementChecksum //Класс должен иметь модификатор public
     {
-        //Класс для сериализации должен иметь стандартный конструктор без параметров. 
-        //поля или свойства с модификатором private, при сериализации будут игнорироваться. 
+        //Класс для сериализации должен иметь стандартный конструктор без параметров.
+        //поля или свойства с модификатором private, при сериализации будут игнорироваться.
         [XmlText]
         public string value { get; set; }
 

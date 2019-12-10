@@ -8,14 +8,17 @@ namespace ASTA.Classes
     public class DbUpgradeException : Exception
     {
         #region Constructors
+
         private DbUpgradeException(DbUpgradeError error, params object[] args)
         {
             _error = error;
             _args = args;
         }
-        #endregion
+
+        #endregion Constructors
 
         #region Static Public Methods
+
         /// <summary>
         /// Create an unrecognized schema exception
         /// </summary>
@@ -45,7 +48,7 @@ namespace ASTA.Classes
         }
 
         /// <summary>
-        /// Creates a SCHEMA NOT SUPPORTED error to indicate that the 
+        /// Creates a SCHEMA NOT SUPPORTED error to indicate that the
         /// schema contains DB structures that the upgrader does not have
         /// support for them.
         /// </summary>
@@ -105,9 +108,10 @@ namespace ASTA.Classes
             return new DbUpgradeException(DbUpgradeError.CantAutoUpgradeATableWhenNotAllNewColumnsHaveDefaultValue, tableName);
         }
 
-        #endregion
+        #endregion Static Public Methods
 
         #region Public Properties
+
         /// <summary>
         /// Return the error enumeration value
         /// </summary>
@@ -123,12 +127,15 @@ namespace ASTA.Classes
         {
             get { return _args; }
         }
-        #endregion
+
+        #endregion Public Properties
 
         #region Private Variabless
+
         private DbUpgradeError _error;
         private object[] _args;
-        #endregion
+
+        #endregion Private Variabless
     }
 
     /// <summary>
@@ -142,7 +149,7 @@ namespace ASTA.Classes
         None = 0,
 
         /// <summary>
-        /// Occurs when the upgrader object FROM schema is the same as 
+        /// Occurs when the upgrader object FROM schema is the same as
         /// the upgrader TO schema.
         /// </summary>
         UpgraderObjectSchemasAreInvalid = 1,
@@ -188,5 +195,4 @@ namespace ASTA.Classes
         /// </summary>
         CantAutoUpgradeATableWhenNotAllNewColumnsHaveDefaultValue = 9,
     }
-
 }

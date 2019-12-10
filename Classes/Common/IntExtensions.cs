@@ -2,7 +2,7 @@
 
 namespace ASTA.Classes
 {
-    static class IntExtensions
+    internal static class IntExtensions
     {
         /// <summary>
         /// Convert seconds into string 'hh:MM:ss'

@@ -2,25 +2,26 @@
 
 namespace ASTA.Classes
 {
-    interface IStartStopTimer
+    internal interface IStartStopTimer
     {
         void WaitTime();
+
         string GetTime();
     }
 
-    class StartStopTimer : IStartStopTimer
+    internal class StartStopTimer : IStartStopTimer
     {
-        int _seconds = 0;
-        string _sizeTime;
-        string time1 = "";
-        string time2 = "";
+        private int _seconds = 0;
+        private string _sizeTime;
+        private string time1 = "";
+        private string time2 = "";
 
         /// <summary>
         /// if sizeTime="seconds" then sizeTime is milliseconds
         /// </summary>
         /// <param name="seconds"></param>
         /// <param name="sizeTime"></param>
-        public StartStopTimer(int seconds, string sizeTime="seconds")
+        public StartStopTimer(int seconds, string sizeTime = "seconds")
         {
             _seconds = seconds;
             _sizeTime = sizeTime;
@@ -40,13 +41,13 @@ namespace ASTA.Classes
 
         private void WaitSeconds(int seconds) //high precision timer
         {
-            int interval= 10000;
+            int interval = 10000;
             //No need to risk overflowing an int
             //No need to count iterations, just set them
             //Really need to account for CPU speed, etc. though, as a
             //CPU twice as fast runs this loop twice as many times,
             //while a slow one may greatly overshoot the desired time
-            //interval. Iterations too high = overshoot, too low = excessive overhead 
+            //interval. Iterations too high = overshoot, too low = excessive overhead
 
             var swt = new System.Threading.SpinWait();
             if (_sizeTime != "seconds")
@@ -66,7 +67,6 @@ namespace ASTA.Classes
                  int num = 0;
             Int32.TryParse(textBoxGroup.Text, out num);
             Task.Run(() => MessageBox.Show("seconds: " + num + "\nfrequencies: " + System.Diagnostics.Stopwatch.Frequency.ToString()));
-
 
             IStartStopTimer startStopTimerA = new StartStopTimerA(num);
 
@@ -88,14 +88,14 @@ namespace ASTA.Classes
          */
 
     /*
-// SetUpTimer(new TimeSpan(1, 1, 0, 0)); //runs on 1st at 1:00:00 
+// SetUpTimer(new TimeSpan(1, 1, 0, 0)); //runs on 1st at 1:00:00
 private void SetUpTimer(TimeSpan alertTime)
 {
 DateTime current = DateTime.Now;
 TimeSpan timeToGo = alertTime - current.TimeOfDay;
 if (timeToGo < TimeSpan.Zero)
 {
-    return;//time already passed 
+    return;//time already passed
 }
 timer = new System.Threading.Timer(x =>
  {
@@ -103,7 +103,6 @@ timer = new System.Threading.Timer(x =>
  }, null, timeToGo, System.Threading.Timeout.InfiniteTimeSpan);
 }
 */
-
 
     /*
 string stime1 = "18:40";

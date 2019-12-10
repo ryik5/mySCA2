@@ -3,8 +3,7 @@ using System.Collections.Generic;
 
 namespace ASTA.Classes.People
 {
-
-    public class Visitor :  IComparable<Visitor>//,  INotifyPropertyChanged
+    public class Visitor : IComparable<Visitor>//,  INotifyPropertyChanged
     {
         public string fio { get; set; }
 
@@ -14,7 +13,11 @@ namespace ASTA.Classes.People
         public string action { get; set; }  //результат попытки прохода  ResultOfAttemptToPass
 
         public SideOfPassagePoint sideOfPassagePoint { get; set; }  //card reader name or id one   CardReaderName
-        public Visitor()  { }
+
+        public Visitor()
+        {
+        }
+
         public Visitor(string _fio, string _idCard, string _date, string _time, string _action, SideOfPassagePoint _sideOfPassagePoint)
         {
             fio = _fio;
@@ -74,5 +77,4 @@ namespace ASTA.Classes.People
             return CompareTwoStrings.Compare(a, b);
         }
     }
-
 }

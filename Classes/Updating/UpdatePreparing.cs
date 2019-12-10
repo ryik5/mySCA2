@@ -2,11 +2,12 @@
 {
     public class UpdatePreparing
     {
-        IMakeable _makerLinks;
-        IMakeable _makerXml;
-        UpdatingParameters _parameters { set; get; }
+        private IMakeable _makerLinks;
+        private IMakeable _makerXml;
+        private UpdatingParameters _parameters { set; get; }
 
         public delegate void Status(object sender, TextEventArgs e);
+
         public event Status status;
 
         public UpdatePreparing(IMakeable makerLinks, IMakeable makerXml, UpdatingParameters parameters)
@@ -29,6 +30,7 @@
 
             status?.Invoke(this, new TextEventArgs("Обновление для отправки на сервер подготовлено..."));
         }
+
         public UpdatingParameters GetParameters()
         {
             return new UpdatingParameters(_parameters);

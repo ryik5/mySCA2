@@ -22,6 +22,7 @@ namespace ASTA.Classes
                 source,
                 Encoding.GetEncoding(1251));
         }
+
         internal static void AppendAtFile(this string source, string filePath)
         {
             File.AppendAllText(
@@ -37,6 +38,7 @@ namespace ASTA.Classes
                 listStrings,
                 Encoding.GetEncoding(1251));
         }
+
         internal static void AppendAtFile(this List<string> listStrings, string filePath)
         {
             File.AppendAllLines(

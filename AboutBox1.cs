@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Windows.Forms;
 using System.Linq;
-
+using System.Windows.Forms;
 
 namespace ASTA
 {
@@ -22,8 +21,8 @@ namespace ASTA
             // string ver3 = Application.ProductVersion;
 
             Text = $"{"О программе:",-14}{fileVersionInfo.ProductName}";
-            labelProductName.Text = $"{"Название:",-14}{fileVersionInfo.Comments}" ;
-            labelVersion.Text = $"{"Версия:",-14}{ver1,0} ({fileVersionInfo.FileVersion,0})" ;
+            labelProductName.Text = $"{"Название:",-14}{fileVersionInfo.Comments}";
+            labelVersion.Text = $"{"Версия:",-14}{ver1,0} ({fileVersionInfo.FileVersion,0})";
             labelCopyright.Text = $"{"Разработчик:",-14}{fileVersionInfo.LegalCopyright}";
             labelPath.Text = $"{"Полный путь:",-14}{Application.ExecutablePath}";
             labelFile.Text = $"{"Имя файла:",-14}{fileVersionInfo.OriginalFilename}";

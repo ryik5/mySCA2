@@ -1,44 +1,49 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.Threading.Tasks;
 using System.Diagnostics.Contracts;
 using System.IO.Abstractions;
+using System.Threading.Tasks;
 
 namespace ASTA.Classes.Updating
 {
     public class Uploader : IDisposable
     {
         public delegate void Info<TextEventArgs>(object sender, TextEventArgs e);
+
         public event Info<TextEventArgs> StatusText;
 
         public delegate void MarkerOfUploading(object sender, ColorEventArgs e);
+
         public event MarkerOfUploading StatusColor;
-        string messageOfErrorUploading = null;
+
+        private string messageOfErrorUploading = null;
 
         public delegate void Uploaded(object sender, BoolEventArgs e);
+
         public event Uploaded StatusFinishedUploading;
 
-        readonly IFileSystem fileSystem;
-        List<System.IO.Abstractions.IFileInfo> _sourceList;
-        List<System.IO.Abstractions.IFileInfo> _targetList;
-        FilePathSourceAndTarget[] _couples;
+        private readonly IFileSystem fileSystem;
+        private List<System.IO.Abstractions.IFileInfo> _sourceList;
+        private List<System.IO.Abstractions.IFileInfo> _targetList;
+        private FilePathSourceAndTarget[] _couples;
 
         private bool uploadingError = false;
-        UpdatingParameters _parameters { get; set; }
-        
+        private UpdatingParameters _parameters { get; set; }
 
-        public Uploader(IFileSystem fileSystem) { this.fileSystem = fileSystem; }
+        public Uploader(IFileSystem fileSystem)
+        {
+            this.fileSystem = fileSystem;
+        }
 
         //public Uploader(UpdatingParameters parameters, string[] source, string[] target) : this(fileSystem: new FileSystem())     //use default implementation which calls System.IO
         public Uploader(
-            UpdatingParameters parameters, 
-            List<System.IO.Abstractions.IFileInfo> source, 
+            UpdatingParameters parameters,
+            List<System.IO.Abstractions.IFileInfo> source,
             List<System.IO.Abstractions.IFileInfo> target) : this(fileSystem: new FileSystem())     //use default implementation which calls System.IO
         {
             StatusText?.Invoke(this, new TextEventArgs(""));
             _parameters = parameters;
-            
+
             _sourceList = source;
             _targetList = target;
         }
@@ -49,7 +54,7 @@ namespace ASTA.Classes.Updating
             StatusColor?.Invoke(this, new ColorEventArgs(System.Drawing.SystemColors.Control));
             uploadingError = false;
 
-            Contract.Requires(_parameters!=null);
+            Contract.Requires(_parameters != null);
             Contract.Requires(!string.IsNullOrWhiteSpace(_parameters.localFolderUpdatingURL));
             Contract.Requires(!string.IsNullOrWhiteSpace(_parameters.appUpdateFolderURI));
             Contract.Requires(!string.IsNullOrWhiteSpace(_parameters.appFileZip));
@@ -66,7 +71,6 @@ namespace ASTA.Classes.Updating
                      await UploadFileToShare(file);
                  });
              }).Wait();
-
 
             // -= InvokeAsync =-
             //  Func<Task>[] tasks = MakeFuncTask(_couples);
@@ -123,12 +127,12 @@ namespace ASTA.Classes.Updating
             {
                 // var fileByte = System.IO.File.ReadAllBytes(source);
                 // System.IO.File.WriteAllBytes(target, fileByte);
-                try 
-                { 
+                try
+                {
                     await Task.Run(() => target.Delete());
                     StatusText?.Invoke(this, new TextEventArgs($"Файл {target.FullName} удален успешно"));
                 }
-                catch(Exception err) 
+                catch (Exception err)
                 { StatusText?.Invoke(this, new TextEventArgs($"Файл {target.FullName} удалить не удалось: {err.ToString()}")); } //@"\\server\folder\Myfile.txt"
 
                 await Task.Run(() => fileSystem.File.Copy(source.FullName, target.FullName, true)); //@"\\server\folder\Myfile.txt"
@@ -148,7 +152,7 @@ namespace ASTA.Classes.Updating
                     messageOfErrorUploading += "|" + err.Message;
                 StatusColor?.Invoke(this, new ColorEventArgs(System.Drawing.Color.LightYellow));
             }
-           // Task.WaitAll();
+            // Task.WaitAll();
         }
 
         // -= InvokeAsync =-
@@ -183,6 +187,7 @@ namespace ASTA.Classes.Updating
                }*/
 
         #region IDisposable Support
+
         private bool disposedValue = false; // To detect redundant calls
 
         public void Dispose(bool disposing)
@@ -215,23 +220,24 @@ namespace ASTA.Classes.Updating
             // TODO: uncomment the following line if the finalizer is overridden above.
             GC.SuppressFinalize(this);
         }
-        #endregion
+
+        #endregion IDisposable Support
     }
 
     public class FilePathSourceAndTarget
     {
         public System.IO.Abstractions.IFileInfo _sourcePath { get; set; }
         public System.IO.Abstractions.IFileInfo _targetPath { get; set; }
+
         public FilePathSourceAndTarget Get()
         {
             return new FilePathSourceAndTarget(_sourcePath, _targetPath);
         }
+
         public FilePathSourceAndTarget(System.IO.Abstractions.IFileInfo source, System.IO.Abstractions.IFileInfo target)
         {
             _sourcePath = source;
             _targetPath = target;
         }
     }
-
 }
-

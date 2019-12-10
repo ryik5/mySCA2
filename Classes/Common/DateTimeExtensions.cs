@@ -2,8 +2,7 @@
 
 namespace ASTA.Classes
 {
-
-    static class DateTimeExtensions
+    internal static class DateTimeExtensions
     {
         public static DateTime LastDayOfMonth(this DateTime date)
         {
@@ -24,7 +23,7 @@ namespace ASTA.Classes
         {
             return dateTime.ToMonthName() + " " + dateTime.ToString("yyyy");
         }
-        
+
         public static string ToShortMonthName(this DateTime dateTime)
         {
             return System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(dateTime.Month);
@@ -49,6 +48,7 @@ namespace ASTA.Classes
         {
             return dateTime.ToString("yyyy-MM-dd HH:mm:ss");
         }
+
         public static string ToYYYYMMDDHHMMSSmmm(this DateTime dateTime)
         {
             return dateTime.ToString("yyyy-MM-dd HH:mm:ss.fff");

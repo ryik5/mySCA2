@@ -34,26 +34,36 @@ namespace ASTA.Classes
     {
         [StringLength(50)]
         public string ActionType { get; set; }
+
         [StringLength(50)]
         public string PointName { get; set; }
+
         [StringLength(50)]
         public string ActionDescr { get; set; }
+
         [StringLength(50)]
         public string region_id { get; set; }
+
         [StringLength(255)]
         public string FIO { get; set; }
+
         [StringLength(60)]
         public string IdCard { get; set; }
+
         [StringLength(255)]
         public string param2 { get; set; }
+
         [StringLength(255)]
         public string param3 { get; set; }
+
         public double? user_param_double { get; set; }
         public DateTime? ActionDate { get; set; }
         public DateTime? ActionTime { get; set; }
         public DateTime? ActionTime2 { get; set; }
+
         [StringLength(50)]
         public string ActionRegistrator { get; set; }
+
         [Key]
         public Guid UniqueKey { get; set; }
     }
@@ -64,13 +74,13 @@ namespace ASTA.Classes
     public class ProtocolMap : EntityTypeConfiguration<Protocol>
     {
         public ProtocolMap()
-        {         
-            // Primary key         
+        {
+            // Primary key
             this.HasKey(m => m.UniqueKey);
             this.Property(m => m.UniqueKey)
                 .HasColumnType("uniqueidentifier")
                 .HasDatabaseGeneratedOption(DatabaseGeneratedOption.Identity);
-            // Properties         
+            // Properties
             this.Property(m => m.FIO)
                  .HasColumnType("nvarchar");
             this.Property(m => m.IdCard)
@@ -92,7 +102,7 @@ namespace ASTA.Classes
             this.Ignore(m => m.ActionRegistrator);
             this.Ignore(m => m.region_id);
             this.Ignore(m => m.user_param_double);
-            // Table & column mappings       
+            // Table & column mappings
             this.ToTable("Protocol", "dbo");
             this.Property(m => m.UniqueKey).HasColumnName("pk");
             this.Property(m => m.FIO).HasColumnName("param0");

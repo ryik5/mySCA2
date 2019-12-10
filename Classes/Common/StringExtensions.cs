@@ -3,11 +3,10 @@ using System.Linq;
 
 namespace ASTA.Classes
 {
-    static class StringExtensions
+    internal static class StringExtensions
     {
-
         /// <summary>
-        /// Convert full name to its short form. 
+        /// Convert full name to its short form.
         /// Example: 'Ryabchenko Yuriy Ivanovich' -> 'Ryabchenko Y.I.'
         /// </summary>
         /// <param name="s"></param>
@@ -22,7 +21,6 @@ namespace ASTA.Classes
 
             return sFullNameOnly;
         }
-
 
         /// <summary>
         /// string -> decimal. if string is null  return 0
@@ -39,7 +37,7 @@ namespace ASTA.Classes
         }
 
         /// <summary>
-        /// Convert date-as-string into array  int[] { 1970, 1, 1 }    .  
+        /// Convert date-as-string into array  int[] { 1970, 1, 1 }    .
         /// date-as-string can be written as 'yyyyMMdd' or 'YYYY-MM-DD' or 'YYYY-MM-DD HH:MM' or 'YYYY-MM-DD HH:MM:SS' or 'YYYY-MM-DD HH:MM:SS.mmm'
         /// </summary>
         /// <param name="date"></param>
@@ -90,7 +88,7 @@ namespace ASTA.Classes
         }
 
         /// <summary>
-        /// Convert string' time 'H:M:S' to standart form 'hh:MM:ss'. 
+        /// Convert string' time 'H:M:S' to standart form 'hh:MM:ss'.
         /// </summary>
         /// <param name="time"></param>
         /// <returns></returns>
@@ -122,6 +120,5 @@ namespace ASTA.Classes
             }
             return new int[] { hours, minutes, seconds };
         }
-
     }
 }

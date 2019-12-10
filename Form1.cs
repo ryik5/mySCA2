@@ -1,4 +1,15 @@
-﻿using System;
+﻿//using NLog;
+//Project\Control NuGet\console
+//install-package nlog
+//install-package nlog.config
+
+using ASTA.Classes;
+using ASTA.Classes.People;
+using ASTA.Classes.Security;
+using ASTA.Classes.Updating;
+using AutoUpdaterDotNET; //Updater
+using MimeKit; //Mailing
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data;
@@ -7,23 +18,8 @@ using System.Data.SQLite;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
-//using NLog;
-//Project\Control NuGet\console 
-//install-package nlog
-//install-package nlog.config
-
-
-using ASTA.Classes;
-
-using ASTA.Classes.People;
-using ASTA.Classes.Security;
-using ASTA.Classes.Updating;
-using AutoUpdaterDotNET; //Updater
-using MimeKit; //Mailing
 
 namespace ASTA
 {
@@ -32,31 +28,34 @@ namespace ASTA
         //todo!!!!!!!!!
         //Check of All variables, const and controls
         //they will be needed to Remove if they are not needed
-        DataGridViewOperations dgvo;
+        private DataGridViewOperations dgvo;
 
         //logging
-        readonly static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+        private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+
         // static string method = System.Reflection.MethodBase.GetCurrentMethod().Name;
         // logger.Trace("-= " + method + " =-");
 
         //System settings
-        readonly static string guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения// получаем GIUD приложения
-        readonly static string appVersionAssembly = System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString();//Application.ProductVersion;//
+        private static readonly string guid = System.Runtime.InteropServices.Marshal.GetTypeLibGuidForAssembly(System.Reflection.Assembly.GetExecutingAssembly()).ToString(); // получаем GIUD приложения// получаем GIUD приложения
 
-        readonly static string appCopyright = Application.CompanyName;// appFileVersionInfo.LegalCopyright;
-        readonly static string appName = Application.ProductName;// appFileVersionInfo.ProductName;;
-        readonly static string fileNameToUpdateXML = $"{appName}.xml";
-        readonly static string fileNameToUpdateZip = $"{appName}.zip";
+        private static readonly string appVersionAssembly = System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString();//Application.ProductVersion;//
 
-        readonly static string filePathApp = Application.ExecutablePath;// System.Reflection.Assembly.GetEntryAssembly().Location;// Application.ExecutablePath;
-        readonly static System.Diagnostics.FileVersionInfo appFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(filePathApp);
+        private static readonly string appCopyright = Application.CompanyName;// appFileVersionInfo.LegalCopyright;
+        private static readonly string appName = Application.ProductName;// appFileVersionInfo.ProductName;;
+        private static readonly string fileNameToUpdateXML = $"{appName}.xml";
+        private static readonly string fileNameToUpdateZip = $"{appName}.zip";
 
-        readonly static string localAppFolderPath = Application.StartupPath; //Environment.CurrentDirectory
-        readonly static string pathToQueryToCreateMainDb = System.IO.Path.Combine(localAppFolderPath, $"{appName}.sql"); //System.IO.Path.GetFileNameWithoutExtension(appFilePath)
-        readonly static string appFolderTempPath = System.IO.Path.Combine(localAppFolderPath, "Temp");
-        readonly static string appFolderUpdatePath = System.IO.Path.Combine(localAppFolderPath, "Update");
-        readonly static string appFolderBackUpPath = System.IO.Path.Combine(localAppFolderPath, "Backup");
-        readonly static string[] appAllFiles =  {
+        private static readonly string filePathApp = Application.ExecutablePath;// System.Reflection.Assembly.GetEntryAssembly().Location;// Application.ExecutablePath;
+        private static readonly System.Diagnostics.FileVersionInfo appFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(filePathApp);
+
+        private static readonly string localAppFolderPath = Application.StartupPath; //Environment.CurrentDirectory
+        private static readonly string pathToQueryToCreateMainDb = System.IO.Path.Combine(localAppFolderPath, $"{appName}.sql"); //System.IO.Path.GetFileNameWithoutExtension(appFilePath)
+        private static readonly string appFolderTempPath = System.IO.Path.Combine(localAppFolderPath, "Temp");
+        private static readonly string appFolderUpdatePath = System.IO.Path.Combine(localAppFolderPath, "Update");
+        private static readonly string appFolderBackUpPath = System.IO.Path.Combine(localAppFolderPath, "Backup");
+
+        private static readonly string[] appAllFiles =  {
                 @"ASTA.exe" , @"NLog.config", @"AutoUpdater.NET.dll",
                 @"ASTA.sql", @"Google.Protobuf.dll", @"NLog.dll",
                 @"MySql.Data.dll", @"MySql.Data.dll", @"Renci.SshNet.dll",
@@ -68,188 +67,191 @@ namespace ASTA
                 //Analysing packages
                 @"ASTA.exe.config"
                         };
-        readonly static string appRegistryKey = @"SOFTWARE\RYIK\ASTA";
 
-        readonly static byte[] keyEncryption = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
-        readonly static byte[] keyDencryption = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
+        private static readonly string appRegistryKey = @"SOFTWARE\RYIK\ASTA";
 
-        readonly static System.IO.FileInfo dbApplication = new System.IO.FileInfo(System.IO.Path.Combine(localAppFolderPath, @"main.db"));
-        readonly static string appDbPath = dbApplication.FullName;
-        readonly static string appDbName = System.IO.Path.GetFileName(appDbPath);
+        private static readonly byte[] keyEncryption = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
+        private static readonly byte[] keyDencryption = Convert.FromBase64String(@"NO6GC6Zjl934Eh8MAJWuKQ=="); //Key Decrypt
 
-        readonly static string sqLiteLocalConnectionString = $"Data Source = {appDbPath}; Version=3;"; ////$"Data Source={dbApplication.FullName};Version=3;" ////$"Data Source={dbApplication.FullName};Version=3;"
+        private static readonly System.IO.FileInfo dbApplication = new System.IO.FileInfo(System.IO.Path.Combine(localAppFolderPath, @"main.db"));
+        private static readonly string appDbPath = dbApplication.FullName;
+        private static readonly string appDbName = System.IO.Path.GetFileName(appDbPath);
 
-        static string sqlServerConnectionString;// = "Data Source=" + serverName + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + userName + ";Password=" + userPasswords + "; Connect Timeout=5";
-        static System.Data.Entity.Core.EntityClient.EntityConnectionStringBuilder sqlServerConnectionStringEF;
-        static string mysqlServerConnectionString;//@"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60";
+        private static readonly string sqLiteLocalConnectionString = $"Data Source = {appDbPath}; Version=3;"; ////$"Data Source={dbApplication.FullName};Version=3;" ////$"Data Source={dbApplication.FullName};Version=3;"
 
-        static string remoteFolderUpdateURL; // format - server.domain.subdomain/folder  or   server/folder
+        private static string sqlServerConnectionString;// = "Data Source=" + serverName + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + userName + ";Password=" + userPasswords + "; Connect Timeout=5";
+        private static System.Data.Entity.Core.EntityClient.EntityConnectionStringBuilder sqlServerConnectionStringEF;
+        private static string mysqlServerConnectionString;//@"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60";
 
-        static bool uploadingStatus = false;
-        string appFileMD5;
-        string domain;
+        private static string remoteFolderUpdateURL; // format - server.domain.subdomain/folder  or   server/folder
 
+        private static bool uploadingStatus = false;
+        private string appFileMD5;
+        private string domain;
 
         //todo
         //Все константы в локальную БД
         //todo
         //преобразовать в дикшенери сущностей с дефолтовыми значениями и описаниями параметров
         //  Dictionary<string, ParameterOfConfiguration> config = new Dictionary<string, ParameterOfConfiguration>();
-        static string sLastSelectedElement;
-        static string nameOfLastTable;
-        static string currentAction = "";
-        static bool currentModeAppManual;
+        private static string sLastSelectedElement;
+
+        private static string nameOfLastTable;
+        private static string currentAction = "";
+        private static bool currentModeAppManual;
 
         // taskbar and logo
-        static Bitmap bmpLogo;
-        NotifyIcon notifyIcon;
-        ContextMenu contextMenu;
-        bool buttonAboutForm;
-        static Byte[] byteLogo;
+        private static Bitmap bmpLogo;
 
+        private NotifyIcon notifyIcon;
+        private ContextMenu contextMenu;
+        private bool buttonAboutForm;
+        private static Byte[] byteLogo;
 
         //context Menu on Datagrid
-        ContextMenu mRightClick;
+        private ContextMenu mRightClick;
 
-        int iCounterLine = 0;
+        private int iCounterLine = 0;
 
         //collecting of data
-        static List<Employee> listFIO = new List<Employee>(); // List of FIO and identity of data
+        private static List<Employee> listFIO = new List<Employee>(); // List of FIO and identity of data
 
         //Controls "NumUpDown"
-        decimal numUpHourStart = 9;
-        decimal numUpMinuteStart = 0;
-        decimal numUpHourEnd = 18;
-        decimal numUpMinuteEnd = 0;
+        private decimal numUpHourStart = 9;
 
+        private decimal numUpMinuteStart = 0;
+        private decimal numUpHourEnd = 18;
+        private decimal numUpMinuteEnd = 0;
 
         //View of registrations
-        PictureBox pictureBox1 = new PictureBox();
-        Bitmap bmp = new Bitmap(1, 1);
+        private PictureBox pictureBox1 = new PictureBox();
 
+        private Bitmap bmp = new Bitmap(1, 1);
 
         //reports
-        const int offsetTimeIn = 60;    // смещение времени прихода после учетного, в секундах, в течении которого не учитывается опоздание
-        const int offsetTimeOut = 60;   // смещение времени ухода до учетного, в секундах в течении которого не учитывается ранний уход
-        string[] myBoldedDates;
-        string[] workSelectedDays;
-        static string reportStartDay = "";
-        static string reportLastDay = "";
-        bool reportExcelReady = false;
-        string filePathExcelReport;
+        private const int offsetTimeIn = 60;    // смещение времени прихода после учетного, в секундах, в течении которого не учитывается опоздание
+
+        private const int offsetTimeOut = 60;   // смещение времени ухода до учетного, в секундах в течении которого не учитывается ранний уход
+        private string[] myBoldedDates;
+        private string[] workSelectedDays;
+        private static string reportStartDay = "";
+        private static string reportLastDay = "";
+        private bool reportExcelReady = false;
+        private string filePathExcelReport;
 
         //mailing
-        const string NAME_OF_SENDER_REPORTS = @"Отдел компенсаций и льгот";
-        const string START_OF_MONTH = @"START_OF_MONTH";
-        const string MIDDLE_OF_MONTH = @"MIDDLE_OF_MONTH";
-        const string END_OF_MONTH = @"END_OF_MONTH";
-        static System.Threading.Timer timer;
-        static object synclock = new object();
-        static bool sent = false;
-        static string DEFAULT_DAY_OF_SENDING_REPORT = @"END_OF_MONTH";
-        static int ShiftDaysBackOfSendingFromLastWorkDay = 3; //shift back of sending email before a last working day within the month
+        private const string NAME_OF_SENDER_REPORTS = @"Отдел компенсаций и льгот";
+
+        private const string START_OF_MONTH = @"START_OF_MONTH";
+        private const string MIDDLE_OF_MONTH = @"MIDDLE_OF_MONTH";
+        private const string END_OF_MONTH = @"END_OF_MONTH";
+        private static System.Threading.Timer timer;
+        private static object synclock = new object();
+        private static bool sent = false;
+        private static string DEFAULT_DAY_OF_SENDING_REPORT = @"END_OF_MONTH";
+        private static int ShiftDaysBackOfSendingFromLastWorkDay = 3; //shift back of sending email before a last working day within the month
 
         //Page of Mailing
 
-        Label labelMailServerName;
-        TextBox textBoxMailServerName;
-        Label labelMailServerUserName;
-        TextBox textBoxMailServerUserName;
-        Label labelMailServerUserPassword;
-        TextBox textBoxMailServerUserPassword;
-        static string mailServer = "";
-        static string mailServerDB = "";
-        static int mailServerSMTPPort = 25;
-        static string mailServerSMTPPortDB = "";
-        static string mailSenderAddress = "";
-        static string mailsOfSenderOfNameDB = "";
-        static string mailsOfSenderOfPassword = "";
-        static string mailsOfSenderOfPasswordDB = "";
+        private Label labelMailServerName;
+        private TextBox textBoxMailServerName;
+        private Label labelMailServerUserName;
+        private TextBox textBoxMailServerUserName;
+        private Label labelMailServerUserPassword;
+        private TextBox textBoxMailServerUserPassword;
+        private static string mailServer = "";
+        private static string mailServerDB = "";
+        private static int mailServerSMTPPort = 25;
+        private static string mailServerSMTPPortDB = "";
+        private static string mailSenderAddress = "";
+        private static string mailsOfSenderOfNameDB = "";
+        private static string mailsOfSenderOfPassword = "";
+        private static string mailsOfSenderOfPasswordDB = "";
 
-        static MailServer _mailServer;
-        static MailUser _mailUser;
-        static string mailJobReportsOfNameOfReceiver = ""; //Receiver of job reports
-        static List<Mailing> resultOfSendingReports = new List<Mailing>();
+        private static MailServer _mailServer;
+        private static MailUser _mailUser;
+        private static string mailJobReportsOfNameOfReceiver = ""; //Receiver of job reports
+        private static List<Mailing> resultOfSendingReports = new List<Mailing>();
         //  static System.Net.Mail.LinkedResource mailLogo;
 
-
         //Page of "Settings' Programm"
-        bool bServer1Exist = false;
-        Label labelServer1;
-        TextBox textBoxServer1;
-        Label labelServer1UserName;
-        TextBox textBoxServer1UserName;
-        Label labelServer1UserPassword;
-        TextBox textBoxServer1UserPassword;
-        string sServer1;
-        string sServer1Registry;
-        string sServer1DB;
-        string sServer1UserName;
-        string sServer1UserNameRegistry;
-        string sServer1UserNameDB;
-        string sServer1UserPassword;
-        string sServer1UserPasswordRegistry;
-        string sServer1UserPasswordDB;
+        private bool bServer1Exist = false;
 
-        Label labelmysqlServer;
-        TextBox textBoxmysqlServer;
-        Label labelmysqlServerUserName;
-        TextBox textBoxmysqlServerUserName;
-        Label labelmysqlServerUserPassword;
-        TextBox textBoxmysqlServerUserPassword;
-        static string mysqlServer;
-        static string mysqlServerRegistry;
-        static string mysqlServerDB;
-        static string mysqlServerUserName;
-        static string mysqlServerUserNameRegistry;
-        static string mysqlServerUserNameDB;
-        static string mysqlServerUserPassword;
-        static string mysqlServerUserPasswordRegistry;
-        static string mysqlServerUserPasswordDB;
+        private Label labelServer1;
+        private TextBox textBoxServer1;
+        private Label labelServer1UserName;
+        private TextBox textBoxServer1UserName;
+        private Label labelServer1UserPassword;
+        private TextBox textBoxServer1UserPassword;
+        private string sServer1;
+        private string sServer1Registry;
+        private string sServer1DB;
+        private string sServer1UserName;
+        private string sServer1UserNameRegistry;
+        private string sServer1UserNameDB;
+        private string sServer1UserPassword;
+        private string sServer1UserPasswordRegistry;
+        private string sServer1UserPasswordDB;
 
+        private Label labelmysqlServer;
+        private TextBox textBoxmysqlServer;
+        private Label labelmysqlServerUserName;
+        private TextBox textBoxmysqlServerUserName;
+        private Label labelmysqlServerUserPassword;
+        private TextBox textBoxmysqlServerUserPassword;
+        private static string mysqlServer;
+        private static string mysqlServerRegistry;
+        private static string mysqlServerDB;
+        private static string mysqlServerUserName;
+        private static string mysqlServerUserNameRegistry;
+        private static string mysqlServerUserNameDB;
+        private static string mysqlServerUserPassword;
+        private static string mysqlServerUserPasswordRegistry;
+        private static string mysqlServerUserPasswordDB;
 
-        Label listComboLabel;
-        ComboBox listCombo;
+        private Label listComboLabel;
+        private ComboBox listCombo;
 
-        Label periodComboLabel;
-        ListBox listboxPeriod;
+        private Label periodComboLabel;
+        private ListBox listboxPeriod;
 
-        Label labelSettings9;
-        ComboBox comboSettings9;
+        private Label labelSettings9;
+        private ComboBox comboSettings9;
 
-        Label labelSettings15; //type report
-        ComboBox comboSettings15;
+        private Label labelSettings15; //type report
+        private ComboBox comboSettings15;
 
-        Label labelSettings16;
-        TextBox textBoxSettings16;
+        private Label labelSettings16;
+        private TextBox textBoxSettings16;
 
-        CheckBox checkBox1;
-        static List<ParameterConfig> listParameters = new List<ParameterConfig>();
+        private CheckBox checkBox1;
+        private static List<ParameterConfig> listParameters = new List<ParameterConfig>();
 
-        static Color clrRealRegistration = Color.PaleGreen;
-        Color clrRealRegistrationRegistry = Color.PaleGreen;
+        private static Color clrRealRegistration = Color.PaleGreen;
+        private Color clrRealRegistrationRegistry = Color.PaleGreen;
 
+        private List<string> listGroups = new List<string>();
+        private int countGroups = 0;
+        private int countUsers = 0;
+        private int countMailers = 0;
 
-        List<string> listGroups = new List<string>();
-        int countGroups = 0;
-        int countUsers = 0;
-        int countMailers = 0;
-
-        int numberPeopleInLoading = 1;
+        private int numberPeopleInLoading = 1;
 
         //todo
-        static string stimerPrev = "";
-        static string stimerCurr = "Ждите!";
+        private static string stimerPrev = "";
 
-        static List<ADUserFullAccount> listUsersAD = new List<ADUserFullAccount>(); //Users of AD. Got data from Domain
+        private static string stimerCurr = "Ждите!";
 
-        static List<PeopleOutReasons> outResons = new List<PeopleOutReasons>();
-        static List<OutPerson> outPerson = new List<OutPerson>();
-        static List<PeopleShift> peopleShifts = new List<PeopleShift>();
+        private static List<ADUserFullAccount> listUsersAD = new List<ADUserFullAccount>(); //Users of AD. Got data from Domain
+
+        private static List<PeopleOutReasons> outResons = new List<PeopleOutReasons>();
+        private static List<OutPerson> outPerson = new List<OutPerson>();
+        private static List<PeopleShift> peopleShifts = new List<PeopleShift>();
 
         //DataTables with people data
-        DataTable dtPeople = new DataTable("People");
-        DataColumn[] dcPeople =
+        private DataTable dtPeople = new DataTable("People");
+
+        private DataColumn[] dcPeople =
            {
                                   new DataColumn(Names.NPP,typeof(int)),//0
                                   new DataColumn(Names.FIO,typeof(string)),//1
@@ -288,36 +290,35 @@ namespace ASTA
                                   new DataColumn(Names.CHIEF_ID,typeof(string)), //33
                                   new DataColumn(Names.CARD_STATE,typeof(string)) //34
                 };
-        DataTable dtPersonTemp = new DataTable("PersonTemp");
-        DataTable dtPersonTempAllColumns = new DataTable("PersonTempAllColumns");
-        DataTable dtPersonRegistrationsFullList = new DataTable("PersonRegistrationsFullList");
-        DataTable dtPeopleGroup = new DataTable("PeopleGroup");
-        DataTable dtPeopleListLoaded = new DataTable("PeopleLoaded");
 
-        //Color of User's Control elements which depend on the selected MenuItem  
-        Color labelGroupCurrentBackColor;
-        Color textBoxGroupCurrentBackColor;
-        Color labelGroupDescriptionCurrentBackColor;
-        Color textBoxGroupDescriptionCurrentBackColor;
-        Color comboBoxFioCurrentBackColor;
-        Color textBoxFIOCurrentBackColor;
-        Color textBoxNavCurrentBackColor;
+        private DataTable dtPersonTemp = new DataTable("PersonTemp");
+        private DataTable dtPersonTempAllColumns = new DataTable("PersonTempAllColumns");
+        private DataTable dtPersonRegistrationsFullList = new DataTable("PersonRegistrationsFullList");
+        private DataTable dtPeopleGroup = new DataTable("PeopleGroup");
+        private DataTable dtPeopleListLoaded = new DataTable("PeopleLoaded");
 
-        static CollectionOfPassagePoints collectionOfPassagePoints;
+        //Color of User's Control elements which depend on the selected MenuItem
+        private Color labelGroupCurrentBackColor;
 
+        private Color textBoxGroupCurrentBackColor;
+        private Color labelGroupDescriptionCurrentBackColor;
+        private Color textBoxGroupDescriptionCurrentBackColor;
+        private Color comboBoxFioCurrentBackColor;
+        private Color textBoxFIOCurrentBackColor;
+        private Color textBoxNavCurrentBackColor;
+
+        private static CollectionOfPassagePoints collectionOfPassagePoints;
 
         //Drawing //DrawFullWorkedPeriodRegistration
         //  int iPanelBorder = 2;
-        static readonly int iShiftStart = 300;
-        static readonly int iShiftHeightAll = 36;
-        static readonly int iOffsetBetweenHorizontalLines = 19; //смещение между горизонтальными линиями
-        static readonly int iOffsetBetweenVerticalLines = 60; //смещение между "часовыми" линиями
-        static readonly int iNumbersOfHoursInDay = 24;        //количество часов в сутках(количество вертикальных часовых линий)
-        static readonly int iHeightLineWork = 4; //толщина линии рабочего времени на графике
-        static readonly int iHeightLineRealWork = 14; //толщина линии фактически отработанного веремени на графике
+        private static readonly int iShiftStart = 300;
 
-
-
+        private static readonly int iShiftHeightAll = 36;
+        private static readonly int iOffsetBetweenHorizontalLines = 19; //смещение между горизонтальными линиями
+        private static readonly int iOffsetBetweenVerticalLines = 60; //смещение между "часовыми" линиями
+        private static readonly int iNumbersOfHoursInDay = 24;        //количество часов в сутках(количество вертикальных часовых линий)
+        private static readonly int iHeightLineWork = 4; //толщина линии рабочего времени на графике
+        private static readonly int iHeightLineRealWork = 14; //толщина линии фактически отработанного веремени на графике
 
         public WinFormASTA()
         { InitializeComponent(); }
@@ -333,7 +334,6 @@ namespace ASTA
             nameOfLastTable = "PersonRegistrationsList";
             SetStatusLabelText(StatusLabel1, "");
             SetStatusLabelText(StatusLabel2, "");
-
 
             //Начало лога
             logger.Info("");
@@ -356,8 +356,7 @@ namespace ASTA
             System.IO.Directory.CreateDirectory(appFolderTempPath);
             System.IO.Directory.CreateDirectory(appFolderUpdatePath);
 
-
-            ClearItemsInFolder(appFolderTempPath);   //Clear temporary folder 
+            ClearItemsInFolder(appFolderTempPath);   //Clear temporary folder
             ClearItemsInFolder(appFolderUpdatePath); //System.IO.Path.Combine(appFolderUpdatePath, @"*.*")
             ClearItemsInFolder(System.IO.Path.Combine(localAppFolderPath, fileNameToUpdateZip));
 
@@ -371,8 +370,6 @@ namespace ASTA
             //refresh temp folder
             ClearItemsInFolder(appFolderTempPath); //+ @"\*.*"
 
-
-
             //2. from the main DB of application
             string dbZipPath = appDbName + "." + GetSafeFilename(DateTime.Now.ToYYYYMMDDHHMMSS(), "") + @".zip";
             ClearItemsInFolder(System.IO.Path.Combine(localAppFolderPath, dbZipPath));//localAppFolderPath + @"\" + dbZipPath
@@ -381,7 +378,6 @@ namespace ASTA
 
             //refresh temp folder
             ClearItemsInFolder(appFolderTempPath); //+ @"\*.*"
-
 
             //Check local DB Configuration
             logger.Trace("Проверка локальной БД");
@@ -415,7 +411,6 @@ namespace ASTA
                 logger.Info("Заполняю схему локальной DB");
                 TryMakeLocalDB(pathToQueryToCreateMainDb);
             }
-
 
             //Refresh Configuration of the application
             AddExceptedParametersIntoConfigurationDb();
@@ -452,10 +447,8 @@ namespace ASTA
             dtPersonRegistrationsFullList = dtPeople.Clone();  //Copy only structure(Name of columns)
             dtPeopleGroup = dtPeople.Clone();  //Copy only structure(Name of columns)
 
-
             logger.Trace("SetTechInfoIntoDB");
             SetTechInfoIntoDB();
-
 
             logger.Info("Настраиваю интерфейс....");
             bmpLogo = Properties.Resources.LogoRYIK;
@@ -524,7 +517,6 @@ namespace ASTA
             DeleteGroupItem.BackColor = Color.DarkOrange;
             OpenMenuAsLocalAdminItem.BackColor = Color.DarkOrange;
             UpdateItem.BackColor = Color.PaleGreen;
-
 
             if (currentDbEmpty)
             {
@@ -629,13 +621,10 @@ namespace ASTA
             _SetControlToolTip(textBoxGroup, "Создать или добавить в группу");
             _SetControlToolTip(textBoxGroupDescription, "Изменить описание группы");
 
-
-
             logger.Info("");
             logger.Info("Загрузка и настройка интерфейса ПО завершена....");
             logger.Info("");
         }
-
 
         private void AboutSoft(object sender, EventArgs e) //Кнопка "О программе"
         { AboutSoft(); }
@@ -664,7 +653,6 @@ namespace ASTA
             logger.Info("-=-=  Завершение работы ПО  =-=-");
             logger.Info("-----------------------------------------");
             logger.Info("");
-
 
             dgvo = null;
 
@@ -781,7 +769,7 @@ namespace ASTA
             }
         }
 
-        private void SetTechInfoIntoDB() //Write Technical Info in DB 
+        private void SetTechInfoIntoDB() //Write Technical Info in DB
         {
             string query = "INSERT OR REPLACE INTO 'TechnicalInfo' (PCName, POName, POVersion, LastDateStarted, CurrentUser, FreeRam, GuidAppication) " +
                       " VALUES (@PCName, @POName, @POVersion, @LastDateStarted, @CurrentUser, @FreeRam, @GuidAppication)";
@@ -940,9 +928,11 @@ namespace ASTA
                 case "0":
                     currentModeAppManual = false;
                     break;
+
                 case "1":
                     currentModeAppManual = true;
                     break;
+
                 default:
                     currentModeAppManual = true;
                     break;
@@ -1043,7 +1033,7 @@ namespace ASTA
             InitializeParameterFormSettings(listParameters);
         }
 
-        List<ParameterConfig> GetConfigOfASTA(string parameterName = "%%")
+        private List<ParameterConfig> GetConfigOfASTA(string parameterName = "%%")
         {
             List<ParameterConfig> list = new List<ParameterConfig>();
             ConfigurationOfASTA config = new ConfigurationOfASTA(dbApplication);
@@ -1055,7 +1045,6 @@ namespace ASTA
             config = null;
             return list;
         }
-
 
         private void InitializeParameterFormSettings(List<ParameterConfig> listParameters)
         {
@@ -1141,7 +1130,6 @@ namespace ASTA
             }
         }
 
-
         private void ListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             string result = _ReturnListBoxSelectedItem(sender as ListBox);
@@ -1160,7 +1148,6 @@ namespace ASTA
             tooltip = listParameters.FindLast(x => x.name == result)?.description;
             toolTip1.SetToolTip(textBoxSettings16, tooltip);
         }
-
 
         private void textboxDate_KeyPress(object sender, KeyPressEventArgs e)
         {
@@ -1350,7 +1337,6 @@ namespace ASTA
                         sqlCommand.Parameters.Add("@" + sqlParameter1, DbType.String).Value = sqlData1;
                         sqlCommand.Parameters.Add("@" + sqlParameter2, DbType.String).Value = sqlData2;
                         sqlCommand.Parameters.Add("@" + sqlParameter3, DbType.String).Value = sqlData3;
-
                     }
                     else if (sqlParameter1.Length > 0 && sqlParameter2.Length > 0)
                     {
@@ -1375,7 +1361,6 @@ namespace ASTA
             });
             logger.Trace($"Удалены данные из таблицы {myTable} - query: {query}");
         }
-
 
         private void CheckAliveIntellectServer(string serverName, string userName, string userPasswords) //Check alive the SKD Intellect-server and its DB's 'intellect'
         {
@@ -1404,7 +1389,6 @@ namespace ASTA
             }
             stimerCurr = "Ждите!";
         }
-
 
         private async void GetADUsersItem_Click(object sender, EventArgs e)
         { await Task.Run(() => GetUsersFromAD()); }
@@ -1601,7 +1585,6 @@ namespace ASTA
             _ClearComboBox(comboBoxFio);
             SetStatusLabelText(StatusLabel2, $"Запрашиваю данные с {sServer1}. Ждите окончания процесса...");
 
-
             try
             {
                 string confitionToLoad = "";
@@ -1630,7 +1613,6 @@ namespace ASTA
                         }
                     }
                 }
-
 
                 // import users and group from SCA server
                 using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
@@ -1679,7 +1661,6 @@ namespace ASTA
                                 groupName = record["parent_id"]?.ToString()?.Trim();
                                 nav = record["tabnum"]?.ToString()?.Trim()?.ToUpper();
 
-
                                 if (departments.TryGetValue(groupName, out departmentFromDictionary))
                                 {
                                     depDescription = departmentFromDictionary.DepartmentDescr;
@@ -1714,7 +1695,6 @@ namespace ASTA
                 int tmpSeconds = 0;
                 groupName = mysqlServer;
                 SetStatusLabelText(StatusLabel2, $"Запрашиваю данные с {mysqlServer}. Ждите окончания процесса...");
-
 
                 // import departments from web DB
                 using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionString))
@@ -1805,7 +1785,6 @@ namespace ASTA
                     mysqlDbTableReader.Status -= AddLoggerTraceText;
                 }
 
-
                 // import people from web DB
                 using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionString))
                 {
@@ -1861,7 +1840,6 @@ namespace ASTA
 
                                     AddLoggerTraceText($"Индивидуальный график с {dayStartShift} {personFromServer.Code} {personFromServer.Comment}");
                                 }
-
 
                                 row[Names.FIO] = personFromServer.fio;
                                 row[Names.CODE] = personFromServer.Code;
@@ -2204,7 +2182,7 @@ namespace ASTA
             _ProgressBar1Stop();
         }
 
-        private async Task ExportDatatableSelectedColumnsToExcel(DataTable dataTable, string nameReport, string filePath)  //Export DataTable to Excel 
+        private async Task ExportDatatableSelectedColumnsToExcel(DataTable dataTable, string nameReport, string filePath)  //Export DataTable to Excel
         {
             logger.Trace($"-= {nameof(ExportDatatableSelectedColumnsToExcel)} =-");
             logger.Trace($"{nameof(nameReport)}:{nameReport} |{nameof(filePath)}:{filePath} ");
@@ -2277,7 +2255,7 @@ namespace ASTA
 
                 //other ways to colourize background:
                 //sheet.Columns[columnsInTable].Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.Silver);
-                // or 
+                // or
                 //sheet.Columns[columnsInTable].Interior.Color = System.Drawing.Color.Silver;
 
                 sheet.Columns[GetExcelColumnName(Array.IndexOf(indexColumns, dtExport.Columns.IndexOf(Names.FIO)) + 1)]
@@ -2366,14 +2344,12 @@ namespace ASTA
                 rng.Characters[7, 9].Font.Color = Color.Red;
                 */
 
-
-                Microsoft.Office.Interop.Excel.Range range = sheet.UsedRange;  //get the using range 
+                Microsoft.Office.Interop.Excel.Range range = sheet.UsedRange;  //get the using range
                                                                                //sheet.Cells.Range["A1", GetExcelColumnName(columnsInTable) + rowsInTable];
                                                                                // Microsoft.Office.Interop.Excel.Range range = sheet.Range["A2", GetExcelColumnName(columnsInTable) + (rows - 1)];
 
-
-                range.Cells.Font.Name = "Tahoma";           //Шрифт для диапазона          
-                range.Cells.Font.Size = 8;                  //Размер шрифта            
+                range.Cells.Font.Name = "Tahoma";           //Шрифт для диапазона
+                range.Cells.Font.Size = 8;                  //Размер шрифта
                 range.Cells.EntireColumn.AutoFit();         //ширина колонок - авто
                 _ProgressWork1Step();
 
@@ -2473,7 +2449,6 @@ namespace ASTA
             return result;
         }
 
-
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         { SetTextBoxFIOAndTextBoxNAVFromSelectedComboboxFio(); }
 
@@ -2518,7 +2493,6 @@ namespace ASTA
                 AddVisitorsAtDataGridView(visitors, _selectedEmployeeVisitor);
             }
         }
-
 
         private void CreateGroupItem_Click(object sender, EventArgs e)
         {
@@ -2745,7 +2719,6 @@ namespace ASTA
                 using (var sqlCommand = new SQLiteCommand("end", sqlConnection))
                 { sqlCommand.ExecuteNonQuery(); }
             }
-
         }
 
         private void MembersGroupItem_Click(object sender, EventArgs e)//SearchMembersSelectedGroup()
@@ -2916,7 +2889,6 @@ namespace ASTA
             nameOfLastTable = "PeopleGroup";
         }
 
-
         private void importPeopleInLocalDBToolStripMenuItem_Click(object sender, EventArgs e)
         {
             logger.Trace($"-= {nameof(importPeopleInLocalDBToolStripMenuItem_Click)} =-");
@@ -3000,7 +2972,6 @@ namespace ASTA
             { MessageBox.Show("выбранный файл пустой, или \nне подходит для импорта."); }
         }
 
-
         //Write people in local DB
         private void WritePeopleInLocalDB(string pathToPersonDB, DataTable dtSource) //use listGroups /add reserv1 reserv2
         {
@@ -3066,7 +3037,6 @@ namespace ASTA
                 dbWriter.Status -= AddLoggerTraceText;
             }
 
-
             foreach (var str in listFIO)
             { _AddComboBoxItem(comboBoxFio, str.fio + "|" + str.Code); }
             _ProgressWork1Step();
@@ -3110,7 +3080,6 @@ namespace ASTA
             }
         }
 
-
         private void GetNamesOfPassagePoints() //Get names of the pass by points
         {
             logger.Trace($"-= {nameof(GetNamesOfPassagePoints)} =-");
@@ -3145,7 +3114,6 @@ namespace ASTA
                 logger.Trace(tmp.Key + " " + tmp.Value._idPoint + " " + tmp.Value._namePoint + " " + tmp.Value._direction + " " + tmp.Value._connectedToServer);
             }
         }
-
 
         private void ResetFilterLoadLastIputsOutput_Click(object sender, EventArgs e)
         {
@@ -3219,11 +3187,10 @@ namespace ASTA
         private static bool checkInputsOutputs = true;
 
         //Timer for waiting next loading
-        IStartStopTimer startStopTimer;
+        private IStartStopTimer startStopTimer;
 
         private void LoadInputsOutputsOfVisitors(string startDay, string endDay, int timesChecking)
         {
-
             logger.Trace($"-= {nameof(LoadInputsOutputsOfVisitors)} =-");
 
             CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword);
@@ -3286,7 +3253,6 @@ namespace ASTA
                         SetStatusLabelText(StatusLabel2, $"Загружены данные о регистрации пропусков до: {startDay} {startTime}");
                         startStopTimer.WaitTime();
                     }
-
                 } while (checkInputsOutputs);
 
                 visitors.collection.CollectionChanged -= VisitorsCollectionChanged;
@@ -3298,7 +3264,8 @@ namespace ASTA
             }
         }
 
-        bool firstStage = true;
+        private bool firstStage = true;
+
         private List<Visitor> GetInputsOutputs(ref string startDay, ref string startTime, ref string endDay, ref string endTime)
         {
             _ProgressBar1Start();
@@ -3318,20 +3285,19 @@ namespace ASTA
                         " AND p.param0 like '%%' " +
                         // " AND p.param1 like '" + person.idCard + "' " +
                         $" AND date > '{startDay} {startTime}' AND date <= '{endDay} {endTime}' " +
-                        " ORDER BY date DESC, time DESC;"; //sorting 
+                        " ORDER BY date DESC, time DESC;"; //sorting
 
                         logger.Trace($"query: {query}");*/
-
 
             using (ProtocolConnector db = new ProtocolConnector(sqlServerConnectionString))
             {
                 DateTime dtStart = DateTime.Parse(startDay + " " + startTime);
                 DateTime dtEnd = DateTime.Parse(endDay + " " + endTime);
 
-                // получаем объекты из бд 
+                // получаем объекты из бд
                 //query
                 /*   var RegisteredAction = (from registeredAction in db.ProtocolObjects
-                                          join libraryUsers in db.PersonObjects 
+                                          join libraryUsers in db.PersonObjects
                                           on registeredAction.IdCard equals libraryUsers.id
                                           where dtStart < registeredAction.ActionDate && registeredAction.ActionDate < dtEnd
                                           orderby registeredAction.ActionTime descending
@@ -3531,6 +3497,7 @@ namespace ASTA
 
         private static EmployeeVisitor _paintedEmployeeVisitor; //painted visitor in datagridview1
         private static EmployeeVisitor _selectedEmployeeVisitor; //painted visitor in datagridview1
+
         private void PaintRowsActionItem_Click(object sender, EventArgs e)
         {
             _paintedEmployeeVisitor = LookForSelectedVisitor(dataGridView1);
@@ -3575,7 +3542,6 @@ namespace ASTA
 
             LoadIdCardRegistrations(null);
         }
-
 
         private async void LoadIdCardRegistrations(string _group) //GetData()
         {
@@ -3671,7 +3637,7 @@ namespace ASTA
 
             dtPersonTemp = LeaveAndOrderColumnsOfDataTable(dtPersonRegistrationsFullList.Copy(), Names.orderColumnsRegistrations);
 
-            //show selected data  within the selected collumns   
+            //show selected data  within the selected collumns
             ShowDatatableOnDatagridview(dtPersonTemp, "PeopleGroup");
         }
 
@@ -3734,7 +3700,6 @@ namespace ASTA
                             hourly = 0
                         });
                     }
-
                 }
                 logger.Trace("Всего с " + startDate.Split(' ')[0] + " по " + endDate.Split(' ')[0] + " на сайте есть - " + outPerson.Count + " записей с отсутствиями");
             }
@@ -3859,7 +3824,7 @@ namespace ASTA
                        " AND p.param0 like '%%' " +
                        " AND p.param1 like '" + person.idCard + "' " +
                        " AND date > '" + startDay + "' AND date <= '" + endDay + "' " +
-                       " ORDER BY date DESC, time DESC;"; //sorting 
+                       " ORDER BY date DESC, time DESC;"; //sorting
 
                 logger.Trace(query);
                 using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
@@ -3991,7 +3956,7 @@ namespace ASTA
             cellData = new string[1];
         }
 
-        private string DayOfWeekRussian(string dayEnglish) //return a day of week as the same short name in Russian 
+        private string DayOfWeekRussian(string dayEnglish) //return a day of week as the same short name in Russian
         {
             string result = "";
             switch (dayEnglish.ToLower())
@@ -3999,24 +3964,31 @@ namespace ASTA
                 case "monday":
                     result = "Пн";
                     break;
+
                 case "tuesday":
                     result = "Вт";
                     break;
+
                 case "wednesday":
                     result = "Ср";
                     break;
+
                 case "thursday":
                     result = "Чт";
                     break;
+
                 case "friday":
                     result = "Пт";
                     break;
+
                 case "saturday":
                     result = "Сб";
                     break;
+
                 case "sunday":
                     result = "Вс";
                     break;
+
                 default:
                     result = dayEnglish;
                     break;
@@ -4080,8 +4052,6 @@ namespace ASTA
 
         private void infoItem_Click(object sender, EventArgs e)
         {
-
-
             ShowDataTableDbQuery(dbApplication, "TechnicalInfo",
                 "SELECT PCName AS 'Версия Windows', POName AS 'Путь к ПО', POVersion AS 'Версия ПО', " +
                 "LastDateStarted AS 'Дата использования', CurrentUser, FreeRam, GuidAppication ",
@@ -4202,7 +4172,6 @@ namespace ASTA
                     try { sqlCommand.ExecuteNonQuery(); } catch (Exception err) { MessageBox.Show(err.ToString()); }
                 }
             }
-
         }
 
         private void DeleteAnualDateItem_Click(object sender, EventArgs e) //DeleteAnualDay()
@@ -4258,8 +4227,8 @@ namespace ASTA
             DataTable dtEmpty = new DataTable();
             EmployeeFull emptyPerson = new EmployeeFull();
             SeekAnualDays(ref dtEmpty, ref emptyPerson, false,
-                _ReturnDateTimePickerArray(dateTimePickerStart),
-                _ReturnDateTimePickerArray(dateTimePickerEnd),
+                ReturnDateTimePickerArray(dateTimePickerStart),
+                ReturnDateTimePickerArray(dateTimePickerEnd),
                 ref myBoldedDates, ref workSelectedDays);
 
             dtEmpty?.Dispose();
@@ -4333,7 +4302,7 @@ namespace ASTA
             dtPersonTempAllColumns = dtTempIntermediate.Copy();
             dtPersonTemp = LeaveAndOrderColumnsOfDataTable(dtTempIntermediate, Names.orderColumnsRegistrations);
 
-            //show selected data  within the selected collumns   
+            //show selected data  within the selected collumns
             ShowDatatableOnDatagridview(dtPersonTemp, "PeopleGroup");
 
             //change enabling of checkboxes
@@ -4422,7 +4391,7 @@ namespace ASTA
                         //  rowDtStoring[@"Отработанное время ЧЧ:ММ"] = ConvertSecondsToStringHHMMSS(workedSeconds);  //("Отработанное время ЧЧ:ММ", typeof(string)), //27
                         logger.Trace("FilterRegistrationsOfPerson: " + person.Code + "| " + rowDtStoring[Names.DATE_REGISTRATION]?.ToString() + " " + firstRegistrationInDay + " - " + lastRegistrationInDay);
 
-                        //todo 
+                        //todo
                         //will calculate if day of week different
                         if (firstRegistrationInDay > (person.ControlInSeconds + offsetTimeIn) && firstRegistrationInDay != 0) // "Опоздание ЧЧ:ММ", typeof(bool)),           //28
                         {
@@ -4461,6 +4430,7 @@ namespace ASTA
                                 else if (typeReport == "Упрощенный")
                                 { rowDtStoring[@"Отпуск"] = "1"; }
                                 break;
+
                             case "3": //Больничный
                             case "21": //Больничный 0,5 (менее < 5 часов)
                                 rowDtStoring[Names.EMPLOYEE_EARLY_DEPARTURE] = "";
@@ -4470,6 +4440,7 @@ namespace ASTA
                                 else if (typeReport == "Упрощенный")
                                 { rowDtStoring[Names.EMPLOYEE_SICK_LEAVE] = "1"; }
                                 break;
+
                             case "1": //Отпуск (за свой счёт)
                             case "9": //Прогул
                             case "12": //Отпуск по уходу за ребёнком возрастом до 3-х лет
@@ -4481,6 +4452,7 @@ namespace ASTA
                                 else if (typeReport == "Упрощенный")
                                 { rowDtStoring[Names.EMPLOYEE_HOOKY] = "1"; }
                                 break;
+
                             case "4": //Командировка
                             case "5": //Выходной
                             case "6": //На выезде (по работе)
@@ -4495,6 +4467,7 @@ namespace ASTA
                                 rowDtStoring[Names.EMPLOYEE_EARLY_DEPARTURE] = "";
                                 rowDtStoring[Names.EMPLOYEE_BEING_LATE] = "";
                                 break;
+
                             default:
                                 break;
                         }
@@ -4624,10 +4597,12 @@ namespace ASTA
                     daysListBolded.Add(dayOff.AddDays(1).ToYYYYMMDD());
                     logger.Trace("SeekAnualDays,AddDayOff Next day after Easter day: " + dayOff.AddDays(1).ToYYYYMMDD());
                     break;
+
                 case (int)Day.Saturday:
                     daysListBolded.Add(dayOff.AddDays(2).ToYYYYMMDD());
                     logger.Trace("SeekAnualDays,AddDayOff Next 2nd day afer Easter day: " + dayOff.AddDays(2).ToYYYYMMDD());
                     break;
+
                 default:
                     break;
             }
@@ -4655,10 +4630,12 @@ namespace ASTA
                     daysListBolded.Add(dayBolded.AddDays(1).ToYYYYMMDD());
                     logger.Trace("SeekAnualDays,AddBoldedDate Independence day: " + dayBolded.AddDays(1).ToYYYYMMDD());
                     break;
+
                 case (int)Day.Saturday:
                     daysListBolded.Add(dayBolded.AddDays(2).ToYYYYMMDD());
                     logger.Trace("SeekAnualDays,AddBoldedDate Independence day: " + dayBolded.AddDays(2).ToYYYYMMDD());
                     break;
+
                 default:
                     break;
             }
@@ -4674,10 +4651,12 @@ namespace ASTA
                     daysListBolded.Add(dayBolded.AddDays(1).ToYYYYMMDD());
                     logger.Trace("SeekAnualDays,AddBoldedDate day of Ukraine Force: " + dayBolded.AddDays(1).ToYYYYMMDD());
                     break;
+
                 case (int)Day.Saturday:
                     daysListBolded.Add(dayBolded.AddDays(2).ToYYYYMMDD());
                     logger.Trace("SeekAnualDays,AddBoldedDate day of Ukraine Force: " + dayBolded.AddDays(2).ToYYYYMMDD());
                     break;
+
                 default:
                     break;
             }
@@ -4721,7 +4700,6 @@ namespace ASTA
             logger.Trace("SeekAnualDays, amount worked days:" + workDays.Length);
             foreach (string str in workDays)
             { logger.Trace("SeekAnualDays, worked day: " + str); }
-
 
             boldedDays = wholeSelectedDays.Except(tmp).ToArray();
             logger.Trace("SeekAnualDays, amount bolded days:" + boldedDays.Length);
@@ -4791,7 +4769,6 @@ namespace ASTA
                         {
                             boldedDays.Add(record["DayBolded"].ToString());
                         }
-
                     }
                 }
                 logger.Trace($"ReturnBoldedDaysFromDB: query: {query}\n{boldedDays.Count} rows loaded");
@@ -4826,7 +4803,7 @@ namespace ASTA
 
             // Алгоритм для вычисления католической Пасхи http://snippets.dzone.com/posts/show/765
             int Y = startOfPeriod[0];
-            int a = Y % 19; 
+            int a = Y % 19;
             int aPr= Y % 19;
             int b = Y / 100;
             int bPr = Y % 4;
@@ -4881,17 +4858,19 @@ namespace ASTA
 
                     logger.Trace("SeekAnualDays,AddBoldedDate EasterNext day: " + dayBolded.AddDays(1).ToYYYYMMDD());
                     break;
+
                 case (int)Day.Saturday:
                     daysListBolded.Add(dayBolded.AddDays(2).ToYYYYMMDD());
 
                     logger.Trace("SeekAnualDays,AddBoldedDate EasterNextNext day: " + dayBolded.AddDays(2).ToYYYYMMDD());
                     break;
+
                 default:
                     break;
             }
 
             return daysListBolded;
-        }            
+        }
         */
 
         private void MakeZip(string[] files, string fullNameZip)
@@ -4942,7 +4921,6 @@ namespace ASTA
             System.IO.Compression.ZipFile.CreateFromDirectory(appFolderTempPath, localAppFolderPath + @"\" + fullNameZip, System.IO.Compression.CompressionLevel.Optimal, false);
             logger.Info($"Made archive: {localAppFolderPath}\\{fullNameZip}");
         }
-
 
         //----- Clearing. Start ---------//
         private void ClearRegistryItem_Click(object sender, EventArgs e) //ClearRegistryData()
@@ -5053,9 +5031,8 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 vacuum.ExecuteNonQuery();
             }
         }
+
         //----- Clearing. End ---------//
-
-
 
         //gathering a person's features from textboxes and other controls
         private void SelectPersonFromControls(ref EmployeeFull personSelected)
@@ -5067,8 +5044,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             personSelected.ControlInHHMM = ConvertDecimalTimeToStringHHMM(_ReturnNumUpDown(numUpDownHourStart), _ReturnNumUpDown(numUpDownMinuteStart));
             personSelected.ControlOutHHMM = ConvertDecimalTimeToStringHHMM(_ReturnNumUpDown(numUpDownHourEnd), _ReturnNumUpDown(numUpDownMinuteEnd));
         }
-
-
 
         //---- Start. Drawing ---//
         private void VisualItem_Click(object sender, EventArgs e) //FindWorkDaysInSelected() , DrawFullWorkedPeriodRegistration()
@@ -5213,8 +5188,8 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             //It needs to prevent the error "index of scope"
             DataTable dtEmpty = new DataTable();
             SeekAnualDays(ref dtEmpty, ref personDraw, false,
-                _ReturnDateTimePickerArray(dateTimePickerStart),
-                _ReturnDateTimePickerArray(dateTimePickerEnd),
+                ReturnDateTimePickerArray(dateTimePickerStart),
+                ReturnDateTimePickerArray(dateTimePickerEnd),
                 ref myBoldedDates, ref workSelectedDays);
             dtEmpty.Dispose();
 
@@ -5255,7 +5230,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             //comment next row if it needs to set the PictureBox at the Center of panelview
             bmp = new Bitmap(pictureBox1.Width, pictureBox1.Height);
 
-
             // Start of the Block with Drawing //
             //---------------------------------------------------------------//
             var font = new Font("Courier", 10, FontStyle.Regular);
@@ -5281,7 +5255,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                             int numberRectangle_rectsRealMark = 0;
                             int numberRectangle_rects = 0;
 
-
                             foreach (string singleNav in arrayNAVs)
                             {
                                 logger.Trace("DrawRegistration,draw: " + singleNav);
@@ -5292,7 +5265,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                                     {
                                         nav = row[Names.CODE].ToString();
                                         dayRegistration = row[Names.DATE_REGISTRATION].ToString();
-
 
                                         if (singleNav.Contains(nav) && dayRegistration.Contains(workDay))
                                         {
@@ -5373,7 +5345,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                             // Fill rectangles WorkTime shit
                             gr.FillRectangles(myBrushWorkHour, rects);
 
-                            //Draw axes for days 
+                            //Draw axes for days
                             for (int k = 0; k < workSelectedDays.Length * countNAVs; k++)
                             {
                                 pointForN_B.Y += iOffsetBetweenHorizontalLines;
@@ -5430,7 +5402,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             //---------------------------------------------------------------//
             // End of the Block with Drawing //
 
-
             pictureBox1.Image = bmp;
             pictureBox1.Refresh();
             panelView.Controls.Add(pictureBox1);
@@ -5481,8 +5452,8 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             //It needs to prevent the error "index of scope"
             DataTable dtEmpty = new DataTable();
             SeekAnualDays(ref dtEmpty, ref personDraw, false,
-                _ReturnDateTimePickerArray(dateTimePickerStart),
-                _ReturnDateTimePickerArray(dateTimePickerEnd),
+                ReturnDateTimePickerArray(dateTimePickerStart),
+                ReturnDateTimePickerArray(dateTimePickerEnd),
                 ref myBoldedDates, ref workSelectedDays);
             dtEmpty.Dispose();
 
@@ -5521,7 +5492,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             };
             //comment next row if it needs to set the PictureBox at the Center of panelview
             bmp = new Bitmap(pictureBox1.Width, pictureBox1.Height);
-
 
             // Start of the Block with Drawing //
             //---------------------------------------------------------------//
@@ -5606,7 +5576,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                             // Fill rectangles WorkTime shit
                             gr.FillRectangles(myBrushWorkHour, rects);
 
-                            //Draw axes for days 
+                            //Draw axes for days
                             for (int k = 0; k < workSelectedDays.Length * countNAVs; k++)
                             {
                                 pointForN_B.Y += iOffsetBetweenHorizontalLines;
@@ -5662,7 +5632,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             //---------------------------------------------------------------//
             // End of the Block with Drawing //
 
-
             pictureBox1.Image = bmp;
             pictureBox1.Refresh();
             panelView.Controls.Add(pictureBox1);
@@ -5716,9 +5685,11 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 case "DrawFullWorkedPeriodRegistration":
                     _SetPanelHeight(panelView, iShiftHeightAll + iOffsetBetweenHorizontalLines * workSelectedDays.Length * numberPeople); //Fixed size of Picture. If need autosize - disable this row
                     break;
+
                 case "DrawRegistration":
                     _SetPanelHeight(panelView, iShiftHeightAll + iOffsetBetweenHorizontalLines * workSelectedDays.Length * numberPeople); //Fixed size of Picture. If need autosize - disable this row
                     break;
+
                 default:
                     _SetPanelAnchor(panelView, (AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top));
                     _SetPanelHeight(panelView, _ReturnPanelParentHeight(panelView) - 120);
@@ -5734,7 +5705,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
         }
 
-        private void ColorRegistrationMenuItem_Click(object sender, EventArgs e) //ChangeColorGraphics(); 
+        private void ColorRegistrationMenuItem_Click(object sender, EventArgs e) //ChangeColorGraphics();
         { ChangeColorGraphics(); }
 
         private void ChangeColorGraphics()
@@ -5744,15 +5715,19 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 case "PaleGreen":
                     ColorizeDraw(Color.MediumAquamarine);
                     break;
+
                 case "MediumAquamarine":
                     ColorizeDraw(Color.DarkOrange);
                     break;
+
                 case "DarkOrange":
                     ColorizeDraw(Color.LimeGreen);
                     break;
+
                 case "LimeGreen":
                     ColorizeDraw(Color.Orange);
                     break;
+
                 default:
                     ColorizeDraw(Color.PaleGreen);
                     break;
@@ -5785,18 +5760,17 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 case "DrawFullWorkedPeriodRegistration":
                     DrawFullWorkedPeriodRegistration(ref personSelected);
                     break;
+
                 case "DrawRegistration":
                     DrawRegistration(ref personSelected);
                     break;
+
                 default:
                     break;
             }
         }
 
         //---- End. Drawing ---//
-
-
-
 
         //---- Start. Parameters of programm ---//
 
@@ -6061,7 +6035,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
             if (label3.Length > 0)
             {
-
                 labelServer1UserPassword = new Label
                 {
                     Text = label3,
@@ -6276,7 +6249,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
             if (label12.Length > 0)
             {
-
                 labelmysqlServerUserPassword = new Label
                 {
                     Text = label12,
@@ -6342,7 +6314,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                     BorderStyle = BorderStyle.FixedSingle,
                     Parent = groupBoxProperties,
                     MaxLength = 2,
-
                 };
                 toolTip1.SetToolTip(textBoxSettings16, tooltip16);
 
@@ -6359,7 +6330,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             labelmysqlServer?.BringToFront();
             labelmysqlServerUserName?.BringToFront();
             labelmysqlServerUserPassword?.BringToFront();
-
 
             textBoxServer1?.BringToFront();
             textBoxServer1UserName?.BringToFront();
@@ -6447,7 +6417,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void buttonPropertiesSave_Click(object sender, EventArgs e) //SaveProperties()
         {
-            SaveProperties(); //btnPropertiesSave 
+            SaveProperties(); //btnPropertiesSave
 
             DisposeTemporaryControls();
             EnableMainMenuItems(true);
@@ -6653,9 +6623,8 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 GetInfoSetup();
             }
         }
+
         //--- End. Features of programm ---//
-
-
 
         //--- Start. Behaviour Controls ---//
         private void periodCombo_KeyPress(object sender, KeyPressEventArgs e)
@@ -6683,9 +6652,8 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
         }
 
-
         private void CreateGroupItem_MouseHover(object sender, EventArgs e)
-        {  //Save previous color          
+        {  //Save previous color
             labelGroupCurrentBackColor = labelGroup.BackColor;
             textBoxGroupCurrentBackColor = textBoxGroup.BackColor;
             labelGroupDescriptionCurrentBackColor = labelGroupDescription.BackColor;
@@ -6709,7 +6677,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         private void PersonOrGroupItem_MouseEnter(object sender, EventArgs e)
         {
             if (PersonOrGroupItem.Text == Names.WORK_WITH_A_PERSON)
-            {  //Save previous color              
+            {  //Save previous color
                 comboBoxFioCurrentBackColor = comboBoxFio.BackColor;
                 textBoxFIOCurrentBackColor = textBoxFIO.BackColor;
                 textBoxNavCurrentBackColor = textBoxNav.BackColor;
@@ -6720,7 +6688,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 textBoxNav.BackColor = Color.PaleGreen;
             }
             else
-            {  //Save previous color              
+            {  //Save previous color
                 labelGroupCurrentBackColor = labelGroup.BackColor;
                 textBoxGroupCurrentBackColor = textBoxGroup.BackColor;
 
@@ -6733,13 +6701,13 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         private void PersonOrGroupItem_MouseLeave(object sender, EventArgs e)
         {
             if (PersonOrGroupItem.Text == Names.WORK_WITH_A_PERSON)
-            {   //Restore saved color             
+            {   //Restore saved color
                 comboBoxFio.BackColor = comboBoxFioCurrentBackColor;
                 textBoxFIO.BackColor = textBoxFIOCurrentBackColor;
                 textBoxNav.BackColor = textBoxNavCurrentBackColor;
             }
             else
-            {  //Restore saved color              
+            {  //Restore saved color
                 labelGroup.BackColor = labelGroupCurrentBackColor;
                 textBoxGroup.BackColor = textBoxGroupCurrentBackColor;
             }
@@ -6816,7 +6784,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 _SetMenuItemText(LoadInputsOutputsItem, $"Загрузить все события СКД за {dayStart}");
         }
 
-
         private void PersonOrGroupItem_Click(object sender, EventArgs e) //PersonOrGroup()
         { PersonOrGroup(); }
 
@@ -6830,11 +6797,13 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                     _EnableControl(comboBoxFio, false);
                     nameOfLastTable = "PersonRegistrationsList";
                     break;
+
                 case (Names.WORK_WITH_A_PERSON):
                     _SetMenuItemText(PersonOrGroupItem, Names.WORK_WITH_A_GROUP);
                     _EnableControl(comboBoxFio, true);
                     nameOfLastTable = "PeopleGroup";
                     break;
+
                 default:
                     _SetMenuItemText(PersonOrGroupItem, Names.WORK_WITH_A_GROUP);
                     _EnableControl(comboBoxFio, true);
@@ -6842,10 +6811,8 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                     break;
             }
         }
+
         //--- End. Behaviour Controls ---//
-
-
-
 
         //---  Start.  DatagridView functions ---//
         private void dataGridView1_DoubleClick(object sender, EventArgs e) //SearchMembersSelectedGroup()
@@ -7107,6 +7074,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                                         ExecuteSqlAsync("UPDATE 'MailingException' SET Description='" + currCellValue +
                                             "' WHERE RecipientEmail='" + cellValue[0] + "';").GetAwaiter().GetResult();
                                         break;
+
                                     default:
                                         break;
                                 }
@@ -7127,6 +7095,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                                         ExecuteSqlAsync("UPDATE 'SelectedCityToLoadFromWeb' SET City='" + cellValue[0] +
                                                             "' WHERE DateCreated='" + cellValue[1] + "';").GetAwaiter().GetResult();
                                         break;
+
                                     default:
                                         break;
                                 }
@@ -7178,7 +7147,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
         }
 
-
         //right click of mouse on the datagridview
         private void dataGridView1_MouseClick(object sender, MouseEventArgs e)
         {
@@ -7214,7 +7182,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                                 mRightClick.MenuItems.Add(new MenuItem(
                                     text: $"Загрузить регистрации пропусков группы: '{cellValue[1]}' за {_ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()} и подготовить отчет",
                                     onClick: DoReportByRightClick));
-
 
                                 mRightClick.MenuItems.Add(new MenuItem(
                                     text: $"Загрузить регистрации пропусков группы: '{cellValue[1]}' за {_ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()} и отправить: {recepient}",
@@ -7489,7 +7456,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
         }
 
-
         private void SelectedToLoadCityItem_Click(object sender, EventArgs e) //SelectedToLoadCity()
         { SelectedToLoadCity(); }
 
@@ -7536,7 +7502,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
             DeleteDataTableQueryParameters(dbApplication, "SelectedCityToLoadFromWeb", "City", cellValue[0]).GetAwaiter();
         }
-
 
         private async void DoReportAndEmailByRightClick(object sender, EventArgs e)
         {
@@ -7996,9 +7961,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         //---  End.  DatagridView functions ---//
 
-
-
-
         //---  Start. Schedule Functions ---//
 
         private void ModeAppItem_Click(object sender, EventArgs e)  //ModeApp()
@@ -8109,7 +8071,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             lock (synclock)
             {
                 DateTime dd = DateTime.Now;
-                if (dd.Hour == 4 && dd.Minute == 10 && sent == false) //do something at Hour 2 and 5 minute //dd.Day == 1 && 
+                if (dd.Hour == 4 && dd.Minute == 10 && sent == false) //do something at Hour 2 and 5 minute //dd.Day == 1 &&
                 {
                     SetStatusLabelText(StatusLabel2, "Ведется работа по подготовке отчетов " + DateTime.Now.ToYYYYMMDDHHMM() + " ...");
                     SetStatusLabelBackColor(StatusLabel2, Color.LightPink);
@@ -8220,7 +8182,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             personEmpty = null;
 
             dateTimePickerStart.Value = DateTime.Now.FirstDayOfMonth();
-
 
             DaysWhenSendReports daysToSendReports =
                 new DaysWhenSendReports(workSelectedDays, ShiftDaysBackOfSendingFromLastWorkDay, DateTime.Now.LastDayOfMonth().Day);
@@ -8421,7 +8382,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             return string.Join(splitter, filename.Split(System.IO.Path.GetInvalidFileNameChars()));
         }
 
-
         private string SelectedDatetimePickersPeriodMonth() //format of result: "1971-01-01 00:00:00|1971-01-31 23:59:59" // 'yyyy-MM-dd HH:mm:SS'
         {
             return _ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD() + " 00:00:00" + "|" + _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD() + " 23:59:59";
@@ -8604,7 +8564,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             dtPersonTemp?.Clear();
         }
 
-
         //send e-mail
         private static string SendEmailAsync(MailServer server, MailUser from, MailUser to, string _subject, BodyBuilder builder)
         {
@@ -8666,7 +8625,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             var builder = new BodyBuilder();
             //plain-text version of the message text
             /*    builder.TextBody = @"
-                  
+
                      Hey User,
                      What are you up to this weekend? I am throwing one of my parties on
                      Saturday and I was hoping you could make it.
@@ -8691,9 +8650,9 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             <b>Период: </b>{period}
             <br/><b>Подразделение: </b>'{department}'<br/><p>Уважаемые руководители,</p>
             <p>согласно Приказу ГК АИС «О функционировании процессов кадрового делопроизводства»,<br/><br/>
-            <b>Внесите,</b> пожалуйста, <b>до конца текущего месяца</b> по сотрудникам подразделения 
+            <b>Внесите,</b> пожалуйста, <b>до конца текущего месяца</b> по сотрудникам подразделения
             информацию о командировках, больничных, отпусках, прогулах и т.п. <b>на сайт</b> www.ais .<br/><br/>
-            Руководители <b>подразделений</b> ЦОК, <b>не отображающихся на сайте,<br/>вышлите, </b>пожалуйста, 
+            Руководители <b>подразделений</b> ЦОК, <b>не отображающихся на сайте,<br/>вышлите, </b>пожалуйста,
             <b>Табель</b> учета рабочего времени<br/>
             <b>в отдел компенсаций и льгот до последнего рабочего дня месяца.</b><br/></p>
             <font size='3' color='black' face='Arial'>С, Уважением,<br/>{NAME_OF_SENDER_REPORTS}
@@ -8782,10 +8741,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         }
 
         //---  End. Schedule Functions ---//
-
-
-
-
 
         /// <summary>
         /// Colorizing Controls
@@ -8877,8 +8832,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             list.RemoveHandler(obj, list[obj]);
         }
 
-
-
         //Start of Block. Access to Controls from other threads
         private string _ReturnTextOfControl(Control control) //add string into  from other threads
         {
@@ -8889,7 +8842,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 text = control?.Text?.Trim();
             return text;
         }
-
 
         private void _AddComboBoxItem(ComboBox comboBx, string s) //add string into  from other threads
         {
@@ -8955,7 +8907,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             return result;
         }
 
-
         private string _ReturnListBoxSelectedItem(ListBox listBox) //from other threads
         {
             string result = "";
@@ -8976,7 +8927,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
             return result;
         }
-
 
         private void _SetNumUpDown(NumericUpDown numericUpDown, decimal i) //add string into comboBoxTargedPC from other threads
         {
@@ -9000,7 +8950,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             return iCombo;
         }
 
-
         private DateTime _ReturnDateTimePicker(DateTimePicker dateTimePicker) //add string into  from other threads
         {
             DateTime result = DateTime.Now;
@@ -9017,7 +8966,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             return result;
         }
 
-        private int[] _ReturnDateTimePickerArray(DateTimePicker dateTimePicker) //add string into  from other threads
+        private int[] ReturnDateTimePickerArray(DateTimePicker dateTimePicker) //add string into  from other threads
         {
             int[] result = new int[3];
 
@@ -9037,7 +8986,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
             return result;
         }
-
 
         private void SetStatusLabelText(ToolStripStatusLabel statusLabel, string text, bool error = false) //add string into  from other threads
         {
@@ -9283,8 +9231,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             return checkBoxChecked;
         }
 
-
-
         private void _ResumePpanel(Panel panel) //access from other threads
         {
             if (InvokeRequired)
@@ -9430,7 +9376,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             return count;
         }
 
-
         private void _RefreshPictureBox(PictureBox picBox, Bitmap picImage) // не работает
         {
             if (InvokeRequired)
@@ -9454,11 +9399,10 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
         }
 
-
         /// <summary>
-        /// Change a Color of the Font on Status by the Timer  
-        /// stimerCurr = "Ждите!"   
-        /// stimerPrev - Информация СтатусТулСтрип  
+        /// Change a Color of the Font on Status by the Timer
+        /// stimerCurr = "Ждите!"
+        /// stimerPrev - Информация СтатусТулСтрип
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -9567,11 +9511,9 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         //---- End. Access to Controls from other threads ----//
 
-
-
-        //---- Start. Convertors of data types ----//     
+        //---- Start. Convertors of data types ----//
         /// <summary>
-        /// result is total_seconds 
+        /// result is total_seconds
         /// </summary>
         /// <param name="hours"></param>
         /// <param name="minutes"></param>
@@ -9638,9 +9580,8 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
             return result;
         }
+
         //---- End. Convertors of data types ----//
-
-
 
         private void SetStatusLabelText(object sender, TextEventArgs e)
         { SetStatusLabelText(StatusLabel2, e.Message); }
@@ -9656,9 +9597,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void AddLoggerTraceText(string e)
         { logger.Trace(e); }
-
-
-
 
         private void CreateDBItem_Click(object sender, EventArgs e)
         { TryMakeLocalDB(); }
@@ -9758,7 +9696,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             worker.Start();
         }
 
-
         private void RunUpdate(UpdatingParameters parameters, IADUser user)
         {
             logger.Trace($"Update URL: {parameters.appUpdateURL}");
@@ -9789,7 +9726,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
             //AutoUpdater.Start("ftp://kv-sb-server.corp.ais/Common/ASTA/ASTA.xml", new NetworkCredential("FtpUserName", "FtpPassword")); //download from FTP
         }
-
 
         /// <summary>
         /// Run Update immidiately
@@ -9852,7 +9788,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 timer.Start();
             });
         }
-
 
         private void RunAutoUpdate_Event(UpdateInfoEventArgs args)
         {
@@ -9923,13 +9858,14 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 urlUpdateReachError = true;
             }
         }
-        bool urlUpdateReachError = false;
+
+        private bool urlUpdateReachError = false;
 
         private UpdatingParameters PrepareUpdating()
         {
             logger.Info(remoteFolderUpdateURL);
 
-            //Make an archive with the currrent app's version 
+            //Make an archive with the currrent app's version
             MakeZip(appAllFiles, fileNameToUpdateZip);
 
             //Make MD5 of ZIP archive
@@ -9966,13 +9902,13 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             return preparing.GetParameters();
         }
 
-
         //Upload App's files to Server
         private void UploadApplicationItem_Click(object sender, EventArgs e) //Uploading()
         {
             firstAttemptsUpdate = true;
             UploadUpdatinfAplication();
         }
+
         private async void UploadUpdatinfAplication()
         {
             string temp = ReturnStatusLabelText(StatusLabel1);
@@ -10005,8 +9941,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             return new System.IO.FileInfo(filePath);
         }
 
-
-
         private void Uploading() //UploadApplicationToShare()
         {
             SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
@@ -10016,7 +9950,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
             UpdatingParameters parameters = PrepareUpdating();
 
-
             List<string> source = new List<string> {
                 parameters.localFolderUpdatingURL + @"\" + parameters.appFileXml,
                 parameters.localFolderUpdatingURL + @"\" + parameters.appFileZip
@@ -10024,7 +9957,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
             List<System.IO.Abstractions.IFileInfo> listSource = new List<System.IO.Abstractions.IFileInfo>();
             source.ForEach(p => listSource.Add((System.IO.Abstractions.FileInfoBase)ReturnNewFileInfo(p)));
-
 
             List<string> target = new List<string> {
                parameters.appUpdateFolderURI + parameters.appFileXml,
@@ -10047,7 +9979,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
             if (!isUploaded && uploadingStatus && firstAttemptsUpdate)
             {
-
                 ReplaceBrokenRemoteFolderUpdateURL();
 
                 System.Threading.Thread.Sleep(200);
@@ -10087,10 +10018,10 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             parameters = null;
         }
 
-        static bool firstAttemptsUpdate = true;
-        static bool isUploaded = false;
+        private static bool firstAttemptsUpdate = true;
+        private static bool isUploaded = false;
 
-        static bool replaceBrokenRemoteFolderUpdateURL = false;
+        private static bool replaceBrokenRemoteFolderUpdateURL = false;
 
         private string ChangeFormUrl(string serverUrl)
         {
@@ -10123,7 +10054,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             replaceBrokenRemoteFolderUpdateURL = true;
         }
 
-        UpdatingParameters MakeParametersToUpdate()
+        private UpdatingParameters MakeParametersToUpdate()
         {
             if (urlUpdateReachError)
             { ReplaceBrokenRemoteFolderUpdateURL(); }
@@ -10174,7 +10105,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 filePath = OpenFileDialogExtentions.ReturnFilePath("Выберите следующий файл для вычисления его хэша");
                 calculatedHash = new CalculatorHash(filePath);
                 string secondFile = calculatedHash.Calculate();
-                bool equalString = string.Equals(result,secondFile);
+                bool equalString = string.Equals(result, secondFile);
                 result += "\n" + secondFile + "\n";
                 MessageBox.Show(result, "Результат вычисления хэша", MessageBoxButtons.OK, ReturnMessageBoxIcon(equalString));
             }

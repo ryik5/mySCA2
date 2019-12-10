@@ -64,7 +64,6 @@ namespace ASTA.Classes
             }
         }
 
-
         public void Show(DataGridView dgv, bool visible)
         {
             dgv.Visible = visible;

@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace ASTA.Classes.People
+﻿namespace ASTA.Classes.People
 {
-    interface IDepartment
+    internal interface IDepartment
     {
         string DepartmentId { get; set; }
         string DepartmentDescr { get; set; }

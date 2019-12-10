@@ -1,13 +1,10 @@
-﻿using System.IO.Abstractions;
-
-namespace ASTA.Classes
+﻿namespace ASTA.Classes
 {
     public static class BuilderFileName
     {
-
         public static string BuildPath(string inputFileName, string extension)
         {
-            return ReturnFileNameWithExtention(inputFileName, extension); 
+            return ReturnFileNameWithExtention(inputFileName, extension);
         }
 
         /// <summary>
@@ -16,7 +13,7 @@ namespace ASTA.Classes
         /// <param name="inputFileName"></param>
         /// <param name="extension"></param>
         /// <returns></returns>
-        static string ReturnFileNameWithExtention(string inputFileName, string extension)
+        private static string ReturnFileNameWithExtention(string inputFileName, string extension)
         {
             string newNameOfFile = inputFileName;
             using (CheckerFileOnDisk fileExists = new CheckerFileOnDisk(inputFileName, extension))
@@ -31,5 +28,3 @@ namespace ASTA.Classes
         }
     }
 }
-    
-

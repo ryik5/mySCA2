@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Data;
+using System.Linq;
 
 namespace ASTA.Classes
 {
-    static class DataTableExtensions
+    internal static class DataTableExtensions
     {
         public static void SetColumnsOrder(this DataTable table, params string[] columnNames)
         {

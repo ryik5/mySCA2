@@ -21,11 +21,12 @@ namespace ASTA.Classes
         //
         //------------------------------------------------------
 
-        #region Private Fields    
+        #region Private Fields
+
         [NonSerialized]
         private DeferredEventsCollection _deferredEvents;
-        #endregion Private Fields
 
+        #endregion Private Fields
 
         //------------------------------------------------------
         //
@@ -34,6 +35,7 @@ namespace ASTA.Classes
         //------------------------------------------------------
 
         #region Constructors
+
         /// <summary>
         /// Initializes a new instance of ObservableCollection that is empty and has default initial capacity.
         /// </summary>
@@ -92,7 +94,7 @@ namespace ASTA.Classes
         /// </summary>
         /// <param name="index">The zero-based index at which the new elements should be inserted.</param>
         /// <param name="collection">The collection whose elements should be inserted into the List<T>.
-        /// The collection itself cannot be null, but it can contain elements that are null, if type T is a reference type.</param>                
+        /// The collection itself cannot be null, but it can contain elements that are null, if type T is a reference type.</param>
         /// <exception cref="ArgumentNullException"><paramref name="collection"/> is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="index"/> is not in the collection range.</exception>
         public void InsertRange(int index, IEnumerable<T> collection)
@@ -130,11 +132,10 @@ namespace ASTA.Classes
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, list, index));
         }
 
-
-        /// <summary> 
+        /// <summary>
         /// Removes the first occurence of each item in the specified collection from the <see cref="ObservableCollection{T}"/>.
         /// </summary>
-        /// <param name="collection">The items to remove.</param>        
+        /// <param name="collection">The items to remove.</param>
         /// <exception cref="ArgumentNullException"><paramref name="collection"/> is null.</exception>
         public void RemoveRange(IEnumerable<T> collection)
         {
@@ -194,7 +195,6 @@ namespace ASTA.Classes
             else
                 foreach (KeyValuePair<int, List<T>> cluster in clusters)
                     OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, cluster.Value, cluster.Key));
-
         }
 
         /// <summary>
@@ -320,10 +320,10 @@ namespace ASTA.Classes
                 OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, removedItems, index));
         }
 
-        /// <summary> 
+        /// <summary>
         /// Clears the current collection and replaces it with the specified collection,
         /// using the default <see cref="EqualityComparer{T}"/>.
-        /// </summary>             
+        /// </summary>
         /// <param name="collection">The items to fill the collection with, after clearing it.</param>
         /// <exception cref="ArgumentNullException"><paramref name="collection"/> is null.</exception>
         public void ReplaceRange(IEnumerable<T> collection)
@@ -420,7 +420,6 @@ namespace ASTA.Classes
                     newCluster = null,
                     oldCluster = null;
 
-
                 int i = index;
                 for (; i < rangeCount && i - index < addedCount; i++)
                 {
@@ -489,7 +488,6 @@ namespace ASTA.Classes
 
         #endregion Public Methods
 
-
         //------------------------------------------------------
         //
         //  Protected Methods
@@ -552,7 +550,6 @@ namespace ASTA.Classes
         protected virtual IDisposable DeferEvents() => new DeferredEventsCollection(this);
 
         #endregion Protected Methods
-
 
         //------------------------------------------------------
         //
@@ -636,9 +633,11 @@ namespace ASTA.Classes
         //------------------------------------------------------
 
         #region Private Types
+
         private sealed class DeferredEventsCollection : List<NotifyCollectionChangedEventArgs>, IDisposable
         {
             private readonly ObservableRangeCollection<T> _collection;
+
             public DeferredEventsCollection(ObservableRangeCollection<T> collection)
             {
                 Debug.Assert(collection != null);
@@ -656,7 +655,6 @@ namespace ASTA.Classes
         }
 
         #endregion Private Types
-
     }
 
     /// <remarks>

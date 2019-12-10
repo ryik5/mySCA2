@@ -15,6 +15,7 @@ namespace ASTA.Classes
             };
 
         public const string CARD_STATE = @"Событие точки доступа";
+
         public readonly static Dictionary<string, string> CARD_REGISTERED_ACTION = new Dictionary<string, string>()
         {
             {"ACCESS_IN", "Успешный проход" },
@@ -25,6 +26,7 @@ namespace ASTA.Classes
 
         //Names of collumns
         public const string NPP = @"№ п/п";
+
         public const string FIO = @"Фамилия Имя Отчество";
         public const string CODE = @"NAV-код";
         public const string GROUP = @"Группа";
@@ -68,16 +70,17 @@ namespace ASTA.Classes
         //Mailing
         public const string RECEPIENTS_OF_REPORTS = @"Получатель рассылки";
 
-
         //Page of Report
         //Collumns of the table 'Day off'
         public const string DAYOFF_DATE = @"День";
+
         public const string DAYOFF_TYPE = @"Выходной или рабочий день";
         public const string DAYOFF_USED_BY = @"Персонально(NAV) или для всех(0)";
         public const string DAYOFF_ADDED = @"Дата добавления";
 
         //string constants
         public const string DAY_OFF_OR_WORK = @"Выходные(рабочие) дни";
+
         public const string DAY_OFF_OR_WORK_EDIT = @"Режим добавления/удаления праздничных дней";
 
         public const string WORK_WITH_A_PERSON = @"Работать с одной персоной";
@@ -100,8 +103,8 @@ namespace ASTA.Classes
                  REAL_TIME_OUT,                     //18
                  SERVER_SKD,                        //11
                  CHECKPOINT_NAME,                   //12
-                 CHECKPOINT_DIRECTION,                     //13              
-                 CHECKPOINT_ACTION,                     //13              
+                 CHECKPOINT_DIRECTION,                     //13
+                 CHECKPOINT_ACTION,                     //13
                  CARD_STATE,                //14
                  DESIRED_TIME_IN,                   //15
                  DESIRED_TIME_OUT,                  //16
@@ -122,6 +125,7 @@ namespace ASTA.Classes
                  DEPARTMENT_ID,                     //33
                  CHIEF_ID                           //34
         };
+
         public readonly static string[] orderColumnsFinacialReport =
              {
                  FIO,//1
@@ -145,6 +149,7 @@ namespace ASTA.Classes
                  EMPLOYEE_POSITION,                    //39
                  EMPLOYEE_SHIFT                    //40
         };
+
         public readonly static string[] orderColumnsLastRegistrations =
               {
                  FIO,//1
@@ -154,6 +159,7 @@ namespace ASTA.Classes
                  CHECKPOINT_DIRECTION,
                  CHECKPOINT_ACTION
         };
+
         public readonly static string[] orderColumnsRegistrations =
               {
                  FIO,//1
@@ -173,6 +179,7 @@ namespace ASTA.Classes
                  DEPARTMENT_ID,                     //33
                  CHIEF_ID                           //34
         };
+
         public readonly static string[] orderColumnsFIO =
             {
                  FIO,//1

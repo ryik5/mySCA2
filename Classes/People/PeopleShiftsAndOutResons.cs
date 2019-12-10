@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ASTA.Classes.People
+﻿namespace ASTA.Classes.People
 {
     public class PeopleOutReasons
     {
@@ -31,7 +29,7 @@ namespace ASTA.Classes.People
         }
     }
 
-    class OutPerson
+    internal class OutPerson
     {
         public string id;//= "0"
         public string code;//= ""

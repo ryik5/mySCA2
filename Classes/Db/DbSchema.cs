@@ -13,6 +13,7 @@ namespace ASTA.Classes
     public class DbSchema
     {
         #region Object Overrides
+
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(this, obj))
@@ -60,7 +61,7 @@ namespace ASTA.Classes
 
         public override int GetHashCode()
         {
-            // TODO: return the hash code by doing the hash on the stringified 
+            // TODO: return the hash code by doing the hash on the stringified
             // representation of the schema.
             return base.GetHashCode();
         }
@@ -70,9 +71,11 @@ namespace ASTA.Classes
             //  TODO: return the stringified version of the schema.
             return base.ToString();
         }
-        #endregion
+
+        #endregion Object Overrides
 
         #region Public Properties
+
         /// <summary>
         /// Return all table meta data in the schema
         /// </summary>
@@ -88,7 +91,8 @@ namespace ASTA.Classes
         {
             get { return _indexes; }
         }
-        #endregion
+
+        #endregion Public Properties
 
         #region Public Static Methods
 
@@ -178,12 +182,13 @@ namespace ASTA.Classes
 
             return schema;
         }
-        #endregion
+
+        #endregion Public Static Methods
 
         #region Private Static Methods
 
         /// <summary>
-        /// Parse the specified CREATE INDEX statement and returned the 
+        /// Parse the specified CREATE INDEX statement and returned the
         /// index representation as a DbIndex instance.
         /// </summary>
         /// <param name="sql">The CREATE INDEX sql statement</param>
@@ -316,7 +321,7 @@ namespace ASTA.Classes
                     if (keys != null)
                         primaryKeys.AddRange(keys);
                     else
-                          throw DbUpgradeException.SchemaIsNotSupported();
+                        throw DbUpgradeException.SchemaIsNotSupported();
                 } // else
             } while (true);
 
@@ -471,7 +476,7 @@ namespace ASTA.Classes
 
                     rest = rest.Substring(m.Index + m.Length);
                     m = _columnConstraints.Match(rest);
-                } // while                
+                } // while
 
                 return res;
             } // if
@@ -790,7 +795,7 @@ namespace ASTA.Classes
         /// <param name="str">The string to scan</param>
         /// <param name="token">The token to search for</param>
         /// <returns>TRUE if the token was found (str is adjusted to point right after
-        /// the token in the input string) or FALSE if not found (str is 
+        /// the token in the input string) or FALSE if not found (str is
         /// left unchanged).</returns>
         private static bool ScanToken(ref string str, string token)
         {
@@ -816,19 +821,24 @@ namespace ASTA.Classes
             else
                 return false;
         }
-        #endregion
+
+        #endregion Private Static Methods
 
         #region Private Variables
+
         private static Regex _sizeRx = new Regex(@"\s*\(\s*(\d+)\s*\)");
         private static Regex _tableHeader = new Regex(@"CREATE\s+TABLE\s+");
         private static Regex _tableExistedHeader = new Regex(@"CREATE\s+TABLE\s+IFs+NOTs+EXISTS");
+
         private static Regex _columnConstraints =
             new Regex(@"(PRIMARY KEY)|(NOT NULL|NULL)|(DEFAULT\s+((CURRENT_TIMESTAMP|CURRENT_DATE|CURRENT_TIME)|(\'([^\']*)\')|(\(?(\-?\d+\.\d+)\)?)|(\(?(\-?\d+)\)?)))|(COLLATE\s+([a-zA-Z_][a-zA-Z0-9_]*))|(UNIQUE)|(AUTOINCREMENT)");
+
         private static Regex _indexHeader =
             new Regex(@"CREATE\s+(UNIQUE\s+)?INDEX\s+");
+
         private Dictionary<string, DbIndex> _indexes = new Dictionary<string, DbIndex>();
         private Dictionary<string, DbTable> _tables = new Dictionary<string, DbTable>();
-        #endregion
-    }
 
+        #endregion Private Variables
+    }
 }

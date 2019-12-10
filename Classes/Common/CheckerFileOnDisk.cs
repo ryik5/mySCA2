@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO.Abstractions;
 
 namespace ASTA.Classes
 {
@@ -9,6 +8,7 @@ namespace ASTA.Classes
     public class CheckerFileOnDisk : IDisposable
     {
         public delegate void Status(object sender, TextEventArgs e);
+
         public event Status status;
 
         //public CheckerFileOnDisk() : this(new FileSystem()) { }
@@ -18,7 +18,7 @@ namespace ASTA.Classes
         //}
 
         private string _inputFileName, _extension, _inputFileNameWithExtention;
-//        private  IFileSystem _fileSystem;
+        //        private  IFileSystem _fileSystem;
 
         public CheckerFileOnDisk(string inputFileName, string extension)
         {
@@ -41,7 +41,6 @@ namespace ASTA.Classes
         {
             _inputFileNameWithExtention = inputFileNameWithExtention;
         }
-
 
         public bool Exists()
         {
@@ -67,6 +66,7 @@ namespace ASTA.Classes
         }
 
         #region IDisposable Support
+
         private bool disposedValue = false; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)
@@ -103,6 +103,7 @@ namespace ASTA.Classes
             // TODO: uncomment the following line if the finalizer is overridden above.
             // GC.SuppressFinalize(this);
         }
-        #endregion
+
+        #endregion IDisposable Support
     }
 }
