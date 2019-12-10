@@ -12,8 +12,7 @@ namespace ASTA.Classes
             if (ReferenceEquals(this, obj))
                 return true;
 
-            DbColumn dst = obj as DbColumn;
-            if (dst == null)
+            if (!(obj is DbColumn dst))
                 return false;
 
             if (_collation != dst._collation)

@@ -76,8 +76,7 @@
             if (obj == null || !(obj is MailUser))
                 return false;
 
-            MailUser df = obj as MailUser;
-            if (df == null)
+            if (!(obj is MailUser df))
                 return false;
 
             return ToString().Equals(df.ToString());

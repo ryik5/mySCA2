@@ -38,8 +38,7 @@ namespace ASTA.Classes.People
             if (obj == null)
                 return false;
 
-            Visitor df = obj as Visitor;
-            if (df == null)
+            if (!(obj is Visitor df))
                 return false;
 
             return ToString().Equals(df.ToString());

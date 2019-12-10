@@ -53,11 +53,10 @@
             if (obj == null)
                 return false;
 
-            DepartmentFull df = obj as DepartmentFull;
-            if (df == null)
+            if (obj as DepartmentFull == null)
                 return false;
 
-            return ToString().Equals(df.ToString());
+            return ToString().Equals((obj as DepartmentFull).ToString());
         }
 
         public override int GetHashCode()

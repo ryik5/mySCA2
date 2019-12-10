@@ -19,8 +19,7 @@ namespace ASTA.Classes
             if (ReferenceEquals(this, obj))
                 return true;
 
-            DbSchema dst = obj as DbSchema;
-            if (dst == null)
+            if (!(obj is DbSchema dst))
                 return false;
 
             if (_tables.Count != dst._tables.Count)

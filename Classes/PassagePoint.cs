@@ -20,8 +20,7 @@ namespace ASTA.Classes
             if (obj == null)
                 return false;
 
-            PassagePoint df = obj as PassagePoint;
-            if (df == null)
+            if (!(obj is PassagePoint df))
                 return false;
 
             return ToString() == df.ToString();
@@ -47,8 +46,7 @@ namespace ASTA.Classes
             if (obj == null)
                 return false;
 
-            SideOfPassagePoint df = obj as SideOfPassagePoint;
-            if (df == null)
+            if (!(obj is SideOfPassagePoint df))
                 return false;
 
             return ToString() == df.ToString();
@@ -94,8 +92,7 @@ namespace ASTA.Classes
                 }
                 else
                 {
-                    SideOfPassagePoint chkPoint;
-                    if (!listSideOfPassagePoints.TryGetValue(_idPoint, out chkPoint))
+                    if (!listSideOfPassagePoints.TryGetValue(_idPoint, out SideOfPassagePoint chkPoint))
                     {
                         listSideOfPassagePoints.Add(_idPoint, sideOfPassagePoint);
                     }

@@ -15,8 +15,7 @@ namespace ASTA.Classes
             if (ReferenceEquals(this, obj))
                 return true;
 
-            DbIndex dst = obj as DbIndex;
-            if (dst == null)
+            if (!(obj is DbIndex dst))
                 return false;
 
             if (_tableName != dst._tableName)

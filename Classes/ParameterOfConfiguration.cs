@@ -26,8 +26,7 @@ namespace ASTA.Classes
             if (obj == null)
                 return false;
 
-            ParameterConfig df = obj as ParameterConfig;
-            if (df == null)
+            if (!(obj is ParameterConfig df))
                 return false;
 
             return ToString() == df.ToString();
@@ -62,8 +61,7 @@ namespace ASTA.Classes
             if (obj == null)
                 return false;
 
-            ParameterOfConfiguration df = obj as ParameterOfConfiguration;
-            if (df == null)
+            if (!(obj is ParameterOfConfiguration df))
                 return false;
 
             return ToString() == df.ToString();
@@ -160,8 +158,8 @@ namespace ASTA.Classes
                 {
                     sqlConnection.Open();
 
-                    SQLiteCommand sqlCommand1 = new SQLiteCommand("begin", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
+                    using (SQLiteCommand sqlCommand1 = new SQLiteCommand("begin", sqlConnection))
+                    { sqlCommand1.ExecuteNonQuery(); }
                     string ParameterValueSave = "";
                     if (_parameterOfConfiguration.isSecret)
                     {
@@ -184,8 +182,8 @@ namespace ASTA.Classes
                         sqlCommand.Parameters.Add("@IsExample", DbType.String).Value = _parameterOfConfiguration.isExample;
                         try { sqlCommand.ExecuteNonQuery(); } catch { }
                     }
-                    sqlCommand1 = new SQLiteCommand("end", sqlConnection);
-                    sqlCommand1.ExecuteNonQuery();
+                    using (SQLiteCommand sqlCommand1 = new SQLiteCommand("end", sqlConnection))
+                    { sqlCommand1.ExecuteNonQuery(); }
                 }
                 if (_parameterOfConfiguration?.value?.Length == 0)
                     return _parameterOfConfiguration.name + " - was saved in DB, but value is empty!";

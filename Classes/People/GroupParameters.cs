@@ -16,8 +16,7 @@
             if (obj == null)
                 return false;
 
-            GroupParameters df = obj as GroupParameters;
-            if (df == null)
+            if (!(obj is GroupParameters df))
                 return false;
 
             return ToString() == df.ToString();

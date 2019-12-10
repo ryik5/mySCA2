@@ -67,7 +67,22 @@ namespace ASTA
                 //Analysing packages
                 @"ASTA.exe.config"
                         };
-
+        /*         
+AutoUpdater.NET.dll                         SQLitePCLRaw.batteries_v2.dll
+BouncyCastle.Crypto.dll                     SQLitePCLRaw.core.dll
+EntityFramework.dll                         SQLitePCLRaw.nativelibrary.dll
+EntityFramework.SqlServer.dll               SQLitePCLRaw.provider.dynamic_cdecl.dll
+Google.Protobuf.dll                         System.Buffers.dll
+MailKit.dll                                 System.ComponentModel.Annotations.dll
+Microsoft.Data.SqlClient.dll                System.Data.SQLite.dll
+Microsoft.Data.Sqlite.dll                   System.Diagnostics.DiagnosticSource.dll
+Microsoft.DotNet.PlatformAbstractions.dll   System.IdentityModel.Tokens.Jwt.dll
+MimeKit.dll                                 System.IO.Abstractions.dll
+MySql.Data.dll                              System.Memory.dll
+Newtonsoft.Json.dll                         System.Threading.Tasks.Extensions.dll
+NLog.dll
+Renci.SshNet.dll 
+         */
         private static readonly string appRegistryKey = @"SOFTWARE\RYIK\ASTA";
 
         private static readonly byte[] keyEncryption = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
@@ -462,10 +477,12 @@ namespace ASTA
             contextMenu.MenuItems.Add("-", AboutSoft);
             contextMenu.MenuItems.Add("Exit", ApplicationExit);
 
-            notifyIcon = new NotifyIcon();
-            notifyIcon.Icon = this.Icon;
-            notifyIcon.Visible = true;
-            notifyIcon.BalloonTipText = "Developed by " + appCopyright;
+            notifyIcon = new NotifyIcon
+            {
+                Icon = this.Icon,
+                Visible = true,
+                BalloonTipText = "Developed by " + appCopyright
+            };
             notifyIcon.ShowBalloonTip(500);
 
             // notifyIcon.Text = Application.ProductName + "\nv." + Application.ProductVersion + " (" + appFileVersionInfo.FileVersion + ")" + "\n" + Application.CompanyName;
@@ -1573,8 +1590,8 @@ namespace ASTA
             string depDescription = "";
             string depBossCode = "";
 
-            string timeStart = ConvertDecimalTimeToStringHHMM(_ReturnNumUpDown(numUpDownHourStart), _ReturnNumUpDown(numUpDownMinuteStart));
-            string timeEnd = ConvertDecimalTimeToStringHHMM(_ReturnNumUpDown(numUpDownHourEnd), _ReturnNumUpDown(numUpDownMinuteEnd));
+            string timeStart = ConvertDecimalTimeToStringHHMM(ReturnNumUpDown(numUpDownHourStart), ReturnNumUpDown(numUpDownMinuteStart));
+            string timeEnd = ConvertDecimalTimeToStringHHMM(ReturnNumUpDown(numUpDownHourEnd), ReturnNumUpDown(numUpDownMinuteEnd));
             string dayStartShift = "";
             string dayStartShift_ = "";
 
@@ -3148,8 +3165,8 @@ namespace ASTA
             //status of repeatedly loading of registrations cards from server
             checkInputsOutputs = false;
 
-            string dayStart = _ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD();
-            string dayEnd = _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD();
+            string dayStart = ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD();
+            string dayEnd = ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD();
 
             await Task.Run(() => LoadInputsOutputsOfVisitors(dayStart, dayEnd, timesCheckingRegistration));
         }
@@ -3166,8 +3183,8 @@ namespace ASTA
             //status of repeatedly loading of registrations cards from server
             checkInputsOutputs = false;
 
-            string dayStart = _ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD();
-            string dayEnd = _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD();
+            string dayStart = ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD();
+            string dayEnd = ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD();
 
             if (DateTime.Now.ToYYYYMMDD() != dayStart)
             { timesCheckingRegistration = 1; }
@@ -3566,8 +3583,8 @@ namespace ASTA
 
             if (bServer1Exist)
             {
-                reportStartDay = _ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD();
-                reportLastDay = _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD();
+                reportStartDay = ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD();
+                reportLastDay = ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD();
 
                 await Task.Run(() => GetData(_group, reportStartDay, reportLastDay));
 
@@ -3631,8 +3648,8 @@ namespace ASTA
 
             //Load Records of registrations of Id cards
             LoadRecords(_group,
-                _ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD() + " 00:00:00",
-                _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD() + " 23:59:59",
+                ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD() + " 00:00:00",
+                ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD() + " 23:59:59",
                 "");
 
             dtPersonTemp = LeaveAndOrderColumnsOfDataTable(dtPersonRegistrationsFullList.Copy(), Names.orderColumnsRegistrations);
@@ -3742,24 +3759,23 @@ namespace ASTA
             }
             else
             {
-                person = new EmployeeFull();
-                person.Code = _ReturnTextOfControl(textBoxNav);
-                person.fio = _ReturnTextOfControl(textBoxFIO);
-
+                person = new EmployeeFull
+                {
+                    Code = _ReturnTextOfControl(textBoxNav),
+                    fio = _ReturnTextOfControl(textBoxFIO),
+                    GroupPerson = "One User",
+                    Department = "",
+                    DepartmentId = "",
+                    City = "",
+                    DepartmentBossCode = "",
+                    PositionInDepartment = "Сотрудник",
+                    Shift = "",
+                    Comment = "",
+                    ControlInHHMM = ConvertStringsTimeToStringHHMM(ReturnNumUpDown(numUpDownHourStart).ToString(), ReturnNumUpDown(numUpDownMinuteStart).ToString()),
+                    ControlOutHHMM = ConvertStringsTimeToStringHHMM(ReturnNumUpDown(numUpDownHourEnd).ToString(), ReturnNumUpDown(numUpDownMinuteEnd).ToString())
+                };
+                
                 SetStatusLabelText(StatusLabel2, $"Получаю данные по {person.fio?.ConvertFullNameToShortForm()}'");
-
-                person.GroupPerson = "One User";
-                person.Department = "";
-                person.DepartmentId = "";
-                person.City = "";
-                person.DepartmentBossCode = "";
-                person.PositionInDepartment = "Сотрудник";
-
-                person.Shift = "";
-                person.Comment = "";
-
-                person.ControlInHHMM = ConvertStringsTimeToStringHHMM(_ReturnNumUpDown(numUpDownHourStart).ToString(), _ReturnNumUpDown(numUpDownMinuteStart).ToString());
-                person.ControlOutHHMM = ConvertStringsTimeToStringHHMM(_ReturnNumUpDown(numUpDownHourEnd).ToString(), _ReturnNumUpDown(numUpDownMinuteEnd).ToString());
 
                 logger.Trace($"LoadRecords,One User: {person.fio}");
 
@@ -3814,7 +3830,6 @@ namespace ASTA
                 }
 
                 // Passes By Points
-
                 query = "SELECT p.param0 as param0, p.param1 as param1, p.objid as objid, p.objtype, p.action as action, " +
                        " pe.tabnum as nav, pe.facility_code as fac, pe.card as card, " +
                        " CONVERT(varchar, p.date, 120) AS date, CONVERT(varchar, p.time, 114) AS time" +
@@ -4524,10 +4539,11 @@ namespace ASTA
 
             var mySelectedStartDay = new DateTime(startOfPeriod[0], startOfPeriod[1], startOfPeriod[2]);
             var mySelectedEndDay = new DateTime(endOfPeriod[0], endOfPeriod[1], endOfPeriod[2]);
-            var myMonthCalendar = new MonthCalendar();
-
-            myMonthCalendar.MaxSelectionCount = 60;
-            myMonthCalendar.SelectionRange = new SelectionRange(mySelectedStartDay, mySelectedEndDay);
+            var myMonthCalendar = new MonthCalendar
+            {
+                MaxSelectionCount = 60,
+                SelectionRange = new SelectionRange(mySelectedStartDay, mySelectedEndDay)
+            };
 
             //whole range of days in the selection period
             List<string> wholeSelectedDays = new List<string>();
@@ -4742,7 +4758,7 @@ namespace ASTA
         private List<string> ReturnBoldedDaysFromDB(string nav, string dayType)
         {
             List<string> boldedDays = new List<string>();
-            string query = null;
+            string query ;
             if (nav.Length == 6)
             {
                 query = $"SELECT DayBolded FROM BoldedDates WHERE (NAV LIKE '{nav}' OR  NAV LIKE '0') AND DayType LIKE '{dayType}';";
@@ -5017,18 +5033,19 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void VacuumDB(string dbPath)
         {
-            SQLiteConnectionStringBuilder builder =
-                new SQLiteConnectionStringBuilder();
-            builder.DataSource = dbPath;
-            builder.PageSize = 4096;
-            builder.UseUTF16Encoding = true;
+            SQLiteConnectionStringBuilder builder =                new SQLiteConnectionStringBuilder
+                {
+                    DataSource = dbPath,
+                    PageSize = 4096,
+                    UseUTF16Encoding = true
+                };
 
             using (SQLiteConnection conn = new SQLiteConnection(builder.ConnectionString))
             {
                 conn.Open();
 
-                SQLiteCommand vacuum = new SQLiteCommand(@"VACUUM", conn);
-                vacuum.ExecuteNonQuery();
+                using (SQLiteCommand vacuum = new SQLiteCommand(@"VACUUM", conn))
+                { vacuum.ExecuteNonQuery(); }
             }
         }
 
@@ -5041,8 +5058,8 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             personSelected.Code = _ReturnTextOfControl(textBoxNav);
             personSelected.GroupPerson = _ReturnTextOfControl(textBoxGroup);
 
-            personSelected.ControlInHHMM = ConvertDecimalTimeToStringHHMM(_ReturnNumUpDown(numUpDownHourStart), _ReturnNumUpDown(numUpDownMinuteStart));
-            personSelected.ControlOutHHMM = ConvertDecimalTimeToStringHHMM(_ReturnNumUpDown(numUpDownHourEnd), _ReturnNumUpDown(numUpDownMinuteEnd));
+            personSelected.ControlInHHMM = ConvertDecimalTimeToStringHHMM(ReturnNumUpDown(numUpDownHourStart), ReturnNumUpDown(numUpDownMinuteStart));
+            personSelected.ControlOutHHMM = ConvertDecimalTimeToStringHHMM(ReturnNumUpDown(numUpDownHourEnd), ReturnNumUpDown(numUpDownMinuteEnd));
         }
 
         //---- Start. Drawing ---//
@@ -5800,7 +5817,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 @"\nФильтровать эти данные по пользователям или попыткам прохода" +
                 @"4. ПО способно самостоятельно или принудительно проверять наличие обновления на сервере." +
                 @"4.1. Для использования данного функционала заполните в конфигурации в параметр 'serverUpdateURL' URI адрес папки сервера с обновлениями (SERVER.DOMAIN.SUBDOMAIN\FOLDER_WITH_UPDATES)." +
-                @"\n\nДата и время локального ПК: " + _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDDHHMMSS(),
+                @"\n\nДата и время локального ПК: " + ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDDHHMMSS(),
 
                "Информация о программе",
                MessageBoxButtons.OK,
@@ -6754,10 +6771,10 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void NumUpDownValueChanged()
         {
-            numUpHourStart = _ReturnNumUpDown(numUpDownHourStart);
-            numUpMinuteStart = _ReturnNumUpDown(numUpDownMinuteStart);
-            numUpHourEnd = _ReturnNumUpDown(numUpDownHourEnd);
-            numUpMinuteEnd = _ReturnNumUpDown(numUpDownMinuteEnd);
+            numUpHourStart = ReturnNumUpDown(numUpDownHourStart);
+            numUpMinuteStart = ReturnNumUpDown(numUpDownMinuteStart);
+            numUpHourEnd = ReturnNumUpDown(numUpDownHourEnd);
+            numUpMinuteEnd = ReturnNumUpDown(numUpDownMinuteEnd);
         }
 
         private void dateTimePickerStart_CloseUp(object sender, EventArgs e)
@@ -6773,8 +6790,8 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void SetMenuItemsTextAfterClosingDateTimePicker()
         {
-            string dayStart = _ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD();
-            string dayEnd = _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD();
+            string dayStart = ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD();
+            string dayEnd = ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD();
 
             _SetMenuItemText(LoadLastInputsOutputsItem, $"Загрузить все события СКД за сегодня ({ DateTime.Now.ToYYYYMMDD()})");
 
@@ -7176,15 +7193,15 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                                 { recepient = mailSenderAddress; }
 
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: $"Загрузить регистрации пропусков группы: '{cellValue[1]}' за {_ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()}",
+                                    text: $"Загрузить регистрации пропусков группы: '{cellValue[1]}' за {ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()}",
                                     onClick: GetDataOfGroup_Click));
 
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: $"Загрузить регистрации пропусков группы: '{cellValue[1]}' за {_ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()} и подготовить отчет",
+                                    text: $"Загрузить регистрации пропусков группы: '{cellValue[1]}' за {ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()} и подготовить отчет",
                                     onClick: DoReportByRightClick));
 
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: $"Загрузить регистрации пропусков группы: '{cellValue[1]}' за {_ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()} и отправить: {recepient}",
+                                    text: $"Загрузить регистрации пропусков группы: '{cellValue[1]}' за {ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()} и отправить: {recepient}",
                                     onClick: DoReportAndEmailByRightClick));
 
                                 mRightClick.MenuItems.Add("-");
@@ -7213,7 +7230,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                                    onClick: PaintRowsActionItem_Click));
                                 mRightClick.MenuItems.Add("-");
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: $"Загрузить данные регистраций входов-выходов '{cellValue[0]}' за { _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()}",
+                                    text: $"Загрузить данные регистраций входов-выходов '{cellValue[0]}' за { ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()}",
                                     onClick: GetDataOfPerson_Click));
                                 mRightClick.Show(dataGridView1, new Point(e.X, e.Y));
                                 break;
@@ -7234,7 +7251,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                                 mRightClick.MenuItems.Add("-");
 
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: $"Выполнить рассылку: {cellValue[0]}({cellValue[1]}) за {_ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()} для {cellValue[5]}",
+                                    text: $"Выполнить рассылку: {cellValue[0]}({cellValue[1]}) за {ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()} для {cellValue[5]}",
                                     onClick: DoMainAction));
                                 mRightClick.MenuItems.Add("-");
 
@@ -7294,10 +7311,10 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                                     mRightClick.MenuItems.Add("-");
                                 }
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: $"Загрузить регистрации пропусков группы: '{cellValue[8]}' за {_ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()}",
+                                    text: $"Загрузить регистрации пропусков группы: '{cellValue[8]}' за {ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()}",
                                     onClick: GetDataOfGroup_Click));
                                 mRightClick.MenuItems.Add(new MenuItem(
-                                    text: $"Загрузить регистрации пропусков: '{cellValue[0]}' за {_ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()}",
+                                    text: $"Загрузить регистрации пропусков: '{cellValue[0]}' за {ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()}",
                                     onClick: GetDataOfPerson_Click));
                                 mRightClick.MenuItems.Add("-");
                                 mRightClick.MenuItems.Add(new MenuItem(
@@ -7533,7 +7550,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                     cellValue[0],
                     cellValue[0],
                     cellValue[1],
-                   _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
+                   ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
                     "Активная",
                     "Упрощенный",
                     "END_OF_MONTH");
@@ -7582,7 +7599,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 cellValue[0],
                 cellValue[0],
                 cellValue[1],
-                _ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
+                ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear(),
                 "Активная",
                 "Упрощенный",
                 DateTime.Now.ToYYYYMMDDHHMM(),
@@ -8384,7 +8401,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private string SelectedDatetimePickersPeriodMonth() //format of result: "1971-01-01 00:00:00|1971-01-31 23:59:59" // 'yyyy-MM-dd HH:mm:SS'
         {
-            return _ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD() + " 00:00:00" + "|" + _ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD() + " 23:59:59";
+            return ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD() + " 00:00:00" + "|" + ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD() + " 23:59:59";
         }
 
         private void MailingAction(string mainAction, string recipientEmail, string senderEmail, string groupsReport, string nameReport, string description, string period, string status, string typeReport, string dayReport)
@@ -8437,7 +8454,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             else if (period.ToLower().Contains("предыдущ"))
             { selectedDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddDays(-1); }
             else
-            { selectedDate = _ReturnDateTimePicker(dateTimePickerStart); }
+            { selectedDate = ReturnDateTimePicker(dateTimePickerStart); }
 
             reportStartDay = selectedDate.FirstDayOfMonth().ToYYYYMMDD() + " 00:00:00";
             reportLastDay = selectedDate.LastDayOfMonth().ToYYYYMMDD() + " 23:59:59";
@@ -8940,7 +8957,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
         }
 
-        private decimal _ReturnNumUpDown(NumericUpDown numericUpDown)
+        private decimal ReturnNumUpDown(NumericUpDown numericUpDown)
         {
             decimal iCombo = 0;
             if (InvokeRequired)
@@ -8950,7 +8967,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             return iCombo;
         }
 
-        private DateTime _ReturnDateTimePicker(DateTimePicker dateTimePicker) //add string into  from other threads
+        private DateTime ReturnDateTimePicker(DateTimePicker dateTimePicker) //add string into  from other threads
         {
             DateTime result = DateTime.Now;
             if (InvokeRequired)

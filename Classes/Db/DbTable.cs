@@ -15,8 +15,7 @@ namespace ASTA.Classes
             if (ReferenceEquals(this, obj))
                 return true;
 
-            DbTable dst = obj as DbTable;
-            if (dst == null)
+            if (!(obj is DbTable dst))
                 return false;
 
             if (_tableName != dst._tableName)

@@ -23,8 +23,7 @@ namespace ASTA.Classes
             if (obj == null || !(obj is Mailing))
                 return false;
 
-            Mailing df = obj as Mailing;
-            if (df == null)
+            if (!(obj is Mailing df))
                 return false;
 
             return ToString().Equals(df.ToString());
