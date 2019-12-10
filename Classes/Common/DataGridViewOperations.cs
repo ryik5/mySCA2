@@ -41,10 +41,8 @@ namespace ASTA.Classes
             return dgv?.CurrentCell?.ColumnIndex ?? -1;
         }
 
-        public void ShowData(DataGridView dgv, DataTable dt)
+        public void AddDataTable(DataGridView dgv, DataTable dt)
         {
-            dgv.Visible = false;
-
             if (dt != null && dt?.Columns?.Count > 0 && dt?.Rows?.Count > 0)
             {
                 dgv.DataSource = dt;
@@ -53,9 +51,26 @@ namespace ASTA.Classes
             {
                 dgv.DataSource = new ArrayList();
             }
+        }
 
-            dgv.Visible = true;
-            dgv.Refresh();
+        public void Paint(DataGridView dgv, string columnName, string desiredData)
+        {
+            foreach (DataGridViewRow row in dgv.Rows)
+            {
+                if (row?.Cells[columnName]?.Value?.ToString() == desiredData)
+                    row.DefaultCellStyle.BackColor = System.Drawing.Color.Red;
+                else
+                    row.DefaultCellStyle.BackColor = System.Drawing.Color.White;
+            }
+        }
+
+
+        public void Show(DataGridView dgv, bool visible)
+        {
+            dgv.Visible = visible;
+
+            if (visible)
+            { dgv.Refresh(); }
         }
 
         //   public string[] cellValue = new string[10];

@@ -133,8 +133,8 @@ namespace ASTA.Classes
                 smtpClient.Timeout = 50000;
 
                 {
-                    logger.Trace("SendEmail: Try to send From:" + mailsOfSenderOfName + "| To:" + to + "| " + period + "| " + department + "|" + pathToFile + "|" + messageAfterPicture);
-                    logger.Trace("SendEmail: file=" + (pathToFile.Length > 0) + ", admin=" + to.Equals(mailJobReportsOfNameOfReceiver));
+                     logger.Trace("SendEmail: Try to send From:" + mailsOfSenderOfName + "| To:" + to + "| " + period + "| " + department + "|" + pathToFile + "|" + messageAfterPicture);
+                     logger.Trace("SendEmail: file=" + (pathToFile.Length > 0) + ", admin=" + to.Equals(mailJobReportsOfNameOfReceiver));
 
                     // создаем объект сообщения
                     using (System.Net.Mail.MailMessage newMail = new System.Net.Mail.MailMessage())
@@ -260,7 +260,7 @@ namespace ASTA.Classes
             if (e.Error != null)
             { logger.Warn("Send error to " + recepient + "|" + subject + "|" + e.Error.ToString()); }
             else
-            { logger.Trace("Message sent to " + recepient + "|" + subject); }
+            {  logger.Trace("Message sent to " + recepient + "|" + subject); }
             mailStopSent = true;
         }
 

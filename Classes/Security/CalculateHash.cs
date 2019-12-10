@@ -3,10 +3,10 @@ using System.Security.Cryptography;
 
 namespace ASTA.Classes.Security
 {
-    internal class CalculatingHash
+    internal class CalculatorHash
     {
         private  string FilName{ get; set; }
-        public CalculatingHash(string filename)
+        public CalculatorHash(string filename)
         {
             FilName = filename;
         }

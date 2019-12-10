@@ -688,8 +688,6 @@ namespace ASTA
             Application.Exit();
         }
 
-
-
         private List<string> ReadTXTFile(string fpath = null, int listMaxLength = 10000)
         {
             List<string> txt = new List<string>(listMaxLength);
@@ -705,7 +703,7 @@ namespace ASTA
 
                 if (!(fpath?.Length > 0))
                 {
-                    fpath = SelectFileOpenFileDialog("Выберите файл", "Текстовые файлы (*.txt)|*.txt|SQL файлы (*.sql)|*.sql|All files (*.*)|*.*");
+                    fpath = OpenFileDialogExtentions.ReturnFilePath("Выберите файл", "Текстовые файлы (*.txt)|*.txt|SQL файлы (*.sql)|*.sql|All files (*.*)|*.*");
                     if (fpath == null) return;
                 }
 
@@ -1242,7 +1240,9 @@ namespace ASTA
             iCounterLine = dt.Rows.Count;
             logger.Trace($"ShowDataTableDbQuery: {iCounterLine}");
 
-            dgvo.ShowData(dataGridView1, dt);
+            dgvo.Show(dataGridView1, false);
+            dgvo.AddDataTable(dataGridView1, dt);
+            dgvo.Show(dataGridView1, true);
             dt?.Dispose();
             nameOfLastTable = myTable;
             sLastSelectedElement = "dataGridView";
@@ -1261,7 +1261,10 @@ namespace ASTA
                 }
 
                 SetStatusLabelText(StatusLabel2, $"Всего записей: {dataTable.Rows.Count}");
-                dgvo.ShowData(dataGridView1, dataTable);
+
+                dgvo.Show(dataGridView1, false);
+                dgvo.AddDataTable(dataGridView1, dataTable);
+                dgvo.Show(dataGridView1, true);
             }
             nameOfLastTable = nameLastTable;
             sLastSelectedElement = "dataGridView";
@@ -2201,9 +2204,7 @@ namespace ASTA
             _ProgressBar1Stop();
         }
 
-#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
         private async Task ExportDatatableSelectedColumnsToExcel(DataTable dataTable, string nameReport, string filePath)  //Export DataTable to Excel 
-#pragma warning restore CS1998 // This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
         {
             logger.Trace($"-= {nameof(ExportDatatableSelectedColumnsToExcel)} =-");
             logger.Trace($"{nameof(nameReport)}:{nameReport} |{nameof(filePath)}:{filePath} ");
@@ -2214,23 +2215,26 @@ namespace ASTA
 
             dataTable.SetColumnsOrder(Names.orderColumnsFinacialReport);
             DataTable dtExport;
-            string sort = Names.DEPARTMENT + ", " + Names.FIO + ", " + Names.DATE_REGISTRATION + " ASC";
-            // Order of collumns
+            string sortOrderInTheFirst = Names.DEPARTMENT + ", " + Names.FIO + ", " + Names.DATE_REGISTRATION + " ASC";
+            string sortOrderInTheSecond = Names.GROUP + ", " + Names.FIO + ", " + Names.DATE_REGISTRATION + " ASC";
+
+            // Sort order of collumns
             using (DataView dv = dataTable.DefaultView)
             {
                 try
                 {
-                    dv.Sort = sort;
+                    dv.Sort = sortOrderInTheFirst;
                     dtExport = dv.ToTable();
+                    logger.Trace($"Сортировка: {sortOrderInTheFirst}");
                 }
                 catch
                 {
-                    sort = Names.GROUP + ", " + Names.FIO + ", " + Names.DATE_REGISTRATION + " ASC";
-                    dv.Sort = sort;
+                    dv.Sort = sortOrderInTheSecond;
                     dtExport = dv.ToTable();
+                    logger.Trace($"Сортировка: {sortOrderInTheSecond}");
                 }
             }
-            logger.Trace($"Сортировка: {sort}");
+
             logger.Trace($"В таблице {dataTable.TableName} столбцов - {dtExport.Columns.Count}, строк - {dtExport.Rows.Count}");
             SetStatusLabelText(StatusLabel2, $"Генерирую Excel-файл по отчету: '{nameReport}'");
             _ProgressWork1Step();
@@ -2337,23 +2341,22 @@ namespace ASTA
                 rangeColumnName.Cells.Font.Size = 7;
                 // rangeColumnName.Cells.Font.Bold = true;
 
+                for (int column = 0; column < columnsInTable; column++)
+                {
+                    sheet.Cells[1, column + 1].Value = nameColumns[column];
+                    sheet.Columns[column + 1].NumberFormat = "@"; // set format data of cells - text
+                }
+                _ProgressWork1Step();
 
+                foreach (DataRow row in dtExport.Rows)
+                {
+                    rows++;
                     for (int column = 0; column < columnsInTable; column++)
                     {
-                        sheet.Cells[1, column + 1].Value = nameColumns[column];
-                        sheet.Columns[column + 1].NumberFormat = "@"; // set format data of cells - text
+                        sheet.Cells[rows, column + 1].Value = row[indexColumns[column]];
                     }
                     _ProgressWork1Step();
-
-                    foreach (DataRow row in dtExport.Rows)
-                    {
-                        rows++;
-                        for (int column = 0; column < columnsInTable; column++)
-                        {
-                            sheet.Cells[rows, column + 1].Value = row[indexColumns[column]];
-                        }
-                        _ProgressWork1Step();
-                    }
+                }
 
                 //colourize parts of text in the selected cell by different colors
                 /*
@@ -2363,17 +2366,15 @@ namespace ASTA
                 rng.Characters[7, 9].Font.Color = Color.Red;
                 */
 
-                //get the using range           
-                Microsoft.Office.Interop.Excel.Range range = sheet.UsedRange;
-                //sheet.Cells.Range["A1", GetExcelColumnName(columnsInTable) + rowsInTable];
-                // Microsoft.Office.Interop.Excel.Range range = sheet.Range["A2", GetExcelColumnName(columnsInTable) + (rows - 1)];
 
-                //Шрифт для диапазона
-                range.Cells.Font.Name = "Tahoma";
-                //Размер шрифта
-                range.Cells.Font.Size = 8;
-                //ширина колонок - авто
-                range.Cells.EntireColumn.AutoFit();
+                Microsoft.Office.Interop.Excel.Range range = sheet.UsedRange;  //get the using range 
+                                                                               //sheet.Cells.Range["A1", GetExcelColumnName(columnsInTable) + rowsInTable];
+                                                                               // Microsoft.Office.Interop.Excel.Range range = sheet.Range["A2", GetExcelColumnName(columnsInTable) + (rows - 1)];
+
+
+                range.Cells.Font.Name = "Tahoma";           //Шрифт для диапазона          
+                range.Cells.Font.Size = 8;                  //Размер шрифта            
+                range.Cells.EntireColumn.AutoFit();         //ширина колонок - авто
                 _ProgressWork1Step();
 
                 range.Cells.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeBottom].LineStyle = Microsoft.Office.Interop.Excel.XlLineStyle.xlContinuous;
@@ -2450,7 +2451,10 @@ namespace ASTA
                 logger.Trace($"Exception releasing object of {nameof(obj)}: {ex.ToString()}");
             }
             finally
-            { GC.Collect(); }
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
         }
 
         private string GetExcelColumnName(int number)
@@ -2511,7 +2515,7 @@ namespace ASTA
                 };
 
                 logger.Trace($"{_selectedEmployeeVisitor.fio} { _selectedEmployeeVisitor.code}");
-                ShowVisitorsOnDataGridView(visitors, _selectedEmployeeVisitor);
+                AddVisitorsAtDataGridView(visitors, _selectedEmployeeVisitor);
             }
         }
 
@@ -3146,7 +3150,7 @@ namespace ASTA
         private void ResetFilterLoadLastIputsOutput_Click(object sender, EventArgs e)
         {
             _selectedEmployeeVisitor = null;
-            ShowVisitorsOnDataGridView(visitors);
+            AddVisitorsAtDataGridView(visitors);
         }
 
         private async void LoadLastIputsOutputs_Click(object sender, EventArgs e) //LoadInputsOutputsOfVisitors()
@@ -3206,7 +3210,7 @@ namespace ASTA
         private static Visitors visitors = new Visitors();
 
         //lock to loading of registrations cards from server
-        private static object lockerToLoadInsOuts = new object();
+        private static readonly object lockerToLoadInsOuts = new object();
 
         //lock to show data on datagridview
         private static object lockerToShowData = new object();
@@ -3219,91 +3223,104 @@ namespace ASTA
 
         private void LoadInputsOutputsOfVisitors(string startDay, string endDay, int timesChecking)
         {
-            _EnableControl(comboBoxFio, true);
 
             logger.Trace($"-= {nameof(LoadInputsOutputsOfVisitors)} =-");
 
             CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword);
-            nameOfLastTable = "LastIputsOutputs";
-            List<Visitor> visitorsTillNow;
 
-            //Get names of the points
-            GetNamesOfPassagePoints();
-
-            visitors = new Visitors();
-
-            //subscribe on action of changed data in collection of visitors
-            visitors.collection.CollectionChanged += VisitorsCollectionChanged;
-
-            checkInputsOutputs = true;
-            bool firstStage = true;
-
-            startStopTimer = new StartStopTimer(15);
-
-            string startTime = "00:00:00";
-            string endTime = "23:59:59";
-            do
+            if (bServer1Exist)
             {
-                lock (lockerToLoadInsOuts)
-                {
-                    visitorsTillNow = new List<Visitor>();
+                _EnableControl(comboBoxFio, true);
+                nameOfLastTable = "LastIputsOutputs";
+                List<Visitor> visitorsTillNow;
 
-                    logger.Trace("LoadInputsOutputsOfVisitors: " + startDay + " " + startTime + " - " + endDay + " " + endTime);
-                    visitorsTillNow = GetInputsOutputs(ref startDay, ref startTime, ref endDay, ref endTime);
-                    if (firstStage)
+                //Get names of the points
+                GetNamesOfPassagePoints();
+
+                visitors = new Visitors();
+                //subscribe on action of changed data in collection of visitors
+                visitors.collection.CollectionChanged += VisitorsCollectionChanged;
+
+                checkInputsOutputs = true;
+                firstStage = true;
+                startStopTimer = new StartStopTimer(15);
+
+                string startTime = "00:00:00";
+                string endTime = "23:59:59";
+                do
+                {
+                    lock (lockerToLoadInsOuts)
                     {
-                        //put registrations in the list with order from the newest data in the top to the oldest ones in the end
-                        visitors.collection.AddRange(visitorsTillNow);
-                        firstStage = false;
+                        visitorsTillNow = new List<Visitor>();
+                        dgvo.Show(dataGridView1, false);
+
+                        logger.Trace("LoadInputsOutputsOfVisitors: " + startDay + " " + startTime + " - " + endDay + " " + endTime);
+
+                        visitorsTillNow = GetInputsOutputs(ref startDay, ref startTime, ref endDay, ref endTime);
+                        if (firstStage)
+                        {
+                            //put registrations in the list with order from the newest data in the top to the oldest ones in the end
+                            visitors.collection.AddRange(visitorsTillNow);
+                            firstStage = false;
+                        }
+                        else
+                        {
+                            if (visitorsTillNow?.Count > 0)
+                            {
+                                //put new registrations in the top of list
+                                visitorsTillNow.Reverse();
+                                foreach (var visitor in visitorsTillNow)
+                                { visitors.Add(visitor, 0); }
+                            }
+                        }
+                    }
+
+                    dgvo.Show(dataGridView1, true);
+                    timesChecking--;
+                    if (timesChecking <= 0)
+                    {
+                        checkInputsOutputs = false;
                     }
                     else
                     {
-                        if (visitorsTillNow?.Count > 0)
-                        {
-                            //put new registrations in the top of list
-                            visitorsTillNow.Reverse();
-                            foreach (var visitor in visitorsTillNow)
-                            { visitors.Add(visitor, 0); }
-                        }
+                        SetStatusLabelText(StatusLabel2, $"Загружены данные о регистрации пропусков до: {startDay} {startTime}");
+                        startStopTimer.WaitTime();
                     }
-                }
 
-                timesChecking--;
-                if (timesChecking <= 0)
-                { checkInputsOutputs = false; }
+                } while (checkInputsOutputs);
 
-                SetStatusLabelText(StatusLabel2, "Загружены данные о регистрации пропусков до: " + startDay + " " + startTime);
-
-                startStopTimer.WaitTime();
-
-            } while (checkInputsOutputs);
-
-            SetStatusLabelText(StatusLabel2, "Сбор данных регистрации пропусков завершен");
+                visitors.collection.CollectionChanged -= VisitorsCollectionChanged;
+                SetStatusLabelText(StatusLabel2, $"Сбор данных регистрации пропусков за {startDay} завершен");
+            }
+            else
+            {
+                SetStatusLabelText(StatusLabel2, $"Сервер с базой регистрации пропусков {sServer1} не доступен");
+            }
         }
 
+        bool firstStage = true;
         private List<Visitor> GetInputsOutputs(ref string startDay, ref string startTime, ref string endDay, ref string endTime)
         {
             _ProgressBar1Start();
 
             List<Visitor> visitors = new List<Visitor>();
             bool startTimeNotSet = true;
-
             SideOfPassagePoint sideOfPassagePoint;
-            string time, date, fullPointName, fio, action, action_descr, fac, card;
-            int idCard = 0; string idCardDescr;
+            string time, date, fio, action, action_descr, fac, card, idCardDescr;
+            int idCard = 0;
+            /*
+                        string query = "SELECT p.param0 as param0, p.param1 as param1, p.objid as objid, p.objtype, p.action as action, " +
+                        " pe.tabnum as nav, pe.facility_code as fac, pe.card as card, " +
+                        " CONVERT(varchar, p.date, 120) AS date, CONVERT(varchar, p.time, 114) AS time" +
+                        " FROM protocol p " +
+                        " LEFT JOIN OBJ_PERSON pe ON  p.param1=pe.id " +
+                        " where p.objtype like 'ABC_ARC_READER' " +
+                        " AND p.param0 like '%%' " +
+                        // " AND p.param1 like '" + person.idCard + "' " +
+                        $" AND date > '{startDay} {startTime}' AND date <= '{endDay} {endTime}' " +
+                        " ORDER BY date DESC, time DESC;"; //sorting 
 
-            string query = "SELECT p.param0 as param0, p.param1 as param1, p.objid as objid, p.objtype, p.action as action, " +
-            " pe.tabnum as nav, pe.facility_code as fac, pe.card as card, " +
-            " CONVERT(varchar, p.date, 120) AS date, CONVERT(varchar, p.time, 114) AS time" +
-            " FROM protocol p " +
-            " LEFT JOIN OBJ_PERSON pe ON  p.param1=pe.id " +
-            " where p.objtype like 'ABC_ARC_READER' " +
-            " AND p.param0 like '%%' " +
-            // " AND p.param1 like '" + person.idCard + "' " +
-            " AND date > '" + startDay + " " + startTime + "' AND date <= '" + endDay + " " + endTime + "' " +
-            " ORDER BY date DESC, time DESC;"; //sorting 
-
-            logger.Trace($"query: {query}");
+                        logger.Trace($"query: {query}");*/
 
 
             using (ProtocolConnector db = new ProtocolConnector(sqlServerConnectionString))
@@ -3312,6 +3329,7 @@ namespace ASTA
                 DateTime dtEnd = DateTime.Parse(endDay + " " + endTime);
 
                 // получаем объекты из бд 
+                //query
                 /*   var RegisteredAction = (from registeredAction in db.ProtocolObjects
                                           join libraryUsers in db.PersonObjects 
                                           on registeredAction.IdCard equals libraryUsers.id
@@ -3331,6 +3349,7 @@ namespace ASTA
                                               card = libraryUsers.card
                                           }).ToList();*/
 
+                //lambda
                 var RegisteredAction = db.ProtocolObjects
                     .Join(
                         db.PersonObjects,
@@ -3352,9 +3371,9 @@ namespace ASTA
                     .Where(x => x.ActionDate > dtStart)
                     .Where(x => x.ActionDate <= dtEnd)
                     .Where(x => x.ActionType == "ABC_ARC_READER")
-                    .OrderBy(x => x.ActionDate)
+                    .OrderByDescending(x => x.ActionDate)
                     .ToList();
-                
+
                 foreach (var v in RegisteredAction)
                 {
                     if (v != null)
@@ -3370,7 +3389,7 @@ namespace ASTA
                         int.TryParse(v.IdCard, out idCard);
                         fac = v.fac;
                         card = v.card;
-                        idCardDescr = idCard != 0 ? "№" + idCard + " (" + fac + "," + card + ")" : (fio == sServer1 ? "" : "Пропуск не зарегистрирован");
+                        idCardDescr = idCard != 0 ? $"№{idCard} ({fac},{card})" : (fio == sServer1 ? "" : "Пропуск не зарегистрирован");
 
                         //look for action with idCard
                         action = v.ActionDescr;
@@ -3385,80 +3404,80 @@ namespace ASTA
                         //write gathered data in the collection
                         try
                         {
-                            logger.Trace(fio + " " + action_descr + " " + idCard + " " + idCardDescr + " " + v?.ActionDescr + " " + date + " " + time + " " + sideOfPassagePoint?._namePoint + " " + sideOfPassagePoint?._direction);
+                            logger.Trace($"{fio} {action_descr} {idCard} {idCardDescr} {v?.ActionDescr} {date} {time} {sideOfPassagePoint?._namePoint} {sideOfPassagePoint?._direction}");
 
                             visitors.Add(new Visitor(fio, idCardDescr, date, time, action_descr, sideOfPassagePoint));
                             if (startTimeNotSet) //set starttime into last time at once
                             {
                                 startTime = time;
                                 startTimeNotSet = false;
+                                firstStage = false;
                             }
                         }
-                        catch (Exception e) {
-                            logger.Warn(date + " " + time);
-                            logger.Warn(fio );
-                            logger.Warn(action_descr + " " + idCard + " " + idCardDescr + " " + v?.ActionDescr);
-                            logger.Warn(sideOfPassagePoint?._namePoint + " " + sideOfPassagePoint?._direction);
-                            logger.Warn(e.ToString()); 
-                        }
-
-                        _ProgressWork1Step();
-                    }
-                }
-            }
-
-
-
-
-          /*  using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
-            {
-                System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetData(query);
-                foreach (DbDataRecord record in sqlData)
-                {
-                    if (record != null)
-                    {   //look for PassagePoint
-                        fullPointName = record["objid"]?.ToString()?.Trim();
-                        sideOfPassagePoint = collectionOfPassagePoints.GetPoint(fullPointName);
-
-                        //look for FIO
-                        fio = record["param0"]?.ToString()?.Trim()?.Length > 0 ? record["param0"]?.ToString()?.Trim() : sServer1;
-
-                        //look for date and time
-                        date = record["date"]?.ToString()?.Trim()?.Split(' ')[0];
-                        time = ((string)record["time"]?.ToString()?.Trim()).ConvertTimeIntoStandartTime();
-
-                        //look for  idCard
-                        idCard = 0;
-                        int.TryParse(record["param1"]?.ToString()?.Trim(), out idCard);
-                        fac = record["fac"]?.ToString()?.Trim();
-                        card = record["card"]?.ToString()?.Trim();
-                        idCardDescr = idCard != 0 ? "№" + idCard + " (" + fac + "," + card + ")" : (fio == sServer1 ? "" : "Пропуск не зарегистрирован");
-
-                        //look for action with idCard
-                        action = record["action"]?.ToString()?.Trim();
-                        action_descr = null;
-                        if (Names.CARD_REGISTERED_ACTION.TryGetValue(action, out action_descr))
-                        { action = "Сервисное сообщение"; }
-                        else if (fio == sServer1)
-                        { action_descr = action; }
-
-                        //write gathered data in the collection
-                        logger.Trace(fio + " " + action_descr + " " + idCard + " " + idCardDescr + " " + record["action"]?.ToString()?.Trim() + " " + date + " " + time + " " + sideOfPassagePoint._namePoint + " " + sideOfPassagePoint._direction);
-
-                        visitors.Add(new Visitor(fio, idCardDescr, date, time, action_descr, sideOfPassagePoint));
-
-                        if (startTimeNotSet) //set starttime into last time at once
+                        catch (Exception e)
                         {
-                            startTime = time;
-                            startTimeNotSet = false;
+                            logger.Warn($"{date} {time}");
+                            logger.Warn(fio);
+                            logger.Warn($"{action_descr} {idCard} {idCardDescr} {v?.ActionDescr}");
+                            logger.Warn(sideOfPassagePoint?._namePoint + " " + sideOfPassagePoint?._direction);
+                            logger.Warn(e.ToString());
                         }
 
                         _ProgressWork1Step();
                     }
                 }
-                logger.Trace("visitors added: " + visitors.Count());
             }
-           */ stimerPrev = "";
+
+            /*  using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
+              {
+                  System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetData(query);
+                  foreach (DbDataRecord record in sqlData)
+                  {
+                      if (record != null)
+                      {   //look for PassagePoint
+                          fullPointName = record["objid"]?.ToString()?.Trim();
+                          sideOfPassagePoint = collectionOfPassagePoints.GetPoint(fullPointName);
+
+                          //look for FIO
+                          fio = record["param0"]?.ToString()?.Trim()?.Length > 0 ? record["param0"]?.ToString()?.Trim() : sServer1;
+
+                          //look for date and time
+                          date = record["date"]?.ToString()?.Trim()?.Split(' ')[0];
+                          time = ((string)record["time"]?.ToString()?.Trim()).ConvertTimeIntoStandartTime();
+
+                          //look for  idCard
+                          idCard = 0;
+                          int.TryParse(record["param1"]?.ToString()?.Trim(), out idCard);
+                          fac = record["fac"]?.ToString()?.Trim();
+                          card = record["card"]?.ToString()?.Trim();
+                          idCardDescr = idCard != 0 ? "№" + idCard + " (" + fac + "," + card + ")" : (fio == sServer1 ? "" : "Пропуск не зарегистрирован");
+
+                          //look for action with idCard
+                          action = record["action"]?.ToString()?.Trim();
+                          action_descr = null;
+                          if (Names.CARD_REGISTERED_ACTION.TryGetValue(action, out action_descr))
+                          { action = "Сервисное сообщение"; }
+                          else if (fio == sServer1)
+                          { action_descr = action; }
+
+                          //write gathered data in the collection
+                           logger.Trace(fio + " " + action_descr + " " + idCard + " " + idCardDescr + " " + record["action"]?.ToString()?.Trim() + " " + date + " " + time + " " + sideOfPassagePoint._namePoint + " " + sideOfPassagePoint._direction);
+
+                          visitors.Add(new Visitor(fio, idCardDescr, date, time, action_descr, sideOfPassagePoint));
+
+                          if (startTimeNotSet) //set starttime into last time at once
+                          {
+                              startTime = time;
+                              startTimeNotSet = false;
+                          }
+
+                          _ProgressWork1Step();
+                      }
+                  }
+                   logger.Trace("visitors added: " + visitors.Count());
+              }*/
+
+            stimerPrev = "";
             _ProgressBar1Stop();
             return visitors;
         }
@@ -3466,31 +3485,25 @@ namespace ASTA
         private void VisitorsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             if (nameOfLastTable != "LastIputsOutputs")//Visitor selected=null
-            {
-                checkInputsOutputs = false;
-            }
+            { checkInputsOutputs = false; }
 
             lock (lockerToShowData)
-            {
-                ShowVisitorsOnDataGridView(visitors, _selectedEmployeeVisitor);
-            }
+            { AddVisitorsAtDataGridView(visitors, _selectedEmployeeVisitor); }
         }
 
-        private void ShowVisitorsOnDataGridView(Visitors visitors_, Visitor selected = null)
+        private void AddVisitorsAtDataGridView(Visitors visitors_, Visitor selected = null)
         {
             using (DataTable dtTemp = dtPeople.Clone())
             {
                 SendListLastRegistrationsToDataTable(visitors_.collection, dtTemp, selected);
+
                 using (DataTable dt = LeaveAndOrderColumnsOfDataTable(dtTemp, Names.orderColumnsLastRegistrations))
                 {
-                    dgvo.ShowData(dataGridView1, dt);
+                    dgvo.AddDataTable(dataGridView1, dt);
                     nameOfLastTable = "LastIputsOutputs";
 
-                    //  ShowDatatableOnDatagridview(dt, "LastIputsOutputs");
                     if (_paintedEmployeeVisitor != null)
-                    {
-                        PaintDataGridViewBy(dataGridView1, Names.FIO, _paintedEmployeeVisitor.fio);
-                    }
+                    { dgvo.Paint(dataGridView1, Names.FIO, _paintedEmployeeVisitor.fio); }
                 }
             }
         }
@@ -3521,13 +3534,13 @@ namespace ASTA
         private void PaintRowsActionItem_Click(object sender, EventArgs e)
         {
             _paintedEmployeeVisitor = LookForSelectedVisitor(dataGridView1);
-            PaintDataGridViewBy(dataGridView1, Names.CHECKPOINT_ACTION, _paintedEmployeeVisitor.action);
+            dgvo.Paint(dataGridView1, Names.CHECKPOINT_ACTION, _paintedEmployeeVisitor.action);
         }
 
         private void PaintRowsFioItem_Click(object sender, EventArgs e)
         {
             _paintedEmployeeVisitor = LookForSelectedVisitor(dataGridView1);
-            PaintDataGridViewBy(dataGridView1, Names.FIO, _paintedEmployeeVisitor.fio);
+            dgvo.Paint(dataGridView1, Names.FIO, _paintedEmployeeVisitor.fio);
         }
 
         private EmployeeVisitor LookForSelectedVisitor(DataGridView dgv)
@@ -3544,19 +3557,6 @@ namespace ASTA
 
             return visitor;
         }
-
-        private void PaintDataGridViewBy(DataGridView dgv, string columnName, string desiredData)
-        {
-            foreach (DataGridViewRow row in dgv.Rows)
-            {
-                if (row?.Cells[columnName]?.Value?.ToString() == desiredData)
-                    row.DefaultCellStyle.BackColor = Color.Red;
-                else
-                    row.DefaultCellStyle.BackColor = Color.White;
-            }
-        }
-
-
 
         private void GetDataOfGroup_Click(object sender, EventArgs e) //LoadIdCardRegistrations()
         {
@@ -4077,7 +4077,7 @@ namespace ASTA
 
             return peopleGroup;
         }
-        
+
         private void infoItem_Click(object sender, EventArgs e)
         {
 
@@ -7765,7 +7765,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void SendAllReportsInSelectedPeriod(object sender, EventArgs e) //SendAllReportsInSelectedPeriod()
         {
-            Task.Run(() => SendAllReportsInSelectedPeriod()); 
+            Task.Run(() => SendAllReportsInSelectedPeriod());
         }
 
         private async Task SendAllReportsInSelectedPeriod()
@@ -7877,7 +7877,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                     "' AND TypeReport='" + mailng._typeReport +
                     "' AND GroupsReport ='" + mailng._groupsReport + "';";
                 logger.Trace(str);
-              await  ExecuteSqlAsync(str);
+                await ExecuteSqlAsync(str);
                 GetRegistrationAndSendReport(
                     mailng._groupsReport, mailng._nameReport, mailng._descriptionReport, mailng._period, mailng._status,
                     mailng._typeReport, mailng._dayReport, true, mailng._recipient, mailSenderAddress);
@@ -8889,7 +8889,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 text = control?.Text?.Trim();
             return text;
         }
-        
+
 
         private void _AddComboBoxItem(ComboBox comboBx, string s) //add string into  from other threads
         {
@@ -8954,7 +8954,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
             return result;
         }
-        
+
 
         private string _ReturnListBoxSelectedItem(ListBox listBox) //from other threads
         {
@@ -8976,7 +8976,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
             return result;
         }
-        
+
 
         private void _SetNumUpDown(NumericUpDown numericUpDown, decimal i) //add string into comboBoxTargedPC from other threads
         {
@@ -8999,7 +8999,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 iCombo = numericUpDown.Value;
             return iCombo;
         }
-        
+
 
         private DateTime _ReturnDateTimePicker(DateTimePicker dateTimePicker) //add string into  from other threads
         {
@@ -9016,7 +9016,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
             return result;
         }
-        
+
         private int[] _ReturnDateTimePickerArray(DateTimePicker dateTimePicker) //add string into  from other threads
         {
             int[] result = new int[3];
@@ -9037,9 +9037,9 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
             return result;
         }
-        
 
-       private void SetStatusLabelText(ToolStripStatusLabel statusLabel, string text, bool error = false) //add string into  from other threads
+
+        private void SetStatusLabelText(ToolStripStatusLabel statusLabel, string text, bool error = false) //add string into  from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -9055,7 +9055,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
             AddLoggerTraceText($"{nameof(SetStatusLabelText)} set text as {text}");
         }
-        
+
         private void _SetStatusLabelForeColor(ToolStripStatusLabel statusLabel, Color color)
         {
             if (InvokeRequired)
@@ -9097,7 +9097,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
             return s;
         }
-               
+
         private void _SetMenuItemBackColor(ToolStripMenuItem menuItem, Color color) //add string into  from other threads
         {
             if (InvokeRequired)
@@ -9159,7 +9159,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             else
                 separator.Visible = status;
         }
-        
+
         private string _ReturnMenuItemText(ToolStripMenuItem menuItem) //access from other threads
         {
             string name = "";
@@ -9174,7 +9174,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
             return name;
         }
-                
+
         private void _VisibleControl(Control control, bool state) //access from other threads
         {
             if (InvokeRequired)
@@ -9259,7 +9259,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
             AddLoggerTraceText($"{nameof(_SetControlText)}: {nameof(control.Name)} set ToolTip as '{text}'");
         }
-               
+
         private void _SetCheckBoxCheckedStatus(CheckBox checkBox, bool checkboxChecked) //add string into  from other threads
         {
             if (InvokeRequired)
@@ -9669,7 +9669,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         private void GetSQLiteDbScheme()
         {
             StringBuilder sb = new StringBuilder();
-            string fpath = SelectFileOpenFileDialog("Выберите файл", "SQL файлы (*.sql)|*.sql|Все files (*.*)|*.*");
+            string fpath = OpenFileDialogExtentions.ReturnFilePath("Выберите файл", "SQL файлы (*.sql)|*.sql|Все files (*.*)|*.*");
 
             if (fpath == null)
                 fpath = dbApplication.FullName.ToString();
@@ -9778,7 +9778,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             // AutoUpdater.ApplicationExitEvent += ApplicationExit;
             //  AutoUpdater.ApplicationExitEvent += AutoUpdater_ApplicationExitEvent;    //https://archive.codeplex.com/?p=autoupdaterdotnet
             // AutoUpdater.BasicAuthChangeLog
-            
+
             AutoUpdater.AppTitle = "ASTA's update page";
             AutoUpdater.RunUpdateAsAdmin = false;
             AutoUpdater.DownloadPath = appFolderUpdatePath;
@@ -9786,7 +9786,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             AutoUpdater.ApplicationExitEvent += ApplicationExit;    //https://archive.codeplex.com/?p=autoupdaterdotnet
 
             AutoUpdater.Start(parameters.appUpdateURL, new System.Net.NetworkCredential(user.Login, user.Password, user.Domain));
-        
+
             //AutoUpdater.Start("ftp://kv-sb-server.corp.ais/Common/ASTA/ASTA.xml", new NetworkCredential("FtpUserName", "FtpPassword")); //download from FTP
         }
 
@@ -10150,7 +10150,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         //Calculate MD5 checksum of local file
         private string CalculateHash(string filePath)
         {
-            CalculatingHash calculatedHash = new CalculatingHash(filePath);
+            CalculatorHash calculatedHash = new CalculatorHash(filePath);
             return calculatedHash.Calculate();
         }
 
@@ -10159,51 +10159,31 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void SelectfilesForCalculatingHash() //SelectFileOpenFileDialog() CalculateFileHash()
         {
-            string result = null;
-            string filePath;
-            CalculatingHash calculatedHash;
-
             DialogResult selectTwoFiles = MessageBox.Show("Выбрать 2 файла для сравнения?", "Сравнение файлов",
                 MessageBoxButtons.YesNo,
                       MessageBoxIcon.Exclamation,
                       MessageBoxDefaultButton.Button1);
 
-            filePath = SelectFileOpenFileDialog("Выберите файл для вычисления его хэша");
-            calculatedHash = new CalculatingHash(filePath);
-            result += calculatedHash.Calculate() + "\n";
+            string filePath = OpenFileDialogExtentions.ReturnFilePath("Выберите файл для вычисления его хэша");
+            CalculatorHash calculatedHash = new CalculatorHash(filePath);
+            string result = calculatedHash.Calculate();
+            MessageBox.Show(result, "Результат вычисления хэша", MessageBoxButtons.OK);
 
             if (selectTwoFiles == DialogResult.Yes)
             {
-                filePath = SelectFileOpenFileDialog("Выберите следующий файл для вычисления его хэша");
-                calculatedHash = new CalculatingHash(filePath);
-                result += "\n" + calculatedHash.Calculate() + "\n";
+                filePath = OpenFileDialogExtentions.ReturnFilePath("Выберите следующий файл для вычисления его хэша");
+                calculatedHash = new CalculatorHash(filePath);
+                string secondFile = calculatedHash.Calculate();
+                bool equalString = string.Equals(result,secondFile);
+                result += "\n" + secondFile + "\n";
+                MessageBox.Show(result, "Результат вычисления хэша", MessageBoxButtons.OK, ReturnMessageBoxIcon(equalString));
             }
-            MessageBox.Show(result, "Результат вычисления хэша");
         }
 
-        private string SelectFileOpenFileDialog(string titleWindowDialog = null, string maskFiles = "Все файлы (*.*)|*.*")
+        private MessageBoxIcon ReturnMessageBoxIcon(bool ok)
         {
-            string filePath = null;
-            MethodInvoker mi = delegate
-            {
-                using (OpenFileDialog openFileDialog1 = new OpenFileDialog())
-                {
-                    openFileDialog1.FileName = "";
-
-                    if (titleWindowDialog != null)
-                    { openFileDialog1.Title = titleWindowDialog; }
-
-                    openFileDialog1.Filter = maskFiles;
-                    DialogResult res = openFileDialog1.ShowDialog();
-                    if (res == DialogResult.Cancel)
-                        return;
-
-                    filePath = openFileDialog1.FileName;
-                }
-            };
-
-            this.Invoke(mi);
-            return filePath;
+            if (ok) return MessageBoxIcon.Information;
+            else return MessageBoxIcon.Exclamation;
         }
 
         private void OpenMenuItemsAsLocalAdmin_Click(object sender, EventArgs e)
