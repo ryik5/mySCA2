@@ -22,47 +22,10 @@ namespace ASTA.Classes.People
             collection = new ObservableRangeCollection<Visitor>();
         }
 
-        public void Add(string _fio, string _action, string _idCard, string _date, string _time, SideOfPassagePoint _sideOfPassagePoint)
-        {
-            visitor = new Visitor()
-            {
-                fio = _fio,
-                idCard = _idCard,
-                action = _action,
-                date = _date,
-                time = _time,
-                sideOfPassagePoint = _sideOfPassagePoint
-            };
-            collection.Reverse();
-            collection.Add(visitor);
-            collection.Reverse();
-            OnPropertyChanged("Visitor");
-        }
-
-        public void Add(Visitor visitor)
-        {
-            collection.Add(visitor);
-            OnPropertyChanged("Visitor");
-        }
-
         public void Add(Visitor visitor, int position)
         {
             collection.Insert(position, visitor);
             OnPropertyChanged("Visitor");
-        }
-
-        public void Add(ObservableCollection<Visitor> visitors)
-        {
-            if (visitors?.Count > 0)
-            {
-                collection.AddRange(visitors);
-                OnPropertyChanged("Visitor");
-            }
-        }
-
-        public ObservableCollection<Visitor> GetCollection()
-        {
-            return collection;
         }
 
         public IEnumerator GetEnumerator()

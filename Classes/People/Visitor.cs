@@ -6,7 +6,6 @@ namespace ASTA.Classes.People
     public class Visitor : IComparable<Visitor>//,  INotifyPropertyChanged
     {
         public string fio { get; set; }
-
         public string idCard { get; set; } //idCard     IdCard
         public string date { get; set; } //date of registration    DateIn
         public string time { get; set; } //time of registration    TimeIn
@@ -14,9 +13,7 @@ namespace ASTA.Classes.People
 
         public SideOfPassagePoint sideOfPassagePoint { get; set; }  //card reader name or id one   CardReaderName
 
-        public Visitor()
-        {
-        }
+        public Visitor() { }
 
         public Visitor(string _fio, string _idCard, string _date, string _time, string _action, SideOfPassagePoint _sideOfPassagePoint)
         {
@@ -28,45 +25,34 @@ namespace ASTA.Classes.People
             sideOfPassagePoint = _sideOfPassagePoint;
         }
 
+        public Visitor Get() { return this; }
+
         public override string ToString()
-        {
-            return fio + "\t" + idCard + "\t" + date + "\t" + time + "\t" + action + "\t" + sideOfPassagePoint._idPoint + "\t" + sideOfPassagePoint._direction;
-        }
+        { return "${fio}\t{idCard}\t{date}\t{time}\t{action}\t{sideOfPassagePoint._idPoint}\t{sideOfPassagePoint._direction}"; }
 
         public override bool Equals(object obj)
         {
-            if (obj == null)
-                return false;
-
-            if (!(obj is Visitor df))
+            if (obj == null || !(obj is Visitor df))
                 return false;
 
             return ToString().Equals(df.ToString());
         }
 
         public override int GetHashCode()
-        {
-            return ToString().GetHashCode();
-        }
+        { return ToString().GetHashCode(); }
 
         //реализация для выполнения сортировки
         int IComparable<Visitor>.CompareTo(Visitor next)
-        {
-            return new VisitorComparer().Compare(this, next);
-        }
+        { return new VisitorComparer().Compare(this, next); }
 
         public string CompareTo(Visitor next)
-        {
-            return next.CompareTo(this);
-        }
+        { return next.CompareTo(this); }
     }
 
     public class VisitorComparer : IComparer<Visitor>
     {
         public int Compare(Visitor x, Visitor y)
-        {
-            return CompareTwoPerson(x, y);
-        }
+        { return CompareTwoPerson(x, y); }
 
         public int CompareTwoPerson(Visitor x, Visitor y)
         {

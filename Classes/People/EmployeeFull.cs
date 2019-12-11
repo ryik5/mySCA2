@@ -2,20 +2,21 @@
 {
     public class EmployeeFull : Employee
     {
-        public int idCard;//= 0
-        public string PositionInDepartment;//= ""
-        public string GroupPerson;//= ""
-        public string City;//= ""
-        public string Department;//= ""
-        public string DepartmentId;//= ""
-        public string DepartmentBossCode;//= ""
-        public int ControlInSeconds;//= 32460
-        public int ControlOutSeconds;// =64800
-        public string ControlInHHMM;//= "09:00"
-        public string ControlOutHHMM;//= "18:00"
-        public string Shift;//= ""   /* персональный график*/
-        public string Comment;//= ""
+        public int idCard { get; set; }//= 0
+        public string PositionInDepartment { get; set; }//= ""
+        public string GroupPerson { get; set; }//= ""
+        public string City { get; set; }//= ""
+        public string Department { get; set; }//= ""
+        public string DepartmentId { get; set; }//= ""
+        public string DepartmentBossCode { get; set; }//= ""
+        public int ControlInSeconds { get; set; }//= 32460
+        public int ControlOutSeconds { get; set; }// =64800
+        public string ControlInHHMM { get; set; }//= "09:00"
+        public string ControlOutHHMM { get; set; }//= "18:00"
+        public string Shift { get; set; }//= ""   /* персональный график*/
+        public string Comment { get; set; }//= ""
 
+        public new EmployeeFull Get() { return this; }
         public override string ToString()
         {
             return $"{idCard}\t{fio}\t{Code}\t{Department}\t{DepartmentId}\t{DepartmentBossCode}\t" +
@@ -25,18 +26,13 @@
 
         public override bool Equals(object obj)
         {
-            if (obj == null)
-                return false;
-
-            if (!(obj is EmployeeFull df))
+            if (obj == null || !(obj is EmployeeFull df))
                 return false;
 
             return ToString() == df.ToString();
         }
 
         public override int GetHashCode()
-        {
-            return ToString().GetHashCode();
-        }
+        { return ToString().GetHashCode(); }
     }
 }

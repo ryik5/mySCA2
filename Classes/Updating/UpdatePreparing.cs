@@ -19,14 +19,14 @@
 
         public void Do()
         {
-            _makerLinks.SetParameters(_parameters);
+            _makerLinks.Set(_parameters);
             _makerLinks.Make();
 
-            _parameters = _makerLinks.GetParameters();
+            _parameters = _makerLinks.Get();
 
-            _makerXml.SetParameters(_parameters);
+            _makerXml.Set(_parameters);
             _makerXml.Make();
-            _parameters = _makerXml.GetParameters();
+            _parameters = _makerXml.Get();
 
             status?.Invoke(this, new TextEventArgs("Обновление для отправки на сервер подготовлено..."));
         }

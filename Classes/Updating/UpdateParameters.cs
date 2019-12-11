@@ -14,11 +14,15 @@
         public string appUpdateFolderURI { get; set; }
         public string appUpdateChangeLogURL { get; set; }
 
-        public UpdatingParameters()
-        {
-        }
+        public UpdatingParameters() { }
 
         public UpdatingParameters(UpdatingParameters parameters)
+        { SetUpdatingParameters(parameters); }
+
+        public void Set(UpdatingParameters parameters)
+        { SetUpdatingParameters(parameters); }
+
+        private void SetUpdatingParameters(UpdatingParameters parameters)
         {
             remoteFolderUpdatingURL = parameters.remoteFolderUpdatingURL;
             localFolderUpdatingURL = parameters.localFolderUpdatingURL;
@@ -32,30 +36,13 @@
             appFileZip = parameters.appFileZip;
         }
 
-        public void SetParameters(UpdatingParameters parameters)
-        {
-            remoteFolderUpdatingURL = parameters.remoteFolderUpdatingURL;
-            localFolderUpdatingURL = parameters.localFolderUpdatingURL;
-            appUpdateFolderURL = parameters.appUpdateFolderURL;
-            appUpdateFolderURI = parameters.appUpdateFolderURI;
-            appUpdateURL = parameters.appUpdateURL;
-            appFileXml = parameters.appFileXml;
-            appUpdateChangeLogURL = parameters.appUpdateChangeLogURL;
-            appUpdateMD5 = parameters.appUpdateMD5;
-            appVersion = parameters.appVersion;
-            appFileZip = parameters.appFileZip;
-        }
-
-        public UpdatingParameters GetParameters()
-        {
-            return this;
-        }
+        public UpdatingParameters Get()
+        { return new UpdatingParameters(this); }
     }
 
     public interface IParameters
     {
-        UpdatingParameters GetParameters();
-
-        void SetParameters(UpdatingParameters parameters);
+        UpdatingParameters Get();
+        void Set(UpdatingParameters parameters);
     }
 }

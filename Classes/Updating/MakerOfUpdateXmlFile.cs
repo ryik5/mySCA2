@@ -20,17 +20,17 @@ namespace ASTA.Classes.Updating
 
         public MakerOfUpdateXmlFile(UpdatingParameters parameters)
         {
-            _parameters = parameters.GetParameters();
+            _parameters = parameters.Get();
         }
 
-        public void SetParameters(UpdatingParameters parameters)
+        public void Set(UpdatingParameters parameters)
         {
-            _parameters = parameters.GetParameters();
+            _parameters = parameters.Get();
         }
 
-        public UpdatingParameters GetParameters()
+        public UpdatingParameters Get()
         {
-            return _parameters.GetParameters();
+            return _parameters.Get();
         }
 
         public void Make()
@@ -40,10 +40,10 @@ namespace ASTA.Classes.Updating
             Contract.Requires(_parameters != null,
                     "Не создан экземпляр UpdatingParameters!");
 
-            Contract.Requires(!string.IsNullOrWhiteSpace(_parameters.GetParameters().appFileXml),
+            Contract.Requires(!string.IsNullOrWhiteSpace(_parameters.Get().appFileXml),
                     "Отсутствует параметр appFileXml или ссылка пустая!");
 
-            Contract.Requires(!string.IsNullOrWhiteSpace(_parameters.GetParameters().appVersion),
+            Contract.Requires(!string.IsNullOrWhiteSpace(_parameters.Get().appVersion),
                     "Отсутствует параметр appVersion или ссылка пустая!");
 
             //https://stackoverflow.com/questions/44477727/writing-xml-and-reading-it-back-c-sharp
@@ -53,25 +53,25 @@ namespace ASTA.Classes.Updating
 
             XMLDocument document = new XMLDocument
             {
-                version = _parameters.GetParameters().appVersion,
-                url = _parameters.GetParameters().appUpdateFolderURL + _parameters.GetParameters().appFileZip
+                version = _parameters.Get().appVersion,
+                url = _parameters.Get().appUpdateFolderURL + _parameters.Get().appFileZip
             };
 
-            if (_parameters.GetParameters().appUpdateMD5 != null)
+            if (_parameters.Get().appUpdateMD5 != null)
             {
                 var checksum = new XMLElementChecksum
                 {
-                    value = _parameters.GetParameters().appUpdateMD5,
+                    value = _parameters.Get().appUpdateMD5,
                     algorithm = "MD5"
                 };
                 document.checksum = checksum;
             }
-            status?.Invoke(this, new TextEventArgs($"XML файл: {_parameters.GetParameters().appFileXml}"));
+            status?.Invoke(this, new TextEventArgs($"XML файл: {_parameters.Get().appFileXml}"));
 
             //  var nodesToStore = new List<XMLDocument> { document };
             try
             {
-                using (FileStream fs = new FileStream(_parameters.GetParameters().appFileXml, FileMode.Create))
+                using (FileStream fs = new FileStream(_parameters.Get().appFileXml, FileMode.Create))
                 {
                     // XmlSerializer serializer = new XmlSerializer(nodesToStore.GetType());
                     // serializer.Serialize(fs, nodesToStore);
@@ -79,7 +79,7 @@ namespace ASTA.Classes.Updating
                     XmlSerializer serializer = new XmlSerializer(document.GetType());//, atribXmlOver
                     serializer.Serialize(fs, document, ns); //clear any xmlns attributes from the root element
                 }
-                status?.Invoke(this, new TextEventArgs($"XML файл сохранен как {Path.GetFullPath(_parameters.GetParameters().appFileXml)}"));
+                status?.Invoke(this, new TextEventArgs($"XML файл сохранен как {Path.GetFullPath(_parameters.Get().appFileXml)}"));
             }
             catch
             {

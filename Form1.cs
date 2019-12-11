@@ -58,7 +58,7 @@ namespace ASTA
         private static readonly string[] appAllFiles =  {
                 @"ASTA.exe", @"NLog.config", @"NLog.dll", @"ASTA.sql",
                 @"MailKit.dll", @"MimeKit.dll", @"MySql.Data.dll",
-                @"x64\SQLite.Interop.dll", @"x86\SQLite.Interop.dll", @"System.Data.SQLite.dll", 
+                @"x64\SQLite.Interop.dll", @"x86\SQLite.Interop.dll", @"System.Data.SQLite.dll",
                 @"AutoUpdater.NET.dll", @"Google.Protobuf.dll",
                 @"Renci.SshNet.dll", @"BouncyCastle.Crypto.dll",
 
@@ -706,7 +706,7 @@ namespace ASTA
                 if (!(fpath?.Length > 0))
                 {
                     OpenFileDialogExtentions filePath = new OpenFileDialogExtentions("Выберите файл", "SQL файлы (*.sql)|*.sql|Все files (*.*)|*.*");
-                     fpath = filePath.FilePath;
+                    fpath = filePath.FilePath;
 
                     if (fpath == null) return;
                 }
@@ -1169,7 +1169,7 @@ namespace ASTA
         {
             if (e.KeyChar == (char)13)//если нажата Enter
             {
-              string  inputed = ReturnStrongNameDayOfSendingReports((sender as TextBox).Text);
+                string inputed = ReturnStrongNameDayOfSendingReports((sender as TextBox).Text);
                 (sender as TextBox).Text = inputed;
             }
         }
@@ -1248,7 +1248,7 @@ namespace ASTA
             logger.Trace($"ShowDataTableDbQuery: {iCounterLine}");
             sLastSelectedElement = "dataGridView";
         }
-      
+
         private void ShowDatatableOnDatagridview(DataTable dt, string nameLastTable, string[] nameHidenColumnsArray1 = null) //Query data from the Table of the DB
         {
             logger.Trace($"-= {nameof(ShowDatatableOnDatagridview)} =-");
@@ -1408,13 +1408,15 @@ namespace ASTA
 
         private IADUser ReturnADUserFromLocalDb()
         {
-            IADUser user = new ADUser();
             listParameters = GetConfigOfASTA().FindAll(x => x.isExample == "no"); //load only real data
 
-            user.Login = listParameters.FindLast(x => x?.name == @"UserName")?.value;
-            user.Password = listParameters.FindLast(x => x?.name == @"UserPassword")?.value;
-            user.DomainControllerPath = listParameters.FindLast(x => x?.name == @"DomainController")?.value;
-            user.Domain = listParameters.FindLast(x => x?.name == @"DomainOfUser")?.value;
+            IADUser user = new ADUser()
+            {
+                Login = listParameters.FindLast(x => x?.name == @"UserName")?.value,
+                Password = listParameters.FindLast(x => x?.name == @"UserPassword")?.value,
+                DomainControllerPath = listParameters.FindLast(x => x?.name == @"DomainController")?.value,
+                Domain = listParameters.FindLast(x => x?.name == @"DomainOfUser")?.value
+            };
 
             return user;
         }
@@ -1426,15 +1428,15 @@ namespace ASTA
 
             stimerCurr = null;
             listUsersAD = new List<ADUserFullAccount>();
-            IADUser ad = ReturnADUserFromLocalDb();
+            IADUser aliveUserAD = ReturnADUserFromLocalDb();
 
-            logger.Trace($"user, domain, password, server: {ad.Login} |{ad.Domain} |{ad.Password} |{ad.DomainControllerPath}");
+            logger.Trace($"user, domain, password, server: {aliveUserAD.Login} |{aliveUserAD.Domain} |{aliveUserAD.Password} |{aliveUserAD.DomainControllerPath}");
 
-            if (ad.Login?.Length > 0 && ad.Password?.Length > 0 && ad.Domain?.Length > 0 && ad.DomainControllerPath?.Length > 0)
+            if (aliveUserAD.Login?.Length > 0 && aliveUserAD.Password?.Length > 0 && aliveUserAD.Domain?.Length > 0 && aliveUserAD.DomainControllerPath?.Length > 0)
             {
-                SetStatusLabelText(StatusLabel1, $"Получаю данные из домена: '{ad.Domain}'");
+                SetStatusLabelText(StatusLabel1, $"Получаю данные из домена: '{aliveUserAD.Domain}'");
 
-                ADUsers users = new ADUsers(ad);
+                ADUsers users = new ADUsers(aliveUserAD);
                 users.Info += SetStatusLabelText;
                 users.Trace += AddLoggerTraceText;
                 //    ad.ADUsersCollection.CollectionChanged += Users_CollectionChanged;
@@ -1457,7 +1459,7 @@ namespace ASTA
             }
             else
             {
-                logger.Error($"Ошибка доступа к домену. user: {ad.Login} |domain: {ad.Domain} |password: {ad.Password} |server: {ad.DomainControllerPath}");
+                logger.Error($"Ошибка доступа к домену. user: {aliveUserAD.Login} |domain: {aliveUserAD.Domain} |password: {aliveUserAD.Password} |server: {aliveUserAD.DomainControllerPath}");
 
                 SetStatusLabelText(
                     StatusLabel2,
@@ -3770,7 +3772,7 @@ namespace ASTA
                     ControlInHHMM = ConvertStringsTimeToStringHHMM(ReturnNumUpDown(numUpDownHourStart).ToString(), ReturnNumUpDown(numUpDownMinuteStart).ToString()),
                     ControlOutHHMM = ConvertStringsTimeToStringHHMM(ReturnNumUpDown(numUpDownHourEnd).ToString(), ReturnNumUpDown(numUpDownMinuteEnd).ToString())
                 };
-                
+
                 SetStatusLabelText(StatusLabel2, $"Получаю данные по {person.fio?.ConvertFullNameToShortForm()}'");
 
                 logger.Trace($"LoadRecords,One User: {person.fio}");
@@ -3969,7 +3971,7 @@ namespace ASTA
 
         private string DayOfWeekRussian(string dayEnglish) //return a day of week as the same short name in Russian
         {
-            string result ;
+            string result;
             switch (dayEnglish.ToLower())
             {
                 case "monday":
@@ -4754,7 +4756,7 @@ namespace ASTA
         private List<string> ReturnBoldedDaysFromDB(string nav, string dayType)
         {
             List<string> boldedDays = new List<string>();
-            string query ;
+            string query;
             if (nav.Length == 6)
             {
                 query = $"SELECT DayBolded FROM BoldedDates WHERE (NAV LIKE '{nav}' OR  NAV LIKE '0') AND DayType LIKE '{dayType}';";
@@ -5029,12 +5031,12 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void VacuumDB(string dbPath)
         {
-            SQLiteConnectionStringBuilder builder =                new SQLiteConnectionStringBuilder
-                {
-                    DataSource = dbPath,
-                    PageSize = 4096,
-                    UseUTF16Encoding = true
-                };
+            SQLiteConnectionStringBuilder builder = new SQLiteConnectionStringBuilder
+            {
+                DataSource = dbPath,
+                PageSize = 4096,
+                UseUTF16Encoding = true
+            };
 
             using (SQLiteConnection conn = new SQLiteConnection(builder.ConnectionString))
             {
@@ -6619,7 +6621,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
                 if (mailServer?.Length > 0 && mailServerSMTPPort > 0)
                 { _mailServer = new MailServer(mailServer, mailServerSMTPPort); }
-               
+
                 if (mailSenderAddress != null && mailSenderAddress.Contains('@'))
                 { _mailUser = new MailUser(NAME_OF_SENDER_REPORTS, mailSenderAddress); }
 
@@ -7134,7 +7136,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
         }
 
-        
+
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
             if (DataGridViewOperations.ColumnsCount(dataGridView1) > 0 && DataGridViewOperations.RowsCount(dataGridView1) > 0)
@@ -7735,7 +7737,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private async void SendAllReportsInSelectedPeriod(object sender, EventArgs e) //SendAllReportsInSelectedPeriod()
         {
-           await Task.Run(() => SendAllReportsInSelectedPeriod());
+            await Task.Run(() => SendAllReportsInSelectedPeriod());
         }
 
         private void SendAllReportsInSelectedPeriod()
@@ -10079,12 +10081,12 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             };
 
             MakerOfLinks makerLinks = new MakerOfLinks();
-            makerLinks.SetParameters(parameters);
+            makerLinks.Set(parameters);
             makerLinks.Make();
 
             urlUpdateReachError = false;
 
-            return makerLinks.GetParameters();
+            return makerLinks.Get();
         }
 
         //Calculate MD5 checksum of local file

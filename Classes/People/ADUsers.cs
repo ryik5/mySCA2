@@ -10,17 +10,20 @@ namespace ASTA.Classes.People
     public class ADUsers
     {
         private IADUser adUser;
+
         public List<ADUserFullAccount> ADUsersCollection;
 
         public delegate void Status<T>(object obj, T data);
-
         public event Status<TextEventArgs> Trace;
-
         public event Status<TextEventArgs> Info;
 
-        public ADUsers(IADUser user)
+        /// <summary>
+        /// userAD has to be active and to have allowed access to AD to read information
+        /// </summary>
+        /// <param name="userAD"></param>
+        public ADUsers(IADUser userAD)
         {
-            adUser = user;
+            adUser = userAD;
             Trace?.Invoke(this, new TextEventArgs(
                $"ADData, Domain Controller: {adUser.DomainControllerPath}, login: { adUser.Login}, password: {adUser.Password}, domain: {adUser.Domain}"));
             // isValid = ValidateCredentials(_ADUserAuthorization);       // it sometimes doesn't work correctly
@@ -170,9 +173,7 @@ namespace ASTA.Classes.People
     [DirectoryObjectClass("user")]
     public class UserPrincipalExtended : UserPrincipal
     {
-        public UserPrincipalExtended(PrincipalContext context) : base(context)
-        {
-        }
+        public UserPrincipalExtended(PrincipalContext context) : base(context) { }
 
         public UserPrincipalExtended(PrincipalContext
             context,
@@ -372,9 +373,7 @@ namespace ASTA.Classes.People
         }
 
         public string GetUACStatesOfAccount()
-        {
-            return GetStatesOfAccount(_flag);
-        }
+        { return GetStatesOfAccount(_flag); }
 
         private string GetStatesOfAccount(int sumStatesOfPerson) //state: /1st st. state=66050  /2nd st. state=514  /3rd st. state=2
         {

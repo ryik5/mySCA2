@@ -10,12 +10,12 @@ namespace ASTA.Classes.Updating
 
         public event Status status;
 
-        public void SetParameters(UpdatingParameters parameters)
+        public void Set(UpdatingParameters parameters)
         {
             Contract.Requires(parameters != null,
                  "Не создан экземпляр UpdatingParameters!");
 
-            _parameters = new UpdatingParameters(parameters);
+            _parameters = parameters.Get();
         }
 
         public void Make()
@@ -34,9 +34,12 @@ namespace ASTA.Classes.Updating
             status?.Invoke(this, new TextEventArgs("Все ссылки сгенерированы!"));
         }
 
-        public UpdatingParameters GetParameters()
+        public UpdatingParameters Get()
         {
-            return new UpdatingParameters(_parameters);
+            Contract.Requires(_parameters != null,
+                "Не создан экземпляр UpdatingParameters!");
+            
+            return _parameters.Get();
         }
 
         /* public void PrintProperties()
