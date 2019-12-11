@@ -56,33 +56,29 @@ namespace ASTA
         private static readonly string appFolderBackUpPath = System.IO.Path.Combine(localAppFolderPath, "Backup");
 
         private static readonly string[] appAllFiles =  {
-                @"ASTA.exe" , @"NLog.config", @"AutoUpdater.NET.dll",
-                @"ASTA.sql", @"Google.Protobuf.dll", @"NLog.dll",
-                @"MySql.Data.dll", @"MySql.Data.dll", @"Renci.SshNet.dll",
-                @"MailKit.dll", @"MimeKit.dll",
-                @"BouncyCastle.Crypto.dll", @"System.Data.SQLite.dll",
-                @"x64\SQLite.Interop.dll", @"x86\SQLite.Interop.dll",
+                @"ASTA.exe", @"NLog.config", @"NLog.dll", @"ASTA.sql",
+                @"MailKit.dll", @"MimeKit.dll", @"MySql.Data.dll",
+                @"x64\SQLite.Interop.dll", @"x86\SQLite.Interop.dll", @"System.Data.SQLite.dll", 
+                @"AutoUpdater.NET.dll", @"Google.Protobuf.dll",
+                @"Renci.SshNet.dll", @"BouncyCastle.Crypto.dll",
+
+                @"EntityFramework.dll",
+                @"EntityFramework.SqlServer.dll",
+                @"Microsoft.Data.SqlClient.dll",
+                @"Microsoft.DotNet.PlatformAbstractions.dll",
+                @"System.Diagnostics.DiagnosticSource.dll",
+                @"System.ComponentModel.Annotations.dll",
+                @"System.Buffers.dll",
+                @"System.Memory.dll",
+                @"System.Runtime.CompilerServices.Unsafe.dll",
+                @"System.Threading.Tasks.Extensions.dll",
+
                 //Abstraction for static System.IO library
                 @"System.IO.Abstractions.dll",
                 //Analysing packages
                 @"ASTA.exe.config"
                         };
-        /*         
-AutoUpdater.NET.dll                         SQLitePCLRaw.batteries_v2.dll
-BouncyCastle.Crypto.dll                     SQLitePCLRaw.core.dll
-EntityFramework.dll                         SQLitePCLRaw.nativelibrary.dll
-EntityFramework.SqlServer.dll               SQLitePCLRaw.provider.dynamic_cdecl.dll
-Google.Protobuf.dll                         System.Buffers.dll
-MailKit.dll                                 System.ComponentModel.Annotations.dll
-Microsoft.Data.SqlClient.dll                System.Data.SQLite.dll
-Microsoft.Data.Sqlite.dll                   System.Diagnostics.DiagnosticSource.dll
-Microsoft.DotNet.PlatformAbstractions.dll   System.IdentityModel.Tokens.Jwt.dll
-MimeKit.dll                                 System.IO.Abstractions.dll
-MySql.Data.dll                              System.Memory.dll
-Newtonsoft.Json.dll                         System.Threading.Tasks.Extensions.dll
-NLog.dll
-Renci.SshNet.dll 
-         */
+
         private static readonly string appRegistryKey = @"SOFTWARE\RYIK\ASTA";
 
         private static readonly byte[] keyEncryption = Convert.FromBase64String(@"OCvesunvXXsxtt381jr7vp3+UCwDbE4ebdiL1uinGi0="); //Key Encrypt
@@ -97,6 +93,8 @@ Renci.SshNet.dll
         private static string sqlServerConnectionString;// = "Data Source=" + serverName + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + userName + ";Password=" + userPasswords + "; Connect Timeout=5";
         private static System.Data.Entity.Core.EntityClient.EntityConnectionStringBuilder sqlServerConnectionStringEF;
         private static string mysqlServerConnectionString;//@"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60";
+
+        private static readonly string queryCheckSystemDdSCA = "SELECT database_id FROM sys.databases WHERE Name ='intellect'";
 
         private static string remoteFolderUpdateURL; // format - server.domain.subdomain/folder  or   server/folder
 
@@ -161,7 +159,7 @@ Renci.SshNet.dll
         private const string MIDDLE_OF_MONTH = @"MIDDLE_OF_MONTH";
         private const string END_OF_MONTH = @"END_OF_MONTH";
         private static System.Threading.Timer timer;
-        private static object synclock = new object();
+        private static readonly object synclock = new object();
         private static bool sent = false;
         private static string DEFAULT_DAY_OF_SENDING_REPORT = @"END_OF_MONTH";
         private static int ShiftDaysBackOfSendingFromLastWorkDay = 3; //shift back of sending email before a last working day within the month
@@ -245,7 +243,6 @@ Renci.SshNet.dll
         private static Color clrRealRegistration = Color.PaleGreen;
         private Color clrRealRegistrationRegistry = Color.PaleGreen;
 
-        private List<string> listGroups = new List<string>();
         private int countGroups = 0;
         private int countUsers = 0;
         private int countMailers = 0;
@@ -511,7 +508,7 @@ Renci.SshNet.dll
             //rewrite to access from other threads
             CheckBoxesFiltersAll_Enable(false);
 
-            _EnableMenuItem(AddAnualDateItem, false);
+            EnableMenuItem(AddAnualDateItem, false);
 
             MembersGroupItem.Enabled = false;
             AddPersonToGroupItem.Enabled = false;
@@ -552,7 +549,7 @@ Renci.SshNet.dll
                 else
                 {
                     // nameOfLastTable = "Mailing";
-                    _EnableControl(comboBoxFio, false);
+                    EnableControl(comboBoxFio, false);
                     logger.Info("Стартовый режим - автоматический...");
 
                     ShowDataTableDbQuery(dbApplication, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
@@ -592,7 +589,7 @@ Renci.SshNet.dll
                 if (remoteFolderUpdateURL?.Length > 5)
                 {
                     //Run Autoupdate function
-                    Task.Run(() => RunAutoUpdate());
+                    Task.Run(() => CheckUpdates());
                 }
                 else
                 {
@@ -618,25 +615,25 @@ Renci.SshNet.dll
                 }
             }
 
-            if (_ReturnComboBoxCountItems(comboBoxFio) > 0)
+            if (ReturnComboBoxCountItems(comboBoxFio) > 0)
             {
-                _VisibleMenuItem(listFioItem, true);
-                _SetComboBoxIndex(comboBoxFio, 0);
+                VisibleMenuItem(listFioItem, true);
+                SetComboBoxIndex(comboBoxFio, 0);
             }
             comboBoxFio.DrawMode = DrawMode.OwnerDrawFixed;
             comboBoxFio.DrawItem += new DrawItemEventHandler(Set_ComboBox_DrawItem);
 
             //Naming of Menu Items
-            _SetMenuItemText(ModeItem, "Включить режим автоматических e-mail рассылок");
-            _SetMenuItemTooltip(ModeItem, "Включен интерактивный режим. Все рассылки остановлены.");
-            _SetMenuItemText(EditAnualDaysItem, Names.DAY_OFF_OR_WORK);
-            _SetMenuItemTooltip(EditAnualDaysItem, Names.DAY_OFF_OR_WORK_EDIT);
-            _SetMenuItemText(PersonOrGroupItem, Names.WORK_WITH_A_PERSON);
+            SetMenuItemText(ModeItem, "Включить режим автоматических e-mail рассылок");
+            SetMenuItemTooltip(ModeItem, "Включен интерактивный режим. Все рассылки остановлены.");
+            SetMenuItemText(EditAnualDaysItem, Names.DAY_OFF_OR_WORK);
+            SetMenuItemTooltip(EditAnualDaysItem, Names.DAY_OFF_OR_WORK_EDIT);
+            SetMenuItemText(PersonOrGroupItem, Names.WORK_WITH_A_PERSON);
             SetMenuItemsTextAfterClosingDateTimePicker();
 
             //Naming of Control Items
-            _SetControlToolTip(textBoxGroup, "Создать или добавить в группу");
-            _SetControlToolTip(textBoxGroupDescription, "Изменить описание группы");
+            SetControlToolTip(textBoxGroup, "Создать или добавить в группу");
+            SetControlToolTip(textBoxGroupDescription, "Изменить описание группы");
 
             logger.Info("");
             logger.Info("Загрузка и настройка интерфейса ПО завершена....");
@@ -703,12 +700,14 @@ Renci.SshNet.dll
             MethodInvoker mi = delegate
             {
                 string prevText = ReturnStatusLabelText(StatusLabel2);
-                Color prevColor = _ReturnStatusLabelBackColor(StatusLabel2);
+                Color prevColor = ReturnStatusLabelBackColor(StatusLabel2);
                 bool readOk = true;
 
                 if (!(fpath?.Length > 0))
                 {
-                    fpath = OpenFileDialogExtentions.ReturnFilePath("Выберите файл", "Текстовые файлы (*.txt)|*.txt|SQL файлы (*.sql)|*.sql|All files (*.*)|*.*");
+                    OpenFileDialogExtentions filePath = new OpenFileDialogExtentions("Выберите файл", "SQL файлы (*.sql)|*.sql|Все files (*.*)|*.*");
+                     fpath = filePath.FilePath;
+
                     if (fpath == null) return;
                 }
 
@@ -859,7 +858,7 @@ Renci.SshNet.dll
                         {
                             if (record["ComboList"]?.ToString()?.Trim()?.Length > 0)
                             {
-                                _AddComboBoxItem(comboBoxFio, record["ComboList"].ToString().Trim());
+                                AddComboBoxItem(comboBoxFio, record["ComboList"].ToString().Trim());
                                 count++;
                             }
                         }
@@ -902,18 +901,18 @@ Renci.SshNet.dll
 
             sServer1DB = GetValueOfConfigParameter(listParameters, @"SKDServer", null);
             sServer1UserNameDB = GetValueOfConfigParameter(listParameters, @"SKDUser", null);
-            sServer1UserPasswordDB = GetValueOfConfigParameter(listParameters, @"SKDUserPassword", null, true);
+            sServer1UserPasswordDB = GetValueOfConfigParameter(listParameters, @"SKDUserPassword", null);
 
             mysqlServerDB = GetValueOfConfigParameter(listParameters, @"MySQLServer", null);
             mysqlServerUserNameDB = GetValueOfConfigParameter(listParameters, @"MySQLUser", null);
-            mysqlServerUserPasswordDB = GetValueOfConfigParameter(listParameters, @"MySQLUserPassword", null, true);
+            mysqlServerUserPasswordDB = GetValueOfConfigParameter(listParameters, @"MySQLUserPassword", null);
 
             mailServerDB = GetValueOfConfigParameter(listParameters, @"MailServer", null);
             mailServerSMTPPortDB = GetValueOfConfigParameter(listParameters, @"MailServerSMTPport", null);
             mailsOfSenderOfNameDB = GetValueOfConfigParameter(listParameters, @"MailUser", null);
-            mailsOfSenderOfPasswordDB = GetValueOfConfigParameter(listParameters, @"MailUserPassword", null, true);
+            mailsOfSenderOfPasswordDB = GetValueOfConfigParameter(listParameters, @"MailUserPassword", null);
 
-            mailJobReportsOfNameOfReceiver = GetValueOfConfigParameter(listParameters, @"JobReportsReceiver", null, true);
+            mailJobReportsOfNameOfReceiver = GetValueOfConfigParameter(listParameters, @"JobReportsReceiver", null);
             string defaultURL = remoteFolderUpdateURL;
             remoteFolderUpdateURL = GetValueOfConfigParameter(listParameters, @"RemoteFolderUpdateURL", defaultURL);
 
@@ -958,7 +957,7 @@ Renci.SshNet.dll
             logger.Trace($"LoadPreviouslySavedParameters: {nameof(modeApp)} - {modeApp}, {nameof(currentModeAppManual)} - {currentModeAppManual}");
         }
 
-        private string GetValueOfConfigParameter(List<ParameterConfig> listOfParameters, string nameParameter, string defaultValue, bool pass = false)
+        private string GetValueOfConfigParameter(List<ParameterConfig> listOfParameters, string nameParameter, string defaultValue)
         {
             return listOfParameters.FindLast(x => x?.name?.Trim() == nameParameter)?.value?.Trim() != null ?
                    listParameters.FindLast(x => x?.name?.Trim() == nameParameter)?.value?.Trim() :
@@ -1024,9 +1023,9 @@ Renci.SshNet.dll
 
             logger.Trace($"-= {nameof(AddParameterInConfigItem_Click)} =-");
 
-            _VisibleControl(panelView, false);
+            VisibleControl(panelView, false);
             ClearButtonClickEvent(btnPropertiesSave);
-            _SetControlText(btnPropertiesSave, "Сохранить параметр");
+            SetControlText(btnPropertiesSave, "Сохранить параметр");
             btnPropertiesSave.Click += new EventHandler(ButtonPropertiesSave_inConfig);
 
             listParameters = GetConfigOfASTA();
@@ -1149,7 +1148,7 @@ Renci.SshNet.dll
 
         private void ListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            string result = _ReturnListBoxSelectedItem(sender as ListBox);
+            string result = ReturnListBoxSelectedItem(sender as ListBox);
             string tooltip = "";
 
             checkBox1.Checked = false;
@@ -1168,10 +1167,9 @@ Renci.SshNet.dll
 
         private void textboxDate_KeyPress(object sender, KeyPressEventArgs e)
         {
-            string inputed = null;
             if (e.KeyChar == (char)13)//если нажата Enter
             {
-                inputed = ReturnStrongNameDayOfSendingReports((sender as TextBox).Text);
+              string  inputed = ReturnStrongNameDayOfSendingReports((sender as TextBox).Text);
                 (sender as TextBox).Text = inputed;
             }
         }
@@ -1195,14 +1193,14 @@ Renci.SshNet.dll
         {
             logger.Trace($"-= {nameof(ButtonPropertiesSave_inConfig)} =-");
 
-            string textLabel = _ReturnTextOfControl(labelSettings9);
+            string textLabel = ReturnTextOfControl(labelSettings9);
 
             ParameterConfig parameter = new ParameterConfig()
             {
                 description = textLabel?.ToLower() == "example" ? "" : textLabel,
-                name = _ReturnTextOfControl(labelServer1),
-                value = _ReturnTextOfControl(textBoxSettings16),
-                isSecret = _ReturnCheckboxCheckedStatus(checkBox1),
+                name = ReturnTextOfControl(labelServer1),
+                value = ReturnTextOfControl(textBoxSettings16),
+                isSecret = ReturnCheckboxCheckedStatus(checkBox1),
                 isExample = "no"
             };
 
@@ -1211,7 +1209,7 @@ Renci.SshNet.dll
             parameter = null;
 
             DisposeTemporaryControls();
-            _VisibleControl(panelView, true);
+            VisibleControl(panelView, true);
 
             if (mailServer?.Length > 0 && mailServerSMTPPort > 0)
             {
@@ -1234,24 +1232,23 @@ Renci.SshNet.dll
         {
             logger.Trace($"-= {nameof(ShowDataTableDbQuery)} =-");
 
-            DataTable dt;
-
             string query = $"{mySqlQuery} FROM '{myTable}' {mySqlWhere};";
             using (SqLiteDbWrapper dbReader = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
             {
-                dt = dbReader.GetDataTable(query);
-            }
-            iCounterLine = dt.Rows.Count;
-            logger.Trace($"ShowDataTableDbQuery: {iCounterLine}");
+                using (DataTable dt = dbReader.GetDataTable(query))
+                {
+                    iCounterLine = dt.Rows.Count;
 
-            dgvo.Show(dataGridView1, false);
-            dgvo.AddDataTable(dataGridView1, dt);
-            dgvo.Show(dataGridView1, true);
-            dt?.Dispose();
+                    dgvo.Show(dataGridView1, false);
+                    dgvo.AddDataTable(dataGridView1, dt);
+                    dgvo.Show(dataGridView1, true);
+                }
+            }
             nameOfLastTable = myTable;
+            logger.Trace($"ShowDataTableDbQuery: {iCounterLine}");
             sLastSelectedElement = "dataGridView";
         }
-
+      
         private void ShowDatatableOnDatagridview(DataTable dt, string nameLastTable, string[] nameHidenColumnsArray1 = null) //Query data from the Table of the DB
         {
             logger.Trace($"-= {nameof(ShowDatatableOnDatagridview)} =-");
@@ -1379,7 +1376,7 @@ Renci.SshNet.dll
             logger.Trace($"Удалены данные из таблицы {myTable} - query: {query}");
         }
 
-        private void CheckAliveIntellectServer(string serverName, string userName, string userPasswords) //Check alive the SKD Intellect-server and its DB's 'intellect'
+        private void CheckAliveIntellectServer(string serverName, string connectDB, string queryCheckDb) //Check alive the SKD Intellect-server and its DB's 'intellect'
         {
             //stop checking last registrations
             checkInputsOutputs = false;
@@ -1387,15 +1384,14 @@ Renci.SshNet.dll
             stimerCurr = $"Проверка доступности {serverName}. Ждите окончания процесса...";
             bServer1Exist = false;
 
-            string query = "SELECT database_id FROM sys.databases WHERE Name ='intellect' ";
-            AddLoggerTraceText($"CheckAliveIntellectServer: query: {query}");
+            AddLoggerTraceText($"CheckAliveIntellectServer: query: {queryCheckDb}");
 
             try
             {
-                using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
+                using (SqlDbReader sqlDbTableReader = new SqlDbReader(connectDB))
                 {
                     sqlDbTableReader.Status += AddLoggerTraceText;
-                    sqlDbTableReader.GetData(query);
+                    sqlDbTableReader.GetData(queryCheckDb);
                     bServer1Exist = true;
                     AddLoggerTraceText($"Сервер {serverName} с SQL БД СКД-сервера доступен");
                 }
@@ -1496,43 +1492,43 @@ Renci.SshNet.dll
 
         private async void GetFio_Click(object sender, EventArgs e)  //DoListsFioGroupsMailings()
         {
-            _ProgressBar1Start();
+            ProgressBar1Start();
             currentAction = "GetFIO";
             CheckBoxesFiltersAll_SetState(false);
             CheckBoxesFiltersAll_Enable(false);
-            _EnableMenuItem(LoadDataItem, false);
-            _EnableMenuItem(FunctionMenuItem, false);
-            _EnableMenuItem(SettingsMenuItem, false);
-            _EnableMenuItem(GroupsMenuItem, false);
-            _EnableMenuItem(GetFioItem, false);
-            _EnableControl(dataGridView1, false);
+            EnableMenuItem(LoadDataItem, false);
+            EnableMenuItem(FunctionMenuItem, false);
+            EnableMenuItem(SettingsMenuItem, false);
+            EnableMenuItem(GroupsMenuItem, false);
+            EnableMenuItem(GetFioItem, false);
+            EnableControl(dataGridView1, false);
 
-            await Task.Run(() => CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword));
+            await Task.Run(() => CheckAliveIntellectServer(sServer1, sqlServerConnectionString, queryCheckSystemDdSCA));
 
             if (bServer1Exist)
             {
                 await Task.Run(() => DoListsFioGroupsMailings());
 
-                _VisibleMenuItem(listFioItem, true);
-                _EnableMenuItem(SettingsMenuItem, true);
-                _EnableMenuItem(GetFioItem, true);
-                _EnableMenuItem(FunctionMenuItem, true);
-                _EnableMenuItem(LoadDataItem, true);
-                _EnableMenuItem(GroupsMenuItem, true);
+                VisibleMenuItem(listFioItem, true);
+                EnableMenuItem(SettingsMenuItem, true);
+                EnableMenuItem(GetFioItem, true);
+                EnableMenuItem(FunctionMenuItem, true);
+                EnableMenuItem(LoadDataItem, true);
+                EnableMenuItem(GroupsMenuItem, true);
 
-                _EnableControl(dataGridView1, true);
-                _VisibleControl(dataGridView1, true);
-                _VisibleControl(pictureBox1, false);
-                _EnableControl(comboBoxFio, true);
+                EnableControl(dataGridView1, true);
+                VisibleControl(dataGridView1, true);
+                VisibleControl(pictureBox1, false);
+                EnableControl(comboBoxFio, true);
 
-                _SetStatusLabelForeColor(StatusLabel1, Color.Black);
-                _SetStatusLabelForeColor(StatusLabel2, Color.Black);
+                SetStatusLabelForeColor(StatusLabel1, Color.Black);
+                SetStatusLabelForeColor(StatusLabel2, Color.Black);
             }
             else
             {
-                _EnableMenuItem(SettingsMenuItem, true);
+                EnableMenuItem(SettingsMenuItem, true);
             }
-            _ProgressBar1Stop();
+            ProgressBar1Stop();
         }
 
         private void DoListsFioGroupsMailings()  //  GetDataFromRemoteServers()  ImportTablePeopleToTableGroupsInLocalDB()
@@ -1599,7 +1595,7 @@ Renci.SshNet.dll
             Dictionary<string, Department> departments = new Dictionary<string, Department>();
             Department departmentFromDictionary;
 
-            _ClearComboBox(comboBoxFio);
+            ClearComboBox(comboBoxFio);
             SetStatusLabelText(StatusLabel2, $"Запрашиваю данные с {sServer1}. Ждите окончания процесса...");
 
             try
@@ -1654,7 +1650,7 @@ Renci.SshNet.dll
                                     DepartmentBossCode = sServer1
                                 });
                             }
-                            _ProgressWork1Step();
+                            ProgressWork1Step();
                         }
                     }
                     sqlDbTableReader.Status -= AddLoggerTraceText;
@@ -1701,7 +1697,7 @@ Renci.SshNet.dll
 
                                 listFIO.Add(new Employee { fio = fio, Code = nav });
 
-                                _ProgressWork1Step();
+                                ProgressWork1Step();
                             }
                         }
                     }
@@ -1736,7 +1732,7 @@ Renci.SshNet.dll
                                     DepartmentBossCode = mysqlData?.GetString(@"boss_code")
                                 });
                             }
-                            _ProgressWork1Step();
+                            ProgressWork1Step();
                         }
                     }
                     mysqlDbTableReader.Status -= AddLoggerTraceText;
@@ -1781,7 +1777,7 @@ Renci.SshNet.dll
                                     Status = "",
                                     Comment = mysqlData.GetString(@"comment")
                                 });
-                                _ProgressWork1Step();
+                                ProgressWork1Step();
                             }
                             try
                             {
@@ -1878,7 +1874,7 @@ Renci.SshNet.dll
 
                                 listFIO.Add(new Employee { fio = personFromServer.fio, Code = personFromServer.Code });
 
-                                _ProgressWork1Step();
+                                ProgressWork1Step();
                             }
                         }
                     }
@@ -1922,7 +1918,7 @@ Renci.SshNet.dll
             Dictionary<string, DepartmentFull> groups = new Dictionary<string, DepartmentFull>();
             HashSet<Department> departmentsUniq = new HashSet<Department>();
             HashSet<DepartmentFull> departmentsEmailUniq = new HashSet<DepartmentFull>();
-            _ProgressWork1Step();
+            ProgressWork1Step();
 
             string skdName = sServer1.Split('.')[0];
             int iSKD = 0;
@@ -1981,7 +1977,7 @@ Renci.SshNet.dll
                         });
                     }
                 }
-                _ProgressWork1Step();
+                ProgressWork1Step();
             }
             foreach (var dep in groups)
             {
@@ -2011,7 +2007,7 @@ Renci.SshNet.dll
                     }
                 }
             }
-            _ProgressWork1Step();
+            ProgressWork1Step();
 
             logger.Trace("Чищу базу от старых списков с ФИО...");
 
@@ -2020,9 +2016,9 @@ Renci.SshNet.dll
             foreach (var department in departmentsUniq?.ToList()?.Distinct())
             {
                 DeleteDataTableQueryParameters(dbApplication, "PeopleGroup", "GroupPerson", department?.DepartmentId).GetAwaiter().GetResult();
-                _ProgressWork1Step();
+                ProgressWork1Step();
             }
-            _ProgressWork1Step();
+            ProgressWork1Step();
 
             using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
             {
@@ -2074,7 +2070,7 @@ Renci.SshNet.dll
                     }
 
                     logger.Trace("CreatedGroup: " + depName + "(" + depDescr + ")");
-                    _ProgressWork1Step();
+                    ProgressWork1Step();
                 }
                 using (var sqlCommand1 = new SQLiteCommand("end", sqlConnection))
                 { sqlCommand1.ExecuteNonQuery(); }
@@ -2111,7 +2107,7 @@ Renci.SshNet.dll
 
                         logger.Trace($"SaveMailing: {recipientEmail} {depName} {depDescr}");
                     }
-                    _ProgressWork1Step();
+                    ProgressWork1Step();
                 }
                 using (var sqlCommand1 = new SQLiteCommand("end", sqlConnection))
                 { sqlCommand1.ExecuteNonQuery(); }
@@ -2148,7 +2144,7 @@ Renci.SshNet.dll
                             sqlCommand.Parameters.Add("@Comment", DbType.String).Value = shift.Comment;
                             sqlCommand.Parameters.Add("@DayInputed", DbType.String).Value = DateTime.Now.ToYYYYMMDDHHMM();
                             try { sqlCommand.ExecuteNonQuery(); } catch (Exception err) { MessageBox.Show(err.ToString()); }
-                            _ProgressWork1Step();
+                            ProgressWork1Step();
                         }
                     }
                 }
@@ -2165,7 +2161,7 @@ Renci.SshNet.dll
             departmentsUniq = null;
             departmentsEmailUniq = null;
 
-            _ProgressWork1Step();
+            ProgressWork1Step();
             SetStatusLabelText(StatusLabel2, "Списки ФИО и департаментов получены.");
         }
 
@@ -2173,7 +2169,7 @@ Renci.SshNet.dll
         {
             nameOfLastTable = "ListFIO";
 
-            _EnableControl(comboBoxFio, true);
+            EnableControl(comboBoxFio, true);
             SeekAndShowMembersOfGroup("");
         }
 
@@ -2181,25 +2177,25 @@ Renci.SshNet.dll
         {
             logger.Trace($"-= {nameof(Export_Click)} =-");
 
-            _ProgressBar1Start();
-            _EnableMenuItem(FunctionMenuItem, false);
-            _EnableMenuItem(SettingsMenuItem, false);
-            _EnableMenuItem(GroupsMenuItem, false);
-            _EnableControl(dataGridView1, false);
+            ProgressBar1Start();
+            EnableMenuItem(FunctionMenuItem, false);
+            EnableMenuItem(SettingsMenuItem, false);
+            EnableMenuItem(GroupsMenuItem, false);
+            EnableControl(dataGridView1, false);
 
             filePathExcelReport = System.IO.Path.Combine(localAppFolderPath, $"InputOutputs {DateTime.Now.ToString("yyyyMMdd_HHmmss")}");
 
-            await Task.Run(() => ExportDatatableSelectedColumnsToExcel(dtPersonTemp, "InputOutputsOfStaff", filePathExcelReport).GetAwaiter().GetResult());
+            await Task.Run(() => ExportDatatableSelectedColumnsToExcel(dtPersonTemp, "InputOutputsOfStaff", filePathExcelReport));
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer.exe", " /select, " + filePathExcelReport + @".xlsx")); // //System.Reflection.Assembly.GetExecutingAssembly().Location)
 
-            _EnableMenuItem(FunctionMenuItem, true);
-            _EnableMenuItem(SettingsMenuItem, true);
-            _EnableMenuItem(GroupsMenuItem, true);
-            _EnableControl(dataGridView1, true);
-            _ProgressBar1Stop();
+            EnableMenuItem(FunctionMenuItem, true);
+            EnableMenuItem(SettingsMenuItem, true);
+            EnableMenuItem(GroupsMenuItem, true);
+            EnableControl(dataGridView1, true);
+            ProgressBar1Stop();
         }
 
-        private async Task ExportDatatableSelectedColumnsToExcel(DataTable dataTable, string nameReport, string filePath)  //Export DataTable to Excel
+        private void ExportDatatableSelectedColumnsToExcel(DataTable dataTable, string nameReport, string filePath)  //Export DataTable to Excel
         {
             logger.Trace($"-= {nameof(ExportDatatableSelectedColumnsToExcel)} =-");
             logger.Trace($"{nameof(nameReport)}:{nameReport} |{nameof(filePath)}:{filePath} ");
@@ -2232,7 +2228,7 @@ Renci.SshNet.dll
 
             logger.Trace($"В таблице {dataTable.TableName} столбцов - {dtExport.Columns.Count}, строк - {dtExport.Rows.Count}");
             SetStatusLabelText(StatusLabel2, $"Генерирую Excel-файл по отчету: '{nameReport}'");
-            _ProgressWork1Step();
+            ProgressWork1Step();
 
             Microsoft.Office.Interop.Excel.Application excel = new Microsoft.Office.Interop.Excel.Application
             {
@@ -2257,14 +2253,14 @@ Renci.SshNet.dll
                     nameColumns[i] = dtExport.Columns[i].ColumnName;
                     indexColumns[i] = dtExport.Columns.IndexOf(nameColumns[i]);
                 }
-                _ProgressWork1Step();
+                ProgressWork1Step();
 
                 int rows = 1;
                 int rowsInTable = dtExport.Rows.Count;
                 int columnsInTable = indexColumns.Length - 1; // p.Length;
                 sheet.Name = nameReport;
                 //sheet.Names.Add("next", "=" + Path.GetFileNameWithoutExtension(filePathExcelReport) + "!$A$1", true, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
-                _ProgressWork1Step();
+                ProgressWork1Step();
 
                 //colourize background of column
                 //the last column
@@ -2298,7 +2294,7 @@ Renci.SshNet.dll
                     rangeColumnB.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
                 catch (Exception err) { logger.Warn($"Нарушения: {err.ToString()}"); }
-                _ProgressWork1Step();
+                ProgressWork1Step();
 
                 try
                 {
@@ -2327,7 +2323,7 @@ Renci.SshNet.dll
                     rangeColumnF.Cells.EntireColumn.HorizontalAlignment = Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
                 }
                 catch (Exception err) { logger.Warn($"Отсутствовал: {err.ToString()}"); }
-                _ProgressWork1Step();
+                ProgressWork1Step();
 
                 //first row
                 Microsoft.Office.Interop.Excel.Range rangeColumnName = sheet.Range["A1", GetExcelColumnName(columnsInTable) + 1];
@@ -2341,7 +2337,7 @@ Renci.SshNet.dll
                     sheet.Cells[1, column + 1].Value = nameColumns[column];
                     sheet.Columns[column + 1].NumberFormat = "@"; // set format data of cells - text
                 }
-                _ProgressWork1Step();
+                ProgressWork1Step();
 
                 foreach (DataRow row in dtExport.Rows)
                 {
@@ -2350,7 +2346,7 @@ Renci.SshNet.dll
                     {
                         sheet.Cells[rows, column + 1].Value = row[indexColumns[column]];
                     }
-                    _ProgressWork1Step();
+                    ProgressWork1Step();
                 }
 
                 //colourize parts of text in the selected cell by different colors
@@ -2368,7 +2364,7 @@ Renci.SshNet.dll
                 range.Cells.Font.Name = "Tahoma";           //Шрифт для диапазона
                 range.Cells.Font.Size = 8;                  //Размер шрифта
                 range.Cells.EntireColumn.AutoFit();         //ширина колонок - авто
-                _ProgressWork1Step();
+                ProgressWork1Step();
 
                 range.Cells.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeBottom].LineStyle = Microsoft.Office.Interop.Excel.XlLineStyle.xlContinuous;
                 range.Cells.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlEdgeBottom].Weight = Microsoft.Office.Interop.Excel.XlBorderWeight.xlThin;
@@ -2378,7 +2374,7 @@ Renci.SshNet.dll
                 range.Cells.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlInsideHorizontal].Weight = Microsoft.Office.Interop.Excel.XlBorderWeight.xlThin;
                 range.Cells.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlInsideVertical].LineStyle = Microsoft.Office.Interop.Excel.XlLineStyle.xlContinuous;
                 range.Cells.Borders[Microsoft.Office.Interop.Excel.XlBordersIndex.xlInsideVertical].Weight = Microsoft.Office.Interop.Excel.XlBorderWeight.xlThin;
-                _ProgressWork1Step();
+                ProgressWork1Step();
 
                 //Autofilter
                 range.Select();
@@ -2393,12 +2389,12 @@ Renci.SshNet.dll
                     Microsoft.Office.Interop.Excel.XlSaveConflictResolution.xlUserResolution, true,
                     System.Reflection.Missing.Value, System.Reflection.Missing.Value,
                     System.Reflection.Missing.Value);
-                _ProgressWork1Step();
+                ProgressWork1Step();
 
                 SetStatusLabelText(StatusLabel2, $"Отчет сохранен в файл: {pathToFile}.xlsx");
 
                 filePath = pathToFile;
-                _SetStatusLabelForeColor(StatusLabel2, Color.Black);
+                SetStatusLabelForeColor(StatusLabel2, Color.Black);
                 reportExcelReady = true;
                 ReleaseObject(range);
                 ReleaseObject(rangeColumnName);
@@ -2426,7 +2422,7 @@ Renci.SshNet.dll
 
                 dtExport?.Dispose();
             }
-            _ProgressWork1Step();
+            ProgressWork1Step();
 
             sLastSelectedElement = "ExportExcel";
         }
@@ -2502,8 +2498,8 @@ Renci.SshNet.dll
             {
                 _selectedEmployeeVisitor = new EmployeeVisitor
                 {
-                    fio = _ReturnTextOfControl(textBoxFIO),
-                    code = _ReturnTextOfControl(textBoxNav)
+                    fio = ReturnTextOfControl(textBoxFIO),
+                    code = ReturnTextOfControl(textBoxNav)
                 };
 
                 logger.Trace($"{_selectedEmployeeVisitor.fio} { _selectedEmployeeVisitor.code}");
@@ -2515,8 +2511,8 @@ Renci.SshNet.dll
         {
             logger.Trace($"-= {nameof(CreateGroupItem_Click)} =-");
 
-            string group = _ReturnTextOfControl(textBoxGroup);
-            string groupDescr = _ReturnTextOfControl(textBoxGroupDescription);
+            string group = ReturnTextOfControl(textBoxGroup);
+            string groupDescr = ReturnTextOfControl(textBoxGroupDescription);
 
             if (group?.Length > 0)
             {
@@ -2558,8 +2554,8 @@ Renci.SshNet.dll
         {
             logger.Trace($"-= {nameof(ListGroups)} =-");
 
-            _VisibleControl(groupBoxProperties, false);
-            _VisibleControl(dataGridView1, false);
+            VisibleControl(groupBoxProperties, false);
+            VisibleControl(dataGridView1, false);
 
             UpdateAmountAndRecepientOfPeopleGroupDescription();
 
@@ -2579,9 +2575,9 @@ Renci.SshNet.dll
             MembersGroupItem.Enabled = true;
             PersonOrGroupItem.Text = Names.WORK_WITH_A_PERSON;
 
-            _EnableControl(comboBoxFio, false);
+            EnableControl(comboBoxFio, false);
 
-            _VisibleControl(dataGridView1, true);
+            VisibleControl(dataGridView1, true);
             dataGridView1.Select();
         }
 
@@ -2832,8 +2828,8 @@ Renci.SshNet.dll
         {
             logger.Trace($"-= {nameof(AddPersonToGroup)} =-");
 
-            string group = _ReturnTextOfControl(textBoxGroup);
-            string groupDescription = _ReturnTextOfControl(textBoxGroupDescription);
+            string group = ReturnTextOfControl(textBoxGroup);
+            string groupDescription = ReturnTextOfControl(textBoxGroupDescription);
             logger.Trace("AddPersonToGroup: group " + group);
             if (DataGridViewOperations.RowsCount(dataGridView1) > -1)
             {
@@ -2902,7 +2898,7 @@ Renci.SshNet.dll
             SeekAndShowMembersOfGroup(group);
 
             labelGroup.BackColor = SystemColors.Control;
-            _SetMenuItemText(PersonOrGroupItem, Names.WORK_WITH_A_PERSON);
+            SetMenuItemText(PersonOrGroupItem, Names.WORK_WITH_A_PERSON);
             nameOfLastTable = "PeopleGroup";
         }
 
@@ -3026,7 +3022,7 @@ Renci.SshNet.dll
                             SqlQuery.Parameters.Add("@Comment", DbType.String).Value = dr[Names.EMPLOYEE_SHIFT_COMMENT]?.ToString();
 
                             dbWriter.ExecuteBulk(SqlQuery);
-                            _ProgressWork1Step();
+                            ProgressWork1Step();
                         }
                     }
                 }
@@ -3045,7 +3041,7 @@ Renci.SshNet.dll
                             SqlQuery.Parameters.Add("@ComboList", DbType.String).Value = str.fio + "|" + str.Code;
 
                             dbWriter.ExecuteBulk(SqlQuery);
-                            _ProgressWork1Step();
+                            ProgressWork1Step();
                         }
                     }
                 }
@@ -3055,11 +3051,11 @@ Renci.SshNet.dll
             }
 
             foreach (var str in listFIO)
-            { _AddComboBoxItem(comboBoxFio, str.fio + "|" + str.Code); }
-            _ProgressWork1Step();
-            if (_ReturnComboBoxCountItems(comboBoxFio) > 0)
-            { _SetComboBoxIndex(comboBoxFio, 0); }
-            _ProgressWork1Step();
+            { AddComboBoxItem(comboBoxFio, str.fio + "|" + str.Code); }
+            ProgressWork1Step();
+            if (ReturnComboBoxCountItems(comboBoxFio) > 0)
+            { SetComboBoxIndex(comboBoxFio, 0); }
+            ProgressWork1Step();
 
             int.TryParse(listFIO.Count.ToString(), out countUsers);
             logger.Info("Записано ФИО: " + countUsers);
@@ -3198,7 +3194,7 @@ Renci.SshNet.dll
         private static readonly object lockerToLoadInsOuts = new object();
 
         //lock to show data on datagridview
-        private static object lockerToShowData = new object();
+        private static readonly object lockerToShowData = new object();
 
         //status of repeatedly loading of registrations cards from server
         private static bool checkInputsOutputs = true;
@@ -3210,11 +3206,11 @@ Renci.SshNet.dll
         {
             logger.Trace($"-= {nameof(LoadInputsOutputsOfVisitors)} =-");
 
-            CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword);
+            CheckAliveIntellectServer(sServer1, sqlServerConnectionString, queryCheckSystemDdSCA);
 
             if (bServer1Exist)
             {
-                _EnableControl(comboBoxFio, true);
+                EnableControl(comboBoxFio, true);
                 nameOfLastTable = "LastIputsOutputs";
                 List<Visitor> visitorsTillNow;
 
@@ -3285,7 +3281,7 @@ Renci.SshNet.dll
 
         private List<Visitor> GetInputsOutputs(ref string startDay, ref string startTime, ref string endDay, ref string endTime)
         {
-            _ProgressBar1Start();
+            ProgressBar1Start();
 
             List<Visitor> visitors = new List<Visitor>();
             bool startTimeNotSet = true;
@@ -3340,15 +3336,15 @@ Renci.SshNet.dll
                         libraryUsers => libraryUsers.id,
                         (registeredAction, libraryUsers) => new
                         {
-                            FIO = registeredAction.FIO,
-                            IdCard = registeredAction.IdCard,
-                            ActionDate = registeredAction.ActionDate,
-                            ActionTime = registeredAction.ActionTime,
-                            ActionDescr = registeredAction.ActionDescr,
-                            ActionType = registeredAction.ActionType,
-                            PointName = registeredAction.PointName,
-                            fac = libraryUsers.facility_code,
-                            card = libraryUsers.card
+                            registeredAction.FIO,
+                            registeredAction.IdCard,
+                            registeredAction.ActionDate,
+                            registeredAction.ActionTime,
+                            registeredAction.ActionDescr,
+                            registeredAction.ActionType,
+                            registeredAction.PointName,
+                            libraryUsers.facility_code,
+                            libraryUsers.card
                         }
                         )
                     .Where(x => x.ActionDate > dtStart)
@@ -3370,7 +3366,7 @@ Renci.SshNet.dll
                         //look for  idCard
                         idCard = 0;
                         int.TryParse(v.IdCard, out idCard);
-                        fac = v.fac;
+                        fac = v.facility_code;
                         card = v.card;
                         idCardDescr = idCard != 0 ? $"№{idCard} ({fac},{card})" : (fio == sServer1 ? "" : "Пропуск не зарегистрирован");
 
@@ -3406,7 +3402,7 @@ Renci.SshNet.dll
                             logger.Warn(e.ToString());
                         }
 
-                        _ProgressWork1Step();
+                        ProgressWork1Step();
                     }
                 }
             }
@@ -3461,7 +3457,7 @@ Renci.SshNet.dll
               }*/
 
             stimerPrev = "";
-            _ProgressBar1Stop();
+            ProgressBar1Stop();
             return visitors;
         }
 
@@ -3544,7 +3540,7 @@ Renci.SshNet.dll
 
         private void GetDataOfGroup_Click(object sender, EventArgs e) //LoadIdCardRegistrations()
         {
-            string group = _ReturnTextOfControl(textBoxGroup);
+            string group = ReturnTextOfControl(textBoxGroup);
 
             dateTimePickerStart.Value = DateTime.Now.FirstDayOfMonth();
 
@@ -3564,22 +3560,22 @@ Renci.SshNet.dll
         {
             logger.Trace($"-= {nameof(LoadIdCardRegistrations)} =-");
 
-            _ProgressBar1Start();
+            ProgressBar1Start();
 
-            await Task.Run(() => CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword));
+            await Task.Run(() => CheckAliveIntellectServer(sServer1, sqlServerConnectionString, queryCheckSystemDdSCA));
 
-            _ChangeControlBackColor(groupBoxPeriod, SystemColors.Control);
-            _ChangeControlBackColor(groupBoxTimeStart, SystemColors.Control);
-            _ChangeControlBackColor(groupBoxTimeEnd, SystemColors.Control);
-            _SetMenuItemBackColor(LoadDataItem, SystemColors.Control);
+            ChangeControlBackColor(groupBoxPeriod, SystemColors.Control);
+            ChangeControlBackColor(groupBoxTimeStart, SystemColors.Control);
+            ChangeControlBackColor(groupBoxTimeEnd, SystemColors.Control);
+            SetMenuItemBackColor(LoadDataItem, SystemColors.Control);
 
-            _EnableMenuItem(LoadDataItem, false);
-            _EnableMenuItem(FunctionMenuItem, false);
-            _EnableMenuItem(SettingsMenuItem, false);
-            _EnableMenuItem(GroupsMenuItem, false);
+            EnableMenuItem(LoadDataItem, false);
+            EnableMenuItem(FunctionMenuItem, false);
+            EnableMenuItem(SettingsMenuItem, false);
+            EnableMenuItem(GroupsMenuItem, false);
             CheckBoxesFiltersAll_Enable(false);
 
-            _VisibleControl(dataGridView1, false);
+            VisibleControl(dataGridView1, false);
 
             if (bServer1Exist)
             {
@@ -3588,41 +3584,41 @@ Renci.SshNet.dll
 
                 await Task.Run(() => GetData(_group, reportStartDay, reportLastDay));
 
-                _SetStatusLabelForeColor(StatusLabel2, Color.Black);
-                _SetMenuItemBackColor(LoadDataItem, SystemColors.Control);
-                _SetMenuItemBackColor(TableExportToExcelItem, Color.PaleGreen);
+                SetStatusLabelForeColor(StatusLabel2, Color.Black);
+                SetMenuItemBackColor(LoadDataItem, SystemColors.Control);
+                SetMenuItemBackColor(TableExportToExcelItem, Color.PaleGreen);
 
-                _EnableMenuItem(LoadDataItem, true);
-                _EnableMenuItem(FunctionMenuItem, true);
-                _EnableMenuItem(SettingsMenuItem, true);
-                _EnableMenuItem(GroupsMenuItem, true);
-                _EnableMenuItem(VisualModeItem, true);
-                _VisibleMenuItem(VisualModeItem, true);
-                _EnableMenuItem(TableModeItem, true);
-                _EnableMenuItem(TableExportToExcelItem, true);
+                EnableMenuItem(LoadDataItem, true);
+                EnableMenuItem(FunctionMenuItem, true);
+                EnableMenuItem(SettingsMenuItem, true);
+                EnableMenuItem(GroupsMenuItem, true);
+                EnableMenuItem(VisualModeItem, true);
+                VisibleMenuItem(VisualModeItem, true);
+                EnableMenuItem(TableModeItem, true);
+                EnableMenuItem(TableExportToExcelItem, true);
 
-                _VisibleControl(dataGridView1, true);
+                VisibleControl(dataGridView1, true);
 
-                _EnableControl(checkBoxReEnter, true);
-                _EnableControl(checkBoxTimeViolations, false);
-                _EnableControl(checkBoxWeekend, false);
-                _EnableControl(checkBoxCelebrate, false);
+                EnableControl(checkBoxReEnter, true);
+                EnableControl(checkBoxTimeViolations, false);
+                EnableControl(checkBoxWeekend, false);
+                EnableControl(checkBoxCelebrate, false);
                 CheckBoxesFiltersAll_SetState(false);
 
                 panelViewResize(numberPeopleInLoading);
-                _ChangeControlBackColor(groupBoxFilterReport, Color.PaleGreen);
+                ChangeControlBackColor(groupBoxFilterReport, Color.PaleGreen);
             }
             else
             {
                 GetInfoSetup();
-                _EnableMenuItem(SettingsMenuItem, true);
+                EnableMenuItem(SettingsMenuItem, true);
             }
             stimerPrev = "";
-            _ProgressBar1Stop();
+            ProgressBar1Stop();
 
             if (dtPersonTemp?.Rows.Count > 0)
             {
-                _VisibleMenuItem(TableExportToExcelItem, true);
+                VisibleMenuItem(TableExportToExcelItem, true);
                 SetStatusLabelText(StatusLabel2, "Данные регистрации пропусков загружены");
             }
         }
@@ -3690,7 +3686,7 @@ Renci.SshNet.dll
                     }
                 }
             }
-            _ProgressWork1Step();
+            ProgressWork1Step();
 
             string date = "";
             string resonId = "";
@@ -3720,7 +3716,7 @@ Renci.SshNet.dll
                 }
                 logger.Trace("Всего с " + startDate.Split(' ')[0] + " по " + endDate.Split(' ')[0] + " на сайте есть - " + outPerson.Count + " записей с отсутствиями");
             }
-            _ProgressWork1Step();
+            ProgressWork1Step();
 
             if ((nameOfLastTable == "PeopleGroupDescription" || nameOfLastTable == "PeopleGroup" || nameOfLastTable == "Mailing" ||
                 nameOfLastTable == "ListFIO" || doPostAction == "sendEmail") && nameGroup?.Length > 0)
@@ -3761,8 +3757,8 @@ Renci.SshNet.dll
             {
                 person = new EmployeeFull
                 {
-                    Code = _ReturnTextOfControl(textBoxNav),
-                    fio = _ReturnTextOfControl(textBoxFIO),
+                    Code = ReturnTextOfControl(textBoxNav),
+                    fio = ReturnTextOfControl(textBoxFIO),
                     GroupPerson = "One User",
                     Department = "",
                     DepartmentId = "",
@@ -3781,7 +3777,7 @@ Renci.SshNet.dll
 
                 GetPersonRegistrationFromServer(ref dtPersonRegistrationsFullList, person, startDate, endDate);
 
-                SetStatusLabelText(StatusLabel2, $"Данные с СКД по '{_ReturnTextOfControl(textBoxFIO)?.ConvertFullNameToShortForm()}' получены!");
+                SetStatusLabelText(StatusLabel2, $"Данные с СКД по '{ReturnTextOfControl(textBoxFIO)?.ConvertFullNameToShortForm()}' получены!");
             }
         }
 
@@ -3825,7 +3821,7 @@ Renci.SshNet.dll
                             person.idCard = Convert.ToInt32(record["id"].ToString().Trim());
                             break;
                         }
-                        _ProgressWork1Step();
+                        ProgressWork1Step();
                     }
                 }
 
@@ -3887,7 +3883,7 @@ Renci.SshNet.dll
                                 dtTarget.Rows.Add(rowPerson);
 
                                 logger.Trace(rowPerson[Names.FIO] + " " + stringDataNew + " " + seconds + " " + namePoint + " " + direction);
-                                _ProgressWork1Step();
+                                ProgressWork1Step();
                             }
                         }
                         catch (DbException dbexpt)
@@ -3897,7 +3893,7 @@ Renci.SshNet.dll
                 }
 
                 stringDataNew = null; query = null;
-                _ProgressWork1Step();
+                ProgressWork1Step();
             }
             catch (DbException dbexpt)
             { logger.Warn(@"Ошибка доступа к данным БД: " + dbexpt.ToString()); }
@@ -3927,7 +3923,7 @@ Renci.SshNet.dll
                 rowPerson[Names.EMPLOYEE_ABSENCE] = "1";
 
                 dtTarget.Rows.Add(rowPerson);//добавляем рабочий день в который  сотрудник не выходил на работу
-                _ProgressWork1Step();
+                ProgressWork1Step();
             }
             dtTarget.AcceptChanges();
 
@@ -3964,7 +3960,7 @@ Renci.SshNet.dll
             }
             dtTarget.AcceptChanges();
 
-            _ProgressWork1Step();
+            ProgressWork1Step();
 
             rowPerson = null;
             namePoint = null; direction = null;
@@ -3973,7 +3969,7 @@ Renci.SshNet.dll
 
         private string DayOfWeekRussian(string dayEnglish) //return a day of week as the same short name in Russian
         {
-            string result = "";
+            string result ;
             switch (dayEnglish.ToLower())
             {
                 case "monday":
@@ -4098,9 +4094,9 @@ Renci.SshNet.dll
                 "NAV AS '" + Names.DAYOFF_USED_BY + "', DayDescription AS 'Описание', DateCreated AS '" + Names.DAYOFF_ADDED + "'",
                 " ORDER BY DayBolded desc, NAV asc; ");
 
-            _EnableMenuItem(FunctionMenuItem, false);
-            _EnableMenuItem(GroupsMenuItem, false);
-            _EnableMenuItem(AddAnualDateItem, true);
+            EnableMenuItem(FunctionMenuItem, false);
+            EnableMenuItem(GroupsMenuItem, false);
+            EnableMenuItem(AddAnualDateItem, true);
             SetCheckBoxesAllFilters_Visible(false);
 
             comboBoxFio.Items.Add("");
@@ -4126,9 +4122,9 @@ Renci.SshNet.dll
             if (comboBoxFio.Items.Count > 0)
             { comboBoxFio.SelectedIndex = 0; }
 
-            _EnableMenuItem(FunctionMenuItem, true);
-            _EnableMenuItem(GroupsMenuItem, true);
-            _EnableMenuItem(AddAnualDateItem, false);
+            EnableMenuItem(FunctionMenuItem, true);
+            EnableMenuItem(GroupsMenuItem, true);
+            EnableMenuItem(AddAnualDateItem, false);
 
             SetCheckBoxesAllFilters_Visible(true);
 
@@ -4140,7 +4136,7 @@ Renci.SshNet.dll
             labelGroup.Text = Names.GROUP;
             textBoxGroup.Text = "";
 
-            _SetStatusLabelForeColor(StatusLabel2, Color.Black);
+            SetStatusLabelForeColor(StatusLabel2, Color.Black);
             SetStatusLabelText(StatusLabel2, @"Завершен 'Режим редактирования дат праздников и выходных в локальной БД'");
 
             nameOfLastTable = "ListFIO";
@@ -4210,26 +4206,26 @@ Renci.SshNet.dll
 
         private void CheckBoxesFiltersAll_SetState(bool state)
         {
-            _SetCheckBoxCheckedStatus(checkBoxTimeViolations, state);
-            _SetCheckBoxCheckedStatus(checkBoxReEnter, state);
-            _SetCheckBoxCheckedStatus(checkBoxCelebrate, state);
-            _SetCheckBoxCheckedStatus(checkBoxWeekend, state);
+            SetCheckBoxCheckedStatus(checkBoxTimeViolations, state);
+            SetCheckBoxCheckedStatus(checkBoxReEnter, state);
+            SetCheckBoxCheckedStatus(checkBoxCelebrate, state);
+            SetCheckBoxCheckedStatus(checkBoxWeekend, state);
         }
 
         private void CheckBoxesFiltersAll_Enable(bool state)
         {
-            _EnableControl(checkBoxTimeViolations, state);
-            _EnableControl(checkBoxReEnter, state);
-            _EnableControl(checkBoxCelebrate, state);
-            _EnableControl(checkBoxWeekend, state);
+            EnableControl(checkBoxTimeViolations, state);
+            EnableControl(checkBoxReEnter, state);
+            EnableControl(checkBoxCelebrate, state);
+            EnableControl(checkBoxWeekend, state);
         }
 
         private void SetCheckBoxesAllFilters_Visible(bool state)
         {
-            _VisibleControl(checkBoxTimeViolations, state);
-            _VisibleControl(checkBoxReEnter, state);
-            _VisibleControl(checkBoxCelebrate, state);
-            _VisibleControl(checkBoxWeekend, state);
+            VisibleControl(checkBoxTimeViolations, state);
+            VisibleControl(checkBoxReEnter, state);
+            VisibleControl(checkBoxCelebrate, state);
+            VisibleControl(checkBoxWeekend, state);
         }
 
         private async void checkBox_CheckStateChanged(object sender, EventArgs e)
@@ -4249,9 +4245,9 @@ Renci.SshNet.dll
             dtEmpty?.Dispose();
 
             CheckBoxesFiltersAll_Enable(false);
-            _VisibleControl(dataGridView1, false);
+            VisibleControl(dataGridView1, false);
 
-            string nameGroup = _ReturnTextOfControl(textBoxGroup);
+            string nameGroup = ReturnTextOfControl(textBoxGroup);
 
             //todo dubble
             // check need - DataTable dtTempIntermediate
@@ -4259,8 +4255,8 @@ Renci.SshNet.dll
             dtPersonTempAllColumns = dtPeople.Clone();
             EmployeeFull person = new EmployeeFull()
             {
-                fio = _ReturnTextOfControl(textBoxFIO),
-                Code = _ReturnTextOfControl(textBoxNav),
+                fio = ReturnTextOfControl(textBoxFIO),
+                Code = ReturnTextOfControl(textBoxNav),
                 GroupPerson = nameGroup,
                 Department = nameGroup,
                 ControlInSeconds = (int)(60 * 60 * numUpHourStart + 60 * numUpMinuteStart),
@@ -4275,7 +4271,7 @@ Renci.SshNet.dll
             {
                 dtPeopleGroup = LoadGroupMembersFromDbToDataTable(nameGroup);
 
-                if (_ReturnCheckboxCheckedStatus(checkBoxReEnter))
+                if (ReturnCheckboxCheckedStatus(checkBoxReEnter))
                 {
                     foreach (DataRow row in dtPeopleGroup.Rows)
                     {
@@ -4307,7 +4303,7 @@ Renci.SshNet.dll
             }
             else
             {
-                if (!_ReturnCheckboxCheckedStatus(checkBoxReEnter))
+                if (!ReturnCheckboxCheckedStatus(checkBoxReEnter))
                 { dtTempIntermediate = dtPersonRegistrationsFullList.Copy(); }
                 else
                 { FilterRegistrationsOfPerson(ref person, dtPersonRegistrationsFullList, ref dtTempIntermediate); }
@@ -4321,28 +4317,28 @@ Renci.SshNet.dll
             ShowDatatableOnDatagridview(dtPersonTemp, "PeopleGroup");
 
             //change enabling of checkboxes
-            if (_ReturnCheckboxCheckedStatus(checkBoxReEnter))// if (checkBoxReEnter.Checked)
+            if (ReturnCheckboxCheckedStatus(checkBoxReEnter))// if (checkBoxReEnter.Checked)
             {
-                _EnableControl(checkBoxTimeViolations, true);
-                _EnableControl(checkBoxWeekend, true);
-                _EnableControl(checkBoxCelebrate, true);
+                EnableControl(checkBoxTimeViolations, true);
+                EnableControl(checkBoxWeekend, true);
+                EnableControl(checkBoxCelebrate, true);
 
-                if (_ReturnCheckboxCheckedStatus(checkBoxTimeViolations))  // if (checkBoxStartWorkInTime.Checked)
-                { _SetMenuItemBackColor(LoadDataItem, SystemColors.Control); }
+                if (ReturnCheckboxCheckedStatus(checkBoxTimeViolations))  // if (checkBoxStartWorkInTime.Checked)
+                { SetMenuItemBackColor(LoadDataItem, SystemColors.Control); }
             }
-            else if (!_ReturnCheckboxCheckedStatus(checkBoxReEnter))
+            else if (!ReturnCheckboxCheckedStatus(checkBoxReEnter))
             {
-                _SetCheckBoxCheckedStatus(checkBoxTimeViolations, false);
-                _SetCheckBoxCheckedStatus(checkBoxWeekend, false);
-                _SetCheckBoxCheckedStatus(checkBoxCelebrate, false);
-                _EnableControl(checkBoxTimeViolations, false);
-                _EnableControl(checkBoxWeekend, false);
-                _EnableControl(checkBoxCelebrate, false);
+                SetCheckBoxCheckedStatus(checkBoxTimeViolations, false);
+                SetCheckBoxCheckedStatus(checkBoxWeekend, false);
+                SetCheckBoxCheckedStatus(checkBoxCelebrate, false);
+                EnableControl(checkBoxTimeViolations, false);
+                EnableControl(checkBoxWeekend, false);
+                EnableControl(checkBoxCelebrate, false);
             }
 
             panelViewResize(numberPeopleInLoading);
-            _VisibleControl(dataGridView1, true);
-            _EnableControl(checkBoxReEnter, true);
+            VisibleControl(dataGridView1, true);
+            EnableControl(checkBoxReEnter, true);
         }
 
         private DataTable LeaveAndOrderColumnsOfDataTable(DataTable dt, string[] columns)
@@ -4374,7 +4370,7 @@ Renci.SshNet.dll
             {
                 var allWorkedDaysPerson = dataTableSource.Select("[NAV-код] = '" + person.Code + "'");
 
-                if (_ReturnCheckboxCheckedStatus(checkBoxReEnter) || currentAction == "sendEmail") //checkBoxReEnter.Checked
+                if (ReturnCheckboxCheckedStatus(checkBoxReEnter) || currentAction == "sendEmail") //checkBoxReEnter.Checked
                 {
                     foreach (DataRow dataRowDate in allWorkedDaysPerson) //make the list of worked days
                     { hsDays.Add(dataRowDate[Names.DATE_REGISTRATION]?.ToString()); }
@@ -4490,13 +4486,13 @@ Renci.SshNet.dll
                         dtTemp.ImportRow(rowDtStoring);
                     }
                 }
-                else if (!_ReturnCheckboxCheckedStatus(checkBoxReEnter))
+                else if (!ReturnCheckboxCheckedStatus(checkBoxReEnter))
                 {
                     foreach (DataRow dr in allWorkedDaysPerson)
                     { dtTemp.ImportRow(dr); }
                 }
 
-                if (_ReturnCheckboxCheckedStatus(checkBoxWeekend) || currentAction == "sendEmail")//checkBoxWeekend Checking
+                if (ReturnCheckboxCheckedStatus(checkBoxWeekend) || currentAction == "sendEmail")//checkBoxWeekend Checking
                 {
                     SeekAnualDays(ref dtTemp, ref person, true,
                         reportStartDay.ConvertDateAsStringToIntArray(),
@@ -4504,7 +4500,7 @@ Renci.SshNet.dll
                         ref myBoldedDates, ref workSelectedDays);
                 }
 
-                if (_ReturnCheckboxCheckedStatus(checkBoxTimeViolations)) //checkBoxStartWorkInTime Checking
+                if (ReturnCheckboxCheckedStatus(checkBoxTimeViolations)) //checkBoxStartWorkInTime Checking
                 { QueryDeleteDataFromDataTable(ref dtTemp, "[Опоздание ЧЧ:ММ]='' AND [Ранний уход ЧЧ:ММ]=''", person.Code); }
 
                 foreach (DataRow dr in dtTemp.AsEnumerable())
@@ -5054,9 +5050,9 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         //gathering a person's features from textboxes and other controls
         private void SelectPersonFromControls(ref EmployeeFull personSelected)
         {
-            personSelected.fio = _ReturnTextOfControl(textBoxFIO);
-            personSelected.Code = _ReturnTextOfControl(textBoxNav);
-            personSelected.GroupPerson = _ReturnTextOfControl(textBoxGroup);
+            personSelected.fio = ReturnTextOfControl(textBoxFIO);
+            personSelected.Code = ReturnTextOfControl(textBoxNav);
+            personSelected.GroupPerson = ReturnTextOfControl(textBoxGroup);
 
             personSelected.ControlInHHMM = ConvertDecimalTimeToStringHHMM(ReturnNumUpDown(numUpDownHourStart), ReturnNumUpDown(numUpDownMinuteStart));
             personSelected.ControlOutHHMM = ConvertDecimalTimeToStringHHMM(ReturnNumUpDown(numUpDownHourEnd), ReturnNumUpDown(numUpDownMinuteEnd));
@@ -5097,11 +5093,11 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                     decimal[] timeOut = ConvertStringTimeHHMMToDecimalArray(personVisual.ControlOutHHMM);
 
                     personVisual.ControlOutSeconds = (int)timeOut[4];
-                    _SetNumUpDown(numUpDownHourStart, timeIn[0]);
-                    _SetNumUpDown(numUpDownMinuteStart, timeIn[1]);
+                    SetNumUpDown(numUpDownHourStart, timeIn[0]);
+                    SetNumUpDown(numUpDownMinuteStart, timeIn[1]);
 
-                    _SetNumUpDown(numUpDownHourEnd, timeOut[0]);
-                    _SetNumUpDown(numUpDownMinuteEnd, timeOut[1]);
+                    SetNumUpDown(numUpDownHourEnd, timeOut[0]);
+                    SetNumUpDown(numUpDownMinuteEnd, timeOut[1]);
 
                     personVisual.Department = cellValue[5];
                     personVisual.PositionInDepartment = cellValue[6];
@@ -5117,7 +5113,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                     }
                     else if (nameOfLastTable == "PersonRegistrationsList")
                     {
-                        personVisual.GroupPerson = _ReturnTextOfControl(textBoxGroup);
+                        personVisual.GroupPerson = ReturnTextOfControl(textBoxGroup);
                         StatusLabel2.Text = $"Выбран: {personVisual.fio}";
                     }
                 }
@@ -5129,11 +5125,11 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 SelectPersonFromControls(ref personVisual);
             }
 
-            _VisibleControl(dataGridView1, false);
+            VisibleControl(dataGridView1, false);
 
             CheckBoxesFiltersAll_Enable(false);
 
-            if (_ReturnCheckboxCheckedStatus(checkBoxReEnter))
+            if (ReturnCheckboxCheckedStatus(checkBoxReEnter))
             {
                 logger.Trace("DrawFullWorkedPeriodRegistration: ");
                 DrawFullWorkedPeriodRegistration(ref personVisual);
@@ -5144,13 +5140,13 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 DrawRegistration(ref personVisual);
             }
 
-            _VisibleMenuItem(TableModeItem, true);
-            _VisibleMenuItem(VisualModeItem, false);
-            _VisibleMenuItem(ChangeColorMenuItem, true);
-            _VisibleMenuItem(TableExportToExcelItem, false);
+            VisibleMenuItem(TableModeItem, true);
+            VisibleMenuItem(VisualModeItem, false);
+            VisibleMenuItem(ChangeColorMenuItem, true);
+            VisibleMenuItem(TableExportToExcelItem, false);
 
-            _VisibleControl(panelView, true);
-            _VisibleControl(pictureBox1, true);
+            VisibleControl(panelView, true);
+            VisibleControl(pictureBox1, true);
         }
 
         private void DrawRegistration(ref EmployeeFull personDraw)  // Visualisation of registration
@@ -5226,7 +5222,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             // panelView.Anchor = AnchorStyles.Bottom;
             // panelView.Anchor = AnchorStyles.Left;
             // panelView.Dock = DockStyle.None;
-            _ResumePpanel(panelView);
+            ResumePpanel(panelView);
 
             pictureBox1?.Dispose();
             if (panelView.Controls.Count > 1)
@@ -5422,7 +5418,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             pictureBox1.Image = bmp;
             pictureBox1.Refresh();
             panelView.Controls.Add(pictureBox1);
-            _RefreshPictureBox(pictureBox1, bmp);
+            RefreshPictureBox(pictureBox1, bmp);
             panelViewResize(numberPeopleInLoading);
 
             font.Dispose();
@@ -5489,7 +5485,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             // panelView.Anchor = AnchorStyles.Bottom;
             // panelView.Anchor = AnchorStyles.Left;
             // panelView.Dock = DockStyle.None;
-            _ResumePpanel(panelView);
+            ResumePpanel(panelView);
 
             pictureBox1?.Dispose();
             if (panelView.Controls.Count > 1)
@@ -5652,7 +5648,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             pictureBox1.Image = bmp;
             pictureBox1.Refresh();
             panelView.Controls.Add(pictureBox1);
-            _RefreshPictureBox(pictureBox1, bmp);
+            RefreshPictureBox(pictureBox1, bmp);
             panelViewResize(numberPeopleInLoading);
 
             font.Dispose();
@@ -5668,7 +5664,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void ReportsItem_Click(object sender, EventArgs e)
         {
-            _VisibleControl(pictureBox1, false);
+            VisibleControl(pictureBox1, false);
 
             try
             {
@@ -5678,16 +5674,16 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
             catch { }
 
-            _VisibleControl(dataGridView1, true);
+            VisibleControl(dataGridView1, true);
 
             sLastSelectedElement = "dataGridView";
             panelViewResize(numberPeopleInLoading);
 
             CheckBoxesFiltersAll_Enable(true);
-            _VisibleMenuItem(TableExportToExcelItem, true);
-            _VisibleMenuItem(TableModeItem, false);
-            _VisibleMenuItem(VisualModeItem, true);
-            _VisibleMenuItem(ChangeColorMenuItem, false);
+            VisibleMenuItem(TableExportToExcelItem, true);
+            VisibleMenuItem(TableModeItem, false);
+            VisibleMenuItem(VisualModeItem, true);
+            VisibleMenuItem(ChangeColorMenuItem, false);
         }
 
         private void panelView_SizeChanged(object sender, EventArgs e)
@@ -5700,25 +5696,25 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             switch (sLastSelectedElement)
             {
                 case "DrawFullWorkedPeriodRegistration":
-                    _SetPanelHeight(panelView, iShiftHeightAll + iOffsetBetweenHorizontalLines * workSelectedDays.Length * numberPeople); //Fixed size of Picture. If need autosize - disable this row
+                    SetPanelHeight(panelView, iShiftHeightAll + iOffsetBetweenHorizontalLines * workSelectedDays.Length * numberPeople); //Fixed size of Picture. If need autosize - disable this row
                     break;
 
                 case "DrawRegistration":
-                    _SetPanelHeight(panelView, iShiftHeightAll + iOffsetBetweenHorizontalLines * workSelectedDays.Length * numberPeople); //Fixed size of Picture. If need autosize - disable this row
+                    SetPanelHeight(panelView, iShiftHeightAll + iOffsetBetweenHorizontalLines * workSelectedDays.Length * numberPeople); //Fixed size of Picture. If need autosize - disable this row
                     break;
 
                 default:
-                    _SetPanelAnchor(panelView, (AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top));
-                    _SetPanelHeight(panelView, _ReturnPanelParentHeight(panelView) - 120);
-                    _SetPanelAutoScroll(panelView, true);
-                    _SetPanelAutoSizeMode(panelView, AutoSizeMode.GrowAndShrink);
-                    _ResumePpanel(panelView);
+                    SetPanelAnchor(panelView, (AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top));
+                    SetPanelHeight(panelView, ReturnPanelParentHeight(panelView) - 120);
+                    SetPanelAutoScroll(panelView, true);
+                    SetPanelAutoSizeMode(panelView, AutoSizeMode.GrowAndShrink);
+                    ResumePpanel(panelView);
                     break;
             }
 
-            if (_ReturnPanelControlsCount(panelView) > 1)
+            if (ReturnPanelControlsCount(panelView) > 1)
             {
-                _RefreshPictureBox(pictureBox1, bmp);
+                RefreshPictureBox(pictureBox1, bmp);
             }
         }
 
@@ -5828,11 +5824,11 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         private void PrepareForMakingFormMailing(object sender, EventArgs e) //MailingItem()
         {
             nameOfLastTable = "Mailing";
-            _EnableMenuItem(SettingsMenuItem, false);
-            _EnableMenuItem(FunctionMenuItem, false);
-            _EnableMenuItem(GroupsMenuItem, false);
+            EnableMenuItem(SettingsMenuItem, false);
+            EnableMenuItem(FunctionMenuItem, false);
+            EnableMenuItem(GroupsMenuItem, false);
             CheckBoxesFiltersAll_Enable(false);
-            _VisibleControl(panelView, false);
+            VisibleControl(panelView, false);
 
             btnPropertiesSave.Text = "Сохранить рассылку";
             ClearButtonClickEvent(btnPropertiesSave);
@@ -5966,7 +5962,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         {
             EnableMainMenuItems(false);
 
-            _VisibleControl(panelView, false);
+            VisibleControl(panelView, false);
 
             btnPropertiesSave.Text = "Сохранить настройки";
             ClearButtonClickEvent(btnPropertiesSave);
@@ -6192,7 +6188,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 toolTip1.SetToolTip(listboxPeriod, tooltip8);
 
                 listboxPeriod.DataSource = periodStrings8;
-                listboxPeriod.KeyPress += new KeyPressEventHandler(periodCombo_KeyPress);
+                listboxPeriod.KeyPress += new KeyPressEventHandler(PeriodCombo_KeyPress);
             }
 
             if (listStrings9.Count > 1 && label9.Length > 0)
@@ -6390,46 +6386,46 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 " ORDER BY RecipientEmail asc, DateCreated desc; ");
             }
             EnableMainMenuItems(true);
-            _VisibleControl(panelView, true);
+            VisibleControl(panelView, true);
         }
 
         private void DisposeTemporaryControls()
         {
-            _VisibleControl(groupBoxProperties, false);
-            _DisposeControl(labelServer1);
-            _DisposeControl(labelServer1UserName);
-            _DisposeControl(labelServer1UserPassword);
-            _DisposeControl(labelMailServerName);
-            _DisposeControl(labelMailServerUserName);
-            _DisposeControl(labelMailServerUserPassword);
-            _DisposeControl(labelmysqlServer);
-            _DisposeControl(labelmysqlServerUserName);
-            _DisposeControl(labelmysqlServerUserPassword);
+            VisibleControl(groupBoxProperties, false);
+            DisposeControl(labelServer1);
+            DisposeControl(labelServer1UserName);
+            DisposeControl(labelServer1UserPassword);
+            DisposeControl(labelMailServerName);
+            DisposeControl(labelMailServerUserName);
+            DisposeControl(labelMailServerUserPassword);
+            DisposeControl(labelmysqlServer);
+            DisposeControl(labelmysqlServerUserName);
+            DisposeControl(labelmysqlServerUserPassword);
 
-            _DisposeControl(textBoxServer1);
-            _DisposeControl(textBoxServer1UserName);
-            _DisposeControl(textBoxServer1UserPassword);
-            _DisposeControl(textBoxMailServerName);
-            _DisposeControl(textBoxMailServerUserName);
-            _DisposeControl(textBoxMailServerUserPassword);
-            _DisposeControl(textBoxmysqlServer);
-            _DisposeControl(textBoxmysqlServerUserName);
-            _DisposeControl(textBoxmysqlServerUserPassword);
+            DisposeControl(textBoxServer1);
+            DisposeControl(textBoxServer1UserName);
+            DisposeControl(textBoxServer1UserPassword);
+            DisposeControl(textBoxMailServerName);
+            DisposeControl(textBoxMailServerUserName);
+            DisposeControl(textBoxMailServerUserPassword);
+            DisposeControl(textBoxmysqlServer);
+            DisposeControl(textBoxmysqlServerUserName);
+            DisposeControl(textBoxmysqlServerUserPassword);
 
-            _DisposeControl(listComboLabel);
-            _DisposeControl(periodComboLabel);
-            _DisposeControl(labelSettings9);
+            DisposeControl(listComboLabel);
+            DisposeControl(periodComboLabel);
+            DisposeControl(labelSettings9);
 
-            _DisposeControl(listCombo);
-            _DisposeControl(listboxPeriod);
-            _DisposeControl(comboSettings9);
+            DisposeControl(listCombo);
+            DisposeControl(listboxPeriod);
+            DisposeControl(comboSettings9);
 
-            _DisposeControl(labelSettings15);
-            _DisposeControl(comboSettings15);
+            DisposeControl(labelSettings15);
+            DisposeControl(comboSettings15);
 
-            _DisposeControl(labelSettings16);
-            _DisposeControl(textBoxSettings16);
-            _DisposeControl(checkBox1);
+            DisposeControl(labelSettings16);
+            DisposeControl(textBoxSettings16);
+            DisposeControl(checkBox1);
         }
 
         private void buttonPropertiesSave_Click(object sender, EventArgs e) //SaveProperties()
@@ -6438,24 +6434,24 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
             DisposeTemporaryControls();
             EnableMainMenuItems(true);
-            _VisibleControl(panelView, true);
+            VisibleControl(panelView, true);
         }
 
         private void ButtonPropertiesSave_MailingSave(object sender, EventArgs e)
         {
             logger.Trace($"-= {nameof(ButtonPropertiesSave_MailingSave)} =-");
 
-            string recipientEmail = _ReturnTextOfControl(textBoxServer1UserName);
+            string recipientEmail = ReturnTextOfControl(textBoxServer1UserName);
             string senderEmail = mailSenderAddress;
             if (mailSenderAddress.Length == 0)
-            { senderEmail = _ReturnTextOfControl(textBoxServer1); }
-            string nameReport = _ReturnTextOfControl(textBoxMailServerName);
-            string description = _ReturnTextOfControl(textBoxMailServerUserName);
-            string report = _ReturnComboBoxSelectedItem(listCombo);
-            string period = _ReturnListBoxSelectedItem(listboxPeriod);
-            string status = _ReturnComboBoxSelectedItem(comboSettings9);
-            string typeReport = _ReturnComboBoxSelectedItem(comboSettings15);
-            string dayReport = _ReturnTextOfControl(textBoxSettings16);
+            { senderEmail = ReturnTextOfControl(textBoxServer1); }
+            string nameReport = ReturnTextOfControl(textBoxMailServerName);
+            string description = ReturnTextOfControl(textBoxMailServerUserName);
+            string report = ReturnComboBoxSelectedItem(listCombo);
+            string period = ReturnListBoxSelectedItem(listboxPeriod);
+            string status = ReturnComboBoxSelectedItem(comboSettings9);
+            string typeReport = ReturnComboBoxSelectedItem(comboSettings15);
+            string dayReport = ReturnTextOfControl(textBoxSettings16);
 
             if (recipientEmail.Length > 5 && nameReport.Length > 0)
             {
@@ -6470,35 +6466,44 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
             DisposeTemporaryControls();
             EnableMainMenuItems(true);
-            _VisibleControl(panelView, true);
+            VisibleControl(panelView, true);
         }
 
         private void SaveProperties() //Save Parameters into Registry and variables
         {
             logger.Trace($"-= {nameof(SaveProperties)} =-");
 
-            string server = _ReturnTextOfControl(textBoxServer1);
-            string user = _ReturnTextOfControl(textBoxServer1UserName);
-            string password = _ReturnTextOfControl(textBoxServer1UserPassword);
+            string server = ReturnTextOfControl(textBoxServer1);
+            string user = ReturnTextOfControl(textBoxServer1UserName);
+            string password = ReturnTextOfControl(textBoxServer1UserPassword);
 
-            string sMailServer = _ReturnTextOfControl(textBoxMailServerName);
-            string sMailUser = _ReturnTextOfControl(textBoxMailServerUserName);
-            string sMailUserPassword = _ReturnTextOfControl(textBoxMailServerUserPassword);
+            string sMailServer = ReturnTextOfControl(textBoxMailServerName);
+            string sMailUser = ReturnTextOfControl(textBoxMailServerUserName);
+            string sMailUserPassword = ReturnTextOfControl(textBoxMailServerUserPassword);
 
-            string sMySqlServer = _ReturnTextOfControl(textBoxmysqlServer);
-            string sMySqlServerUser = _ReturnTextOfControl(textBoxmysqlServerUserName);
-            string sMySqlServerUserPassword = _ReturnTextOfControl(textBoxmysqlServerUserPassword);
+            string sMySqlServer = ReturnTextOfControl(textBoxmysqlServer);
+            string sMySqlServerUser = ReturnTextOfControl(textBoxmysqlServerUserName);
+            string sMySqlServerUserPassword = ReturnTextOfControl(textBoxmysqlServerUserPassword);
 
-            CheckAliveIntellectServer(server, user, password);
+            string checkInputedData = $"Data Source={server}\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID={user};Password={password};Connect Timeout=5";
+
+            CheckAliveIntellectServer(sServer1, sqlServerConnectionString, queryCheckSystemDdSCA);
 
             if (bServer1Exist)
             {
-                _VisibleControl(groupBoxProperties, false);
-                _EnableMenuItem(GetFioItem, true);
+                VisibleControl(groupBoxProperties, false);
+                EnableMenuItem(GetFioItem, true);
 
                 sServer1 = server;
                 sServer1UserName = user;
                 sServer1UserPassword = password;
+                sqlServerConnectionString = checkInputedData;
+                sqlServerConnectionStringEF = new System.Data.Entity.Core.EntityClient.EntityConnectionStringBuilder()
+                {
+                    Metadata = @"res://*/DBFirstCatalogModel.csdl|res://*/DBFirstCatalogModel.ssdl|res://*/DBFirstCatalogModel.msl",
+                    Provider = @"System.Data.SqlClient",
+                    ProviderConnectionString = $"{checkInputedData};multipleactiveresultsets=True;App=EntityFramework"
+                };
 
                 mailServer = sMailServer;
                 mailSenderAddress = sMailUser;
@@ -6507,23 +6512,25 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 mysqlServer = sMySqlServer;
                 mysqlServerUserName = sMySqlServerUser;
                 mysqlServerUserPassword = sMySqlServerUserPassword;
+                mysqlServerConnectionString = $"server={mysqlServer};User={mysqlServerUserName};Password={mysqlServerUserPassword};database=wwwais;convert zero datetime=True;Connect Timeout=60";
 
-                try
-                {
-                    using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(appRegistryKey))
-                    {
-                        try { EvUserKey.SetValue("SKDServer", sServer1, Microsoft.Win32.RegistryValueKind.String); } catch { }
-                        try { EvUserKey.SetValue("SKDUser", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(sServer1UserName, keyEncryption, keyDencryption), Microsoft.Win32.RegistryValueKind.String); } catch { }
-                        try { EvUserKey.SetValue("SKDUserPassword", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(sServer1UserPassword, keyEncryption, keyDencryption), Microsoft.Win32.RegistryValueKind.String); } catch { }
+                // Save data in Registry
+                //try
+                //{
+                //    using (Microsoft.Win32.RegistryKey EvUserKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(appRegistryKey))
+                //    {
+                //        try { EvUserKey.SetValue("SKDServer", sServer1, Microsoft.Win32.RegistryValueKind.String); } catch { }
+                //        try { EvUserKey.SetValue("SKDUser", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(sServer1UserName, keyEncryption, keyDencryption), Microsoft.Win32.RegistryValueKind.String); } catch { }
+                //        try { EvUserKey.SetValue("SKDUserPassword", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(sServer1UserPassword, keyEncryption, keyDencryption), Microsoft.Win32.RegistryValueKind.String); } catch { }
 
-                        try { EvUserKey.SetValue("MySQLServer", mysqlServer, Microsoft.Win32.RegistryValueKind.String); } catch { }
-                        try { EvUserKey.SetValue("MySQLUser", mysqlServerUserName, Microsoft.Win32.RegistryValueKind.String); } catch { }
-                        try { EvUserKey.SetValue("MySQLUserPassword", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(mysqlServerUserPassword, keyEncryption, keyDencryption), Microsoft.Win32.RegistryValueKind.String); } catch { }
+                //        try { EvUserKey.SetValue("MySQLServer", mysqlServer, Microsoft.Win32.RegistryValueKind.String); } catch { }
+                //        try { EvUserKey.SetValue("MySQLUser", mysqlServerUserName, Microsoft.Win32.RegistryValueKind.String); } catch { }
+                //        try { EvUserKey.SetValue("MySQLUserPassword", EncryptionDecryptionCriticalData.EncryptStringToBase64Text(mysqlServerUserPassword, keyEncryption, keyDencryption), Microsoft.Win32.RegistryValueKind.String); } catch { }
 
-                        logger.Info("CreateSubKey: Данные в реестре сохранены");
-                    }
-                }
-                catch (Exception err) { logger.Error("CreateSubKey: Ошибки с доступом на запись в реестр. Данные сохранены не корректно. " + err.ToString()); }
+                //        logger.Info("CreateSubKey: Данные в реестре сохранены");
+                //    }
+                //}
+                //catch (Exception err) { logger.Error("CreateSubKey: Ошибки с доступом на запись в реестр. Данные сохранены не корректно. " + err.ToString()); }
 
                 string resultSaving = "";
                 resultSaving += SaveParameterInConfigASTA(new ParameterConfig()
@@ -6564,7 +6571,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
                 resultSaving += SaveParameterInConfigASTA(new ParameterConfig()
                 {
-                    name = "SKDSMailUsererver",
+                    name = "MailUser",
                     value = mailSenderAddress,
                     description = "Sender E-Mail's",
                     isSecret = false,
@@ -6608,43 +6615,33 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 });
 
                 DisposeTemporaryControls();
-                _VisibleControl(panelView, true);
+                VisibleControl(panelView, true);
 
                 if (mailServer?.Length > 0 && mailServerSMTPPort > 0)
-                {
-                    _mailServer = new MailServer(mailServer, mailServerSMTPPort);
-                }
+                { _mailServer = new MailServer(mailServer, mailServerSMTPPort); }
+               
                 if (mailSenderAddress != null && mailSenderAddress.Contains('@'))
-                {
-                    _mailUser = new MailUser(NAME_OF_SENDER_REPORTS, mailSenderAddress);
-                }
-
-                sqlServerConnectionString = $"Data Source={sServer1}\\SQLEXPRESS;initial catalog=intellect;Persist Security Info=True;User ID={sServer1UserName};Password={sServer1UserPassword}; Connect Timeout=30";
-                mysqlServerConnectionString = $"server={mysqlServer};User={mysqlServerUserName};Password={mysqlServerUserPassword};database=wwwais;convert zero datetime=True;Connect Timeout=60";
-
-                sqlServerConnectionStringEF = new System.Data.Entity.Core.EntityClient.EntityConnectionStringBuilder()
-                {
-                    Metadata = @"res://*/DBFirstCatalogModel.csdl|res://*/DBFirstCatalogModel.ssdl|res://*/DBFirstCatalogModel.msl",
-                    Provider = @"System.Data.SqlClient",
-                    ProviderConnectionString = $"{sqlServerConnectionString};multipleactiveresultsets=True;App=EntityFramework"
-                };
+                { _mailUser = new MailUser(NAME_OF_SENDER_REPORTS, mailSenderAddress); }
 
                 ShowDataTableDbQuery(dbApplication, "ConfigDB", "SELECT ParameterName AS 'Имя параметра', " +
                "Value AS 'Данные', Description AS 'Описание', DateCreated AS 'Дата создания/модификации'",
                " ORDER BY ParameterName asc, DateCreated desc; ");
 
                 Task.Run(() => MessageBox.Show(resultSaving));
+                SetStatusLabelText(StatusLabel2, "Введенны корректные данные для подключения к серверу СКД");
+                SetStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
             }
             else
             {
+                SetStatusLabelText(StatusLabel2, "Данные некорректные или же сервер СКД не доступен");
+                SetStatusLabelBackColor(StatusLabel2, Color.DarkOrange);
                 GetInfoSetup();
             }
         }
-
         //--- End. Features of programm ---//
 
         //--- Start. Behaviour Controls ---//
-        private void periodCombo_KeyPress(object sender, KeyPressEventArgs e)
+        private void PeriodCombo_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == (char)13)//если нажата Enter
             {
@@ -6732,17 +6729,17 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void SetGroupNameInStatusLabel()
         {
-            if (_ReturnTextOfControl(textBoxGroupDescription)?.Length > 0)
+            if (ReturnTextOfControl(textBoxGroupDescription)?.Length > 0)
             {
                 SetStatusLabelText(
                     StatusLabel2,
-                    $"Создать или добавить в группу: {_ReturnTextOfControl(textBoxGroup)}({_ReturnTextOfControl(textBoxGroupDescription)})");
+                    $"Создать или добавить в группу: {ReturnTextOfControl(textBoxGroup)}({ReturnTextOfControl(textBoxGroupDescription)})");
             }
             else
             {
                 SetStatusLabelText(
                     StatusLabel2,
-                    $"Создать или добавить в группу: {_ReturnTextOfControl(textBoxGroup)}");
+                    $"Создать или добавить в группу: {ReturnTextOfControl(textBoxGroup)}");
             }
         }
 
@@ -6793,12 +6790,12 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             string dayStart = ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD();
             string dayEnd = ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD();
 
-            _SetMenuItemText(LoadLastInputsOutputsItem, $"Загрузить все события СКД за сегодня ({ DateTime.Now.ToYYYYMMDD()})");
+            SetMenuItemText(LoadLastInputsOutputsItem, $"Загрузить все события СКД за сегодня ({ DateTime.Now.ToYYYYMMDD()})");
 
             if (dayStart != dayEnd)
-                _SetMenuItemText(LoadInputsOutputsItem, $"Загрузить все события СКД с {dayStart} по {dayEnd}");
+                SetMenuItemText(LoadInputsOutputsItem, $"Загрузить все события СКД с {dayStart} по {dayEnd}");
             else
-                _SetMenuItemText(LoadInputsOutputsItem, $"Загрузить все события СКД за {dayStart}");
+                SetMenuItemText(LoadInputsOutputsItem, $"Загрузить все события СКД за {dayStart}");
         }
 
         private void PersonOrGroupItem_Click(object sender, EventArgs e) //PersonOrGroup()
@@ -6806,24 +6803,24 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void PersonOrGroup()
         {
-            string menu = _ReturnMenuItemText(PersonOrGroupItem);
+            string menu = ReturnMenuItemText(PersonOrGroupItem);
             switch (menu)
             {
                 case (Names.WORK_WITH_A_GROUP):
-                    _SetMenuItemText(PersonOrGroupItem, Names.WORK_WITH_A_PERSON);
-                    _EnableControl(comboBoxFio, false);
+                    SetMenuItemText(PersonOrGroupItem, Names.WORK_WITH_A_PERSON);
+                    EnableControl(comboBoxFio, false);
                     nameOfLastTable = "PersonRegistrationsList";
                     break;
 
                 case (Names.WORK_WITH_A_PERSON):
-                    _SetMenuItemText(PersonOrGroupItem, Names.WORK_WITH_A_GROUP);
-                    _EnableControl(comboBoxFio, true);
+                    SetMenuItemText(PersonOrGroupItem, Names.WORK_WITH_A_GROUP);
+                    EnableControl(comboBoxFio, true);
                     nameOfLastTable = "PeopleGroup";
                     break;
 
                 default:
-                    _SetMenuItemText(PersonOrGroupItem, Names.WORK_WITH_A_GROUP);
-                    _EnableControl(comboBoxFio, true);
+                    SetMenuItemText(PersonOrGroupItem, Names.WORK_WITH_A_GROUP);
+                    EnableControl(comboBoxFio, true);
                     nameOfLastTable = "PeopleGroup";
                     break;
             }
@@ -6986,8 +6983,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                                         editedCell = ReturnStrongNameDayOfSendingReports(cellValue[7]);
                                         ExecuteSqlAsync("UPDATE 'Mailing' SET DayReport='" + editedCell + "' WHERE RecipientEmail='" + cellValue[0]
                                           + "' AND NameReport='" + cellValue[2] + "' AND GroupsReport ='" + cellValue[1]
-                                          + $"' AND Period='{cellValue[4]}' AND TypeReport ='{cellValue[6]}' AND Status ='{cellValue[5]}' AND Description ='{cellValue[3]}';")
-                                          .GetAwaiter().GetResult();
+                                          + $"' AND Period='{cellValue[4]}' AND TypeReport ='{cellValue[6]}' AND Status ='{cellValue[5]}' AND Description ='{cellValue[3]}';");
                                         break;
 
                                     case "Тип отчета":
@@ -6996,8 +6992,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
                                         ExecuteSqlAsync($"UPDATE 'Mailing' SET TypeReport='{editedCell}' WHERE RecipientEmail='" + cellValue[0]
                                           + $"' AND NameReport='{cellValue[2]}' AND GroupsReport ='" + cellValue[1]
-                                          + $"' AND Period='{cellValue[4]}' AND DayReport='{cellValue[7]}' AND Status ='{cellValue[5]}' AND Description ='{cellValue[3]}';")
-                                          .GetAwaiter().GetResult();
+                                          + $"' AND Period='{cellValue[4]}' AND DayReport='{cellValue[7]}' AND Status ='{cellValue[5]}' AND Description ='{cellValue[3]}';");
                                         break;
 
                                     case "Статус":
@@ -7006,8 +7001,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
                                         ExecuteSqlAsync($"UPDATE 'Mailing' SET Status='{editedCell}' WHERE RecipientEmail='" + cellValue[0]
                                           + $"' AND NameReport='{cellValue[2]}' AND GroupsReport ='" + cellValue[1]
-                                          + $"' AND Period='{cellValue[4]}' AND DayReport='{cellValue[7]}' AND TypeReport ='{cellValue[6]}' AND Description ='{cellValue[3]}';")
-                                          .GetAwaiter().GetResult();
+                                          + $"' AND Period='{cellValue[4]}' AND DayReport='{cellValue[7]}' AND TypeReport ='{cellValue[6]}' AND Description ='{cellValue[3]}';");
                                         break;
 
                                     case "Период":
@@ -7017,8 +7011,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
                                         ExecuteSqlAsync($"UPDATE 'Mailing' SET Period='{editedCell}' WHERE RecipientEmail='" + cellValue[0]
                                            + $"' AND NameReport='{cellValue[2]}' AND GroupsReport ='" + cellValue[1]
-                                           + $"' AND TypeReport ='{cellValue[6]}' AND DayReport='{cellValue[7]}' AND Status ='{cellValue[5]}' AND Description ='{cellValue[3]}';")
-                                           .GetAwaiter().GetResult();
+                                           + $"' AND TypeReport ='{cellValue[6]}' AND DayReport='{cellValue[7]}' AND Status ='{cellValue[5]}' AND Description ='{cellValue[3]}';");
                                         break;
 
                                     case "Описание":
@@ -7027,8 +7020,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                                         ExecuteSqlAsync("UPDATE 'Mailing' SET Description='" + editedCell + "' WHERE RecipientEmail='" + cellValue[0]
                                           + "' AND NameReport='" + cellValue[2] + "' AND GroupsReport ='" + cellValue[1]
                                           + "' AND TypeReport ='" + cellValue[6] + "' AND DayReport='" + cellValue[7]
-                                          + "' AND Status ='" + cellValue[5] + "' AND Period='" + cellValue[4] + "';")
-                                          .GetAwaiter().GetResult();
+                                          + "' AND Status ='" + cellValue[5] + "' AND Period='" + cellValue[4] + "';");
                                         break;
 
                                     case "Отчет по группам":
@@ -7037,8 +7029,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                                         ExecuteSqlAsync("UPDATE 'Mailing' SET GroupsReport ='" + editedCell + "' WHERE RecipientEmail='" + cellValue[0]
                                           + "' AND NameReport='" + cellValue[2] + "' AND Description ='" + cellValue[3]
                                           + "' AND Status ='" + cellValue[5] + "' AND Period='" + cellValue[4]
-                                          + "' AND TypeReport ='" + cellValue[6] + "' AND DayReport='" + cellValue[7] + "';")
-                                          .GetAwaiter().GetResult();
+                                          + "' AND TypeReport ='" + cellValue[6] + "' AND DayReport='" + cellValue[7] + "';");
                                         break;
 
                                     case "Получатель":
@@ -7050,8 +7041,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                                         ExecuteSqlAsync("UPDATE 'Mailing' SET RecipientEmail ='" + editedCell + "' WHERE TypeReport ='" + cellValue[6]
                                               + "' AND NameReport='" + cellValue[2] + "' AND GroupsReport ='" + cellValue[1]
                                               + "' AND DayReport='" + cellValue[7] + "' AND Period='" + cellValue[4]
-                                              + "' AND Status ='" + cellValue[5] + "' AND Description ='" + cellValue[3] + "';")
-                                              .GetAwaiter().GetResult();
+                                              + "' AND Status ='" + cellValue[5] + "' AND Description ='" + cellValue[3] + "';");
 
                                         break;
 
@@ -7061,8 +7051,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                                         ExecuteSqlAsync("UPDATE 'Mailing' SET NameReport ='" + editedCell + "' WHERE RecipientEmail='" + cellValue[0]
                                           + "' AND Description='" + cellValue[3] + "' AND GroupsReport ='" + cellValue[1]
                                           + "' AND DayReport='" + cellValue[7] + "' AND TypeReport ='" + cellValue[6]
-                                          + "' AND Period ='" + cellValue[4] + "' AND Status ='" + cellValue[5] + "';")
-                                          .GetAwaiter().GetResult();
+                                          + "' AND Period ='" + cellValue[4] + "' AND Status ='" + cellValue[5] + "';");
                                         break;
 
                                     default:
@@ -7084,12 +7073,12 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                                 {
                                     case "Получатель":
                                         ExecuteSqlAsync("UPDATE 'MailingException' SET RecipientEmail='" + currCellValue +
-                                            "' WHERE Description='" + cellValue[1] + "';").GetAwaiter().GetResult();
+                                            "' WHERE Description='" + cellValue[1] + "';");
                                         break;
 
                                     case "Описание":
                                         ExecuteSqlAsync("UPDATE 'MailingException' SET Description='" + currCellValue +
-                                            "' WHERE RecipientEmail='" + cellValue[0] + "';").GetAwaiter().GetResult();
+                                            "' WHERE RecipientEmail='" + cellValue[0] + "';");
                                         break;
 
                                     default:
@@ -7110,7 +7099,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                                 {
                                     case "Местонахождение сотрудника":
                                         ExecuteSqlAsync("UPDATE 'SelectedCityToLoadFromWeb' SET City='" + cellValue[0] +
-                                                            "' WHERE DateCreated='" + cellValue[1] + "';").GetAwaiter().GetResult();
+                                                            "' WHERE DateCreated='" + cellValue[1] + "';");
                                         break;
 
                                     default:
@@ -7129,7 +7118,8 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
         }
 
-        private async Task ExecuteSqlAsync(string query) //Prepare DB and execute of SQL Query
+        //void or async Task
+        private void ExecuteSqlAsync(string query) //Prepare DB and execute of SQL Query
         {
             if (dbApplication.Exists)
             {
@@ -7138,15 +7128,13 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                     logger.Trace($"query: {query}");
 
                     dbWriter.Status += AddLoggerTraceText;
-                    await Task.Run(() =>
-                    {
-                        dbWriter.Execute(query);
-                    });
+                    dbWriter.Execute(query);
                     dbWriter.Status -= AddLoggerTraceText;
                 }
             }
         }
 
+        
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
             if (DataGridViewOperations.ColumnsCount(dataGridView1) > 0 && DataGridViewOperations.RowsCount(dataGridView1) > 0)
@@ -7175,8 +7163,8 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             {
                 if (e.Button == MouseButtons.Right)
                 {
-                    string txtboxGroup = _ReturnTextOfControl(textBoxGroup);
-                    string txtboxGroupDescription = _ReturnTextOfControl(textBoxGroupDescription);
+                    string txtboxGroup = ReturnTextOfControl(textBoxGroup);
+                    string txtboxGroupDescription = ReturnTextOfControl(textBoxGroupDescription);
 
                     mRightClick = new ContextMenu();
 
@@ -7568,12 +7556,12 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                     true);
             }
 
-            _SetStatusLabelForeColor(StatusLabel2, Color.Black);
+            SetStatusLabelForeColor(StatusLabel2, Color.Black);
 
             if (resultOfSendingReports.Count > 0)
-            { SendAdminReport(); }
+            { SendReport(); }
 
-            _ProgressBar1Stop();
+            ProgressBar1Stop();
             nameOfLastTable = "PeopleGroupDescription";
         }
 
@@ -7607,12 +7595,12 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer.exe", " /select, " + filePathExcelReport + @".xlsx")); // //System.Reflection.Assembly.GetExecutingAssembly().Location)
 
-            _SetStatusLabelForeColor(StatusLabel2, Color.Black);
+            SetStatusLabelForeColor(StatusLabel2, Color.Black);
 
             if (resultOfSendingReports.Count > 0)
-            { SendAdminReport(); }
+            { SendReport(); }
 
-            _ProgressBar1Stop();
+            ProgressBar1Stop();
             nameOfLastTable = "PeopleGroupDescription";
         }
 
@@ -7665,7 +7653,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void MailingsExceptItem_Click(object sender, EventArgs e)
         {
-            _EnableControl(comboBoxFio, false);
+            EnableControl(comboBoxFio, false);
             dataGridView1.Select();
 
             ShowDataTableDbQuery(dbApplication, "MailingException", "SELECT RecipientEmail AS 'Получатель', " +
@@ -7675,7 +7663,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void MailingsShowItem_Click(object sender, EventArgs e)
         {
-            _EnableControl(comboBoxFio, false);
+            EnableControl(comboBoxFio, false);
             dataGridView1.Select();
 
             ShowDataTableDbQuery(dbApplication, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
@@ -7692,7 +7680,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         private void DoMainAction()
         {
             logger.Trace($"-= {nameof(DoMainAction)} =-");
-            _ProgressBar1Start();
+            ProgressBar1Start();
 
             switch (nameOfLastTable)
             {
@@ -7715,7 +7703,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                             + "' AND NameReport='" + cellValue[2] + "' AND Description ='" + cellValue[3]
                             + "' AND Period='" + cellValue[4] + "' AND Status='" + cellValue[5]
                             + "' AND TypeReport='" + cellValue[6] + "' AND DayReport ='" + cellValue[7]
-                            + "';").GetAwaiter().GetResult();
+                            + "';");
 
                         MailingAction("sendEmail", cellValue[0], mailSenderAddress,
                             cellValue[1], cellValue[2], cellValue[3], cellValue[4],
@@ -7731,10 +7719,10 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                         "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
                         " ORDER BY RecipientEmail asc, DateCreated desc; ");
 
-                        _SetStatusLabelForeColor(StatusLabel2, Color.Black);
+                        SetStatusLabelForeColor(StatusLabel2, Color.Black);
 
                         if (resultOfSendingReports.Count > 0)
-                        { SendAdminReport(); }
+                        { SendReport(); }
 
                         break;
                     }
@@ -7742,24 +7730,25 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                     break;
             }
 
-            _ProgressBar1Stop();
+            ProgressBar1Stop();
         }
 
-        private void SendAllReportsInSelectedPeriod(object sender, EventArgs e) //SendAllReportsInSelectedPeriod()
+        private async void SendAllReportsInSelectedPeriod(object sender, EventArgs e) //SendAllReportsInSelectedPeriod()
         {
-            Task.Run(() => SendAllReportsInSelectedPeriod());
+           await Task.Run(() => SendAllReportsInSelectedPeriod());
         }
 
-        private async Task SendAllReportsInSelectedPeriod()
+        private void SendAllReportsInSelectedPeriod()
         {
             logger.Trace($"-= {nameof(SendAllReportsInSelectedPeriod)} =-");
-            _ProgressBar1Start();
+            ProgressBar1Start();
 
             resultOfSendingReports = new List<Mailing>();
 
             string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             @"Получатель", @"Отчет по группам", @"Наименование", @"Описание",
                             @"Период", @"Статус", @"Тип отчета", @"День отправки отчета" });
+
             SetStatusLabelText(StatusLabel2, $"Готовлю все активные рассылки с отчетами {cellValue[6]} за {cellValue[4]} на {cellValue[7]}");
 
             currentAction = "sendEmail";
@@ -7859,12 +7848,12 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                     "' AND TypeReport='" + mailng._typeReport +
                     "' AND GroupsReport ='" + mailng._groupsReport + "';";
                 logger.Trace(str);
-                await ExecuteSqlAsync(str);
+                ExecuteSqlAsync(str);
                 GetRegistrationAndSendReport(
                     mailng._groupsReport, mailng._nameReport, mailng._descriptionReport, mailng._period, mailng._status,
                     mailng._typeReport, mailng._dayReport, true, mailng._recipient, mailSenderAddress);
 
-                _ProgressWork1Step();
+                ProgressWork1Step();
             }
 
             logger.Info("Перечень задач по подготовке и отправке отчетов завершен...");
@@ -7874,14 +7863,14 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
             " ORDER BY RecipientEmail asc, DateCreated desc; ");
 
-            _SetStatusLabelForeColor(StatusLabel2, Color.Black);
+            SetStatusLabelForeColor(StatusLabel2, Color.Black);
 
             if (resultOfSendingReports.Count > 0)
             {
-                SendAdminReport();
+                SendReport();
             }
 
-            _ProgressBar1Stop();
+            ProgressBar1Stop();
         }
 
         private void DeleteCurrentRow(object sender, EventArgs e) //DeleteCurrentRow()
@@ -7893,7 +7882,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         private void DeleteCurrentRow()
         {
             logger.Trace($"-= {nameof(DeleteCurrentRow)} =-");
-            string group = _ReturnTextOfControl(textBoxGroup);
+            string group = ReturnTextOfControl(textBoxGroup);
 
             switch (nameOfLastTable)
             {
@@ -7989,9 +7978,9 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
             if (currentModeAppManual)
             {
-                _SetMenuItemText(ModeItem, "Выключить режим e-mail рассылок");
-                _SetMenuItemTooltip(ModeItem, "Включен автоматический режим. Выполняются Активные рассылки из БД.");
-                _SetMenuItemBackColor(ModeItem, Color.DarkOrange);
+                SetMenuItemText(ModeItem, "Выключить режим e-mail рассылок");
+                SetMenuItemTooltip(ModeItem, "Включен автоматический режим. Выполняются Активные рассылки из БД.");
+                SetMenuItemBackColor(ModeItem, Color.DarkOrange);
 
                 SetStatusLabelText(StatusLabel2, "Включен режим рассылки отчетов по почте");
                 SetStatusLabelBackColor(StatusLabel2, Color.PaleGreen); //Color.DarkOrange
@@ -8016,9 +8005,9 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
             else
             {
-                _SetMenuItemText(ModeItem, "Включить режим автоматических e-mail рассылок");
-                _SetMenuItemTooltip(ModeItem, "Включен интерактивный режим. Все рассылки остановлены.");
-                _SetMenuItemBackColor(ModeItem, SystemColors.Control);
+                SetMenuItemText(ModeItem, "Включить режим автоматических e-mail рассылок");
+                SetMenuItemTooltip(ModeItem, "Включен интерактивный режим. Все рассылки остановлены.");
+                SetMenuItemBackColor(ModeItem, SystemColors.Control);
 
                 SetStatusLabelText(StatusLabel2, "Интерактивный режим");
                 SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
@@ -8057,9 +8046,9 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             long interval = 60 * 1000; //60 seconds
             if (manualMode)
             {
-                _SetMenuItemText(ModeItem, "Выключить режим e-mail рассылок");
-                _SetMenuItemTooltip(ModeItem, "Включен автоматический режим. Выполняются Активные рассылки из БД.");
-                _SetMenuItemBackColor(ModeItem, Color.DarkOrange);
+                SetMenuItemText(ModeItem, "Выключить режим e-mail рассылок");
+                SetMenuItemTooltip(ModeItem, "Включен автоматический режим. Выполняются Активные рассылки из БД.");
+                SetMenuItemBackColor(ModeItem, Color.DarkOrange);
                 SetStatusLabelText(StatusLabel2, "Включен режим авторассылки отчетов");
                 SetStatusLabelBackColor(StatusLabel2, Color.PaleGreen);
 
@@ -8070,9 +8059,9 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
             else
             {
-                _SetMenuItemText(ModeItem, "Включить режим автоматических e-mail рассылок");
-                _SetMenuItemTooltip(ModeItem, "Включен интерактивный режим. Все рассылки остановлены.");
-                _SetMenuItemBackColor(ModeItem, SystemColors.Control);
+                SetMenuItemText(ModeItem, "Включить режим автоматических e-mail рассылок");
+                SetMenuItemTooltip(ModeItem, "Включен интерактивный режим. Все рассылки остановлены.");
+                SetMenuItemBackColor(ModeItem, SystemColors.Control);
 
                 SetStatusLabelText(StatusLabel2, "Интерактивный режим");
                 SetStatusLabelBackColor(StatusLabel2, SystemColors.Control);
@@ -8092,7 +8081,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 {
                     SetStatusLabelText(StatusLabel2, "Ведется работа по подготовке отчетов " + DateTime.Now.ToYYYYMMDDHHMM() + " ...");
                     SetStatusLabelBackColor(StatusLabel2, Color.LightPink);
-                    CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword);
+                    CheckAliveIntellectServer(sServer1, sqlServerConnectionString, queryCheckSystemDdSCA);
                     SelectMailingDoAction();
                     sent = true;
                     SetStatusLabelText(StatusLabel2, "Все задачи по подготовке и отправке отчетов завершены.");
@@ -8120,7 +8109,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         {
             logger.Trace($"-= {nameof(TestToSendAllMailings)} =-");
 
-            await Task.Run(() => CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword));
+            await Task.Run(() => CheckAliveIntellectServer(sServer1, sqlServerConnectionString, queryCheckSystemDdSCA));
             await Task.Run(() => UpdateMailingInDB());
             await Task.Run(() => SelectMailingDoAction());
         }
@@ -8165,7 +8154,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         {
             logger.Trace($"-= {nameof(SelectMailingDoAction)} =-");
 
-            _ProgressBar1Start();
+            ProgressBar1Start();
 
             currentAction = "sendEmail";
             resultOfSendingReports = new List<Mailing>();
@@ -8286,12 +8275,12 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                         "' AND TypeReport='" + mailng._typeReport +
                         "' AND GroupsReport ='" + mailng._groupsReport + "';";
                     logger.Trace(str);
-                    ExecuteSqlAsync(str).GetAwaiter().GetResult();
+                    ExecuteSqlAsync(str);
                     GetRegistrationAndSendReport(
                         mailng._groupsReport, mailng._nameReport, mailng._descriptionReport, mailng._period, mailng._status,
                         mailng._typeReport, mailng._dayReport, true, mailng._recipient, mailSenderAddress);
 
-                    _ProgressWork1Step();
+                    ProgressWork1Step();
                 }
                 logger.Info("SelectMailingDoAction: Перечень задач по подготовке и отправке отчетов завершен...");
             }
@@ -8300,19 +8289,19 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
             " ORDER BY RecipientEmail asc, DateCreated desc; ");
 
-            _SetStatusLabelForeColor(StatusLabel2, Color.Black);
+            SetStatusLabelForeColor(StatusLabel2, Color.Black);
 
             if (resultOfSendingReports.Count > 0)
-            { SendAdminReport(); }
+            { SendReport(); }
 
-            _ProgressBar1Stop();
+            ProgressBar1Stop();
         }
 
         private void UpdateMailingInDB()
         {
             logger.Trace($"-= {nameof(UpdateMailingInDB)} =-");
 
-            _ProgressBar1Start();
+            ProgressBar1Start();
 
             string recipient;
             string gproupsReport;
@@ -8379,9 +8368,9 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                     "' AND GroupsReport ='" + mailng._groupsReport + "';";
 
                 logger.Trace(str);
-                ExecuteSqlAsync(str).GetAwaiter().GetResult();
+                ExecuteSqlAsync(str);
 
-                _ProgressWork1Step();
+                ProgressWork1Step();
             }
 
             logger.Info("UpdateMailingInDB: Перечень задач по подготовке и отправке отчетов завершен...");
@@ -8391,7 +8380,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             "SendingLastDate AS 'Дата последней отправки отчета', Status AS 'Статус', DateCreated AS 'Дата создания/модификации'",
             " ORDER BY RecipientEmail asc, DateCreated desc; ");
 
-            _ProgressBar1Stop();
+            ProgressBar1Stop();
         }
 
         private string GetSafeFilename(string filename, string splitter = "_")
@@ -8425,7 +8414,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                     }
                 case "sendEmail":
                     {
-                        CheckAliveIntellectServer(sServer1, sServer1UserName, sServer1UserPassword);
+                        CheckAliveIntellectServer(sServer1, sqlServerConnectionString, queryCheckSystemDdSCA);
 
                         if (bServer1Exist)
                         {
@@ -8533,7 +8522,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                         filePathExcelReport = System.IO.Path.Combine(localAppFolderPath, illegal);
 
                         logger.Trace("Подготавливаю отчет: " + filePathExcelReport + @".xlsx");
-                        ExportDatatableSelectedColumnsToExcel(dtPersonTemp, nameReport, filePathExcelReport).GetAwaiter().GetResult();
+                        ExportDatatableSelectedColumnsToExcel(dtPersonTemp, nameReport, filePathExcelReport);
 
                         if (sendReport)
                         {
@@ -8546,7 +8535,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                                 {
                                     if (oneAddress.Contains('@'))
                                     {
-                                        SendStandartReport(oneAddress.Trim(), titleOfbodyMail, description, filePathExcelReport + @".xlsx", appName);
+                                        SendReport(oneAddress.Trim(), titleOfbodyMail, description, filePathExcelReport + @".xlsx", appName);
                                         logger.Trace($"SendEmail, From: {mailSenderAddress}| To: {oneAddress}| Subject: {titleOfbodyMail}| {description}| attached: {filePathExcelReport}.xlsx"
                                             );
                                     }
@@ -8595,14 +8584,14 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         }
 
         //Compose Standart Report and send e-mail to recepient
-        private static void SendStandartReport(string to, string period, string department, string pathToFile, string messageAfterPicture)
+        private static void SendReport(string to, string period, string department, string pathToFile, string messageAfterPicture)
         {
-            logger.Trace($"-= {nameof(SendStandartReport)} =-");
+            logger.Trace($"-= {nameof(SendReport)} =-");
 
             MailUser _to = new MailUser(to.Split('@')[0], to);
             string subject = "Отчет по посещаемости за период: " + period;
 
-            BodyBuilder builder = MessageBodyStandartReport(period, department, messageAfterPicture);
+            BodyBuilder builder = BuildMessage(period, department);
             builder.Attachments.Add(pathToFile);
 
             string statusOfSentEmail = SendEmailAsync(_mailServer, _mailUser, _to, subject, builder);    //send e-mail
@@ -8637,7 +8626,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             // mailLogo.ContentId = Guid.NewGuid().ToString(); //myAppLogo for email's reports
         }
 
-        private static BodyBuilder MessageBodyStandartReport(string period, string department, string messageAfterPicture)
+        private static BodyBuilder BuildMessage(string period, string department)
         {
             var builder = new BodyBuilder();
             //plain-text version of the message text
@@ -8684,15 +8673,15 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         }
 
         //Compose Admin Report and send e-mail to Administrator
-        private static void SendAdminReport()
+        private static void SendReport()
         {
-            logger.Trace($"-= {nameof(SendAdminReport)} =-");
+            logger.Trace($"-= {nameof(SendReport)} =-");
 
             string period = DateTime.Now.ToYYYYMMDD();
             string subject = $"Результат отправки отчетов за {period}";
             MailUser _to = new MailUser(mailJobReportsOfNameOfReceiver.Split('@')[0], mailJobReportsOfNameOfReceiver);
 
-            BodyBuilder builder = MessageBodyAdminReport(period, resultOfSendingReports);
+            BodyBuilder builder = BuildMessage(period, resultOfSendingReports);
             string statusOfSentEmail = SendEmailAsync(_mailServer, _mailUser, _to, subject, builder);
 
             logger.Trace($"Try to send, From: {mailSenderAddress}| To:{mailJobReportsOfNameOfReceiver}| {period}");
@@ -8700,7 +8689,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             stimerPrev = $"Административный отчет отправлен {statusOfSentEmail}";
         }
 
-        private static BodyBuilder MessageBodyAdminReport(string period, List<Mailing> reportOfResultSending)
+        private static BodyBuilder BuildMessage(string period, List<Mailing> reportOfResultSending)
         {
             var builder = new BodyBuilder();
 
@@ -8764,7 +8753,6 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-
         private void Set_ComboBox_DrawItem(object sender, DrawItemEventArgs e) //Colorize the Combobox
         {
             Font font = (sender as ComboBox).Font;
@@ -8850,7 +8838,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         }
 
         //Start of Block. Access to Controls from other threads
-        private string _ReturnTextOfControl(Control control) //add string into  from other threads
+        private string ReturnTextOfControl(Control control) //add string into  from other threads
         {
             string text = "";
             if (InvokeRequired)
@@ -8860,7 +8848,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             return text;
         }
 
-        private void _AddComboBoxItem(ComboBox comboBx, string s) //add string into  from other threads
+        private void AddComboBoxItem(ComboBox comboBx, string s) //add string into  from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate { comboBx.Items.Add(s); }));
@@ -8868,7 +8856,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 comboBx.Items.Add(s);
         }
 
-        private void _ClearComboBox(ComboBox comboBx) //add string into  from other threads
+        private void ClearComboBox(ComboBox comboBx) //add string into  from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -8885,7 +8873,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
         }
 
-        private void _SetComboBoxIndex(ComboBox comboBx, int i) //from other threads
+        private void SetComboBoxIndex(ComboBox comboBx, int i) //from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate { try { comboBx.SelectedIndex = i; } catch { } }));
@@ -8893,7 +8881,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 try { comboBx.SelectedIndex = i; } catch { }
         }
 
-        private int? _ReturnComboBoxCountItems(ComboBox comboBx) //from other threads
+        private int? ReturnComboBoxCountItems(ComboBox comboBx) //from other threads
         {
             int? count = 0;
             if (InvokeRequired)
@@ -8903,7 +8891,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             return count;
         }
 
-        private string _ReturnComboBoxSelectedItem(ComboBox comboBox) //from other threads
+        private string ReturnComboBoxSelectedItem(ComboBox comboBox) //from other threads
         {
             string result = "";
             if (InvokeRequired)
@@ -8924,7 +8912,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             return result;
         }
 
-        private string _ReturnListBoxSelectedItem(ListBox listBox) //from other threads
+        private string ReturnListBoxSelectedItem(ListBox listBox) //from other threads
         {
             string result = "";
             if (InvokeRequired)
@@ -8945,7 +8933,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             return result;
         }
 
-        private void _SetNumUpDown(NumericUpDown numericUpDown, decimal i) //add string into comboBoxTargedPC from other threads
+        private void SetNumUpDown(NumericUpDown numericUpDown, decimal i) //add string into comboBoxTargedPC from other threads
         {
             if (InvokeRequired)
             {
@@ -9021,7 +9009,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             AddLoggerTraceText($"{nameof(SetStatusLabelText)} set text as {text}");
         }
 
-        private void _SetStatusLabelForeColor(ToolStripStatusLabel statusLabel, Color color)
+        private void SetStatusLabelForeColor(ToolStripStatusLabel statusLabel, Color color)
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate { statusLabel.ForeColor = color; }));
@@ -9052,7 +9040,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             return s;
         }
 
-        private Color _ReturnStatusLabelBackColor(ToolStripStatusLabel statusLabel) //add string into  from other threads
+        private Color ReturnStatusLabelBackColor(ToolStripStatusLabel statusLabel) //add string into  from other threads
         {
             Color s = SystemColors.ControlText;
             if (InvokeRequired)
@@ -9063,7 +9051,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             return s;
         }
 
-        private void _SetMenuItemBackColor(ToolStripMenuItem menuItem, Color color) //add string into  from other threads
+        private void SetMenuItemBackColor(ToolStripMenuItem menuItem, Color color) //add string into  from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate { menuItem.BackColor = color; }));
@@ -9071,7 +9059,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 menuItem.BackColor = color; ;
         }
 
-        private void _SetMenuItemText(ToolStripMenuItem menuItem, string text) //access from other threads
+        private void SetMenuItemText(ToolStripMenuItem menuItem, string text) //access from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -9083,10 +9071,10 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 menuItem.Text = text;
             }
 
-            AddLoggerTraceText($"{nameof(_SetMenuItemText)}: {nameof(menuItem.Name)} set text as '{text}'");
+            AddLoggerTraceText($"{nameof(SetMenuItemText)}: {nameof(menuItem.Name)} set text as '{text}'");
         }
 
-        private void _SetMenuItemTooltip(ToolStripMenuItem menuItem, string text) //access from other threads
+        private void SetMenuItemTooltip(ToolStripMenuItem menuItem, string text) //access from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -9098,10 +9086,10 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 menuItem.ToolTipText = text;
             }
 
-            AddLoggerTraceText($"{nameof(_SetMenuItemTooltip)}: {nameof(menuItem.Name)} set ToolTip as '{text}'");
+            AddLoggerTraceText($"{nameof(SetMenuItemTooltip)}: {nameof(menuItem.Name)} set ToolTip as '{text}'");
         }
 
-        private void _EnableMenuItem(ToolStripMenuItem tMenuItem, bool status) //add string into  from other threads
+        private void EnableMenuItem(ToolStripMenuItem tMenuItem, bool status) //add string into  from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate { tMenuItem.Enabled = status; }));
@@ -9109,7 +9097,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 tMenuItem.Enabled = status;
         }
 
-        private void _VisibleMenuItem(ToolStripMenuItem tMenuItem, bool status) //add string into  from other threads
+        private void VisibleMenuItem(ToolStripMenuItem tMenuItem, bool status) //add string into  from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate { tMenuItem.Visible = status; }));
@@ -9117,7 +9105,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 tMenuItem.Visible = status;
         }
 
-        private void _VisibleMenuSeparator(ToolStripSeparator separator, bool status) //add string into  from other threads
+        private void VisibleMenuSeparator(ToolStripSeparator separator, bool status) //add string into  from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate { separator.Visible = status; }));
@@ -9125,7 +9113,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 separator.Visible = status;
         }
 
-        private string _ReturnMenuItemText(ToolStripMenuItem menuItem) //access from other threads
+        private string ReturnMenuItemText(ToolStripMenuItem menuItem) //access from other threads
         {
             string name = "";
             if (InvokeRequired)
@@ -9140,7 +9128,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             return name;
         }
 
-        private void _VisibleControl(Control control, bool state) //access from other threads
+        private void VisibleControl(Control control, bool state) //access from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -9153,7 +9141,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
         }
 
-        private void _EnableControl(Control control, bool state) //access from other threads
+        private void EnableControl(Control control, bool state) //access from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -9166,7 +9154,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
         }
 
-        private void _DisposeControl(Control control) //access from other threads
+        private void DisposeControl(Control control) //access from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -9187,7 +9175,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
         }
 
-        private void _ChangeControlBackColor(Control control, Color color) //add string into  from other threads
+        private void ChangeControlBackColor(Control control, Color color) //add string into  from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate { control.BackColor = color; }));
@@ -9195,7 +9183,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 control.BackColor = color; ;
         }
 
-        private void _SetControlToolTip(Control control, string text)
+        private void SetControlToolTip(Control control, string text)
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -9207,10 +9195,10 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 toolTip1.SetToolTip(control, text);
             }
 
-            AddLoggerTraceText($"{nameof(_SetControlToolTip)}: {nameof(control.Name)} set text as '{text}'");
+            AddLoggerTraceText($"{nameof(SetControlToolTip)}: {nameof(control.Name)} set text as '{text}'");
         }
 
-        private void _SetControlText(Control control, string text)
+        private void SetControlText(Control control, string text)
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -9222,10 +9210,10 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 control.Text = text;
             }
 
-            AddLoggerTraceText($"{nameof(_SetControlText)}: {nameof(control.Name)} set ToolTip as '{text}'");
+            AddLoggerTraceText($"{nameof(SetControlText)}: {nameof(control.Name)} set ToolTip as '{text}'");
         }
 
-        private void _SetCheckBoxCheckedStatus(CheckBox checkBox, bool checkboxChecked) //add string into  from other threads
+        private void SetCheckBoxCheckedStatus(CheckBox checkBox, bool checkboxChecked) //add string into  from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate { checkBox.Checked = checkboxChecked; }));
@@ -9233,7 +9221,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 checkBox.Checked = checkboxChecked;
         }
 
-        private bool _ReturnCheckboxCheckedStatus(CheckBox checkBox) //add string into  from other threads
+        private bool ReturnCheckboxCheckedStatus(CheckBox checkBox) //add string into  from other threads
         {
             bool checkBoxChecked = false;
             if (InvokeRequired)
@@ -9248,7 +9236,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             return checkBoxChecked;
         }
 
-        private void _ResumePpanel(Panel panel) //access from other threads
+        private void ResumePpanel(Panel panel) //access from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -9261,7 +9249,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
         }
 
-        private void _SetPanelAutoSizeMode(Panel panel, AutoSizeMode state) //access from other threads
+        private void SetPanelAutoSizeMode(Panel panel, AutoSizeMode state) //access from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -9274,7 +9262,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
         }
 
-        private void _SetPanelAutoScroll(Panel panel, bool state) //access from other threads
+        private void SetPanelAutoScroll(Panel panel, bool state) //access from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -9287,7 +9275,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
         }
 
-        private void _SetPanelAnchor(Panel panel, AnchorStyles anchorStyles) //access from other threads
+        private void SetPanelAnchor(Panel panel, AnchorStyles anchorStyles) //access from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -9300,7 +9288,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
         }
 
-        private void _SetPanelHeight(Panel panel, int height) //access from other threads
+        private void SetPanelHeight(Panel panel, int height) //access from other threads
         {
             if (InvokeRequired)
                 Invoke(new MethodInvoker(delegate
@@ -9311,7 +9299,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             { panel.Height = height; }
         }
 
-        private int _ReturnPanelParentHeight(Panel panel) //access from other threads
+        private int ReturnPanelParentHeight(Panel panel) //access from other threads
         {
             if (panel == null) return 0;
 
@@ -9330,7 +9318,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             return height;
         }
 
-        private int _ReturnPanelHeight(Panel panel) //access from other threads
+        private int ReturnPanelHeight(Panel panel) //access from other threads
         {
             if (panel == null) return 0;
 
@@ -9351,7 +9339,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             return height;
         }
 
-        private int _ReturnPanelWidth(Panel panel) //access from other threads
+        private int ReturnPanelWidth(Panel panel) //access from other threads
         {
             if (panel == null) return 0;
 
@@ -9372,7 +9360,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             return width;
         }
 
-        private int _ReturnPanelControlsCount(Panel panel) //access from other threads
+        private int ReturnPanelControlsCount(Panel panel) //access from other threads
         {
             if (panel == null) return 0;
 
@@ -9393,7 +9381,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             return count;
         }
 
-        private void _RefreshPictureBox(PictureBox picBox, Bitmap picImage) // не работает
+        private void RefreshPictureBox(PictureBox picBox, Bitmap picImage) // не работает
         {
             if (InvokeRequired)
             {
@@ -9401,7 +9389,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                  {
                      if (picBox != null)
                      {
-                         picBox.Image = RefreshBitmap(picImage, _ReturnPanelWidth(panelView) - 2, _ReturnPanelHeight(panelView) - 2); //сжатая картина
+                         picBox.Image = RefreshBitmap(picImage, ReturnPanelWidth(panelView) - 2, ReturnPanelHeight(panelView) - 2); //сжатая картина
                          picBox.Refresh();
                      }
                  }));
@@ -9410,7 +9398,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             {
                 if (picBox != null)
                 {
-                    picBox.Image = RefreshBitmap(picImage, _ReturnPanelWidth(panelView) - 2, _ReturnPanelHeight(panelView) - 2); //сжатая картина
+                    picBox.Image = RefreshBitmap(picImage, ReturnPanelWidth(panelView) - 2, ReturnPanelHeight(panelView) - 2); //сжатая картина
                     picBox.Refresh();
                 }
             }
@@ -9423,7 +9411,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void timer1_Tick(object sender, EventArgs e)
+        private void Timer1_Tick(object sender, EventArgs e)
         {
             if (InvokeRequired)
             {
@@ -9459,7 +9447,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         /// <summary>
         /// Rise Value of progressBar at 1
         /// </summary>
-        private void _ProgressWork1Step()
+        private void ProgressWork1Step()
         {
             if (InvokeRequired)
             {
@@ -9483,7 +9471,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         /// <summary>
         /// Run timer, set value of progressbar at 0, set StatusLabel2.BackColor = SystemColors.Control
         /// </summary>
-        private void _ProgressBar1Start() //Set progressBar Value into 0 from other threads
+        private void ProgressBar1Start() //Set progressBar Value into 0 from other threads
         {
             if (InvokeRequired)
             {
@@ -9505,7 +9493,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         /// <summary>
         /// Stop timer, set progressbar at 100, set StatusLabel2.ForeColor =  Color.Black
         /// </summary>
-        private void _ProgressBar1Stop() //Set progressBar Value into 100 from other threads
+        private void ProgressBar1Stop() //Set progressBar Value into 100 from other threads
         {
             if (InvokeRequired)
             {
@@ -9624,7 +9612,8 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         private void GetSQLiteDbScheme()
         {
             StringBuilder sb = new StringBuilder();
-            string fpath = OpenFileDialogExtentions.ReturnFilePath("Выберите файл", "SQL файлы (*.sql)|*.sql|Все files (*.*)|*.*");
+            OpenFileDialogExtentions filePath = new OpenFileDialogExtentions("Выберите файл c базой SQLite", "SQLite DB (main.db)|main.db|Все files (*.*)|*.*");
+            string fpath = filePath.FilePath;
 
             if (fpath == null)
                 fpath = dbApplication.FullName.ToString();
@@ -9669,9 +9658,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                                 string sql = (string)reader["sql"];
 
                                 MethodInvoker mi = delegate
-                                {
-                                    sb.Append(sql + ";\r\n\r\n");
-                                };
+                                { sb.Append(sql + ";\r\n\r\n"); };
                                 this.Invoke(mi);
                             } // while
                         } // using
@@ -9681,10 +9668,10 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                     {
                         MessageBox.Show(this,
                             sb.ToString(),
-                            "SQLite Scheme: " + fpath,
+                            $"Схема SQLite БД: {fpath}",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information);
-                        logger.Info("SQLite Scheme: " + fpath);
+                        logger.Info($"Схема SQLite БД: {fpath}");
                         logger.Info(sb.ToString());
                     };
                     this.Invoke(mi3);
@@ -9693,11 +9680,15 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 {
                     MethodInvoker mi1 = delegate
                     {
+
+                        logger.Warn($"Ошибка получения схемы БД: {fpath}");
+                        logger.Warn(ex.ToString());
+
                         MessageBox.Show(this,
                             ex.Message,
-                            "Extraction Failed",
+                            $"Ошибка получения схемы БД {fpath}",
                             MessageBoxButtons.OK,
-                            MessageBoxIcon.Error);
+                            MessageBoxIcon.Warning);
                     };
                     this.Invoke(mi1);
                 }
@@ -9728,6 +9719,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             // AutoUpdater.ReportErrors = true; // will show error message, if there is no update available or if it can't get to the XML file from web server.
             // AutoUpdater.CheckForUpdateEvent -= AutoUpdaterOnAutoCheckForUpdateEvent;
             // AutoUpdater.RemindLaterTimeSpan = RemindLaterFormat.Minutes;
+            // AutoUpdater.RemindLaterTimeSpan = RemindLaterFormat.Minutes;
             // AutoUpdater.RemindLaterAt = 1;
             // AutoUpdater.ApplicationExitEvent += ApplicationExit;
             //  AutoUpdater.ApplicationExitEvent += AutoUpdater_ApplicationExitEvent;    //https://archive.codeplex.com/?p=autoupdaterdotnet
@@ -9736,7 +9728,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             AutoUpdater.AppTitle = "ASTA's update page";
             AutoUpdater.RunUpdateAsAdmin = false;
             AutoUpdater.DownloadPath = appFolderUpdatePath;
-            AutoUpdater.CheckForUpdateEvent += RunAutoUpdate_Event; //write errors if had no access to the folder
+            AutoUpdater.CheckForUpdateEvent += CheckUpdate_Event; //write errors if had no access to the folder
             AutoUpdater.ApplicationExitEvent += ApplicationExit;    //https://archive.codeplex.com/?p=autoupdaterdotnet
 
             AutoUpdater.Start(parameters.appUpdateURL, new System.Net.NetworkCredential(user.Login, user.Password, user.Domain));
@@ -9764,7 +9756,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
                 RunUpdate(parameters, user);
 
-                AutoUpdater.CheckForUpdateEvent -= RunAutoUpdate_Event;
+                AutoUpdater.CheckForUpdateEvent -= CheckUpdate_Event;
                 AutoUpdater.ApplicationExitEvent -= ApplicationExit;
             }
             else
@@ -9773,7 +9765,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             }
         }
 
-        private async Task RunAutoUpdate()
+        private async Task CheckUpdates()
         {
             IADUser user;
             //Check updates frequently
@@ -9806,7 +9798,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             });
         }
 
-        private void RunAutoUpdate_Event(UpdateInfoEventArgs args)
+        private void CheckUpdate_Event(UpdateInfoEventArgs args)
         {
             if (args != null)
             {
@@ -10109,23 +10101,29 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         {
             DialogResult selectTwoFiles = MessageBox.Show("Выбрать 2 файла для сравнения?", "Сравнение файлов",
                 MessageBoxButtons.YesNo,
-                      MessageBoxIcon.Exclamation,
+                      MessageBoxIcon.Question,
                       MessageBoxDefaultButton.Button1);
 
-            string filePath = OpenFileDialogExtentions.ReturnFilePath("Выберите файл для вычисления его хэша");
+            OpenFileDialogExtentions ofde = new OpenFileDialogExtentions("Выберите файл для вычисления его хэша");
+            string filePath = ofde.FilePath;
+
             CalculatorHash calculatedHash = new CalculatorHash(filePath);
             string result = calculatedHash.Calculate();
-            MessageBox.Show(result, "Результат вычисления хэша", MessageBoxButtons.OK);
 
             if (selectTwoFiles == DialogResult.Yes)
             {
-                filePath = OpenFileDialogExtentions.ReturnFilePath("Выберите следующий файл для вычисления его хэша");
+                ofde = new OpenFileDialogExtentions("Выберите следующий файл для вычисления его хэша");
+                filePath = ofde.FilePath;
+
                 calculatedHash = new CalculatorHash(filePath);
                 string secondFile = calculatedHash.Calculate();
                 bool equalString = string.Equals(result, secondFile);
-                result += "\n" + secondFile + "\n";
-                MessageBox.Show(result, "Результат вычисления хэша", MessageBoxButtons.OK, ReturnMessageBoxIcon(equalString));
+                result += "\n" + secondFile;
+                string caption = equalString ? "MD5 хэш файлов совпадает" : "MD5 хэш файлов не совпадает";
+                MessageBox.Show(result, caption, MessageBoxButtons.OK, ReturnMessageBoxIcon(equalString));
             }
+            else
+            { MessageBox.Show(result, "Результат вычисления хэша", MessageBoxButtons.OK, MessageBoxIcon.Information); }
         }
 
         private MessageBoxIcon ReturnMessageBoxIcon(bool ok)
@@ -10142,34 +10140,34 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
         private void VisibleOfAdminMenuItems(bool show)
         {
-            _VisibleMenuItem(RefreshConfigInMainDBItem, show);
-            _VisibleMenuItem(CalculateHashItem, show);
-            _VisibleMenuItem(AddParameterInConfigItem, show);
-            _VisibleMenuItem(SelectedToLoadCityItem, show);
-            _VisibleMenuItem(MailingAddItem, show);
-            _VisibleMenuItem(TestToSendAllMailingsItem, show);
-            _VisibleMenuItem(UploadApplicationItem, show);
-            _VisibleMenuItem(GetADUsersItem, show);
-            _VisibleMenuItem(GetCurrentSchemeItem, show);
-            _VisibleMenuItem(CreateDBItem, show);
-            _VisibleMenuItem(ClearRegistryItem, show);
-            _VisibleMenuItem(EditAnualDaysItem, show);
-            _VisibleMenuItem(ModeItem, show);
-            _VisibleMenuItem(MailingsExceptItem, show);
-            _VisibleMenuItem(SettingsProgrammItem, show);
-            _VisibleMenuItem(DeletePersonFromGroupItem, show);
-            _VisibleMenuItem(ImportPeopleInLocalDBItem, show);
-            _VisibleMenuItem(OpenMenuAsLocalAdminItem, !show);
+            VisibleMenuItem(RefreshConfigInMainDBItem, show);
+            VisibleMenuItem(CalculateHashItem, show);
+            VisibleMenuItem(AddParameterInConfigItem, show);
+            VisibleMenuItem(SelectedToLoadCityItem, show);
+            VisibleMenuItem(MailingAddItem, show);
+            VisibleMenuItem(TestToSendAllMailingsItem, show);
+            VisibleMenuItem(UploadApplicationItem, show);
+            VisibleMenuItem(GetADUsersItem, show);
+            VisibleMenuItem(GetCurrentSchemeItem, show);
+            VisibleMenuItem(CreateDBItem, show);
+            VisibleMenuItem(ClearRegistryItem, show);
+            VisibleMenuItem(EditAnualDaysItem, show);
+            VisibleMenuItem(ModeItem, show);
+            VisibleMenuItem(MailingsExceptItem, show);
+            VisibleMenuItem(SettingsProgrammItem, show);
+            VisibleMenuItem(DeletePersonFromGroupItem, show);
+            VisibleMenuItem(ImportPeopleInLocalDBItem, show);
+            VisibleMenuItem(OpenMenuAsLocalAdminItem, !show);
 
-            _VisibleMenuSeparator(toolStripSeparator2, !show);
+            VisibleMenuSeparator(toolStripSeparator2, !show);
         }
 
         private void EnableMainMenuItems(bool show)
         {
-            _EnableMenuItem(FunctionMenuItem, show);
-            _EnableMenuItem(GroupsMenuItem, show);
-            _EnableMenuItem(SettingsMenuItem, show);
-            _EnableMenuItem(HelpMenuItem, show);
+            EnableMenuItem(FunctionMenuItem, show);
+            EnableMenuItem(GroupsMenuItem, show);
+            EnableMenuItem(SettingsMenuItem, show);
+            EnableMenuItem(HelpMenuItem, show);
 
             CheckBoxesFiltersAll_Enable(show);
         }

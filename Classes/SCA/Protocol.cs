@@ -26,6 +26,7 @@ namespace ASTA.Classes
         }
     }
 
+#pragma warning disable IDE1006 // Naming Styles
     /// <summary>
     /// Model 'Protocol'
     /// </summary>
@@ -67,6 +68,7 @@ namespace ASTA.Classes
         [Key]
         public Guid UniqueKey { get; set; }
     }
+#pragma warning restore IDE1006 // Naming Styles
 
     /// <summary>
     /// Map model 'Protocol' at table 'Protocol' of DB 'Intellect'

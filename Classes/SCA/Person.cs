@@ -5,6 +5,8 @@ using System.Data.Entity.ModelConfiguration;
 
 namespace ASTA.Classes
 {
+
+#pragma warning disable IDE1006 // Naming Styles
     /// <summary>
     /// Model 'Person'
     /// </summary>
@@ -82,6 +84,7 @@ namespace ASTA.Classes
         public string who_card { get; set; }//] [nvarchar] (60) NULL,
         public string who_level { get; set; }//] [nvarchar] (60) NULL
     }
+#pragma warning restore IDE1006 // Naming Styles
 
     /// <summary>
     /// Map model 'Person' at table 'OBJ_PERSON' of DB 'Intellect'

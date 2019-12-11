@@ -30,8 +30,8 @@ using System.Runtime.InteropServices;
 //   Номер сборки
 //      Редакция
 //
-[assembly: AssemblyVersion("3.9.5.187")]
-[assembly: AssemblyFileVersion("3.7.11.147")]
+[assembly: AssemblyVersion("3.9.5.190")]
+[assembly: AssemblyFileVersion("3.7.11.150")]
 [assembly: NeutralResourcesLanguage("")]
 [assembly: InternalsVisibleTo("ASTA.Tests")]
 [assembly: InternalsVisibleTo("ASTA.Explorables")]

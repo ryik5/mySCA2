@@ -2,9 +2,12 @@
 
 namespace ASTA.Classes
 {
-    public static class OpenFileDialogExtentions
+    public class OpenFileDialogExtentions
     {
-        public static string ReturnFilePath(string titleWindowDialog = null, string maskFiles = "Все файлы (*.*)|*.*")
+        public string FilePath { get; private set; }
+
+
+        public  OpenFileDialogExtentions(string titleWindowDialog = null, string maskFiles = "Все файлы (*.*)|*.*")
         {
             string filePath = null;
             using (OpenFileDialog openFileDialog1 = new OpenFileDialog())
@@ -20,7 +23,7 @@ namespace ASTA.Classes
                 if (res != DialogResult.Cancel)
                 { filePath = openFileDialog1.FileName; }
             }
-            return filePath;
+            FilePath = filePath;
         }
     }
 }
