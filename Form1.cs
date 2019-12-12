@@ -59,7 +59,7 @@ namespace ASTA
                 @"ASTA.exe", @"NLog.config", @"NLog.dll", @"ASTA.sql",
                 @"MailKit.dll", @"MimeKit.dll", @"MySql.Data.dll",
                 @"System.Data.SQLite.dll",
-                @"x64\SQLite.Interop.dll", @"x86\SQLite.Interop.dll", 
+                @"x64\SQLite.Interop.dll", @"x86\SQLite.Interop.dll",
                 @"AutoUpdater.NET.dll", @"Google.Protobuf.dll",
                 @"Renci.SshNet.dll", @"BouncyCastle.Crypto.dll",
 
@@ -90,11 +90,10 @@ namespace ASTA
         private static readonly string appDbPath = dbApplication.FullName;
         private static readonly string appDbName = System.IO.Path.GetFileName(appDbPath);
 
-        private static readonly string sqLiteLocalConnectionString = $"Data Source = {appDbPath}; Version=3;"; ////$"Data Source={dbApplication.FullName};Version=3;" ////$"Data Source={dbApplication.FullName};Version=3;"
-
-        private static string sqlServerConnectionString;// = "Data Source=" + serverName + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + userName + ";Password=" + userPasswords + "; Connect Timeout=5";
-        private static System.Data.Entity.Core.EntityClient.EntityConnectionStringBuilder sqlServerConnectionStringEF;
-        private static string mysqlServerConnectionString;//@"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60";
+        private static readonly string sqLiteConnectionString = $"Data Source = {appDbPath}; Version=3;"; ////$"Data Source={dbApplication.FullName};Version=3;" ////$"Data Source={dbApplication.FullName};Version=3;"
+        private static string sqlConnectionString;// = "Data Source=" + serverName + "\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID=" + userName + ";Password=" + userPasswords + "; Connect Timeout=5";
+        private static System.Data.Entity.Core.EntityClient.EntityConnectionStringBuilder sqlConnectionStringEF;
+        private static string mysqlConnectionString;//@"server=" + mysqlServer + @";User=" + mysqlServerUserName + @";Password=" + mysqlServerUserPassword + @";database=wwwais;convert zero datetime=True;Connect Timeout=60";
 
         private static readonly string queryCheckSystemDdSCA = "SELECT database_id FROM sys.databases WHERE Name ='intellect'";
 
@@ -265,7 +264,7 @@ namespace ASTA
         //DataTables with people data
         private DataTable dtPeople = new DataTable("People");
 
-        private DataColumn[] dcPeople =
+        private readonly DataColumn[] dcPeople =
            {
                                   new DataColumn(Names.NPP,typeof(int)),//0
                                   new DataColumn(Names.FIO,typeof(string)),//1
@@ -664,11 +663,7 @@ namespace ASTA
 
         private void ApplicationExit()
         {
-            logger.Info("");
-            logger.Info("");
-            logger.Info("-=-=  Завершение работы ПО  =-=-");
-            logger.Info("-----------------------------------------");
-            logger.Info("");
+            Text = @"Closing application...";
 
             dgvo = null;
 
@@ -686,9 +681,14 @@ namespace ASTA
             contextMenu?.Dispose();
             mRightClick?.Dispose();
 
-            //taskkill /F /IM ASTA.exe
-            Text = @"Closing application...";
+            logger.Info("");
+            logger.Info("");
+            logger.Info("-=-=  Завершение работы ПО  =-=-");
+            logger.Info("-----------------------------------------");
+            logger.Info("");
+
             System.Threading.Thread.Sleep(500);
+            //taskkill /F /IM ASTA.exe
             Application.Exit();
         }
 
@@ -761,7 +761,7 @@ namespace ASTA
             string query = string.Empty;
 
             SetStatusLabelText(StatusLabel2, $"Создаю таблицы в БД на основе запроса из текстового файла: {fpath}");
-            using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
+            using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteConnectionString, dbApplication))
             {
                 dbWriter.Status += AddLoggerTraceText;
 
@@ -792,7 +792,7 @@ namespace ASTA
             string query = "INSERT OR REPLACE INTO 'TechnicalInfo' (PCName, POName, POVersion, LastDateStarted, CurrentUser, FreeRam, GuidAppication) " +
                       " VALUES (@PCName, @POName, @POVersion, @LastDateStarted, @CurrentUser, @FreeRam, @GuidAppication)";
 
-            using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
+            using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteConnectionString, dbApplication))
             {
                 logger.Trace($"query: {query}");
                 dbWriter.Status += AddLoggerTraceText;
@@ -842,7 +842,7 @@ namespace ASTA
             //Get data from local DB
             string query;
             int count = 0;
-            using (SqLiteDbWrapper dbReader = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
+            using (SqLiteDbWrapper dbReader = new SqLiteDbWrapper(sqLiteConnectionString, dbApplication))
             {
                 System.Data.SQLite.SQLiteDataReader data = null;
                 query = "SELECT ComboList FROM LastTakenPeopleComboList;";
@@ -935,8 +935,8 @@ namespace ASTA
                 mysqlServerUserName = mysqlServerUserNameRegistry?.Length > 0 ? mysqlServerUserNameRegistry : mysqlServerUserNameDB;
                 mysqlServerUserPassword = mysqlServerUserPasswordRegistry?.Length > 0 ? mysqlServerUserPasswordRegistry : mysqlServerUserPasswordDB;
 
-                sqlServerConnectionString = $"Data Source={sServer1}\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID={sServer1UserName};Password={sServer1UserPassword};Connect Timeout=30";
-                mysqlServerConnectionString = $"server={mysqlServer};User={mysqlServerUserName};Password={mysqlServerUserPassword};database=wwwais;convert zero datetime=True;Connect Timeout=60";
+                sqlConnectionString = $"Data Source={sServer1}\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID={sServer1UserName};Password={sServer1UserPassword};Connect Timeout=30";
+                mysqlConnectionString = $"server={mysqlServer};User={mysqlServerUserName};Password={mysqlServerUserPassword};database=wwwais;convert zero datetime=True;Connect Timeout=60";
 
                 clrRealRegistration = clrRealRegistrationRegistry != Color.PaleGreen ? clrRealRegistrationRegistry : Color.PaleGreen;
             }
@@ -1235,7 +1235,7 @@ namespace ASTA
             logger.Trace($"-= {nameof(ShowDataTableDbQuery)} =-");
 
             string query = $"{mySqlQuery} FROM '{myTable}' {mySqlWhere};";
-            using (SqLiteDbWrapper dbReader = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
+            using (SqLiteDbWrapper dbReader = new SqLiteDbWrapper(sqLiteConnectionString, dbApplication))
             {
                 using (DataTable dt = dbReader.GetDataTable(query))
                 {
@@ -1277,7 +1277,7 @@ namespace ASTA
         {
             if (dbApplication.Exists)
             {
-                using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
+                using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteConnectionString, dbApplication))
                 {
                     logger.Trace($"query: {query}");
                     dbWriter.Status += AddLoggerTraceText;
@@ -1305,7 +1305,7 @@ namespace ASTA
 
             await Task.Run(() =>
             {
-                using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
+                using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteConnectionString, dbApplication))
                 {
                     dbWriter.Status += AddLoggerTraceText;
 
@@ -1507,7 +1507,7 @@ namespace ASTA
             EnableMenuItem(GetFioItem, false);
             EnableControl(dataGridView1, false);
 
-            await Task.Run(() => CheckAliveIntellectServer(sServer1, sqlServerConnectionString, queryCheckSystemDdSCA));
+            await Task.Run(() => CheckAliveIntellectServer(sServer1, sqlConnectionString, queryCheckSystemDdSCA));
 
             if (bServer1Exist)
             {
@@ -1606,7 +1606,7 @@ namespace ASTA
             {
                 string confitionToLoad = "";
 
-                using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
+                using (var sqlConnection = new SQLiteConnection(sqLiteConnectionString))
                 {
                     sqlConnection.Open();
 
@@ -1632,7 +1632,7 @@ namespace ASTA
                 }
 
                 // import users and group from SCA server
-                using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
+                using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlConnectionString))
                 {
                     query = "SELECT id,level_id,name,owner_id,parent_id,region_id,schedule_id FROM OBJ_DEPARTMENT";
                     AddLoggerTraceText($"from SCA server, query: {query}");
@@ -1661,7 +1661,7 @@ namespace ASTA
                 }
 
                 //import users from с SCA server
-                using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
+                using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlConnectionString))
                 {
                     query = "SELECT id, name, surname, patronymic, post, tabnum, parent_id, facility_code, card FROM OBJ_PERSON WHERE is_locked = '0' AND facility_code NOT LIKE '' AND card NOT LIKE '' ";
                     AddLoggerTraceText($"query: {query}");
@@ -1714,7 +1714,7 @@ namespace ASTA
                 SetStatusLabelText(StatusLabel2, $"Запрашиваю данные с {mysqlServer}. Ждите окончания процесса...");
 
                 // import departments from web DB
-                using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionString))
+                using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlConnectionString))
                 {
                     query = "SELECT id, parent_id, name, boss_code FROM dep_struct ORDER by id";
 
@@ -1743,7 +1743,7 @@ namespace ASTA
                 }
 
                 // import individual shifts of people from web DB
-                using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionString))
+                using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlConnectionString))
                 {
                     query = "Select code,start_date,mo_start,mo_end,tu_start,tu_end,we_start,we_end,th_start,th_end,fr_start,fr_end, " +
                                     "sa_start,sa_end,su_start,su_end,comment FROM work_time ORDER by start_date";
@@ -1803,7 +1803,7 @@ namespace ASTA
                 }
 
                 // import people from web DB
-                using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionString))
+                using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlConnectionString))
                 {
                     query = "Select code, family_name, first_name, last_name, vacancy, department, boss_id, city FROM personal " + confitionToLoad;//where hidden=0
 
@@ -2024,7 +2024,7 @@ namespace ASTA
             }
             ProgressWork1Step();
 
-            using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
+            using (var sqlConnection = new SQLiteConnection(sqLiteConnectionString))
             {
                 sqlConnection.Open();
 
@@ -2534,7 +2534,7 @@ namespace ASTA
 
             if (nameGroup?.Length > 0)
             {
-                using (var connection = new SQLiteConnection(sqLiteLocalConnectionString))
+                using (var connection = new SQLiteConnection(sqLiteConnectionString))
                 {
                     connection.Open();
                     using (var command = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroupDescription' (GroupPerson, GroupPersonDescription) " +
@@ -2597,7 +2597,7 @@ namespace ASTA
             string tmpRec = "";
             string query = "";
 
-            using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
+            using (var sqlConnection = new SQLiteConnection(sqLiteConnectionString))
             {
                 sqlConnection.Open();
 
@@ -2779,7 +2779,7 @@ namespace ASTA
                 query += ";";
                 logger.Trace("SeekAndShowMembersOfGroup: " + query);
 
-                using (SqLiteDbWrapper dbReader = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
+                using (SqLiteDbWrapper dbReader = new SqLiteDbWrapper(sqLiteConnectionString, dbApplication))
                 {
                     try
                     {
@@ -2850,7 +2850,7 @@ namespace ASTA
                     Names.PLACE_EMPLOYEE
                             });
 
-                using (var connection = new SQLiteConnection(sqLiteLocalConnectionString))
+                using (var connection = new SQLiteConnection(sqLiteConnectionString))
                 {
                     connection.Open();
                     if (group?.Length > 0)
@@ -2997,7 +2997,7 @@ namespace ASTA
             string query = "INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Department, PositionInDepartment, DepartmentId, City, Boss) " +
                       "VALUES (@FIO, @NAV, @GroupPerson, @ControllingHHMM, @ControllingOUTHHMM, @Shift, @Comment, @Department, @PositionInDepartment, @DepartmentId, @City, @Boss)";
 
-            using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
+            using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteConnectionString, dbApplication))
             {
                 logger.Trace($"query: {query}");
                 dbWriter.Status += AddLoggerTraceText;
@@ -3072,7 +3072,7 @@ namespace ASTA
             string query = "INSERT OR REPLACE INTO 'PeopleGroupDescription' (GroupPerson, GroupPersonDescription, Recipient) " +
                                        "VALUES (@GroupPerson, @GroupPersonDescription, @Recipient)";
 
-            using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
+            using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteConnectionString, dbApplication))
             {
                 logger.Trace($"query: {query}");
                 dbWriter.Status += AddLoggerTraceText;
@@ -3107,7 +3107,7 @@ namespace ASTA
             logger.Trace($"query: {query}");
             string idPoint, namePoint, direction;
 
-            using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
+            using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlConnectionString))
             using (System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetData(query))
             {
                 foreach (DbDataRecord record in sqlData)
@@ -3210,7 +3210,7 @@ namespace ASTA
         {
             logger.Trace($"-= {nameof(LoadInputsOutputsOfVisitors)} =-");
 
-            CheckAliveIntellectServer(sServer1, sqlServerConnectionString, queryCheckSystemDdSCA);
+            CheckAliveIntellectServer(sServer1, sqlConnectionString, queryCheckSystemDdSCA);
 
             if (bServer1Exist)
             {
@@ -3306,7 +3306,7 @@ namespace ASTA
 
                         logger.Trace($"query: {query}");*/
 
-            using (ProtocolConnector db = new ProtocolConnector(sqlServerConnectionString))
+            using (ProtocolConnector db = new ProtocolConnector(sqlConnectionString))
             {
                 DateTime dtStart = DateTime.Parse(startDay + " " + startTime);
                 DateTime dtEnd = DateTime.Parse(endDay + " " + endTime);
@@ -3566,7 +3566,7 @@ namespace ASTA
 
             ProgressBar1Start();
 
-            await Task.Run(() => CheckAliveIntellectServer(sServer1, sqlServerConnectionString, queryCheckSystemDdSCA));
+            await Task.Run(() => CheckAliveIntellectServer(sServer1, sqlConnectionString, queryCheckSystemDdSCA));
 
             ChangeControlBackColor(groupBoxPeriod, SystemColors.Control);
             ChangeControlBackColor(groupBoxTimeStart, SystemColors.Control);
@@ -3672,7 +3672,7 @@ namespace ASTA
 
             string query = "Select id, name,hourly, visibled_name FROM out_reasons";
             logger.Trace(query);
-            using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionString))
+            using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlConnectionString))
             {
                 MySql.Data.MySqlClient.MySqlDataReader mysqlData = mysqlDbTableReader.GetData(query);
 
@@ -3696,7 +3696,7 @@ namespace ASTA
             string resonId = "";
             query = "Select * FROM out_users where reason_date >= '" + startDate.Split(' ')[0] + "' AND reason_date <= '" + endDate.Split(' ')[0] + "' ";
             logger.Trace(query);
-            using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlServerConnectionString))
+            using (MySqlDbReader mysqlDbTableReader = new MySqlDbReader(mysqlConnectionString))
             {
                 MySql.Data.MySqlClient.MySqlDataReader mysqlData = mysqlDbTableReader.GetData(query);
 
@@ -3815,7 +3815,7 @@ namespace ASTA
                 logger.Trace(query);
 
                 //is looking for the idCard of the person's NAV
-                using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
+                using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlConnectionString))
                 {
                     System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetData(query);
                     foreach (DbDataRecord record in sqlData)
@@ -3842,7 +3842,7 @@ namespace ASTA
                        " ORDER BY date DESC, time DESC;"; //sorting
 
                 logger.Trace(query);
-                using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlServerConnectionString))
+                using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlConnectionString))
                 {
                     System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetData(query);
                     foreach (DbDataRecord record in sqlData)
@@ -4026,7 +4026,7 @@ namespace ASTA
             { query += "where GroupPerson like '" + namePointedGroup + "'; "; }
             else { query += ";"; }
 
-            using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
+            using (var sqlConnection = new SQLiteConnection(sqLiteConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = new SQLiteCommand(query, sqlConnection))
@@ -4172,7 +4172,7 @@ namespace ASTA
             { nav = "0"; }
             else { nav = textBoxNav.Text.Trim(); }
 
-            using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
+            using (var sqlConnection = new SQLiteConnection(sqLiteConnectionString))
             {
                 sqlConnection.Open();
 
@@ -4768,7 +4768,7 @@ namespace ASTA
                 query = $"SELECT DayBolded FROM BoldedDates WHERE (NAV LIKE '0') AND DayType LIKE '{dayType}';";
             }
 
-            using (SqLiteDbWrapper dbReader = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
+            using (SqLiteDbWrapper dbReader = new SqLiteDbWrapper(sqLiteConnectionString, dbApplication))
             {
                 System.Data.SQLite.SQLiteDataReader data = null;
                 try
@@ -4941,12 +4941,14 @@ namespace ASTA
             if (filePath.Contains(@"\"))
             {
                 string dirTargetPath = System.IO.Path.Combine(appFolderTempPath, filePath.Remove(filePath.IndexOf('\\')));
-                try { 
+                try
+                {
                     System.IO.Directory.CreateDirectory(
                         filePath.Replace(
                             filePath,
                             dirTargetPath
-                            )); }
+                            ));
+                }
                 catch (Exception err) { logger.Warn($"Ошибка создания папки {dirTargetPath}: {err.ToString()}"); }
             }
             string dirPath = System.IO.Path.Combine(appFolderTempPath, filePath);
@@ -4954,7 +4956,7 @@ namespace ASTA
             {
                 System.IO.File.Copy(
                     filePath,
-                    dirPath, 
+                    dirPath,
                     true);
             }
             catch (Exception err) { logger.Warn($"Ошибка создания папки {dirPath}: {err.ToString()}"); }
@@ -5003,7 +5005,7 @@ namespace ASTA
 
             GC.Collect();
             GC.WaitForPendingFinalizers();
-            VacuumDB(sqLiteLocalConnectionString);
+            VacuumDB(sqLiteConnectionString);
 
             ClearItemsInFolder(@"*.xlsx");
             ClearItemsInFolder(@"*.log");
@@ -5780,7 +5782,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                     break;
             }
 
-            using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
+            using (var sqlConnection = new SQLiteConnection(sqLiteConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'ConfigDB' (ParameterName, Value, DateCreated) " +
@@ -5897,7 +5899,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             };
 
             //get list groups from DB and add to listComboParameters
-            using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
+            using (var sqlConnection = new SQLiteConnection(sqLiteConnectionString))
             {
                 sqlConnection.Open();
 
@@ -5952,7 +5954,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             //    if (senderEmail?.Length > 0 && senderEmail.Contains('.') && senderEmail.Contains('@') && senderEmail?.Split('.').Count() > 1)
             //   { senderValid = true; }
 
-            using (SQLiteConnection sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
+            using (SQLiteConnection sqlConnection = new SQLiteConnection(sqLiteConnectionString))
             {
                 sqlConnection.Open();
 
@@ -6521,7 +6523,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
             string checkInputedData = $"Data Source={server}\\SQLEXPRESS;Initial Catalog=intellect;Persist Security Info=True;User ID={user};Password={password};Connect Timeout=5";
 
-            CheckAliveIntellectServer(sServer1, sqlServerConnectionString, queryCheckSystemDdSCA);
+            CheckAliveIntellectServer(sServer1, sqlConnectionString, queryCheckSystemDdSCA);
 
             if (bServer1Exist)
             {
@@ -6531,8 +6533,8 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 sServer1 = server;
                 sServer1UserName = user;
                 sServer1UserPassword = password;
-                sqlServerConnectionString = checkInputedData;
-                sqlServerConnectionStringEF = new System.Data.Entity.Core.EntityClient.EntityConnectionStringBuilder()
+                sqlConnectionString = checkInputedData;
+                sqlConnectionStringEF = new System.Data.Entity.Core.EntityClient.EntityConnectionStringBuilder()
                 {
                     Metadata = @"res://*/DBFirstCatalogModel.csdl|res://*/DBFirstCatalogModel.ssdl|res://*/DBFirstCatalogModel.msl",
                     Provider = @"System.Data.SqlClient",
@@ -6546,7 +6548,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 mysqlServer = sMySqlServer;
                 mysqlServerUserName = sMySqlServerUser;
                 mysqlServerUserPassword = sMySqlServerUserPassword;
-                mysqlServerConnectionString = $"server={mysqlServer};User={mysqlServerUserName};Password={mysqlServerUserPassword};database=wwwais;convert zero datetime=True;Connect Timeout=60";
+                mysqlConnectionString = $"server={mysqlServer};User={mysqlServerUserName};Password={mysqlServerUserPassword};database=wwwais;convert zero datetime=True;Connect Timeout=60";
 
                 // Save data in Registry
                 //try
@@ -6914,7 +6916,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                                 { navD = "всех"; }
                                 else { navD = cellValue[1]; }
 
-                                using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
+                                using (var sqlConnection = new SQLiteConnection(sqLiteConnectionString))
                                 {
                                     sqlConnection.Open();
 
@@ -6964,7 +6966,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                                 myCommand1.Parameters.Add("dname", "SALES");
                                 myCommand1.Parameters.Add("loc", "NEW YORK");
                                 */
-                                using (var connection = new SQLiteConnection(sqLiteLocalConnectionString))
+                                using (var connection = new SQLiteConnection(sqLiteConnectionString))
                                 {
                                     connection.Open();
                                     using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'PeopleGroup' (FIO, NAV, GroupPerson, ControllingHHMM, ControllingOUTHHMM, Shift, Comment, Department, PositionInDepartment, DepartmentId, City) " +
@@ -7157,7 +7159,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         {
             if (dbApplication.Exists)
             {
-                using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteLocalConnectionString, dbApplication))
+                using (SqLiteDbWrapper dbWriter = new SqLiteDbWrapper(sqLiteConnectionString, dbApplication))
                 {
                     logger.Trace($"query: {query}");
 
@@ -7515,7 +7517,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         {
             logger.Trace($"-= {nameof(AddNewCityToLoad)} =-");
 
-            using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
+            using (var sqlConnection = new SQLiteConnection(sqLiteConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'SelectedCityToLoadFromWeb' (City, DateCreated) " +
@@ -7670,7 +7672,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         {
             logger.Trace($"-= {nameof(MakeNewRecepientExcept)} =-");
 
-            using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
+            using (var sqlConnection = new SQLiteConnection(sqLiteConnectionString))
             {
                 sqlConnection.Open();
                 using (var sqlCommand = new SQLiteCommand("INSERT OR REPLACE INTO 'MailingException' (RecipientEmail, GroupsReport, Description, DateCreated) " +
@@ -7815,7 +7817,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
             HashSet<Mailing> mailingList = new HashSet<Mailing>();
 
-            using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
+            using (var sqlConnection = new SQLiteConnection(sqLiteConnectionString))
             {
                 sqlConnection.Open();
 
@@ -8115,7 +8117,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 {
                     SetStatusLabelText(StatusLabel2, "Ведется работа по подготовке отчетов " + DateTime.Now.ToYYYYMMDDHHMM() + " ...");
                     SetStatusLabelBackColor(StatusLabel2, Color.LightPink);
-                    CheckAliveIntellectServer(sServer1, sqlServerConnectionString, queryCheckSystemDdSCA);
+                    CheckAliveIntellectServer(sServer1, sqlConnectionString, queryCheckSystemDdSCA);
                     SelectMailingDoAction();
                     sent = true;
                     SetStatusLabelText(StatusLabel2, "Все задачи по подготовке и отправке отчетов завершены.");
@@ -8143,7 +8145,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         {
             logger.Trace($"-= {nameof(TestToSendAllMailings)} =-");
 
-            await Task.Run(() => CheckAliveIntellectServer(sServer1, sqlServerConnectionString, queryCheckSystemDdSCA));
+            await Task.Run(() => CheckAliveIntellectServer(sServer1, sqlConnectionString, queryCheckSystemDdSCA));
             await Task.Run(() => UpdateMailingInDB());
             await Task.Run(() => SelectMailingDoAction());
         }
@@ -8233,7 +8235,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 daysOfSendingMail.LAST_WORK_DAY_OF_MONTH + ", " + daysOfSendingMail.END_OF_MONTH
                 );
 
-            using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
+            using (var sqlConnection = new SQLiteConnection(sqLiteConnectionString))
             {
                 sqlConnection.Open();
 
@@ -8349,7 +8351,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
             HashSet<Mailing> mailingList = new HashSet<Mailing>();
 
-            using (var sqlConnection = new SQLiteConnection(sqLiteLocalConnectionString))
+            using (var sqlConnection = new SQLiteConnection(sqLiteConnectionString))
             {
                 sqlConnection.Open();
 
@@ -8448,7 +8450,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                     }
                 case "sendEmail":
                     {
-                        CheckAliveIntellectServer(sServer1, sqlServerConnectionString, queryCheckSystemDdSCA);
+                        CheckAliveIntellectServer(sServer1, sqlConnectionString, queryCheckSystemDdSCA);
 
                         if (bServer1Exist)
                         {
@@ -9910,7 +9912,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
             //Make an archive with the currrent app's version
             MakeZip(appAllFiles, fileNameToUpdateZip);
-            ClearItemsInFolder(appFolderTempPath); 
+            ClearItemsInFolder(appFolderTempPath);
 
             //Make MD5 of ZIP archive
             appFileMD5 = CalculateHash(fileNameToUpdateZip);
