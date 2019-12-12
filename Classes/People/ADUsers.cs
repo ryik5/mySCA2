@@ -126,10 +126,10 @@ namespace ASTA.Classes.People
                                                 lastLogon = _lastLogon
                                             });
 
-                                            if (ADUsersCollection?.Count > 1 && ADUsersCollection?.Count % 5 == 0)
+                                            if (ADUsersCollection?.Count > 0 && ADUsersCollection?.Count % 5 == 0)
                                             {
                                                 Info?.Invoke(this, new TextEventArgs(
-                                                    $"Из домена получено {ADUsersCollection?.Count} аккаунтов, последний {_fio.ConvertFullNameToShortForm()}"));
+                                                    $"Получено {ADUsersCollection.Count} аккаунтов, последний {_fio.ConvertFullNameToShortForm()}"));
                                             }
                                         }
                                     }

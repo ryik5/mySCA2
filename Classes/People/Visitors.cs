@@ -7,7 +7,6 @@ namespace ASTA.Classes.People
 {
     public class Visitors : INotifyPropertyChanged, IEnumerable
     {
-        private Visitor visitor;
         public ObservableRangeCollection<Visitor> collection;
 
         public event PropertyChangedEventHandler PropertyChanged;

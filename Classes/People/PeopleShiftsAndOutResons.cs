@@ -66,6 +66,6 @@
         public int SuEnd { get; set; }
         public string Status { get; set; }
         public string Comment { get; set; }
-        public new PeopleShift Get() { return this; }
+      //  public new PeopleShift Get() { return this; }
     }
 }

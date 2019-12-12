@@ -11,7 +11,7 @@ namespace ASTA.Classes.People
 
         public Employee() { }
 
-        public new Employee Get() { return this; }
+       // public new Employee Get() { return this; }
 
         public override string ToString()
         { return $"{fio}\t{Code}"; }

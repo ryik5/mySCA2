@@ -58,7 +58,8 @@ namespace ASTA
         private static readonly string[] appAllFiles =  {
                 @"ASTA.exe", @"NLog.config", @"NLog.dll", @"ASTA.sql",
                 @"MailKit.dll", @"MimeKit.dll", @"MySql.Data.dll",
-                @"x64\SQLite.Interop.dll", @"x86\SQLite.Interop.dll", @"System.Data.SQLite.dll",
+                @"System.Data.SQLite.dll",
+                @"x64\SQLite.Interop.dll", @"x86\SQLite.Interop.dll", 
                 @"AutoUpdater.NET.dll", @"Google.Protobuf.dll",
                 @"Renci.SshNet.dll", @"BouncyCastle.Crypto.dll",
 
@@ -72,6 +73,7 @@ namespace ASTA
                 @"System.Memory.dll",
                 @"System.Runtime.CompilerServices.Unsafe.dll",
                 @"System.Threading.Tasks.Extensions.dll",
+                @"x64\SNI.dll", @"x86\SNI.dll",
 
                 //Abstraction for static System.IO library
                 @"System.IO.Abstractions.dll",
@@ -4895,26 +4897,41 @@ namespace ASTA
             {
                 if (dirPath.Contains(@"\"))
                 {
+                    string dirTargetPath = System.IO.Path.Combine(appFolderTempPath, dirPath.Remove(dirPath.IndexOf('\\')));
                     try
                     {
-                        System.IO.Directory.CreateDirectory(dirPath.Replace(dirPath, appFolderTempPath + @"\" + dirPath.Remove(dirPath.IndexOf('\\'))));
+                        System.IO.Directory.CreateDirectory(
+                            dirPath.Replace(
+                                dirPath,
+                                dirTargetPath
+                                ));
                     }
-                    catch (Exception err)
-                    {
-                        logger.Trace($"{dirPath} - {err.ToString()}");
-                    }
+                    catch (Exception err) { logger.Warn($"Ошибка создания папки {dirTargetPath}: {err.ToString()}"); }
                 }
             }
-            foreach (var file in files)
+            foreach (var filePath in files)
             {
+                string dirTargetPath = System.IO.Path.Combine(appFolderTempPath, filePath);
                 try
                 {
-                    System.IO.File.Copy(file, System.IO.Path.Combine(appFolderTempPath, file), true);
+                    System.IO.File.Copy(
+                        filePath,
+                        dirTargetPath,
+                        true);
                 }
-                catch (Exception err) { logger.Trace($"MakeZip,System.IO.File.Copy: {file} - {err.ToString()}"); }
+                catch (Exception err) { logger.Warn($"Ошибка копирования: {filePath} -> {dirTargetPath}: {err.ToString()}"); }
             }
-            System.IO.Compression.ZipFile.CreateFromDirectory(appFolderTempPath, localAppFolderPath + @"\" + fullNameZip, System.IO.Compression.CompressionLevel.Optimal, false);
-            logger.Info($"Архив создан: {localAppFolderPath}\\{fullNameZip}");
+
+            string pathToZip = System.IO.Path.Combine(localAppFolderPath, fullNameZip);
+            try
+            {
+                System.IO.Compression.ZipFile.CreateFromDirectory(
+                appFolderTempPath,
+                pathToZip,
+                System.IO.Compression.CompressionLevel.Optimal, false);
+                logger.Info($"Архив создан: {pathToZip}");
+            }
+            catch (Exception err) { logger.Warn($"Ошибка создания архива: {pathToZip}: {err.ToString()}"); }
         }
 
         private void MakeZip(string filePath, string fullNameZip)
@@ -4923,17 +4940,35 @@ namespace ASTA
 
             if (filePath.Contains(@"\"))
             {
-                try { System.IO.Directory.CreateDirectory(filePath.Replace(filePath, appFolderTempPath + @"\" + filePath.Remove(filePath.IndexOf('\\')))); }
-                catch (Exception err) { logger.Trace(filePath + " - " + err.ToString()); }
+                string dirTargetPath = System.IO.Path.Combine(appFolderTempPath, filePath.Remove(filePath.IndexOf('\\')));
+                try { 
+                    System.IO.Directory.CreateDirectory(
+                        filePath.Replace(
+                            filePath,
+                            dirTargetPath
+                            )); }
+                catch (Exception err) { logger.Warn($"Ошибка создания папки {dirTargetPath}: {err.ToString()}"); }
             }
+            string dirPath = System.IO.Path.Combine(appFolderTempPath, filePath);
             try
             {
-                System.IO.File.Copy(filePath, appFolderTempPath + @"\" + filePath, true);
+                System.IO.File.Copy(
+                    filePath,
+                    dirPath, 
+                    true);
             }
-            catch (Exception err) { logger.Trace($"{filePath} - {err.ToString()}"); }
+            catch (Exception err) { logger.Warn($"Ошибка создания папки {dirPath}: {err.ToString()}"); }
 
-            System.IO.Compression.ZipFile.CreateFromDirectory(appFolderTempPath, localAppFolderPath + @"\" + fullNameZip, System.IO.Compression.CompressionLevel.Optimal, false);
-            logger.Info($"Made archive: {localAppFolderPath}\\{fullNameZip}");
+            string pathToZip = System.IO.Path.Combine(localAppFolderPath, fullNameZip);
+            try
+            {
+                System.IO.Compression.ZipFile.CreateFromDirectory(
+                appFolderTempPath,
+                pathToZip,
+                System.IO.Compression.CompressionLevel.Optimal, false);
+                logger.Info($"Архив создан: {pathToZip}");
+            }
+            catch (Exception err) { logger.Warn($"Ошибка создания архива: {pathToZip}: {err.ToString()}"); }
         }
 
         //----- Clearing. Start ---------//
@@ -4967,6 +5002,7 @@ namespace ASTA
             }
 
             GC.Collect();
+            GC.WaitForPendingFinalizers();
             VacuumDB(sqLiteLocalConnectionString);
 
             ClearItemsInFolder(@"*.xlsx");
@@ -4979,7 +5015,6 @@ namespace ASTA
             {
                 try
                 {
-                    logger.Trace($"maskFiles: {maskFiles}");
                     System.IO.File.Delete(maskFiles);
                     logger.Trace($"Удален файл: {maskFiles}");
                 }
@@ -4991,20 +5026,18 @@ namespace ASTA
 
                 try
                 {
-                    logger.Trace($"dir.FullName: {dir.FullName}");
                     dir.Delete(true);
                     logger.Trace($"Папка удалена: {maskFiles}");
                 }
-                catch (Exception e) { logger.Warn($"Папка не удалена: {maskFiles} {e.Message}"); }
+                catch (Exception err) { logger.Warn($"Папка не удалена {maskFiles} : {err.Message}"); }
 
                 try
                 {
                     System.Threading.Thread.Sleep(200); //for prevent error of creating directory immediately after delete of one
-                    logger.Trace($"dir.FullName: {dir.FullName}");
                     dir.Create();
                     logger.Trace($"Папка создана: {maskFiles}");
                 }
-                catch (Exception e) { logger.Warn($"Папка не создана: {maskFiles} {e.Message}"); }
+                catch (Exception err) { logger.Warn($"Папка не создана {maskFiles} : {err.Message}"); }
             }
             else
             {
@@ -5019,11 +5052,10 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                     {
                         try
                         {
-                            logger.Trace($"file: {file.FullName}");
                             file.Delete();
                             logger.Trace($"Удален файл: {file.FullName}");
                         }
-                        catch (Exception e) { logger.Warn($"Файл '{file.Name}'не удален из-за ошибки: {e.Message}"); }
+                        catch (Exception err) { logger.Warn($"Файл не удален '{file.Name}' : {err.Message}"); }
                     }
                 }
             }
@@ -9878,6 +9910,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
 
             //Make an archive with the currrent app's version
             MakeZip(appAllFiles, fileNameToUpdateZip);
+            ClearItemsInFolder(appFolderTempPath); 
 
             //Make MD5 of ZIP archive
             appFileMD5 = CalculateHash(fileNameToUpdateZip);

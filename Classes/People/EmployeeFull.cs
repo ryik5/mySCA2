@@ -16,7 +16,7 @@
         public string Shift { get; set; }//= ""   /* персональный график*/
         public string Comment { get; set; }//= ""
 
-        public new EmployeeFull Get() { return this; }
+       // public new EmployeeFull Get() { return this; }
         public override string ToString()
         {
             return $"{idCard}\t{fio}\t{Code}\t{Department}\t{DepartmentId}\t{DepartmentBossCode}\t" +
