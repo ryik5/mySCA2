@@ -9,14 +9,14 @@ namespace ASTA.Classes
     /// <summary>
     /// DB Connector to Table 'Protocol' of DB 'Intellect'
     /// </summary>
-    public class ProtocolConnector : DbContext
+    public class BadgeRegistrationDbConnector : DbContext
     {
         public DbSet<Protocol> ProtocolObjects { get; set; }
         public DbSet<Person> PersonObjects { get; set; }
 
-        public ProtocolConnector(string connection) : base(connection) //connection;//"Server=(localdb)\\mssqllocaldb;Database=helloappdb;Trusted_Connection=True;"
+        public BadgeRegistrationDbConnector(string connection) : base(connection) //connection;//"Server=(localdb)\\mssqllocaldb;Database=helloappdb;Trusted_Connection=True;"
         {
-            Database.SetInitializer<ProtocolConnector>(null);
+            Database.SetInitializer<BadgeRegistrationDbConnector>(null);
         }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)

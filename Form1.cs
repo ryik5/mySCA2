@@ -3289,8 +3289,6 @@ namespace ASTA
 
             List<Visitor> visitors = new List<Visitor>();
             bool startTimeNotSet = true;
-            SideOfPassagePoint sideOfPassagePoint;
-            string time, date, fio, action, action_descr, fac, card, idCardDescr;
             int idCard = 0;
             /*
                         string query = "SELECT p.param0 as param0, p.param1 as param1, p.objid as objid, p.objtype, p.action as action, " +
@@ -3306,7 +3304,7 @@ namespace ASTA
 
                         logger.Trace($"query: {query}");*/
 
-            using (ProtocolConnector db = new ProtocolConnector(sqlConnectionString))
+            using (BadgeRegistrationDbConnector db = new BadgeRegistrationDbConnector(sqlConnectionString))
             {
                 DateTime dtStart = DateTime.Parse(startDay + " " + startTime);
                 DateTime dtEnd = DateTime.Parse(endDay + " " + endTime);
@@ -3336,20 +3334,20 @@ namespace ASTA
                 var RegisteredAction = db.ProtocolObjects
                     .Join(
                         db.PersonObjects,
-                        registeredAction => registeredAction.IdCard,
-                        libraryUsers => libraryUsers.id,
-                        (registeredAction, libraryUsers) => new
-                        {
-                            registeredAction.FIO,
-                            registeredAction.IdCard,
-                            registeredAction.ActionDate,
-                            registeredAction.ActionTime,
-                            registeredAction.ActionDescr,
-                            registeredAction.ActionType,
-                            registeredAction.PointName,
-                            libraryUsers.facility_code,
-                            libraryUsers.card
-                        }
+                        action => action.IdCard,
+                        user => user.id,
+                        (action, user) => new
+                            {
+                            action.FIO,
+                            action.IdCard,
+                            action.ActionDate,
+                            action.ActionTime,
+                            action.ActionDescr,
+                            action.ActionType,
+                            action.PointName,
+                            user.facility_code,
+                            user.card
+                            }
                         )
                     .Where(x => x.ActionDate > dtStart)
                     .Where(x => x.ActionDate <= dtEnd)
@@ -3359,6 +3357,9 @@ namespace ASTA
 
                 foreach (var v in RegisteredAction)
                 {
+                    SideOfPassagePoint sideOfPassagePoint;
+                    string time, date, fio, action, action_descr, fac, card, idCardDescr;
+
                     if (v != null)
                     {
                         date = v.ActionDate?.ToString()?.Split(' ')[0];
