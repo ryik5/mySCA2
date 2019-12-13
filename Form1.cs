@@ -1381,7 +1381,7 @@ namespace ASTA
         private void CheckAliveIntellectServer(string serverName, string connectDB, string queryCheckDb) //Check alive the SKD Intellect-server and its DB's 'intellect'
         {
             //stop checking last registrations
-            checkInputsOutputs = false;
+            checkBadgeRegistrations = false;
 
             stimerCurr = $"Проверка доступности {serverName}. Ждите окончания процесса...";
             bServer1Exist = false;
@@ -1561,7 +1561,7 @@ namespace ASTA
                 if (currentAction != "sendEmail")
                 { SetStatusLabelText(StatusLabel2, "Записываю ФИО в локальную базу..."); }
 
-                WritePeopleInLocalDB(dbApplication.ToString(), dtTempIntermediate);
+                WritePeopleInLocalDB(dtTempIntermediate);
 
                 if (currentAction != "sendEmail")
                 {
@@ -2915,8 +2915,8 @@ namespace ASTA
             HashSet<Department> departmentsUniq = new HashSet<Department>();
 
             ImportTextToTable(dtPersonTemp, ref departmentsUniq);
-            WritePeopleInLocalDB(dbApplication.ToString(), dtPersonTemp);
-            ImportListGroupsDescriptionInLocalDB(dbApplication.ToString(), departmentsUniq);
+            WritePeopleInLocalDB(dtPersonTemp);
+            ImportListGroupsDescriptionInLocalDB(departmentsUniq);
             departmentsUniq = null;
         }
 
@@ -2990,7 +2990,7 @@ namespace ASTA
         }
 
         //Write people in local DB
-        private void WritePeopleInLocalDB(string pathToPersonDB, DataTable dtSource) //use listGroups /add reserv1 reserv2
+        private void WritePeopleInLocalDB(DataTable dtSource) //use listGroups /add reserv1 reserv2
         {
             logger.Trace($"{nameof(WritePeopleInLocalDB)}: table - {dtSource}, row - {dtSource.Rows.Count}");
 
@@ -3065,7 +3065,7 @@ namespace ASTA
             logger.Info("Записано ФИО: " + countUsers);
         }
 
-        private void ImportListGroupsDescriptionInLocalDB(string pathToPersonDB, HashSet<Department> departmentsUniq) //use listGroups
+        private void ImportListGroupsDescriptionInLocalDB(HashSet<Department> departmentsUniq) //use listGroups
         {
             logger.Trace($"-= {nameof(ImportListGroupsDescriptionInLocalDB)} =-");
 
@@ -3138,7 +3138,7 @@ namespace ASTA
             AddVisitorsAtDataGridView(visitors);
         }
 
-        private async void LoadLastIputsOutputs_Click(object sender, EventArgs e) //LoadInputsOutputsOfVisitors()
+        private async void LoadLastBadgeRegistrationsItem_Click(object sender, EventArgs e) //LoadBadgeRegistrations()
         {
             //how many times continiously to check registrations at the server
             int timesCheckingRegistration = 10;
@@ -3148,12 +3148,12 @@ namespace ASTA
             _selectedEmployeeVisitor = null;
 
             // status of repeatedly loading of registrations cards from server
-            checkInputsOutputs = false;
+            checkBadgeRegistrations = false;
 
-            await Task.Run(() => LoadInputsOutputsOfVisitors(DateTime.Now.ToYYYYMMDD(), DateTime.Now.ToYYYYMMDD(), timesCheckingRegistration));
+            await Task.Run(() => LoadBadgeRegistrations(DateTime.Now.ToYYYYMMDD(), DateTime.Now.ToYYYYMMDD(), timesCheckingRegistration));
         }
 
-        private async void LoadInputsOutputsItem_Click(object sender, EventArgs e)
+        private async void LoadBadgeRegistrationsItem_Click(object sender, EventArgs e)
         {
             //how many times continiously to check registrations at the server
             int timesCheckingRegistration = 1;
@@ -3163,15 +3163,15 @@ namespace ASTA
             _selectedEmployeeVisitor = null;
 
             //status of repeatedly loading of registrations cards from server
-            checkInputsOutputs = false;
+            checkBadgeRegistrations = false;
 
             string dayStart = ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD();
             string dayEnd = ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD();
 
-            await Task.Run(() => LoadInputsOutputsOfVisitors(dayStart, dayEnd, timesCheckingRegistration));
+            await Task.Run(() => LoadBadgeRegistrations(dayStart, dayEnd, timesCheckingRegistration));
         }
 
-        private async void LoadLastIputsOutputs_Update_Click(object sender, EventArgs e) //LoadInputsOutputsOfVisitors()
+        private async void LoadLastIputsOutputs_Update_Click(object sender, EventArgs e) //LoadBadgeRegistrations()
         {
             //how many times continiously to check registrations at the server
             int timesCheckingRegistration = 10;
@@ -3181,7 +3181,7 @@ namespace ASTA
             _paintedEmployeeVisitor = null;
 
             //status of repeatedly loading of registrations cards from server
-            checkInputsOutputs = false;
+            checkBadgeRegistrations = false;
 
             string dayStart = ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD();
             string dayEnd = ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD();
@@ -3189,7 +3189,7 @@ namespace ASTA
             if (DateTime.Now.ToYYYYMMDD() != dayStart)
             { timesCheckingRegistration = 1; }
 
-            await Task.Run(() => LoadInputsOutputsOfVisitors(dayStart, dayEnd, timesCheckingRegistration));
+            await Task.Run(() => LoadBadgeRegistrations(dayStart, dayEnd, timesCheckingRegistration));
         }
 
         private static Visitors visitors = new Visitors();
@@ -3201,14 +3201,14 @@ namespace ASTA
         private static readonly object lockerToShowData = new object();
 
         //status of repeatedly loading of registrations cards from server
-        private static bool checkInputsOutputs = true;
+        private static bool checkBadgeRegistrations = true;
 
         //Timer for waiting next loading
         private IStartStopTimer startStopTimer;
 
-        private void LoadInputsOutputsOfVisitors(string startDay, string endDay, int timesChecking)
+        private void LoadBadgeRegistrations(string startDay, string endDay, int timesChecking)
         {
-            logger.Trace($"-= {nameof(LoadInputsOutputsOfVisitors)} =-");
+            logger.Trace($"-= {nameof(LoadBadgeRegistrations)} =-");
 
             CheckAliveIntellectServer(sServer1, sqlConnectionString, queryCheckSystemDdSCA);
 
@@ -3225,7 +3225,7 @@ namespace ASTA
                 //subscribe on action of changed data in collection of visitors
                 visitors.collection.CollectionChanged += VisitorsCollectionChanged;
 
-                checkInputsOutputs = true;
+                checkBadgeRegistrations = true;
                 firstStage = true;
                 startStopTimer = new StartStopTimer(15);
 
@@ -3238,7 +3238,7 @@ namespace ASTA
                         visitorsTillNow = new List<Visitor>();
                         dgvo.Show(dataGridView1, false);
 
-                        logger.Trace("LoadInputsOutputsOfVisitors: " + startDay + " " + startTime + " - " + endDay + " " + endTime);
+                        logger.Trace($"start-end: {startDay} {startTime} - {endDay} {endTime}");
 
                         visitorsTillNow = GetInputsOutputs(ref startDay, ref startTime, ref endDay, ref endTime);
                         if (firstStage)
@@ -3263,14 +3263,14 @@ namespace ASTA
                     timesChecking--;
                     if (timesChecking <= 0)
                     {
-                        checkInputsOutputs = false;
+                        checkBadgeRegistrations = false;
                     }
                     else
                     {
                         SetStatusLabelText(StatusLabel2, $"Загружены данные о регистрации пропусков до: {startDay} {startTime}");
                         startStopTimer.WaitTime();
                     }
-                } while (checkInputsOutputs);
+                } while (checkBadgeRegistrations);
 
                 visitors.collection.CollectionChanged -= VisitorsCollectionChanged;
                 SetStatusLabelText(StatusLabel2, $"Сбор данных регистрации пропусков за {startDay} завершен");
@@ -3337,7 +3337,7 @@ namespace ASTA
                         action => action.IdCard,
                         user => user.id,
                         (action, user) => new
-                            {
+                        {
                             action.FIO,
                             action.IdCard,
                             action.ActionDate,
@@ -3347,7 +3347,7 @@ namespace ASTA
                             action.PointName,
                             user.facility_code,
                             user.card
-                            }
+                        }
                         )
                     .Where(x => x.ActionDate > dtStart)
                     .Where(x => x.ActionDate <= dtEnd)
@@ -3469,7 +3469,7 @@ namespace ASTA
         private void VisitorsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             if (nameOfLastTable != "LastIputsOutputs")//Visitor selected=null
-            { checkInputsOutputs = false; }
+            { checkBadgeRegistrations = false; }
 
             lock (lockerToShowData)
             { AddVisitorsAtDataGridView(visitors, _selectedEmployeeVisitor); }
@@ -4366,8 +4366,8 @@ namespace ASTA
             HashSet<string> hsDays = new HashSet<string>();
             DataTable dtAllRegistrationsInSelectedDay = dataTableSource.Clone(); //All registrations in the selected day
 
-            int firstRegistrationInDay;
-            int lastRegistrationInDay;
+            int firstBadgeRegistrationInDay;
+            int lastBadgeRegistrationInDay;
             int workedSeconds = 0;
             string exceptReason = "";
 
@@ -4389,38 +4389,38 @@ namespace ASTA
                         rowDtStoring[Names.DAY_OF_WEEK] = DayOfWeekRussian(DateTime.Parse(workedDay).DayOfWeek.ToString());
 
                         //find first registration within the during selected workedDay
-                        firstRegistrationInDay = Convert.ToInt32(dtAllRegistrationsInSelectedDay.Compute("MIN([Время регистрации])", string.Empty));
+                        firstBadgeRegistrationInDay = Convert.ToInt32(dtAllRegistrationsInSelectedDay.Compute("MIN([Время регистрации])", string.Empty));
 
                         //find last registration within the during selected workedDay
-                        lastRegistrationInDay = Convert.ToInt32(dtAllRegistrationsInSelectedDay.Compute("MAX([Время регистрации])", string.Empty));
+                        lastBadgeRegistrationInDay = Convert.ToInt32(dtAllRegistrationsInSelectedDay.Compute("MAX([Время регистрации])", string.Empty));
 
                         //take and convert a real time coming into a string timearray
-                        rowDtStoring[Names.TIME_REGISTRATION] = firstRegistrationInDay;              //("Время регистрации", typeof(decimal)), //15
-                        rowDtStoring[Names.REAL_TIME_IN] = firstRegistrationInDay.ConvertSecondsToStringHHMMSS();  //("Фактич. время прихода ЧЧ:ММ:СС", typeof(string)),//24
+                        rowDtStoring[Names.TIME_REGISTRATION] = firstBadgeRegistrationInDay;              //("Время регистрации", typeof(decimal)), //15
+                        rowDtStoring[Names.REAL_TIME_IN] = firstBadgeRegistrationInDay.ConvertSecondsToStringHHMMSS();  //("Фактич. время прихода ЧЧ:ММ:СС", typeof(string)),//24
 
                         // rowDtStoring[@"Реальное время ухода"] = lastRegistrationInDay;                 //("Реальное время ухода", typeof(decimal)), //18
-                        rowDtStoring[Names.REAL_TIME_OUT] = lastRegistrationInDay.ConvertSecondsToStringHHMMSS();     //("Фактич. время ухода ЧЧ:ММ", typeof(string)), //25
+                        rowDtStoring[Names.REAL_TIME_OUT] = lastBadgeRegistrationInDay.ConvertSecondsToStringHHMMSS();     //("Фактич. время ухода ЧЧ:ММ", typeof(string)), //25
 
                         //worked out times
-                        workedSeconds = lastRegistrationInDay - firstRegistrationInDay;
+                        workedSeconds = lastBadgeRegistrationInDay - firstBadgeRegistrationInDay;
                         rowDtStoring[Names.EMPLOYEE_TIME_SPENT] = workedSeconds;                                  // ("Реальное отработанное время", typeof(decimal)), //26
                         //  rowDtStoring[@"Отработанное время ЧЧ:ММ"] = ConvertSecondsToStringHHMMSS(workedSeconds);  //("Отработанное время ЧЧ:ММ", typeof(string)), //27
-                        logger.Trace("FilterRegistrationsOfPerson: " + person.Code + "| " + rowDtStoring[Names.DATE_REGISTRATION]?.ToString() + " " + firstRegistrationInDay + " - " + lastRegistrationInDay);
+                        logger.Trace("FilterRegistrationsOfPerson: " + person.Code + "| " + rowDtStoring[Names.DATE_REGISTRATION]?.ToString() + " " + firstBadgeRegistrationInDay + " - " + lastBadgeRegistrationInDay);
 
                         //todo
                         //will calculate if day of week different
-                        if (firstRegistrationInDay > (person.ControlInSeconds + offsetTimeIn) && firstRegistrationInDay != 0) // "Опоздание ЧЧ:ММ", typeof(bool)),           //28
+                        if (firstBadgeRegistrationInDay > (person.ControlInSeconds + offsetTimeIn) && firstBadgeRegistrationInDay != 0) // "Опоздание ЧЧ:ММ", typeof(bool)),           //28
                         {
                             if (typeReport == "Полный")
-                            { rowDtStoring[Names.EMPLOYEE_BEING_LATE] = (firstRegistrationInDay - person.ControlInSeconds).ConvertSecondsToStringHHMMSS(); }
+                            { rowDtStoring[Names.EMPLOYEE_BEING_LATE] = (firstBadgeRegistrationInDay - person.ControlInSeconds).ConvertSecondsToStringHHMMSS(); }
                             else if (typeReport == "Упрощенный")
                             { rowDtStoring[Names.EMPLOYEE_BEING_LATE] = "1"; }
                         }
 
-                        if (lastRegistrationInDay < (person.ControlOutSeconds - offsetTimeOut) && lastRegistrationInDay != 0)  // "Ранний уход ЧЧ:ММ", typeof(bool)),                 //29
+                        if (lastBadgeRegistrationInDay < (person.ControlOutSeconds - offsetTimeOut) && lastBadgeRegistrationInDay != 0)  // "Ранний уход ЧЧ:ММ", typeof(bool)),                 //29
                         {
                             if (typeReport == "Полный")
-                            { rowDtStoring[Names.EMPLOYEE_EARLY_DEPARTURE] = (person.ControlOutSeconds - lastRegistrationInDay).ConvertSecondsToStringHHMMSS(); }
+                            { rowDtStoring[Names.EMPLOYEE_EARLY_DEPARTURE] = (person.ControlOutSeconds - lastBadgeRegistrationInDay).ConvertSecondsToStringHHMMSS(); }
                             else if (typeReport == "Упрощенный")
                             { rowDtStoring[Names.EMPLOYEE_EARLY_DEPARTURE] = "1"; }
                         }
@@ -6827,12 +6827,12 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             string dayStart = ReturnDateTimePicker(dateTimePickerStart).ToYYYYMMDD();
             string dayEnd = ReturnDateTimePicker(dateTimePickerEnd).ToYYYYMMDD();
 
-            SetMenuItemText(LoadLastInputsOutputsItem, $"Загрузить все события СКД за сегодня ({ DateTime.Now.ToYYYYMMDD()})");
+            SetMenuItemText(LoadBadgeRegistrationsItem, $"Загрузить все события СКД за сегодня ({ DateTime.Now.ToYYYYMMDD()})");
 
             if (dayStart != dayEnd)
-                SetMenuItemText(LoadInputsOutputsItem, $"Загрузить все события СКД с {dayStart} по {dayEnd}");
+                SetMenuItemText(LoadBadgeRegistrationsItem, $"Загрузить все события СКД с {dayStart} по {dayEnd}");
             else
-                SetMenuItemText(LoadInputsOutputsItem, $"Загрузить все события СКД за {dayStart}");
+                SetMenuItemText(LoadBadgeRegistrationsItem, $"Загрузить все события СКД за {dayStart}");
         }
 
         private void PersonOrGroupItem_Click(object sender, EventArgs e) //PersonOrGroup()

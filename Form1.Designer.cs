@@ -108,8 +108,8 @@
             this.listFioItem = new System.Windows.Forms.ToolStripMenuItem();
             this.Separator9 = new System.Windows.Forms.ToolStripSeparator();
             this.LoadDataItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.LoadLastInputsOutputsItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.LoadInputsOutputsItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.LoadLastBadgeRegistrationsItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.LoadBadgeRegistrationsItem = new System.Windows.Forms.ToolStripMenuItem();
             this.Separator10 = new System.Windows.Forms.ToolStripSeparator();
             this.TableExportToExcelItem = new System.Windows.Forms.ToolStripMenuItem();
             this.TableModeItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -432,8 +432,8 @@
             this.listFioItem,
             this.Separator9,
             this.LoadDataItem,
-            this.LoadLastInputsOutputsItem,
-            this.LoadInputsOutputsItem,
+            this.LoadLastBadgeRegistrationsItem,
+            this.LoadBadgeRegistrationsItem,
             this.Separator10,
             this.TableExportToExcelItem,
             this.TableModeItem,
@@ -472,17 +472,17 @@
             resources.ApplyResources(this.LoadDataItem, "LoadDataItem");
             this.LoadDataItem.Click += new System.EventHandler(this.GetDataOfGroup_Click);
             // 
-            // LoadLastInputsOutputsItem
+            // LoadLastBadgeRegistrationsItem
             // 
-            this.LoadLastInputsOutputsItem.Name = "LoadLastInputsOutputsItem";
-            resources.ApplyResources(this.LoadLastInputsOutputsItem, "LoadLastInputsOutputsItem");
-            this.LoadLastInputsOutputsItem.Click += new System.EventHandler(this.LoadLastIputsOutputs_Click);
+            this.LoadLastBadgeRegistrationsItem.Name = "LoadLastBadgeRegistrationsItem";
+            resources.ApplyResources(this.LoadLastBadgeRegistrationsItem, "LoadLastBadgeRegistrationsItem");
+            this.LoadLastBadgeRegistrationsItem.Click += new System.EventHandler(this.LoadLastBadgeRegistrationsItem_Click);
+            //  
+            // LoadInputsOutputsItem  
             // 
-            // LoadInputsOutputsItem
-            // 
-            this.LoadInputsOutputsItem.Name = "LoadInputsOutputsItem";
-            resources.ApplyResources(this.LoadInputsOutputsItem, "LoadInputsOutputsItem");
-            this.LoadInputsOutputsItem.Click += new System.EventHandler(this.LoadInputsOutputsItem_Click);
+            this.LoadBadgeRegistrationsItem.Name = "LoadBadgeRegistrationsItem";
+            resources.ApplyResources(this.LoadBadgeRegistrationsItem, "LoadBadgeRegistrationsItem");
+            this.LoadBadgeRegistrationsItem.Click += new System.EventHandler(this.LoadBadgeRegistrationsItem_Click);
             // 
             // Separator10
             // 
@@ -1035,8 +1035,8 @@
         private System.Windows.Forms.ToolStripMenuItem ConfigurationItem;
         private System.Windows.Forms.ToolStripMenuItem GetADUsersItem;
         private System.Windows.Forms.ToolStripMenuItem AddParameterInConfigItem;
-        private System.Windows.Forms.ToolStripMenuItem LoadLastInputsOutputsItem;
-        private System.Windows.Forms.ToolStripMenuItem LoadInputsOutputsItem;
+        private System.Windows.Forms.ToolStripMenuItem LoadLastBadgeRegistrationsItem;
+        private System.Windows.Forms.ToolStripMenuItem LoadBadgeRegistrationsItem;
         private System.Windows.Forms.ToolStripMenuItem GetCurrentSchemeItem;
         private System.Windows.Forms.ToolStripMenuItem CreateDBItem;
         private System.Windows.Forms.ToolStripMenuItem UpdateItem;
