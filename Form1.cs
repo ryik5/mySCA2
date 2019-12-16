@@ -1634,7 +1634,16 @@ namespace ASTA
                 // import users and group from SCA server
                 using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlConnectionString))
                 {
-                    query = "SELECT id,level_id,name,owner_id,parent_id,region_id,schedule_id FROM OBJ_DEPARTMENT";
+                    /*
+use intellect
+go
+CREATE NONCLUSTERED INDEX ix_trackingDEPARTMENT
+ON dbo.OBJ_DEPARTMENT(id)
+INCLUDE (name)
+GO
+*/
+                    // query = "SELECT id,level_id,name,owner_id,parent_id,region_id,schedule_id FROM OBJ_DEPARTMENT";
+                    query = "SELECT id,name FROM OBJ_DEPARTMENT";
                     AddLoggerTraceText($"from SCA server, query: {query}");
                     sqlDbTableReader.Status += AddLoggerTraceText;
 
@@ -1663,6 +1672,15 @@ namespace ASTA
                 //import users from с SCA server
                 using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlConnectionString))
                 {
+                    /*
+use intellect
+go
+CREATE NONCLUSTERED INDEX ix_trackingperson1
+ON dbo.OBJ_PERSON(is_locked)
+INCLUDE (id, name, surname, patronymic, post, tabnum, parent_id, facility_code, card)
+WHERE is_locked in ('0') AND facility_code <>'' AND card <>'';
+GO
+*/
                     query = "SELECT id, name, surname, patronymic, post, tabnum, parent_id, facility_code, card FROM OBJ_PERSON WHERE is_locked = '0' AND facility_code NOT LIKE '' AND card NOT LIKE '' ";
                     AddLoggerTraceText($"query: {query}");
                     sqlDbTableReader.Status += AddLoggerTraceText;
@@ -3110,6 +3128,14 @@ namespace ASTA
             using (SqlDbReader sqlDbTableReader = new SqlDbReader(sqlConnectionString))
             using (System.Data.SqlClient.SqlDataReader sqlData = sqlDbTableReader.GetData(query))
             {
+                /*
+ use intellect
+go
+CREATE NONCLUSTERED INDEX ix_trackingdreader
+ON dbo.OBJ_ABC_ARC_READER(id)
+INCLUDE (name)
+GO
+*/
                 foreach (DbDataRecord record in sqlData)
                 {
                     namePoint = record?["name"]?.ToString()?.Trim();
@@ -3303,7 +3329,15 @@ namespace ASTA
                         " ORDER BY date DESC, time DESC;"; //sorting
 
                         logger.Trace($"query: {query}");*/
-
+            /*
+             use intellect
+go
+CREATE NONCLUSTERED INDEX ix_trackingprotocol
+ON dbo.protocol(date desc)
+INCLUDE (time,param0,param1,objid,objtype,action)
+WHERE objtype in ('ABC_ARC_READER');
+GO
+*/
             using (BadgeRegistrationDbConnector db = new BadgeRegistrationDbConnector(sqlConnectionString))
             {
                 DateTime dtStart = DateTime.Parse(startDay + " " + startTime);
@@ -3813,6 +3847,14 @@ namespace ASTA
             //look for a NAV and an idCard
             try
             {
+                /* //create INDEX
+use intellect
+go
+CREATE NONCLUSTERED INDEX ix_trackingdepartment
+ON dbo.OBJ_PERSON(tabnum ASC)
+INCLUDE (id)
+GO
+*/
                 //list of users id and their id cards
                 query = "Select id, tabnum FROM OBJ_PERSON where tabnum like '" + person.Code + "';";
                 logger.Trace(query);
@@ -3832,6 +3874,15 @@ namespace ASTA
                     }
                 }
 
+                /* //create INDEX
+use intellect
+go
+CREATE NONCLUSTERED INDEX ix_trackingprotocol
+ON dbo.protocol(date DESC)
+INCLUDE (time,param0,param1,objid,objtype,action)
+WHERE objtype in ('ABC_ARC_READER');
+GO
+*/
                 // Passes By Points
                 query = "SELECT p.param0 as param0, p.param1 as param1, p.objid as objid, p.objtype, p.action as action, " +
                        " pe.tabnum as nav, pe.facility_code as fac, pe.card as card, " +
