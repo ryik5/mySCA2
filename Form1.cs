@@ -3551,6 +3551,8 @@ namespace ASTA
 
             nameOfLastTable = @"ListFIO";
 
+            logger.Info($"Получена задача по загрузке регистрациий пропусков группы: '{group}' за {ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()}");
+
             LoadIdCardRegistrations(group);
         }
 
@@ -7216,11 +7218,11 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                                 { recepient = cellValue[2]; }
                                 else if (mailSenderAddress?.Length > 0)
                                 { recepient = mailSenderAddress; }
-
+                                
                                 mRightClick.MenuItems.Add(new MenuItem(
                                     text: $"Загрузить регистрации пропусков группы: '{cellValue[1]}' за {ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()}",
                                     onClick: GetDataOfGroup_Click));
-
+                                
                                 mRightClick.MenuItems.Add(new MenuItem(
                                     text: $"Загрузить регистрации пропусков группы: '{cellValue[1]}' за {ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()} и подготовить отчет",
                                     onClick: DoReportByRightClick));
@@ -7560,7 +7562,8 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 Names.RECEPIENTS_OF_REPORTS
             });
             resultOfSendingReports = new List<Mailing>();
-            logger.Trace("DoReportAndEmailByRightClick");
+
+         logger.Info($"Получена задача по загрузке регистрациий пропусков и подготовки отчета по группе: '{cellValue[0]}' за {ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()} и отправке {cellValue[2]}");
 
             SetStatusLabelText(StatusLabel2, $"Готовлю отчет по группе {cellValue[0]}");
             nameOfLastTable = "Mailing";
@@ -7608,7 +7611,7 @@ System.IO.SearchOption.AllDirectories); //get files from dir
         private void DoReportByRightClick()
         {
             logger.Trace($"-= {nameof(DoReportByRightClick)} =-");
-
+            
             string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                 Names.GROUP,
                 Names.GROUP_DECRIPTION,
@@ -7616,7 +7619,8 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             });
 
             SetStatusLabelText(StatusLabel2, $"Готовлю отчет по группе {cellValue[0]}");
-            logger.Trace("DoReportByRightClick: " + cellValue[0]);
+
+            logger.Info($"Получена задача по загрузке регистрациий пропусков и подготовке отчета по группе: '{cellValue[0]}' за {ReturnDateTimePicker(dateTimePickerStart).ToMonthNameAndYear()}");
 
             resultOfSendingReports = new List<Mailing>();
 
@@ -7929,6 +7933,8 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                             Names.GROUP
                         });
 
+                        logger.Info($"Удалена группа: '{cellValue[0]}'");
+
                         DeleteDataTableQueryParameters(dbApplication, "PeopleGroup", "GroupPerson", cellValue[0], "", "", "", "").GetAwaiter().GetResult();
                         DeleteDataTableQueryParameters(dbApplication, "PeopleGroupDescription", "GroupPerson", cellValue[0], "", "", "", "").GetAwaiter().GetResult();
 
@@ -7947,6 +7953,9 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                         string[] cellValue = dgvo.FindValuesInCurrentRow(dataGridView1, new string[] {
                             Names.CODE,
                             Names.GROUP });
+
+                        logger.Info($"Удалена группа: '{cellValue[1]}'");
+                        
                         DeleteDataTableQueryParameters(dbApplication, "PeopleGroup", "GroupPerson", cellValue[1], "NAV", cellValue[0], "", "").GetAwaiter().GetResult();
 
                         if (indexCurrentRow > 2)
@@ -7975,6 +7984,8 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                             "GroupsReport", cellValue[3],
                             "TypeReport", cellValue[5],
                             "Period", cellValue[4]).GetAwaiter().GetResult();
+
+                        logger.Info($"Удалена рассылка: '{cellValue[1]}' по группе '{cellValue[3]}' за '{cellValue[4]}'");
 
                         ShowDataTableDbQuery(dbApplication, "Mailing", "SELECT RecipientEmail AS 'Получатель', GroupsReport AS 'Отчет по группам', NameReport AS 'Наименование', " +
                         "Description AS 'Описание', Period AS 'Период', TypeReport AS 'Тип отчета', DayReport AS 'День отправки отчета', " +
@@ -8647,8 +8658,8 @@ System.IO.SearchOption.AllDirectories); //get files from dir
                 _status = statusOfSentEmail
             });
 
-            stimerPrev = "отчет " + to + " отправлен " + statusOfSentEmail;
-            logger.Info("SendStandartReport: " + statusOfSentEmail);
+            stimerPrev = $"отчет {to} отправлен {statusOfSentEmail}";
+            logger.Info($"{nameof(SendReport)}: стандартный отчет по '{department}' {period} для отправлен - {statusOfSentEmail}");
         }
 
         private static void MakeByteLogo(Bitmap logo)
@@ -8715,15 +8726,14 @@ System.IO.SearchOption.AllDirectories); //get files from dir
             logger.Trace($"-= {nameof(SendReport)} =-");
 
             string period = DateTime.Now.ToYYYYMMDD();
-            string subject = $"Результат отправки отчетов за {period}";
-            MailUser _to = new MailUser(mailJobReportsOfNameOfReceiver.Split('@')[0], mailJobReportsOfNameOfReceiver);
+            string subject = $"Результат отправки отчетов {period}";
+            MailUser to = new MailUser(mailJobReportsOfNameOfReceiver.Split('@')[0], mailJobReportsOfNameOfReceiver);
 
             BodyBuilder builder = BuildMessage(period, resultOfSendingReports);
-            string statusOfSentEmail = SendEmailAsync(_mailServer, _mailUser, _to, subject, builder);
-
-            logger.Trace($"Try to send, From: {mailSenderAddress}| To:{mailJobReportsOfNameOfReceiver}| {period}");
-            logger.Info($"SendAdminReport: {statusOfSentEmail}");
-            stimerPrev = $"Административный отчет отправлен {statusOfSentEmail}";
+            string statusOfSentEmail = SendEmailAsync(_mailServer, _mailUser, to, subject, builder);
+           
+            stimerPrev = $"административный отчет {mailJobReportsOfNameOfReceiver} отправлен {statusOfSentEmail}";
+            logger.Info($"{nameof(SendReport)}: административный отчет {period} для {mailJobReportsOfNameOfReceiver} отправлен - {statusOfSentEmail}");
         }
 
         private static BodyBuilder BuildMessage(string period, List<Mailing> reportOfResultSending)
