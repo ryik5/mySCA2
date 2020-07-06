@@ -224,7 +224,7 @@ namespace ASTA.Classes
 
         private void CheckDB(string dbConnectionString, System.IO.FileInfo dbFileInfo)
         {
-            if (!(dbFileInfo?.Length > 0))
+            if (!(dbFileInfo?.Name?.Length > 0))
                 throw new System.ArgumentException("dbFileInfo cannot be null!");
 
             if (!dbFileInfo.Exists)
