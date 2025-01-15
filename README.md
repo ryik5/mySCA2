@@ -1,5 +1,4 @@
-﻿# ASTA
- (come in/ come out personal report generator)
+﻿# ASTA - analysis of staff time accounting (data collection and analysis of staff time records come in\come out)
 
 It is maintained by [@ryik5](https://github.com/ryik5).
 
